@@ -6,7 +6,11 @@ package org.jetbrains.amper.dependency.resolution
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
@@ -55,6 +59,7 @@ import java.net.http.HttpClient.Version
 import java.net.http.HttpRequest
 import java.net.http.HttpRequest.Builder
 import java.net.http.HttpResponse
+import java.net.http.HttpResponse.BodyHandler
 import java.net.http.HttpResponse.BodyHandlers
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
@@ -91,6 +96,9 @@ import kotlin.time.toKotlinInstant
 private val logger = LoggerFactory.getLogger("dr/files.kt")
 
 private val downloadSemaphore = Semaphore(10)
+
+// HEAD requests are separately limited, so that they don't interfere with downloads.
+private val headSemaphore = Semaphore(10)
 
 /**
  * Provides mapping between [MavenDependency] and a location on disk.
@@ -554,10 +562,9 @@ open class DependencyFileImpl(
                         // resolved from Gradle metadata is invalid (a pretty rare case though).
                         // In this case, we should take actual checksum downloaded from the external repository
                         // and perform one more downloading attempt.
-                        val expectedHashIgnoringMetadata = getExpectedHash(
-                            diagnosticsReporter, ResolutionLevel.NETWORK, false
-                        )
-                            ?: downloadHash(repositories, progress, cache, spanBuilderSource, diagnosticsReporter)
+                        val expectedHashIgnoringMetadata =
+                            getExpectedHash(diagnosticsReporter, ResolutionLevel.NETWORK, searchInMetadata = false)
+                                ?: downloadHash(repositories, progress, cache, spanBuilderSource, diagnosticsReporter)
                         if (expectedHashIgnoringMetadata != null && expectedHashIgnoringMetadata.hash != expectedHash.hash) {
                             // Expected checksum was taken from metadata on the previous download attempt, not from the checksum file.
                             // Trying to download the artifact one more time with the checksum downloaded from the remote repository.
@@ -891,8 +898,8 @@ open class DependencyFileImpl(
 
     /**
      * Downloads hash from one of the specified repositories.
-     * It tries to download sha512 checksum from all provided repositories, the first found is returned.
-     * If nothing is found, then it tries sha256, sha1 and then md5 consequently.
+     * Repositories are tried one by one, and in each of them sha512 checksum is tried first, then sha256, sha1 and md5.
+     * All checksums are taken from the same repository as the artifact itself, so they describe the same file.
      */
     private suspend fun downloadHash(
         repositories: List<MavenRepository>,
@@ -901,18 +908,14 @@ open class DependencyFileImpl(
         spanBuilderSource: SpanBuilderSource,
         diagnosticsReporter: DiagnosticReporter,
     ): Hash? {
-        val hashers = createHashers()
-
         val nestedDownloadReporter = CollectingDiagnosticReporter()
 
-        // Try to download hash from given repositories
-        for (hasher in hashers) {
-            val algorithm = hasher.algorithm
-            val validRepositories = repositories.filter { !hasher.isWellKnownBrokenHashIn(it.url) }
-            val expectedHash =
-                downloadHash(algorithm, validRepositories, progress, cache, spanBuilderSource, nestedDownloadReporter)
+        for (repository in repositories) {
+            val expectedHash = downloadHashUnlessArtifactIsMissing(
+                repository, progress, cache, spanBuilderSource, nestedDownloadReporter
+            )
             if (expectedHash != null) {
-                return SimpleHash(hash = expectedHash, algorithm = algorithm)
+                return expectedHash
             }
         }
 
@@ -929,9 +932,57 @@ open class DependencyFileImpl(
         return null
     }
 
-    private fun Hash.isWellKnownBrokenHashIn(repository: String): Boolean {
+    /**
+     * Downloads hash from the given [repository], checking in parallel whether the repository has the artifact at all.
+     * If it doesn't, there is no point in waiting for its checksums, and `null` is returned right away.
+     */
+    private suspend fun downloadHashUnlessArtifactIsMissing(
+        repository: MavenRepository,
+        progress: Progress,
+        cache: Cache,
+        spanBuilderSource: SpanBuilderSource,
+        diagnosticsReporter: DiagnosticReporter,
+    ): Hash? = coroutineScope {
+        val downloadHashTask = async {
+            downloadHash(repository, progress, cache, spanBuilderSource, diagnosticsReporter)
+        }
+        val headTask = launch {
+            if (head(repository, progress, cache, spanBuilderSource) == false) {
+                downloadHashTask.cancel()
+            }
+        }
+
+        try {
+            downloadHashTask.await()
+        } catch (e: CancellationException) {
+            // Only the cancellation of the checksum download means that the artifact is missing,
+            // the cancellation of the caller should be propagated.
+            ensureActive()
+            null
+        } finally {
+            headTask.cancel()
+        }
+    }
+
+    /**
+     * Downloads hash from the given [repository], trying sha512 checksum first, then sha256, sha1 and md5.
+     */
+    private suspend fun downloadHash(
+        repository: MavenRepository,
+        progress: Progress,
+        cache: Cache,
+        spanBuilderSource: SpanBuilderSource,
+        diagnosticsReporter: DiagnosticReporter,
+    ): Hash? = hashAlgorithms
+        .filterNot { it.isWellKnownBrokenIn(repository.url) }
+        .firstNotNullOfOrNull { algorithm ->
+            downloadHash(algorithm, repository, progress, cache, spanBuilderSource, diagnosticsReporter)
+                ?.let { SimpleHash(hash = it, algorithm = algorithm) }
+        }
+
+    private fun HashAlgorithm.isWellKnownBrokenIn(repository: String): Boolean {
         if (repository == "https://plugins.gradle.org/m2/") {
-            return algorithm.name == "sha512" || algorithm.name == "sha256"
+            return name == "sha512" || name == "sha256"
         }
 
         return false
@@ -956,12 +1007,12 @@ open class DependencyFileImpl(
         LocalStorageHashSource.getExpectedHash(this, algorithm, searchInMetadata)
 
     /**
-     * Downloads hash of a particular type from one of the specified repositories.
+     * Downloads hash of a particular type from the specified repository.
      * Returns <code>null</code> if the hash was not found.
      */
     internal suspend fun downloadHash(
         algorithm: HashAlgorithm,
-        repositories: List<MavenRepository>,
+        repository: MavenRepository,
         progress: Progress,
         cache: Cache,
         spanBuilderSource: SpanBuilderSource,
@@ -969,32 +1020,30 @@ open class DependencyFileImpl(
     ): String? {
         val hashFile = getHashDependencyFile(algorithm)
 
-        for (repository in repositories) {
-            // We need to iterate repositories one by one, because some invalid repo could return some invalid response
-            // that will be validated and sanitized, in this case we should try other repositories
-            val expectedHashPath = hashFile.takeIf { it.isDownloadedValidHash() }?.getPath()
-                ?: produceResultWithTempFile(
-                    tempDir = getTempDir(),
-                    targetFileName = hashFile.fileName,
-                ) { tempFilePath, fileChannel ->
-                    hashFile.downloadAndVerifyHash(
-                        fileChannel,
-                        tempFilePath,
-                        listOf(repository),
-                        progress,
-                        cache,
-                        spanBuilderSource,
-                        null,
-                        diagnosticsReporter,
-                    )
-                }
-
-            val hashFromRepository = expectedHashPath?.readTextWithRetry()?.sanitize()
-            if (hashFromRepository != null) {
-                return hashFromRepository
-            } else {
-                expectedHashPath?.deleteIfExistsWithLogging("Successfully deleted invalid checksum file $expectedHashPath")
+        // We need to iterate repositories one by one, because some invalid repo could return some invalid response
+        // that will be validated and sanitized, in this case we should try other repositories
+        val expectedHashPath = hashFile.takeIf { it.isDownloadedValidHash() }?.getPath()
+            ?: produceResultWithTempFile(
+                tempDir = getTempDir(),
+                targetFileName = hashFile.fileName,
+            ) { tempFilePath, fileChannel ->
+                hashFile.downloadAndVerifyHash(
+                    fileChannel,
+                    tempFilePath,
+                    listOf(repository),
+                    progress,
+                    cache,
+                    spanBuilderSource,
+                    null,
+                    diagnosticsReporter,
+                )
             }
+
+        val hashFromRepository = expectedHashPath?.readTextWithRetry()?.sanitize()
+        if (hashFromRepository != null) {
+            return hashFromRepository
+        } else {
+            expectedHashPath?.deleteIfExistsWithLogging("Successfully deleted invalid checksum file $expectedHashPath")
         }
 
         return null
@@ -1014,125 +1063,72 @@ open class DependencyFileImpl(
         cache: Cache,
         spanBuilderSource: SpanBuilderSource,
         diagnosticsReporter: DiagnosticReporter,
-    ): Boolean {
-        logger.trace("Trying to download {} from {}", nameWithoutExtension, repository)
-
-        val client = cache.computeIfAbsent(httpClientKey) { HttpClientProvider.getHttpClient() }
-
-        val url = getUrl(repository, progress, cache, spanBuilderSource, diagnosticsReporter)
-
-        fun getContentLengthHeaderValue(response: HttpResponse<InputStream>): Long? = response.headers()
-            .firstValueAsLong(HttpHeaders.CONTENT_LENGTH)
-            .takeIf { it.isPresent && it.asLong != -1L }?.asLong
-
-        try {
-
-            // todo (AB) : Use exponential retry here
-            return withRetry(
-                retryCount = 3,
-                retryOnException = { e ->
-                    e is IOException
-                }
-            ) { attempt ->
-                spanBuilderSource("downloadAttempt")
-                    .setAttribute("attempt", attempt.toLong())
-                    .setAttribute("url", url)
-                    .use {
-                        val request = HttpRequest.newBuilder()
-                            .uri(URI.create(url))
-                            // User-agent header helps the repository provider to distinguish clients
-                            // and give them a way to contact client authors if they would like to report misuse or any other issue.
-                            // It is explicitly required by Maven Central, see
-                            // https://central.sonatype.org/faq/429-tooling-provider/#identify-your-tool-in-the-user-agent
-                            .header(USER_AGENT, USER_AGENT_VALUE)
-                            .withBasicAuth(repository)
-                            .timeout(Duration.ofMinutes(2))
-                            .GET()
-                            .build()
-
-                        downloadSemaphore.withPermit {
-                            val future = client.sendAsync(request, BodyHandlers.ofInputStream())
-                            val response = future.await()
-
-                            response.body().use { responseBody ->
-                                when (val status = response.statusCode()) {
-                                    200 -> {
-                                        val name = url.substringAfterLast("/")
-                                        val expectedSize = fileFromVariant(dependency, name)?.size
-                                            ?: getContentLengthHeaderValue(response)
-                                        // todo (AB) : It might be useful to use here a dedicated limited dispatcher based on Dispatchers.IO
-                                        val size = responseBody.readTo(writers)
+    ): Boolean = httpRequest(
+        repository, progress, cache, spanBuilderSource, diagnosticsReporter,
+        action = "download",
+        bodyHandler = BodyHandlers.ofInputStream(),
+    ) { response, url ->
+        response.body().use { responseBody ->
+            when (val status = response.statusCode()) {
+                200 -> {
+                    val name = url.substringAfterLast("/")
+                    val expectedSize = fileFromVariant(dependency, name)?.size
+                        ?: response.getContentLengthHeaderValue()
+                    // todo (AB) : It might be useful to use here a dedicated limited dispatcher based on Dispatchers.IO
+                    val size = responseBody.readTo(writers)
 //                                        val size = responseBody.toByteReadChannel().readTo(writers)
 
-                                        val isSuccessfullyDownloaded =
-                                            if (expectedSize != null && size != expectedSize) {
-                                                val sizeFromResponse = getContentLengthHeaderValue(response)
-                                                // If Content-Length is presented and differs from the actual content length, then it is an error
-                                                // Otherwise, it might be an incorrect record in Gradle metadata.
-                                                // That happens, we just report an INFO message and proceed with checksum verification in that case.
-                                                val overrideSeverity =
-                                                    Severity.INFO.takeIf { sizeFromResponse == null || size == sizeFromResponse }
-                                                diagnosticsReporter.addMessage(
-                                                    ContentLengthMismatch.asMessage(
-                                                        url,
-                                                        sizeFromResponse,
-                                                        size,
-                                                        overrideSeverity = overrideSeverity,
-                                                        preventCaching = true,
-                                                    )
-                                                )
+                    val isSuccessfullyDownloaded =
+                        if (expectedSize != null && size != expectedSize) {
+                            val sizeFromResponse = response.getContentLengthHeaderValue()
+                            // If Content-Length is presented and differs from the actual content length, then it is an error
+                            // Otherwise, it might be an incorrect record in Gradle metadata.
+                            // That happens, we just report an INFO message and proceed with checksum verification in that case.
+                            val overrideSeverity =
+                                Severity.INFO.takeIf { sizeFromResponse == null || size == sizeFromResponse }
+                            diagnosticsReporter.addMessage(
+                                ContentLengthMismatch.asMessage(
+                                    url,
+                                    sizeFromResponse,
+                                    size,
+                                    overrideSeverity = overrideSeverity,
+                                    preventCaching = true,
+                                )
+                            )
 
-                                                overrideSeverity != null
-                                            } else {
-                                                if (logger.isDebugEnabled) {
-                                                    logger.debug(
-                                                        "Downloaded {} for the dependency {}:{}:{}",
-                                                        url,
-                                                        dependency.group,
-                                                        dependency.module,
-                                                        dependency.version
-                                                    )
-                                                } else if (extension.substringAfterLast(".") !in hashAlgorithms.map{ it.name }) {
-                                                    // Reports downloaded dependency to INFO (visible to user by default)
-                                                    logger.info("Downloaded $url")
-                                                }
-
-                                                true
-                                            }
-
-                                        isSuccessfullyDownloaded
-                                    }
-
-                                    404 -> {
-                                        logger.debug("Not found URL: $url")
-                                        false
-                                    }
-
-                                    else -> throw IOException(
-                                        "Unexpected response code for $url. " +
-                                                "Expected: 200, actual: $status"
-                                    )
-                                }
+                            overrideSeverity != null
+                        } else {
+                            if (logger.isDebugEnabled) {
+                                logger.debug(
+                                    "Downloaded {} for the dependency {}:{}:{}",
+                                    url,
+                                    dependency.group,
+                                    dependency.module,
+                                    dependency.version
+                                )
+                            } else if (extension.substringAfterLast(".") !in hashAlgorithms.map{ it.name }) {
+                                // Reports downloaded dependency to INFO (visible to user by default)
+                                logger.info("Downloaded $url")
                             }
-                        }
-                    }
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            logger.warn("$repository: Failed to download $url", e)
-            diagnosticsReporter.addMessage(
-                UnableToReachURL.asMessage(
-                    url,
-                    extra = DependencyResolutionBundle.message("extra.exception", e),
-                    exception = e,
-                    preventCaching = true,
-                )
-            )
-        }
 
-        return false
-    }
+                            true
+                        }
+
+                    isSuccessfullyDownloaded
+                }
+
+                404 -> {
+                    logger.debug("Not found URL: $url")
+                    false
+                }
+
+                else -> throw IOException(
+                    "Unexpected response code for $url. " +
+                            "Expected: 200, actual: $status"
+                )
+            }
+        }
+    } ?: false
 
     private suspend fun getUrl(
         repository: MavenRepository,
@@ -1160,6 +1156,114 @@ open class DependencyFileImpl(
             context.debugSpanBuilder,
             diagnosticsReporter,
         )
+
+
+    private fun HttpResponse<*>.getContentLengthHeaderValue(): Long? = headers()
+        .firstValueAsLong(HttpHeaders.CONTENT_LENGTH)
+        .takeIf { it.isPresent && it.asLong != -1L }?.asLong
+
+    /**
+     * Sends an HTTP request for this file to the given [repository] and passes the response to [handleResponse].
+     * Returns `null` if the request failed, the failure is reported to [diagnosticsReporter].
+     *
+     * [action] describes the request in logs and spans, e.g. "download".
+     * The request is sent up to [attempts] times while it fails with [IOException].
+     */
+    private suspend fun <T, R> httpRequest(
+        repository: MavenRepository,
+        progress: Progress,
+        cache: Cache,
+        spanBuilderSource: SpanBuilderSource,
+        diagnosticsReporter: DiagnosticReporter,
+        action: String,
+        bodyHandler: BodyHandler<T>,
+        requestBuilder: (Builder) -> Builder = { it.GET() },
+        semaphore: Semaphore = downloadSemaphore,
+        attempts: Int = 3,
+        handleResponse: suspend (response: HttpResponse<T>, url: String) -> R,
+    ): R? {
+        logger.trace("Trying to {} {} from {}", action, nameWithoutExtension, repository)
+
+        val client = cache.computeIfAbsent(httpClientKey) { HttpClientProvider.getHttpClient() }
+
+        val url = getUrl(repository, progress, cache, spanBuilderSource, diagnosticsReporter)
+
+        try {
+            // todo (AB) : Use exponential retry here
+            return withRetry(
+                retryCount = attempts,
+                retryOnException = { e ->
+                    e is IOException
+                }
+            ) { attempt ->
+                spanBuilderSource("${action}Attempt")
+                    .setAttribute("attempt", attempt.toLong())
+                    .setAttribute("url", url)
+                    .use {
+                        val request = HttpRequest.newBuilder()
+                            .uri(URI.create(url))
+                            // User-agent header helps the repository provider to distinguish clients
+                            // and give them a way to contact client authors if they would like to report misuse or any other issue.
+                            // It is explicitly required by Maven Central, see
+                            // https://central.sonatype.org/faq/429-tooling-provider/#identify-your-tool-in-the-user-agent
+                            .header(USER_AGENT, USER_AGENT_VALUE)
+                            .withBasicAuth(repository)
+                            .timeout(Duration.ofMinutes(2))
+                            .let(requestBuilder)
+                            .build()
+
+                        semaphore.withPermit {
+                            val response = client.sendAsync(request, bodyHandler).await()
+                            handleResponse(response, url)
+                        }
+                    }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            logger.warn("$repository: Failed to $action $url", e)
+            diagnosticsReporter.addMessage(
+                UnableToReachURL.asMessage(
+                    url,
+                    extra = DependencyResolutionBundle.message("extra.exception", e),
+                    exception = e,
+                    preventCaching = true,
+                )
+            )
+        }
+
+        return null
+    }
+
+    /**
+     * Checks whether the given [repository] has this file.
+     * Returns `null` if it is unknown: the request failed, or the repository doesn't support HEAD requests.
+     */
+    private suspend fun head(
+        repository: MavenRepository,
+        progress: Progress,
+        cache: Cache,
+        spanBuilderSource: SpanBuilderSource,
+    ): Boolean? = httpRequest(
+        repository, progress, cache, spanBuilderSource,
+        // The answer is only used to stop waiting for checksums early, so failures are not worth reporting
+        diagnosticsReporter = CollectingDiagnosticReporter(),
+        action = "check",
+        bodyHandler = BodyHandlers.discarding(),
+        requestBuilder = { it.method("HEAD", HttpRequest.BodyPublishers.noBody()) },
+        semaphore = headSemaphore,
+        // Retrying is not worth it, the checksums are probably downloaded by then
+        attempts = 1,
+    ) { response, url ->
+        when (response.statusCode()) {
+            200 -> true
+            404 -> {
+                logger.debug("Not found URL: $url")
+                false
+            }
+            else -> null
+        }
+    }
 
     private fun Builder.withBasicAuth(repository: MavenRepository): Builder = also {
         if (!repository.userName.isNullOrBlank() && !repository.password.isNullOrBlank()) {

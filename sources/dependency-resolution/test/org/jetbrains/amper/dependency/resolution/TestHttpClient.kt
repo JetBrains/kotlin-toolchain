@@ -63,7 +63,9 @@ class TestHttpClient(
             callsInPlace(block, InvocationKind.EXACTLY_ONCE)
             returnsResultOf(block)
         }
-        request?.let {
+        // Only GET requests download files, HEAD requests just check that the file exists
+        val downloadRequest = request?.takeIf { it.method() == "GET" }
+        downloadRequest?.let {
             if (errorProducingUrls.any { request.uri() == URI.create(it) }) {
                 val message = "Request to one of error-producing URLs: ${request.uri()}"
                 if (failOnErrorUrl) fail(message) else  error(message)
@@ -73,7 +75,7 @@ class TestHttpClient(
         }
 
         val overriddenRequest =
-            request
+            downloadRequest
                 ?.let { overriddenUrl[request.uri().toURL().toString()] }
                 ?.let { overriddenContent ->
                     if (overriddenContent.overriddenAttempts == null
@@ -98,8 +100,9 @@ class TestHttpClient(
 
     companion object {
         /**
-         * @param urlThatShouldNotBeDownloaded any attempt of HttpClient to communicate with one of the URLs
+         * @param urlThatShouldNotBeDownloaded any attempt of HttpClient to download one of the URLs
          * ends up in either error being thrown or immediate test failure depending on the parameter [failOnErrorUrl]
+         * (HEAD requests to these URLs are allowed)
          *
          * @param overriddenUrl map URL to a substitution and specifies how many times request URL should be substituted
          *
