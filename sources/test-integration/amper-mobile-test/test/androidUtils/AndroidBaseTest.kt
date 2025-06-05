@@ -25,6 +25,7 @@ import kotlin.time.Duration.Companion.minutes
 /**
  * Main test class that provides methods to run Android tests.
  */
+// NOT PARALLEL ON PURPOSE
 open class AndroidBaseTest : TestBase() {
 
     private val androidTools by lazy { runBlocking(MDCContext()) { AndroidTools.prepareForTests() } }
@@ -44,14 +45,18 @@ open class AndroidBaseTest : TestBase() {
 
         val copiedProjectDir = copyProjectToTempDir(projectSource)
         val targetApkPath = buildApkWithAmper(copiedProjectDir, moduleName = androidAppModuleName ?: copiedProjectDir.name)
-        val testApp = InstrumentedTestApp.assemble(applicationId, testReporter)
+        val testApp = InstrumentedTestApp.assemble(testReporter)
 
         // This dispatcher switch is not superstition. The test dispatcher skips delays by default.
         // We interact with real external processes here, so we can't skip delays when we do retries.
         withContext(Dispatchers.IO) {
             androidTools.withEmulator {
-                println("Installing test app containing instrumented tests (${testApp.id})")
-                installApk(testApp.apkPath)
+                // The host app of the instrumentation must be installed too, because the instrumentation runs in its
+                // process. Without it, 'am instrument' fails to find the target package of the instrumentation.
+                println("Installing host app of the instrumented tests (${testApp.hostApk})")
+                installApk(testApp.hostApk)
+                println("Installing test app containing instrumented tests (${testApp.instrumentationApk})")
+                installApk(testApp.instrumentationApk)
                 println("Installing target app from test project ($targetApkPath)")
                 installApk(targetApkPath)
                 println("Running tests via adb...")
@@ -68,10 +73,18 @@ open class AndroidBaseTest : TestBase() {
         adbShell("settings", "put", "secure", "long_press_timeout", "1000")
         // After it executes tests using the specified test package name,
         // falling back to a default package if none is provided
-        val testAppPackage = applicationId ?: "com.jetbrains.sample.app"
-        val testRunnerFqn = "$testAppPackage.test/androidx.test.runner.AndroidJUnitRunner"
+        val targetAppPackage = applicationId ?: "com.jetbrains.sample.app"
+        val testAppPackage = "com.jetbrains.sample.testapp.test"
+        val testRunnerFqn = "androidx.test.runner.AndroidJUnitRunner"
 
-        val output = adbShell("am", "instrument", "-w", "-r", testRunnerFqn)
+        val output = adbShell(
+            "am",
+            "instrument",
+            "-w",
+            "-e", "targetPackage", targetAppPackage,
+            "-r",
+            "$testAppPackage/$testRunnerFqn",
+        )
         if (!output.contains("OK (1 test)")) {
             failTestWithAppDiagnostics(output, "Test output doesn't contain 'OK (1 test)'")
         } else if (output.contains("Error")) {

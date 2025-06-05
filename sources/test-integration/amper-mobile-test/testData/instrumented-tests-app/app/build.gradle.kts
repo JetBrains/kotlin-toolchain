@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.jetbrains.sample.app"
+    namespace = "com.jetbrains.sample.testapp"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.jetbrains.sample.app"
+        applicationId = "com.jetbrains.sample.testapp"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -17,7 +17,7 @@ android {
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        testApplicationId = "com.jetbrains.sample.app.test"
+        testApplicationId = "com.jetbrains.sample.testapp.test"
     }
 
     compileOptions {

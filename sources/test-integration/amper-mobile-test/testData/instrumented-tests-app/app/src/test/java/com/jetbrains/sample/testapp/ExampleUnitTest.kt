@@ -1,4 +1,4 @@
-package com.jetbrains.sample.app
+package com.jetbrains.sample.testapp
 
 import org.junit.Test
 

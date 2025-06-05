@@ -10,8 +10,6 @@ import org.jetbrains.amper.test.gradle.runGradle
 import org.junit.jupiter.api.TestReporter
 import java.nio.file.Path
 import kotlin.io.path.div
-import kotlin.io.path.readText
-import kotlin.io.path.writeText
 
 /**
  * Manages project preparation tasks such as copying and assembling the project.
@@ -25,60 +23,41 @@ object InstrumentedTestApp  {
     private val testAppProject = Dirs.amperSourcesRoot / "test-integration/amper-mobile-test/testData/instrumented-tests-app/app"
 
     /**
-     * Assembles the APK containing the instrumented tests themselves, optionally using a custom [applicationId].
+     * Assembles the APKs of the test app: the host APK and the APK containing the instrumented tests themselves.
      */
-    suspend fun assemble(applicationId: String? = null, testReporter: TestReporter): App {
-        val testFilePath = testAppProject / "src/androidTest/java/com/jetbrains/sample/app/ExampleInstrumentedTest.kt"
-        val buildFilePath = testAppProject / "build.gradle.kts"
-        var originalTestFileContent: String? = null
-        var originalBuildFileContent: String? = null
+    suspend fun assemble(testReporter: TestReporter): TestAppApks {
+        runGradle(
+            projectDir = testAppProject,
+            args = listOf("assembleDebug", "createDebugAndroidTestApk"),
+            cmdName = "gradle (test-apk)",
+            testReporter = testReporter,
+            additionalEnv = AndroidTools.prepareForTests().environment(),
+            gradleVersion = "9.1.0",
+        )
 
-        if (applicationId != null) {
-            // Modify the test file to use custom application ID
-            originalTestFileContent = testFilePath.readText()
-            val updatedTestFileContent = originalTestFileContent.replace("com.jetbrains.sample.app", applicationId)
-            testFilePath.writeText(updatedTestFileContent)
-
-            // Modify the build.gradle.kts to use custom application ID
-            originalBuildFileContent = buildFilePath.readText()
-            val updatedBuildFileContent = originalBuildFileContent.replace(
-                "applicationId = \"com.jetbrains.sample.app\"",
-                "applicationId = \"$applicationId\""
-            ).replace(
-                "testApplicationId = \"com.jetbrains.sample.app.test\"",
-                "testApplicationId = \"$applicationId.test\""
-            )
-            buildFilePath.writeText(updatedBuildFileContent)
-        }
-
-        try {
-            runGradle(
-                projectDir = testAppProject,
-                args = listOf("createDebugAndroidTestApk"),
-                cmdName = "gradle (test-apk)",
-                testReporter = testReporter,
-                additionalEnv = AndroidTools.prepareForTests().environment(),
-                gradleVersion = "9.1.0",
-            )
-        } finally {
-            // Restore the original content of the test file and build.gradle.kts
-            originalTestFileContent?.let {
-                testFilePath.writeText(it)
-            }
-
-            originalBuildFileContent?.let {
-                buildFilePath.writeText(it)
-            }
-        }
-
-        return App(
-            id = applicationId ?: "com.jetbrains.sample.app",
-            apkPath = testAppProject / "build/outputs/apk/androidTest/debug/app-debug-androidTest.apk"
+        return TestAppApks(
+            hostApk = testAppProject / "build/outputs/apk/debug/app-debug.apk",
+            instrumentationApk = testAppProject / "build/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
         )
     }
 }
 
-data class App(
-    val id: String,
-    val apkPath: Path,
+/**
+ * The APKs of the instrumented test app. Both of them must be installed to be able to run the tests:
+ * the instrumentation declared in [instrumentationApk] targets the application ID of [hostApk], and `am instrument`
+ * fails with INSTRUMENTATION_FAILED if that target package is not installed on the device.
+ */
+data class TestAppApks(
+    /**
+     * The host APK, in which the instrumented tests are injected.
+     * Usually, this is the app under test, but in our case the tests don't care about the host app, and just run
+     * whatever app we want (the real app under test) via 'monkey'.
+     *
+     * We still need to ensure this APK is installed on the emulator, because it still needs to host the tests.
+     */
+    val hostApk: Path,
+    /**
+     * The test APK, containing the actual instrumented tests, and injected into the host APK.
+     */
+    val instrumentationApk: Path,
 )
