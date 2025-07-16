@@ -1,18 +1,7 @@
 // Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.intellij.tools.build.bazel.jvmIncBuilder;
 
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.BatchBuildProcessLogger;
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.BuildDiagnosticCollector;
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.ConfigurationState;
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.ElementSnapshotDeltaImpl;
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.FormsCompiler;
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.OutputSinkImpl;
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.PostponedDiagnosticSink;
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.ResourcesSnapshotDelta;
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.RunnerRegistry;
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.SnapshotDeltaImpl;
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.Utils;
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.forms.FormBinding;
+import com.intellij.tools.build.bazel.jvmIncBuilder.impl.*;
 import com.intellij.tools.build.bazel.jvmIncBuilder.impl.graph.AsyncLibraryGraphLoader;
 import com.intellij.tools.build.bazel.jvmIncBuilder.impl.graph.DeltaView;
 import com.intellij.tools.build.bazel.jvmIncBuilder.runner.CompilerRunner;
@@ -179,16 +168,6 @@ public class BazelIncBuilder {
                     srcSnapshotDelta.markRecompileAll();
                     context.report(Message.create(null, Message.Kind.WARNING, e));
                   }
-                }
-              }
-            }
-
-            // for all modified forms ensure sources bound to forms are marked for recompilation
-            if (!srcSnapshotDelta.isRecompileAll()) {
-              Iterator<@NotNull NodeSource> modifiedForms = filter(srcSnapshotDelta.getModified(), FormBinding::isForm).iterator();
-              if (modifiedForms.hasNext()) {
-                for (NodeSource source : FormsCompiler.findBoundSources(storageManager, collect(modifiedForms, new ArrayList<>()))) {
-                  srcSnapshotDelta.markRecompile(source);
                 }
               }
             }
