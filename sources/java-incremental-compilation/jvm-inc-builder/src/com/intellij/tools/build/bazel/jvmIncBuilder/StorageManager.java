@@ -2,7 +2,6 @@
 package com.intellij.tools.build.bazel.jvmIncBuilder;
 
 import com.intellij.tools.build.bazel.jvmIncBuilder.impl.CompositeZipOutputBuilder;
-import com.intellij.tools.build.bazel.jvmIncBuilder.impl.KotlinCriUtilKt;
 import com.intellij.tools.build.bazel.jvmIncBuilder.impl.Utils;
 import com.intellij.tools.build.bazel.jvmIncBuilder.impl.ZipEntryIterator;
 import com.intellij.tools.build.bazel.jvmIncBuilder.impl.ZipOutputBuilderImpl;
@@ -227,7 +226,6 @@ public class StorageManager implements CloseableExt {
     GraphConfiguration config = myGraphConfig;
     if (config != null) {
       myGraphConfig = null;
-        writeKotlinCriData(config.getGraph(), saveChanges);
       safeClose(config.getGraph(), saveChanges);
     }
 
@@ -243,32 +241,6 @@ public class StorageManager implements CloseableExt {
     if (finder != null) {
       myInstrumentationClassFinder = null;
       finder.releaseResources();
-    }
-  }
-
-  private void writeKotlinCriData(DependencyGraph graph, Boolean saveChanges) {
-    if (!saveChanges || !isKotlinCriDataGenerationEnabled) return;
-    Path kotlinCriPath = myContext.getKotlinCriStoragePath();
-
-    boolean moved = false;
-    Path tempFile = null;
-    try {
-      tempFile = Files.createTempFile(kotlinCriPath.getParent(), kotlinCriPath.getFileName().toString(), ".tmp");
-      Files.write(tempFile, KotlinCriUtilKt.prepareSerializedData(graph));
-      Files.move(tempFile, kotlinCriPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-      moved = true;
-    }
-    catch (IOException e) {
-      myContext.report(Message.create(null, e));
-    }
-    finally {
-      if (!moved) {
-        try {
-          Utils.deleteIfExists(tempFile);
-        } catch (IOException e) {
-          myContext.report(Message.create(null, e));
-        }
-      }
     }
   }
 
