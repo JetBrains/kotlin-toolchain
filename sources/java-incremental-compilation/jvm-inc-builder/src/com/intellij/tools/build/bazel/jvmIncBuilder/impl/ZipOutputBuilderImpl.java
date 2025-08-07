@@ -149,7 +149,8 @@ public class ZipOutputBuilderImpl implements ZipOutputBuilder {
   public boolean deleteEntry(String entryName) {
     boolean changes = false;
     EntryData data = myEntries.remove(entryName);
-    if (data != null) { 
+    if (data != null) {
+      deleteClassFileIfNeeded(data);
       data.cleanup();
       changes = true;
     }
@@ -199,6 +200,8 @@ public class ZipOutputBuilderImpl implements ZipOutputBuilder {
         Path outputPath = useTempOutput? getTempOutputPath() : myWriteZipPath;
         try {
           if (myCreateIndex) {
+            writeClassFilesIfNeeded(myEntries);
+
             saveToIndexedArchive(outputPath);
           }
           else {
@@ -215,7 +218,6 @@ public class ZipOutputBuilderImpl implements ZipOutputBuilder {
                 myEntries.put(dirName, createEntryData(dirName, EntryData.NO_DATA_BYTES));
               }
             }
-
             saveToArchive(outputPath);
           }
         }
@@ -274,6 +276,14 @@ public class ZipOutputBuilderImpl implements ZipOutputBuilder {
     }
   }
 
+  protected void writeClassFilesIfNeeded(@NotNull Map<String, EntryData> entries) {}
+  protected void deleteClassFileIfNeeded(@NotNull EntryData entryName) {}
+
+  /**
+   * Remove any build artifacts when a full rebuild is requested.
+   */
+  public void cleanBuildStateOnFullRebuild() {}
+
   private static OutputStream openOutputStream(Path outputPath) throws IOException {
     try {
       return new BufferedOutputStream(Files.newOutputStream(outputPath));
@@ -289,7 +299,7 @@ public class ZipOutputBuilderImpl implements ZipOutputBuilder {
     return myWriteZipPath.resolveSibling(myWriteZipPath.getFileName() + ".tmp");
   }
 
-  private interface EntryData {
+  protected interface EntryData {
     byte[] NO_DATA_BYTES = new byte[0];
     
     byte[] getContent() throws IOException;

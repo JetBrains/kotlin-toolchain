@@ -1,6 +1,7 @@
 // Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.intellij.tools.build.bazel.jvmIncBuilder;
 
+import com.intellij.tools.build.bazel.jvmIncBuilder.impl.AmperZipOutputBuilderWithClasses;
 import com.intellij.tools.build.bazel.amper.StorageManagerFileOpenOption;
 import com.intellij.tools.build.bazel.jvmIncBuilder.impl.CompositeZipOutputBuilder;
 import com.intellij.tools.build.bazel.jvmIncBuilder.impl.Utils;
@@ -69,6 +70,8 @@ public class StorageManager implements CloseableExt {
   }
 
   public void cleanBuildState() throws IOException {
+    getOutputBuilder().cleanBuildStateOnFullRebuild();
+
     Path output = myContext.getOutputZip();
     Path abiOutput = myContext.getAbiOutputZip();
 
@@ -158,7 +161,8 @@ public class StorageManager implements CloseableExt {
     if (builder == null) {
       Path output = myContext.getOutputZip();
       Path previousOutput = DataPaths.getJarBackupStoreFile(myContext, output);
-      myOutputBuilder = builder = new ZipOutputBuilderImpl(createOffHeapMap(output.getFileName().toString()), previousOutput, output, true);
+      myOutputBuilder = builder = new AmperZipOutputBuilderWithClasses(createOffHeapMap(output.getFileName().toString()), previousOutput, output,
+        myContext.getClassesOutput());
     }
     return builder;
   }
