@@ -1,0 +1,16 @@
+name: 'Report test results'
+description: 'Reports the JUnit test results present in the build/reports directory'
+
+runs:
+  using: composite
+  steps:
+    - name: Report test results
+      uses: dorny/test-reporter@v3
+      with:
+        name: JUnit results   # That's the name of the check run that will be created in PRs
+        path: build/reports/*/jvm/TEST-junit-*.xml
+        reporter: java-junit
+        list-suites: failed
+        list-tests: failed
+        fail-on-empty: true
+        fail-on-error: false # The `kotlin test` command already fails when tests don't pass, this one is about uploading

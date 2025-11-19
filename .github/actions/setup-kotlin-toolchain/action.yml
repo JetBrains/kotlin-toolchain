@@ -1,0 +1,73 @@
+name: 'Setup Kotlin Toolchain'
+author: 'JetBrains'
+description: 'Configures caches and environment variables for the Kotlin Toolchain'
+branding:
+  icon: settings
+  color: purple
+
+inputs:
+  bootstrap-cache-dir:
+    description: "Path to the directory where the Kotlin Toolchain distribution is downloaded. This also configures the environment so that subsequent Kotlin CLI calls respect this config."
+    required: false
+    default: "${{ runner.temp }}/.kotlin/boot-cache"
+
+  shared-cache-dir:
+    description: "Path to the shared cache (containing dependencies, toolchains, etc.). This also configures the environment so that subsequent Kotlin CLI calls respect this config."
+    required: false
+    default: "${{ runner.temp }}/.kotlin/shared-cache"
+
+runs:
+  using: composite
+  steps:
+    - name: Export Kotlin CLI env vars
+      shell: bash
+      run: |
+        echo "KOTLIN_CLI_BOOTSTRAP_CACHE_DIR=${{ inputs.bootstrap-cache-dir }}" >> "$GITHUB_ENV"
+        echo "KOTLIN_SHARED_CACHE_DIR=${{ inputs.shared-cache-dir }}" >> "$GITHUB_ENV"
+
+    - name: Cache Kotlin Toolchain binaries
+      uses: actions/cache@v4
+      with:
+        path: ${{ inputs.bootstrap-cache-dir }}
+        # The Kotlin CLI distribution and JRE depends on the Kotlin Toolchain version and is downloaded by the wrapper,
+        # so we hash wrappers.
+        # We don't use restore keys to avoid growing this cache. The Kotlin Toolchain version changes rarely so it's ok
+        # to redownload the JRE when the Kotlin Toolchain version changes even if the JRE version didn't change.
+        key: kotlin-toolchain-boot-${{ runner.os }}-${{ hashFiles('kotlin', 'kotlin.bat') }}
+
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ inputs.shared-cache-dir }}/.m2.cache
+          ${{ inputs.shared-cache-dir }}/kotlin
+        # The dependencies can be shared between OS-es (even if some rare deps are OS-specific).
+        # Even if we download foo-windows.jar and foo-linux.jar on different hosts, they don't step on each other's toes.
+        # These deps are rare in the Java/Maven world, so it's still worth reusing all the other deps.
+        enableCrossOsArchive: true
+        key: kotlin-toolchain-shared-dependencies-${{ hashFiles('project.yaml', '**/module.yaml', '**/plugin.yaml', 'kotlin', 'kotlin.bat', 'libs.versions.toml') }}
+        restore-keys: |
+          kotlin-toolchain-shared-dependencies-
+
+    - name: Cache downloads (toolchains, JDK list, etc.)
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ inputs.shared-cache-dir }}/download.cache
+          ${{ inputs.shared-cache-dir }}/extract.cache
+        key: kotlin-toolchain-shared-downloads-${{ runner.os }}-${{ hashFiles('project.yaml', '**/module.yaml', '**/plugin.yaml', 'kotlin', 'kotlin.bat', 'libs.versions.toml') }}
+        restore-keys: |
+          kotlin-toolchain-shared-downloads-${{ runner.os }}-
+
+    - name: Cache project-specific data (incremental cache and task outputs)
+      uses: actions/cache@v4
+      with:
+        # We need to exclude the logs directory to avoid an ever-growing cache size.
+        # /!\ Exclusions can only work in specific ways.
+        # See https://github.com/actions/toolkit/issues/713#issuecomment-850321461
+        path: |
+          build/*
+          !build/logs
+        key: kotlin-toolchain-project-${{ runner.os }}-${{ hashFiles('project.yaml', '**/module.yaml', '**/plugin.yaml', 'kotlin', 'kotlin.bat', 'libs.versions.toml') }}
+        restore-keys: |
+          kotlin-toolchain-project-${{ runner.os }}-
