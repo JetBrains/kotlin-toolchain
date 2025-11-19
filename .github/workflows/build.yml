@@ -2,40 +2,112 @@ name: build
 
 on:
   workflow_dispatch: {}
+  push:
+    branches:
+      - jbion/github-build
 
 permissions:
   contents: read
 
 jobs:
-  test-linux:
-    runs-on: ubuntu-latest
+  test-standard:
+    strategy:
+      fail-fast: false # So that all jobs run to completion even when one fails
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    name: Standard tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v5
         with:
           persist-credentials: false
 
-      - name: Run tests
-        run: ./kotlin test
+      - name: Setup Kotlin Toolchain caches
+        uses: ./.github/actions/setup-kotlin-toolchain
 
-  test-macos:
-    runs-on: macos-latest
+      # Required for CinteropTest.`lib + app - run linuxX64()`
+      - name: Install libcurl for cinterop tests (Linux-only)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: Create local.properties with empty credentials
+        shell: bash
+        run: |
+          echo "space.username=" >> local.properties
+          echo "space.password=" >> local.properties
+
+      - name: Run regular tests
+        run: ./kotlin test --exclude-module=amper-mobile-test
+
+      - name: Report Amper logs
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }} # run this step even if the previous step failed
+        with:
+          name: build-logs-${{ runner.os }}
+          path: build/logs/**
+          archive: true
+
+      - name: Report test results
+        uses: ./.github/actions/report-tests
+        if: ${{ !cancelled() }} # run this step even if the previous step failed
+
+  test-mobile:
+    strategy:
+      fail-fast: false # So that all jobs run to completion even when one fails
+      matrix:
+        include:
+          - description: Android examples
+            testArgs: "--include-classes=RunAndroidExamplesOnEmulatorsTestsStandalone"
+            os: ubuntu-latest
+          - description: iOS examples
+            testArgs: "--include-classes=RuniOSExamplesOnEmulatorsTestsStandalone"
+            os: macos-latest
+            # FIXME external projects require git credentials - maybe they should just be in our examples...
+#          - description: Android external projects
+#            testArgs: "--include-classes=RunAndroidExternalProjectsStandalone"
+#            os: ubuntu-latest
+#          - description: iOS external projects
+#            testArgs: "--include-classes=RuniOSExternalProjectsStandalone"
+#            os: macos-latest
+    name: Mobile tests (${{ matrix.description }})
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v5
         with:
           persist-credentials: false
 
-      - name: Run tests
-        run: ./kotlin test
+      - name: Setup Kotlin Toolchain caches
+        uses: ./.github/actions/setup-kotlin-toolchain
 
-  test-windows:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v5
+      - name: Create local.properties with empty credentials
+        shell: bash
+        run: |
+          echo "space.username=" >> local.properties
+          echo "space.password=" >> local.properties
+
+      - name: Enable KVM group perms
+        if: ${{ runner.os == 'Linux' }} # needed for Android emulator
+        # See https://github.blog/changelog/2023-02-23-hardware-accelerated-android-virtualization-on-actions-windows-and-linux-larger-hosted-runners/
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run mobile tests
+        run: ./kotlin test -m amper-mobile-test ${{ matrix.testArgs }}
+
+      - name: Report Amper logs
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }} # run this step even if the previous step failed
         with:
-          persist-credentials: false
+          name: build-logs-mobile-${{ matrix.description }}
+          path: build/logs/**
+          archive: true
 
-      - name: Run tests
-        run: ./kotlin test
+      - name: Report test results
+        uses: ./.github/actions/report-tests
+        if: ${{ !cancelled() }} # run this step even if previous step failed
