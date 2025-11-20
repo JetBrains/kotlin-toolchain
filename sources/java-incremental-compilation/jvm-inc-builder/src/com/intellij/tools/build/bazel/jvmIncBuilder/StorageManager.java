@@ -131,6 +131,7 @@ public class StorageManager implements CloseableExt {
     return myGraphConfig;
   }
 
+  @SuppressWarnings("unchecked")
   @NotNull
   private DependencyGraphImpl createDependencyGraph() throws IOException {
     var filePath = DataPaths.getDepGraphStoreFile(myContext).toString();

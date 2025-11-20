@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+@SuppressWarnings("deprecation")
 public class InstrumentationClassFinder {
   private static final PseudoClass[] EMPTY_PSEUDOCLASS_ARRAY = new PseudoClass[0];
   private static final String CLASS_RESOURCE_EXTENSION = ".class";

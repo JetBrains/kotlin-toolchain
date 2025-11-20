@@ -28,6 +28,7 @@ public final class RunnerRegistry {
     return Utils.digest(map(ourRunners, entry -> entry.runnerClass().getName()));
   }
 
+  @SuppressWarnings("unchecked")
   public static Iterable<RunnerFactory<? extends CompilerRunner>> getRoundCompilers() {
     return filter(map(ourRunners, entry -> CompilerRunner.class.isAssignableFrom(entry.runnerClass())? (RunnerFactory<CompilerRunner>)entry.factory : null), Objects::nonNull);
   }
