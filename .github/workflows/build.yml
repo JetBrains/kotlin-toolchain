@@ -19,12 +19,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
       - name: Setup Kotlin Toolchain caches
         uses: ./.github/actions/setup-kotlin-toolchain
+
+      - name: Setup test caches
+        uses: ./.github/actions/test-caches
 
       # Required for CinteropTest.`lib + app - run linuxX64()`
       - name: Install libcurl for cinterop tests (Linux-only)
@@ -76,12 +79,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
       - name: Setup Kotlin Toolchain caches
         uses: ./.github/actions/setup-kotlin-toolchain
+
+      - name: Setup test caches
+        uses: ./.github/actions/test-caches
 
       - name: Create local.properties with empty credentials
         shell: bash
