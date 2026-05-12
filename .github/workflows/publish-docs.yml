@@ -10,6 +10,7 @@ on:
   create:
     branches:
       - 'release/*' # the push trigger is not enough because of the docs/** filter
+  workflow_dispatch:
 
 permissions:
   contents: write # allow pushing commits to gh-pages
