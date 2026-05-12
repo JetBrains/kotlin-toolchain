@@ -16,7 +16,7 @@ Conceptually, any Amper plugin consists of two parts:
 
 1. A **configurable** part that is quick to read and fully exempt from arbitrary code execution:
     - `plugin.yaml`
-    - `@TaskAction` function signatures, `@Configurable` interfaces and enums
+    - `@TaskAction` function signatures, `@Configurable` interfaces, and enums
 
 2. An **executable** part that contains arbitrary task‑action implementation code:
     - Normal code in `src/`, including its dependencies — other local modules and libraries
