@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Learn everything about the structure of Amper plugin modules and how to use them in your project.">
+        <meta name="description" content="Learn everything about the structure of Kotlin Toolchain plugin modules and how to use them in your project.">
       
       
         <meta name="author" content="JetBrains Amper team">
@@ -31,7 +31,7 @@
   
     
       
-        <title>Plugin Structure - Kotlin</title>
+        <title>Plugin Structure - The Kotlin Toolchain</title>
       
     
   
@@ -80,16 +80,16 @@
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Plugin Structure - Kotlin" />
-<meta property="og:description" content="Learn everything about the structure of Amper plugin modules and how to use them in your project." />
+<meta property="og:title" content="Plugin Structure - The Kotlin Toolchain" />
+<meta property="og:description" content="Learn everything about the structure of Kotlin Toolchain plugin modules and how to use them in your project." />
 <meta property="og:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/plugins/topics/structure.png" />
 <meta property="og:image:type" content="image/png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:url" content="https://kotlin-toolchain.org/dev/user-guide/plugins/topics/structure/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="Plugin Structure - Kotlin" />
-<meta property="twitter:description" content="Learn everything about the structure of Amper plugin modules and how to use them in your project." />
+<meta property="twitter:title" content="Plugin Structure - The Kotlin Toolchain" />
+<meta property="twitter:description" content="Learn everything about the structure of Kotlin Toolchain plugin modules and how to use them in your project." />
 <meta property="twitter:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/plugins/topics/structure.png" />
 </head>
   
@@ -133,7 +133,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../../.." title="Kotlin" class="md-header__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../../../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../../../images/amper-icon.svg" alt="logo">
 
@@ -146,7 +146,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Kotlin
+            The Kotlin Toolchain
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -444,12 +444,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../../.." title="Kotlin" class="md-nav__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../../../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../../../images/amper-icon.svg" alt="logo">
 
     </a>
-    Kotlin
+    The Kotlin Toolchain
   </label>
   
     <div class="md-nav__source">
@@ -2385,7 +2385,7 @@
 
 
 <h1 id="plugin-structure">Plugin structure<a class="headerlink" href="#plugin-structure" title="Permanent link">&para;</a></h1>
-<p>A plugin is a standard Amper module with the <code>jvm/amper-plugin</code> product type. 
+<p>A plugin is a standard Kotlin module with the <code>jvm/amper-plugin</code> product type. 
 It has a regular <code>module.yaml</code> build file with an additional <a href="../../../../reference/module/#plugininfo"><code>pluginInfo</code> section</a>.</p>
 <p>In addition, a plugin has a <code>plugin.yaml</code> file, where <a href="../tasks/">tasks</a> are registered and configured.</p>
 <p>The implementation of the tasks (the plugin's logic) is written in Kotlin in the <code>src</code> directory.</p>
@@ -2408,8 +2408,8 @@ This changes the ID from the default <code>build-config</code> to <code>build-ko
 Currently, the ID string doesn't have a well-defined format, so leaving the ID at its default is a good idea. </p>
 </details>
 <h2 id="registering-plugins-in-the-project">Registering plugins in the project<a class="headerlink" href="#registering-plugins-in-the-project" title="Permanent link">&para;</a></h2>
-<p>Amper plugins are module-level plugins – they are enabled per module.
-There is no such concept as a project-wide plugin in Amper.</p>
+<p>Kotlin Toolchain plugins are module-level plugins – they are enabled per module.
+There is no such concept as a project-wide plugin in the Kotlin Toolchain.</p>
 <p>To make a plugin available in the project, it must be <em>registered</em> by listing
 the dependency on it in the <a href="../../../../reference/project/#plugins"><code>plugins</code> section</a> of the <code>project.yaml</code> file:
 <div class="highlight"><pre><span></span><code><span class="nt">modules</span><span class="p">:</span>
@@ -2425,7 +2425,7 @@ One must enable them manually in each module where they are needed.</p>
 Then such a plugin is present in the <code>modules</code> list, but not included in the <code>plugins</code> list.</p>
 <details class="note">
 <summary>Similar to <code>apply false</code> in Gradle...</summary>
-<p>Amper's approach to registering plugins project-wide and enabling them per-module is somewhat similar to the 
+<p>The Kotlin Toolchain's approach to registering plugins project-wide and enabling them per-module is somewhat similar to the 
 recommended approach in Gradle. There one lists plugins at the project level with the <code>apply false</code> clause and
 then enables them where needed.</p>
 </details>
@@ -2475,7 +2475,7 @@ that enables and configures the plugin.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 24, 2026 21:27:02 UTC">April 24, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 15:51:35 UTC">May 12, 2026</span>
   </span>
 
     

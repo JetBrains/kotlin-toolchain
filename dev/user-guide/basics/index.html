@@ -6,8 +6,8 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="If you have never used Amper before, this is the best place to start. In this section, we will learn about the basic
-entities in Amper, the general project layout, and how configuration files look.
+        <meta name="description" content="If you have never used the Kotlin Toolchain before, this is the best place to start. In this section, we will learn about the basic
+entities in the Kotlin Toolchain, the general project layout, and how configuration files look.
 ">
       
       
@@ -33,7 +33,7 @@ entities in Amper, the general project layout, and how configuration files look.
   
     
       
-        <title>Basic concepts - Kotlin</title>
+        <title>Basic concepts - The Kotlin Toolchain</title>
       
     
   
@@ -82,9 +82,9 @@ entities in Amper, the general project layout, and how configuration files look.
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Basic concepts - Kotlin" />
-<meta property="og:description" content="If you have never used Amper before, this is the best place to start. In this section, we will learn about the basic
-entities in Amper, the general project layout, and how configuration files look.
+<meta property="og:title" content="Basic concepts - The Kotlin Toolchain" />
+<meta property="og:description" content="If you have never used the Kotlin Toolchain before, this is the best place to start. In this section, we will learn about the basic
+entities in the Kotlin Toolchain, the general project layout, and how configuration files look.
 " />
 <meta property="og:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/basics.png" />
 <meta property="og:image:type" content="image/png" />
@@ -92,9 +92,9 @@ entities in Amper, the general project layout, and how configuration files look.
 <meta property="og:image:height" content="630" />
 <meta property="og:url" content="https://kotlin-toolchain.org/dev/user-guide/basics/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="Basic concepts - Kotlin" />
-<meta property="twitter:description" content="If you have never used Amper before, this is the best place to start. In this section, we will learn about the basic
-entities in Amper, the general project layout, and how configuration files look.
+<meta property="twitter:title" content="Basic concepts - The Kotlin Toolchain" />
+<meta property="twitter:description" content="If you have never used the Kotlin Toolchain before, this is the best place to start. In this section, we will learn about the basic
+entities in the Kotlin Toolchain, the general project layout, and how configuration files look.
 " />
 <meta property="twitter:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/basics.png" />
 </head>
@@ -139,7 +139,7 @@ entities in Amper, the general project layout, and how configuration files look.
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Kotlin" class="md-header__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../images/amper-icon.svg" alt="logo">
 
@@ -152,7 +152,7 @@ entities in Amper, the general project layout, and how configuration files look.
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Kotlin
+            The Kotlin Toolchain
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -450,12 +450,12 @@ entities in Amper, the general project layout, and how configuration files look.
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Kotlin" class="md-nav__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../images/amper-icon.svg" alt="logo">
 
     </a>
-    Kotlin
+    The Kotlin Toolchain
   </label>
   
     <div class="md-nav__source">
@@ -2569,20 +2569,20 @@ entities in Amper, the general project layout, and how configuration files look.
 
 
 <h1 id="basic-concepts">Basic concepts<a class="headerlink" href="#basic-concepts" title="Permanent link">&para;</a></h1>
-<p>If you have never used Amper before, this is the best place to start. In this section, we will learn about the basic
-entities in Amper, the general project layout, and how configuration files look.</p>
+<p>If you have never used the Kotlin Toolchain before, this is the best place to start. In this section, we will learn about the basic
+entities in the Kotlin Toolchain, the general project layout, and how configuration files look.</p>
 <h2 id="project-and-modules">Project and modules<a class="headerlink" href="#project-and-modules" title="Permanent link">&para;</a></h2>
-<p>An Amper <strong>project</strong> is defined by a <code>project.yaml</code> file. This file contains the list of modules and the project-wide
+<p>A Kotlin <strong>project</strong> is defined by a <code>project.yaml</code> file. This file contains the list of modules and the project-wide
 configuration. The folder with the <code>project.yaml</code> file is the <strong>project root</strong>. Modules can only be located under the 
 project root (at any depth). If there is only one module in the project, the <code>project.yaml</code> file is not required.</p>
-<p>An Amper <strong>module</strong> is a directory with a <code>module.yaml</code> configuration file, and optionally sources and resources.
+<p>A Kotlin <strong>module</strong> is a directory with a <code>module.yaml</code> configuration file, and optionally sources and resources.
 A <em>module configuration file</em> describes <em>what</em> to produce: e.g. a reusable library or a platform-specific application.
 Each module describes a single product. Several modules can't share the same sources or resources, but they can depend 
 on each other.
-<em>How</em> to produce the desired product, that is, the build rules, is the responsibility of the Amper build engine.</p>
+<em>How</em> to produce the desired product, that is, the build rules, is the responsibility of the Kotlin Toolchain build engine.</p>
 <h2 id="project-layout">Project layout<a class="headerlink" href="#project-layout" title="Permanent link">&para;</a></h2>
 <h3 id="single-module-project">Single-module project<a class="headerlink" href="#single-module-project" title="Permanent link">&para;</a></h3>
-<p>A single-module Amper project doesn't need a <code>project.yaml</code> file.
+<p>A single-module Kotlin project doesn't need a <code>project.yaml</code> file.
 Just create a single valid module, and it is also a valid project<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>:</p>
 <div class="highlight"><span class="filename">Single-module project layout</span><pre><span></span><code>my-project/<span class="w"> </span><span class="c1">#(1)!</span>
 ├─<span class="w"> </span>src/
@@ -2617,7 +2617,7 @@ Just create a single valid module, and it is also a valid project<sup id="fnref:
 </code></pre></div>
 </div>
 <ol>
-<li>This hierarchy is arbitrary, it can be organized however you like. The structure is understood by Amper based on 
+<li>This hierarchy is arbitrary, it can be organized however you like. The structure is understood by the Kotlin Toolchain based on 
      the list of module paths in <code>project.yaml</code> — there is no convention for multi-module projects.</li>
 </ol>
 <div class="annotate">
@@ -2792,7 +2792,7 @@ generally discouraged.</p>
 <li>Kotlin code is optional. Everything could come from dependencies.</li>
 <li>The entrypoint of iOS apps must be a <code>@main</code> struct in a Swift file.
    <a href="../product-types/ios-app/#entry-point">Read more</a></li>
-<li>An Xcode project is required but it can be automatically generated by Amper the first time.
+<li>An Xcode project is required but it can be automatically generated by the Kotlin Toolchain the first time.
    <a href="../product-types/ios-app/#xcode-project">Read more</a></li>
 </ol>
 <div class="admonition info">
@@ -2986,7 +2986,7 @@ interact in multiplatform modules.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 21, 2026 08:15:44 UTC">April 21, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 15:51:35 UTC">May 12, 2026</span>
   </span>
 
     

@@ -7,7 +7,7 @@
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
         <meta name="description" content="Kotlin Symbol Processing (KSP) is a tool that allows feeding Kotlin source code to processors, which can in turn use
-this information to generate code, classes, or resources, for instance. Amper provides built-in support for KSP.
+this information to generate code, classes, or resources, for instance. The Kotlin Toolchain provides built-in support for KSP.
 ">
       
       
@@ -33,7 +33,7 @@ this information to generate code, classes, or resources, for instance. Amper pr
   
     
       
-        <title>Kotlin Symbol Processing (KSP) - Kotlin</title>
+        <title>Kotlin Symbol Processing (KSP) - The Kotlin Toolchain</title>
       
     
   
@@ -82,9 +82,9 @@ this information to generate code, classes, or resources, for instance. Amper pr
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Kotlin Symbol Processing (KSP) - Kotlin" />
+<meta property="og:title" content="Kotlin Symbol Processing (KSP) - The Kotlin Toolchain" />
 <meta property="og:description" content="Kotlin Symbol Processing (KSP) is a tool that allows feeding Kotlin source code to processors, which can in turn use
-this information to generate code, classes, or resources, for instance. Amper provides built-in support for KSP.
+this information to generate code, classes, or resources, for instance. The Kotlin Toolchain provides built-in support for KSP.
 " />
 <meta property="og:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/advanced/ksp.png" />
 <meta property="og:image:type" content="image/png" />
@@ -92,9 +92,9 @@ this information to generate code, classes, or resources, for instance. Amper pr
 <meta property="og:image:height" content="630" />
 <meta property="og:url" content="https://kotlin-toolchain.org/dev/user-guide/advanced/ksp/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="Kotlin Symbol Processing (KSP) - Kotlin" />
+<meta property="twitter:title" content="Kotlin Symbol Processing (KSP) - The Kotlin Toolchain" />
 <meta property="twitter:description" content="Kotlin Symbol Processing (KSP) is a tool that allows feeding Kotlin source code to processors, which can in turn use
-this information to generate code, classes, or resources, for instance. Amper provides built-in support for KSP.
+this information to generate code, classes, or resources, for instance. The Kotlin Toolchain provides built-in support for KSP.
 " />
 <meta property="twitter:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/advanced/ksp.png" />
 </head>
@@ -139,7 +139,7 @@ this information to generate code, classes, or resources, for instance. Amper pr
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="Kotlin" class="md-header__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../../images/amper-icon.svg" alt="logo">
 
@@ -152,7 +152,7 @@ this information to generate code, classes, or resources, for instance. Amper pr
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Kotlin
+            The Kotlin Toolchain
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -450,12 +450,12 @@ this information to generate code, classes, or resources, for instance. Amper pr
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="Kotlin" class="md-nav__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../../images/amper-icon.svg" alt="logo">
 
     </a>
-    Kotlin
+    The Kotlin Toolchain
   </label>
   
     <div class="md-nav__source">
@@ -2437,13 +2437,13 @@ this information to generate code, classes, or resources, for instance. Amper pr
 <h1 id="kotlin-symbol-processing-ksp">Kotlin Symbol Processing (<abbr title="The Kotlin Symbol Processing tool, developed by Google">KSP</abbr>)<a class="headerlink" href="#kotlin-symbol-processing-ksp" title="Permanent link">&para;</a></h1>
 <p><a href="https://kotlinlang.org/docs/ksp-overview.html">Kotlin Symbol Processing</a> is a tool that allows feeding Kotlin source
 code to <em>processors</em>, which can in turn use this information to generate code, classes, or resources, for instance.
-Amper provides built-in support for <abbr title="The Kotlin Symbol Processing tool, developed by Google">KSP</abbr>.</p>
+The Kotlin Toolchain provides built-in support for <abbr title="The Kotlin Symbol Processing tool, developed by Google">KSP</abbr>.</p>
 <p>Some popular libraries also include a <abbr title="The Kotlin Symbol Processing tool, developed by Google">KSP</abbr> processor to enhance their capabilities, such as
 <a href="https://developer.android.com/jetpack/androidx/releases/room">Room</a> or
 <a href="https://github.com/square/moshi#codegen">Moshi</a>.</p>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
-<p>Amper works with KSP2, so any processors used must be compatible with KSP2.
+<p>The Kotlin Toolchain works with KSP2, so any processors used must be compatible with KSP2.
 We’re expecting most processors to make this upgrade soon, as KSP1 is no longer part of <abbr title="The Kotlin Symbol Processing tool, developed by Google">KSP</abbr> releases.
 However, at the moment, you might still see some gaps in support, such as issues with native targets.</p>
 </div>
@@ -2475,7 +2475,7 @@ generated code from the common fragment (<code>src</code>) or intermediate fragm
 <a href="https://github.com/google/ksp/issues/567">the relevant <abbr title="The Kotlin Symbol Processing tool, developed by Google">KSP</abbr> issue</a> for more information.</p>
 </div>
 <h2 id="customizing-the-ksp-version">Customizing the <abbr title="The Kotlin Symbol Processing tool, developed by Google">KSP</abbr> version<a class="headerlink" href="#customizing-the-ksp-version" title="Permanent link">&para;</a></h2>
-<p>Amper only supports KSP2 (the standalone tool), not the deprecated KSP1 implementation based compiler plugin.</p>
+<p>The Kotlin Toolchain only supports KSP2 (the standalone tool), not the deprecated KSP1 implementation based compiler plugin.</p>
 <p>That said, you can use any version of KSP2 as follows:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
@@ -2499,7 +2499,7 @@ generated code from the common fragment (<code>src</code>) or intermediate fragm
 to avoid clashes with other processor options.</p>
 </div>
 <h2 id="using-your-own-local-ksp-processor">Using your own local <abbr title="The Kotlin Symbol Processing tool, developed by Google">KSP</abbr> processor<a class="headerlink" href="#using-your-own-local-ksp-processor" title="Permanent link">&para;</a></h2>
-<p>You can implement your own processor in an Amper module as a regular JVM library, and then use it to process code from
+<p>You can implement your own processor in a Kotlin module as a regular JVM library, and then use it to process code from
 other modules in your project.</p>
 <p>Usually, 3 modules are involved:</p>
 <ul>
@@ -2553,7 +2553,7 @@ module:</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 21, 2026 12:53:27 UTC">April 21, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 15:51:35 UTC">May 12, 2026</span>
   </span>
 
     

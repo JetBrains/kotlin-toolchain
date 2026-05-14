@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Learn how to implement and register custom tasks in Amper plugins, and how they are executed.
+        <meta name="description" content="Learn how to implement and register custom tasks in Kotlin Toolchain plugins, and how they are executed.
 ">
       
       
@@ -32,7 +32,7 @@
   
     
       
-        <title>Tasks - Kotlin</title>
+        <title>Tasks - The Kotlin Toolchain</title>
       
     
   
@@ -81,8 +81,8 @@
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Tasks - Kotlin" />
-<meta property="og:description" content="Learn how to implement and register custom tasks in Amper plugins, and how they are executed.
+<meta property="og:title" content="Tasks - The Kotlin Toolchain" />
+<meta property="og:description" content="Learn how to implement and register custom tasks in Kotlin Toolchain plugins, and how they are executed.
 " />
 <meta property="og:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/plugins/topics/tasks.png" />
 <meta property="og:image:type" content="image/png" />
@@ -90,8 +90,8 @@
 <meta property="og:image:height" content="630" />
 <meta property="og:url" content="https://kotlin-toolchain.org/dev/user-guide/plugins/topics/tasks/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="Tasks - Kotlin" />
-<meta property="twitter:description" content="Learn how to implement and register custom tasks in Amper plugins, and how they are executed.
+<meta property="twitter:title" content="Tasks - The Kotlin Toolchain" />
+<meta property="twitter:description" content="Learn how to implement and register custom tasks in Kotlin Toolchain plugins, and how they are executed.
 " />
 <meta property="twitter:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/plugins/topics/tasks.png" />
 </head>
@@ -136,7 +136,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../../.." title="Kotlin" class="md-header__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../../../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../../../images/amper-icon.svg" alt="logo">
 
@@ -149,7 +149,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Kotlin
+            The Kotlin Toolchain
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -447,12 +447,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../../.." title="Kotlin" class="md-nav__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../../../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../../../images/amper-icon.svg" alt="logo">
 
     </a>
-    Kotlin
+    The Kotlin Toolchain
   </label>
   
     <div class="md-nav__source">
@@ -2901,19 +2901,19 @@ are <strong>always required to be annotated with <code>@Input</code></strong>.</
 <h2 id="tasks-runtime">Tasks runtime<a class="headerlink" href="#tasks-runtime" title="Permanent link">&para;</a></h2>
 <p>Tasks are executed inside an isolated JVM environment, and no guarantees are made about the state of static globals from
 one task action invocation to the other. </p>
-<p>At the moment tasks are effectively executed inside the Amper JVM using an isolated plugin classloader
+<p>At the moment tasks are effectively executed inside the Kotlin Toolchain JVM using an isolated plugin classloader
 that contains only the plugin's runtime classpath. 
 This concrete implementation is very much likely to change in the future, so it is advised not to rely on it.</p>
 <h3 id="runtime-api">Runtime API<a class="headerlink" href="#runtime-api" title="Permanent link">&para;</a></h3>
 <p>There is no currently available runtime API exposed for tasks, besides the configuration system.
 So plugin authors are free to use whatever libraries they need to implement things.
-In the future some runtime APIs that Amper can provide and support will be added.</p>
+In the future some runtime APIs that the Kotlin Toolchain can provide and support will be added.</p>
 <h4 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h4>
-<p>Use <code>System.out/err</code>, Amper will associate the output with the task name in its build log.
+<p>Use <code>System.out/err</code>, the Kotlin Toolchain will associate the output with the task name in its build log.
 Structured logging support is coming soon.</p>
 <h2 id="execution-avoidance">Execution avoidance<a class="headerlink" href="#execution-avoidance" title="Permanent link">&para;</a></h2>
-<p>Amper uses a built‑in execution‑avoidance mechanism for task actions by default.
-When not disabled, Amper decides whether to rerun an action based on:</p>
+<p>The Kotlin Toolchain uses a built‑in execution‑avoidance mechanism for task actions by default.
+When not disabled, the Kotlin Toolchain decides whether to rerun an action based on:</p>
 <ul>
 <li>the action execution classpath changes (if the action code is recompiled, tasks using the action need to be rerun)</li>
 <li>effective values of the action arguments that are non‑paths, including property values of configurable interfaces, recursively </li>
@@ -2940,7 +2940,7 @@ while <code>publish</code> task has undeclarable side effects and cannot be incr
 <h2 id="task-dependencies">Task Dependencies<a class="headerlink" href="#task-dependencies" title="Permanent link">&para;</a></h2>
 <p>Dependencies between user‑registered tasks are inferred automatically from matching <code>@Input</code> and <code>@Output</code> paths in their actions:</p>
 <ul>
-<li>If task A declares an <code>@Output</code> path and task B declares an <code>@Input</code> path that <em>matches</em> it, Amper adds a dependency from B to A.</li>
+<li>If task A declares an <code>@Output</code> path and task B declares an <code>@Input</code> path that <em>matches</em> it, the Kotlin Toolchain adds a dependency from B to A.</li>
 <li>
 <p>Paths are considered <em>matching</em> when they are either equal or one is an ancestor or descendant of the other.
   For example:</p>
@@ -3012,7 +3012,7 @@ By default, it is the plugin module name, unless overridden in <code>pluginInfo.
 </div>
 <p>The internal name of a task should not ideally be exposed and used externally. We are working on making it so. </p>
 <h2 id="contributing-back-to-the-build">Contributing back to the build<a class="headerlink" href="#contributing-back-to-the-build" title="Permanent link">&para;</a></h2>
-<p>There are a bunch of things the Amper build can consume that can be produced by a custom task.
+<p>There are a bunch of things the Kotlin Toolchain build can consume that can be produced by a custom task.
 In order to contribute some typed files back to the build, we need the following:</p>
 <ol>
 <li>To have a necessary path marked as an <code>@Output</code> in the task action</li>
@@ -3075,7 +3075,7 @@ in the names of <code>src</code> directories. For example, having:
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">defFile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${tasks.provideNativeLibs.action.generatedDefFile}</span>
 <span class="w">      </span><span class="nt">fragment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">native</span>
 </code></pre></div>
-would make Amper treat the generated sources as if they were put into the <code>test@ios</code> directory.</p>
+would make the Kotlin Toolchain treat the generated sources as if they were put into the <code>test@ios</code> directory.</p>
 <h2 id="consuming-things-from-the-build">Consuming things from the build<a class="headerlink" href="#consuming-things-from-the-build" title="Permanent link">&para;</a></h2>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -3129,7 +3129,7 @@ like other custom tasks or <abbr title="The Kotlin Symbol Processing tool, devel
 because it takes module layout into account (and multiplatform source directories — coming soon).</p>
 </div>
 <h3 id="requesting-classpathad-hoc-dependency-resolution">Requesting classpath/ad-hoc dependency resolution<a class="headerlink" href="#requesting-classpathad-hoc-dependency-resolution" title="Permanent link">&para;</a></h3>
-<p>Amper models a request to get a resolved classpath as the built‑in <code>org.jetbrains.amper.plugins.Classpath</code> configurable.
+<p>The Kotlin Toolchain models a request to get a resolved classpath as the built‑in <code>org.jetbrains.amper.plugins.Classpath</code> configurable.
 It also must always be an <code>@Input</code>.
 There are a bunch of convenience reference‑only properties like <code>module.runtimeClasspath</code> or <code>module.compileClasspath</code>,
 but one can also construct a <code>Classpath</code> spec to request an ad hoc dependency resolution.</p>
@@ -3197,14 +3197,14 @@ To do that we can refer to the <code>${module.jar}</code> which has the <code>or
 it probably doesn't ever need to be invoked explicitly by hand. It is invoked automatically by the build system or tooling
 to ensure that generated contents are up to date.</p>
 <p>If the task needs to serve as an entry point to the build, then, currently,
-it needs to be run manually via the Amper CLI using the task's <a href="#internal-name">internal name</a>:</p>
+it needs to be run manually via the Kotlin CLI using the task's <a href="#internal-name">internal name</a>:</p>
 <div class="highlight"><pre><span></span><code>$<span class="w"> </span>./amper<span class="w"> </span>task<span class="w"> </span>:moduleName:taskName@pluginId
 </code></pre></div>
 <p>We are working on providing a proper UX for calling plugin tasks.</p>
 <h2 id="learn-more">Learn more<a class="headerlink" href="#learn-more" title="Permanent link">&para;</a></h2>
 <p>To see more practical examples of how to write tasks,
 you are welcome to check out the <a href="../../quick-start/">quick start guide</a> and our
-plugin samples in the <code>build-sources</code> directory of the Amper project.</p>
+plugin samples in the <code>build-sources</code> directory of the Kotlin project.</p>
 
 
 
@@ -3225,7 +3225,7 @@ plugin samples in the <code>build-sources</code> directory of the Amper project.
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 30, 2026 13:06:45 UTC">April 30, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 15:51:35 UTC">May 12, 2026</span>
   </span>
 
     

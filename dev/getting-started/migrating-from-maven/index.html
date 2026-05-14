@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Migrate your Maven project to Amper: run the semi-automated converter, understand the concept mapping, and learn
+        <meta name="description" content="Migrate your Maven project to the Kotlin Toolchain: run the semi-automated converter, understand the concept mapping, and learn
 what to do after the conversion.
 ">
       
@@ -33,7 +33,7 @@ what to do after the conversion.
   
     
       
-        <title>Migrating from Maven - Kotlin</title>
+        <title>Migrating from Maven - The Kotlin Toolchain</title>
       
     
   
@@ -82,8 +82,8 @@ what to do after the conversion.
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Migrating from Maven - Kotlin" />
-<meta property="og:description" content="Migrate your Maven project to Amper: run the semi-automated converter, understand the concept mapping, and learn
+<meta property="og:title" content="Migrating from Maven - The Kotlin Toolchain" />
+<meta property="og:description" content="Migrate your Maven project to the Kotlin Toolchain: run the semi-automated converter, understand the concept mapping, and learn
 what to do after the conversion.
 " />
 <meta property="og:image" content="https://kotlin-toolchain.org/dev/assets/images/social/getting-started/migrating-from-maven.png" />
@@ -92,8 +92,8 @@ what to do after the conversion.
 <meta property="og:image:height" content="630" />
 <meta property="og:url" content="https://kotlin-toolchain.org/dev/getting-started/migrating-from-maven/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="Migrating from Maven - Kotlin" />
-<meta property="twitter:description" content="Migrate your Maven project to Amper: run the semi-automated converter, understand the concept mapping, and learn
+<meta property="twitter:title" content="Migrating from Maven - The Kotlin Toolchain" />
+<meta property="twitter:description" content="Migrate your Maven project to the Kotlin Toolchain: run the semi-automated converter, understand the concept mapping, and learn
 what to do after the conversion.
 " />
 <meta property="twitter:image" content="https://kotlin-toolchain.org/dev/assets/images/social/getting-started/migrating-from-maven.png" />
@@ -139,7 +139,7 @@ what to do after the conversion.
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Kotlin" class="md-header__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../images/amper-icon.svg" alt="logo">
 
@@ -152,7 +152,7 @@ what to do after the conversion.
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Kotlin
+            The Kotlin Toolchain
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -450,12 +450,12 @@ what to do after the conversion.
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Kotlin" class="md-nav__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../images/amper-icon.svg" alt="logo">
 
     </a>
-    Kotlin
+    The Kotlin Toolchain
   </label>
   
     <div class="md-nav__source">
@@ -2513,14 +2513,14 @@ what to do after the conversion.
 
 
 <h1 id="migrating-from-maven">Migrating from Maven<a class="headerlink" href="#migrating-from-maven" title="Permanent link">&para;</a></h1>
-<p>This section describes how to convert an existing Maven project to Amper.</p>
-<p>Amper provides a semi-automated tool to do the bulk of the conversion for you.
+<p>This section describes how to convert an existing Maven project to the Kotlin Toolchain.</p>
+<p>The Kotlin Toolchain provides a semi-automated tool to do the bulk of the conversion for you.
 It works on a best-effort basis, so some projects require some additional tweaks
 after the converter runs.</p>
 <p>To run the migration tool, go to the root of your Maven project:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/path/to/your/maven/project
 </code></pre></div>
-<p>Download the <a href="../../cli/provisioning/#whats-the-wrapper-script">Amper wrapper script</a>.</p>
+<p>Download the <a href="../../cli/provisioning/#whats-the-wrapper-script">Kotlin wrapper script</a>.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="linux--macos" name="__tabbed_1" type="radio" /><input id="windows" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="linux--macos"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.62 8.35c-.42.28-1.75 1.04-1.95 1.19-.39.31-.75.29-1.14-.01-.2-.16-1.53-.92-1.95-1.19-.48-.31-.45-.7.08-.92 1.64-.69 3.28-.64 4.91.03.49.21.51.6.05.9m7.22 7.28c-.93-2.09-2.2-3.99-3.84-5.66a4.3 4.3 0 0 1-1.06-1.88c-.1-.33-.17-.67-.24-1.01-.2-.88-.29-1.78-.7-2.61-.73-1.58-2-2.4-3.84-2.47-1.81.05-3.16.81-3.95 2.4-.21.43-.36.88-.46 1.34-.17.76-.32 1.55-.5 2.32-.15.65-.45 1.21-.96 1.71-1.61 1.57-2.9 3.37-3.88 5.35-.14.29-.28.58-.37.88-.19.66.29 1.12.99.96.44-.09.88-.18 1.3-.31.41-.15.57-.05.67.35.65 2.15 2.07 3.66 4.24 4.5 4.12 1.56 8.93-.66 9.97-4.58.07-.27.17-.37.47-.27.46.14.93.24 1.4.35.49.09.85-.16.92-.64.03-.26-.06-.49-.16-.73"/></svg></span> Linux / <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11"/></svg></span> macOS</label><label for="windows"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 12V6.75l6-1.32v6.48zm17-9v8.75l-10 .15V5.21zM3 13l6 .09v6.81l-6-1.15zm17 .25V22l-10-1.91V13.1z"/></svg></span> Windows</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
@@ -2540,7 +2540,7 @@ after the converter runs.</p>
 </code></pre></div>
 <p>The path to your <code>pom.xml</code> can be provided explicitly via <code>--pom</code> argument. The <code>pom.xml</code> file is a starting point.
 If it's a part of the reactor, all related modules are converted.</p>
-<p>During the conversion, the tool puts Amper files into corresponding maven modules's folders. If <code>project.yaml</code> or one of
+<p>During the conversion, the tool puts the Kotlin Toolchain files into corresponding Maven modules's folders. If <code>project.yaml</code> or one of
 the corresponding <code>module.yaml</code> files already exists, by default converter fails. To adjust this behavior,
 <code>--overwrite-existing</code> flag can be used.</p>
 <h2 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
@@ -2564,13 +2564,13 @@ for details.</p>
 </ul>
 <h3 id="maven-plugin-handling">Maven plugin handling<a class="headerlink" href="#maven-plugin-handling" title="Permanent link">&para;</a></h3>
 <p>The converter handles Maven plugins in two ways:</p>
-<p><strong>Handled natively</strong> — these plugins cover functionality that Amper provides out of the box.
-For some of them, the converter extracts the relevant configuration into Amper settings:</p>
+<p><strong>Handled natively</strong> — these plugins cover functionality that the Kotlin Toolchain provides out of the box.
+For some of them, the converter extracts the relevant configuration into the Kotlin Toolchain settings:</p>
 <table>
 <thead>
 <tr>
 <th>Maven plugin</th>
-<th>Amper settings</th>
+<th>The Kotlin Toolchain settings</th>
 </tr>
 </thead>
 <tbody>
@@ -2593,7 +2593,7 @@ For some of them, the converter extracts the relevant configuration into Amper s
 </tbody>
 </table>
 <p>Others (<code>maven-jar-plugin</code>, <code>maven-clean-plugin</code>, <code>maven-install-plugin</code>, <code>maven-source-plugin</code>, etc.)
-don't require any conversion because Amper handles their functionality out of the box.</p>
+don't require any conversion because the Kotlin Toolchain handles their functionality out of the box.</p>
 <p><strong>Unknown plugins</strong> — all other plugins are downloaded, their descriptors are parsed, and each goal is added to a
 <code>mavenPlugins</code> section with <code>enabled: false</code>. You can enable them selectively after the conversion.</p>
 <p>For example, a project using <code>maven-enforcer-plugin</code> and <code>jacoco-maven-plugin</code> would produce:</p>
@@ -2610,17 +2610,17 @@ don't require any conversion because Amper handles their functionality out of th
 <span class="w">  </span><span class="nt">jacoco-maven-plugin.prepare-agent</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 </code></pre></div>
-<p>The <code>mavenPlugins</code> section allows you to run third-party Maven plugins directly in your Amper project.
+<p>The <code>mavenPlugins</code> section allows you to run third-party Maven plugins directly in your Kotlin project.
 However, not all plugins are guaranteed to work, so by default they are disabled. You can selectively enable
 plugins you need by setting <code>enabled: true</code> in their configuration after the conversion.
 Please refer to the <a href="../../user-guide/advanced/maven-plugins/">Maven plugins</a> section for more details.</p>
 <h2 id="dependency-mapping">Dependency mapping<a class="headerlink" href="#dependency-mapping" title="Permanent link">&para;</a></h2>
-<p>Maven dependency scopes map to Amper as follows:</p>
+<p>Maven dependency scopes map to the Kotlin Toolchain as follows:</p>
 <table>
 <thead>
 <tr>
 <th>Maven scope</th>
-<th>Amper equivalent</th>
+<th>The Kotlin Toolchain equivalent</th>
 <th>Config section</th>
 </tr>
 </thead>
@@ -2728,8 +2728,8 @@ See <a href="../../user-guide/dependencies/#when-to-use-exported">When to use ex
    See <a href="../../user-guide/dependencies/#library-catalogs">Library catalogs</a>.</p>
 </li>
 <li>
-<p><strong>Optional: switch to the standard Amper layout.</strong> The converter sets <code>layout: maven-like</code> to avoid moving files.
-   If you want to adopt the <a href="../../user-guide/basics/#project-layout">standard Amper layout</a> later, move files from
+<p><strong>Optional: switch to the standard Kotlin Toolchain layout.</strong> The converter sets <code>layout: maven-like</code> to avoid moving files.
+   If you want to adopt the <a href="../../user-guide/basics/#project-layout">standard Kotlin Toolchain layout</a> later, move files from
    <code>src/main/kotlin/</code> to <code>src/</code> and from <code>src/test/kotlin/</code> to <code>test/</code>, then remove the <code>layout: maven-like</code> line.
    See <a href="../../user-guide/advanced/maven-like-layout/">Maven-like layout</a>.</p>
 </li>
@@ -2737,7 +2737,7 @@ See <a href="../../user-guide/dependencies/#when-to-use-exported">When to use ex
 <h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h2>
 <p>The following Maven features are not handled by the converter and require manual migration:</p>
 <ul>
-<li><strong>Profiles</strong> — Amper does not have an equivalent of Maven profiles. Build configuration can only vary
+<li><strong>Profiles</strong> — The Kotlin Toolchain does not have an equivalent of Maven profiles. Build configuration can only vary
   <a href="../../user-guide/multiplatform/">by platform</a>.</li>
 <li><strong>Extensions</strong></li>
 <li><strong>Dependency exclusions</strong></li>
@@ -2767,7 +2767,7 @@ See <a href="../../user-guide/dependencies/#when-to-use-exported">When to use ex
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 29, 2026 21:48:22 UTC">March 29, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 15:51:35 UTC">May 12, 2026</span>
   </span>
 
     

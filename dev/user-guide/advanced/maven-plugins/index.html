@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Apply Maven plugins to your Amper project to run tests, generate sources, check code style, produce reports, and more.
+        <meta name="description" content="Apply Maven plugins to your Kotlin project to run tests, generate sources, check code style, produce reports, and more.
 Learn how to declare, enable, configure, and extend Maven plugins across single- and multi-module projects.
 ">
       
@@ -33,7 +33,7 @@ Learn how to declare, enable, configure, and extend Maven plugins across single-
   
     
       
-        <title>Maven plugins - Kotlin</title>
+        <title>Maven plugins - The Kotlin Toolchain</title>
       
     
   
@@ -82,8 +82,8 @@ Learn how to declare, enable, configure, and extend Maven plugins across single-
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Maven plugins - Kotlin" />
-<meta property="og:description" content="Apply Maven plugins to your Amper project to run tests, generate sources, check code style, produce reports, and more.
+<meta property="og:title" content="Maven plugins - The Kotlin Toolchain" />
+<meta property="og:description" content="Apply Maven plugins to your Kotlin project to run tests, generate sources, check code style, produce reports, and more.
 Learn how to declare, enable, configure, and extend Maven plugins across single- and multi-module projects.
 " />
 <meta property="og:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/advanced/maven-plugins.png" />
@@ -92,8 +92,8 @@ Learn how to declare, enable, configure, and extend Maven plugins across single-
 <meta property="og:image:height" content="630" />
 <meta property="og:url" content="https://kotlin-toolchain.org/dev/user-guide/advanced/maven-plugins/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="Maven plugins - Kotlin" />
-<meta property="twitter:description" content="Apply Maven plugins to your Amper project to run tests, generate sources, check code style, produce reports, and more.
+<meta property="twitter:title" content="Maven plugins - The Kotlin Toolchain" />
+<meta property="twitter:description" content="Apply Maven plugins to your Kotlin project to run tests, generate sources, check code style, produce reports, and more.
 Learn how to declare, enable, configure, and extend Maven plugins across single- and multi-module projects.
 " />
 <meta property="twitter:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/advanced/maven-plugins.png" />
@@ -139,7 +139,7 @@ Learn how to declare, enable, configure, and extend Maven plugins across single-
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="Kotlin" class="md-header__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../../images/amper-icon.svg" alt="logo">
 
@@ -152,7 +152,7 @@ Learn how to declare, enable, configure, and extend Maven plugins across single-
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Kotlin
+            The Kotlin Toolchain
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -450,12 +450,12 @@ Learn how to declare, enable, configure, and extend Maven plugins across single-
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="Kotlin" class="md-nav__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../../images/amper-icon.svg" alt="logo">
 
     </a>
-    Kotlin
+    The Kotlin Toolchain
   </label>
   
     <div class="md-nav__source">
@@ -2426,7 +2426,7 @@ Learn how to declare, enable, configure, and extend Maven plugins across single-
 
 <h1 id="maven-plugins">Maven plugins<a class="headerlink" href="#maven-plugins" title="Permanent link">&para;</a></h1>
 <p>Maven plugins are tools in the JVM ecosystem that perform tasks during a project's build, such as running tests,
-generating source code, checking code style, or producing reports. Amper supports integrating Maven plugins into
+generating source code, checking code style, or producing reports. The Kotlin Toolchain supports integrating Maven plugins into
 JVM modules (modules with either <code>jvm/app</code> or <code>jvm/lib</code> product type).</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -2470,13 +2470,13 @@ Each entry uses standard Maven coordinates notation (<code>groupId:artifactId:ve
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;*Smoke*&quot;</span>
 </code></pre></div>
 <p>The keys inside <code>configuration</code> directly correspond to the goal's parameters as documented by the respective plugin.
-Amper reads the plugin's descriptor to resolve parameter types, so IDE completion and validation are available for
+The Kotlin Toolchain reads the plugin's descriptor to resolve parameter types, so IDE completion and validation are available for
 supported parameter types.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Currently, complex parameter types (POJOs) are not supported.</p>
 </div>
-<p>For configuration parameters with <code>PlexusConfiguration</code> type, Amper supports passing raw XML:</p>
+<p>For configuration parameters with <code>PlexusConfiguration</code> type, the Kotlin Toolchain supports passing raw XML:</p>
 <div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jvm/app</span>
 
 <span class="nt">mavenPlugins</span><span class="p">:</span>
@@ -2505,7 +2505,7 @@ supported parameter types.</p>
 <span class="w">      </span><span class="nt">includes</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;**/*&quot;</span>
 </code></pre></div>
 <h1 id="source-generation-capability">Source generation capability<a class="headerlink" href="#source-generation-capability" title="Permanent link">&para;</a></h1>
-<p>Maven plugins that generate sources integrate with Amper's compilation pipeline automatically.</p>
+<p>Maven plugins that generate sources integrate with the Kotlin Toolchain's compilation pipeline automatically.</p>
 <p>Example of using a protobuf code generator:</p>
 <div class="highlight"><span class="filename">project.yaml</span><pre><span></span><code><span class="nt">modules</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">app</span>
@@ -2527,13 +2527,13 @@ supported parameter types.</p>
 <span class="w">      </span><span class="nt">kotlinEnabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 </code></pre></div>
 <h1 id="executing-maven-goals">Executing Maven goals<a class="headerlink" href="#executing-maven-goals" title="Permanent link">&para;</a></h1>
-<p>Each enabled goal becomes an Amper task named <code>pluginArtifactId.goal</code>, scoped to its module.</p>
+<p>Each enabled goal becomes a Kotlin Toolchain task named <code>pluginArtifactId.goal</code>, scoped to its module.</p>
 <h3 id="lifecycle-integration">Lifecycle integration<a class="headerlink" href="#lifecycle-integration" title="Permanent link">&para;</a></h3>
-<p>Mojo goals with a default Maven phase are automatically wired into the Amper build lifecycle on a best-effort basis.
-For instance, the <code>generate-sources</code> phase and respective <code>protobuf-maven-plugin.generate</code> task will be run before Amper calls the compiler.</p>
+<p>Mojo goals with a default Maven phase are automatically wired into the Kotlin Toolchain build lifecycle on a best-effort basis.
+For instance, the <code>generate-sources</code> phase and respective <code>protobuf-maven-plugin.generate</code> task will be run before the Kotlin Toolchain calls the compiler.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Mojos that do not have a default phase defined are not automatically wired into the Amper lifecycle.</p>
+<p>Mojos that do not have a default phase defined are not automatically wired into the Kotlin Toolchain lifecycle.</p>
 </div>
 <h3 id="running-a-mojo-explicitly">Running a mojo explicitly<a class="headerlink" href="#running-a-mojo-explicitly" title="Permanent link">&para;</a></h3>
 <p>Use the <code>task</code> command with the fully qualified maven mojo goal task name <code>:moduleName:pluginArtifactId.goal</code>. For example:</p>
@@ -2543,7 +2543,7 @@ For instance, the <code>generate-sources</code> phase and respective <code>proto
 </code></pre></div>
 <h1 id="getting-results-from-maven-mojo-executions">Getting results from Maven Mojo executions<a class="headerlink" href="#getting-results-from-maven-mojo-executions" title="Permanent link">&para;</a></h1>
 <h3 id="output-files">Output files<a class="headerlink" href="#output-files" title="Permanent link">&para;</a></h3>
-<p>All files produced by mojos should be written into a <code>maven-target/</code> subdirectory inside Amper's build output.
+<p>All files produced by mojos should be written into a <code>maven-target/</code> subdirectory inside the Kotlin Toolchain's build output.
 Report mojos (those implementing the Maven reporting API) additionally generate an HTML file under
 <code>maven-target/reports/</code>. Example output tree:</p>
 <div class="highlight"><pre><span></span><code>build/
@@ -2562,10 +2562,10 @@ Please refer to the documentation of those plugins in such cases.</p>
 <ul>
 <li><strong>JVM only</strong>: Maven plugins can only be used in JVM platform modules.</li>
 <li><strong>No general guarantees</strong>: Maven plugin mojos are executed on a best-effort basis, 
-but some plugins may rely on Maven APIs or capabilities that Amper does not support.</li>
-<li><strong>Single execution per mojo only</strong>: Currently, only a single mojo execution will be performed per Amper module. 
+but some plugins may rely on Maven APIs or capabilities that the Kotlin Toolchain does not support.</li>
+<li><strong>Single execution per mojo only</strong>: Currently, only a single mojo execution will be performed per Kotlin module. 
   There is no support for configuring multiple executions.</li>
-<li><strong>No Maven extensions</strong>: Maven extensions modify the Maven build lifecycle, which is not suitable for Amper projects.</li>
+<li><strong>No Maven extensions</strong>: Maven extensions modify the Maven build lifecycle, which is not suitable for Kotlin projects.</li>
 <li><strong>No custom dependency resolution</strong>: Plugins that override or extend Maven's dependency resolution mechanism are not supported.</li>
 <li><strong>No report aggregation</strong>: Currently, the only supported way to produce a report is to run the mojo directly.</li>
 </ul>
@@ -2589,7 +2589,7 @@ but some plugins may rely on Maven APIs or capabilities that Amper does not supp
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 29, 2026 21:48:22 UTC">March 29, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 15:51:35 UTC">May 12, 2026</span>
   </span>
 
     

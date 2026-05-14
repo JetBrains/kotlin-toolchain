@@ -31,7 +31,7 @@
   
     
       
-        <title>module.yaml - Kotlin</title>
+        <title>module.yaml - The Kotlin Toolchain</title>
       
     
   
@@ -80,7 +80,7 @@
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="module.yaml - Kotlin" />
+<meta property="og:title" content="module.yaml - The Kotlin Toolchain" />
 <meta property="og:description" content="An exhaustive reference of the module file format." />
 <meta property="og:image" content="https://kotlin-toolchain.org/dev/assets/images/social/reference/module.png" />
 <meta property="og:image:type" content="image/png" />
@@ -88,7 +88,7 @@
 <meta property="og:image:height" content="630" />
 <meta property="og:url" content="https://kotlin-toolchain.org/dev/reference/module/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="module.yaml - Kotlin" />
+<meta property="twitter:title" content="module.yaml - The Kotlin Toolchain" />
 <meta property="twitter:description" content="An exhaustive reference of the module file format." />
 <meta property="twitter:image" content="https://kotlin-toolchain.org/dev/assets/images/social/reference/module.png" />
 </head>
@@ -133,7 +133,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Kotlin" class="md-header__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../images/amper-icon.svg" alt="logo">
 
@@ -146,7 +146,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Kotlin
+            The Kotlin Toolchain
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -444,12 +444,12 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Kotlin" class="md-nav__button md-logo" aria-label="Kotlin" data-md-component="logo">
+    <a href="../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
   <img src="../../images/amper-icon.svg" alt="logo">
 
     </a>
-    Kotlin
+    The Kotlin Toolchain
   </label>
   
     <div class="md-nav__source">
@@ -3283,7 +3283,7 @@ Read more about the <a href="../../user-guide/basics/#product-type">product type
 </tr>
 <tr>
 <td><code>jvm/amper-plugin</code></td>
-<td>A plugin for Amper (see <a href="../../user-guide/plugins/quick-start/">Plugins</a>).</td>
+<td>A plugin for the Kotlin Toolchain (see <a href="../../user-guide/plugins/quick-start/">Plugins</a>).</td>
 <td><code>jvm</code></td>
 </tr>
 <tr>
@@ -3786,7 +3786,7 @@ about <a href="../../user-guide/testing/">testing support</a>.</p>
 </tbody>
 </table>
 <h4 id="settingsjvmjdk"><code>settings.jvm.jdk</code><a class="headerlink" href="#settingsjvmjdk" title="Permanent link">&para;</a></h4>
-<p>Configures how Amper selects or provisions a JDK for the module. If <code>JAVA_HOME</code> points to a suitable JDK, Amper can use it; otherwise it can download a matching JDK via the Foojay Discovery API and cache it. See the <a href="../../user-guide/advanced/jdk-provisioning/">JDK provisioning</a> page for a deep dive.</p>
+<p>Configures how the Kotlin Toolchain selects or provisions a JDK for the module. If <code>JAVA_HOME</code> points to a suitable JDK, Kotlin Toolchain can use it; otherwise it can download a matching JDK via the Foojay Discovery API and cache it. See the <a href="../../user-guide/advanced/jdk-provisioning/">JDK provisioning</a> page for a deep dive.</p>
 <table>
 <thead>
 <tr>
@@ -3800,8 +3800,8 @@ about <a href="../../user-guide/testing/">testing support</a>.</p>
 <tr>
 <td><code>version</code></td>
 <td>int</td>
-<td>Amper default JDK major version</td>
-<td>Major JDK version to use (e.g., 8, 11, 17, 21, 25). Amper prefers the latest update in that line.</td>
+<td>Kotlin Toolchain default JDK major version</td>
+<td>Major JDK version to use (e.g., 8, 11, 17, 21, 25). Kotlin Toolchain prefers the latest update in that line.</td>
 </tr>
 <tr>
 <td><code>distributions</code></td>
@@ -3813,7 +3813,7 @@ about <a href="../../user-guide/testing/">testing support</a>.</p>
 <td><code>selectionMode</code></td>
 <td>enum</td>
 <td><code>auto</code></td>
-<td>Strategy for choosing between <code>JAVA_HOME</code> and provisioning: <code>auto</code></td>
+<td>Strategy for choosing between <code>JAVA_HOME</code> and provisioning: <code>auto</code> | <code>alwaysProvision</code>  | <code>javaHome</code>.</td>
 </tr>
 <tr>
 <td><code>acknowledgedLicenses</code></td>
@@ -4358,7 +4358,7 @@ which allows processing Kotlin source code with custom processors (usually to ge
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 17:20:38 UTC">May 12, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 15:51:35 UTC">May 12, 2026</span>
   </span>
 
     
