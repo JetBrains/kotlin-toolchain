@@ -2602,8 +2602,8 @@ Here is what we do:</p>
 <p>Your project should now look like this:
 <div class="highlight"><pre><span></span><code>├─ src/
 │  ╰─ main.kt
-<span class="hll">├─ amper
-</span><span class="hll">├─ amper.bat
+<span class="hll">├─ kotlin
+</span><span class="hll">├─ kotlin.bat
 </span>╰─ module.yaml
 </code></pre></div></p>
 <p>That’s it, we’ve just created a simple JVM application.</p>
@@ -2612,11 +2612,11 @@ no need to create separate Maven-like <code>java/</code> and <code>kotlin/</code
 <div class="highlight"><pre><span></span><code>├─ src/
 │  ├─ main.kt
 <span class="hll">│  ╰─ JavaClass.java
-</span>├─ amper
-├─ amper.bat
+</span>├─ kotlin
+├─ kotlin.bat
 ╰─ module.yaml
 </code></pre></div>
-<p>You can now build your application using <code>./amper build</code>, or run it using <code>./amper run</code>.</p>
+<p>You can now build your application using <code>./kotlin build</code>, or run it using <code>./kotlin run</code>.</p>
 <details class="info">
 <summary>Run it directly from IntelliJ IDEA</summary>
 <p>If you're using IntelliJ IDEA, you can use the <span class="twemoji"><!--
@@ -2672,8 +2672,8 @@ we only need to add some test code into the <code>test/</code> folder:</p>
 │  ╰─ ...
 <span class="hll">├─ test/
 </span><span class="hll">│  ╰─ MyTest.kt
-</span>├─ amper
-├─ amper.bat
+</span>├─ kotlin
+├─ kotlin.bat
 ╰─ module.yaml
 ‎
 </code></pre></div>
@@ -2786,8 +2786,8 @@ following structure:
 ├─ shared/
 │  ├─ ...
 │  ╰─ module.yaml
-├─ amper
-├─ amper.bat
+├─ kotlin
+├─ kotlin.bat
 ╰─ project.yaml
 </code></pre></div></p>
 <p>First let's move our current <code>src</code>, <code>test</code> and <code>module.yaml</code> files into a new <code>jvm-app</code> directory:
@@ -2797,10 +2797,10 @@ following structure:
 </span><span class="hll">│  ├─ test/
 </span><span class="hll">│  │  ╰─ ...
 </span><span class="hll">│  ╰─ module.yaml
-</span>├─ amper
-╰─ amper.bat
+</span>├─ kotlin
+╰─ kotlin.bat
 </code></pre></div></p>
-<p>Add a <code>project.yaml</code> file in the root, next to the existing <code>amper</code> and <code>amper.bat</code> files, with the following content:</p>
+<p>Add a <code>project.yaml</code> file in the root, next to the existing <code>kotlin</code> and <code>kotlin.bat</code> files, with the following content:</p>
 <div class="highlight"><span class="filename">project.yaml</span><pre><span></span><code><span class="nt">modules</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./jvm-app</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./shared</span>
@@ -2990,9 +2990,9 @@ These files bind the Compose UI code with the native application entry points.</
 ╰─ ...
 </code></pre></div></p>
 <p>Now you can build and run both apps using the corresponding IntelliJ IDEA run configurations, or use the CLI commands:
-<div class="highlight"><pre><span></span><code>./amper<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>android-app
+<div class="highlight"><pre><span></span><code>./kotlin<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>android-app
 </code></pre></div>
-<div class="highlight"><pre><span></span><code>./amper<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>ios-app
+<div class="highlight"><pre><span></span><code>./kotlin<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>ios-app
 </code></pre></div></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -3133,7 +3133,7 @@ for various typical configurations in the project.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 15:51:35 UTC">May 12, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 13, 2026 13:14:52 UTC">May 13, 2026</span>
   </span>
 
     
