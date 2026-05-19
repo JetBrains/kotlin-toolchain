@@ -16,7 +16,7 @@ import org.jetbrains.amper.frontend.doCapitalize
 import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.isPublishingEnabled
-import org.jetbrains.amper.frontend.mavenRepositories
+import org.jetbrains.amper.frontend.mavenPublishRepositories
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.shouldPublishSourcesJars
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
@@ -174,7 +174,7 @@ fun ProjectTasksBuilder.setupCommonTasks() {
                     )
                 }
 
-                val publishRepositories = module.mavenRepositories.filter { it.publish }
+                val publishRepositories = module.mavenPublishRepositories
                 for (repository in publishRepositories) {
                     val publishTaskName = publishTaskNameFor(module, repository)
                     tasks.registerTask(

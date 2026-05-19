@@ -27,7 +27,7 @@ import org.jetbrains.amper.frontend.dr.resolver.flow.toPlatform
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.frontend.dr.resolver.getExternalDependencies
 import org.jetbrains.amper.frontend.fragmentsTargeting
-import org.jetbrains.amper.frontend.mavenRepositories
+import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.ResultWithSerializable
 import org.jetbrains.amper.incrementalcache.execute
@@ -160,8 +160,7 @@ class ResolveExternalDependenciesTask(
             mavenResolver: CliReportingMavenResolver
         ): Result {
             val module = moduleDependencies.module
-            val repositories = module.mavenRepositories
-                .filter { it.resolve }
+            val repositories = module.mavenResolveRepositories
                 .map { it.url }
                 .distinct()
 

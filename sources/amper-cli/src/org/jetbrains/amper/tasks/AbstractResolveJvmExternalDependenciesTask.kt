@@ -18,7 +18,7 @@ import org.jetbrains.amper.frontend.dr.resolver.MavenCoordinatesExt
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.frontend.dr.resolver.toDrMavenCoordinates
 import org.jetbrains.amper.frontend.jdkSettings
-import org.jetbrains.amper.frontend.mavenRepositories
+import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.frontend.schema.UnscopedBomDependency
 import org.jetbrains.amper.frontend.schema.UnscopedDependency
 import org.jetbrains.amper.frontend.schema.UnscopedExternalMavenDependency
@@ -47,7 +47,7 @@ internal abstract class AbstractResolveJvmExternalDependenciesTask(
     protected open val incrementalCacheKey: String get() = taskName.name
 
     override suspend fun run(dependenciesResult: List<TaskResult>, executionContext: TaskGraphExecutionContext): TaskResult {
-        val repositories = module.mavenRepositories.filter { it.resolve }.map { it.toRepository() }.distinct()
+        val repositories = module.mavenResolveRepositories.map { it.toRepository() }.distinct()
         
         val externalUnscopedDependencies = getMavenCoordinatesToResolve()
             .filter { it !is UnscopedModuleDependency }

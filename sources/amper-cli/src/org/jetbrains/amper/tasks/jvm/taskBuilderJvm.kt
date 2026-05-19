@@ -8,7 +8,7 @@ import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.doCapitalize
 import org.jetbrains.amper.frontend.isPublishingEnabled
-import org.jetbrains.amper.frontend.mavenRepositories
+import org.jetbrains.amper.frontend.mavenPublishRepositories
 import org.jetbrains.amper.frontend.schema.DependencyMode
 import org.jetbrains.amper.frontend.schema.enabled
 import org.jetbrains.amper.tasks.CommonTaskType
@@ -250,7 +250,7 @@ fun ProjectTasksBuilder.setupJvmTasks() {
             // TODO This is only kept for a transition period while we replace 'publishJvmToX' with module-wide
             //  'publishToX'. Remove after transitioning.
             if (module.isPublishingEnabled()) {
-                val publishRepositories = module.mavenRepositories.filter { it.publish }
+                val publishRepositories = module.mavenPublishRepositories
                 for (repository in publishRepositories) {
                     val publishTaskSuffix = "To${repository.id.doCapitalize()}"
                     val publishTaskName = CommonTaskType.Publish.getTaskName(module, platform, suffix = publishTaskSuffix)

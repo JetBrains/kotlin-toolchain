@@ -8,7 +8,13 @@ import org.jetbrains.amper.buildinfo.AmperBuild
 
 fun String.doCapitalize() = replaceFirstChar { it.titlecase() }
 
-val AmperModule.mavenRepositories: List<RepositoriesModulePart.Repository>
+val AmperModule.mavenResolveRepositories: List<RepositoriesModulePart.Repository>
+    get() = mavenRepositories.filter { it.resolve }
+
+val AmperModule.mavenPublishRepositories: List<RepositoriesModulePart.Repository>
+    get() = mavenRepositories.filter { it.publish }
+
+private val AmperModule.mavenRepositories: List<RepositoriesModulePart.Repository>
     get() = parts.find<RepositoriesModulePart>()?.mavenRepositories ?: emptyList()
 
 /**

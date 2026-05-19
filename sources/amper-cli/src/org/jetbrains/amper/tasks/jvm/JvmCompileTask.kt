@@ -40,7 +40,7 @@ import org.jetbrains.amper.frontend.TaskName
 import org.jetbrains.amper.frontend.aomBuilder.javaAnnotationProcessingGeneratedSourcesPath
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.frontend.jdkSettings
-import org.jetbrains.amper.frontend.mavenRepositories
+import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
@@ -359,7 +359,7 @@ internal class JvmCompileTask(
 
         val compilerPlugins = kotlinArtifactsDownloader.downloadCompilerPlugins(
             plugins = userSettings.kotlin.compilerPlugins,
-            repositories = module.mavenRepositories.map { it.toRepository() },
+            repositories = module.mavenResolveRepositories.map { it.toRepository() },
         )
 
         val compilerArgs = kotlinJvmCompilerArgs(

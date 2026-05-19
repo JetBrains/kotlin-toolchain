@@ -24,7 +24,7 @@ import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskName
 import org.jetbrains.amper.frontend.isDescendantOf
-import org.jetbrains.amper.frontend.mavenRepositories
+import org.jetbrains.amper.frontend.mavenPublishRepositories
 import org.jetbrains.amper.frontend.plugins.CustomCommandFromPlugin
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.system.info.Arch
@@ -249,8 +249,8 @@ class AmperBackend(
         if (modules != null) {
             for (moduleName in modules) {
                 val module = resolveModule(moduleName)
-                if (module.mavenRepositories.none { it.id == repositoryId }) {
-                    userReadableError("Module '$moduleName' does not have repository with id '$repositoryId'")
+                if (module.mavenPublishRepositories.none { it.id == repositoryId }) {
+                    userReadableError("Module '$moduleName' does not have repository with id '$repositoryId' having flag 'publish=true'")
                 }
             }
         }

@@ -37,7 +37,7 @@ import org.jetbrains.amper.frontend.dr.resolver.ModuleResolutionFilter
 import org.jetbrains.amper.frontend.dr.resolver.ResolutionType
 import org.jetbrains.amper.frontend.dr.resolver.getExternalDependencies
 import org.jetbrains.amper.frontend.dr.resolver.toDrMavenCoordinates
-import org.jetbrains.amper.frontend.mavenRepositories
+import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.frontend.plugins.AmperMavenPluginDescription
 import org.jetbrains.amper.frontend.plugins.TaskFromPluginDescription
 import org.jetbrains.amper.frontend.schema.ProductType
@@ -134,7 +134,7 @@ internal class ResolveCustomExternalDependenciesTask(
     }
 
     private suspend fun resolveExternalMavenDependencies(externalDependencies: List<MavenCoordinates>): List<Path> {
-        val repositories = module.mavenRepositories.filter { it.resolve }.map { it.toRepository() }
+        val repositories = module.mavenResolveRepositories.map { it.toRepository() }
 
         val dependencyPaths = incrementalCache.execute(
             key = taskName.name,
@@ -183,7 +183,7 @@ internal class ResolveCustomExternalDependenciesTask(
         val moduleDependenciesRoot = moduleDependencies.allLeafPlatformsGraph(isForTests = false)
         val externalDependencies = moduleDependenciesRoot.children.flatMap { it.getExternalDependencies() }
 
-        val repositories = module.mavenRepositories.filter { it.resolve }.map { it.toRepository() }
+        val repositories = module.mavenResolveRepositories.map { it.toRepository() }
 
         val dependencyPaths = incrementalCache.execute(
             key = taskName.name,

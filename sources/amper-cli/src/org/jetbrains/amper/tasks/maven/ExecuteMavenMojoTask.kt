@@ -41,7 +41,7 @@ import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.TaskName
-import org.jetbrains.amper.frontend.mavenRepositories
+import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.frontend.plugins.AmperMavenPluginMojo
 import org.jetbrains.amper.maven.publish.createMavenExecutionRequest
 import org.jetbrains.amper.maven.publish.createRepositorySession
@@ -86,7 +86,7 @@ class ExecuteMavenMojoTask(
         val repoSession = plexus.createRepositorySession(localRepoPath)
         val request = plexus.mavenRepositorySystem.createMavenExecutionRequest(localRepoPath).apply request@{
             // Install remote artifact repositories.
-            module.mavenRepositories.forEach {
+            module.mavenResolveRepositories.forEach {
                 if (!it.isMavenLocal) addRemoteRepository {
                     plexus.repoSystem.createDefaultRemoteRepository(this@request).apply {
                         id = it.id
