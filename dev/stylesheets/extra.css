@@ -6,3 +6,204 @@
 table code {
     white-space: nowrap;
 }
+
+/* ============================================
+   HOMEPAGE HERO STYLES
+   ============================================ */
+
+/* Hero section container */
+.hero {
+    text-align: center;
+    padding: 1rem 0 2rem;
+}
+
+.hero h1 {
+    font-size: 2.75rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    text-align: center;
+    color: var(--md-default-fg-color);
+    letter-spacing: -0.02em;
+}
+
+/* Hide all permalink anchors on homepage */
+.md-content:has(.hero) .headerlink,
+.md-content:has(.hero) a.headerlink {
+    display: none !important;
+}
+
+/* Hide edit button on homepage */
+.hero ~ .md-content__button,
+.md-content:has(.hero) .md-content__button {
+    display: none !important;
+}
+
+.hero .tagline {
+    font-size: 1.2rem;
+    color: var(--md-default-fg-color--light);
+    margin-bottom: 2.5rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* Installation grid - two columns */
+.install-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    max-width: 1050px;
+    margin: 0 auto 2rem;
+    text-align: left;
+}
+
+@media (max-width: 900px) {
+    .install-grid {
+        grid-template-columns: 1fr;
+        max-width: 550px;
+    }
+    .hero h1 {
+        font-size: 2rem;
+    }
+}
+
+.install-card {
+    background: var(--md-code-bg-color);
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.install-card h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.15rem;
+}
+
+.install-card .method-label {
+    font-size: 0.8rem;
+    color: var(--md-default-fg-color--light);
+    margin-bottom: 0.35rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Allow code to wrap in install cards to prevent horizontal scroll */
+.install-card pre code {
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.install-card pre {
+    margin: 0.25rem 0 1rem 0 !important;
+    border-radius: 6px;
+    overflow-x: hidden;
+}
+
+.install-card pre code {
+    background: rgba(0, 0, 0, 0.06) !important;
+    border-radius: 4px;
+}
+
+[data-md-color-scheme="slate"] .install-card pre code {
+    background: rgba(0, 0, 0, 0.35) !important;
+}
+
+.install-card .md-code__button {
+    color: var(--md-default-fg-color--light);
+}
+
+.install-card .md-code__button:hover {
+    color: var(--md-accent-fg-color);
+}
+
+.install-card .tabbed-set {
+    margin: 0.25rem 0 1rem 0;
+}
+
+.install-card .card-footer {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--md-default-fg-color--lightest);
+    font-size: 0.9rem;
+}
+
+.install-card img {
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+/* Secondary navigation */
+.nav-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin: 0rem 0 0.5rem;
+}
+
+/* Platforms section (footer) */
+.platforms-section {
+    text-align: center;
+    padding: 1rem 0;
+    font-size: 0.95rem;
+    color: var(--md-default-fg-color--light);
+}
+
+.platforms-section p {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0 auto;
+}
+
+.platforms-section .twemoji,
+.platforms-section .emojione,
+.platforms-section svg {
+    vertical-align: middle;
+    filter: grayscale(100%);
+    opacity: 0.7;
+}
+
+/* Code example section */
+.example-section {
+    max-width: 650px;
+    margin: 2rem auto;
+    text-align: left;
+}
+
+.example-section h2 {
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+.example-section .example-desc {
+    text-align: center;
+    color: var(--md-default-fg-color--light);
+    margin-bottom: 1rem;
+}
+
+.example-section pre {
+    border-radius: 10px;
+}
+
+.example-section .tabbed-set {
+    margin-bottom: 1rem;
+}
+
+/* Status section */
+.status-section {
+    text-align: center;
+    padding: 1.5rem 0;
+    margin-top: 1rem;
+}
+
+.status-section p {
+    max-width: 600px;
+    margin: 0.5rem auto;
+    color: var(--md-default-fg-color--light);
+}
