@@ -46,7 +46,7 @@ This is not customizable at the moment.
 Currently, an Xcode project is required to build an iOS application in the Kotlin Toolchain.
 It has to be named `module.xcodeproj` and located in the `ios/app` module root directory.
 
-Normally, when the Kotlin project is created via `amper init` or via the IDE's Wizard, the appropriate Xcode project is
+Normally, when the Kotlin project is created via `kotlin init` or via the IDE's Wizard, the appropriate Xcode project is
 already there. This is currently the recommended way of creating projects that have an iOS app module.
 
 However, if the Kotlin project is created from scratch, the default buildable Xcode project will be created automatically
