@@ -17,7 +17,7 @@ Setting `ktor: enabled` performs the following actions:
 
 * Applies Ktor BOM
 * Contributes Ktor-related entries to a built-in library catalog
-* Adds the `io.ktor.development=true` system property when running the app with `amper run`
+* Adds the `io.ktor.development=true` system property when running the app with `kotlin run`
 
 Examples of Ktor projects:
 

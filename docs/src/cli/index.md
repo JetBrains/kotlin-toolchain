@@ -44,12 +44,12 @@ The root `./kotlin` command and all subcommands support the `-h` (or `--help`) o
 
 Useful commands:
 
-- `amper init` to create a new Kotlin project
-- `amper build` to compile and link all code in the project
-- `amper run` to run your application
-- `amper test` to run tests in the project
-- `amper show (modules|settings|dependencies|tasks)` to introspect the project's configuration
-- `amper clean` to remove the project's build output and caches
+- `kotlin init` to create a new Kotlin project
+- `kotlin build` to compile and link all code in the project
+- `kotlin run` to run your application
+- `kotlin test` to run tests in the project
+- `kotlin show (modules|settings|dependencies|tasks)` to introspect the project's configuration
+- `kotlin clean` to remove the project's build output and caches
 
 !!! example "Try it out!"
 
@@ -68,26 +68,26 @@ First, generate the completion script using the `generate-completion` command, s
 === "bash"
 
     ```shell
-    ./kotlin generate-completion bash > ~/amper-completion.sh
+    ./kotlin generate-completion bash > ~/kotlin-completion.sh
     ```
 
 === "zsh"
 
     ```shell
-    ./kotlin generate-completion zsh > ~/amper-completion.sh
+    ./kotlin generate-completion zsh > ~/kotlin-completion.sh
     ```
 
 === "fish"
 
     ```shell
-    ./kotlin generate-completion fish > ~/amper-completion.sh
+    ./kotlin generate-completion fish > ~/kotlin-completion.sh
     ```
 
 Then load the script in your shell (this can be added to `.bashrc`, `.zshrc`, or similar configuration files to load it
 automatically):
 
 ```shell
-source ~/amper-completion.sh
+source ~/kotlin-completion.sh
 ```
 
 You should now have tab completion available for Kotlin CLI subcommands, options, and option values.

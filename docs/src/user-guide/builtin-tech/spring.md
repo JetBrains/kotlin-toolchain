@@ -25,7 +25,7 @@ Setting `springBoot: enabled` performs the following actions:
   * For Kotlin, `-java-parameters` is passed to the compiler for the same reason. Also `-Xjsr305` is set to `strict`
     to favor the null-safety annotations.
 * Contributes Spring Boot-related entries to the built-in library catalog
-* Makes `amper run` run with classes instead of JARs (aka the `jvm.runtimeClasspathMode` setting).  
+* Makes `kotlin run` run with classes instead of JARs (aka the `jvm.runtimeClasspathMode` setting).  
   This way the [Spring Dev Tools](https://docs.spring.io/spring-boot/reference/using/devtools.html) can provide automatic restarts.
 
 Mixed projects (containing Java and Kotlin sources simultaneously) are supported.

@@ -20,7 +20,7 @@ If you are looking for a detailed comprehensive documentation, check the [User g
       [IntelliJ IDEA EAP](https://www.jetbrains.com/idea/nextversion/) version.
       The best way to get the most recent IDE versions is by using the 
       [:jetbrains-toolbox-app: Toolbox App](https://www.jetbrains.com/lp/toolbox/).
-      Also, don't forget to install the [Amper plugin](https://plugins.jetbrains.com/plugin/23076-amper). 
+      Also, don't forget to install the [Kotlin Toolchain plugin](https://plugins.jetbrains.com/plugin/23076-amper). 
 
 ## Step 1. Hello, World
 
