@@ -141,6 +141,8 @@ nav:
       - 'Plugins':
           - 'Overview': user-guide/plugins/overview.md
           - 'Quick start': user-guide/plugins/quick-start.md
+          - 'Checks': user-guide/plugins/topics/checks.md
+          - 'Custom commands': user-guide/plugins/topics/custom-commands.md
           - 'Plugin structure': user-guide/plugins/topics/structure.md
           - 'Configuration': user-guide/plugins/topics/configuration.md
           - 'References': user-guide/plugins/topics/references.md

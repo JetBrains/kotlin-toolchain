@@ -344,14 +344,15 @@ If the task [contributes](#contributing-back-to-the-build) something to the buil
 it probably doesn't ever need to be invoked explicitly by hand. It is invoked automatically by the build system or tooling
 to ensure that generated contents are up to date.
 
-If the task needs to serve as an entry point to the build, then, currently,
-it needs to be run manually via the Kotlin CLI using the task's [internal name](#internal-name):
+However, there are scenarios where it is necessary to run a task manually. 
+Currently, there are two use cases that we support: [checks](checks.md#create-checks) and [custom commands](custom-commands.md#create-custom-commands). 
 
-```shell
-$ ./kotlin task :moduleName:taskName@pluginId
-```
+!!! note
+    There is a way to run a task manually using the `task` command using its internal mangled name. We don't recommend doing that for purposes other than debugging. 
 
-We are working on providing a proper UX for calling plugin tasks.
+    ```shell
+    $ ./kotlin task :moduleName:taskName@pluginId
+    ```
 
 ## Learn more
 

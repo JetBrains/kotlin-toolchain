@@ -34,6 +34,7 @@ On the other hand, the *executable* part is only needed at build execution time 
 Plugins can currently extend the build with custom build actions — [tasks](topics/tasks.md).
 Such tasks can receive [configuration](topics/configuration.md), consume file‑system locations (`Path`s), or produce them.
 They can _contribute_ specific typed entities to the build and/or _consume_ them from the build.
+Tasks can also serve as [checks](topics/checks.md) and [commands](topics/custom-commands.md).
 
 Task actions can consume:
 
