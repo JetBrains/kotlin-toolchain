@@ -2487,7 +2487,7 @@ to get proper support for Kotlin/Native and iOS.</p>
 <h2 id="xcode-project">Xcode Project<a class="headerlink" href="#xcode-project" title="Permanent link">&para;</a></h2>
 <p>Currently, an Xcode project is required to build an iOS application in the Kotlin Toolchain.
 It has to be named <code>module.xcodeproj</code> and located in the <code>ios/app</code> module root directory.</p>
-<p>Normally, when the Kotlin project is created via <code>amper init</code> or via the IDE's Wizard, the appropriate Xcode project is
+<p>Normally, when the Kotlin project is created via <code>kotlin init</code> or via the IDE's Wizard, the appropriate Xcode project is
 already there. This is currently the recommended way of creating projects that have an iOS app module.</p>
 <p>However, if the Kotlin project is created from scratch, the default buildable Xcode project will be created automatically
 after the first project build.
@@ -2496,7 +2496,7 @@ This project can later be customized and checked into a VCS.</p>
 <ol>
 <li>it is named <code>module.xcodeproj</code> and is located in the root of the <code>ios/app</code> module</li>
 <li>it has a single iOS application target</li>
-<li>the target has <code>Debug</code> &amp; <code>Release</code> build configurations, each containing <code>KOTLIN_CLI_WRAPPER_PATH = &lt;relative path to amper wrapper script&gt;</code>.
+<li>the target has <code>Debug</code> &amp; <code>Release</code> build configurations, each containing <code>KOTLIN_CLI_WRAPPER_PATH = &lt;relative path to Kotlin wrapper script&gt;</code>.
    The path is relative to the Kotlin module root.</li>
 <li>the target has a script build phase called <code>Build Kotlin with Amper</code> with the code:
    <div class="highlight"><pre><span></span><code><span class="w"> </span><span class="c1"># !AMPER KMP INTEGRATION STEP!</span>
@@ -2557,7 +2557,7 @@ This framework is built from:</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 13, 2026 13:14:52 UTC">May 13, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 19, 2026 18:43:15 UTC">May 19, 2026</span>
   </span>
 
     
