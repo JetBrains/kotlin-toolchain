@@ -113,12 +113,12 @@ class MavenCentralPublishTask(
 }
 
 private fun getMavenCentralToken(): UserToken {
-    val username = System.getenv("AMPER_MAVEN_CENTRAL_USERNAME")
-    val password = System.getenv("AMPER_MAVEN_CENTRAL_PASSWORD")
+    val username = System.getenv("KOTLIN_TOOLCHAIN_MAVENCENTRAL_USERNAME")
+    val password = System.getenv("KOTLIN_TOOLCHAIN_MAVENCENTRAL_PASSWORD")
     if (username == null || password == null) {
         userReadableError(
-            "The AMPER_MAVEN_CENTRAL_USERNAME and AMPER_MAVEN_CENTRAL_PASSWORD environment variables are " +
-                    "required to publish to Maven Central.\n\n" +
+            "The KOTLIN_TOOLCHAIN_MAVENCENTRAL_USERNAME and KOTLIN_TOOLCHAIN_MAVENCENTRAL_PASSWORD environment " +
+                    "variables are required to publish to Maven Central.\n\n" +
                     "If you don't have credentials yet (a.k.a \"Portal Token\"), please create them by following " +
                     "the instructions at " +
                     "https://central.sonatype.org/publish/generate-portal-token/"

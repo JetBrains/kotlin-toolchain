@@ -115,15 +115,15 @@ class PrepareMavenPublishablesTask(
     // on a per-module basis.
     private suspend fun createSignerFromEnvConfig(): PgpSigner = try {
         PgpSigner.bouncyCastle(
-            signingKey = getDynamicInputs().readEnv("AMPER_SIGNING_KEY")?.let(::AsciiArmoredPgpKey)
+            signingKey = getDynamicInputs().readEnv("KOTLIN_TOOLCHAIN_SIGNING_KEY")?.let(::AsciiArmoredPgpKey)
                 ?: userReadableError(
-                    "Artifact signing is enabled, but the AMPER_SIGNING_KEY environment variable is not provided. " +
+                    "Artifact signing is enabled, but the KOTLIN_TOOLCHAIN_SIGNING_KEY environment variable is not provided. " +
                             "Please set this variable to a valid PGP private key in ASCII-armored format."
                 ),
-            keyPassphrase = getDynamicInputs().readEnv("AMPER_SIGNING_KEY_PASSPHRASE")?.toCharArray(),
+            keyPassphrase = getDynamicInputs().readEnv("KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE")?.toCharArray(),
         )
     } catch (e: PgpKeyParsingException) {
-        userReadableError("Cannot sign artifacts, failed to parse PGP signing key from the AMPER_SIGNING_KEY " +
+        userReadableError("Cannot sign artifacts, failed to parse PGP signing key from the KOTLIN_TOOLCHAIN_SIGNING_KEY " +
                 "environment variable: ${e.message}")
     }
 

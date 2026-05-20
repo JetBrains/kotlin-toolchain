@@ -44,9 +44,9 @@ class PublishingSettings : SchemaNode() {
     @SchemaDoc("If set to true, artifacts published to Maven repositories are signed with a private PGP signing key," +
             "and these signatures are published as extra artifacts." +
             "\n\n" +
-            "The private PGP signing key must be specified via the `AMPER_SIGNING_KEY` environment variable in the " +
+            "The private PGP signing key must be specified via the `KOTLIN_TOOLCHAIN_SIGNING_KEY` environment variable in the " +
             "ASCII-armored format.\n" +
-            "If the key is encrypted, its passphrase must be specified via the `AMPER_SIGNING_KEY_PASSPHRASE` " +
+            "If the key is encrypted, its passphrase must be specified via the `KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE` " +
             "environment variable.")
     val signArtifacts by value(default = false)
 

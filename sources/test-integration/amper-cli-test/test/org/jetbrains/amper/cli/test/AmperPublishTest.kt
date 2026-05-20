@@ -149,7 +149,7 @@ class AmperPublishTest : AmperCliTestBase() {
             projectDir = testProject("jvm-publish-with-signing"),
             "publish", "mavenLocal",
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
-            environment = mapOf("AMPER_SIGNING_KEY" to testPgpKey.toAsciiArmoredString()),
+            environment = mapOf("KOTLIN_TOOLCHAIN_SIGNING_KEY" to testPgpKey.toAsciiArmoredString()),
         )
 
         groupDir.assertContainsRelativeFiles(
@@ -190,7 +190,7 @@ class AmperPublishTest : AmperCliTestBase() {
         val result = runCli(
             projectDir = testProject("jvm-publish-with-signing"),
             "package", "--format=maven-central-bundle",
-            environment = mapOf("AMPER_SIGNING_KEY" to testPgpKey.toAsciiArmoredString()),
+            environment = mapOf("KOTLIN_TOOLCHAIN_SIGNING_KEY" to testPgpKey.toAsciiArmoredString()),
         )
 
         val zipBundle = result
