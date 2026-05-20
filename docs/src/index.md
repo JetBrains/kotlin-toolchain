@@ -20,13 +20,13 @@ applications with a simple declarative configuration.
 
 ### :octicons-terminal-16: Command Line
 
-<div class="method-label">Via SDKMAN!</div>
+<div class="method-label">via SDKMAN</div>
 
 ```shell
 sdk install kotlintoolchain
 ```
 
-<div class="method-label">Or via installer script</div>
+<div class="method-label">or via installer script</div>
 
 === ":material-apple: macOS / :material-linux: Linux"
 
