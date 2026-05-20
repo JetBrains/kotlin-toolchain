@@ -60,7 +60,7 @@ class PublishingSettings : SchemaNode() {
 class MavenCentralSettings : SchemaNode() {
 
     @Shorthand
-    @SchemaDoc("Enables publication to Maven Central, which can then be triggered using `./amper publish maven-central`.")
+    @SchemaDoc("Enables publication to Maven Central, which can then be triggered using `kotlin publish mavenCentral`.")
     val enabled: Boolean by value(default = false)
 
     @SchemaDoc("Configures whether the publication should be fully automated, or pause for manual verification.")
