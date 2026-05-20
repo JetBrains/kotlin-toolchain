@@ -50,7 +50,7 @@ sdk install kotlintoolchain
 
 ### :intellij-jetbrains: IntelliJ IDEA
 
-Install the [Kotlin Toolchain plugin](https://plugins.jetbrains.com/plugin/XXXXX-kotlin-toolchain) in IntelliJ IDEA 2026.1+.
+Install the [Kotlin Toolchain plugin](https://plugins.jetbrains.com/plugin/31850-kotlin-toolchain/) in IntelliJ IDEA 2026.1.2+
 
 **File → New → Project → Kotlin**
 
