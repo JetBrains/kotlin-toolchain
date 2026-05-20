@@ -6,41 +6,41 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Learn how to use the `kmp/lib` product type in a module to build a Kotlin Multiplatform library.">
+        <meta name="description" content="Checks are tasks that validate your application or the code base and report any issues found.">
       
       
         <meta name="author" content="JetBrains Amper team">
       
       
-        <link rel="canonical" href="https://kotlin-toolchain.org/dev/user-guide/product-types/kmp-lib/">
+        <link rel="canonical" href="https://kotlin-toolchain.org/dev/user-guide/plugins/topics/checks/">
       
       
-        <link rel="prev" href="../jvm-lib/">
+        <link rel="prev" href="../../quick-start/">
       
       
-        <link rel="next" href="../js-app/">
+        <link rel="next" href="../custom-commands/">
       
       
         
       
       
-      <link rel="icon" href="../../../images/amper-icon.png">
+      <link rel="icon" href="../../../../images/amper-icon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
   
     
       
-        <title>Kotlin Multiplatform library - The Kotlin Toolchain</title>
+        <title>Checks - The Kotlin Toolchain</title>
       
     
   
 
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -65,9 +65,9 @@
       
     
     
-      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -80,17 +80,17 @@
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Kotlin Multiplatform library - The Kotlin Toolchain" />
-<meta property="og:description" content="Learn how to use the `kmp/lib` product type in a module to build a Kotlin Multiplatform library." />
-<meta property="og:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/product-types/kmp-lib.png" />
+<meta property="og:title" content="Checks - The Kotlin Toolchain" />
+<meta property="og:description" content="Checks are tasks that validate your application or the code base and report any issues found." />
+<meta property="og:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/plugins/topics/checks.png" />
 <meta property="og:image:type" content="image/png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:url" content="https://kotlin-toolchain.org/dev/user-guide/product-types/kmp-lib/" />
+<meta property="og:url" content="https://kotlin-toolchain.org/dev/user-guide/plugins/topics/checks/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="Kotlin Multiplatform library - The Kotlin Toolchain" />
-<meta property="twitter:description" content="Learn how to use the `kmp/lib` product type in a module to build a Kotlin Multiplatform library." />
-<meta property="twitter:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/product-types/kmp-lib.png" />
+<meta property="twitter:title" content="Checks - The Kotlin Toolchain" />
+<meta property="twitter:description" content="Checks are tasks that validate your application or the code base and report any issues found." />
+<meta property="twitter:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/plugins/topics/checks.png" />
 </head>
   
   
@@ -110,7 +110,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#kotlin-multiplatform-library" class="md-skip">
+        <a href="#checks" class="md-skip">
           Skip to content
         </a>
       
@@ -133,9 +133,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
+    <a href="../../../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
-  <img src="../../../images/amper-icon.svg" alt="logo">
+  <img src="../../../../images/amper-icon.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -152,7 +152,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Kotlin Multiplatform library
+              Checks
             
           </span>
         </div>
@@ -281,7 +281,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../.." class="md-tabs__link">
+      <a href="../../../.." class="md-tabs__link">
         
   
   
@@ -302,7 +302,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../getting-started/" class="md-tabs__link">
+        <a href="../../../../getting-started/" class="md-tabs__link">
           
   
   
@@ -326,7 +326,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../" class="md-tabs__link">
+        <a href="../../../" class="md-tabs__link">
           
   
   
@@ -348,7 +348,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../cli/" class="md-tabs__link">
+        <a href="../../../../cli/" class="md-tabs__link">
           
   
   
@@ -370,7 +370,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/project/" class="md-tabs__link">
+        <a href="../../../../reference/project/" class="md-tabs__link">
           
   
   
@@ -390,7 +390,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../../faq/" class="md-tabs__link">
+      <a href="../../../../faq/" class="md-tabs__link">
         
   
   
@@ -444,9 +444,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
+    <a href="../../../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
-  <img src="../../../images/amper-icon.svg" alt="logo">
+  <img src="../../../../images/amper-icon.svg" alt="logo">
 
     </a>
     The Kotlin Toolchain
@@ -473,7 +473,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../.." class="md-nav__link">
+      <a href="../../../.." class="md-nav__link">
         
   
   
@@ -529,7 +529,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../getting-started/" class="md-nav__link ">
+            <a href="../../../../getting-started/" class="md-nav__link ">
               
   
   
@@ -573,7 +573,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../getting-started/ide-setup/" class="md-nav__link">
+      <a href="../../../../getting-started/ide-setup/" class="md-nav__link">
         
   
   
@@ -601,7 +601,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../getting-started/tutorial/" class="md-nav__link">
+      <a href="../../../../getting-started/tutorial/" class="md-nav__link">
         
   
   
@@ -629,7 +629,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../getting-started/migrating-from-maven/" class="md-nav__link">
+      <a href="../../../../getting-started/migrating-from-maven/" class="md-nav__link">
         
   
   
@@ -710,7 +710,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../" class="md-nav__link ">
+            <a href="../../../" class="md-nav__link ">
               
   
   
@@ -754,7 +754,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../basics/" class="md-nav__link">
+      <a href="../../../basics/" class="md-nav__link">
         
   
   
@@ -782,7 +782,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dependencies/" class="md-nav__link">
+      <a href="../../../dependencies/" class="md-nav__link">
         
   
   
@@ -810,7 +810,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../multiplatform/" class="md-nav__link">
+      <a href="../../../multiplatform/" class="md-nav__link">
         
   
   
@@ -838,7 +838,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../testing/" class="md-nav__link">
+      <a href="../../../testing/" class="md-nav__link">
         
   
   
@@ -866,7 +866,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../templates/" class="md-nav__link">
+      <a href="../../../templates/" class="md-nav__link">
         
   
   
@@ -891,8 +891,6 @@
                 
   
   
-    
-  
   
   
     
@@ -925,15 +923,17 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_7" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../../../product-types/" class="md-nav__link ">
               
   
   
@@ -957,7 +957,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -977,7 +977,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../android-app/" class="md-nav__link">
+      <a href="../../../product-types/android-app/" class="md-nav__link">
         
   
   
@@ -1005,7 +1005,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ios-app/" class="md-nav__link">
+      <a href="../../../product-types/ios-app/" class="md-nav__link">
         
   
   
@@ -1033,7 +1033,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../jvm-app/" class="md-nav__link">
+      <a href="../../../product-types/jvm-app/" class="md-nav__link">
         
   
   
@@ -1061,7 +1061,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../jvm-lib/" class="md-nav__link">
+      <a href="../../../product-types/jvm-lib/" class="md-nav__link">
         
   
   
@@ -1086,37 +1086,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Kotlin Multiplatform library
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../../product-types/kmp-lib/" class="md-nav__link">
         
   
   
@@ -1132,37 +1105,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#module-layout" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Module layout
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1175,7 +1117,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../js-app/" class="md-nav__link">
+      <a href="../../../product-types/js-app/" class="md-nav__link">
         
   
   
@@ -1203,7 +1145,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../native-app/" class="md-nav__link">
+      <a href="../../../product-types/native-app/" class="md-nav__link">
         
   
   
@@ -1231,7 +1173,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../wasm-app/" class="md-nav__link">
+      <a href="../../../product-types/wasm-app/" class="md-nav__link">
         
   
   
@@ -1333,7 +1275,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../builtin-tech/compose-multiplatform/" class="md-nav__link">
+      <a href="../../../builtin-tech/compose-multiplatform/" class="md-nav__link">
         
   
   
@@ -1361,7 +1303,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../builtin-tech/kotlinx-serialization/" class="md-nav__link">
+      <a href="../../../builtin-tech/kotlinx-serialization/" class="md-nav__link">
         
   
   
@@ -1389,7 +1331,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../builtin-tech/kotlinx-rpc/" class="md-nav__link">
+      <a href="../../../builtin-tech/kotlinx-rpc/" class="md-nav__link">
         
   
   
@@ -1417,7 +1359,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../builtin-tech/ktor/" class="md-nav__link">
+      <a href="../../../builtin-tech/ktor/" class="md-nav__link">
         
   
   
@@ -1445,7 +1387,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../builtin-tech/lombok/" class="md-nav__link">
+      <a href="../../../builtin-tech/lombok/" class="md-nav__link">
         
   
   
@@ -1473,7 +1415,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../builtin-tech/spring/" class="md-nav__link">
+      <a href="../../../builtin-tech/spring/" class="md-nav__link">
         
   
   
@@ -1506,8 +1448,10 @@
                 
   
   
+    
   
   
+  
     
     
       
@@ -1534,13 +1478,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_9" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_9" checked>
         
           
           <label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
@@ -1561,7 +1503,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_9_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_9_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3_9">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1579,7 +1521,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../plugins/overview/" class="md-nav__link">
+      <a href="../../overview/" class="md-nav__link">
         
   
   
@@ -1607,7 +1549,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../plugins/quick-start/" class="md-nav__link">
+      <a href="../../quick-start/" class="md-nav__link">
         
   
   
@@ -1632,10 +1574,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../plugins/topics/checks/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Checks
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1651,6 +1620,48 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#running-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running checks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create checks
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1663,7 +1674,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../plugins/topics/custom-commands/" class="md-nav__link">
+      <a href="../custom-commands/" class="md-nav__link">
         
   
   
@@ -1691,7 +1702,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../plugins/topics/structure/" class="md-nav__link">
+      <a href="../structure/" class="md-nav__link">
         
   
   
@@ -1719,7 +1730,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../plugins/topics/configuration/" class="md-nav__link">
+      <a href="../configuration/" class="md-nav__link">
         
   
   
@@ -1747,7 +1758,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../plugins/topics/references/" class="md-nav__link">
+      <a href="../references/" class="md-nav__link">
         
   
   
@@ -1775,7 +1786,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../plugins/topics/tasks/" class="md-nav__link">
+      <a href="../tasks/" class="md-nav__link">
         
   
   
@@ -1877,7 +1888,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/jdk-provisioning/" class="md-nav__link">
+      <a href="../../../advanced/jdk-provisioning/" class="md-nav__link">
         
   
   
@@ -1905,7 +1916,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/java-annotation-processing/" class="md-nav__link">
+      <a href="../../../advanced/java-annotation-processing/" class="md-nav__link">
         
   
   
@@ -1933,7 +1944,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/ksp/" class="md-nav__link">
+      <a href="../../../advanced/ksp/" class="md-nav__link">
         
   
   
@@ -1961,7 +1972,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/kotlin-compiler-plugins/" class="md-nav__link">
+      <a href="../../../advanced/kotlin-compiler-plugins/" class="md-nav__link">
         
   
   
@@ -1989,7 +2000,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/maven-like-layout/" class="md-nav__link">
+      <a href="../../../advanced/maven-like-layout/" class="md-nav__link">
         
   
   
@@ -2017,7 +2028,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../advanced/maven-plugins/" class="md-nav__link">
+      <a href="../../../advanced/maven-plugins/" class="md-nav__link">
         
   
   
@@ -2053,7 +2064,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../yaml-primer/" class="md-nav__link">
+      <a href="../../../yaml-primer/" class="md-nav__link">
         
   
   
@@ -2113,7 +2124,7 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../../cli/" class="md-nav__link ">
+            <a href="../../../../cli/" class="md-nav__link ">
               
   
   
@@ -2157,7 +2168,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../cli/provisioning/" class="md-nav__link">
+      <a href="../../../../cli/provisioning/" class="md-nav__link">
         
   
   
@@ -2250,7 +2261,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/project/" class="md-nav__link">
+      <a href="../../../../reference/project/" class="md-nav__link">
         
   
   
@@ -2278,7 +2289,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/module/" class="md-nav__link">
+      <a href="../../../../reference/module/" class="md-nav__link">
         
   
   
@@ -2313,7 +2324,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../faq/" class="md-nav__link">
+      <a href="../../../../faq/" class="md-nav__link">
         
   
   
@@ -2387,10 +2398,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#module-layout" class="md-nav__link">
+  <a href="#running-checks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Module layout
+        Running checks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create checks
       
     </span>
   </a>
@@ -2414,7 +2436,7 @@
 
 
   
-    <a href="https://github.com/JetBrains/kotlin-toolchain/edit/main/docs/src/user-guide/product-types/kmp-lib.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/JetBrains/kotlin-toolchain/edit/main/docs/src/user-guide/plugins/topics/checks.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2422,76 +2444,45 @@
   
 
 
-<h1 id="kotlin-multiplatform-library"><span class="twemoji"><!--
-  - Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
-  -->
-
-<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M0 22.5629V0.0835311L22.4794 22.5629H0ZM0 25.4372V48H0.0572568L22.6201 25.4372H0ZM25.9906 22.0094L48 0H3.98128L25.9906 22.0094ZM26.0193 26.1028L4.1221 48H47.9164L26.0193 26.1028Z" fill="url(#paint0_radial_4088_319)"/>
-<defs>
-<radialGradient id="paint0_radial_4088_319" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(43.5 4.5) rotate(135) scale(61.5183)">
-<stop stop-color="#37BCFD"/>
-<stop offset="0.580197" stop-color="#7F52FF"/>
-<stop offset="1" stop-color="#C711E1"/>
-</radialGradient>
-</defs>
-</svg>
-</span> Kotlin Multiplatform library<a class="headerlink" href="#kotlin-multiplatform-library" title="Permanent link">&para;</a></h1>
-<p>Use the <code>kmp/lib</code> product type in a module to build a 
-<a href="https://kotlinlang.org/docs/multiplatform/get-started.html">Kotlin Multiplatform</a> library.</p>
-<div class="admonition tip">
-<p class="admonition-title">Using IntelliJ IDEA?</p>
-<p>Make sure to install the 
-<a href="https://plugins.jetbrains.com/plugin/14936-kotlin-multiplatform"><span class="twemoji"><!--
-  - Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
-  -->
-
-<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M0 22.5629V0.0835311L22.4794 22.5629H0ZM0 25.4372V48H0.0572568L22.6201 25.4372H0ZM25.9906 22.0094L48 0H3.98128L25.9906 22.0094ZM26.0193 26.1028L4.1221 48H47.9164L26.0193 26.1028Z" fill="url(#paint0_radial_4088_319)"/>
-<defs>
-<radialGradient id="paint0_radial_4088_319" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(43.5 4.5) rotate(135) scale(61.5183)">
-<stop stop-color="#37BCFD"/>
-<stop offset="0.580197" stop-color="#7F52FF"/>
-<stop offset="1" stop-color="#C711E1"/>
-</radialGradient>
-</defs>
-</svg>
-</span> Kotlin Multiplatform plugin</a>
-to get proper support for Kotlin Multiplatform.</p>
-</div>
-<h2 id="module-layout">Module layout<a class="headerlink" href="#module-layout" title="Permanent link">&para;</a></h2>
-<p>Here is an overview of the module layout for a <abbr title="Kotlin Multiplatform">KMP</abbr> library:</p>
-<div class="highlight"><pre><span></span><code>my-module/
-├─<span class="w"> </span>resources/<span class="w">       </span><span class="c1"># common resources, used in all targets</span>
-├─<span class="w"> </span>resources@ios/<span class="w">   </span><span class="c1"># resources that are only available to the iOS code</span>
-├─<span class="w"> </span>resources@jvm/<span class="w">   </span><span class="c1"># resources that are only available to the JVM code</span>
-├─<span class="w"> </span>src/<span class="w">             </span><span class="c1"># common code, compiled for all targets</span>
-│<span class="w">  </span>├─<span class="w"> </span>main.kt
-│<span class="w">  </span>╰─<span class="w"> </span>util.kt<span class="w"> </span><span class="c1"># (1)!</span>
-├─<span class="w"> </span>src@native/<span class="w">      </span><span class="c1"># code to be compiled for all native targets</span>
-├─<span class="w"> </span>src@apple/<span class="w">       </span><span class="c1"># code to be compiled for all Apple targets</span>
-├─<span class="w"> </span>src@ios/<span class="w">         </span><span class="c1"># code to be compiled only for iOS targets</span>
-│<span class="w">  </span>╰─<span class="w"> </span>util.kt<span class="w"> </span><span class="c1"># (2)!</span>
-├─<span class="w"> </span>src@jvm/<span class="w">         </span><span class="c1"># code to be compiled only for JVM targets</span>
-│<span class="w">  </span>├─<span class="w"> </span>util.kt
-│<span class="w">  </span>╰─<span class="w"> </span>MyClass.java<span class="w"> </span><span class="c1"># (3)!</span>
-├─<span class="w"> </span>test/<span class="w">            </span><span class="c1"># common tests, compiled for all targets</span>
-│<span class="w">  </span>╰─<span class="w"> </span>MainTest.kt<span class="w">   </span>
-├─<span class="w"> </span>test@ios/<span class="w">        </span><span class="c1"># tests that are only run on iOS simulator</span>
-│<span class="w">  </span>╰─<span class="w"> </span>SomeIosTest.kt
-├─<span class="w"> </span>test@jvm/<span class="w">        </span><span class="c1"># tests that are only run on JVM</span>
-│<span class="w">  </span>╰─<span class="w"> </span>SomeJvmTest.kt
-├─<span class="w"> </span>testResources/<span class="w">       </span><span class="c1"># common test resources, used in all targets</span>
-├─<span class="w"> </span>testResources@ios/<span class="w">   </span><span class="c1"># test resources that are only available to the iOS code</span>
-├─<span class="w"> </span>testResources@jvm/<span class="w">   </span><span class="c1"># test resources that are only available to the JVM code</span>
-╰─<span class="w"> </span>module.yaml
+<h1 id="checks">Checks<a class="headerlink" href="#checks" title="Permanent link">&para;</a></h1>
+<p>Checks are tasks that validate your application or the code base and report any issues found.</p>
+<h2 id="running-checks">Running checks<a class="headerlink" href="#running-checks" title="Permanent link">&para;</a></h2>
+<p>To run checks, one can use the <code>check</code> command. If no arguments are provided, the command will launch all the tests
+(similar to the <code>test</code> command) and all the checks registered in the plugins.</p>
+<p>To run only a subset of checks, pass them as arguments to the <code>check</code> command:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./kotlin<span class="w"> </span>check<span class="w"> </span>detekt<span class="w"> </span>apiCheck
 </code></pre></div>
-<ol>
-<li>This file may define <code>expect</code> declarations to be implemented differently on different platforms.</li>
-<li>This file defines the <code>actual</code> implementations corresponding to the <code>expect</code> declarations from <code>src</code>.</li>
-<li>It's ok to have Java sources in JVM-only source directories.</li>
-</ol>
-<p>Read more about multiplatform topics in the general <a href="../../multiplatform/">Multiplatform modules</a> section.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To get the name of the checks available in the project run <code>./kotlin show checks</code>.</p>
+</div>
+<p>If you want to run all the checks except some, you can use the <code>--skip</code> option:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./kotlin<span class="w"> </span>check<span class="w"> </span>--skip<span class="w"> </span>tests<span class="w">  </span><span class="c1"># Will run all the checks except the built-in &#39;tests&#39; checker</span>
+</code></pre></div>
+<p>It is also possible to run checks only for some modules by passing the module name in the <code>--module</code> option (can be repeated):</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>./kotlin<span class="w"> </span>check<span class="w"> </span>--module<span class="w"> </span>api<span class="w"> </span>--module<span class="w"> </span>core<span class="w">  </span><span class="c1"># Will only run checks in the &#39;api&#39; and &#39;core&#39; modules</span>
+<span class="c1"># or</span>
+$<span class="w"> </span>./kotlin<span class="w"> </span>check<span class="w"> </span>-m<span class="w"> </span>api<span class="w"> </span>-m<span class="w"> </span>core
+</code></pre></div>
+<h2 id="create-checks">Create checks<a class="headerlink" href="#create-checks" title="Permanent link">&para;</a></h2>
+<p>To create a check, you need to <a href="../tasks/">write a task</a> and register it as a check. </p>
+<p>To register a task as a check, add it to the <code>checks</code> section of the <code>plugin.yaml</code>:</p>
+<div class="highlight"><span class="filename">plugin.yaml</span><pre><span></span><code><span class="nt">tasks</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">lint</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="kt">!kotlinJavaLint</span>
+<span class="w">      </span><span class="nt">sources</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${module.kotlinJavaSources}</span>
+
+<span class="nt">checks</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lint</span><span class="w">  </span><span class="c1"># Can be called via `./kotlin check lint`</span>
+
+<span class="w">  </span><span class="c1"># You can customize the name of the check using the full form</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">myLint</span><span class="w">  </span><span class="c1"># Can be called via `./kotlin check myLint`</span>
+<span class="w">    </span><span class="nt">performedBy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lint</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To fail a check, the underlying task should throw an exception during the task execution.</p>
+</div>
 
 
 
@@ -2512,7 +2503,7 @@ to get proper support for Kotlin Multiplatform.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="April 21, 2026 08:15:44 UTC">April 21, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 19, 2026 14:43:19 UTC">May 19, 2026</span>
   </span>
 
     
@@ -2548,7 +2539,7 @@ to get proper support for Kotlin Multiplatform.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../jvm-lib/" class="md-footer__link md-footer__link--prev" aria-label="Previous: JVM library">
+          <a href="../../quick-start/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quick start">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2558,20 +2549,20 @@ to get proper support for Kotlin Multiplatform.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                JVM library
+                Quick start
               </div>
             </div>
           </a>
         
         
           
-          <a href="../js-app/" class="md-footer__link md-footer__link--next" aria-label="Next: Kotlin/JS application">
+          <a href="../custom-commands/" class="md-footer__link md-footer__link--next" aria-label="Next: Custom commands">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Kotlin/JS application
+                Custom commands
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -2612,10 +2603,10 @@ to get proper support for Kotlin Multiplatform.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.action.edit", "content.code.annotate", "content.code.copy", "content.footnote.tooltips", "content.tooltips", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.preview", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["content.action.edit", "content.code.annotate", "content.code.copy", "content.footnote.tooltips", "content.tooltips", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.preview", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

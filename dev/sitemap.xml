@@ -125,7 +125,15 @@
          <lastmod>2026-05-20</lastmod>
     </url>
     <url>
+         <loc>https://kotlin-toolchain.org/dev/user-guide/plugins/topics/checks/</loc>
+         <lastmod>2026-05-20</lastmod>
+    </url>
+    <url>
          <loc>https://kotlin-toolchain.org/dev/user-guide/plugins/topics/configuration/</loc>
+         <lastmod>2026-05-20</lastmod>
+    </url>
+    <url>
+         <loc>https://kotlin-toolchain.org/dev/user-guide/plugins/topics/custom-commands/</loc>
          <lastmod>2026-05-20</lastmod>
     </url>
     <url>
