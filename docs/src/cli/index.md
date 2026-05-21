@@ -8,38 +8,42 @@ It is useful both locally and in CI/CD pipelines.
 
 ## Installation
 
-To use the Kotlin CLI, you need to download the [Kotlin wrapper script](provisioning.md/#whats-the-wrapper-script).
+Install the Kotlin CLI globally using one of the methods below.
+After installation, the `kotlin` command will be available on your PATH.
 
-It is recommended to place it in your project root and check it into your VCS, so your team can build and run your 
-project without any installation, no matter their OS.
+### via SDKMAN
 
-??? success "IntelliJ IDEA can take care of this for you"
+```shell
+sdk install kotlintoolchain
+```
 
-    New projects created using the IntelliJ IDEA wizard will already contain the wrapper scripts. Also, if you create a
-    `module.yaml` file in a blank project, IntelliJ IDEA will offer to setup the wrapper scripts for you.
+### via installer script
 
-Use the following command in your project directory to download the script and set up the Kotlin Toolchain:
+The installer script downloads the Kotlin CLI wrapper and places it in `~/.local/bin` (on Linux and macOS) or an equivalent location on Windows.
+It also updates your shell profile to add that directory to your PATH, if needed.
 
 --8<-- "includes/cli-install.md"
 
-The `./kotlin update -c` command following the download is not strictly necessary, but it will automatically get the 
-wrapper script for the other OS. It is good practice to check them both into your VCS so your team can build and run 
-your project without any installation, on any OS.
-
 !!! note
 
-    The first time you run the Kotlin wrapper script, it will take some time to download the Kotlin CLI distribution.
+    The first time you run the Kotlin CLI, it will take some time to download the Kotlin Toolchain distribution.
     Subsequent runs will be faster, as the downloaded files will be cached locally.
 
-    The `./kotlin update` call that is part of the above installation command will actually do this first run for you.
+    If you just installed via the script, restart your shell (or run `export PATH="$HOME/.local/bin:$PATH"` on Linux/macOS) before using `kotlin`.
+
+??? success "IntelliJ IDEA can take care of this for you"
+
+    New projects created using the IntelliJ IDEA wizard will already contain the [wrapper scripts](provisioning.md/#whats-the-wrapper-script).
+    Also, if you create a `module.yaml` file in a blank project, IntelliJ IDEA will offer to set up the wrapper scripts for you.
+    In that case, you can use `./kotlin` from the project root without a global installation.
 
 ## Exploring Kotlin CLI commands
 
-The root `./kotlin` command and all subcommands support the `-h` (or `--help`) option to explore what is possible:
+The root `kotlin` command and all subcommands support the `-h` (or `--help`) option to explore what is possible:
 
 ```shell
-./kotlin --help       # shows the available commands and general options
-./kotlin build --help # shows the options for the 'build' command specifically
+kotlin --help       # shows the available commands and general options
+kotlin build --help # shows the options for the 'build' command specifically
 ```
 
 Useful commands:
@@ -53,9 +57,9 @@ Useful commands:
 
 !!! example "Try it out!"
 
-    Create a new project using the `./kotlin init` command and select the *JVM console application* template.
+    Create a new project using the `kotlin init` command and select the *JVM console application* template.
 
-    Then build and run the application using `./kotlin run`.
+    Then build and run the application using `kotlin run`.
 
 
 ## Tab-completion
@@ -68,19 +72,19 @@ First, generate the completion script using the `generate-completion` command, s
 === "bash"
 
     ```shell
-    ./kotlin generate-completion bash > ~/kotlin-completion.sh
+    kotlin generate-completion bash > ~/kotlin-completion.sh
     ```
 
 === "zsh"
 
     ```shell
-    ./kotlin generate-completion zsh > ~/kotlin-completion.sh
+    kotlin generate-completion zsh > ~/kotlin-completion.sh
     ```
 
 === "fish"
 
     ```shell
-    ./kotlin generate-completion fish > ~/kotlin-completion.sh
+    kotlin generate-completion fish > ~/kotlin-completion.sh
     ```
 
 Then load the script in your shell (this can be added to `.bashrc`, `.zshrc`, or similar configuration files to load it
@@ -94,9 +98,9 @@ You should now have tab completion available for Kotlin CLI subcommands, options
 
 ## Updating the Kotlin Toolchain to a newer version
 
-Run `./kotlin update` to update the Kotlin CLI scripts and the toolchain distribution to the latest released version.
+Run `kotlin update` to update the Kotlin CLI scripts and the toolchain distribution to the latest released version.
 Use the `--dev` option if you want to try the bleeding edge dev build of the Kotlin Toolchain (no guarantees are made on these builds).
 
-See `./kotlin update -h` for more information about the available options.
+See `kotlin update -h` for more information about the available options.
 
 !!! tip "Don't forget to regenerate your tab-completion script, if you have one."

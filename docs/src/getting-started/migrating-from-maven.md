@@ -20,14 +20,14 @@ cd /path/to/your/maven/project
 
 ```
 
-Download the [Kotlin wrapper script](../cli/provisioning.md/#whats-the-wrapper-script).
+Install the [Kotlin CLI](../cli/index.md#installation):
 
 --8<-- "includes/cli-install.md"
 
-and then run:
+Then run:
 
 ```bash
-./kotlin tool convert-project
+kotlin tool convert-project
 ```
 
 The path to your `pom.xml` can be provided explicitly via `--pom` argument. The `pom.xml` file is a starting point.
