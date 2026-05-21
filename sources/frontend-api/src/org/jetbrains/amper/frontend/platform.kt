@@ -87,7 +87,10 @@ enum class Platform(
      * * It should match the names of the platforms in the .konan directory.
      */
     val nameForCompiler: String
-        get() = name.lowercase()
+        get() = when {
+            isDescendantOf(ANDROID_NATIVE) -> name.replace("_NATIVE", "")
+            else -> name
+        }.lowercase()
 
     /**
      * Get leaf children of this parent if it is a parent; List of self otherwise.
