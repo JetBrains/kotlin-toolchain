@@ -1,13 +1,12 @@
-# Amper
+# The Kotlin Toolchain
 
-[![JetBrains incubator project](https://jb.gg/badges/incubator.svg)](https://github.com/JetBrains#jetbrains-on-github)
+[![JetBrains project](https://jb.gg/badges/official.svg)](https://github.com/JetBrains#jetbrains-on-github)
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
-[![Latest release](https://img.shields.io/github/v/tag/JetBrains/amper?color=brightgreen&label=latest%20release)](https://github.com/JetBrains/amper/tags)
+[![Latest release](https://img.shields.io/github/v/tag/JetBrains/kotlin-toolchain?color=brightgreen&label=latest%20release)](https://github.com/JetBrains/kotlin-toolchain/tags)
 ![Latest dev version](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fpackages.jetbrains.team%2Fmaven%2Fp%2Famper%2Famper%2Forg%2Fjetbrains%2Famper%2Fschema%2Fmaven-metadata.xml&label=latest%20dev%20version)
 
-Amper is an experimental build tool for the Kotlin and Java languages, with a focus on user experience and tooling.
+The Kotlin Toolchain is a unified entry point into Kotlin. 
 
-It can build plain JVM console applications, Android and iOS mobile applications, server-side application like Spring
-or Ktor, multiplatform projects that share business logic and/or UI, and more.
+Build JVM, Android, iOS, multiplatform, and server-side applications with a simple declarative configuration.
 
-Check out our [website](https://amper.org/dev) for the full documentation.
+Check out our [website](https://kotlin-toolchain.org/dev) for the full documentation.
