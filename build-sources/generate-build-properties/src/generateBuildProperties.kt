@@ -162,7 +162,7 @@ internal fun documentationUrl(version: String): String {
     val isDevVersion = version.contains("-dev-")
     val isSnapshot = version.contains("-SNAPSHOT")
     val majorAndMinorVersion = extractMajorAndMinorVersion(version)
-    return if (isDevVersion || isSnapshot) "https://amper.org/dev" else "https://amper.org/$majorAndMinorVersion"
+    return if (isDevVersion || isSnapshot) "https://kotlin-toolchain.org/dev" else "https://kotlin-toolchain.org/$majorAndMinorVersion"
 }
 
 private fun writeContentIfChanged(file: Path, content: ByteArray) {

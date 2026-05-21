@@ -334,7 +334,7 @@ ARG2: <${argumentsWithSpecialChars[2]}>"""
         result.assertStderrContains("""
             ERROR: Module 'jvm-publish' cannot be run with the 'run' command because it's a library module. Please use an application product type.
             See the documentation for more info:
-            https://amper.org/dev/user-guide/product-types
+            https://kotlin-toolchain.org/dev/user-guide/product-types
         """.trimIndent())
     }
 

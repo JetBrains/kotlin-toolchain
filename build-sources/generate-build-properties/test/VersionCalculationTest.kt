@@ -28,16 +28,16 @@ class VersionCalculationTest {
 
     @Test
     fun `documentationUrl for release`() {
-        assertEquals("https://amper.org/0.9", documentationUrl("0.9.1"))
+        assertEquals("https://kotlin-toolchain.org/0.9", documentationUrl("0.9.1"))
     }
 
     @Test
     fun `documentationUrl for dev version`() {
-        assertEquals("https://amper.org/dev", documentationUrl("0.9.1-dev-123"))
+        assertEquals("https://kotlin-toolchain.org/dev", documentationUrl("0.9.1-dev-123"))
     }
 
     @Test
     fun `documentationUrl for snapshot`() {
-        assertEquals("https://amper.org/dev", documentationUrl("1.0-SNAPSHOT"))
+        assertEquals("https://kotlin-toolchain.org/dev", documentationUrl("1.0-SNAPSHOT"))
     }
 }
