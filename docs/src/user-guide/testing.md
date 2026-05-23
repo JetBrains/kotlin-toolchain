@@ -32,7 +32,7 @@ test-dependencies:
 To add or override [toolchain settings](basics.md#settings) in tests, use the `test-settings:` section:
 ```yaml title="module.yaml"
 # these dependencies are available in main and test code
-setting:
+settings:
   kotlin:
     ...
 
