@@ -44,7 +44,7 @@ You can run your application using the `./kotlin run` command.
 You can use the `build` command to create an APK, or the `package` command to create an Android Application Bundle (AAB).
 
 The `package` command will not only build the APK, but also minify/obfuscate it with ProGuard, and sign it.
-See the dedicated [signing](#signing) and [code shrinking](#code-shrinking) sections to learn how to configure this.
+See the dedicated [signing](#signing) and [code shrinking](#code-shrinking) sections below to learn how to configure this.
 
 ### Code shrinking
 
@@ -52,7 +52,7 @@ When creating a release build with the Kotlin Toolchain, R8 will be used automat
 This is equivalent to the following Gradle configuration:
 
 ```kotlin
-// in Gradle
+// Gradle equivalent of the Kotlin Toolchain's defaults
 isMinifyEnabled = true
 isShrinkResources = true
 proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
