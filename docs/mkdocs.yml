@@ -137,6 +137,7 @@ nav:
           - 'Ktor': user-guide/builtin-tech/ktor.md
           - 'Lombok': user-guide/builtin-tech/lombok.md
           - 'Spring Boot': user-guide/builtin-tech/spring.md
+      - 'Publishing': user-guide/publishing.md
       - 'Plugins':
           - 'Overview': user-guide/plugins/overview.md
           - 'Quick Start': user-guide/plugins/quick-start.md

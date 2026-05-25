@@ -19,3 +19,7 @@ Here is an overview of the module layout for a KMP library:
 --8<-- "includes/module-layouts/kmp-lib.md"
 
 Read more about multiplatform topics in the general [Multiplatform modules](../multiplatform.md) section.
+
+## Publishing
+
+!!! info Publishing Kotlin Multiplatform libraries is not supported at the moment, but coming soon. Stay tuned!
