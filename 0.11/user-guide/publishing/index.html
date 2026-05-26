@@ -6,43 +6,43 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="This is the comprehensive documentation of the Kotlin Toolchain.
-Here, you can learn everything about the Kotlin Toolchain concepts and features, and its support for some popular technologies.
+        <meta name="description" content="In this section, we'll cover all the puzzle pieces of a successful library publication to Maven Central or other 
+Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal credentials, and more.
 ">
       
       
         <meta name="author" content="JetBrains Amper team">
       
       
-        <link rel="canonical" href="https://kotlin-toolchain.org/0.11/user-guide/">
+        <link rel="canonical" href="https://kotlin-toolchain.org/0.11/user-guide/publishing/">
       
       
-        <link rel="prev" href="../getting-started/migrating-from-maven/">
+        <link rel="prev" href="../builtin-tech/spring/">
       
       
-        <link rel="next" href="basics/">
+        <link rel="next" href="../plugins/overview/">
       
       
         
       
       
-      <link rel="icon" href="../images/amper-icon.png">
+      <link rel="icon" href="../../images/amper-icon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
   
     
       
-        <title>User guide - The Kotlin Toolchain</title>
+        <title>Publishing - The Kotlin Toolchain</title>
       
     
   
 
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -67,9 +67,9 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
       
     
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -82,21 +82,21 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="User guide - The Kotlin Toolchain" />
-<meta property="og:description" content="This is the comprehensive documentation of the Kotlin Toolchain.
-Here, you can learn everything about the Kotlin Toolchain concepts and features, and its support for some popular technologies.
+<meta property="og:title" content="Publishing - The Kotlin Toolchain" />
+<meta property="og:description" content="In this section, we'll cover all the puzzle pieces of a successful library publication to Maven Central or other 
+Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal credentials, and more.
 " />
-<meta property="og:image" content="https://kotlin-toolchain.org/0.11/assets/images/social/user-guide/index.png" />
+<meta property="og:image" content="https://kotlin-toolchain.org/0.11/assets/images/social/user-guide/publishing.png" />
 <meta property="og:image:type" content="image/png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:url" content="https://kotlin-toolchain.org/0.11/user-guide/" />
+<meta property="og:url" content="https://kotlin-toolchain.org/0.11/user-guide/publishing/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="User guide - The Kotlin Toolchain" />
-<meta property="twitter:description" content="This is the comprehensive documentation of the Kotlin Toolchain.
-Here, you can learn everything about the Kotlin Toolchain concepts and features, and its support for some popular technologies.
+<meta property="twitter:title" content="Publishing - The Kotlin Toolchain" />
+<meta property="twitter:description" content="In this section, we'll cover all the puzzle pieces of a successful library publication to Maven Central or other 
+Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal credentials, and more.
 " />
-<meta property="twitter:image" content="https://kotlin-toolchain.org/0.11/assets/images/social/user-guide/index.png" />
+<meta property="twitter:image" content="https://kotlin-toolchain.org/0.11/assets/images/social/user-guide/publishing.png" />
 </head>
   
   
@@ -116,7 +116,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
     <div data-md-component="skip">
       
         
-        <a href="#user-guide" class="md-skip">
+        <a href="#publishing-libraries" class="md-skip">
           Skip to content
         </a>
       
@@ -139,9 +139,9 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
+    <a href="../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
-  <img src="../images/amper-icon.svg" alt="logo">
+  <img src="../../images/amper-icon.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -158,7 +158,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              User guide
+              Publishing
             
           </span>
         </div>
@@ -287,7 +287,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -308,7 +308,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
     
     
       <li class="md-tabs__item">
-        <a href="../getting-started/" class="md-tabs__link">
+        <a href="../../getting-started/" class="md-tabs__link">
           
   
   
@@ -332,7 +332,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -354,7 +354,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
     
     
       <li class="md-tabs__item">
-        <a href="../cli/" class="md-tabs__link">
+        <a href="../../cli/" class="md-tabs__link">
           
   
   
@@ -376,7 +376,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
     
     
       <li class="md-tabs__item">
-        <a href="../reference/project/" class="md-tabs__link">
+        <a href="../../reference/project/" class="md-tabs__link">
           
   
   
@@ -396,7 +396,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-tabs__item">
-      <a href="../faq/" class="md-tabs__link">
+      <a href="../../faq/" class="md-tabs__link">
         
   
   
@@ -450,9 +450,9 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
+    <a href="../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
-  <img src="../images/amper-icon.svg" alt="logo">
+  <img src="../../images/amper-icon.svg" alt="logo">
 
     </a>
     The Kotlin Toolchain
@@ -479,7 +479,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -535,7 +535,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../getting-started/" class="md-nav__link ">
+            <a href="../../getting-started/" class="md-nav__link ">
               
   
   
@@ -579,7 +579,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/ide-setup/" class="md-nav__link">
+      <a href="../../getting-started/ide-setup/" class="md-nav__link">
         
   
   
@@ -607,7 +607,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/tutorial/" class="md-nav__link">
+      <a href="../../getting-started/tutorial/" class="md-nav__link">
         
   
   
@@ -635,7 +635,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/migrating-from-maven/" class="md-nav__link">
+      <a href="../../getting-started/migrating-from-maven/" class="md-nav__link">
         
   
   
@@ -718,7 +718,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="./" class="md-nav__link md-nav__link--active">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -736,7 +736,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
             </a>
             
               
-              <label class="md-nav__link md-nav__link--active" for="__nav_3" id="__nav_3_label" tabindex="">
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
@@ -762,7 +762,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="basics/" class="md-nav__link">
+      <a href="../basics/" class="md-nav__link">
         
   
   
@@ -790,7 +790,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="dependencies/" class="md-nav__link">
+      <a href="../dependencies/" class="md-nav__link">
         
   
   
@@ -818,7 +818,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="multiplatform/" class="md-nav__link">
+      <a href="../multiplatform/" class="md-nav__link">
         
   
   
@@ -846,7 +846,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="testing/" class="md-nav__link">
+      <a href="../testing/" class="md-nav__link">
         
   
   
@@ -874,7 +874,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="templates/" class="md-nav__link">
+      <a href="../templates/" class="md-nav__link">
         
   
   
@@ -941,7 +941,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="product-types/" class="md-nav__link ">
+            <a href="../product-types/" class="md-nav__link ">
               
   
   
@@ -985,7 +985,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="product-types/android-app/" class="md-nav__link">
+      <a href="../product-types/android-app/" class="md-nav__link">
         
   
   
@@ -1013,7 +1013,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="product-types/ios-app/" class="md-nav__link">
+      <a href="../product-types/ios-app/" class="md-nav__link">
         
   
   
@@ -1041,7 +1041,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="product-types/jvm-app/" class="md-nav__link">
+      <a href="../product-types/jvm-app/" class="md-nav__link">
         
   
   
@@ -1069,7 +1069,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="product-types/jvm-lib/" class="md-nav__link">
+      <a href="../product-types/jvm-lib/" class="md-nav__link">
         
   
   
@@ -1097,7 +1097,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="product-types/kmp-lib/" class="md-nav__link">
+      <a href="../product-types/kmp-lib/" class="md-nav__link">
         
   
   
@@ -1125,7 +1125,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="product-types/js-app/" class="md-nav__link">
+      <a href="../product-types/js-app/" class="md-nav__link">
         
   
   
@@ -1153,7 +1153,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="product-types/native-app/" class="md-nav__link">
+      <a href="../product-types/native-app/" class="md-nav__link">
         
   
   
@@ -1181,7 +1181,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="product-types/wasm-app/" class="md-nav__link">
+      <a href="../product-types/wasm-app/" class="md-nav__link">
         
   
   
@@ -1283,7 +1283,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="builtin-tech/compose-multiplatform/" class="md-nav__link">
+      <a href="../builtin-tech/compose-multiplatform/" class="md-nav__link">
         
   
   
@@ -1311,7 +1311,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="builtin-tech/kotlinx-serialization/" class="md-nav__link">
+      <a href="../builtin-tech/kotlinx-serialization/" class="md-nav__link">
         
   
   
@@ -1339,7 +1339,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="builtin-tech/kotlinx-rpc/" class="md-nav__link">
+      <a href="../builtin-tech/kotlinx-rpc/" class="md-nav__link">
         
   
   
@@ -1367,7 +1367,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="builtin-tech/ktor/" class="md-nav__link">
+      <a href="../builtin-tech/ktor/" class="md-nav__link">
         
   
   
@@ -1395,7 +1395,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="builtin-tech/lombok/" class="md-nav__link">
+      <a href="../builtin-tech/lombok/" class="md-nav__link">
         
   
   
@@ -1423,7 +1423,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="builtin-tech/spring/" class="md-nav__link">
+      <a href="../builtin-tech/spring/" class="md-nav__link">
         
   
   
@@ -1456,10 +1456,37 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="publishing/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1475,6 +1502,109 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#publishing-to-maven-central" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing to Maven Central
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Publishing to Maven Central">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#passing-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Passing credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publishing-to-a-regular-maven-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing to a regular Maven repository
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1553,7 +1683,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="plugins/overview/" class="md-nav__link">
+      <a href="../plugins/overview/" class="md-nav__link">
         
   
   
@@ -1581,7 +1711,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="plugins/quick-start/" class="md-nav__link">
+      <a href="../plugins/quick-start/" class="md-nav__link">
         
   
   
@@ -1609,7 +1739,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="plugins/topics/structure/" class="md-nav__link">
+      <a href="../plugins/topics/structure/" class="md-nav__link">
         
   
   
@@ -1637,7 +1767,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="plugins/topics/configuration/" class="md-nav__link">
+      <a href="../plugins/topics/configuration/" class="md-nav__link">
         
   
   
@@ -1665,7 +1795,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="plugins/topics/references/" class="md-nav__link">
+      <a href="../plugins/topics/references/" class="md-nav__link">
         
   
   
@@ -1693,7 +1823,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="plugins/topics/tasks/" class="md-nav__link">
+      <a href="../plugins/topics/tasks/" class="md-nav__link">
         
   
   
@@ -1795,7 +1925,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="advanced/jdk-provisioning/" class="md-nav__link">
+      <a href="../advanced/jdk-provisioning/" class="md-nav__link">
         
   
   
@@ -1823,7 +1953,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="advanced/java-annotation-processing/" class="md-nav__link">
+      <a href="../advanced/java-annotation-processing/" class="md-nav__link">
         
   
   
@@ -1851,7 +1981,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="advanced/ksp/" class="md-nav__link">
+      <a href="../advanced/ksp/" class="md-nav__link">
         
   
   
@@ -1879,7 +2009,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="advanced/kotlin-compiler-plugins/" class="md-nav__link">
+      <a href="../advanced/kotlin-compiler-plugins/" class="md-nav__link">
         
   
   
@@ -1907,7 +2037,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="advanced/maven-like-layout/" class="md-nav__link">
+      <a href="../advanced/maven-like-layout/" class="md-nav__link">
         
   
   
@@ -1935,7 +2065,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="advanced/maven-plugins/" class="md-nav__link">
+      <a href="../advanced/maven-plugins/" class="md-nav__link">
         
   
   
@@ -1971,7 +2101,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="yaml-primer/" class="md-nav__link">
+      <a href="../yaml-primer/" class="md-nav__link">
         
   
   
@@ -2031,7 +2161,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../cli/" class="md-nav__link ">
+            <a href="../../cli/" class="md-nav__link ">
               
   
   
@@ -2075,7 +2205,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="../cli/provisioning/" class="md-nav__link">
+      <a href="../../cli/provisioning/" class="md-nav__link">
         
   
   
@@ -2168,7 +2298,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="../reference/project/" class="md-nav__link">
+      <a href="../../reference/project/" class="md-nav__link">
         
   
   
@@ -2196,7 +2326,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="../reference/module/" class="md-nav__link">
+      <a href="../../reference/module/" class="md-nav__link">
         
   
   
@@ -2231,7 +2361,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
   
     <li class="md-nav__item">
-      <a href="../faq/" class="md-nav__link">
+      <a href="../../faq/" class="md-nav__link">
         
   
   
@@ -2298,6 +2428,97 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#publishing-to-maven-central" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing to Maven Central
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Publishing to Maven Central">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#passing-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Passing credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publishing-to-a-regular-maven-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing to a regular Maven repository
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2313,7 +2534,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
 
 
   
-    <a href="https://github.com/JetBrains/kotlin-toolchain/edit/release/0.11/docs/src/user-guide/index.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/JetBrains/kotlin-toolchain/edit/release/0.11/docs/src/user-guide/publishing.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2321,15 +2542,158 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
   
 
 
-<h1 id="user-guide">User guide<a class="headerlink" href="#user-guide" title="Permanent link">&para;</a></h1>
-<p>This is the comprehensive documentation of the Kotlin Toolchain.
-Here, you can learn everything about the Kotlin Toolchain concepts and features, and its support for some popular technologies.</p>
-<div class="admonition tip">
-<p class="admonition-title">Not sure where to start?</p>
-<p>The sections are organized in a logical order, so if you're not sure how to proceed, you can use the 
-"Next <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg></span>" button at the bottom of the pages to go with the flow.</p>
+<h1 id="publishing-libraries">Publishing libraries<a class="headerlink" href="#publishing-libraries" title="Permanent link">&para;</a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Multiplatform library publication is not supported yet</p>
+<p>At the moment, only JVM libraries can be published.
+While the <code>publish</code> command for <abbr title="Kotlin Multiplatform">KMP</abbr> libraries will not complain, the <abbr title="Kotlin Multiplatform">KMP</abbr> publications are for now incomplete and
+not consumable by other projects.</p>
 </div>
-<p>For a more hands-on experience, check out the <a href="../getting-started/">Getting started</a> guide.</p>
+<h2 id="publishing-to-maven-central">Publishing to Maven Central<a class="headerlink" href="#publishing-to-maven-central" title="Permanent link">&para;</a></h2>
+<p>Maven Central is the most popular Maven repository. Most OSS libraries are published there.
+Publishing your library to Maven Central makes it easier for your users to consume it.</p>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
+<p>To publish to Maven Central, you need to have:</p>
+<ul>
+<li>a Central Portal <a href="https://central.sonatype.org/register/central-portal/">account</a></li>
+<li>a Central Portal <a href="https://central.sonatype.org/register/namespace/">namespace</a></li>
+<li>a Central Portal <a href="https://central.sonatype.org/publish/generate-portal-token/">user token</a> - remember the username and password parts.</li>
+</ul>
+<h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h3>
+<p>There are a handful of requirements<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup> imposed by Sonatype to publish to Maven Central:</p>
+<ul>
+<li>javadocs and sources JARs must be published</li>
+<li>checksums for all artifacts must be published</li>
+<li>artifacts need to be signed with a PGP signature</li>
+<li>some mandatory metadata about the module must be present</li>
+</ul>
+<p>You can satisfy all of these requirements with a little bit of configuration:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jvm/lib</span>
+
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A meaningful description for this specific module</span>
+
+<span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">publishing</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">com.example</span><span class="w"> </span><span class="c1">#(1)!</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0.0</span>
+<span class="w">    </span><span class="c1"># artifactId is optional, and defaults to your module&#39;s name</span>
+<span class="w">    </span><span class="nt">mavenCentral</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enabled</span>
+<span class="w">    </span><span class="nt">signArtifacts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">publishSources</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">pom</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://example.com</span>
+<span class="w">      </span><span class="nt">scm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://example.git</span>
+<span class="w">      </span><span class="nt">developers</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Joffrey Bion</span>
+<span class="w">      </span><span class="nt">licenses</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MIT</span>
+<span class="w">          </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://opensource.org/license/mit</span>
+</code></pre></div>
+<ol>
+<li>The <code>group</code> should correspond to the <code>groupId</code> of your Maven Central
+   <a href="https://central.sonatype.org/register/namespace/">namespace</a></li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">Empty JavaDoc jar</p>
+<p>At the moment, an empty JavaDoc JAR is added to the publication by default. We will soon add more control over this.</p>
+</div>
+<h3 id="passing-credentials">Passing credentials<a class="headerlink" href="#passing-credentials" title="Permanent link">&para;</a></h3>
+<p>In order to publish using <code>kotlin publish mavenCentral</code>, you'll need to provide credentials in the form of environment
+variables (usually done on the CI):</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_USERNAME</code></td>
+<td>The <code>username</code> part of your Maven Central <a href="https://central.sonatype.org/publish/generate-portal-token/">user token</a>.</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_PASSWORD</code></td>
+<td>The <code>password</code> part of your Maven Central <a href="https://central.sonatype.org/publish/generate-portal-token/">user token</a>.</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_SIGNING_KEY</code></td>
+<td>The ASCII-armored PGP signing key to use to sign artifacts. You can export a private key in this format using the <code>gpg --export-secret-keys --armor &lt;KEY_ID&gt;</code> command.</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE</code></td>
+<td>(optional) The passphrase to unlock the PGP key, if there is one.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="publishing-command">Publishing command<a class="headerlink" href="#publishing-command" title="Permanent link">&para;</a></h3>
+<p>To publish, run the following command:</p>
+<div class="highlight"><pre><span></span><code>kotlin publish mavenCentral
+</code></pre></div>
+<p>This is usually configured on the CI.</p>
+<h3 id="publishing-mode">Publishing mode<a class="headerlink" href="#publishing-mode" title="Permanent link">&para;</a></h3>
+<p>Maven Central allows 2 modes for publishing:</p>
+<ul>
+<li>Manual: the bundle is uploaded, then validated, then the publication stops for manual verification. You can then publish manually directly from the Central Portal UI.</li>
+<li>Auto: the bundle is uploaded, then validated, and then automatically published to Maven Central</li>
+</ul>
+<p>By default, the Kotlin Toolchain uses the manual mode, to avoid surprises.
+Once the first deployment is successful, you might want to streamline the publication by switching to auto mode.
+This can be done using the <code>settings.mavenCentral.publishingMode</code>.</p>
+<h2 id="publishing-to-a-regular-maven-repository">Publishing to a regular Maven repository<a class="headerlink" href="#publishing-to-a-regular-maven-repository" title="Permanent link">&para;</a></h2>
+<p>To publish to a Maven repository, you essentially need 3 things:</p>
+<ul>
+<li>the publication configuration</li>
+<li>the target repository</li>
+<li>the credentials to publish</li>
+</ul>
+<p>This is how your <code>module.yaml</code> should look like:</p>
+<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jvm/lib</span>
+
+<span class="nt">repositories</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">someIdOfYourChoosing</span><span class="w"> </span><span class="c1">#(1)!</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://maven.pkg.github.com/my-org/my-repo</span><span class="w"> </span><span class="c1">#(2)!</span>
+<span class="w">    </span><span class="nt">credentials</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">creds.properties</span><span class="w"> </span><span class="c1"># a properties file containing your credentials </span>
+<span class="w">      </span><span class="nt">usernameKey</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">username</span><span class="w"> </span><span class="c1"># not the username, but the name of the property containing it</span>
+<span class="w">      </span><span class="nt">passwordKey</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">password</span><span class="w"> </span><span class="c1"># not the password, but the name of the property containing it</span>
+
+<span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">publishing</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">org.example</span><span class="w"> </span><span class="c1"># enter your own groupID here</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0.0</span>
+<span class="w">    </span><span class="c1"># artifactId is optional, and defaults to your module&#39;s name</span>
+</code></pre></div>
+<ol>
+<li>
+<p>This is the ID you will use in the <code>publish</code> command when you want to publish to this repository:
+   <div class="highlight"><pre><span></span><code>kotlin publish &lt;id&gt;
+</code></pre></div></p>
+</li>
+<li>
+<p>The URL of your custom repository</p>
+</li>
+</ol>
+<p>You must then also create a <code>creds.properties</code> file (or whichever name you chose above), with two properties for the
+username and password to use for publishing:</p>
+<div class="highlight"><pre><span></span><code>username=adele
+password=imRollingInTheDeep
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Don't forget to publish your dependencies</p>
+<p>If your module depends on other local modules, you must enable publishing for these other modules too.
+We recommend using a template to share the publishing configuration across all your published modules.</p>
+</div>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>You can learn more about them <a href="https://central.sonatype.org/publish/requirements/">on the official website</a>&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
 
 
 
@@ -2350,7 +2714,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 15:51:35 UTC">May 12, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 25, 2026 23:21:04 UTC">May 25, 2026</span>
   </span>
 
     
@@ -2386,7 +2750,7 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../getting-started/migrating-from-maven/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Migrating from Maven">
+          <a href="../builtin-tech/spring/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Spring Boot">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2396,20 +2760,20 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
                 Previous
               </span>
               <div class="md-ellipsis">
-                Migrating from Maven
+                Spring Boot
               </div>
             </div>
           </a>
         
         
           
-          <a href="basics/" class="md-footer__link md-footer__link--next" aria-label="Next: Basic concepts">
+          <a href="../plugins/overview/" class="md-footer__link md-footer__link--next" aria-label="Next: Overview">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Basic concepts
+                Overview
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -2450,10 +2814,10 @@ Here, you can learn everything about the Kotlin Toolchain concepts and features,
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.action.edit", "content.code.annotate", "content.code.copy", "content.footnote.tooltips", "content.tooltips", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.preview", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.action.edit", "content.code.annotate", "content.code.copy", "content.footnote.tooltips", "content.tooltips", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.preview", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
