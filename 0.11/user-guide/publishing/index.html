@@ -17,10 +17,10 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
         <link rel="canonical" href="https://kotlin-toolchain.org/0.11/user-guide/publishing/">
       
       
-        <link rel="prev" href="../builtin-tech/spring/">
+        <link rel="prev" href="../templates/">
       
       
-        <link rel="next" href="../plugins/overview/">
+        <link rel="next" href="../product-types/">
       
       
         
@@ -899,6 +899,164 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
                 
   
   
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#publishing-to-maven-central" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing to Maven Central
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Publishing to Maven Central">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#passing-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Passing credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publishing-to-a-regular-maven-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing to a regular Maven repository
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
   
   
     
@@ -937,7 +1095,7 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_7" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_8" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -959,14 +1117,14 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_7">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1244,10 +1402,10 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_8" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_9" >
         
           
-          <label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
             
   
   
@@ -1265,8 +1423,8 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_8">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_9">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1446,164 +1604,6 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
             
           </ul>
         </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Publishing
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Publishing
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#publishing-to-maven-central" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Publishing to Maven Central
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Publishing to Maven Central">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Prerequisites
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configuration
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#passing-credentials" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Passing credentials
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#publishing-command" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Publishing command
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#publishing-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Publishing mode
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#publishing-to-a-regular-maven-repository" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Publishing to a regular Maven repository
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -2750,7 +2750,7 @@ We recommend using a template to share the publishing configuration across all y
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../builtin-tech/spring/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Spring Boot">
+          <a href="../templates/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Templates">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2760,20 +2760,20 @@ We recommend using a template to share the publishing configuration across all y
                 Previous
               </span>
               <div class="md-ellipsis">
-                Spring Boot
+                Templates
               </div>
             </div>
           </a>
         
         
           
-          <a href="../plugins/overview/" class="md-footer__link md-footer__link--next" aria-label="Next: Overview">
+          <a href="../product-types/" class="md-footer__link md-footer__link--next" aria-label="Next: Product types">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Overview
+                Product types
               </div>
             </div>
             <div class="md-footer__button md-icon">
