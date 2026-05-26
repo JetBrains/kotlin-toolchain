@@ -17,14 +17,6 @@ After installation, the `kotlin` command will be available on your `PATH`.
 sdk install kotlintoolchain
 ```
 
-### via installer script
-
-The installer script downloads the Kotlin CLI wrapper and places it in `~/.local/bin` (on Linux and macOS) or an
-equivalent location on Windows.
-It also updates your shell profile to add that directory to your `PATH`, if needed.
-
---8<-- "includes/cli-install.md"
-
 !!! note
 
     The first time you run the Kotlin CLI, it will take some time to download the Kotlin Toolchain distribution.
@@ -32,6 +24,14 @@ It also updates your shell profile to add that directory to your `PATH`, if need
 
     If you just installed via the script, restart your shell (or run `export PATH="$HOME/.local/bin:$PATH"` on 
     Linux/macOS) before using `kotlin`.
+
+### via installer script
+
+The installer script downloads the Kotlin CLI wrapper and places it in `~/.local/bin` (on Linux and macOS) or an
+equivalent location on Windows.
+It also updates your shell profile to add that directory to your `PATH`, if needed.
+
+--8<-- "includes/cli-install.md"
 
 ??? success "IntelliJ IDEA can take care of this for you"
 
