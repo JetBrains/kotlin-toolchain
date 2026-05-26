@@ -8,8 +8,8 @@ It is useful both locally and in CI/CD pipelines.
 
 ## Installation
 
-Install the Kotlin CLI globally using one of the methods below.
-After installation, the `kotlin` command will be available on your PATH.
+Install the Kotlin CLI using one of the methods below.
+After installation, the `kotlin` command will be available on your `PATH`.
 
 ### via SDKMAN
 
@@ -19,8 +19,9 @@ sdk install kotlintoolchain
 
 ### via installer script
 
-The installer script downloads the Kotlin CLI wrapper and places it in `~/.local/bin` (on Linux and macOS) or an equivalent location on Windows.
-It also updates your shell profile to add that directory to your PATH, if needed.
+The installer script downloads the Kotlin CLI wrapper and places it in `~/.local/bin` (on Linux and macOS) or an
+equivalent location on Windows.
+It also updates your shell profile to add that directory to your `PATH`, if needed.
 
 --8<-- "includes/cli-install.md"
 
@@ -29,13 +30,15 @@ It also updates your shell profile to add that directory to your PATH, if needed
     The first time you run the Kotlin CLI, it will take some time to download the Kotlin Toolchain distribution.
     Subsequent runs will be faster, as the downloaded files will be cached locally.
 
-    If you just installed via the script, restart your shell (or run `export PATH="$HOME/.local/bin:$PATH"` on Linux/macOS) before using `kotlin`.
+    If you just installed via the script, restart your shell (or run `export PATH="$HOME/.local/bin:$PATH"` on 
+    Linux/macOS) before using `kotlin`.
 
 ??? success "IntelliJ IDEA can take care of this for you"
 
-    New projects created using the IntelliJ IDEA wizard will already contain the [wrapper scripts](provisioning.md/#whats-the-wrapper-script).
-    Also, if you create a `module.yaml` file in a blank project, IntelliJ IDEA will offer to set up the wrapper scripts for you.
-    In that case, you can use `./kotlin` from the project root without a global installation.
+    New projects created using the IntelliJ IDEA wizard will already contain the 
+    [wrapper scripts](provisioning.md/#whats-the-wrapper-script).
+    Also, if you create a `module.yaml` file in a blank project, IntelliJ IDEA will offer to set up the wrapper scripts
+    for you. In that case, you can use `./kotlin` from the project root without a global installation.
 
 ## Exploring Kotlin CLI commands
 
