@@ -120,6 +120,7 @@ nav:
       - 'Multiplatform modules': user-guide/multiplatform.md
       - 'Testing': user-guide/testing.md
       - 'Templates': user-guide/templates.md
+      - 'Publishing': user-guide/publishing.md
       - 'Product types':
           - user-guide/product-types/index.md
           - 'Android application': user-guide/product-types/android-app.md
@@ -137,7 +138,6 @@ nav:
           - 'Ktor': user-guide/builtin-tech/ktor.md
           - 'Lombok': user-guide/builtin-tech/lombok.md
           - 'Spring Boot': user-guide/builtin-tech/spring.md
-      - 'Publishing': user-guide/publishing.md
       - 'Plugins':
           - 'Overview': user-guide/plugins/overview.md
           - 'Quick Start': user-guide/plugins/quick-start.md

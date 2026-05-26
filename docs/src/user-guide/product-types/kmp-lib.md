@@ -22,4 +22,4 @@ Read more about multiplatform topics in the general [Multiplatform modules](../m
 
 ## Publishing
 
-!!! info Publishing Kotlin Multiplatform libraries is not supported at the moment, but coming soon. Stay tuned!
+!!! info "Publishing Kotlin Multiplatform libraries is not supported at the moment, but coming soon. Stay tuned!"
