@@ -62,9 +62,6 @@ object MavenCentralRequirementsCheckingFactory : AomSingleModuleDiagnosticFactor
         if (module.publishingSettings.group == null) {
             missingProperties.add(MissingProperty("publishing.group", module.publishingSettings.groupDelegate))
         }
-        if (module.publishingSettings.artifactId == null) {
-            missingProperties.add(MissingProperty("publishing.artifact", module.publishingSettings.artifactIdDelegate))
-        }
         if (module.publishingSettings.version == null) {
             missingProperties.add(MissingProperty("publishing.version", module.publishingSettings.versionDelegate))
         }
