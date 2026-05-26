@@ -53,6 +53,13 @@ class AmperRunTest : AmperCliTestBase() {
     }
 
     @Test
+    fun `jvm hello world with custom JDK 26`() = runSlowTest {
+        val result = runCli(projectDir = testProject("jvm-custom-jdk"), "run")
+        result.assertLogStartsWith("Process exited with exit code 0", Level.INFO)
+        result.assertStdoutContains("Hello")
+    }
+
+    @Test
     fun `simple multiplatform cli on jvm`() = runSlowTest {
         val result = runCli(
             projectDir = testProject("simple-multiplatform-cli"),
