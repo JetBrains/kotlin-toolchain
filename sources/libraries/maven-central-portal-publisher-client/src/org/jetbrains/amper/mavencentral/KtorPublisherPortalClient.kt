@@ -45,9 +45,7 @@ internal class KtorPublisherPortalClient(
         ) {
             url {
                 takeFrom("https://central.sonatype.com/api/v1/publisher/upload")
-                parameters {
-                    append("publishingType", publishingType.apiValue)
-                }
+                parameter("publishingType", publishingType.apiValue)
             }
             // Spec: https://central.sonatype.org/publish/publish-portal-api/#authentication-authorization
             bearerAuth(token.base64)
