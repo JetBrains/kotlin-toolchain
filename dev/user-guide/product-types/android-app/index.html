@@ -692,6 +692,8 @@
       
         
       
+        
+      
     
     
     
@@ -1580,6 +1582,34 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1612,10 +1642,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_9" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_10" >
         
           
-          <label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
             
   
   
@@ -1633,8 +1663,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_9_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_9">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1910,10 +1940,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_11" >
         
           
-          <label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
             
   
   
@@ -1931,8 +1961,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_11">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2624,11 +2654,11 @@ configuration for it:</p>
 <h2 id="packaging">Packaging<a class="headerlink" href="#packaging" title="Permanent link">&para;</a></h2>
 <p>You can use the <code>build</code> command to create an APK, or the <code>package</code> command to create an Android Application Bundle (AAB).</p>
 <p>The <code>package</code> command will not only build the APK, but also minify/obfuscate it with ProGuard, and sign it.
-See the dedicated <a href="#signing">signing</a> and <a href="#code-shrinking">code shrinking</a> sections to learn how to configure this.</p>
+See the dedicated <a href="#signing">signing</a> and <a href="#code-shrinking">code shrinking</a> sections below to learn how to configure this.</p>
 <h3 id="code-shrinking">Code shrinking<a class="headerlink" href="#code-shrinking" title="Permanent link">&para;</a></h3>
 <p>When creating a release build with the Kotlin Toolchain, R8 will be used automatically, with minification and shrinking enabled.
 This is equivalent to the following Gradle configuration:</p>
-<div class="highlight"><pre><span></span><code><span class="c1">// in Gradle</span>
+<div class="highlight"><pre><span></span><code><span class="c1">// Gradle equivalent of the Kotlin Toolchain&#39;s defaults</span>
 <span class="n">isMinifyEnabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 <span class="n">isShrinkResources</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 <span class="n">proguardFiles</span><span class="p">(</span><span class="n">getDefaultProguardFile</span><span class="p">(</span><span class="s">&quot;proguard-android-optimize.txt&quot;</span><span class="p">))</span>
@@ -2747,7 +2777,7 @@ your <code>google-services.json</code> file in the module containing an <code>an
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 13, 2026 13:14:52 UTC">May 13, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 25, 2026 23:21:04 UTC">May 25, 2026</span>
   </span>
 
     
