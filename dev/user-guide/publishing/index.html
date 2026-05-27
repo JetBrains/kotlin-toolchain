@@ -962,6 +962,17 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#publishing-to-a-regular-maven-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing to a regular Maven repository
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#publishing-to-maven-central" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1030,17 +1041,6 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#publishing-to-a-regular-maven-repository" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Publishing to a regular Maven repository
-      
-    </span>
-  </a>
   
 </li>
       
@@ -2495,6 +2495,17 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#publishing-to-a-regular-maven-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing to a regular Maven repository
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#publishing-to-maven-central" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2566,17 +2577,6 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#publishing-to-a-regular-maven-repository" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Publishing to a regular Maven repository
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -2611,6 +2611,62 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
 <p>At the moment, only JVM libraries can be published.
 While the <code>publish</code> command for <abbr title="Kotlin Multiplatform">KMP</abbr> libraries will not complain, the <abbr title="Kotlin Multiplatform">KMP</abbr> publications are for now incomplete and
 not consumable by other projects.</p>
+</div>
+<p>Library modules inside your project are useful for modularization, but you can take it one step further by publishing
+your libraries so they can be used by other projects.</p>
+<p>With a little bit of configuration, you'll be able to publish using the <code>kotlin publish</code> command.</p>
+<h2 id="publishing-to-a-regular-maven-repository">Publishing to a regular Maven repository<a class="headerlink" href="#publishing-to-a-regular-maven-repository" title="Permanent link">&para;</a></h2>
+<p>To publish to a Maven repository, you essentially need 3 things:</p>
+<ul>
+<li>the publication configuration</li>
+<li>the target repository</li>
+<li>the credentials to publish</li>
+</ul>
+<p>This is how your <code>module.yaml</code> should look like:</p>
+<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jvm/lib</span>
+
+<span class="nt">repositories</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">someIdOfYourChoosing</span><span class="w"> </span><span class="c1">#(1)!</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://maven.pkg.github.com/my-org/my-repo</span><span class="w"> </span><span class="c1">#(2)!</span>
+<span class="w">    </span><span class="nt">publish</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1">#(3)!</span>
+<span class="w">    </span><span class="nt">credentials</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">creds.properties</span><span class="w"> </span><span class="c1"># a properties file containing your credentials </span>
+<span class="w">      </span><span class="nt">usernameKey</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">username</span><span class="w"> </span><span class="c1"># not the username, but the name of the property containing it</span>
+<span class="w">      </span><span class="nt">passwordKey</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">password</span><span class="w"> </span><span class="c1"># not the password, but the name of the property containing it</span>
+
+<span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">publishing</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">org.example</span><span class="w"> </span><span class="c1"># enter your own groupID here</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0.0</span>
+<span class="w">    </span><span class="c1"># artifactId is optional, and defaults to your module&#39;s name</span>
+</code></pre></div>
+<ol>
+<li>
+<p>This is the ID you will use in the <code>publish</code> command when you want to publish to this repository:
+   <div class="highlight"><pre><span></span><code>kotlin publish &lt;id&gt;
+</code></pre></div></p>
+</li>
+<li>
+<p>The URL of your custom repository</p>
+</li>
+<li>
+<p>Enables publishing to this repository via the <code>kotlin publish &lt;repoId&gt;</code> command</p>
+</li>
+</ol>
+<p>You must then also create a <code>creds.properties</code> file (or whichever name you chose above), with two properties for the
+username and password to use for publishing:</p>
+<div class="highlight"><pre><span></span><code>username=adele
+password=imRollingInTheDeep
+</code></pre></div>
+<p>Once everything is set up, use the following command to publish all modules that enabled publishing (and that have 
+configured a repository with ID <code>someIdOfYourChoosing</code>):</p>
+<div class="highlight"><pre><span></span><code>kotlin publish someIdOfYourChoosing
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Don't forget to publish your dependencies</p>
+<p>If your module depends on other local modules, you must enable publishing for these other modules too.
+We recommend using a template to share the publishing configuration across all your published modules.</p>
 </div>
 <h2 id="publishing-to-maven-central">Publishing to Maven Central<a class="headerlink" href="#publishing-to-maven-central" title="Permanent link">&para;</a></h2>
 <p>Maven Central is the most popular Maven repository. Most OSS libraries are published there.
@@ -2677,11 +2733,11 @@ variables (usually done on the CI):</p>
 <tbody>
 <tr>
 <td><code>KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_USERNAME</code></td>
-<td>The <code>username</code> part of your Maven Central <a href="https://central.sonatype.org/publish/generate-portal-token/">user token</a>.</td>
+<td>The <code>username</code> part of your Central Portal <a href="https://central.sonatype.org/publish/generate-portal-token/">user token</a>.</td>
 </tr>
 <tr>
 <td><code>KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_PASSWORD</code></td>
-<td>The <code>password</code> part of your Maven Central <a href="https://central.sonatype.org/publish/generate-portal-token/">user token</a>.</td>
+<td>The <code>password</code> part of your Central Portal <a href="https://central.sonatype.org/publish/generate-portal-token/">user token</a>.</td>
 </tr>
 <tr>
 <td><code>KOTLIN_TOOLCHAIN_SIGNING_KEY</code></td>
@@ -2694,67 +2750,28 @@ variables (usually done on the CI):</p>
 </tbody>
 </table>
 <h3 id="publishing-command">Publishing command<a class="headerlink" href="#publishing-command" title="Permanent link">&para;</a></h3>
-<p>To publish, run the following command:</p>
+<p>Use the following command to publish all modules that have <code>mavenCentral</code> publication enabled:</p>
 <div class="highlight"><pre><span></span><code>kotlin publish mavenCentral
 </code></pre></div>
-<p>This is usually configured on the CI.</p>
+<p>This is usually done in a CI job.</p>
 <h3 id="publishing-mode">Publishing mode<a class="headerlink" href="#publishing-mode" title="Permanent link">&para;</a></h3>
-<p>Maven Central allows 2 modes for publishing:</p>
+<p>The Kotlin Toolchain provides 2 modes for publishing:</p>
 <ul>
-<li>Manual: the bundle is uploaded, then validated, then the publication stops for manual verification. You can then publish manually directly from the Central Portal UI.</li>
-<li>Auto: the bundle is uploaded, then validated, and then automatically published to Maven Central</li>
+<li><code>manual</code> (default): in this mode, the <code>kotlin publish</code> command uploads the bundle, then waits for its validation, and
+   then stops for manual verification. Once you're ready, you can use the
+   <a href="https://central.sonatype.com/publishing/deployments">Central Portal UI</a> to manually publish (release) your 
+   artifacts.</li>
+<li><code>auto</code>: the <code>kotlin publish</code> command does everything automatically from end to finish. This is useful when you want 
+   to fully automate your publications.  </li>
 </ul>
 <p>By default, the Kotlin Toolchain uses the manual mode, to avoid surprises.
-Once the first deployment is successful, you might want to streamline the publication by switching to auto mode.
+Once the first deployment is successful, you might want to streamline the publication by switching to <code>auto</code> mode.
 This can be done using the <code>settings.mavenCentral.publishingMode</code>.</p>
-<h2 id="publishing-to-a-regular-maven-repository">Publishing to a regular Maven repository<a class="headerlink" href="#publishing-to-a-regular-maven-repository" title="Permanent link">&para;</a></h2>
-<p>To publish to a Maven repository, you essentially need 3 things:</p>
-<ul>
-<li>the publication configuration</li>
-<li>the target repository</li>
-<li>the credentials to publish</li>
-</ul>
-<p>This is how your <code>module.yaml</code> should look like:</p>
-<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jvm/lib</span>
-
-<span class="nt">repositories</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">someIdOfYourChoosing</span><span class="w"> </span><span class="c1">#(1)!</span>
-<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://maven.pkg.github.com/my-org/my-repo</span><span class="w"> </span><span class="c1">#(2)!</span>
-<span class="w">    </span><span class="nt">publish</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1">#(3)!</span>
-<span class="w">    </span><span class="nt">credentials</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">creds.properties</span><span class="w"> </span><span class="c1"># a properties file containing your credentials </span>
-<span class="w">      </span><span class="nt">usernameKey</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">username</span><span class="w"> </span><span class="c1"># not the username, but the name of the property containing it</span>
-<span class="w">      </span><span class="nt">passwordKey</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">password</span><span class="w"> </span><span class="c1"># not the password, but the name of the property containing it</span>
-
-<span class="nt">settings</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">publishing</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">    </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">org.example</span><span class="w"> </span><span class="c1"># enter your own groupID here</span>
-<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0.0</span>
-<span class="w">    </span><span class="c1"># artifactId is optional, and defaults to your module&#39;s name</span>
-</code></pre></div>
-<ol>
-<li>
-<p>This is the ID you will use in the <code>publish</code> command when you want to publish to this repository:
-   <div class="highlight"><pre><span></span><code>kotlin publish &lt;id&gt;
-</code></pre></div></p>
-</li>
-<li>
-<p>The URL of your custom repository</p>
-</li>
-<li>
-<p>Enables publishing to this repository via the <code>kotlin publish &lt;repoId&gt;</code> command</p>
-</li>
-</ol>
-<p>You must then also create a <code>creds.properties</code> file (or whichever name you chose above), with two properties for the
-username and password to use for publishing:</p>
-<div class="highlight"><pre><span></span><code>username=adele
-password=imRollingInTheDeep
-</code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Don't forget to publish your dependencies</p>
-<p>If your module depends on other local modules, you must enable publishing for these other modules too.
-We recommend using a template to share the publishing configuration across all your published modules.</p>
+<div class="admonition warning">
+<p class="admonition-title">One does not simply remove artifacts from Maven Central</p>
+<p>When using the <code>auto</code> mode, you will not get a chance to look at the published artifacts before they are released to
+the public and set in stone in Maven Central. If there is a mistake in your publication, you will not be able to 
+remove artifacts from Maven Central, because Sonatype has a strict policy about this.</p>
 </div>
 <div class="footnote">
 <hr />
@@ -2784,7 +2801,7 @@ We recommend using a template to share the publishing configuration across all y
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 27, 2026 08:13:38 UTC">May 27, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 27, 2026 08:57:10 UTC">May 27, 2026</span>
   </span>
 
     
