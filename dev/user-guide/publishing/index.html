@@ -2603,6 +2603,9 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
 
 
 <h1 id="publishing-libraries">Publishing libraries<a class="headerlink" href="#publishing-libraries" title="Permanent link">&para;</a></h1>
+<div class="admonition info">
+<p class="admonition-title">The publishing feature is in preview, and is likely to change. Don't hesitate to share your feedback!</p>
+</div>
 <div class="admonition warning">
 <p class="admonition-title">Multiplatform library publication is not supported yet</p>
 <p>At the moment, only JVM libraries can be published.
@@ -2643,7 +2646,7 @@ Publishing your library to Maven Central makes it easier for your users to consu
 <span class="w">    </span><span class="nt">publishSources</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">    </span><span class="nt">pom</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://example.com</span>
-<span class="w">      </span><span class="nt">scm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://example.git</span>
+<span class="w">      </span><span class="nt">scm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://github.com/my-org/example.git</span><span class="w"> </span><span class="c1">#(2)!</span>
 <span class="w">      </span><span class="nt">developers</span><span class="p">:</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Joffrey Bion</span>
 <span class="w">      </span><span class="nt">licenses</span><span class="p">:</span>
@@ -2653,6 +2656,9 @@ Publishing your library to Maven Central makes it easier for your users to consu
 <ol>
 <li>The <code>group</code> should correspond to the <code>groupId</code> of your Maven Central
    <a href="https://central.sonatype.org/register/namespace/">namespace</a></li>
+<li>This is a shorthand for <code>pom.scm.url</code>.
+   The <code>pom.scm.connection</code> and <code>pom.scm.developerConnection</code> are automatically derived from it using the value <code>scm:git:$url</code>.
+   If this default doesn't work for you, you can set these properties explicitly to any value.</li>
 </ol>
 <div class="admonition warning">
 <p class="admonition-title">Empty JavaDoc jar</p>
@@ -2714,6 +2720,7 @@ This can be done using the <code>settings.mavenCentral.publishingMode</code>.</p
 <span class="nt">repositories</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">someIdOfYourChoosing</span><span class="w"> </span><span class="c1">#(1)!</span>
 <span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://maven.pkg.github.com/my-org/my-repo</span><span class="w"> </span><span class="c1">#(2)!</span>
+<span class="w">    </span><span class="nt">publish</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1">#(3)!</span>
 <span class="w">    </span><span class="nt">credentials</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">creds.properties</span><span class="w"> </span><span class="c1"># a properties file containing your credentials </span>
 <span class="w">      </span><span class="nt">usernameKey</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">username</span><span class="w"> </span><span class="c1"># not the username, but the name of the property containing it</span>
@@ -2734,6 +2741,9 @@ This can be done using the <code>settings.mavenCentral.publishingMode</code>.</p
 </li>
 <li>
 <p>The URL of your custom repository</p>
+</li>
+<li>
+<p>Enables publishing to this repository via the <code>kotlin publish &lt;repoId&gt;</code> command</p>
 </li>
 </ol>
 <p>You must then also create a <code>creds.properties</code> file (or whichever name you chose above), with two properties for the
@@ -2774,7 +2784,7 @@ We recommend using a template to share the publishing configuration across all y
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 25, 2026 23:21:04 UTC">May 25, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 27, 2026 08:13:38 UTC">May 27, 2026</span>
   </span>
 
     
