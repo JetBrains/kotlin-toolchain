@@ -5,6 +5,8 @@ description: |
 ---
 # Publishing libraries
 
+!!! info "The publishing feature is in preview, and is likely to change. Don't hesitate to share your feedback!"
+
 !!! warning "Multiplatform library publication is not supported yet"
 
     At the moment, only JVM libraries can be published.
@@ -53,7 +55,7 @@ settings:
     publishSources: true
     pom:
       url: https://example.com
-      scm: https://example.git
+      scm: https://github.com/my-org/example.git #(2)!
       developers:
         - name: Joffrey Bion
       licenses:
@@ -63,6 +65,9 @@ settings:
 
 1. The `group` should correspond to the `groupId` of your Maven Central
    [namespace](https://central.sonatype.org/register/namespace/)
+2. This is a shorthand for `pom.scm.url`.
+   The `pom.scm.connection` and `pom.scm.developerConnection` are automatically derived from it using the value `scm:git:$url`.
+   If this default doesn't work for you, you can set these properties explicitly to any value.
 
 !!! warning "Empty JavaDoc jar"
 
@@ -117,6 +122,7 @@ product: jvm/lib
 repositories:
   - id: someIdOfYourChoosing #(1)!
     url: https://maven.pkg.github.com/my-org/my-repo #(2)!
+    publish: true #(3)!
     credentials:
       file: creds.properties # a properties file containing your credentials 
       usernameKey: username # not the username, but the name of the property containing it
@@ -136,6 +142,8 @@ settings:
    ```
 
 2. The URL of your custom repository
+
+3. Enables publishing to this repository via the `kotlin publish <repoId>` command
 
 You must then also create a `creds.properties` file (or whichever name you chose above), with two properties for the
 username and password to use for publishing:
