@@ -60,6 +60,15 @@ class AmperBuildTest : AmperCliTestBase() {
         }
     }
 
+    @Test
+    fun `build succeeds on a lib with all platforms`() = runSlowTest {
+        runCli(
+            projectDir = testProject("multiplatform-all-platforms"),
+            "build",
+            configureAndroidHome = true,
+        )
+    }
+
     @RunWithAndWithoutJic
     fun `build jar with main class`(useJavaIncrementalCompilation: Boolean) = runSlowTest {
         val result = runCliWithOrWithoutJps(
