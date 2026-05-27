@@ -196,7 +196,7 @@ function Main {
 
     Add-ToUserPath $installDir
     Write-Host "Installed Kotlin CLI to $targetPath"
-    Write-Host 'To get started you can run: kotlin --help (you may need to restart you shell first)'
+    Write-Host 'To get started you can run: kotlin --help (you may need to restart your shell first)'
 }
 
 Main
