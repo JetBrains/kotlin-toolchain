@@ -11,6 +11,7 @@ import org.jetbrains.amper.crypto.pgp.AsciiArmoredPgpKey
 import org.jetbrains.amper.crypto.pgp.PgpKeyParsingException
 import org.jetbrains.amper.crypto.pgp.PgpSigner
 import org.jetbrains.amper.crypto.pgp.PgpSigningException
+import org.jetbrains.amper.crypto.pgp.PgpSigningKeyPassphraseException
 import org.jetbrains.amper.dependency.resolution.MavenCoordinates
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
@@ -132,8 +133,14 @@ class PrepareMavenPublishablesTask(
         try {
             logger.info("Signing artifact '${artifact.path.name}'…")
             sign(artifact.path, outputSignatureFile = signatureFilePath)
+        } catch (e: PgpSigningKeyPassphraseException) {
+            if (e.passphrasePresent) {
+                userReadableError("Incorrect PGP signing key passphrase, please check the KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE environment variable", e)
+            } else {
+                userReadableError("The key provided in the KOTLIN_TOOLCHAIN_SIGNING_KEY environment variable requires a passphrase, but KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE was not set", e)
+            }
         } catch (e: PgpSigningException) {
-            userReadableError("PGP signing failed for artifact '${artifact.path.name}': ${e.message}")
+            userReadableError("PGP signing failed for artifact '${artifact.path.name}': ${e.message}", e)
         }
         return MavenPublishable(
             coordinates = artifact.coordinates,

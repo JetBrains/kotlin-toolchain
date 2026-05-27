@@ -8,6 +8,7 @@ import org.bouncycastle.openpgp.api.OpenPGPKey
 import org.bouncycastle.openpgp.api.OpenPGPKeyReader
 import org.bouncycastle.openpgp.api.OpenPGPSignature
 import org.bouncycastle.openpgp.api.bc.BcOpenPGPApi
+import org.bouncycastle.openpgp.api.exception.KeyPassphraseException
 import java.io.IOException
 import java.nio.file.Path
 import kotlin.io.path.inputStream
@@ -69,10 +70,12 @@ class PgpKeyParsingException(cause: Throwable) : Exception(cause.message, cause)
 /**
  * Thrown when signing fails.
  */
-class PgpSigningException(cause: Throwable) : Exception(
+open class PgpSigningException(cause: Throwable) : Exception(
     cause.toString(),
     cause
 )
+
+class PgpSigningKeyPassphraseException(val passphrasePresent: Boolean, cause: Throwable) : PgpSigningException(cause)
 
 private class BouncyCastlePgpSigner(
     /**
@@ -101,6 +104,8 @@ private class BouncyCastlePgpSigner(
             // we are guaranteed to have a single signature because we provided a single signing key
             signingGenerator.sign(fileStream).single()
         }
+    } catch (e: KeyPassphraseException) {
+        throw PgpSigningKeyPassphraseException(passphrasePresent = pgpKeyPassphrase != null, e)
     } catch (e: Exception) {
         throw PgpSigningException(e)
     }
