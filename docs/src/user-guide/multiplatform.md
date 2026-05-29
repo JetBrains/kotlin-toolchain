@@ -353,6 +353,7 @@ Kotlin Multiplatform implies smooth interoperability with platform languages, AP
 There are three distinct scenarios where such interoperability is needed:
 
 - Consuming: Kotlin code can use APIs from existing platform libraries, e.g. jars on JVM (later CocoaPods on iOS too).
+  For Kotlin/Native, you can use raw C and Objective-C libraries via the [cinterop](advanced/native-interop.md) integration.
 - Publishing: Kotlin code can be compiled and published as platform libraries to be consumed by the target platform's
   tooling; such as jars on JVM, frameworks on iOS (maybe later .so on linux).
 - Joint compilation: Kotlin code be compiled and linked into a final product together with the platform languages, like
