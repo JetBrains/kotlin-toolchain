@@ -6,43 +6,42 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Migrate your Maven project to the Kotlin Toolchain: run the semi-automated converter, understand the concept mapping, and learn
-what to do after the conversion.
+        <meta name="description" content="Learn how to use C and Objective-C libraries in your Kotlin Multiplatform modules using cinterop in the Kotlin Toolchain.
 ">
       
       
         <meta name="author" content="JetBrains Amper team">
       
       
-        <link rel="canonical" href="https://kotlin-toolchain.org/dev/getting-started/migrating-from-maven/">
+        <link rel="canonical" href="https://kotlin-toolchain.org/dev/user-guide/advanced/native-interop/">
       
       
-        <link rel="prev" href="../tutorial/">
+        <link rel="prev" href="../kotlin-compiler-plugins/">
       
       
-        <link rel="next" href="../../user-guide/">
+        <link rel="next" href="../maven-like-layout/">
       
       
         
       
       
-      <link rel="icon" href="../../images/amper-icon.png">
+      <link rel="icon" href="../../../images/amper-icon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
   
     
       
-        <title>Migrating from Maven - The Kotlin Toolchain</title>
+        <title>Native interoperability (cinterop) - The Kotlin Toolchain</title>
       
     
   
 
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -67,9 +66,9 @@ what to do after the conversion.
       
     
     
-      <link rel="stylesheet" href="../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -82,21 +81,19 @@ what to do after the conversion.
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Migrating from Maven - The Kotlin Toolchain" />
-<meta property="og:description" content="Migrate your Maven project to the Kotlin Toolchain: run the semi-automated converter, understand the concept mapping, and learn
-what to do after the conversion.
+<meta property="og:title" content="Native interoperability (cinterop) - The Kotlin Toolchain" />
+<meta property="og:description" content="Learn how to use C and Objective-C libraries in your Kotlin Multiplatform modules using cinterop in the Kotlin Toolchain.
 " />
-<meta property="og:image" content="https://kotlin-toolchain.org/dev/assets/images/social/getting-started/migrating-from-maven.png" />
+<meta property="og:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/advanced/native-interop.png" />
 <meta property="og:image:type" content="image/png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:url" content="https://kotlin-toolchain.org/dev/getting-started/migrating-from-maven/" />
+<meta property="og:url" content="https://kotlin-toolchain.org/dev/user-guide/advanced/native-interop/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="Migrating from Maven - The Kotlin Toolchain" />
-<meta property="twitter:description" content="Migrate your Maven project to the Kotlin Toolchain: run the semi-automated converter, understand the concept mapping, and learn
-what to do after the conversion.
+<meta property="twitter:title" content="Native interoperability (cinterop) - The Kotlin Toolchain" />
+<meta property="twitter:description" content="Learn how to use C and Objective-C libraries in your Kotlin Multiplatform modules using cinterop in the Kotlin Toolchain.
 " />
-<meta property="twitter:image" content="https://kotlin-toolchain.org/dev/assets/images/social/getting-started/migrating-from-maven.png" />
+<meta property="twitter:image" content="https://kotlin-toolchain.org/dev/assets/images/social/user-guide/advanced/native-interop.png" />
 </head>
   
   
@@ -116,7 +113,7 @@ what to do after the conversion.
     <div data-md-component="skip">
       
         
-        <a href="#migrating-from-maven" class="md-skip">
+        <a href="#native-interoperability-cinterop" class="md-skip">
           Skip to content
         </a>
       
@@ -139,9 +136,9 @@ what to do after the conversion.
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
+    <a href="../../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
-  <img src="../../images/amper-icon.svg" alt="logo">
+  <img src="../../../images/amper-icon.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -158,7 +155,7 @@ what to do after the conversion.
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Migrating from Maven
+              Native interoperability (cinterop)
             
           </span>
         </div>
@@ -287,7 +284,7 @@ what to do after the conversion.
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../.." class="md-tabs__link">
         
   
   
@@ -304,13 +301,11 @@ what to do after the conversion.
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../../getting-started/" class="md-tabs__link">
           
   
   
@@ -328,11 +323,13 @@ what to do after the conversion.
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../user-guide/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
           
   
   
@@ -354,7 +351,7 @@ what to do after the conversion.
     
     
       <li class="md-tabs__item">
-        <a href="../../cli/" class="md-tabs__link">
+        <a href="../../../cli/" class="md-tabs__link">
           
   
   
@@ -376,7 +373,7 @@ what to do after the conversion.
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/project/" class="md-tabs__link">
+        <a href="../../../reference/project/" class="md-tabs__link">
           
   
   
@@ -396,7 +393,7 @@ what to do after the conversion.
   
   
     <li class="md-tabs__item">
-      <a href="../../faq/" class="md-tabs__link">
+      <a href="../../../faq/" class="md-tabs__link">
         
   
   
@@ -450,9 +447,9 @@ what to do after the conversion.
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
+    <a href="../../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
       
-  <img src="../../images/amper-icon.svg" alt="logo">
+  <img src="../../../images/amper-icon.svg" alt="logo">
 
     </a>
     The Kotlin Toolchain
@@ -479,7 +476,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -503,8 +500,6 @@ what to do after the conversion.
       
   
   
-    
-  
   
   
     
@@ -524,21 +519,20 @@ what to do after the conversion.
     
     
       
-        
-        
-      
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../../../getting-started/" class="md-nav__link ">
               
   
   
@@ -556,13 +550,13 @@ what to do after the conversion.
             </a>
             
               
-              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -582,7 +576,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../ide-setup/" class="md-nav__link">
+      <a href="../../../getting-started/ide-setup/" class="md-nav__link">
         
   
   
@@ -610,7 +604,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../tutorial/" class="md-nav__link">
+      <a href="../../../getting-started/tutorial/" class="md-nav__link">
         
   
   
@@ -635,37 +629,10 @@ what to do after the conversion.
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Migrating from Maven
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../../getting-started/migrating-from-maven/" class="md-nav__link">
         
   
   
@@ -681,109 +648,6 @@ what to do after the conversion.
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        How it works
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="How it works">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#project-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Project structure
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dependencies" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dependencies
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#maven-plugin-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Maven plugin handling
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dependency-mapping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dependency mapping
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#after-the-conversion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        After the conversion
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#limitations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Limitations
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -800,6 +664,8 @@ what to do after the conversion.
       
   
   
+    
+  
   
   
     
@@ -835,20 +701,21 @@ what to do after the conversion.
     
     
       
+        
+        
+      
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../user-guide/" class="md-nav__link ">
+            <a href="../../" class="md-nav__link ">
               
   
   
@@ -866,13 +733,13 @@ what to do after the conversion.
             </a>
             
               
-              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -892,7 +759,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/basics/" class="md-nav__link">
+      <a href="../../basics/" class="md-nav__link">
         
   
   
@@ -920,7 +787,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/dependencies/" class="md-nav__link">
+      <a href="../../dependencies/" class="md-nav__link">
         
   
   
@@ -948,7 +815,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/multiplatform/" class="md-nav__link">
+      <a href="../../multiplatform/" class="md-nav__link">
         
   
   
@@ -976,7 +843,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/testing/" class="md-nav__link">
+      <a href="../../testing/" class="md-nav__link">
         
   
   
@@ -1004,7 +871,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/templates/" class="md-nav__link">
+      <a href="../../templates/" class="md-nav__link">
         
   
   
@@ -1032,7 +899,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/publishing/" class="md-nav__link">
+      <a href="../../publishing/" class="md-nav__link">
         
   
   
@@ -1099,7 +966,7 @@ what to do after the conversion.
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../user-guide/product-types/" class="md-nav__link ">
+            <a href="../../product-types/" class="md-nav__link ">
               
   
   
@@ -1143,7 +1010,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/product-types/android-app/" class="md-nav__link">
+      <a href="../../product-types/android-app/" class="md-nav__link">
         
   
   
@@ -1171,7 +1038,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/product-types/ios-app/" class="md-nav__link">
+      <a href="../../product-types/ios-app/" class="md-nav__link">
         
   
   
@@ -1199,7 +1066,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/product-types/jvm-app/" class="md-nav__link">
+      <a href="../../product-types/jvm-app/" class="md-nav__link">
         
   
   
@@ -1227,7 +1094,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/product-types/jvm-lib/" class="md-nav__link">
+      <a href="../../product-types/jvm-lib/" class="md-nav__link">
         
   
   
@@ -1255,7 +1122,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/product-types/kmp-lib/" class="md-nav__link">
+      <a href="../../product-types/kmp-lib/" class="md-nav__link">
         
   
   
@@ -1283,7 +1150,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/product-types/js-app/" class="md-nav__link">
+      <a href="../../product-types/js-app/" class="md-nav__link">
         
   
   
@@ -1311,7 +1178,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/product-types/native-app/" class="md-nav__link">
+      <a href="../../product-types/native-app/" class="md-nav__link">
         
   
   
@@ -1339,7 +1206,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/product-types/wasm-app/" class="md-nav__link">
+      <a href="../../product-types/wasm-app/" class="md-nav__link">
         
   
   
@@ -1441,7 +1308,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/builtin-tech/compose-multiplatform/" class="md-nav__link">
+      <a href="../../builtin-tech/compose-multiplatform/" class="md-nav__link">
         
   
   
@@ -1469,7 +1336,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/builtin-tech/kotlinx-serialization/" class="md-nav__link">
+      <a href="../../builtin-tech/kotlinx-serialization/" class="md-nav__link">
         
   
   
@@ -1497,7 +1364,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/builtin-tech/kotlinx-rpc/" class="md-nav__link">
+      <a href="../../builtin-tech/kotlinx-rpc/" class="md-nav__link">
         
   
   
@@ -1525,7 +1392,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/builtin-tech/ktor/" class="md-nav__link">
+      <a href="../../builtin-tech/ktor/" class="md-nav__link">
         
   
   
@@ -1553,7 +1420,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/builtin-tech/lombok/" class="md-nav__link">
+      <a href="../../builtin-tech/lombok/" class="md-nav__link">
         
   
   
@@ -1581,7 +1448,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/builtin-tech/spring/" class="md-nav__link">
+      <a href="../../builtin-tech/spring/" class="md-nav__link">
         
   
   
@@ -1687,7 +1554,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/plugins/overview/" class="md-nav__link">
+      <a href="../../plugins/overview/" class="md-nav__link">
         
   
   
@@ -1715,7 +1582,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/plugins/quick-start/" class="md-nav__link">
+      <a href="../../plugins/quick-start/" class="md-nav__link">
         
   
   
@@ -1743,7 +1610,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/plugins/topics/checks/" class="md-nav__link">
+      <a href="../../plugins/topics/checks/" class="md-nav__link">
         
   
   
@@ -1771,7 +1638,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/plugins/topics/custom-commands/" class="md-nav__link">
+      <a href="../../plugins/topics/custom-commands/" class="md-nav__link">
         
   
   
@@ -1799,7 +1666,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/plugins/topics/structure/" class="md-nav__link">
+      <a href="../../plugins/topics/structure/" class="md-nav__link">
         
   
   
@@ -1827,7 +1694,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/plugins/topics/configuration/" class="md-nav__link">
+      <a href="../../plugins/topics/configuration/" class="md-nav__link">
         
   
   
@@ -1855,7 +1722,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/plugins/topics/references/" class="md-nav__link">
+      <a href="../../plugins/topics/references/" class="md-nav__link">
         
   
   
@@ -1883,7 +1750,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/plugins/topics/tasks/" class="md-nav__link">
+      <a href="../../plugins/topics/tasks/" class="md-nav__link">
         
   
   
@@ -1916,8 +1783,10 @@ what to do after the conversion.
                 
   
   
+    
   
   
+  
     
     
       
@@ -1942,13 +1811,11 @@ what to do after the conversion.
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_11" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_11" checked>
         
           
           <label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
@@ -1969,7 +1836,7 @@ what to do after the conversion.
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_11_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_11_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3_11">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1987,7 +1854,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/advanced/jdk-provisioning/" class="md-nav__link">
+      <a href="../jdk-provisioning/" class="md-nav__link">
         
   
   
@@ -2015,7 +1882,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/advanced/java-annotation-processing/" class="md-nav__link">
+      <a href="../java-annotation-processing/" class="md-nav__link">
         
   
   
@@ -2043,7 +1910,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/advanced/ksp/" class="md-nav__link">
+      <a href="../ksp/" class="md-nav__link">
         
   
   
@@ -2071,7 +1938,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/advanced/kotlin-compiler-plugins/" class="md-nav__link">
+      <a href="../kotlin-compiler-plugins/" class="md-nav__link">
         
   
   
@@ -2096,10 +1963,37 @@ what to do after the conversion.
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../user-guide/advanced/native-interop/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Native interoperability (cinterop)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -2115,6 +2009,59 @@ what to do after the conversion.
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#platform-specific-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Platform-specific definitions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -2127,7 +2074,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/advanced/maven-like-layout/" class="md-nav__link">
+      <a href="../maven-like-layout/" class="md-nav__link">
         
   
   
@@ -2155,7 +2102,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/advanced/maven-plugins/" class="md-nav__link">
+      <a href="../maven-plugins/" class="md-nav__link">
         
   
   
@@ -2191,7 +2138,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/yaml-primer/" class="md-nav__link">
+      <a href="../../yaml-primer/" class="md-nav__link">
         
   
   
@@ -2251,7 +2198,7 @@ what to do after the conversion.
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../cli/" class="md-nav__link ">
+            <a href="../../../cli/" class="md-nav__link ">
               
   
   
@@ -2295,7 +2242,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../cli/provisioning/" class="md-nav__link">
+      <a href="../../../cli/provisioning/" class="md-nav__link">
         
   
   
@@ -2388,7 +2335,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../reference/project/" class="md-nav__link">
+      <a href="../../../reference/project/" class="md-nav__link">
         
   
   
@@ -2416,7 +2363,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../reference/module/" class="md-nav__link">
+      <a href="../../../reference/module/" class="md-nav__link">
         
   
   
@@ -2451,7 +2398,7 @@ what to do after the conversion.
   
   
     <li class="md-nav__item">
-      <a href="../../faq/" class="md-nav__link">
+      <a href="../../../faq/" class="md-nav__link">
         
   
   
@@ -2525,60 +2472,10 @@ what to do after the conversion.
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
+  <a href="#basic-usage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it works
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="How it works">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#project-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Project structure
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dependencies" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dependencies
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#maven-plugin-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Maven plugin handling
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dependency-mapping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dependency mapping
+        Basic usage
       
     </span>
   </a>
@@ -2586,10 +2483,10 @@ what to do after the conversion.
 </li>
       
         <li class="md-nav__item">
-  <a href="#after-the-conversion" class="md-nav__link">
+  <a href="#platform-specific-definitions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        After the conversion
+        Platform-specific definitions
       
     </span>
   </a>
@@ -2597,10 +2494,10 @@ what to do after the conversion.
 </li>
       
         <li class="md-nav__item">
-  <a href="#limitations" class="md-nav__link">
+  <a href="#advanced-usage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Limitations
+        Advanced usage
       
     </span>
   </a>
@@ -2624,7 +2521,7 @@ what to do after the conversion.
 
 
   
-    <a href="https://github.com/JetBrains/kotlin-toolchain/edit/main/docs/src/getting-started/migrating-from-maven.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/JetBrains/kotlin-toolchain/edit/main/docs/src/user-guide/advanced/native-interop.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2632,239 +2529,32 @@ what to do after the conversion.
   
 
 
-<h1 id="migrating-from-maven">Migrating from Maven<a class="headerlink" href="#migrating-from-maven" title="Permanent link">&para;</a></h1>
-<p>This section describes how to convert an existing Maven project to the Kotlin Toolchain.</p>
-<p>The Kotlin Toolchain provides a semi-automated tool to do the bulk of the conversion for you.
-It works on a best-effort basis, so some projects require some additional tweaks
-after the converter runs.</p>
-<p>To run the migration tool, go to the root of your Maven project:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/path/to/your/maven/project
-</code></pre></div>
-<p>Install the <a href="../../cli/#installation">Kotlin CLI</a>:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="linux--macos" name="__tabbed_1" type="radio" /><input id="windows" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="linux--macos"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.62 8.35c-.42.28-1.75 1.04-1.95 1.19-.39.31-.75.29-1.14-.01-.2-.16-1.53-.92-1.95-1.19-.48-.31-.45-.7.08-.92 1.64-.69 3.28-.64 4.91.03.49.21.51.6.05.9m7.22 7.28c-.93-2.09-2.2-3.99-3.84-5.66a4.3 4.3 0 0 1-1.06-1.88c-.1-.33-.17-.67-.24-1.01-.2-.88-.29-1.78-.7-2.61-.73-1.58-2-2.4-3.84-2.47-1.81.05-3.16.81-3.95 2.4-.21.43-.36.88-.46 1.34-.17.76-.32 1.55-.5 2.32-.15.65-.45 1.21-.96 1.71-1.61 1.57-2.9 3.37-3.88 5.35-.14.29-.28.58-.37.88-.19.66.29 1.12.99.96.44-.09.88-.18 1.3-.31.41-.15.57-.05.67.35.65 2.15 2.07 3.66 4.24 4.5 4.12 1.56 8.93-.66 9.97-4.58.07-.27.17-.37.47-.27.46.14.93.24 1.4.35.49.09.85-.16.92-.64.03-.26-.06-.49-.16-.73"/></svg></span> Linux / <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11"/></svg></span> macOS</label><label for="windows"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 12V6.75l6-1.32v6.48zm17-9v8.75l-10 .15V5.21zM3 13l6 .09v6.81l-6-1.15zm17 .25V22l-10-1.91V13.1z"/></svg></span> Windows</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://kotl.in/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><span class="n">powershell</span> <span class="n">-ExecutionPolicy</span> <span class="n">ByPass</span> <span class="n">-c</span> <span class="s2">&quot;irm &#39;https://kotl.in/install.ps1&#39; | iex&quot;</span>
-</code></pre></div>
-</div>
-</div>
-</div>
-<p>Then run:</p>
-<div class="highlight"><pre><span></span><code>kotlin<span class="w"> </span>tool<span class="w"> </span>convert-project
-</code></pre></div>
-<p>The path to your <code>pom.xml</code> can be provided explicitly via <code>--pom</code> argument. The <code>pom.xml</code> file is a starting point.
-If it's a part of the reactor, all related modules are converted.</p>
-<p>During the conversion, the tool puts the Kotlin Toolchain files into corresponding Maven modules's folders. If <code>project.yaml</code> or one of
-the corresponding <code>module.yaml</code> files already exists, by default converter fails. To adjust this behavior,
-<code>--overwrite-existing</code> flag can be used.</p>
-<h2 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
-<h3 id="project-structure">Project structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h3>
-<p>The converter creates:</p>
-<ul>
-<li><code>project.yaml</code> at the reactor root, with the list of modules</li>
-<li><code>module.yaml</code> in every module directory, both in single-module projects and in multi-module reactor projects</li>
-</ul>
-<p>All converted modules use <code>layout: maven-like</code>, so your existing <code>src/main/java</code>, <code>src/test/kotlin</code>, etc. directories
-continue to work without moving any files. See <a href="../../user-guide/advanced/maven-like-layout/">Maven-like layout</a>
-for details.</p>
-<h3 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Reactor module dependencies</strong> are converted to relative path dependencies (e.g., <code>- ../my-lib</code>)</li>
-<li><strong>External dependencies</strong> keep their Maven coordinates (<code>group:artifact:version</code>)</li>
-<li><strong>Parent POM BOMs</strong> are automatically imported as <code>bom:</code> dependencies (including their transitive parents in order
-  from the most root to the most nested)</li>
-<li><strong>Repositories</strong> (including those inherited from parent POMs) are added to the <code>repositories</code> section.</li>
-<li><strong>Publishing coordinates</strong> (<code>groupId</code>, <code>artifactId</code>, <code>version</code>) are extracted into <code>settings.publishing</code>.</li>
-</ul>
-<h3 id="maven-plugin-handling">Maven plugin handling<a class="headerlink" href="#maven-plugin-handling" title="Permanent link">&para;</a></h3>
-<p>The converter handles Maven plugins in two ways:</p>
-<p><strong>Handled natively</strong> — these plugins cover functionality that the Kotlin Toolchain provides out of the box.
-For some of them, the converter extracts the relevant configuration into the Kotlin Toolchain settings:</p>
-<table>
-<thead>
-<tr>
-<th>Maven plugin</th>
-<th>The Kotlin Toolchain settings</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>maven-compiler-plugin</code></td>
-<td><code>settings.jvm.release</code>, <code>settings.java.freeCompilerArgs</code>, <code>settings.java.annotationProcessing</code>, <code>settings.jvm.storeParameterNames</code></td>
-</tr>
-<tr>
-<td><code>kotlin-maven-plugin</code></td>
-<td><code>settings.kotlin.*</code> (version, compiler plugins, args), <code>settings.jvm.release</code></td>
-</tr>
-<tr>
-<td><code>spring-boot-maven-plugin</code></td>
-<td><code>settings.springBoot</code>, <code>product: jvm/app</code>, <code>settings.jvm.mainClass</code></td>
-</tr>
-<tr>
-<td><code>maven-surefire-plugin</code></td>
-<td><code>test-settings.jvm.freeJvmArgs</code>, <code>test-settings.jvm.extraEnvironment</code>, <code>test-settings.jvm.systemProperties</code></td>
-</tr>
-</tbody>
-</table>
-<p>Others (<code>maven-jar-plugin</code>, <code>maven-clean-plugin</code>, <code>maven-install-plugin</code>, <code>maven-source-plugin</code>, etc.)
-don't require any conversion because the Kotlin Toolchain handles their functionality out of the box.</p>
-<p><strong>Unknown plugins</strong> — all other plugins are downloaded, their descriptors are parsed, and each goal is added to a
-<code>mavenPlugins</code> section with <code>enabled: false</code>. You can enable them selectively after the conversion.</p>
-<p>For example, a project using <code>maven-enforcer-plugin</code> and <code>jacoco-maven-plugin</code> would produce:</p>
-<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">mavenPlugins</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">maven-enforcer-plugin.enforce</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<span class="w">    </span><span class="nt">configuration</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">rules</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|-</span>
-<span class="w">        </span><span class="no">&lt;rules&gt;</span>
-<span class="w">          </span><span class="no">&lt;requireJavaVersion&gt;</span>
-<span class="w">            </span><span class="no">&lt;version&gt;17&lt;/version&gt;</span>
-<span class="w">          </span><span class="no">&lt;/requireJavaVersion&gt;</span>
-<span class="w">        </span><span class="no">&lt;/rules&gt;</span>
-<span class="w">  </span><span class="nt">jacoco-maven-plugin.prepare-agent</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-</code></pre></div>
-<p>The <code>mavenPlugins</code> section allows you to run third-party Maven plugins directly in your Kotlin project.
-However, not all plugins are guaranteed to work, so by default they are disabled. You can selectively enable
-plugins you need by setting <code>enabled: true</code> in their configuration after the conversion.
-Please refer to the <a href="../../user-guide/advanced/maven-plugins/">Maven plugins</a> section for more details.</p>
-<h2 id="dependency-mapping">Dependency mapping<a class="headerlink" href="#dependency-mapping" title="Permanent link">&para;</a></h2>
-<p>Maven dependency scopes map to the Kotlin Toolchain as follows:</p>
-<table>
-<thead>
-<tr>
-<th>Maven scope</th>
-<th>The Kotlin Toolchain equivalent</th>
-<th>Config section</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>compile</code> (default)</td>
-<td><code>compile</code> + <code>runtime</code> + <code>exported: true</code></td>
-<td><code>dependencies</code></td>
-</tr>
-<tr>
-<td><code>provided</code></td>
-<td><code>scope: compile-only</code></td>
-<td><code>dependencies</code></td>
-</tr>
-<tr>
-<td><code>runtime</code></td>
-<td><code>scope: runtime-only</code></td>
-<td><code>dependencies</code></td>
-</tr>
-<tr>
-<td><code>test</code></td>
-<td><code>compile</code> + <code>runtime</code></td>
-<td><code>test-dependencies</code></td>
-</tr>
-<tr>
-<td><code>system</code></td>
-<td>Not supported</td>
-<td>—</td>
-</tr>
-<tr>
-<td><code>import</code> (<abbr title="Bill of materials">BOM</abbr>)</td>
-<td><code>bom:</code> prefix</td>
-<td><code>dependencies</code></td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The converter marks all <code>compile</code>-scoped dependencies as <code>exported: true</code>. This is the safe default because
-Maven's <code>compile</code> scope makes dependencies transitively visible. After conversion, consider removing <code>exported</code>
-from implementation-only dependencies that are not part of your module's public API.
-See <a href="../../user-guide/dependencies/#when-to-use-exported">When to use exported</a>.</p>
-</div>
-<p>Example:</p>
-<div class="grid">
-<div class="highlight"><span class="filename">pom.xml</span><pre><span></span><code><span class="nt">&lt;dependencies&gt;</span>
-<span class="w">    </span><span class="nt">&lt;dependency&gt;</span>
-<span class="w">        </span><span class="nt">&lt;groupId&gt;</span>io.ktor<span class="nt">&lt;/groupId&gt;</span>
-<span class="w">        </span><span class="nt">&lt;artifactId&gt;</span>ktor-client-core<span class="nt">&lt;/artifactId&gt;</span>
-<span class="w">        </span><span class="nt">&lt;version&gt;</span>3.2.0<span class="nt">&lt;/version&gt;</span>
-<span class="w">    </span><span class="nt">&lt;/dependency&gt;</span>
-<span class="w">    </span><span class="nt">&lt;dependency&gt;</span>
-<span class="w">        </span><span class="nt">&lt;groupId&gt;</span>com.h2database<span class="nt">&lt;/groupId&gt;</span>
-<span class="w">        </span><span class="nt">&lt;artifactId&gt;</span>h2<span class="nt">&lt;/artifactId&gt;</span>
-<span class="w">        </span><span class="nt">&lt;version&gt;</span>2.4.240<span class="nt">&lt;/version&gt;</span>
-<span class="w">        </span><span class="nt">&lt;scope&gt;</span>runtime<span class="nt">&lt;/scope&gt;</span>
-<span class="w">    </span><span class="nt">&lt;/dependency&gt;</span>
-<span class="w">    </span><span class="nt">&lt;dependency&gt;</span>
-<span class="w">        </span><span class="nt">&lt;groupId&gt;</span>org.projectlombok<span class="nt">&lt;/groupId&gt;</span>
-<span class="w">        </span><span class="nt">&lt;artifactId&gt;</span>lombok<span class="nt">&lt;/artifactId&gt;</span>
-<span class="w">        </span><span class="nt">&lt;version&gt;</span>1.18.42<span class="nt">&lt;/version&gt;</span>
-<span class="w">        </span><span class="nt">&lt;scope&gt;</span>provided<span class="nt">&lt;/scope&gt;</span>
-<span class="w">    </span><span class="nt">&lt;/dependency&gt;</span>
-<span class="w">    </span><span class="nt">&lt;dependency&gt;</span>
-<span class="w">        </span><span class="nt">&lt;groupId&gt;</span>org.junit.jupiter<span class="nt">&lt;/groupId&gt;</span>
-<span class="w">        </span><span class="nt">&lt;artifactId&gt;</span>junit-jupiter<span class="nt">&lt;/artifactId&gt;</span>
-<span class="w">        </span><span class="nt">&lt;version&gt;</span>5.12.0<span class="nt">&lt;/version&gt;</span>
-<span class="w">        </span><span class="nt">&lt;scope&gt;</span>test<span class="nt">&lt;/scope&gt;</span>
-<span class="w">    </span><span class="nt">&lt;/dependency&gt;</span>
-<span class="nt">&lt;/dependencies&gt;</span>
-</code></pre></div>
-<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">dependencies</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">io.ktor:ktor-client-core:3.2.0</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">exported</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">com.h2database:h2:2.4.240</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">runtime-only</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">org.projectlombok:lombok:1.18.42</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compile-only</span>
-
-<span class="nt">test-dependencies</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">org.junit.jupiter:junit-jupiter:5.12.0</span>
-</code></pre></div>
-</div>
-<p>Read more about <a href="../../user-guide/dependencies/">Dependencies</a>.</p>
-<h2 id="after-the-conversion">After the conversion<a class="headerlink" href="#after-the-conversion" title="Permanent link">&para;</a></h2>
-<p>After the converter finishes, consider the following steps:</p>
+<h1 id="native-interoperability-cinterop">Native interoperability (cinterop)<a class="headerlink" href="#native-interoperability-cinterop" title="Permanent link">&para;</a></h1>
+<p>Kotlin/Native provides the <code>cinterop</code> tool to facilitate interaction with C and Objective-C libraries. 
+The Kotlin Toolchain supports <code>cinterop</code> out of the box with zero configuration for the common use case.</p>
+<h2 id="basic-usage">Basic usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h2>
+<p>To add a C or Objective-C interop to your multiplatform module:</p>
 <ol>
-<li>
-<p><strong>Build and test.</strong> Run <code>./kotlin build</code> and <code>./kotlin test</code> to verify the conversion.</p>
-</li>
-<li>
-<p><strong>Review generated files.</strong> Check <code>project.yaml</code> and each <code>module.yaml</code> for correctness.</p>
-</li>
-<li>
-<p><strong>Review dependency visibility.</strong> The converter marks all <code>compile</code>-scoped dependencies as <code>exported</code>.
-   Remove <code>exported</code> from dependencies that are only used internally and are not part of the module's public API.</p>
-</li>
-<li>
-<p><strong>Review the <code>mavenPlugins</code> section.</strong> For unknown plugins:</p>
-<ul>
-<li>Set <code>enabled: true</code> for plugins you actually need.</li>
-<li>Remove entries for plugins you don't need.</li>
-<li>Plugin coordinates are listed in <code>project.yaml</code> and can be cleaned up as well.</li>
-</ul>
-</li>
-<li>
-<p><strong>Optional: create a library catalog.</strong> Extract repeated dependency versions into a <code>libs.versions.toml</code> file.
-   See <a href="../../user-guide/dependencies/#library-catalogs">Library catalogs</a>.</p>
-</li>
-<li>
-<p><strong>Optional: switch to the standard Kotlin Toolchain layout.</strong> The converter sets <code>layout: maven-like</code> to avoid moving files.
-   If you want to adopt the <a href="../../user-guide/basics/#project-layout">standard Kotlin Toolchain layout</a> later, move files from
-   <code>src/main/kotlin/</code> to <code>src/</code> and from <code>src/test/kotlin/</code> to <code>test/</code>, then remove the <code>layout: maven-like</code> line.
-   See <a href="../../user-guide/advanced/maven-like-layout/">Maven-like layout</a>.</p>
-</li>
+<li>Create a <code>cinterop</code> directory in your module root (alongside <code>src</code> and <code>test</code>).</li>
+<li>Drop your <a href="https://kotlinlang.org/docs/native-definition-file.html"><code>.def</code> files</a> into this directory.</li>
 </ol>
-<h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h2>
-<p>The following Maven features are not handled by the converter and require manual migration:</p>
-<ul>
-<li><strong>Profiles</strong> — The Kotlin Toolchain does not have an equivalent of Maven profiles. Build configuration can only vary
-  <a href="../../user-guide/multiplatform/">by platform</a>.</li>
-<li><strong>Extensions</strong></li>
-<li><strong>Dependency exclusions</strong></li>
-<li><strong>Dependency classifiers</strong></li>
-<li><strong>Optional dependencies</strong></li>
-<li><strong>System-scoped dependencies</strong></li>
-<li><strong>Variable substitution</strong> — values are inlined where possible. For dependencies, it's recommended to use a
-  <a href="../../user-guide/dependencies/#library-catalogs">library catalog</a>.</li>
-</ul>
+<p>The Kotlin Toolchain will automatically detect these files and configure the <code>cinterop</code> tool for all applicable native platforms. 
+<strong>No additional configuration in your <code>module.yaml</code> is required</strong>.</p>
+<h2 id="platform-specific-definitions">Platform-specific definitions<a class="headerlink" href="#platform-specific-definitions" title="Permanent link">&para;</a></h2>
+<p>You can use the <a href="../../multiplatform/#platform-qualifier"><code>@&lt;platform&gt;</code> qualifier</a>
+for the <code>cinterop</code> directory to limit interop definitions to specific platforms or platform families.</p>
+<div class="admonition info">
+<p class="admonition-title">At the file level vs. directory level</p>
+<p>The <code>.def</code> file format already supports platform-specific configuration for the library, for example:
+<code>compilerOpts.linux</code> vs. <code>compilerOpts.osx</code>.</p>
+<p>So it is possible to use a single <code>.def</code> file in the common <code>cinterop</code> directory 
+instead of having separate platform-specific files under, e.g., <code>cinterop@linux</code> and <code>cinterop@macos</code>.
+Both approaches are currently valid - use the one you prefer.</p>
+</div>
+<h2 id="advanced-usage">Advanced usage<a class="headerlink" href="#advanced-usage" title="Permanent link">&para;</a></h2>
+<p>If you need the <code>.def</code> file generated or provisioned (for example, to implement custom library location or provisioning logic),
+you can write a <a href="../../plugins/overview/">plugin</a> for this.
+See the <a href="../../plugins/topics/tasks/#contributing-back-to-the-build">relevant docs</a> for more details on how to contribute <code>cinteropDefinitions</code>.</p>
 
 
 
@@ -2885,7 +2575,7 @@ See <a href="../../user-guide/dependencies/#when-to-use-exported">When to use ex
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 21, 2026 11:59:24 UTC">May 21, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 29, 2026 13:59:39 UTC">May 29, 2026</span>
   </span>
 
     
@@ -2921,7 +2611,7 @@ See <a href="../../user-guide/dependencies/#when-to-use-exported">When to use ex
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../tutorial/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Tutorial">
+          <a href="../kotlin-compiler-plugins/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Kotlin compiler plugins">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2931,20 +2621,20 @@ See <a href="../../user-guide/dependencies/#when-to-use-exported">When to use ex
                 Previous
               </span>
               <div class="md-ellipsis">
-                Tutorial
+                Kotlin compiler plugins
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../user-guide/" class="md-footer__link md-footer__link--next" aria-label="Next: User guide">
+          <a href="../maven-like-layout/" class="md-footer__link md-footer__link--next" aria-label="Next: Maven-like layout">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                User guide
+                Maven-like layout
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -2985,10 +2675,10 @@ See <a href="../../user-guide/dependencies/#when-to-use-exported">When to use ex
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.action.edit", "content.code.annotate", "content.code.copy", "content.footnote.tooltips", "content.tooltips", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.preview", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.action.edit", "content.code.annotate", "content.code.copy", "content.footnote.tooltips", "content.tooltips", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.preview", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
