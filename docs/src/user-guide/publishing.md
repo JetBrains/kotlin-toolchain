@@ -133,7 +133,7 @@ settings:
    The `pom.scm.connection` and `pom.scm.developerConnection` are automatically derived from it using the value `scm:git:$url`.
    If this default doesn't work for you, you can set these properties explicitly to any value.
 
-!!! warning "Empty JavaDoc jar"
+!!! note "Empty JavaDoc jar"
 
     At the moment, an empty JavaDoc JAR is added to the publication by default. We will soon add more control over this.
 
@@ -148,6 +148,12 @@ variables (usually done on the CI):
 | `KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_PASSWORD` | The `password` part of your Central Portal [user token](https://central.sonatype.org/publish/generate-portal-token/).                                                  |
 | `KOTLIN_TOOLCHAIN_SIGNING_KEY`            | The ASCII-armored PGP signing key to use to sign artifacts. You can export a private key in this format using the `gpg --export-secret-keys --armor <KEY_ID>` command. |
 | `KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE` | (optional) The passphrase to unlock the PGP key, if there is one.                                                                                                      |
+
+!!! question "How do I get a PGP signing key?"
+
+    If you have never needed a PGP signing key before, it might not be obvious to get started.
+    Follow the instructions to [create and prepare a key](https://central.sonatype.org/publish/requirements/gpg) on the 
+    Maven Central website.
 
 ### Publishing command
 
@@ -170,9 +176,9 @@ The Kotlin Toolchain provides 2 modes for publishing:
 * `auto`: the `kotlin publish` command does everything automatically from end to finish. This is useful when you want 
    to fully automate your publications.  
 
-By default, the Kotlin Toolchain uses the manual mode, to avoid surprises.
+By default, the Kotlin Toolchain uses the `manual` mode, to avoid surprises.
 Once the first deployment is successful, you might want to streamline the publication by switching to `auto` mode.
-This can be done using the `settings.mavenCentral.publishingMode`.
+This can be done using `settings.mavenCentral.publishingMode: auto`.
 
 !!! warning "One does not simply remove artifacts from Maven Central"
 
