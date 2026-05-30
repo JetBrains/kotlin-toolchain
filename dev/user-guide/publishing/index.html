@@ -2746,7 +2746,7 @@ Publishing your library to Maven Central makes it easier for your users to consu
    The <code>pom.scm.connection</code> and <code>pom.scm.developerConnection</code> are automatically derived from it using the value <code>scm:git:$url</code>.
    If this default doesn't work for you, you can set these properties explicitly to any value.</li>
 </ol>
-<div class="admonition warning">
+<div class="admonition note">
 <p class="admonition-title">Empty JavaDoc jar</p>
 <p>At the moment, an empty JavaDoc JAR is added to the publication by default. We will soon add more control over this.</p>
 </div>
@@ -2779,6 +2779,12 @@ variables (usually done on the CI):</p>
 </tr>
 </tbody>
 </table>
+<div class="admonition question">
+<p class="admonition-title">How do I get a PGP signing key?</p>
+<p>If you have never needed a PGP signing key before, it might not be obvious to get started.
+Follow the instructions to <a href="https://central.sonatype.org/publish/requirements/gpg">create and prepare a key</a> on the 
+Maven Central website.</p>
+</div>
 <h3 id="publishing-command">Publishing command<a class="headerlink" href="#publishing-command" title="Permanent link">&para;</a></h3>
 <p>Use the following command to publish all modules that have <code>mavenCentral</code> publication enabled:</p>
 <div class="highlight"><pre><span></span><code>kotlin publish mavenCentral
@@ -2794,9 +2800,9 @@ variables (usually done on the CI):</p>
 <li><code>auto</code>: the <code>kotlin publish</code> command does everything automatically from end to finish. This is useful when you want 
    to fully automate your publications.  </li>
 </ul>
-<p>By default, the Kotlin Toolchain uses the manual mode, to avoid surprises.
+<p>By default, the Kotlin Toolchain uses the <code>manual</code> mode, to avoid surprises.
 Once the first deployment is successful, you might want to streamline the publication by switching to <code>auto</code> mode.
-This can be done using the <code>settings.mavenCentral.publishingMode</code>.</p>
+This can be done using <code>settings.mavenCentral.publishingMode: auto</code>.</p>
 <div class="admonition warning">
 <p class="admonition-title">One does not simply remove artifacts from Maven Central</p>
 <p>When using the <code>auto</code> mode, you will not get a chance to look at the published artifacts before they are released to
@@ -2831,7 +2837,7 @@ remove artifacts from Maven Central, because Sonatype has a strict policy about 
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 27, 2026 08:57:10 UTC">May 27, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 30, 2026 20:53:22 UTC">May 30, 2026</span>
   </span>
 
     
