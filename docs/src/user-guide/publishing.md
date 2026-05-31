@@ -144,8 +144,8 @@ variables (usually done on the CI):
 
 | Variable                                  | Description                                                                                                                                                            |
 |-------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_USERNAME` | The `username` part of your Central Portal [user token](https://central.sonatype.org/publish/generate-portal-token/).                                                  |
-| `KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_PASSWORD` | The `password` part of your Central Portal [user token](https://central.sonatype.org/publish/generate-portal-token/).                                                  |
+| `KOTLIN_TOOLCHAIN_MAVENCENTRAL_USERNAME`  | The `username` part of your Central Portal [user token](https://central.sonatype.org/publish/generate-portal-token/).                                                  |
+| `KOTLIN_TOOLCHAIN_MAVENCENTRAL_PASSWORD`  | The `password` part of your Central Portal [user token](https://central.sonatype.org/publish/generate-portal-token/).                                                  |
 | `KOTLIN_TOOLCHAIN_SIGNING_KEY`            | The ASCII-armored PGP signing key to use to sign artifacts. You can export a private key in this format using the `gpg --export-secret-keys --armor <KEY_ID>` command. |
 | `KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE` | (optional) The passphrase to unlock the PGP key, if there is one.                                                                                                      |
 
