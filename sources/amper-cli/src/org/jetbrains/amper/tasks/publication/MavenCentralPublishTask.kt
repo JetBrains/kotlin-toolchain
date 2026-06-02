@@ -20,6 +20,7 @@ import org.jetbrains.amper.mavencentral.UserToken
 import org.jetbrains.amper.mavencentral.pollStatus
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.TaskResult
+import org.jetbrains.amper.tasks.jvm.logger
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.slf4j.LoggerFactory
@@ -113,11 +114,17 @@ class MavenCentralPublishTask(
 }
 
 private fun getMavenCentralToken(): UserToken {
-    val username = System.getenv("KOTLIN_TOOLCHAIN_MAVENCENTRAL_USERNAME")
-    val password = System.getenv("KOTLIN_TOOLCHAIN_MAVENCENTRAL_PASSWORD")
+    val username = System.getenv("KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_USERNAME")
+        ?: System.getenv("KOTLIN_TOOLCHAIN_MAVENCENTRAL_USERNAME")?.also {
+            logger.warn("KOTLIN_TOOLCHAIN_MAVENCENTRAL_USERNAME environment variable is misspelled. Please rename to KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_USERNAME")
+        }
+    val password = System.getenv("KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_PASSWORD")
+        ?: System.getenv("KOTLIN_TOOLCHAIN_MAVENCENTRAL_PASSWORD")?.also {
+            logger.warn("KOTLIN_TOOLCHAIN_MAVENCENTRAL_PASSWORD environment variable is misspelled. Please rename to KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_PASSWORD")
+        }
     if (username == null || password == null) {
         userReadableError(
-            "The KOTLIN_TOOLCHAIN_MAVENCENTRAL_USERNAME and KOTLIN_TOOLCHAIN_MAVENCENTRAL_PASSWORD environment " +
+            "The KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_USERNAME and KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_PASSWORD environment " +
                     "variables are required to publish to Maven Central.\n\n" +
                     "If you don't have credentials yet (a.k.a \"Portal Token\"), please create them by following " +
                     "the instructions at " +
