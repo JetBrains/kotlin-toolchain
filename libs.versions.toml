@@ -7,6 +7,7 @@ agp = "9.3.1"
 # SchemaModuleUtil warn "only understands SDK XML versions up to N but ... version N+1 was encountered".
 android-tools = "32.3.1"
 apache-commons = "1.27.1"
+asm = "9.10.1"
 bouncycastle = "1.84"
 clikt = "5.1.0"
 compose-hot-reload-version = "1.2.0" # AUTO-UPDATED by 'do syncVersions' - DO NOT RENAME NOR UPDATE HERE
@@ -59,6 +60,8 @@ android-tools-ddmlib = { module = "com.android.tools.ddms:ddmlib", version.ref =
 android-tools-sdkCommon = { module = "com.android.tools:sdk-common", version.ref = "android-tools" }
 android-tools-sdklib = { module = "com.android.tools:sdklib", version.ref = "android-tools" }
 apacheCommons-compress = { module = "org.apache.commons:commons-compress", version.ref = "apache-commons" }
+asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
+asm-tree = { module = "org.ow2.asm:asm-tree", version.ref = "asm" }
 bouncycastle-bcpg = { module = "org.bouncycastle:bcpg-jdk18on", version.ref = "bouncycastle" }
 bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }

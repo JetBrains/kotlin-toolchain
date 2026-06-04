@@ -16,6 +16,11 @@ settings:
   jvm:
     # Used in Android Gradle builds (max 17) and IDEA (max 21), so we pick 17
     release: 17
+    test:
+      freeJvmArgs:
+        # The IntelliJ platform still uses some Unsafe APIs, we need to suppress this in our tests,
+        # since we don't control it
+        - --sun-misc-unsafe-memory-access=allow
 
 plugins:
   amper-schema-generator: enabled
