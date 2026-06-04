@@ -55,7 +55,10 @@ settings:
       - kotlin.io.path.ExperimentalPathApi
       - kotlin.time.ExperimentalTime
   jvm:
-    release: 21
+    # TODO switch to Zulu 25 to reflect the reality of the runtime
+    jdk:
+      version: 21
+      distributions: [ zulu ]
     test:
       junitPlatformVersion: 6.0.3 # Keep it aligned with JUnit libs in our catalog
       extraEnvironment:
