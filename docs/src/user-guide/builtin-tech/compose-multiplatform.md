@@ -151,7 +151,7 @@ feedback loop during UI development.
 
         Make sure that:
 
-          * you have installed and enabled the [Kotlin Toolchain IDEA plugin](https://plugins.jetbrains.com/plugin/23076-amper)
+          * you have installed and enabled the [Kotlin Toolchain IDEA plugin](https://plugins.jetbrains.com/plugin/31850-kotlin-toolchain)
           * your module has the `jvm` target (`jvm/app` product type, or a library module with `jvm` platform)
 
     In this mode, IDEA will recompile and hot-reload your application based on file system changes.
