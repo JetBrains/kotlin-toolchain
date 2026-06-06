@@ -228,6 +228,7 @@ private class BuiltInCatalog(
             put("ktor.client.cio", library("io.ktor:ktor-client-cio", ktorVersion))
             put("ktor.client.contentNegotiation", library("io.ktor:ktor-client-content-negotiation", ktorVersion))
             put("ktor.client.core", library("io.ktor:ktor-client-core", ktorVersion))
+            put("ktor.client.darwin", library("io.ktor:ktor-client-darwin", ktorVersion))
             put("ktor.client.encoding", library("io.ktor:ktor-client-encoding", ktorVersion))
             put("ktor.client.features", library("io.ktor:ktor-client-features", ktorVersion))
             put("ktor.client.gson", library("io.ktor:ktor-client-gson", ktorVersion))
