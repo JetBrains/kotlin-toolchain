@@ -185,7 +185,7 @@ test-dependencies:
 
 settings:
   kotlin:
-    version: 2.2.21  # Set Kotlin compiler version to 2.2.21
+    version: 2.4.0  # Set Kotlin compiler version to 2.4.0
   jvm:
     release: 17  # Set the minimum JVM version that the Kotlin and Java code should be compatible with.
 ```
