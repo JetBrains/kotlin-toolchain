@@ -144,10 +144,10 @@ class ResolveExternalDependenciesTask(
 
     @Serializable
     class Result(
-        val compileClasspath: List<SerializablePath>,
-        val runtimeClasspath: List<SerializablePath>,
+        override val compileClasspath: List<SerializablePath>,
+        override val runtimeClasspath: List<SerializablePath>,
         val coordinateOverridesForPublishing: PublicationCoordinatesOverrides,
-    ) : TaskResult
+    ) : TaskResult, ClasspathProvider
 
     companion object {
         private val logger = LoggerFactory.getLogger(ResolveExternalDependenciesTask::class.java)

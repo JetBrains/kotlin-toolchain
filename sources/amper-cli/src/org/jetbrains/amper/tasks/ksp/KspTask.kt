@@ -131,10 +131,6 @@ internal class KspTask(
         val kspProcessorClasspath = dependenciesResult.filterIsInstance<KspProcessorClasspathTask.Result>()
             .flatMap { it.processorClasspath }
 
-        val externalDependencies = dependenciesResult.filterIsInstance<ResolveExternalDependenciesTask.Result>()
-            .flatMap { it.compileClasspath }
-            .filter { it.extension != "aar" } // we get the extracted classes instead from an AdditionalClasspathProvider
-
         val compileJvmModuleDependencies = dependenciesResult.filterIsInstance<JvmCompileTask.Result>().flatMap { it.classesOutputRoots }
         val compileNativeModuleDependencies = dependenciesResult.filterIsInstance<NativeCompileKlibTask.Result>()
             .flatMap { it.dependencyKlibs + listOfNotNull(it.compiledKlib) }
@@ -142,8 +138,13 @@ internal class KspTask(
             .mapNotNull { it.compiledKlib }
         val additionalClasspath = dependenciesResult.filterIsInstance<ClasspathProvider>()
             .flatMap { it.compileClasspath }
-        val compileLibraries = externalDependencies + compileJvmModuleDependencies + compileNativeModuleDependencies +
-                compileWebModuleDependencies + additionalClasspath
+            .filter { it.extension != "aar" } // we get the extracted classes instead
+        val compileLibraries = buildList {
+            addAll(compileJvmModuleDependencies)
+            addAll(compileNativeModuleDependencies)
+            addAll(compileWebModuleDependencies)
+            addAll(additionalClasspath)
+        }
 
         val kspOutputs = KspOutputPaths(
             moduleBaseDir = module.source.moduleDir,

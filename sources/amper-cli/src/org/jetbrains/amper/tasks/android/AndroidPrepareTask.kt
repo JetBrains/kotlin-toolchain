@@ -13,7 +13,6 @@ import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.tasks.ClasspathProvider
-import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.util.BuildType
@@ -53,7 +52,7 @@ class AndroidPrepareTask(
     override fun result(artifacts: List<Path>): TaskResult = Result(compileClasspath = artifacts)
 
     override fun runtimeClasspath(dependenciesResult: List<TaskResult>): List<Path> =
-        dependenciesResult.filterIsInstance<ResolveExternalDependenciesTask.Result>().flatMap { it.runtimeClasspath }
+        dependenciesResult.filterIsInstance<ClasspathProvider>().flatMap { it.runtimeClasspath }
 
     class Result(override val compileClasspath: List<Path>) : TaskResult, ClasspathProvider
 }

@@ -62,7 +62,6 @@ import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.withJavaArgFile
 import org.jetbrains.amper.tasks.ClasspathProvider
 import org.jetbrains.amper.tasks.CommonTaskUtils.userReadableList
-import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.SourceRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
@@ -181,11 +180,6 @@ internal class JvmCompileTask(
 
         logger.debug("compile ${module.userReadableName} -- ${fragments.userReadableList()}")
 
-        val mavenDependencies = dependenciesResult
-            .filterIsInstance<ResolveExternalDependenciesTask.Result>()
-            .singleOrNull()
-            ?: error("Expected one and only one dependency on (${ResolveExternalDependenciesTask.Result::class.java.simpleName}) input, but got: ${dependenciesResult.joinToString { it.javaClass.simpleName }}")
-
         val compileModuleDependencies = dependenciesResult.filterIsInstance<Result>()
         val javaAnnotationProcessorClasspath = dependenciesResult
             .filterIsInstance<JavaAnnotationProcessorClasspathTask.Result>()
@@ -200,9 +194,9 @@ internal class JvmCompileTask(
 
         val userSettings = fragments.singleLeafFragment().serializableCompilationSettings()
 
-        val additionalClasspath = dependenciesResult.filterIsInstance<ClasspathProvider>().flatMap { it.compileClasspath }
-        val classpath =
-            compileModuleDependencies.flatMap { it.classesOutputRoots } + mavenDependencies.compileClasspath + additionalClasspath
+        val localModulesClasspath = compileModuleDependencies.flatMap { it.classesOutputRoots }
+        val otherClasspath = dependenciesResult.filterIsInstance<ClasspathProvider>().flatMap { it.compileClasspath }
+        val classpath = localModulesClasspath + otherClasspath
 
         // Collect additional source roots.
         val additionalArtifactSources = additionalKotlinJavaSourceDirs.map { artifact ->

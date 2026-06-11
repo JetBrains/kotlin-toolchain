@@ -93,7 +93,6 @@ fun ProjectTasksBuilder.setupJvmTasks() {
                         DependencyMode.CLASSES -> CommonTaskType.Classes
                     }
                     add(mode.getTaskName(module, platform, isTest = false))
-                    add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
 
                     module.getModuleDependencies(
                         isTest = isTest,
@@ -104,6 +103,8 @@ fun ProjectTasksBuilder.setupJvmTasks() {
                     ).forEach {
                         add(mode.getTaskName(it, platform, isTest = false))
                     }
+
+                    add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                 }
             )
 

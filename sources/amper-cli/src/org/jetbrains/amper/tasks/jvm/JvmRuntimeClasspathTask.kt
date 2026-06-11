@@ -9,7 +9,6 @@ import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.tasks.ClasspathProvider
-import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskResult
 import java.nio.file.Path
 
@@ -29,23 +28,17 @@ class JvmRuntimeClasspathTask(
         )
     }
 
-    // TODO this not how classpath should be built, it does not preserve order
-    //  also will fail on conflicting dependencies
-    //  also it depends on task hierarchy, which could be different from classpath
-    //  but for demo it's fine
-    //  I suggest to return to this task after our own dependency resolution engine
+    // TODO while this way of building the classpath is deterministic and consistent, the resulting order is decided by
+    //  the task dependency order. This is not a problem per se, but it means that Kotlin Toolchain developers might
+    //  inadvertently change the order by re-ordering task dependencies. If we want to define a more semantic order
+    //  between different bits of classpaths, we could add some sort of 'type' or 'order' property to
+    //  `ClasspathProvider`, and order the parts based on this property here.
     private fun buildRuntimeClasspath(dependenciesResult: List<TaskResult>): List<Path> {
         val classpathElements = dependenciesResult.filterIsInstance<ClasspathProvider>()
         check(classpathElements.isNotEmpty()) {
             "No ${ClasspathProvider::class.simpleName} results are found in dependencies"
         }
-
-        val dependenciesTask = dependenciesResult.filterIsInstance<ResolveExternalDependenciesTask.Result>().singleOrNull()
-            ?: error("${ResolveExternalDependenciesTask::class.simpleName} result is not found in dependencies")
-
-        val addToClasspath = classpathElements.flatMap { it.runtimeClasspath } + dependenciesTask.runtimeClasspath
-
-        return addToClasspath.distinct()
+        return classpathElements.flatMap { it.runtimeClasspath }.distinct()
     }
 
     class Result(
