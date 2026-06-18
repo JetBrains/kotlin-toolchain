@@ -3179,13 +3179,13 @@ have a name (an exclusive common ancestor) in the default hierarchy. Aliases can
 <h2 id="apply"><code>apply</code><a class="headerlink" href="#apply" title="Permanent link">&para;</a></h2>
 <p>The <code>apply</code> section lists the templates applied to the module.
 Read more in the <a href="../../user-guide/templates/">Module templates</a> section.</p>
-<p>Use <code>- ./&lt;relative path&gt;</code> or <code>- ../&lt;relative path&gt;</code> notation, where the <code>&lt;relative path&gt;</code> points at a template file.</p>
+<p>Use <code>- //&lt;path&gt;</code> to point at a template file. More on <a href="../../user-guide/basics/#path-notation"><code>//</code>-notation</a>.</p>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Apply a `common.module-template.yaml` template to the module</span>
 <span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jvm/app</span>
 
 <span class="nt">apply</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../common.module-template.yaml</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">//common.module-template.yaml</span>
 </code></pre></div>
 <h2 id="dependencies-and-test-dependencies"><code>dependencies</code> and <code>test-dependencies</code><a class="headerlink" href="#dependencies-and-test-dependencies" title="Permanent link">&para;</a></h2>
 <p>The <code>dependencies</code> section defines the list of modules and libraries necessary to build the module.
@@ -3203,7 +3203,7 @@ Read more in the <a href="../../user-guide/testing/">Testing</a> section.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>- ./&lt;relative path&gt;</code><br/><code>- ../&lt;relative path&gt;</code></td>
+<td><code>- //&lt;project path&gt;</code></td>
 <td>Dependency on <a href="../../user-guide/dependencies/#module-dependencies">another module</a> in the codebase.</td>
 </tr>
 <tr>
@@ -3274,7 +3274,7 @@ Read more in the <a href="../../user-guide/testing/">Testing</a> section.</p>
 <span class="nt">dependencies</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">io.ktor:ktor-client-core:2.2.0</span><span class="w">                   </span><span class="c1"># Kotlin or Java dependency </span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">org.postgresql:postgresql:42.3.3</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">runtime-only</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">../common-types</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">exported</span><span class="w">                        </span><span class="c1"># Dependency on another module in the codebase </span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">//common-types</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">exported</span><span class="w">                         </span><span class="c1"># Dependency on another module in the codebase </span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$compose.foundation</span><span class="w">                              </span><span class="c1"># Dependency from the &#39;compose&#39; catalog</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">bom</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">io.ktor:ktor-bom:2.2.0</span><span class="w">                      </span><span class="c1"># Importing BOM </span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">io.ktor:ktor-serialization-kotlinx-json</span><span class="w">          </span><span class="c1"># Kotlin or Java dependency with a version resolved from BOM</span>
@@ -3282,7 +3282,7 @@ Read more in the <a href="../../user-guide/testing/">Testing</a> section.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Full form for the dependency attributes</span>
 <span class="nt">dependencies</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">io.ktor:ktor-client-core:2.2.0</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">../common-types</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">//common-types</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">exported</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">      </span><span class="nt">scope</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">all</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">org.postgresql:postgresql:42.3.3</span><span class="p">:</span>
@@ -4474,7 +4474,7 @@ which allows processing Kotlin source code with custom processors (usually to ge
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 4, 2026 21:16:22 UTC">June 4, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 17, 2026 14:21:56 UTC">June 17, 2026</span>
   </span>
 
     

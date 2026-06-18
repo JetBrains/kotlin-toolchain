@@ -2636,20 +2636,20 @@ module:</p>
 <div class="highlight"><span class="filename">my-processor/module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jvm/lib</span>
 
 <span class="nt">dependencies</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../my-processor-annotations</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">//my-processor-annotations</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">com.google.devtools.ksp:symbol-processing-api:2.0.21-1.0.25</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compile-only</span>
 </code></pre></div>
 <p>The consumer module adds a regular dependency on the annotations module, and a reference to the processor module:</p>
 <div class="highlight"><span class="filename">my-consumer/module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jvm/app</span>
 
 <span class="nt">dependencies</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../my-processor-annotations</span><span class="w"> </span><span class="c1"># to be able to annotate the consumer code</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">//my-processor-annotations</span><span class="w"> </span><span class="c1"># to be able to annotate the consumer code</span>
 
 <span class="nt">settings</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">ksp</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">processors</span><span class="p">:</span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../my-processor</span><span class="w"> </span><span class="c1"># path to the module implementing the KSP processor</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">//my-processor</span><span class="w"> </span><span class="c1"># path to the module implementing the KSP processor</span>
 </code></pre></div>
 <p>For more information about how to write your own processor, check out
 <a href="https://kotlinlang.org/docs/ksp-quickstart.html#create-a-processor-of-your-own">the <abbr title="The Kotlin Symbol Processing tool, developed by Google">KSP</abbr> documentation</a>.</p>
@@ -2673,7 +2673,7 @@ module:</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 15:51:35 UTC">May 12, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 17, 2026 14:21:56 UTC">June 17, 2026</span>
   </span>
 
     
