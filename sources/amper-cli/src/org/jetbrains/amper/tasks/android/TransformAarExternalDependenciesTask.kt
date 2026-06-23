@@ -12,6 +12,7 @@ import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.tasks.ClasspathElementType
 import org.jetbrains.amper.tasks.ClasspathProvider
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskResult
@@ -23,7 +24,7 @@ import kotlin.io.path.isRegularFile
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.nameWithoutExtension
 
-class TransformAarExternalDependenciesTask(
+internal class TransformAarExternalDependenciesTask(
     override val taskName: TaskName,
     private val incrementalCache: IncrementalCache,
 ) : Task {
@@ -48,10 +49,12 @@ class TransformAarExternalDependenciesTask(
         return Result(executionResult.outputFiles, executionResult.outputFiles)
     }
 
-    class Result(
+    internal class Result(
         override val compileClasspath: List<Path>,
         override val runtimeClasspath: List<Path>,
-    ) : TaskResult, ClasspathProvider
+    ) : TaskResult, ClasspathProvider {
+        override val classpathElementType: ClasspathElementType = ClasspathElementType.TransformedDependencies
+    }
 }
 
 internal fun extractedAarClasspathJars(extractedAar: Path): List<Path> = buildList {

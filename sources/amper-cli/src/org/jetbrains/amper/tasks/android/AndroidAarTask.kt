@@ -14,6 +14,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jar.ZipInput
 import org.jetbrains.amper.jar.writeZip
+import org.jetbrains.amper.tasks.ClasspathElementType
 import org.jetbrains.amper.tasks.ClasspathProvider
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
@@ -48,7 +49,7 @@ import kotlin.math.absoluteValue
  *
  * **Output**: [ClasspathProvider]
  */
-class AndroidAarTask(
+internal class AndroidAarTask(
     override val taskName: TaskName,
     override val module: AmperModule,
     override val buildType: BuildType,
@@ -132,8 +133,9 @@ class AndroidAarTask(
     class Result(
         val aarPath: Path,
     ) : TaskResult, ClasspathProvider {
-        override val runtimeClasspath: List<Path>
-            get() = [ aarPath ]
+        override val runtimeClasspath: List<Path> = [ aarPath ]
+        override val classpathElementType: ClasspathElementType
+            get() = ClasspathElementType.TransformedDependencies
     }
 }
 

@@ -14,6 +14,7 @@ import org.jetbrains.amper.jar.ZipInput
 import org.jetbrains.amper.jvm.findEffectiveJvmMainClass
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.tasks.AbstractJarTask
+import org.jetbrains.amper.tasks.ClasspathElementType
 import org.jetbrains.amper.tasks.ClasspathProvider
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
@@ -25,7 +26,7 @@ import kotlin.io.path.div
 /**
  * Creates a jar file containing all the JVM classes produced by task dependencies of type [JvmCompileTask].
  */
-class JvmClassesJarTask(
+internal class JvmClassesJarTask(
     override val taskName: TaskName,
     override val module: AmperModule,
     override val buildType: BuildType? = null,
@@ -83,5 +84,7 @@ class JvmClassesJarTask(
     ) : AbstractJarTask.Result(jarPath), ClasspathProvider {
         override val runtimeClasspath: List<Path>
             get() = [ jarPath ]
+        override val classpathElementType: ClasspathElementType
+            get() = ClasspathElementType.LocallyCompiledClasses
     }
 }

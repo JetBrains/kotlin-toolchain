@@ -147,7 +147,9 @@ class ResolveExternalDependenciesTask(
         override val compileClasspath: List<SerializablePath>,
         override val runtimeClasspath: List<SerializablePath>,
         val coordinateOverridesForPublishing: PublicationCoordinatesOverrides,
-    ) : TaskResult, ClasspathProvider
+    ) : TaskResult, ClasspathProvider {
+        override val classpathElementType: ClasspathElementType = ClasspathElementType.ExternalMavenDependencies
+    }
 
     companion object {
         private val logger = LoggerFactory.getLogger(ResolveExternalDependenciesTask::class.java)

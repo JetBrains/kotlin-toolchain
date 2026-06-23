@@ -44,6 +44,7 @@ import org.jetbrains.amper.ksp.WebBackend
 import org.jetbrains.amper.ksp.downloadKspJars
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.stdlib.io.path.clean
+import org.jetbrains.amper.tasks.ClasspathElementType
 import org.jetbrains.amper.tasks.ClasspathProvider
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskOutputRoot
@@ -282,7 +283,9 @@ internal class KspTask(
 
     class Result(
         override val compileClasspath: List<Path>,
-    ) : TaskResult, ClasspathProvider
+    ) : TaskResult, ClasspathProvider {
+        override val classpathElementType: ClasspathElementType = ClasspathElementType.GeneratedClasses
+    }
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(KspTask::class.java)

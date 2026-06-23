@@ -7,6 +7,7 @@ package org.jetbrains.amper.tasks.jvm
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.tasks.ClasspathElementType
 import org.jetbrains.amper.tasks.ClasspathProvider
 import org.jetbrains.amper.tasks.TaskResult
 import java.nio.file.Path
@@ -14,7 +15,9 @@ import java.nio.file.Path
 /**
  * Dummy task only needed as a classpath provider because dev tools require depending on classes instead of jars.
  */
-class JvmClassesTask(override val taskName: TaskName): Task {
+// FIXME this task seems redundant. Anything that can be done using this task could be done using the JvmCompileTask
+//   directly. No need for an extra task.
+internal class JvmClassesTask(override val taskName: TaskName): Task {
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
         val compileTaskResults = dependenciesResult.filterIsInstance<JvmCompileTask.Result>()
@@ -25,5 +28,8 @@ class JvmClassesTask(override val taskName: TaskName): Task {
         return Result(compileTaskResults.flatMap { it.runtimeClasspath })
     }
 
-    class Result(override val runtimeClasspath: List<Path>): TaskResult, ClasspathProvider
+    class Result(override val runtimeClasspath: List<Path>): TaskResult, ClasspathProvider {
+        override val classpathElementType: ClasspathElementType
+            get() = ClasspathElementType.LocallyCompiledClasses
+    }
 }

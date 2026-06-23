@@ -7,6 +7,7 @@ package org.jetbrains.amper.tasks.android
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.tasks.ClasspathElementType
 import org.jetbrains.amper.tasks.ClasspathProvider
 import org.jetbrains.amper.tasks.TaskResult
 import java.nio.file.Path
@@ -24,5 +25,10 @@ class GetAndroidPlatformJarTask(
         return Result(classpath)
     }
 
-    class Result(override val compileClasspath: List<Path>) : TaskResult, ClasspathProvider
+    internal class Result(
+        override val compileClasspath: List<Path>,
+    ) : TaskResult, ClasspathProvider {
+        override val classpathElementType: ClasspathElementType
+            get() = ClasspathElementType.PlatformJar
+    }
 }

@@ -60,6 +60,7 @@ import org.jetbrains.amper.problems.reporting.plus
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.withJavaArgFile
+import org.jetbrains.amper.tasks.ClasspathElementType
 import org.jetbrains.amper.tasks.ClasspathProvider
 import org.jetbrains.amper.tasks.CommonTaskUtils.userReadableList
 import org.jetbrains.amper.tasks.SourceRoot
@@ -734,6 +735,8 @@ internal class JvmCompileTask(
     ) : TaskResult, ClasspathProvider {
         override val runtimeClasspath: List<Path>
             get() = classesOutputRoots
+        override val classpathElementType: ClasspathElementType
+            get() = ClasspathElementType.LocallyCompiledClasses
     }
 
     private val logger = LoggerFactory.getLogger(javaClass)

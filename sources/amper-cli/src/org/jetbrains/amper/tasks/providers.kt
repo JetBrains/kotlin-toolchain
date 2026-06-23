@@ -21,4 +21,14 @@ internal interface ClasspathProvider {
      */
     val runtimeClasspath: List<Path>
         get() = []
+
+    val classpathElementType: ClasspathElementType
+}
+
+enum class ClasspathElementType(val order: Int) {
+    LocallyCompiledClasses(order = 1),
+    GeneratedClasses(order = 2),
+    TransformedDependencies(order = 3),
+    ExternalMavenDependencies(order = 4),
+    PlatformJar(order = 5),
 }

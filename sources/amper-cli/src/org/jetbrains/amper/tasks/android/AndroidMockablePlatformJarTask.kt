@@ -12,6 +12,7 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
+import org.jetbrains.amper.tasks.ClasspathElementType
 import org.jetbrains.amper.tasks.ClasspathProvider
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
@@ -19,7 +20,7 @@ import org.jetbrains.amper.util.BuildType
 import java.nio.file.Path
 import kotlin.io.path.extension
 
-class AndroidMockablePlatformJarTask(
+internal class AndroidMockablePlatformJarTask(
     override val taskName: TaskName,
     module: AmperModule,
     buildType: BuildType,
@@ -52,5 +53,8 @@ class AndroidMockablePlatformJarTask(
         return dependenciesResult.filterIsInstance<ClasspathProvider>().flatMap { it.runtimeClasspath }
     }
 
-    class Result(override val runtimeClasspath: List<Path>) : TaskResult, ClasspathProvider
+    class Result(override val runtimeClasspath: List<Path>) : TaskResult, ClasspathProvider {
+        override val classpathElementType: ClasspathElementType
+            get() = ClasspathElementType.PlatformJar
+    }
 }

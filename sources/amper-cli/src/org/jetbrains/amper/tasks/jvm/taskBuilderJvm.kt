@@ -123,19 +123,19 @@ fun ProjectTasksBuilder.setupJvmTasks() {
 
                 val classesTaskName = CommonTaskType.Classes.getTaskName(module, platform, isTest = false)
                 tasks.registerTask(
-                    JvmClassesTask(classesTaskName),
-                    CommonTaskType.Compile.getTaskName(module, platform, isTest = false)
+                    task = JvmClassesTask(classesTaskName),
+                    dependsOn = CommonTaskType.Compile.getTaskName(module, platform, isTest = false),
                 )
 
                 val mergedClassesTaskName = CommonTaskType.MergedClasses.getTaskName(module, platform, isTest = false)
                 tasks.registerTask(  // Only ever called by plugins currently.
-                    JvmMergedClassesTask(
+                    task = JvmMergedClassesTask(
                         taskName = mergedClassesTaskName,
                         module = module,
                         taskOutputRoot = context.getTaskOutputPath(mergedClassesTaskName),
                         incrementalCache = context.incrementalCache,
                     ),
-                    classesTaskName,
+                    dependsOn = classesTaskName,
                 )
             }
         }
