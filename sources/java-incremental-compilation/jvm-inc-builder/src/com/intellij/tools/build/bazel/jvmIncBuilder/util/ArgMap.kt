@@ -1,6 +1,4 @@
-/*
- * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.intellij.tools.build.bazel.jvmIncBuilder.util
 
 import java.util.*
@@ -41,7 +39,7 @@ class ArgMap<T : Enum<T>> internal constructor(private val map: EnumMap<T, Mutab
       return "Args is empty"
     }
 
-    return map.entries.joinToString(separator = "\n", prefix = "Args:\n", postfix = "") { [key, value] ->
+    return map.entries.joinToString(separator = "\n", prefix = "Args:\n", postfix = "") { (key, value) ->
       "  - $key: ${value.joinToString(separator = ", ", prefix = "[", postfix = "]")}"
     }
   }
