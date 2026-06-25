@@ -346,7 +346,7 @@ framework. Read more about [Compose configuration](../user-guide/builtin-tech/co
 | Attribute              | Default  | Description                                                    |
 |------------------------|----------|----------------------------------------------------------------|
 | `enabled: boolean`     | `false`  | Enable Compose runtime, dependencies and the compiler plugins. |
-| `version: string`      | `1.10.3` | The Compose plugin version to use.                             |
+| `version: string`      | `1.11.1` | The Compose plugin version to use.                             |
 | `resources: object`    |          | Compose Resources settings.                                    |
 | `experimental: object` |          | Experimental Compose settings.                                 |
 

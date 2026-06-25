@@ -27,7 +27,7 @@ settings@android:
       exposedAccessors: false  # default
       nameOfResClass: Res  # default
       packageName:   # default
-    version: 1.10.3  # default
+    version: 1.11.1  # default
   java:
     annotationProcessing:
       processorOptions: {}  # default
@@ -135,7 +135,7 @@ settings@jvm:
       exposedAccessors: false  # default
       nameOfResClass: Res  # default
       packageName:   # default
-    version: 1.10.3  # default
+    version: 1.11.1  # default
   java:
     annotationProcessing:
       processorOptions: {}  # default
@@ -246,7 +246,7 @@ settings@iosArm64+iosSimulatorArm64:
       exposedAccessors: false  # default
       nameOfResClass: Res  # default
       packageName:   # default
-    version: 1.10.3  # default
+    version: 1.11.1  # default
   jvm:
     jdk:
       acknowledgedLicenses: []  # default
@@ -357,7 +357,7 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
       exposedAccessors: false  # default
       nameOfResClass: Res  # default
       packageName:   # default
-    version: 1.10.3  # default
+    version: 1.11.1  # default
   java:
     annotationProcessing:
       processorOptions: {}  # default
@@ -472,7 +472,7 @@ settings@jvm:
       exposedAccessors: false  # default
       nameOfResClass: Res  # default
       packageName:   # default
-    version: 1.10.3  # default
+    version: 1.11.1  # default
   java:
     annotationProcessing:
       processorOptions: {}  # default
@@ -595,7 +595,7 @@ settings@android:
       exposedAccessors: false  # default
       nameOfResClass: Res  # default
       packageName:   # default
-    version: 1.10.3  # default
+    version: 1.11.1  # default
   java:
     annotationProcessing:
       processorOptions: {}  # default
@@ -705,7 +705,7 @@ settings@iosArm64:
       exposedAccessors: false  # default
       nameOfResClass: Res  # default
       packageName:   # default
-    version: 1.10.3  # default
+    version: 1.11.1  # default
   jvm:
     jdk:
       acknowledgedLicenses: []  # default
@@ -805,7 +805,7 @@ settings@iosSimulatorArm64:
       exposedAccessors: false  # default
       nameOfResClass: Res  # default
       packageName:   # default
-    version: 1.10.3  # default
+    version: 1.11.1  # default
   jvm:
     jdk:
       acknowledgedLicenses: []  # default

@@ -10,7 +10,7 @@ settings@jvm:
       exposedAccessors: false  # default
       nameOfResClass: Res  # default
       packageName:   # default
-    version: 1.10.3  # default
+    version: 1.11.1  # default
   java:
     annotationProcessing:
       processorOptions: {}  # default

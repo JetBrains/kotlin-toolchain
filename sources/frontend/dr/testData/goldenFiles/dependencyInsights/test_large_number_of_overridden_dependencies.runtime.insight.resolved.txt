@@ -4,7 +4,7 @@ Module ios-app
 │ - platforms = [iosArm64]
 ├─── ios-app:iosArm64:org.jetbrains.compose.foundation:foundation:#composeDefaultVersion
 │    ╰─── org.jetbrains.compose.foundation:foundation:#composeDefaultVersion
-│         ╰─── org.jetbrains.compose.foundation:foundation-uikitarm64:#composeDefaultVersion
+│         ╰─── org.jetbrains.compose.foundation:foundation-iosarm64:#composeDefaultVersion
 │              ╰─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion
 ├─── ios-app:apple:org.jetbrains.compose.foundation:foundation:#composeDefaultVersion
 │    ╰─── org.jetbrains.compose.foundation:foundation:#composeDefaultVersion (*)

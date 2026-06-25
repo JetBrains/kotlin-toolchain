@@ -1,0 +1,306 @@
+Module ios-app
+│ - main
+│ - scope = COMPILE
+│ - platforms = [iosArm64]
+├─── Module shared
+│    ├─── shared:iosArm64:org.jetbrains.compose.foundation:foundation:#composeDefaultVersion
+│    │    ╰─── org.jetbrains.compose.foundation:foundation:#composeDefaultVersion
+│    │         ╰─── org.jetbrains.compose.foundation:foundation-iosarm64:#composeDefaultVersion
+│    │              ├─── androidx.collection:collection:1.5.0
+│    │              │    ╰─── androidx.collection:collection-iosarm64:1.5.0
+│    │              │         ├─── androidx.annotation:annotation:1.9.1
+│    │              │         │    ╰─── androidx.annotation:annotation-iosarm64:1.9.1
+│    │              │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.9.24 -> #kotlinVersion
+│    │              │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.9.24 -> #kotlinVersion
+│    │              ├─── org.jetbrains.compose.animation:animation:#composeDefaultVersion
+│    │              │    ╰─── org.jetbrains.compose.animation:animation-iosarm64:#composeDefaultVersion
+│    │              │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         ├─── org.jetbrains.compose.animation:animation-core:#composeDefaultVersion
+│    │              │         │    ╰─── org.jetbrains.compose.animation:animation-core-iosarm64:#composeDefaultVersion
+│    │              │         │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         │         ├─── org.jetbrains.compose.collection-internal:collection:1.10.0
+│    │              │         │         │    ╰─── androidx.collection:collection:1.5.0 (*)
+│    │              │         │         ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion
+│    │              │         │         │    ╰─── org.jetbrains.compose.runtime:runtime-iosarm64:#composeDefaultVersion
+│    │              │         │         │         ├─── androidx.compose.runtime:runtime:1.11.2
+│    │              │         │         │         │    ╰─── androidx.compose.runtime:runtime-iosarm64:1.11.2
+│    │              │         │         │         │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         │         │         │         ├─── androidx.compose.runtime:runtime-annotation:1.11.2
+│    │              │         │         │         │         │    ╰─── androidx.compose.runtime:runtime-annotation-iosarm64:1.11.2
+│    │              │         │         │         │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.1.20 -> #kotlinVersion
+│    │              │         │         │         │         ├─── org.jetbrains.kotlin:kotlin-stdlib:2.1.20 -> #kotlinVersion
+│    │              │         │         │         │         ├─── org.jetbrains.kotlinx:atomicfu:0.28.0
+│    │              │         │         │         │         │    ╰─── org.jetbrains.kotlinx:atomicfu-iosarm64:0.28.0
+│    │              │         │         │         │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.1.0 -> #kotlinVersion
+│    │              │         │         │         │         ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0
+│    │              │         │         │         │              ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core-iosarm64:1.9.0
+│    │              │         │         │         │                   ├─── org.jetbrains.kotlinx:atomicfu:0.25.0 -> 0.28.0 (*)
+│    │              │         │         │         │                   ├─── org.jetbrains.kotlinx:atomicfu:0.23.1 -> 0.28.0 (*)
+│    │              │         │         │         │                   ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.0.0 -> #kotlinVersion
+│    │              │         │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         │         ├─── org.jetbrains.compose.ui:ui:#composeDefaultVersion
+│    │              │         │         │    ╰─── org.jetbrains.compose.ui:ui-iosarm64:#composeDefaultVersion
+│    │              │         │         │         ├─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         │         │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         │         │         ├─── androidx.compose.runtime:runtime-retain:1.11.2
+│    │              │         │         │         │    ╰─── androidx.compose.runtime:runtime-retain-iosarm64:1.11.2
+│    │              │         │         │         │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         │         │         │         ├─── androidx.compose.runtime:runtime:1.11.2 (*)
+│    │              │         │         │         │         ├─── org.jetbrains.kotlin:kotlin-stdlib:2.1.20 -> #kotlinVersion
+│    │              │         │         │         │         ├─── org.jetbrains.kotlinx:atomicfu:0.28.0 (*)
+│    │              │         │         │         │         ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0 (*)
+│    │              │         │         │         ├─── androidx.navigationevent:navigationevent:1.0.1
+│    │              │         │         │         │    ╰─── androidx.navigationevent:navigationevent-iosarm64:1.0.1
+│    │              │         │         │         │         ├─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         │         │         │         ├─── androidx.compose.runtime:runtime-annotation:1.9.0 -> 1.11.2 (*)
+│    │              │         │         │         │         ├─── org.jetbrains.kotlin:kotlin-stdlib:2.0.21 -> #kotlinVersion
+│    │              │         │         │         │         ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0 (*)
+│    │              │         │         │         ├─── androidx.savedstate:savedstate-compose:1.4.0
+│    │              │         │         │         │    ╰─── androidx.savedstate:savedstate-compose-iosarm64:1.4.0
+│    │              │         │         │         │         ├─── androidx.compose.runtime:runtime:1.9.0 -> 1.11.2 (*)
+│    │              │         │         │         │         ╰─── androidx.savedstate:savedstate:1.4.0
+│    │              │         │         │         │              ╰─── androidx.savedstate:savedstate-iosarm64:1.4.0
+│    │              │         │         │         │                   ├─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         │         │         │                   ├─── androidx.lifecycle:lifecycle-common:2.9.2 -> 2.9.4
+│    │              │         │         │         │                   │    ╰─── androidx.lifecycle:lifecycle-common-iosarm64:2.9.4
+│    │              │         │         │         │                   │         ├─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         │         │         │                   │         ├─── org.jetbrains.kotlin:kotlin-stdlib:2.0.21 -> #kotlinVersion
+│    │              │         │         │         │                   │         ├─── org.jetbrains.kotlinx:atomicfu:0.27.0 -> 0.28.0 (*)
+│    │              │         │         │         │                   │         ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1 -> 1.9.0 (*)
+│    │              │         │         │         │                   ├─── org.jetbrains.kotlin:kotlin-stdlib:2.0.21 -> #kotlinVersion
+│    │              │         │         │         │                   ├─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0 (*)
+│    │              │         │         │         │                   ╰─── org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3
+│    │              │         │         │         │                        ╰─── org.jetbrains.kotlinx:kotlinx-serialization-core-iosarm64:1.7.3
+│    │              │         │         │         │                             ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.0.20 -> #kotlinVersion
+│    │              │         │         │         ├─── org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.6
+│    │              │         │         │         │    ╰─── org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose-uikitarm64:2.9.6
+│    │              │         │         │         │         ├─── androidx.lifecycle:lifecycle-runtime-compose:2.9.4
+│    │              │         │         │         │         │    ╰─── androidx.lifecycle:lifecycle-runtime-compose-iosarm64:2.9.4
+│    │              │         │         │         │         │         ├─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         │         │         │         │         ├─── androidx.compose.runtime:runtime:1.9.0 -> 1.11.2 (*)
+│    │              │         │         │         │         │         ╰─── androidx.lifecycle:lifecycle-runtime:2.9.4
+│    │              │         │         │         │         │              ╰─── androidx.lifecycle:lifecycle-runtime-iosarm64:2.9.4
+│    │              │         │         │         │         │                   ├─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         │         │         │         │                   ├─── androidx.lifecycle:lifecycle-common:2.9.4 (*)
+│    │              │         │         │         │         │                   ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.0.21 -> #kotlinVersion
+│    │              │         │         │         │         ├─── org.jetbrains.androidx.lifecycle:lifecycle-common:2.9.6
+│    │              │         │         │         │         │    ╰─── androidx.lifecycle:lifecycle-common:2.9.4 (*)
+│    │              │         │         │         │         ├─── org.jetbrains.androidx.lifecycle:lifecycle-runtime:2.9.6
+│    │              │         │         │         │         │    ├─── androidx.lifecycle:lifecycle-runtime:2.9.4 (*)
+│    │              │         │         │         │         │    ╰─── org.jetbrains.androidx.lifecycle:lifecycle-common:2.9.6 (*)
+│    │              │         │         │         │         ╰─── org.jetbrains.compose.runtime:runtime:1.9.3 -> #composeDefaultVersion (*)
+│    │              │         │         │         ├─── org.jetbrains.androidx.lifecycle:lifecycle-viewmodel:2.9.6
+│    │              │         │         │         │    ╰─── androidx.lifecycle:lifecycle-viewmodel:2.9.4
+│    │              │         │         │         │         ╰─── androidx.lifecycle:lifecycle-viewmodel-iosarm64:2.9.4
+│    │              │         │         │         │              ├─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         │         │         │              ├─── org.jetbrains.kotlin:kotlin-stdlib:2.0.21 -> #kotlinVersion
+│    │              │         │         │         │              ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1 -> 1.9.0 (*)
+│    │              │         │         │         ├─── org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate:2.9.6
+│    │              │         │         │         │    ├─── androidx.lifecycle:lifecycle-viewmodel-savedstate:2.9.4
+│    │              │         │         │         │    │    ╰─── androidx.lifecycle:lifecycle-viewmodel-savedstate-iosarm64:2.9.4
+│    │              │         │         │         │    │         ├─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         │         │         │    │         ├─── androidx.lifecycle:lifecycle-common:2.9.4 (*)
+│    │              │         │         │         │    │         ├─── androidx.lifecycle:lifecycle-viewmodel:2.9.4 (*)
+│    │              │         │         │         │    │         ├─── androidx.savedstate:savedstate:1.3.1 -> 1.4.0 (*)
+│    │              │         │         │         │    │         ├─── org.jetbrains.kotlin:kotlin-stdlib:2.0.21 -> #kotlinVersion
+│    │              │         │         │         │    │         ├─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1 -> 1.9.0 (*)
+│    │              │         │         │         │    │         ╰─── org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3 (*)
+│    │              │         │         │         │    ├─── org.jetbrains.androidx.lifecycle:lifecycle-viewmodel:2.9.6 (*)
+│    │              │         │         │         │    ╰─── org.jetbrains.androidx.savedstate:savedstate:1.3.6
+│    │              │         │         │         │         ╰─── androidx.savedstate:savedstate:1.3.3 -> 1.4.0 (*)
+│    │              │         │         │         ├─── org.jetbrains.compose.annotation-internal:annotation:1.10.0
+│    │              │         │         │         │    ╰─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         │         │         ├─── org.jetbrains.compose.collection-internal:collection:1.10.0 (*)
+│    │              │         │         │         ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+│    │              │         │         │         ├─── org.jetbrains.compose.runtime:runtime-saveable:#composeDefaultVersion
+│    │              │         │         │         │    ╰─── org.jetbrains.compose.runtime:runtime-saveable-iosarm64:#composeDefaultVersion
+│    │              │         │         │         │         ├─── androidx.compose.runtime:runtime-saveable:1.11.2
+│    │              │         │         │         │         │    ╰─── androidx.compose.runtime:runtime-saveable-iosarm64:1.11.2
+│    │              │         │         │         │         │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         │         │         │         │         ├─── androidx.compose.runtime:runtime:1.11.2 (*)
+│    │              │         │         │         │         │         ├─── androidx.lifecycle:lifecycle-runtime-compose:2.9.4 (*)
+│    │              │         │         │         │         │         ├─── androidx.savedstate:savedstate-compose:1.3.2 -> 1.4.0 (*)
+│    │              │         │         │         │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.1.20 -> #kotlinVersion
+│    │              │         │         │         │         ├─── org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.6 (*)
+│    │              │         │         │         │         ├─── org.jetbrains.androidx.savedstate:savedstate-compose:1.3.6
+│    │              │         │         │         │         │    ╰─── org.jetbrains.androidx.savedstate:savedstate-compose-uikitarm64:1.3.6
+│    │              │         │         │         │         │         ├─── androidx.savedstate:savedstate-compose:1.3.3 -> 1.4.0 (*)
+│    │              │         │         │         │         │         ├─── org.jetbrains.androidx.savedstate:savedstate:1.3.6 (*)
+│    │              │         │         │         │         │         ╰─── org.jetbrains.compose.runtime:runtime:1.9.3 -> #composeDefaultVersion (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+│    │              │         │         │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         │         │         ├─── org.jetbrains.compose.ui:ui-backhandler:#composeDefaultVersion
+│    │              │         │         │         │    ╰─── org.jetbrains.compose.ui:ui-backhandler-iosarm64:#composeDefaultVersion
+│    │              │         │         │         │         ├─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         │         │         │         ├─── androidx.navigationevent:navigationevent:1.0.1 (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.ui:ui-util:#composeDefaultVersion
+│    │              │         │         │         │         │    ╰─── org.jetbrains.compose.ui:ui-util-iosarm64:#composeDefaultVersion
+│    │              │         │         │         │         │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         │         │         │         │         ├─── org.jetbrains.compose.collection-internal:collection:1.10.0 (*)
+│    │              │         │         │         │         │         ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+│    │              │         │         │         │         │         ├─── org.jetbrains.compose.ui:ui-uikit:#composeDefaultVersion
+│    │              │         │         │         │         │         │    ╰─── org.jetbrains.compose.ui:ui-uikit-iosarm64:#composeDefaultVersion
+│    │              │         │         │         │         │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         │         │         │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         │         │         │         ├─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         │         │         │         ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0 (*)
+│    │              │         │         │         ├─── org.jetbrains.compose.ui:ui-geometry:#composeDefaultVersion
+│    │              │         │         │         │    ╰─── org.jetbrains.compose.ui:ui-geometry-iosarm64:#composeDefaultVersion
+│    │              │         │         │         │         ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.ui:ui-util:#composeDefaultVersion (*)
+│    │              │         │         │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         │         │         ├─── org.jetbrains.compose.ui:ui-graphics:#composeDefaultVersion
+│    │              │         │         │         │    ╰─── org.jetbrains.compose.ui:ui-graphics-iosarm64:#composeDefaultVersion
+│    │              │         │         │         │         ├─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         │         │         │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.collection-internal:collection:1.10.0 (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.ui:ui-unit:#composeDefaultVersion
+│    │              │         │         │         │         │    ╰─── org.jetbrains.compose.ui:ui-unit-iosarm64:#composeDefaultVersion
+│    │              │         │         │         │         │         ├─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         │         │         │         │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         │         │         │         │         ├─── org.jetbrains.compose.annotation-internal:annotation:1.10.0 (*)
+│    │              │         │         │         │         │         ├─── org.jetbrains.compose.collection-internal:collection:1.10.0 (*)
+│    │              │         │         │         │         │         ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+│    │              │         │         │         │         │         ├─── org.jetbrains.compose.ui:ui-geometry:#composeDefaultVersion (*)
+│    │              │         │         │         │         │         ├─── org.jetbrains.compose.ui:ui-util:#composeDefaultVersion (*)
+│    │              │         │         │         │         │         ├─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         │         │         │         │         ╰─── org.jetbrains.kotlinx:atomicfu:0.28.0 (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.ui:ui-util:#composeDefaultVersion (*)
+│    │              │         │         │         │         ├─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         │         │         │         ╰─── org.jetbrains.skiko:skiko:0.144.6
+│    │              │         │         │         │              ╰─── org.jetbrains.skiko:skiko-iosarm64:0.144.6
+│    │              │         │         │         │                   ├─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         │         │         │                   ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0 -> 1.9.0 (*)
+│    │              │         │         │         ├─── org.jetbrains.compose.ui:ui-text:#composeDefaultVersion
+│    │              │         │         │         │    ╰─── org.jetbrains.compose.ui:ui-text-iosarm64:#composeDefaultVersion
+│    │              │         │         │         │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.collection-internal:collection:1.10.0 (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.runtime:runtime-saveable:#composeDefaultVersion (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.ui:ui-graphics:#composeDefaultVersion (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.ui:ui-unit:#composeDefaultVersion (*)
+│    │              │         │         │         │         ├─── org.jetbrains.compose.ui:ui-util:#composeDefaultVersion (*)
+│    │              │         │         │         │         ├─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         │         │         │         ├─── org.jetbrains.kotlinx:atomicfu:0.28.0 (*)
+│    │              │         │         │         │         ├─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0 (*)
+│    │              │         │         │         │         ╰─── org.jetbrains.skiko:skiko:0.144.6 (*)
+│    │              │         │         │         ├─── org.jetbrains.compose.ui:ui-uikit:#composeDefaultVersion (*)
+│    │              │         │         │         ├─── org.jetbrains.compose.ui:ui-unit:#composeDefaultVersion (*)
+│    │              │         │         │         ├─── org.jetbrains.compose.ui:ui-util:#composeDefaultVersion (*)
+│    │              │         │         │         ├─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         │         │         ├─── org.jetbrains.kotlinx:atomicfu:0.28.0 (*)
+│    │              │         │         │         ├─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0 (*)
+│    │              │         │         │         ╰─── org.jetbrains.skiko:skiko:0.144.6 (*)
+│    │              │         │         ├─── org.jetbrains.compose.ui:ui-graphics:#composeDefaultVersion (*)
+│    │              │         │         ├─── org.jetbrains.compose.ui:ui-unit:#composeDefaultVersion (*)
+│    │              │         │         ├─── org.jetbrains.compose.ui:ui-util:#composeDefaultVersion (*)
+│    │              │         │         ├─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         │         ├─── org.jetbrains.kotlinx:atomicfu:0.28.0 (*)
+│    │              │         │         ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0 (*)
+│    │              │         ├─── org.jetbrains.compose.foundation:foundation-layout:#composeDefaultVersion
+│    │              │         │    ╰─── org.jetbrains.compose.foundation:foundation-layout-iosarm64:#composeDefaultVersion
+│    │              │         │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         │         ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+│    │              │         │         ├─── org.jetbrains.compose.ui:ui:#composeDefaultVersion (*)
+│    │              │         │         ├─── org.jetbrains.compose.ui:ui-unit:#composeDefaultVersion (*)
+│    │              │         │         ├─── org.jetbrains.compose.ui:ui-util:#composeDefaultVersion (*)
+│    │              │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              │         ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+│    │              │         ├─── org.jetbrains.compose.ui:ui:#composeDefaultVersion (*)
+│    │              │         ├─── org.jetbrains.compose.ui:ui-geometry:#composeDefaultVersion (*)
+│    │              │         ├─── org.jetbrains.compose.ui:ui-graphics:#composeDefaultVersion (*)
+│    │              │         ├─── org.jetbrains.compose.ui:ui-util:#composeDefaultVersion (*)
+│    │              │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              ├─── org.jetbrains.compose.foundation:foundation-layout:#composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.compose.ui:ui:#composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.compose.ui:ui-text:#composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.compose.ui:ui-uikit:#composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.compose.ui:ui-util:#composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              ├─── org.jetbrains.kotlinx:atomicfu:0.28.0 (*)
+│    │              ╰─── org.jetbrains.skiko:skiko:0.144.6 (*)
+│    ├─── shared:iosArm64:org.jetbrains.compose.material3:material3:1.11.0-alpha07
+│    │    ╰─── org.jetbrains.compose.material3:material3:1.11.0-alpha07
+│    │         ╰─── org.jetbrains.compose.material3:material3-iosarm64:1.11.0-alpha07
+│    │              ├─── androidx.collection:collection:1.5.0 (*)
+│    │              ├─── androidx.graphics:graphics-shapes:1.1.0
+│    │              │    ╰─── androidx.graphics:graphics-shapes-iosarm64:1.1.0
+│    │              │         ├─── androidx.annotation:annotation:1.9.1 (*)
+│    │              │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.0.21 -> #kotlinVersion
+│    │              ├─── org.jetbrains.compose.animation:animation-core:1.11.0-beta03 -> #composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.compose.foundation:foundation:1.11.0-beta03 -> #composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.compose.foundation:foundation-layout:1.11.0-beta03 -> #composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.compose.material:material-ripple:1.11.0-beta03
+│    │              │    ╰─── org.jetbrains.compose.material:material-ripple-iosarm64:1.11.0-beta03
+│    │              │         ├─── androidx.collection:collection:1.5.0 (*)
+│    │              │         ├─── org.jetbrains.compose.animation:animation:1.11.0-beta03 -> #composeDefaultVersion (*)
+│    │              │         ├─── org.jetbrains.compose.foundation:foundation:1.11.0-beta03 -> #composeDefaultVersion (*)
+│    │              │         ├─── org.jetbrains.compose.runtime:runtime:1.11.0-beta03 -> #composeDefaultVersion (*)
+│    │              │         ├─── org.jetbrains.compose.ui:ui-util:1.11.0-beta03 -> #composeDefaultVersion (*)
+│    │              │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              ├─── org.jetbrains.compose.runtime:runtime:1.11.0-beta03 -> #composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.compose.ui:ui:1.11.0-beta03 -> #composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.compose.ui:ui-backhandler:1.11.0-beta03 -> #composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.compose.ui:ui-text:1.11.0-beta03 -> #composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.compose.ui:ui-util:1.11.0-beta03 -> #composeDefaultVersion (*)
+│    │              ├─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> #kotlinVersion
+│    │              ├─── org.jetbrains.kotlinx:atomicfu:0.28.0 (*)
+│    │              ╰─── org.jetbrains.kotlinx:kotlinx-datetime:0.7.1
+│    │                   ╰─── org.jetbrains.kotlinx:kotlinx-datetime-iosarm64:0.7.1
+│    │                        ├─── org.jetbrains.kotlin:kotlin-stdlib:2.1.20 -> #kotlinVersion
+│    │                        ╰─── org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.2 -> 1.7.3 (*)
+│    ├─── shared:apple:org.jetbrains.compose.foundation:foundation:#composeDefaultVersion
+│    │    ╰─── org.jetbrains.compose.foundation:foundation:#composeDefaultVersion (*)
+│    ├─── shared:apple:org.jetbrains.compose.material3:material3:1.11.0-alpha07
+│    │    ╰─── org.jetbrains.compose.material3:material3:1.11.0-alpha07 (*)
+│    ├─── shared:common:org.jetbrains.compose.foundation:foundation:#composeDefaultVersion
+│    │    ╰─── org.jetbrains.compose.foundation:foundation:#composeDefaultVersion (*)
+│    ├─── shared:common:org.jetbrains.compose.material3:material3:1.11.0-alpha07
+│    │    ╰─── org.jetbrains.compose.material3:material3:1.11.0-alpha07 (*)
+│    ├─── shared:ios:org.jetbrains.compose.foundation:foundation:#composeDefaultVersion
+│    │    ╰─── org.jetbrains.compose.foundation:foundation:#composeDefaultVersion (*)
+│    ├─── shared:ios:org.jetbrains.compose.material3:material3:1.11.0-alpha07
+│    │    ╰─── org.jetbrains.compose.material3:material3:1.11.0-alpha07 (*)
+│    ├─── shared:native:org.jetbrains.compose.foundation:foundation:#composeDefaultVersion
+│    │    ╰─── org.jetbrains.compose.foundation:foundation:#composeDefaultVersion (*)
+│    ╰─── shared:native:org.jetbrains.compose.material3:material3:1.11.0-alpha07
+│         ╰─── org.jetbrains.compose.material3:material3:1.11.0-alpha07 (*)
+├─── ios-app:iosArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── ios-app:iosArm64:org.jetbrains.compose.runtime:runtime:#composeDefaultVersion, implicit (because Compose is enabled)
+│    ╰─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+├─── ios-app:iosArm64:org.jetbrains.compose.components:components-resources:#composeDefaultVersion, implicit (because Compose is enabled)
+│    ╰─── org.jetbrains.compose.components:components-resources:#composeDefaultVersion
+│         ╰─── org.jetbrains.compose.components:components-resources-iosArm64:#composeDefaultVersion
+│              ├─── org.jetbrains.kotlin:kotlin-stdlib:2.3.20 -> #kotlinVersion
+│              ├─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+│              ├─── org.jetbrains.compose.foundation:foundation:#composeDefaultVersion (*)
+│              ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0 -> 1.9.0 (*)
+├─── ios-app:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── ios-app:apple:org.jetbrains.compose.runtime:runtime:#composeDefaultVersion, implicit (because Compose is enabled)
+│    ╰─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+├─── ios-app:apple:org.jetbrains.compose.components:components-resources:#composeDefaultVersion, implicit (because Compose is enabled)
+│    ╰─── org.jetbrains.compose.components:components-resources:#composeDefaultVersion (*)
+├─── ios-app:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── ios-app:common:org.jetbrains.compose.runtime:runtime:#composeDefaultVersion, implicit (because Compose is enabled)
+│    ╰─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+├─── ios-app:common:org.jetbrains.compose.components:components-resources:#composeDefaultVersion, implicit (because Compose is enabled)
+│    ╰─── org.jetbrains.compose.components:components-resources:#composeDefaultVersion (*)
+├─── ios-app:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── ios-app:ios:org.jetbrains.compose.runtime:runtime:#composeDefaultVersion, implicit (because Compose is enabled)
+│    ╰─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+├─── ios-app:ios:org.jetbrains.compose.components:components-resources:#composeDefaultVersion, implicit (because Compose is enabled)
+│    ╰─── org.jetbrains.compose.components:components-resources:#composeDefaultVersion (*)
+├─── ios-app:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── ios-app:native:org.jetbrains.compose.runtime:runtime:#composeDefaultVersion, implicit (because Compose is enabled)
+│    ╰─── org.jetbrains.compose.runtime:runtime:#composeDefaultVersion (*)
+╰─── ios-app:native:org.jetbrains.compose.components:components-resources:#composeDefaultVersion, implicit (because Compose is enabled)
+     ╰─── org.jetbrains.compose.components:components-resources:#composeDefaultVersion (*)

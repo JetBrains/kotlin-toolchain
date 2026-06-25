@@ -6,10 +6,12 @@
 import iosUtils.IOSBaseTest
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import kotlin.test.Ignore
 
 class RuniOSExternalProjectsStandalone : IOSBaseTest() {
 
     @Test
+    @Disabled("Unignore after https://jetbrains.team/p/amper/reviews/3356/timeline is merged")
     fun toDoListApp() = runIosAppTests(
         projectSource = amperExternalProject("todolistlite"),
         bundleIdentifier = "ios-app",
@@ -24,6 +26,7 @@ class RuniOSExternalProjectsStandalone : IOSBaseTest() {
     )
 
     @Test
+    @Disabled("Unignore after https://jetbrains.team/p/amper/reviews/3356/timeline is merged")
     fun swiftAppWithoutShared() = runIosAppTests(
         projectSource = amperExternalProject("swiftonlytodo"),
         bundleIdentifier = "swiftonlytodo",

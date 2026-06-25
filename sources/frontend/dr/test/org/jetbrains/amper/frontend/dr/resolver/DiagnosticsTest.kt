@@ -223,7 +223,7 @@ class DiagnosticsTest : AbstractDependencyInsightsTest() {
              * This magic number doesn't matter on its own.
              * What matters is that all warnings are related to overridden dependencies (next check).
              */
-            assertEquals(24, buildProblems.size)
+            assertEquals(20, buildProblems.size)
 
             val overriddenDependencyProblems = buildProblems.mapNotNull { it as? ModuleDependencyWithOverriddenVersion }
             assertEquals(buildProblems.size, overriddenDependencyProblems.size)

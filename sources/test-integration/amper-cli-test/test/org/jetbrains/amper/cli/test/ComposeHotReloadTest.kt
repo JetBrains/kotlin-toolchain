@@ -111,7 +111,7 @@ class ComposeHotReloadTest : AmperCliTestBase() {
             
             Available application modules and their platforms:
               app-android: android
-              app-ios: iosArm64 iosSimulatorArm64 iosX64
+              app-ios: iosArm64 iosSimulatorArm64
               app-jvm: jvm
         """.trimIndent())
     }

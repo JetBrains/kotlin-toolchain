@@ -24,6 +24,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.nio.file.Path
 import java.util.jar.JarFile
+import kotlin.collections.plus
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
@@ -99,12 +100,12 @@ class ExampleProjectsTest: AmperCliTestBase() {
             configureAndroidHome = true,
         )
         with(tasksResult) {
-            (jvmBaseTasks + jvmTestTasks + iosLibraryTasks + androidTestTasks).forEach {
+            (jvmBaseTasks + jvmTestTasks + iosLibraryTasksWithoutX64 + androidTestTasks).forEach {
                 assertContains(stdout, ":shared:$it")
             }
             androidAppTasks.forEach { assertContains(stdout, ":android-app:$it") }
             jvmAppTasks.forEach { assertContains(stdout, ":jvm-app:$it") }
-            iosAppTasks.forEach { assertContains(stdout, ":ios-app:$it") }
+            iosAppTasksWithoutX64.forEach { assertContains(stdout, ":ios-app:$it") }
         }
 
         val buildResult = runCli(
@@ -123,8 +124,8 @@ class ExampleProjectsTest: AmperCliTestBase() {
             // main for Jvm (no test sources).
             kotlinJvmCompilationSpans.withAmperModule("jvm-app").assertSingle()
 
-            // (main klib + framework for Ios) * 3 ios targets (no test sources)
-            kotlinNativeCompilationSpans.withAmperModule("ios-app").assertTimes(2 * 3)
+            // (main klib + framework for Ios) * 2 ios targets (no test sources)
+            kotlinNativeCompilationSpans.withAmperModule("ios-app").assertTimes(2 * 2)
         }
     }
 
@@ -282,6 +283,20 @@ private val iosAppTasks = iosLibraryTasks + listOf(
 
     "testIosSimulatorArm64",
     "testIosX64",
+)
+
+private val iosLibraryTasksWithoutX64 = listOf(
+    "compileIosArm64",
+    "compileIosSimulatorArm64",
+)
+
+private val iosAppTasksWithoutX64 = iosLibraryTasksWithoutX64 + listOf(
+    "frameworkIosArm64",
+    "frameworkIosSimulatorArm64",
+    "buildIosAppIosArm64",
+    "buildIosAppIosSimulatorArm64",
+    "runIosAppIosSimulatorArm64",
+    "testIosSimulatorArm64",
 )
 
 private val androidTestTasks = listOf(

@@ -67,18 +67,12 @@ class CinteropTest : AmperCliTestBase() {
                   - foo
                   - bar
                   - custom
-                 commonized/ios-cinterop/(ios_arm64, ios_simulator_arm64, ios_x64)/
-                  - bar
-                  - custom
                  fragment: iosArm64 | generated/ios-cinterop/iosArm64/cinterop
                   - foo.klib
                   - bar.klib
                   - custom.klib
                  fragment: iosSimulatorArm64 | generated/ios-cinterop/iosSimulatorArm64/cinterop
                   - foo.klib
-                  - bar.klib
-                  - custom.klib
-                 fragment: iosX64 | generated/ios-cinterop/iosX64/cinterop
                   - bar.klib
                   - custom.klib
             """.trimIndent(),

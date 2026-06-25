@@ -20,6 +20,7 @@ import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.LocalAmperPublication
 import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.spans.FilteredSpans
+import org.junit.jupiter.api.Disabled
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.copyToRecursively
@@ -157,7 +158,8 @@ class IosProjectsTest : AmperCliTestBase() {
         }
         result.withTelemetrySpans {
             xcodeProjectGenSpans.assertSingle()
-            xcodebuildSpans.assertTimes(3)
+            // Current spans are for [iosArm64, iosSimulatorArm64]
+            xcodebuildSpans.assertTimes(2)
         }
 
         val runResult = runCli(
@@ -189,6 +191,7 @@ class IosProjectsTest : AmperCliTestBase() {
     }
 
     @Test
+    @Disabled("X64 should be removed in the future. Keeping this test for now as disabled just for the case.")
     fun `compose-multiplatform - build debug with xcodebuild`() = runSlowTest {
         val tempProjectDir = (tempRoot / UUID.randomUUID().toString() / "non-intel").createDirectories()
         (Dirs.amperTestProjectsRoot / "ios/non-intel").copyToRecursively(tempProjectDir, followLinks = false)

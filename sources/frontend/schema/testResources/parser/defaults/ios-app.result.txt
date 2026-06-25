@@ -46,7 +46,7 @@ Fragments:
           nameOfResClass: <default> Res
           packageName: <default>
         }
-        version: <default> 1.10.3
+        version: <default> 1.11.1
       }
       java: <default> {
         annotationProcessing: <default> {
@@ -240,7 +240,7 @@ Fragments:
           nameOfResClass: <default> Res
           packageName: <default>
         }
-        version: <default> 1.10.3
+        version: <default> 1.11.1
       }
       java: <default> {
         annotationProcessing: <default> {
@@ -430,7 +430,7 @@ Fragments:
           nameOfResClass: <default> Res
           packageName: <default>
         }
-        version: <default> 1.10.3
+        version: <default> 1.11.1
       }
       java: <default> {
         annotationProcessing: <default> {
@@ -623,7 +623,7 @@ Fragments:
           nameOfResClass: <default> Res
           packageName: <default>
         }
-        version: <default> 1.10.3
+        version: <default> 1.11.1
       }
       java: <default> {
         annotationProcessing: <default> {
@@ -814,7 +814,7 @@ Fragments:
           nameOfResClass: <default> Res
           packageName: <default>
         }
-        version: <default> 1.10.3
+        version: <default> 1.11.1
       }
       java: <default> {
         annotationProcessing: <default> {
@@ -1005,7 +1005,7 @@ Fragments:
           nameOfResClass: <default> Res
           packageName: <default>
         }
-        version: <default> 1.10.3
+        version: <default> 1.11.1
       }
       java: <default> {
         annotationProcessing: <default> {
@@ -1199,7 +1199,7 @@ Fragments:
           nameOfResClass: <default> Res
           packageName: <default>
         }
-        version: <default> 1.10.3
+        version: <default> 1.11.1
       }
       java: <default> {
         annotationProcessing: <default> {
@@ -1390,7 +1390,7 @@ Fragments:
           nameOfResClass: <default> Res
           packageName: <default>
         }
-        version: <default> 1.10.3
+        version: <default> 1.11.1
       }
       java: <default> {
         annotationProcessing: <default> {
@@ -1584,7 +1584,7 @@ Fragments:
           nameOfResClass: <default> Res
           packageName: <default>
         }
-        version: <default> 1.10.3
+        version: <default> 1.11.1
       }
       java: <default> {
         annotationProcessing: <default> {
@@ -1778,392 +1778,7 @@ Fragments:
           nameOfResClass: <default> Res
           packageName: <default>
         }
-        version: <default> 1.10.3
-      }
-      java: <default> {
-        annotationProcessing: <default> {
-          processorOptions: <default> {
-          }
-          processors: <default> [
-          ]
-        }
-        compileIncrementally: <default> false
-        freeCompilerArgs: <default> [
-        ]
-      }
-      junit: <default> junit-5
-      jvm: <default> {
-        jdk: <default> {
-          acknowledgedLicenses: <default> [
-          ]
-          distributions: <default> null
-          selectionMode: <default> auto
-          version: <default> 21
-        }
-        mainClass: <default> null
-        release: <default> 21
-        runtimeClasspathMode: <default> jars
-        storeParameterNames: <default> false
-        test: <default> {
-          extraEnvironment: <default> {
-          }
-          freeJvmArgs: <default> [
-          ]
-          junitPlatformVersion: <default> 6.0.3
-          systemProperties: <default> {
-          }
-        }
-      }
-      kotlin: <default> {
-        allOpen: <default> {
-          annotations: <default> null
-          enabled: <default> false
-          presets: <default> null
-        }
-        allWarningsAsErrors: <default> false
-        apiVersion: <default> null
-        compileIncrementally: <default> false
-        compilerPlugins: <default> [
-        ]
-        dataframe: <default> {
-          enabled: <default> false
-          version: <default> 1.0.0-Beta5
-        }
-        debug: <default> null
-        freeCompilerArgs: <default> null
-        jsPlainObjects: <default> {
-          enabled: <default> false
-        }
-        ksp: <default> {
-          processorOptions: <default> {
-          }
-          processors: <default> [
-          ]
-          version: <default> 2.3.9
-        }
-        languageFeatures: <default> null
-        languageVersion: <default> null
-        linkerOptions: <default> null
-        noArg: <default> {
-          annotations: <default> null
-          enabled: <default> false
-          invokeInitializers: <default> false
-          presets: <default> null
-        }
-        optIns: <default> null
-        optimization: <default> null
-        powerAssert: <default> {
-          enabled: <default> false
-          functions: <default> [
-            - kotlin.assert
-          ]
-        }
-        progressiveMode: <default> false
-        rpc: <default> {
-          annotationTypeSafetyEnabled: <default> true
-          applyBom: <default> true
-          enabled: <default> false
-          version: <default> 0.10.2
-        }
-        serialization: <default> {
-          enabled: <default> false
-          format: <default> null
-          version: <default> 1.11.0
-        }
-        suppressWarnings: <default> false
-        verbose: <default> false
-        version: <default> 2.3.21
-      }
-      ktor: <default> {
-        applyBom: <default> true
-        enabled: <default> false
-        version: <default> 3.4.3
-      }
-      lombok: <default> {
-        enabled: <default> false
-        version: <default> 1.18.46
-      }
-      native: <default> null
-      publishing: <default> {
-        artifactId: <default> null
-        checksums: <default> [
-          - md5
-          - sha1
-        ]
-        enabled: <default> false
-        group: <default> null
-        mavenCentral: <default> {
-          enabled: <default> false
-          publishingMode: <default> manual
-        }
-        name: <default> null
-        pom: <default> {
-          description: <default> null
-          developers: <default> [
-          ]
-          licenses: <default> [
-          ]
-          name: <default> null
-          scm: <default> {
-            connection: <default> null
-            developerConnection: <default> null
-            url: <default> null
-          }
-          url: <default> null
-        }
-        publishSources: <default> false
-        signArtifacts: <default> false
-        version: <default> null
-      }
-      springBoot: <default> {
-        applyBom: <default> true
-        enabled: <default> false
-        version: <default> 4.0.6
-      }
-    }
-
-  iosX64
-    External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-    Src folders:
-      src@iosX64
-    Fragment dependencies:
-      ios (REFINE)
-    Settings: {
-      android: <default> {
-        applicationId: <default> org.example.namespace
-        compileSdk: <default> 37
-        maxSdk: <default> null
-        minSdk: <default> 24
-        namespace: <default> org.example.namespace
-        parcelize: <default> {
-          additionalAnnotations: <default> [
-          ]
-          enabled: <default> false
-        }
-        resourcePackaging: <default> {
-          excludes: <default> [
-          ]
-          merges: <default> [
-          ]
-          pickFirsts: <default> [
-          ]
-        }
-        signing: <default> {
-          enabled: <default> false
-          propertiesFile: <default> keystore.properties
-        }
-        targetSdk: <default> 37
-        versionCode: <default> 1
-        versionName: <default> unspecified
-      }
-      compose: <default> {
-        enabled: <default> false
-        experimental: <default> {
-          hotReload: <default> {
-            version: <default> 1.2.0-rc01
-          }
-        }
-        resources: <default> {
-          exposedAccessors: <default> false
-          nameOfResClass: <default> Res
-          packageName: <default>
-        }
-        version: <default> 1.10.3
-      }
-      java: <default> {
-        annotationProcessing: <default> {
-          processorOptions: <default> {
-          }
-          processors: <default> [
-          ]
-        }
-        compileIncrementally: <default> false
-        freeCompilerArgs: <default> [
-        ]
-      }
-      junit: <default> junit-5
-      jvm: <default> {
-        jdk: <default> {
-          acknowledgedLicenses: <default> [
-          ]
-          distributions: <default> null
-          selectionMode: <default> auto
-          version: <default> 21
-        }
-        mainClass: <default> null
-        release: <default> 21
-        runtimeClasspathMode: <default> jars
-        storeParameterNames: <default> false
-        test: <default> {
-          extraEnvironment: <default> {
-          }
-          freeJvmArgs: <default> [
-          ]
-          junitPlatformVersion: <default> 6.0.3
-          systemProperties: <default> {
-          }
-        }
-      }
-      kotlin: <default> {
-        allOpen: <default> {
-          annotations: <default> null
-          enabled: <default> false
-          presets: <default> null
-        }
-        allWarningsAsErrors: <default> false
-        apiVersion: <default> null
-        compileIncrementally: <default> false
-        compilerPlugins: <default> [
-        ]
-        dataframe: <default> {
-          enabled: <default> false
-          version: <default> 1.0.0-Beta5
-        }
-        debug: <default> null
-        freeCompilerArgs: <default> null
-        jsPlainObjects: <default> {
-          enabled: <default> false
-        }
-        ksp: <default> {
-          processorOptions: <default> {
-          }
-          processors: <default> [
-          ]
-          version: <default> 2.3.9
-        }
-        languageFeatures: <default> null
-        languageVersion: <default> null
-        linkerOptions: <default> null
-        noArg: <default> {
-          annotations: <default> null
-          enabled: <default> false
-          invokeInitializers: <default> false
-          presets: <default> null
-        }
-        optIns: <default> null
-        optimization: <default> null
-        powerAssert: <default> {
-          enabled: <default> false
-          functions: <default> [
-            - kotlin.assert
-          ]
-        }
-        progressiveMode: <default> false
-        rpc: <default> {
-          annotationTypeSafetyEnabled: <default> true
-          applyBom: <default> true
-          enabled: <default> false
-          version: <default> 0.10.2
-        }
-        serialization: <default> {
-          enabled: <default> false
-          format: <default> null
-          version: <default> 1.11.0
-        }
-        suppressWarnings: <default> false
-        verbose: <default> false
-        version: <default> 2.3.21
-      }
-      ktor: <default> {
-        applyBom: <default> true
-        enabled: <default> false
-        version: <default> 3.4.3
-      }
-      lombok: <default> {
-        enabled: <default> false
-        version: <default> 1.18.46
-      }
-      native: <default> null
-      publishing: <default> {
-        artifactId: <default> null
-        checksums: <default> [
-          - md5
-          - sha1
-        ]
-        enabled: <default> false
-        group: <default> null
-        mavenCentral: <default> {
-          enabled: <default> false
-          publishingMode: <default> manual
-        }
-        name: <default> null
-        pom: <default> {
-          description: <default> null
-          developers: <default> [
-          ]
-          licenses: <default> [
-          ]
-          name: <default> null
-          scm: <default> {
-            connection: <default> null
-            developerConnection: <default> null
-            url: <default> null
-          }
-          url: <default> null
-        }
-        publishSources: <default> false
-        signArtifacts: <default> false
-        version: <default> null
-      }
-      springBoot: <default> {
-        applyBom: <default> true
-        enabled: <default> false
-        version: <default> 4.0.6
-      }
-    }
-
-  iosX64Test
-    External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-    Src folders:
-      test@iosX64
-    Fragment dependencies:
-      iosTest (REFINE)
-      iosX64 (FRIEND)
-    Settings: {
-      android: <default> {
-        applicationId: <default> org.example.namespace
-        compileSdk: <default> 37
-        maxSdk: <default> null
-        minSdk: <default> 24
-        namespace: <default> org.example.namespace
-        parcelize: <default> {
-          additionalAnnotations: <default> [
-          ]
-          enabled: <default> false
-        }
-        resourcePackaging: <default> {
-          excludes: <default> [
-          ]
-          merges: <default> [
-          ]
-          pickFirsts: <default> [
-          ]
-        }
-        signing: <default> {
-          enabled: <default> false
-          propertiesFile: <default> keystore.properties
-        }
-        targetSdk: <default> 37
-        versionCode: <default> 1
-        versionName: <default> unspecified
-      }
-      compose: <default> {
-        enabled: <default> false
-        experimental: <default> {
-          hotReload: <default> {
-            version: <default> 1.2.0-rc01
-          }
-        }
-        resources: <default> {
-          exposedAccessors: <default> false
-          nameOfResClass: <default> Res
-          packageName: <default>
-        }
-        version: <default> 1.10.3
+        version: <default> 1.11.1
       }
       java: <default> {
         annotationProcessing: <default> {
@@ -2354,7 +1969,7 @@ Fragments:
           nameOfResClass: <default> Res
           packageName: <default>
         }
-        version: <default> 1.10.3
+        version: <default> 1.11.1
       }
       java: <default> {
         annotationProcessing: <default> {
@@ -2548,7 +2163,7 @@ Fragments:
           nameOfResClass: <default> Res
           packageName: <default>
         }
-        version: <default> 1.10.3
+        version: <default> 1.11.1
       }
       java: <default> {
         annotationProcessing: <default> {
@@ -2709,14 +2324,6 @@ Artifacts:
   [iosSimulatorArm64]
     Fragments:
       iosSimulatorArm64Test
-  isTest: false
-  [iosX64]
-    Fragments:
-      iosX64
-  isTest: true
-  [iosX64]
-    Fragments:
-      iosX64Test
 Repositories:
   - id: mavenCentral
     url: https://cache-redirector.jetbrains.com/kotlin/repo1.maven.org/maven2

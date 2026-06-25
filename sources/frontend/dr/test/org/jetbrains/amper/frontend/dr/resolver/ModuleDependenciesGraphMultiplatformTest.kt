@@ -73,52 +73,52 @@ class ModuleDependenciesGraphMultiplatformTest : BaseModuleDrTest() {
     }
 
     @Test
-    fun `test shared@iosX64 dependencies graph`(testInfo: TestInfo) = runSlowModuleDependenciesTest {
+    fun `test shared@iosArm64 dependencies graph`(testInfo: TestInfo) = runSlowModuleDependenciesTest {
         val aom = getTestProjectModel("compose-multiplatform", testDataRoot)
-        val iosAppIosX64FragmentDeps = doTestByFile(
+        val iosAppiosArm64FragmentDeps = doTestByFile(
             testInfo,
             aom,
             ideSyncTestResolutionInput,
             module = "shared",
-            fragment = "iosX64",
+            fragment = "iosArm64",
             filter = ideSyncModuleResolutionFilter.copy(scope = ResolutionScope.COMPILE)
         )
 
-        assertFiles(testInfo, iosAppIosX64FragmentDeps)
+        assertFiles(testInfo, iosAppiosArm64FragmentDeps)
     }
 
     @Test
-    fun `test shared@iosX64Test dependencies graph`(testInfo: TestInfo) = runSlowModuleDependenciesTest {
+    fun `test shared@iosArm64Test dependencies graph`(testInfo: TestInfo) = runSlowModuleDependenciesTest {
         val aom = getTestProjectModel("compose-multiplatform", testDataRoot)
-        val iosAppIosX64FragmentDeps = doTestByFile(
+        val iosAppiosArm64FragmentDeps = doTestByFile(
             testInfo,
             aom,
             ideSyncTestResolutionInput,
             module = "shared",
-            fragment = "iosX64Test",
+            fragment = "iosArm64Test",
             filter = ideSyncModuleResolutionFilter.copy(scope = ResolutionScope.COMPILE)
         )
 
-        assertFiles(testInfo, iosAppIosX64FragmentDeps)
+        assertFiles(testInfo, iosAppiosArm64FragmentDeps)
     }
 
     /**
      * Since test fragment from one module can't reference the test fragment of another module,
-     * exported test dependency 'tinylog-api-kotlin' of the shared module is not added to the fragment ios-app@iosX64Test.
+     * exported test dependency 'tinylog-api-kotlin' of the shared module is not added to the fragment ios-app@iosArm64Test.
      */
     @Test
-    fun `test ios-app@iosX64Test dependencies graph`(testInfo: TestInfo) = runSlowModuleDependenciesTest {
+    fun `test ios-app@iosArm64Test dependencies graph`(testInfo: TestInfo) = runSlowModuleDependenciesTest {
         val aom = getTestProjectModel("compose-multiplatform", testDataRoot)
-        val iosAppIosX64FragmentDeps = doTestByFile(
+        val iosAppiosArm64FragmentDeps = doTestByFile(
             testInfo,
             aom,
             ideSyncTestResolutionInput,
             module = "ios-app",
-            fragment = "iosX64Test",
+            fragment = "iosArm64Test",
             filter = ideSyncModuleResolutionFilter.copy(scope = ResolutionScope.COMPILE)
         )
 
-        assertFiles(testInfo, iosAppIosX64FragmentDeps)
+        assertFiles(testInfo, iosAppiosArm64FragmentDeps)
     }
 
     @Test
@@ -137,17 +137,17 @@ class ModuleDependenciesGraphMultiplatformTest : BaseModuleDrTest() {
     }
 
     @Test
-    fun `test ios-app@iosX64 dependencies graph`(testInfo: TestInfo) = runSlowModuleDependenciesTest {
+    fun `test ios-app@iosArm64 dependencies graph`(testInfo: TestInfo) = runSlowModuleDependenciesTest {
         val aom = getTestProjectModel("compose-multiplatform", testDataRoot)
-        val iosAppIosX64FragmentDeps = doTestByFile(
+        val iosAppiosArm64FragmentDeps = doTestByFile(
             testInfo,
             aom,
             ideSyncTestResolutionInput,
             module = "ios-app",
-            fragment = "iosX64",
+            fragment = "iosArm64",
             filter = ideSyncModuleResolutionFilter.copy(scope = ResolutionScope.COMPILE)
         )
-        assertFiles(testInfo, iosAppIosX64FragmentDeps)
+        assertFiles(testInfo, iosAppiosArm64FragmentDeps)
     }
 
     // todo (AB) : 'android-app.android' differs from what Gradle produce (versions).
@@ -227,7 +227,7 @@ class ModuleDependenciesGraphMultiplatformTest : BaseModuleDrTest() {
                 "org.jetbrains.compose.runtime:runtime:${DefaultVersions.compose}" to "org.jetbrains.compose.runtime:runtime-desktop:${DefaultVersions.compose}",
                 "org.jetbrains.compose.foundation:foundation:${DefaultVersions.compose}" to "org.jetbrains.compose.foundation:foundation-desktop:${DefaultVersions.compose}",
                 // Note: this has to be updated when changing the 'compose' version. See composeMaterial3VersionForCMPVersion() in catalog.kt
-                "org.jetbrains.compose.material3:material3:1.10.0-alpha05" to "org.jetbrains.compose.material3:material3-desktop:1.10.0-alpha05",
+                "org.jetbrains.compose.material3:material3:1.11.0-alpha07" to "org.jetbrains.compose.material3:material3-desktop:1.11.0-alpha07",
             )
         )
     }

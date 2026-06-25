@@ -160,7 +160,7 @@ class ProjectTemplatesTest : AmperCliTestBase() {
             "-project", "module.xcodeproj",
             "-scheme", "app",
             "-configuration", "Debug",
-            "-arch", "x86_64",
+            "-arch", "arm64",
             "-sdk", "iphonesimulator",
             "-derivedDataPath", buildDir.pathString,
         )

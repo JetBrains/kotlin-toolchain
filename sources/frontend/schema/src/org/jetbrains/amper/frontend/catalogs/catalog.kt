@@ -409,9 +409,11 @@ private fun composeMaterial3VersionForCMPVersion(composeVersion: TraceableVersio
         "1.10.1" -> "1.10.0-alpha05" // https://github.com/JetBrains/compose-multiplatform/releases/tag/v1.10.1
         "1.10.2" -> "1.10.0-alpha05" // https://github.com/JetBrains/compose-multiplatform/releases/tag/v1.10.2
         "1.10.3" -> "1.10.0-alpha05" // https://github.com/JetBrains/compose-multiplatform/releases/tag/v1.10.3
+        "1.11.0" -> "1.11.0-alpha07" // https://github.com/JetBrains/compose-multiplatform/releases/tag/v1.11.0
+        "1.11.1" -> "1.11.0-alpha07" // https://github.com/JetBrains/compose-multiplatform/releases/tag/v1.11.1
         else -> null // not known yet, or regular alphas/betas/rcs
     }
-    val latestMaterial3Version = "1.10.0-alpha05"
+    val latestMaterial3Version = "1.11.0-alpha07"
     if (material3Version != null) {
         return TraceableVersion(
             value = material3Version,

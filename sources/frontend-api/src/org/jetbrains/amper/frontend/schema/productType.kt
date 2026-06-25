@@ -90,8 +90,8 @@ enum class ProductType(
     @SchemaDoc("An iOS application")
     IOS_APP(
         "ios/app",
-        supportedPlatforms = setOf(Platform.IOS_ARM64, Platform.IOS_X64, Platform.IOS_SIMULATOR_ARM64),
-        defaultPlatforms = setOf(Platform.IOS_ARM64, Platform.IOS_X64, Platform.IOS_SIMULATOR_ARM64)
+        supportedPlatforms = setOf(Platform.IOS_ARM64, Platform.IOS_SIMULATOR_ARM64),
+        defaultPlatforms = setOf(Platform.IOS_ARM64, Platform.IOS_SIMULATOR_ARM64)
     ),
 
     @SchemaDoc("A native macOS application")
