@@ -18,9 +18,9 @@ import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.MultipleLocationsBuildProblemSource
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 
-private const val MinJavaVersionForJIC = 16
+private const val MinJavaVersionForJIC = 21
 
-object JavaIncrementalCompilationRequiresJava16Factory : AomSingleModuleDiagnosticFactory {
+object JavaIncrementalCompilationRequiresJava21Factory : AomSingleModuleDiagnosticFactory {
 
     override fun analyze(module: AmperModule, problemReporter: ProblemReporter) {
         val reportedPlaces = mutableSetOf<Pair<Trace, Trace>>()

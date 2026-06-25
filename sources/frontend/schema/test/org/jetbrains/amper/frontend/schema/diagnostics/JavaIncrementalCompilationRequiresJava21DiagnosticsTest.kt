@@ -9,10 +9,10 @@ import org.jetbrains.amper.frontend.helpers.diagnosticsTest
 import kotlin.io.path.Path
 import kotlin.test.Test
 
-class JavaIncrementalCompilationRequiresJava16DiagnosticsTest : FrontendTestCaseBase(Path("testResources/diagnostics")) {
+class JavaIncrementalCompilationRequiresJava21DiagnosticsTest : FrontendTestCaseBase(Path("testResources/diagnostics")) {
 
     @Test
-    fun `jic requires java 16`() {
-        diagnosticsTest("jic-requires-java16")
+    fun `jic requires java 21`() {
+        diagnosticsTest("jic-requires-java21")
     }
 }
