@@ -5,10 +5,10 @@
 package org.jetbrains.amper.maven.publish
 
 import org.jetbrains.amper.dependency.resolution.MavenCoordinates
-import org.jetbrains.amper.dependency.resolution.mavenCoordinatesTrimmed
 import org.jetbrains.amper.frontend.AmperModule
-import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.dr.resolver.publiation.mavenCoordinates
+import org.jetbrains.amper.frontend.dr.resolver.publiation.rootPublicationCoordinates
 import org.jetbrains.amper.frontend.schema.ProductType
 
 /**
@@ -23,13 +23,6 @@ fun AmperModule.publicationCoordinates(platform: Platform): MavenCoordinates = w
     else -> error("Cannot generate Maven coordinates for $platform: only COMMON and leaf platforms are supported")
 }
 
-private fun AmperModule.rootPublicationCoordinates(): MavenCoordinates {
-    val commonFragment = fragments.find { !it.isTest && it.fragmentDependencies.isEmpty() }
-        ?: error("Cannot generate root Maven coordinates for module '$userReadableName': no root fragment")
-
-    return commonFragment.mavenCoordinates(artifactIdSuffix = "")
-}
-
 private fun AmperModule.kmpLeafPlatformPublicationCoordinates(platform: Platform): MavenCoordinates {
     val fragment = leafFragments.singleOrNull { !it.isTest && platform in it.platforms }
         ?: error("Cannot generate Maven coordinates for module '$userReadableName' with platform $platform: expected " +
@@ -39,12 +32,3 @@ private fun AmperModule.kmpLeafPlatformPublicationCoordinates(platform: Platform
     // the leaf fragment should inherit publication settings from parents, no need to browse again
     return fragment.mavenCoordinates(artifactIdSuffix = "-${platform.schemaValue.lowercase()}")
 }
-
-// todo (AB): [AMPER-5245] Support publishing with classifier.
-private fun Fragment.mavenCoordinates(artifactIdSuffix: String): MavenCoordinates = mavenCoordinatesTrimmed(
-    groupId = settings.publishing.group
-        ?: error("Missing 'group' in publishing settings of fragment '${name}' of module '${module.userReadableName}'"),
-    artifactId = (settings.publishing.artifactId ?: module.userReadableName.lowercase()) + artifactIdSuffix,
-    version = settings.publishing.version
-        ?: error("Missing 'version' in publishing settings of fragment '${name}' of module '${module.userReadableName}'")
-)

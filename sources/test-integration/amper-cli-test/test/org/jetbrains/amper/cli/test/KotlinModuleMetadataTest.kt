@@ -4,14 +4,21 @@
 
 package org.jetbrains.amper.cli.test
 
+import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.jetbrains.amper.test.Dirs
+import org.junit.jupiter.api.TestInfo
+import java.nio.file.Path
+import kotlin.io.path.div
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
 // todo (AB) : [AMPER-721]
 //  - add cinterop (direct and in refined fragment) to check that
 //    commonized cinterop klibs are added as an input to the native metadata compilation
-class AmperMetadataCompilationTest : AmperCliTestBase() {
+class KotlinModuleMetadataTest : AmperCliTestBase() {
+
+    val testGoldenFilesRoot: Path = Dirs.amperSourcesRoot.resolve("test-integration/amper-cli-test/testResources/metadata")
 
     /**
      * This test checks that metadata compilation of common fragment of multiplatform module,
@@ -113,5 +120,27 @@ class AmperMetadataCompilationTest : AmperCliTestBase() {
             "task",
             ":linuxWindowsShared:compileMetadataLinux",
             assertEmptyStdErr = true)
+    }
+
+    /**
+     * This checks that assembleMetadata task creates a correct kotlin project descriptor (kotlin-project-structure-metadata.json)
+     *
+     * Important: gold file descriptor was created by the Gradle project that contains a module with the same configuration
+     * as the module 'linuxMacShared' from the test Kotlin Toolchain project.
+     * If the test fails for some reason, it means that most probably there is a bug in the Kotlin Toolchain code,
+     * not the issue with the golden file.
+     * To ensure the compatibility with the KGP consumer, the golden file should be kept unchanged.
+     */
+    @Test
+    fun `assemble metadata of linuxMacShared module`(testInfo: TestInfo) = runSlowTest {
+        runCli(projectDir = testProject("multiplatform-library-template-main"),
+            "task",
+            ":linuxMacShared:assembleMetadata",
+        )
+
+        assertFileContentEquals(
+            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.kotlin-project-structure-metadata.json"),
+            tempRoot / "build" / "tasks" / "_linuxMacShared_assembleMetadata" / "kotlin-project-structure-metadata.json"
+        )
     }
 }

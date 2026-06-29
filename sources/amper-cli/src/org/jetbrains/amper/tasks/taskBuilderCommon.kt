@@ -19,6 +19,7 @@ import org.jetbrains.amper.frontend.mavenPublishRepositories
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.shouldPublishSourcesJars
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
+import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
 import org.jetbrains.amper.tasks.native.CommonizeNativeDistributionTask
 import org.jetbrains.amper.tasks.native.NativeTaskType
 import org.jetbrains.amper.tasks.publication.MavenCentralPublishTask
@@ -106,6 +107,31 @@ fun ProjectTasksBuilder.setupCommonTasks() {
                     addAll(allFragmentDependencies.map{ CommonFragmentTaskType.CompileMetadata.getTaskName(it) })
 
                     add(CommonizeNativeDistributionTask.TASK_NAME)
+                }
+            )
+        }
+
+    allModules()
+        // todo (AB): [AMPER-719] What is about android + jvm modules?
+        .filter { it.module.leafPlatforms.size > 1 && !it.isTest }
+        .withEach {
+            val taskName = ModuleTaskTypes.AllMetadata.getTaskName(module)
+            tasks.registerTask(
+                AssembleAllMetadataTask(
+                    taskName = taskName,
+                    module = module,
+                    moduleDependencies = moduleDependenciesMap[module]!!,
+                    userCacheRoot = context.userCacheRoot,
+                    tempRoot = context.projectTempRoot,
+                    taskOutputRoot = context.getTaskOutputPath(taskName),
+                    incrementalCache = context.incrementalCache,
+                ),
+                dependsOn = buildList {
+                    addAll(
+                        module.fragments
+                            .filter { it.platforms.size > 1 && !it.isTest }
+                            .map { CommonFragmentTaskType.CompileMetadata.getTaskName(it) }
+                    )
                 }
             )
         }

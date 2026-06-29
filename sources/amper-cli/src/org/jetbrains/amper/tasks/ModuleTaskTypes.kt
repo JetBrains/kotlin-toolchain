@@ -53,4 +53,9 @@ sealed class ModuleTaskTypes(
         internalName = "publishTo${repositoryId.doCapitalize()}",
         operationMoniker = "publishing to `$repositoryId`",
     )
+
+    data object AllMetadata: ModuleTaskTypes(
+        internalName = "assembleMetadata",
+        operationMoniker = "assembling all metadata",
+    )
 }

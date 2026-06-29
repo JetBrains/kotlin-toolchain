@@ -3,4 +3,5 @@ modules:
   - linuxWindowsShared
   - nativePlatform
   - nativeShared
+  - linuxMacShared
 

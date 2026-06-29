@@ -13,12 +13,12 @@ internal fun KotlinProjectStructureMetadata.serialize(): String = json.encodeToS
 
 
 @Serializable
-internal data class KotlinProjectStructureMetadata(
+data class KotlinProjectStructureMetadata(
     val projectStructure: ProjectStructure,
 )
 
 @Serializable
-internal data class ProjectStructure(
+data class ProjectStructure(
     val formatVersion: String,
     val isPublishedAsRoot: String,
     val variants: List<Variant>,
@@ -26,13 +26,13 @@ internal data class ProjectStructure(
 )
 
 @Serializable
-internal data class Variant(
+data class Variant(
     val name: String,
     val sourceSet: List<String>,
 )
 
 @Serializable
-internal data class SourceSet(
+data class SourceSet(
     val name: String,
     val dependsOn: List<String>,
     val moduleDependency: List<String>,
