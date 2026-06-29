@@ -18,6 +18,7 @@ val AomSingleModuleDiagnosticFactories: List<AomSingleModuleDiagnosticFactory> =
     JdkDistributionRequiresLicenseFactory,
     JUnitRequiresHigherJdkVersionFactory,
     KotlinIncrementalCompilationMayBehaveIncorrectlyFactory,
+    KotlinVersionDoesNotSupportJdkFactory,
     SerializationVersionWithDisabledSerialization,
     SigningEnabledWithoutPropertiesFileFactory,
     KeystorePropertiesDoesNotContainKeyFactory,

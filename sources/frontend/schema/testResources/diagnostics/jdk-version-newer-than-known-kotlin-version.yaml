@@ -1,0 +1,8 @@
+product: jvm/app
+
+settings:
+  kotlin:
+    version: <![Error] Kotlin compiler version `2.4.0` supports JDK up to 26, but this module uses JDK 100. Lower the JDK version to 26 to keep using Kotlin `2.4.0`.!>2.4.0<!>
+  jvm:
+    jdk:
+      version: <![Error] Kotlin compiler version `2.4.0` supports JDK up to 26, but this module uses JDK 100. Lower the JDK version to 26 to keep using Kotlin `2.4.0`.!>100<!>

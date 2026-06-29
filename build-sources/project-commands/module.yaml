@@ -43,6 +43,7 @@ plugins:
         junitPlatform: 6.0.3
         # https://kotlinlang.org/docs/releases.html
         # Also check AGP compatibility: https://developer.android.com/build/kotlin-support
+        # Also check/update JDK compatibility: [KotlinVersionDoesNotSupportJdkFactory] and [KotlinVersionDoesNotSupportJdkDiagnosticsTest].
         kotlin: 2.3.21
         # https://github.com/Kotlin/kotlinx-rpc/releases
         kotlinxRpc: 0.10.2

@@ -36,6 +36,7 @@ enum class FrontendDiagnosticId : DiagnosticId {
     KeystorePropertiesDoesNotContainKey,
     KotlinCompilerVersionTooLow,
     KotlinIncrementalCompilationMayBehaveIncorrectly,
+    KotlinVersionDoesNotSupportJdk,
     MandatoryFieldInPropertiesFileMustBePresent,
     MavenCentralPublishingEnabledButPublishingDisabled,
     ModuleDependencyDoesntHaveNeededPlatforms,
