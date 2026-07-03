@@ -107,11 +107,19 @@ internal class AmperJicBuildContext(
         return jicDataDir / "${amperModuleName}-abi.jar"
     }
 
+    override fun getKotlinCriStoragePath(): Path? {
+        return null
+    }
+
     override fun getSources(): NodeSourceSnapshot = sources
     override fun getBinaryDependencies(): NodeSourceSnapshot = libraries
 
     // resources are handled by Amper outside of Java compilation
     override fun getResources(): Iterable<ResourceGroup?> = emptyList()
+
+    override fun getUnexpectedInputs(): Iterable<String> {
+        return emptyList()
+    }
 
     override fun getBuilderOptions(): BuilderOptions = _builderOptions
     override fun getPathMapper(): NodeSourcePathMapper = pathMapper
@@ -127,6 +135,10 @@ internal class AmperJicBuildContext(
     override fun isRebuild(): Boolean = false
 
     override fun getFlags(): Map<CLFlags, List<String>> = clFlags
+
+    override fun getUntrackedInputsDigest(): Long {
+        return 0
+    }
 
     override fun getBuildLogger(): BuildProcessLogger = buildProcessLogger
 
@@ -175,13 +187,13 @@ internal class AmperJicBuildContext(
         }
 
         override fun logDeletedPaths(paths: Iterable<String?>?) {
-            // todo LOG debug
-            //println("[JIC] Deleted paths: ${paths!!.joinToString()}")
         }
 
         override fun logCompiledPaths(files: Iterable<Path?>, builderId: String, description: String) {
-            // todo LOG debug
-            //println("[JIC] Compiled paths: ${files.joinToString()}")
+        }
+
+        override fun getCollectedData(): String {
+            return ""
         }
     }
 }
