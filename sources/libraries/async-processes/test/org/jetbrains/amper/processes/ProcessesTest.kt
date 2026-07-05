@@ -33,12 +33,10 @@ class ProcessesTest {
 
     @Test
     fun `runProcessAndCaptureOutput should capture stdout and stderr`() = runBlocking(Dispatchers.IO) {
-        val command = when {
-            // there doesn't seem to be a way to have a line break in the middle of a single echo in Windows batch,
-            // so we don't really test it here (https://stackoverflow.com/questions/132799)
-            isWindows -> cmd("@echo line1&& @echo line2&& @echo break&& @echo hello stderr 1>&2")
-            else -> binSh("printf 'line1\n'; printf 'line2\nbreak'; printf 'hello stderr' 1>&2")
-        }
+        val command = shell(
+            shCommand = "printf 'line1\n'; printf 'line2\nbreak'; printf 'hello stderr' 1>&2",
+            psCommand = "Write-Output 'line1'; Write-Output 'line2'; Write-Output 'break'; [Console]::Error.Write('hello stderr')",
+        )
         val result = runProcessAndCaptureOutput(command = command)
         assertZeroExitCode(result)
         assertEquals(listOf("line1", "line2", "break"), result.stdout.trim().lines())
@@ -47,17 +45,17 @@ class ProcessesTest {
 
     @Test
     fun `runProcessAndCaptureOutput should capture stderr in case of wrong nested command`() = runBlocking(Dispatchers.IO) {
-        val command = when {
-            isWindows -> cmd("@echo line1 && not-a-command")
-            else -> binSh("echo line1; not-a-command")
-        }
+        val command = shell(
+            shCommand = "echo line1; not-a-command",
+            psCommand = "Write-Output 'line1'; not-a-command",
+        )
         val result = runProcessAndCaptureOutput(command = command)
         assertEquals(unknownCommandExitCode, result.exitCode)
         assertEquals("line1", result.stdout.trim())
         assertContains(result.stderr, "not-a-command")
 
         val expectedError = when {
-            isWindows -> "is not recognized as an internal or external command"
+            isWindows -> "not recognized"
             else -> "not found"
         }
         assertContains(result.stderr, expectedError)
@@ -124,7 +122,7 @@ class ProcessesTest {
     @Test
     fun `withGuaranteedTermination should kill the process when canceled`() = runBlocking(Dispatchers.IO) {
         @Suppress("PROCESS_BUILDER_START_LEAK") // we're literally testing the mechanism
-        val process = ProcessBuilder(binSh("sleep 600")).start()
+        val process = ProcessBuilder(sleep(seconds = 600)).start()
         val userBlockStartEvent = CompletableDeferred<Unit>()
         val job = launch {
             process.withGuaranteedTermination {
@@ -143,7 +141,12 @@ class ProcessesTest {
     @Test
     fun `withGuaranteedTermination should kill the process when canceled even when reading streams`() = runBlocking(Dispatchers.IO) {
         @Suppress("PROCESS_BUILDER_START_LEAK") // we're literally testing the mechanism
-        val process = ProcessBuilder(binSh("echo 'started'; sleep 600")).start()
+        val process = ProcessBuilder(
+            shell(
+                shCommand = "echo 'started'; sleep 600",
+                psCommand = "Write-Output 'started'; Start-Sleep -Seconds 600",
+            )
+        ).start()
         val firstOutputLineEvent = CompletableDeferred<Unit>()
         val job = launch {
             process.withGuaranteedTermination {
@@ -168,7 +171,7 @@ class ProcessesTest {
     @Test
     fun `withGuaranteedTermination should kill the process when already cancelled`() = runBlocking(Dispatchers.IO) {
         @Suppress("PROCESS_BUILDER_START_LEAK") // we're literally testing the mechanism
-        val process = ProcessBuilder(binSh("sleep 60")).start()
+        val process = ProcessBuilder(sleep(seconds = 600)).start()
 
         val launchJob = launch {
             cancel() // simulates that the coroutine is already canceled before the call
@@ -196,24 +199,31 @@ private fun assertTerminated(process: Process, message: String) {
     fail("$message. Killed afterwards: $testProcessTerminated")
 }
 
-private fun binSh(command: String): List<String> = when {
-    isWindows -> listOf("bash.exe", "-c", command) // FIXME this relies on bash.exe in System32 (setup by WSL)
-    else -> listOf("/bin/sh", "-c", command)
+private fun sleep(seconds: Int): List<String> = shell(
+    shCommand = "sleep $seconds",
+    psCommand = "Start-Sleep -Seconds $seconds",
+)
+
+private fun echoEnv(envVarName: String) = shell(
+    shCommand = "echo \$$envVarName",
+    psCommand = "Write-Output \$env:$envVarName",
+)
+
+private fun echoLoop(n: Int, message: String) = shell(
+    shCommand = "for i in `seq 1 $n`; do echo '$message'; done",
+    psCommand = $$"for ($i = 1; $i -le $$n; $i++) { Write-Output $${message.toPowerShellStringLiteral()} }",
+)
+
+private fun shell(shCommand: String, psCommand: String): List<String> = when {
+    isWindows -> powershell(psCommand)
+    else -> binSh(shCommand)
 }
 
-private fun echoEnv(envVarName: String) = when {
-    isWindows -> cmd("@echo %$envVarName%")
-    else -> binSh("echo \$$envVarName")
-}
+private fun binSh(command: String): List<String> = listOf("/bin/sh", "-c", command)
 
-private fun echoLoop(n: Int, message: String) = when {
-    // Weird hack on Windows just to trim the double quotes while keeping the command valid even with special chars.
-    // This is an abuse of the /P flag of the set command.
-    isWindows -> cmd("for /l %x in (1, 1, $n) do @echo|(@set /P dummy=\"$message\" && echo.)")
-    else -> binSh("for i in `seq 1 $n`; do echo '$message'; done")
-}
+private fun powershell(command: String) = listOf("powershell.exe", "-NonInteractive", "-NoProfile", "-NoLogo", "-Command", command)
 
-private fun cmd(command: String) = listOf("cmd", "/c", command)
+private fun String.toPowerShellStringLiteral(): String = "'${replace("'", "''")}'"
 
 private fun assertZeroExitCode(result: ProcessResult) {
     assertEquals(0, result.exitCode,
