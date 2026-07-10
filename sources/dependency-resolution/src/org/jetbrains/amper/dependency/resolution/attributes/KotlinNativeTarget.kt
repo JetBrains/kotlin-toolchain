@@ -14,6 +14,10 @@ sealed class KotlinNativeTarget(override val value: String) : AttributeValue {
         override fun fromString(value: String): KotlinNativeTarget {
             return ResolutionPlatform.entries.firstOrNull { it.nativeTarget == value }?.let(::Known) ?: Unknown(value)
         }
+
+        fun fromPlatform(platform: ResolutionPlatform): KotlinNativeTarget? {
+            return platform.nativeTarget?.let{ Known(platform) }
+        }
     }
 
     class Known(val platform: ResolutionPlatform) : KotlinNativeTarget(checkNotNull(platform.nativeTarget))

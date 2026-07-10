@@ -1,0 +1,17 @@
+product:
+  type: kmp/lib
+  platforms: [linuxX64, linuxArm64, macosArm64, macosX64, jvm, android]
+
+apply:
+  - ../common.module-template.yaml
+
+dependencies:
+  - $libs.kotlinx.coroutines.core
+  - ../library
+  - bom: com.fasterxml.jackson:jackson-bom:2.18.2
+
+test-dependencies:
+  - $kotlin.test
+settings:
+  publishing:
+    artifactId: libraryNested

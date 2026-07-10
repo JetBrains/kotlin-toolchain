@@ -4,11 +4,15 @@
 
 package org.jetbrains.amper.cli.test
 
+import kotlinx.serialization.json.Json
 import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.jetbrains.amper.dependency.resolution.metadata.json.module.Module
 import org.jetbrains.amper.test.Dirs
 import org.junit.jupiter.api.TestInfo
+import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 import kotlin.io.path.div
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -21,8 +25,8 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
     val testGoldenFilesRoot: Path = Dirs.amperSourcesRoot.resolve("test-integration/amper-cli-test/testResources/metadata")
 
     /**
-     * This test checks that metadata compilation of common fragment of multiplatform module,
-     * that targets mixed native and non-native platforms,
+     * This test checks that metadata compilation of common fragment of a multiplatform module
+     * that targets mixed native and non-native platforms
      * is successful.
      */
     @Test
@@ -34,7 +38,7 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
     }
 
     /**
-     * This test checks that metadata compilation correctly process expected/actual fragment refinement.
+     * This test checks that metadata compilation correctly processes expected/actual fragment refinement.
      *
      * Test performs metadata compilation for the 'linux' fragment of the multiplatform native-only module.
      * It differs from the previous test that checks common compilation, because
@@ -72,7 +76,7 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
      * 'linux' fragment depends on:
      *  - KMP library with cinterop source sets applicable to the fragment ('crypto-rand')
      *  - Another local shared module ('library'),
-     *  - Another fragments within the same module ('common', 'native')
+     *  - Other fragments within the same module ('common', 'native')
      *  - KMP library ('kotlinx-coroutines-core')
      */
     @Test
@@ -111,7 +115,7 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
      * depending on another exported module transitively is successful.
      *
      * Test performs metadata compilation for the 'linux' fragment of module 'linuxWindowsShared'.
-     * That fragment uses symbols defined in the common fragment of 'library' module.
+     * That fragment uses symbols defined in the common fragment of the 'library' module.
      * Module 'linuxWindowsShared' depends on 'library' transitively via exported dependency declared in the module 'nativeShared'
      */
     @Test
@@ -126,21 +130,81 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
      * This checks that assembleMetadata task creates a correct kotlin project descriptor (kotlin-project-structure-metadata.json)
      *
      * Important: gold file descriptor was created by the Gradle project that contains a module with the same configuration
-     * as the module 'linuxMacShared' from the test Kotlin Toolchain project.
+     * as the module 'libraryNested' from the test Kotlin Toolchain project.
      * If the test fails for some reason, it means that most probably there is a bug in the Kotlin Toolchain code,
      * not the issue with the golden file.
      * To ensure the compatibility with the KGP consumer, the golden file should be kept unchanged.
      */
     @Test
-    fun `assemble metadata of linuxMacShared module`(testInfo: TestInfo) = runSlowTest {
+    fun `assemble kotlin project structure descriptor of libraryNested module`(testInfo: TestInfo) = runSlowTest {
         runCli(projectDir = testProject("multiplatform-library-template-main"),
             "task",
-            ":linuxMacShared:assembleMetadata",
+            ":libraryNested:assembleMetadata",
         )
 
         assertFileContentEquals(
             testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.kotlin-project-structure-metadata.json"),
-            tempRoot / "build" / "tasks" / "_linuxMacShared_assembleMetadata" / "kotlin-project-structure-metadata.json"
+            tempRoot / "build" / "tasks" / "_libraryNested_assembleMetadata" / "kotlin-project-structure-metadata.json"
+        )
+
+        // todo (AB) : [AMPER-721] Check -metadata and -sources files content
+    }
+
+    @Test
+    fun `generate Gradle module metadata of libraryNested module`(testInfo: TestInfo) = runSlowTest {
+        runCli(projectDir = testProject("multiplatform-library-template-main"),
+            "task",
+            ":libraryNested:prepareMavenPublishables",
+        )
+
+        val sanitizedGradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
+            tempRoot / "build" / "tasks" / "_libraryNested_prepareMavenPublishables" / "libraryNested-1.0.0.module"
+        )
+
+        assertFileContentEquals(
+            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.module.json"),
+            sanitizedGradleModuleMetadata
         )
     }
+
+    private fun getSanitizedGradleMetadataProducedByCli(
+        gradleModuleMetadataFile: Path,
+    ): Path {
+        val gradleModuleMetadata = gradleModuleMetadataFile.readPGradleModuleMetadata()
+        val sanitizedGradleModuleMetadata = gradleModuleMetadata.copy(
+            variants = gradleModuleMetadata.variants.map {
+                if (it.files.isNotEmpty()) {
+                    it.copy(files = it.files.map {
+                        it.copy(sha512 = "mocked", sha256 = "mocked", sha1 = "mocked", md5 = "mocked", size = -1)
+                    })
+                } else {
+                    it
+                }
+            }
+        ).serialize()
+
+        val patchedGradleModuleMetadata = gradleModuleMetadataFile.parent.resolve("${gradleModuleMetadataFile.fileName}-patched")
+
+        Files.writeString(patchedGradleModuleMetadata, sanitizedGradleModuleMetadata,
+            StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
+
+        return patchedGradleModuleMetadata
+    }
+
+    // todo (AB): [AMPER-721] Add test for js, wasm_js, wasm_wasi module and check PSM/Gradle metadata generation
+
+    companion object {
+        private val json = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            prettyPrint = true
+            prettyPrintIndent = "  "
+        }
+
+
+        fun Path.readPGradleModuleMetadata(): Module = json.decodeFromString(Files.readString(this))
+        fun Module.serialize(): String = json.encodeToString(this)
+    }
 }
+
+

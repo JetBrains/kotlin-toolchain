@@ -1,3 +1,6 @@
 product:
   type: kmp/lib
-  platforms: [android, jvm, iosArm64, iosX64, iosSimulatorArm64, linuxX64, linuxArm64, mingwX64]
+  platforms: [android, jvm, iosArm64, iosX64, iosSimulatorArm64, linuxX64, linuxArm64, mingwX64, macosArm64, macosX64]
+
+apply:
+  - ../common.module-template.yaml

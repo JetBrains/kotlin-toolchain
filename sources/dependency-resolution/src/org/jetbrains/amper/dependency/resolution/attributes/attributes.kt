@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.dependency.resolution.attributes
 
+import org.jetbrains.amper.dependency.resolution.metadata.json.module.Component
 import org.jetbrains.amper.dependency.resolution.metadata.json.module.Dependency
 import org.jetbrains.amper.dependency.resolution.metadata.json.module.Variant
 

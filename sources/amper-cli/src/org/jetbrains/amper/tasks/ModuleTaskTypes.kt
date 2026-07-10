@@ -54,7 +54,7 @@ sealed class ModuleTaskTypes(
         operationMoniker = "publishing to `$repositoryId`",
     )
 
-    data object AllMetadata: ModuleTaskTypes(
+    data object AssembleAllMetadata: ModuleTaskTypes(
         internalName = "assembleMetadata",
         operationMoniker = "assembling all metadata",
     )

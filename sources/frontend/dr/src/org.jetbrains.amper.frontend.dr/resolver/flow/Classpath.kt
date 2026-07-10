@@ -13,8 +13,8 @@ import org.jetbrains.amper.frontend.BomDependency
 import org.jetbrains.amper.frontend.DefaultScopedNotation
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.LocalModuleDependency
-import org.jetbrains.amper.frontend.MavenDependency
 import org.jetbrains.amper.frontend.MavenDependencyBase
+import org.jetbrains.amper.frontend.Notation
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings
@@ -73,11 +73,10 @@ internal class Classpath(
         resolutionSettings: AmperResolutionSettings,
         sharedResolutionCache: Cache,
     ): ModuleDependencyNodeWithModuleAndContext {
-        return module.fragmentsModuleDependencies(flowType, resolutionSettings = resolutionSettings, sharedResolutionCache = sharedResolutionCache)
+        return module.fragmentsModuleDependencies(resolutionSettings = resolutionSettings, sharedResolutionCache = sharedResolutionCache)
     }
 
     private fun AmperModule.fragmentsModuleDependencies(
-        flowType: DependenciesFlowType.ClassPathType,
         directDependencies: Boolean = true,
         notation: LocalModuleDependency? = null,
         visitedModules: MutableSet<AmperModule> = mutableSetOf(),
@@ -115,7 +114,7 @@ internal class Classpath(
 
         val dependencies = fragments
             .sortedForClasspath(platforms)
-            .flatMap { it.toDependencyNode(resolutionPlatforms, directDependencies, moduleContext, visitedModules, flowType, resolutionSettings, sharedResolutionCache) }
+            .flatMap { it.toDependencyNode(resolutionPlatforms, directDependencies, moduleContext, visitedModules, resolutionSettings, sharedResolutionCache) }
             .sortedByDescending { (it.notation as? DefaultScopedNotation)?.exported == true }
 
         val node = ModuleDependencyNodeWithModuleAndContext(
@@ -135,7 +134,6 @@ internal class Classpath(
         directDependencies: Boolean,
         moduleContext: Context,
         visitedModules: MutableSet<AmperModule>,
-        flowType: DependenciesFlowType.ClassPathType,
         resolutionSettings: AmperResolutionSettings,
         sharedResolutionCache: Cache,
     ): List<DependencyNodeHolderWithNotationAndContext> {
@@ -144,7 +142,7 @@ internal class Classpath(
             .mapNotNull { dependency ->
                 when (dependency) {
                     is MavenDependencyBase -> {
-                        val includeDependency = dependency.shouldBeAdded(platforms, directDependencies, flowType)
+                        val includeDependency = dependency.belongsToClasspath(platforms, directDependencies)
                         if (includeDependency) {
                             dependency.toFragmentDirectDependencyNode(this, directDependencies, moduleContext)
                         } else null
@@ -153,10 +151,10 @@ internal class Classpath(
                     is LocalModuleDependency -> {
                         val resolvedDependencyModule = dependency.module
                         if (!visitedModules.contains(resolvedDependencyModule)) {
-                            val includeDependency = dependency.shouldBeAddedByNotion(platforms, directDependencies, flowType)
+                            val includeDependency = dependency.belongsToClasspath(platforms, directDependencies)
                             if (includeDependency) {
                                 resolvedDependencyModule.fragmentsModuleDependencies(
-                                    flowType, directDependencies = false, notation = dependency, visitedModules = visitedModules,
+                                    directDependencies = false, notation = dependency, visitedModules = visitedModules,
                                     resolutionSettings = resolutionSettings,
                                     sharedResolutionCache = sharedResolutionCache
                                 )
@@ -174,14 +172,13 @@ internal class Classpath(
         return fragmentDependencies
     }
 
-    private fun MavenDependencyBase.shouldBeAdded(
+    fun Notation.belongsToClasspath(
         platforms: Set<ResolutionPlatform>,
         directDependencies: Boolean,
-        flowType: DependenciesFlowType.ClassPathType,
     ): Boolean {
         return when(this) {
-            is MavenDependency -> {
-                shouldBeAddedByNotion(platforms, directDependencies, flowType)
+            is DefaultScopedNotation -> {
+                shouldBeAddedByNotion(platforms, directDependencies)
             }
             is BomDependency -> {
                 when (flowType.scope) {
@@ -198,11 +195,11 @@ internal class Classpath(
     private fun DefaultScopedNotation.shouldBeAddedByNotion(
         platforms: Set<ResolutionPlatform>,
         directDependencies: Boolean,
-        flowType: DependenciesFlowType.ClassPathType,
     ): Boolean =
         when (flowType.scope) {
             // the compilation classpath graph contains direct and exported transitive dependencies,
-            // for native platforms the compilation classpath graph contains all transitive none-exported dependencies as well,
+            // for native platforms,
+            // the compilation classpath graph contains all transitive none-exported dependencies as well,
             // because native compilation (and linking) depends on entire transitive dependencies.
             // runtime-only dependencies are not included in the compilation classpath graph
             ResolutionScope.COMPILE -> compile && (directDependencies || exported || (flowType.includeNonExportedNative && platforms.all { it.nativeTarget != null } ))
@@ -230,4 +227,39 @@ internal class Classpath(
                     addAll(this@ensureFirstFragment - fragmentWithPlatform)
                 }
         }
+}
+
+/**
+ * Returns the list of dependencies this [Fragment] add to the classpath.
+ * The classpath is defined by the following parameters
+ * [scope], [platforms], [directDependencies] and [includeNonExportedNative]
+ *
+ * @param platforms a set of platforms resolution is made for. It might be different from the set of own [Fragment]
+ * platforms (in this case, [platforms] is a subset of this [Fragment.platforms]).
+ * @param scope resolution scope to form classpath for
+ * @param directDependencies should be set to true if caller is interested in the dependencies
+ * required for this particular fragment to be compiled or run. If that fragment is a nested dependency of some
+ * larger compilation, then the value should be set to false
+ * (in this case, for instance, non-exported COMPILE dependencies of the fragment
+ * won't be added to resulting list, but only exported ones)
+ *  @param includeNonExportedNative Default value is true. It specifies if transitive COMPILE dependencies should
+ *  be included in the classpath for the native compilation (i.e., [platforms] contains native platforms only)
+ */
+fun Fragment.classpath(
+    directDependencies: Boolean,
+    scope: ResolutionScope,
+    platforms: Set<ResolutionPlatform>,
+    includeNonExportedNative: Boolean = true,
+): List<Notation> {
+    val classpath = Classpath(DependenciesFlowType.ClassPathType(
+        scope, platforms, isTest, includeNonExportedNative
+    ))
+    return with (classpath) {
+        externalDependencies.filter {
+            it.belongsToClasspath(
+                platforms,
+                directDependencies,
+            )
+        }
+    }
 }

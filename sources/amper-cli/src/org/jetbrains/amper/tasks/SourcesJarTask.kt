@@ -11,6 +11,7 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jar.JarConfig
 import org.jetbrains.amper.jar.ZipInput
 import org.jetbrains.amper.problems.reporting.ProblemReporter
+import org.jetbrains.amper.tasks.metadata.sourceSetName
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.div
@@ -36,7 +37,7 @@ class SourcesJarTask(
             // To match current KMP publications, sources for common should be in "/commonMain", jvm in "/jvmMain" etc.
             // TODO check whether this is necessary, or if using the src directory name would be understood by IDEs
             // TODO: Migrate to KotlinJavaSourcesDirArtifact
-            .flatMap { f -> f.sourceRoots.map { ZipInput(path = it, destPathInArchive = Path("${f.name}Main")) } }
+            .flatMap { f -> f.sourceRoots.map { ZipInput(path = it, destPathInArchive = Path(f.sourceSetName())) } }
             .filter { it.path.exists() }
             .toList()
 

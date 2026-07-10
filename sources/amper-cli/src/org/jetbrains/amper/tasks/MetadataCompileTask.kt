@@ -49,16 +49,17 @@ import org.jetbrains.amper.kotlin.native.librariesForMetadataCompilation
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.stdlib.io.path.clean
+import org.jetbrains.amper.stdlib.io.path.isEmptyDirectory
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.KotlinJavaSourceDirArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
+import org.jetbrains.amper.tasks.metadata.sourceSetName
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
-import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.extension
@@ -151,10 +152,6 @@ internal class MetadataCompileTask(
         } else {
             compileCommonMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk)
         }
-    }
-
-    fun Path.isEmptyDirectory(): Boolean {
-        return isDirectory() && Files.newDirectoryStream(this).use { it.none() }
     }
 
     context(_: ProblemReporter)
@@ -300,7 +297,7 @@ internal class MetadataCompileTask(
         )
         val compilerArgs = kotlinMetadataCompilerArgs(
             kotlinUserSettings = kotlinUserSettings,
-            moduleName = module.kotlinModuleName(isTest),
+            moduleName = "${module.kotlinModuleName(isTest)}_${fragment.sourceSetName()}",
             classpath = commonizedKlibs + classpath,
             compilerPlugins = compilerPlugins,
             outputPath = taskOutputRoot.path,

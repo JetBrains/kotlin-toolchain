@@ -1,7 +1,7 @@
 modules:
   - library
+  - libraryNested
   - linuxWindowsShared
   - nativePlatform
   - nativeShared
-  - linuxMacShared
 

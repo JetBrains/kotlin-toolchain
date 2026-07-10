@@ -15,6 +15,10 @@ sealed class KotlinWasmTarget(override val value: String) : AttributeValue {
             return ResolutionPlatform.entries.firstOrNull { it.wasmTarget == value }
                 ?.let(::Known) ?: Unknown(value)
         }
+
+        fun fromPlatform(platform: ResolutionPlatform): KotlinWasmTarget? {
+            return platform.wasmTarget?.let{ Known(platform) }
+        }
     }
 
     class Known(val platform: ResolutionPlatform) : KotlinWasmTarget(checkNotNull(platform.wasmTarget))

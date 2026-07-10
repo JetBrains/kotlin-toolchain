@@ -76,8 +76,10 @@ class MavenPublishTask(
 
         val localRepositoryPath = mavenLocalRepository.repository
         val artifacts = dependenciesResult.filterIsInstance<PrepareMavenPublishablesTask.Result>()
-            .flatMap { it.mavenArtifacts() }
-            // We sort for reproducibility, because the artifact order matters for the Eclipse Aether library
+            .flatMap { it.publishables }
+            .filterNot { it.isChecksum }
+            .map { it.toMavenArtifact() }
+            // We sort for reproducibility because the artifact order matters for the Eclipse Aether library
             // (it determines the order in maven-metadata.xml, at least when using SNAPSHOTs)
             .sortedWith(artifactComparator)
 

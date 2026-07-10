@@ -10,6 +10,7 @@ test-dependencies:
   - //sources/amper-kotlin-native
   - //sources/amper-wrapper
   - //sources/core
+  - //sources/dependency-resolution
   - //sources/frontend-api # for DefaultVersions
   - //sources/frontend/schema
   - //sources/libraries/system-info

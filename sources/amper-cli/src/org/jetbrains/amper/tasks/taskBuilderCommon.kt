@@ -20,6 +20,7 @@ import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.shouldPublishSourcesJars
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
 import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
+import org.jetbrains.amper.tasks.metadata.allMetadataFragments
 import org.jetbrains.amper.tasks.native.CommonizeNativeDistributionTask
 import org.jetbrains.amper.tasks.native.NativeTaskType
 import org.jetbrains.amper.tasks.publication.MavenCentralPublishTask
@@ -81,7 +82,7 @@ fun ProjectTasksBuilder.setupCommonTasks() {
     allFragments()
         // Metadata compilation is done for multi-platform main fragments.
         // todo (AB) : [AMPER-721] "android+jvm", "webMain" should be also skipped.
-        .filter { it.platforms.size > 1 && !it.isTest }
+        .allMetadataFragments()
         .forEach {
             val taskName = CommonFragmentTaskType.CompileMetadata.getTaskName(it)
             tasks.registerTask(
@@ -115,7 +116,7 @@ fun ProjectTasksBuilder.setupCommonTasks() {
         // todo (AB): [AMPER-719] What is about android + jvm modules?
         .filter { it.module.leafPlatforms.size > 1 && !it.isTest }
         .withEach {
-            val taskName = ModuleTaskTypes.AllMetadata.getTaskName(module)
+            val taskName = ModuleTaskTypes.AssembleAllMetadata.getTaskName(module)
             tasks.registerTask(
                 AssembleAllMetadataTask(
                     taskName = taskName,
@@ -181,6 +182,9 @@ fun ProjectTasksBuilder.setupCommonTasks() {
                             add(CommonTaskType.JavadocJar.getTaskName(module, platform))
                             // we need dependencies to get publication coordinate overrides (e.g. -jvm variant)
                             add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest = false))
+                        }
+                        if (module.leafPlatforms.size > 1) {
+                            add(ModuleTaskTypes.AssembleAllMetadata.getTaskName(module))
                         }
                     },
                 )

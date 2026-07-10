@@ -4,9 +4,13 @@
 
 package org.jetbrains.amper.tasks
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.jetbrains.amper.cli.userReadableError
+import org.jetbrains.amper.concurrency.flatMapConcurrently
+import org.jetbrains.amper.concurrency.mapConcurrently
 import org.jetbrains.amper.crypto.pgp.AsciiArmoredPgpKey
 import org.jetbrains.amper.crypto.pgp.PgpKeyParsingException
 import org.jetbrains.amper.crypto.pgp.PgpSigner
@@ -19,6 +23,8 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.isArtifactSigningEnabled
+import org.jetbrains.amper.frontend.publishingSettings
+import org.jetbrains.amper.frontend.schema.Checksum
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForSerializable
 import org.jetbrains.amper.incrementalcache.getDynamicInputs
@@ -27,17 +33,23 @@ import org.jetbrains.amper.maven.publish.merge
 import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.amper.maven.publish.writePomFor
 import org.jetbrains.amper.serialization.paths.SerializablePath
+import org.jetbrains.amper.stdlib.hashing.hash
 import org.jetbrains.amper.tasks.jvm.JvmClassesJarTask
+import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
+import org.jetbrains.amper.tasks.metadata.generateGradleModuleMetadata
 import org.jetbrains.amper.tasks.native.NativeCompileKlibTask
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.createParentDirectories
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
+import kotlin.io.path.readBytes
+import kotlin.io.path.writeText
 
 class PrepareMavenPublishablesTask(
     override val taskName: TaskName,
@@ -80,14 +92,50 @@ class PrepareMavenPublishablesTask(
             val poms = coordsPerPlatform.map { [platform, coords] ->
                 generatePomFile(module, platform, depsCoordinatesOverrides).toMavenPublishable(coords)
             }
-            val meaningfulPublishables = poms + modulePublishablesFromOtherTasks
-            if (signingEnabled) {
+            val meaningfulPublishables = mutableListOf<MavenPublishable>()
+            meaningfulPublishables.addAll(poms)
+            meaningfulPublishables.addAll(modulePublishablesFromOtherTasks)
+
+            val checksumsToPublish = module.publishingSettings.checksums
+            val checksumPublishables = mutableMapOf<String, List<MavenPublishable>>()
+
+            checksumPublishables.putAll(meaningfulPublishables
+                .flatMapConcurrently { listOf(it.path.toAbsolutePath().toString() to generateChecksums(it, checksumsToPublish)) }
+                .toMap()
+            )
+
+            dependenciesResult.filterIsInstance<AssembleAllMetadataTask.Result>()
+                .singleOrNull()?.let { allMetadataTaskResult ->
+                    val allMetadataGradleModuleFile = generateGradleModuleMetadata(
+                        module, taskOutputRoot.path,
+                        allMetadataJarPath = allMetadataTaskResult.allMetadataJarPath,
+                        allMetadataSourcesJarPath = allMetadataTaskResult.allMetadataSourcesJarPath,
+                        checksumPublishables
+                    )
+                    val allMetadataGradleModulePublishable =
+                        allMetadataGradleModuleFile.toMavenPublishable(coordsPerPlatform[Platform.COMMON]!!)
+
+                    meaningfulPublishables.add(allMetadataGradleModulePublishable)
+                    checksumPublishables[allMetadataGradleModuleFile.toAbsolutePath().toString()] =
+                        generateChecksums(allMetadataGradleModulePublishable, checksumsToPublish)
+                }
+
+//            val gradleMetadataFiles: List<MavenPublishable> = coordsPerPlatform.map { [platform, coords] ->
+//                generateGradleMetadataFile(module, platform, depsCoordinatesOverrides).toMavenPublishable(coords)
+//            }
+//            // todo (AB) : add checksums for gradleMetadataFiles
+
+            // Checksums are not mandatory for signatures itself, and we want to limit the number of published files, so we only
+            // have generated checksums for non-signature publishables.
+            val meaningfulPublishablesWithSignatures = if (signingEnabled) {
                 val artifactSigner = createSignerFromEnvConfig()
                 val signatures = meaningfulPublishables.map { artifactSigner.signArtifact(it) }
                 meaningfulPublishables + signatures
             } else {
                 meaningfulPublishables
             }
+
+            meaningfulPublishablesWithSignatures + checksumPublishables.values.flatten()
         }
 
         return Result(publishables)
@@ -151,6 +199,25 @@ class PrepareMavenPublishablesTask(
         )
     }
 
+    private suspend fun generateChecksums(
+        publishable: MavenPublishable,
+        checksumsToPublish: List<Checksum>,
+    ): List<MavenPublishable> = checksumsToPublish.mapConcurrently { algorithm ->
+        generateChecksum(publishable, algorithm)
+    }
+
+    private suspend fun generateChecksum(publishable: MavenPublishable, algorithm: Checksum): MavenPublishable =
+        withContext(Dispatchers.IO) {
+            val algorithmExtension = algorithm.mavenArtifactExtensionSuffix
+            val checksum = publishable.path.readBytes().hash(algorithm.algorithmName).toHexString()
+            val checksumFile = taskOutputRoot.path.resolve("checksums/${publishable.path.fileName}.$algorithmExtension")
+            checksumFile.createParentDirectories().writeText(checksum)
+            publishable.copy(
+                mavenArtifactExtension = "${publishable.mavenArtifactExtension}.$algorithmExtension",
+                path = checksumFile,
+            )
+        }
+
     class Result(val publishables: List<MavenPublishable>) : TaskResult
 }
 
@@ -174,7 +241,12 @@ data class MavenPublishable(
      */
     val isSignature: Boolean
         get() = mavenArtifactExtension.endsWith("asc")
+
+   val isChecksum: Boolean
+        get() = Checksum.entries.any { mavenArtifactExtension.endsWith(it.mavenArtifactExtensionSuffix) }
 }
+
+private val Checksum.mavenArtifactExtensionSuffix get() = algorithmName.lowercase().replace("-", "")
 
 private fun TaskResult.toMavenPublishables(coordsPerPlatform: Map<Platform, MavenCoordinates>) = when (this) {
     is JvmClassesJarTask.Result -> listOf(toMavenPublishable(coordsPerPlatform))
@@ -183,6 +255,7 @@ private fun TaskResult.toMavenPublishables(coordsPerPlatform: Map<Platform, Mave
     is NativeCompileKlibTask.Result -> toMavenPublishables(coordsPerPlatform)
     is WebCompileKlibTask.Result -> toMavenPublishables(coordsPerPlatform)
     is ResolveExternalDependenciesTask.Result -> emptyList() // this is just for coords overrides, not extra artifacts
+    is AssembleAllMetadataTask.Result -> toMavenPublishables(coordsPerPlatform)
     else -> error("Unsupported dependency result: ${javaClass.name}")
 }
 
@@ -202,6 +275,13 @@ private fun NativeCompileKlibTask.Result.toMavenPublishables(
 private fun WebCompileKlibTask.Result.toMavenPublishables(
     coordsPerPlatform: Map<Platform, MavenCoordinates>
 ): List<MavenPublishable> = listOfNotNull(compiledKlib?.toMavenPublishable(coordsPerPlatform.getValue(platform)))
+
+private fun AssembleAllMetadataTask.Result.toMavenPublishables(
+    coordsPerPlatform: Map<Platform, MavenCoordinates>
+): List<MavenPublishable> = listOfNotNull(
+    allMetadataJarPath?.toMavenPublishable(coordsPerPlatform.getValue(Platform.COMMON)),
+    allMetadataSourcesJarPath?.toMavenPublishable(coordsPerPlatform.getValue(Platform.COMMON).copy(classifier = "sources")  ),
+)
 
 private fun Path.toMavenPublishable(
     coords: MavenCoordinates,

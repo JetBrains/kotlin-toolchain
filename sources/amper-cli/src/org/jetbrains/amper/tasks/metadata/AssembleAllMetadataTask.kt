@@ -4,36 +4,38 @@
 
 package org.jetbrains.amper.tasks.metadata
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import org.jetbrains.amper.cli.AmperProjectTempRoot
+import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.core.AmperUserCacheRoot
-import org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure.KotlinProjectStructureMetadata
-import org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure.ProjectStructure
-import org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure.SourceSet
-import org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure.Variant
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
-import org.jetbrains.amper.frontend.FragmentDependencyType
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
+import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.jar.JarConfig
+import org.jetbrains.amper.jar.ZipInput
+import org.jetbrains.amper.jar.writeJar
+import org.jetbrains.amper.maven.publish.publicationCoordinates
+import org.jetbrains.amper.stdlib.io.path.isEmptyDirectory
 import org.jetbrains.amper.tasks.MetadataCompileTask
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.slf4j.LoggerFactory
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption
+import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.createParentDirectories
+import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
+import kotlin.io.path.exists
+
+typealias GradleVariant = org.jetbrains.amper.dependency.resolution.metadata.json.module.Variant
+typealias KotlinProjectStructureVariant = org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure.Variant
 
 class AssembleAllMetadataTask (
     override val taskName: TaskName,
@@ -45,91 +47,101 @@ class AssembleAllMetadataTask (
     private val incrementalCache: IncrementalCache,
 ): ArtifactTaskBase(), BuildTask {
 
+    context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(
         dependenciesResult: List<TaskResult>,
-        executionContext: TaskGraphExecutionContext,
     ): TaskResult {
         check(module.leafPlatforms.size > 1) { "Running the task ${taskName.id} for a single-platform module is not allowed" }
 
         logger.infoNoConsole("Assembling all metadata artifact for module ${module.userReadableName}")
+
+        taskOutputRoot.path.deleteRecursively()
+        taskOutputRoot.path.createDirectories()
 
         // todo (AB): [AMPER-719] Add a test for the case where cinterop is declared for the fragment,
         //  but there is no actual sources are attached to the fragment except cinterop defs.
         //  (metadata compilation result is empty directory,
         //  but cinterop sourceSet is there and should be mentioned in the module descriptor)
 
+        // todo (AB): [AMPER-719] Wrap into incremental cache
+
         val metadataCompilations = dependenciesResult.filterIsInstance<MetadataCompileTask.Result>()
         val fragmentMetadata: Map<Fragment, MetadataCompileTask.Result> =
             metadataCompilations.associateBy { it.fragment }
 
-        generateKotlinProjectDescriptor(fragmentMetadata)
+        val projectStructureFilePath = generateKotlinProjectDescriptor(module, taskOutputRoot.path, fragmentMetadata)
+
+        val allMetadataJarPath = assembleAllMetadataJar(module, taskOutputRoot.path, fragmentMetadata, projectStructureFilePath)
+
+        val allMetadataSourcesJarPath = if (module.publishingSettings.publishSources) {
+            assembleAllMetadataSourcesJar(module, taskOutputRoot.path, fragmentMetadata)
+        } else null
 
         return Result(
-            allMetadataOutputRoot = taskOutputRoot.path,
+            allMetadataJarPath = allMetadataJarPath,
+            allMetadataSourcesJarPath = allMetadataSourcesJarPath,
             module = module
         )
     }
 
-    private suspend fun generateKotlinProjectDescriptor(fragmentMetadata: Map<Fragment, MetadataCompileTask.Result>) {
-        // There is an entry for each module LEAF fragment in the project descriptor file.
-        // Each entry contains a name of the variant from the Gradle metadata file that corresponds to the fragment
-        // and a list of multiplatform fragments (represented with [SourceSet] this fragment depends on)
-        val variants = module.leafFragments
-            .filterNot { it.isTest }
-            .map { it.toVariant() }
-            .sortedBy { it.name }
+    private fun assembleAllMetadataJar(
+        module: AmperModule,
+        outputDirectory: Path,
+        fragmentMetadata: Map<Fragment, MetadataCompileTask.Result>,
+        projectStructureFilePath: Path,
+    ): Path? {
+        // todo (AB): [AMPER-719] Wrap into incremental cache
+        val moduleCoordinates = module.publicationCoordinates(Platform.COMMON)
+        val artifactId = moduleCoordinates.artifactId
+        val version = moduleCoordinates.version
+            ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
 
-        // intermediate source sets are declared in 'sourceSets' sections
-        val sourceSets = fragmentMetadata
-            .map { it.key.toSourceSet() }
-            .sortedBy { it.name }
+        // Creating all-metadata JAR
+        // todo (AB): [AMPER-719] Pack commonized cinterop sourceSets as well
+        val inputDirs = buildList {
+            fragmentMetadata.forEach { fragment, result ->
+                if (!result.metadataOutputRoot.isEmptyDirectory()) {
+                    add(ZipInput(path = result.metadataOutputRoot, destPathInArchive = Path(fragment.sourceSetName())))
+                }
+            }
 
-        val projectStructure = KotlinProjectStructureMetadata(
-            ProjectStructure(
-                formatVersion = "0.3.3",
-                isPublishedAsRoot = "true",
-                variants = variants,
-                sourceSets = sourceSets,
-            )
-        )
-
-        taskOutputRoot.path.createDirectories()
-
-        withContext(Dispatchers.IO) {
-            Files.writeString(
-                taskOutputRoot.path / KOTLIN_PROJECT_STRUCTURE_METADATA_FILE_NAME,
-                json.encodeToString(projectStructure),
-                StandardOpenOption.CREATE,
-                StandardOpenOption.WRITE,
-                StandardOpenOption.TRUNCATE_EXISTING,
-            )
+            add(ZipInput(projectStructureFilePath, Path("META-INF") / projectStructureFilePath.fileName))
         }
+
+        if (inputDirs.isNotEmpty()) {
+            val allMetadataJarPath = outputDirectory.resolve("$artifactId-metadata-$version.jar")
+            allMetadataJarPath.createParentDirectories().writeJar(inputDirs, JarConfig())
+            return allMetadataJarPath
+        }
+
+        return null
     }
 
-    private fun Fragment.toVariant() = Variant(
-        name = "${name}ApiElements",
-        sourceSet = allFragmentDependencies(dependencyType = FragmentDependencyType.REFINE)
-            .mapNotNull { it.takeIf { it.platforms.size > 1 }?.sourceSetName() }
-            .toList()
-    )
+    private fun assembleAllMetadataSourcesJar(
+        module: AmperModule,
+        outputDirectory: Path,
+        fragmentMetadata: Map<Fragment, MetadataCompileTask.Result>
+    ): Path? {
+        // todo (AB): [AMPER-719] Wrap into incremental cache
+        val moduleCoordinates = module.publicationCoordinates(Platform.COMMON)
+        val artifactId = moduleCoordinates.artifactId
+        val version = moduleCoordinates.version
+            ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
 
-    private fun Fragment.toSourceSet() = SourceSet(
-        name = sourceSetName(),
-        dependsOn = fragmentDependencies.filter { it.type == FragmentDependencyType.REFINE }
-            .map { it.target.sourceSetName() }
-            .toList(),
-        moduleDependency = moduleDependencies
-            .getDirectCompileDependenciesCoordinates(isTest, platforms)
-            .map { "${it.groupId}:${it.artifactId}"}
-            .distinct(),
-        sourceSetCInteropMetadataDirectory = "${sourceSetName()}-cinterop",
-        binaryLayout = "klib",
-        hostSpecific = null,
-    )
+        // Creating all-metadata sources JAR
+        val inputDirs = buildList {
+            fragmentMetadata.forEach { fragment, _ ->
+                addAll(
+                    fragment.sourceRoots
+                    .filter { it.exists() }
+                    .map { ZipInput(path = it, destPathInArchive = Path(fragment.sourceSetName())) }
+                )
+            }
+        }
 
-    private fun Fragment.sourceSetName(): String {
-        check(!isTest) { "Test fragments are not a part of all metadata, only main fragments are allowed" }
-        return if (name.endsWith("Main")) name else "${name}Main"
+        val allMetadataSourcesJarPath = outputDirectory.resolve("$artifactId-kotlin-$version-sources.jar")
+        allMetadataSourcesJarPath.createParentDirectories().writeJar(inputDirs, JarConfig())
+        return allMetadataSourcesJarPath
     }
 
     override val isTest = false
@@ -137,20 +149,10 @@ class AssembleAllMetadataTask (
     override val buildType = null
 
     class Result(
-        val allMetadataOutputRoot: Path,
+        val allMetadataJarPath: Path?,
+        val allMetadataSourcesJarPath: Path?,
         val module: AmperModule,
     ) : TaskResult
 
-    companion object {
-        private const val KOTLIN_PROJECT_STRUCTURE_METADATA_FILE_NAME = "kotlin-project-structure-metadata.json"
-    }
-
     private val logger = LoggerFactory.getLogger(javaClass)
-
-    private val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-        prettyPrint = true
-        prettyPrintIndent = "  "
-    }
 }

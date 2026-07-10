@@ -4,6 +4,30 @@
     "isPublishedAsRoot": "true",
     "variants": [
       {
+        "name": "androidApiElements",
+        "sourceSet": [
+          "commonMain"
+        ]
+      },
+      {
+        "name": "androidRuntimeElements",
+        "sourceSet": [
+          "commonMain"
+        ]
+      },
+      {
+        "name": "jvmApiElements",
+        "sourceSet": [
+          "commonMain"
+        ]
+      },
+      {
+        "name": "jvmRuntimeElements",
+        "sourceSet": [
+          "commonMain"
+        ]
+      },
+      {
         "name": "linuxArm64ApiElements",
         "sourceSet": [
           "linuxMain",
@@ -45,6 +69,9 @@
           "nativeMain"
         ],
         "moduleDependency": [
+          "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+          "io.github.kotlin:library",
+          "com.fasterxml.jackson:jackson-bom",
           "org.jetbrains.kotlin:kotlin-stdlib"
         ],
         "sourceSetCInteropMetadataDirectory": "appleMain-cinterop",
@@ -54,9 +81,8 @@
         "name": "commonMain",
         "dependsOn": [],
         "moduleDependency": [
-          "org.jetbrains.kotlin:kotlin-stdlib"
+          "com.fasterxml.jackson:jackson-bom"
         ],
-        "sourceSetCInteropMetadataDirectory": "commonMain-cinterop",
         "binaryLayout": "klib"
       },
       {
@@ -65,6 +91,9 @@
           "nativeMain"
         ],
         "moduleDependency": [
+          "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+          "io.github.kotlin:library",
+          "com.fasterxml.jackson:jackson-bom",
           "org.jetbrains.kotlin:kotlin-stdlib"
         ],
         "sourceSetCInteropMetadataDirectory": "linuxMain-cinterop",
@@ -76,6 +105,9 @@
           "appleMain"
         ],
         "moduleDependency": [
+          "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+          "io.github.kotlin:library",
+          "com.fasterxml.jackson:jackson-bom",
           "org.jetbrains.kotlin:kotlin-stdlib"
         ],
         "sourceSetCInteropMetadataDirectory": "macosMain-cinterop",
@@ -87,6 +119,9 @@
           "commonMain"
         ],
         "moduleDependency": [
+          "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+          "io.github.kotlin:library",
+          "com.fasterxml.jackson:jackson-bom",
           "org.jetbrains.kotlin:kotlin-stdlib"
         ],
         "sourceSetCInteropMetadataDirectory": "nativeMain-cinterop",

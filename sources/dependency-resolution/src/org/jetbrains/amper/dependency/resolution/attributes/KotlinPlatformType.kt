@@ -5,6 +5,7 @@
 package org.jetbrains.amper.dependency.resolution.attributes
 
 import org.jetbrains.amper.dependency.resolution.PlatformType
+import org.jetbrains.amper.dependency.resolution.ResolutionPlatform
 import org.jetbrains.amper.dependency.resolution.metadata.json.module.Variant
 
 sealed class KotlinPlatformType(override val value: String) : AttributeValue {
@@ -13,6 +14,10 @@ sealed class KotlinPlatformType(override val value: String) : AttributeValue {
 
         override fun fromString(value: String): KotlinPlatformType =
             PlatformType.entries.firstOrNull { it.value == value }?.let(::Known) ?: Unknown(value)
+
+        fun fromPlatform(platform: ResolutionPlatform): KotlinPlatformType {
+            return Known(platform.type)
+        }
     }
 
     class Known(val platformType: PlatformType) : KotlinPlatformType(platformType.value)

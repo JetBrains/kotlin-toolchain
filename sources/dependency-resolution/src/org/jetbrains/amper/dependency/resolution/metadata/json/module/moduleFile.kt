@@ -14,7 +14,7 @@ internal fun String.parseMetadata(): Module = json.decodeFromString(this)
 internal fun Module.serialize(): String = json.encodeToString(this)
 
 @Serializable
-internal data class Module(
+data class Module(
     val formatVersion: String,
     val component: Component,
     val createdBy: CreatedBy? = null,
@@ -22,7 +22,7 @@ internal data class Module(
 )
 
 @Serializable
-internal data class Component(
+data class Component(
     val url: String? = null,
     val group: String,
     val module: String,
@@ -31,25 +31,25 @@ internal data class Component(
 )
 
 @Serializable
-internal data class CreatedBy(
+data class CreatedBy(
     val gradle: Gradle? = null,
     val maven: Maven? = null,
 )
 
 @Serializable
-internal data class Gradle(
+data class Gradle(
     val version: String,
     val buildId: String? = null,
 )
 
 @Serializable
-internal data class Maven(
+data class Maven(
     val version: String,
     val buildId: String? = null,
 )
 
 @Serializable
-internal data class Variant(
+data class Variant(
     val name: String,
     val attributes: Map<String, String> = mapOf(),
     val dependencies: List<Dependency> = emptyList(),
@@ -60,7 +60,7 @@ internal data class Variant(
 )
 
 @Serializable
-internal data class Dependency(
+data class Dependency(
     val group: String,
     val module: String,
     val version: Version? = null,
@@ -71,12 +71,12 @@ internal data class Dependency(
 )
 
 @Serializable
-internal data class ThirdPartyCompatibility (
+data class ThirdPartyCompatibility (
     val artifactSelector: ArtifactSelector? = null,
 )
 
 @Serializable
-internal data class ArtifactSelector (
+data class ArtifactSelector (
     val name: String? = null,
     val type: String? = null,
     val extension: String? = null,
@@ -84,7 +84,7 @@ internal data class ArtifactSelector (
 )
 
 @Serializable
-internal data class AvailableAt(
+data class AvailableAt(
     val url: String,
     val group: String,
     val module: String,
@@ -92,7 +92,7 @@ internal data class AvailableAt(
 )
 
 @Serializable
-internal data class Capability(
+data class Capability(
     val group: String,
     val name: String,
     val version: String,
@@ -106,7 +106,7 @@ data class Version(
 )
 
 @Serializable
-internal data class File(
+data class File(
     val name: String,
     val url: String,
     val size: Long? = null,
