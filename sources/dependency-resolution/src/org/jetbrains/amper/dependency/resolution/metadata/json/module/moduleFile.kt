@@ -34,6 +34,7 @@ data class Component(
 data class CreatedBy(
     val gradle: Gradle? = null,
     val maven: Maven? = null,
+    val kotlinToolchain: KotlinToolchain? = null,
 )
 
 @Serializable
@@ -46,6 +47,12 @@ data class Gradle(
 data class Maven(
     val version: String,
     val buildId: String? = null,
+)
+
+@Serializable
+data class KotlinToolchain(
+    val version: String,
+
 )
 
 @Serializable

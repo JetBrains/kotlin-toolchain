@@ -6,6 +6,7 @@ package org.jetbrains.amper.tasks.metadata
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.dependency.resolution.PlatformType
 import org.jetbrains.amper.dependency.resolution.ResolutionPlatform
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
@@ -19,7 +20,9 @@ import org.jetbrains.amper.dependency.resolution.attributes.KotlinWasmTarget
 import org.jetbrains.amper.dependency.resolution.attributes.Usage
 import org.jetbrains.amper.dependency.resolution.metadata.json.module.AvailableAt
 import org.jetbrains.amper.dependency.resolution.metadata.json.module.Component
+import org.jetbrains.amper.dependency.resolution.metadata.json.module.CreatedBy
 import org.jetbrains.amper.dependency.resolution.metadata.json.module.File
+import org.jetbrains.amper.dependency.resolution.metadata.json.module.KotlinToolchain
 import org.jetbrains.amper.dependency.resolution.metadata.json.module.Module
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.DefaultScopedNotation
@@ -88,8 +91,14 @@ internal suspend fun generateGradleModuleMetadata(
             version = moduleCoordinates.version ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'"),
             attributes = mapOf("org.gradle.status" to "release")
         ),
-        // "Module.createdBy accepts Gradle/Maven only..."
-        createdBy = null,
+        createdBy = CreatedBy(
+            // "Module.createdBy" accepts anything, not Gradle/Maven only.
+            // Gradle will not attempt to resolve or validate it — it skips the whole createdBy node during parsing
+            // since it is purely informational/diagnostic metadata.
+            kotlinToolchain = KotlinToolchain(
+                version = AmperBuild.mavenVersion,
+            )
+        ),
         variants = variants
     )
 

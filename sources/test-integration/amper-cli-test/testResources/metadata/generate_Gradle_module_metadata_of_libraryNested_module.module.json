@@ -8,6 +8,11 @@
       "org.gradle.status": "release"
     }
   },
+  "createdBy": {
+    "kotlinToolchain": {
+      "version": "1.0-SNAPSHOT"
+    }
+  },
   "variants": [
     {
       "name": "metadataApiElements",
