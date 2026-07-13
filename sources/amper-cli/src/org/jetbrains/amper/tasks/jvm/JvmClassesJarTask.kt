@@ -74,10 +74,11 @@ class JvmClassesJarTask(
         return module.fragments.filter { it.isTest == isTest }.findEffectiveJvmMainClass()
     }
 
-    override fun createResult(jarPath: Path): AbstractJarTask.Result = Result(jarPath, module)
+    override fun createResult(jarPath: Path): AbstractJarTask.Result = Result(jarPath, platform, module)
 
     class Result(
         jarPath: Path,
+        val platform: Platform,
         val module: AmperModule,
     ) : AbstractJarTask.Result(jarPath), ClasspathProvider {
         override val runtimeClasspath: List<Path>
