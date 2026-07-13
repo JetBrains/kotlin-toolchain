@@ -165,6 +165,15 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
             testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.module.json"),
             sanitizedGradleModuleMetadata
         )
+
+        val sanitizedLinuxX64GradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
+            tempRoot / "build" / "tasks" / "_libraryNested_prepareMavenPublishables" / "libraryNested-linuxX64-1.0.0.module"
+        )
+
+        assertFileContentEquals(
+            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.linuxX64-module.json"),
+            sanitizedLinuxX64GradleModuleMetadata
+        )
     }
 
     private fun getSanitizedGradleMetadataProducedByCli(

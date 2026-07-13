@@ -36,7 +36,8 @@ import org.jetbrains.amper.serialization.paths.SerializablePath
 import org.jetbrains.amper.stdlib.hashing.hash
 import org.jetbrains.amper.tasks.jvm.JvmClassesJarTask
 import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
-import org.jetbrains.amper.tasks.metadata.generateGradleModuleMetadata
+import org.jetbrains.amper.tasks.metadata.generateGradleMetadataForLeafPlatform
+import org.jetbrains.amper.tasks.metadata.generateCommonGradleModuleMetadata
 import org.jetbrains.amper.tasks.native.NativeCompileKlibTask
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
 import org.slf4j.Logger
@@ -99,31 +100,52 @@ class PrepareMavenPublishablesTask(
             val checksumsToPublish = module.publishingSettings.checksums
             val checksumPublishables = mutableMapOf<String, List<MavenPublishable>>()
 
+            // Checksums are required for Gradle metadata generation, we have to calculate them at this point.
             checksumPublishables.putAll(meaningfulPublishables
                 .flatMapConcurrently { listOf(it.path.toAbsolutePath().toString() to generateChecksums(it, checksumsToPublish)) }
                 .toMap()
             )
 
-            dependenciesResult.filterIsInstance<AssembleAllMetadataTask.Result>()
-                .singleOrNull()?.let { allMetadataTaskResult ->
-                    val allMetadataGradleModuleFile = generateGradleModuleMetadata(
-                        module, taskOutputRoot.path,
-                        allMetadataJarPath = allMetadataTaskResult.allMetadataJarPath,
-                        allMetadataSourcesJarPath = allMetadataTaskResult.allMetadataSourcesJarPath,
-                        checksumPublishables
+            coordsPerPlatform.filterNot { it.key == Platform.COMMON }
+                .map { [platform, coords] ->
+                    val sourcesJar = if (module.publishingSettings.publishSources) {
+                        val sourceCoordinates = coords.copy(classifier = "sources")
+                        modulePublishablesFromOtherTasks.single { it.coordinates == sourceCoordinates }
+                    } else null
+                    val platformSpecificArtifactPath =  modulePublishablesFromOtherTasks.single { it.coordinates == coords }
+                    generateGradleMetadataForLeafPlatform(
+                        module,
+                        platform,
+                        taskOutputRoot.path,
+                        checksumPublishables,
+                        platformSpecificArtifactPath.path,
+                        sourcesJar?.path,
+                    ).toMavenPublishable(coords)
+                }.also {
+                    meaningfulPublishables.addAll(it)
+                    checksumPublishables.putAll(it
+                        .flatMapConcurrently { listOf(it.path.toAbsolutePath().toString() to generateChecksums(it, checksumsToPublish)) }
+                        .toMap()
                     )
-                    val allMetadataGradleModulePublishable =
-                        allMetadataGradleModuleFile.toMavenPublishable(coordsPerPlatform[Platform.COMMON]!!)
-
-                    meaningfulPublishables.add(allMetadataGradleModulePublishable)
-                    checksumPublishables[allMetadataGradleModuleFile.toAbsolutePath().toString()] =
-                        generateChecksums(allMetadataGradleModulePublishable, checksumsToPublish)
                 }
 
-//            val gradleMetadataFiles: List<MavenPublishable> = coordsPerPlatform.map { [platform, coords] ->
-//                generateGradleMetadataFile(module, platform, depsCoordinatesOverrides).toMavenPublishable(coords)
-//            }
-//            // todo (AB) : add checksums for gradleMetadataFiles
+            val allMetadataTaskResult = dependenciesResult.filterIsInstance<AssembleAllMetadataTask.Result>()
+                .singleOrNull()
+
+            if (allMetadataTaskResult != null) {
+                val allMetadataGradleModuleFile = generateCommonGradleModuleMetadata(
+                    module, taskOutputRoot.path,
+                    allMetadataJarPath = allMetadataTaskResult.allMetadataJarPath,
+                    allMetadataSourcesJarPath = allMetadataTaskResult.allMetadataSourcesJarPath,
+                    checksumPublishables
+                )
+                val allMetadataGradleModulePublishable =
+                    allMetadataGradleModuleFile.toMavenPublishable(coordsPerPlatform[Platform.COMMON]!!)
+
+                meaningfulPublishables.add(allMetadataGradleModulePublishable)
+                checksumPublishables[allMetadataGradleModuleFile.toAbsolutePath().toString()] =
+                    generateChecksums(allMetadataGradleModulePublishable, checksumsToPublish)
+            }
 
             // Checksums are not mandatory for signatures itself, and we want to limit the number of published files, so we only
             // have generated checksums for non-signature publishables.
@@ -155,8 +177,7 @@ class PrepareMavenPublishablesTask(
         overrides: PublicationCoordinatesOverrides,
     ): Path {
         val tempPath = taskOutputRoot.path.resolve("${module.userReadableName}-${platform.pretty}.pom")
-        // TODO publish Gradle metadata
-        tempPath.writePomFor(module, platform, overrides, gradleMetadataComment = false)
+        tempPath.writePomFor(module, platform, overrides, gradleMetadataComment = true)
         return tempPath
     }
 
@@ -260,7 +281,7 @@ private fun TaskResult.toMavenPublishables(coordsPerPlatform: Map<Platform, Mave
 }
 
 private fun JvmClassesJarTask.Result.toMavenPublishable(coordsPerPlatform: Map<Platform, MavenCoordinates>): MavenPublishable =
-    jarPath.toMavenPublishable(coordsPerPlatform.getValue(Platform.JVM))
+    jarPath.toMavenPublishable(coordsPerPlatform.getValue(platform))
 
 private fun SourcesJarTask.Result.toMavenPublishable(coordsPerPlatform: Map<Platform, MavenCoordinates>): MavenPublishable =
     jarPath.toMavenPublishable(coordsPerPlatform.getValue(platform).copy(classifier = "sources"))

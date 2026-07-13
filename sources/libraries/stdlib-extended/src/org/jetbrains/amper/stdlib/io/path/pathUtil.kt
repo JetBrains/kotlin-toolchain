@@ -8,6 +8,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 
+/**
+ * Returns `true` if this [Path] exists and is an empty directory, or `false` in any other case.
+ */
 fun Path.isEmptyDirectory(): Boolean {
-    return isDirectory() && Files.newDirectoryStream(this).use { it.none() }
+    return isDirectory() && useDirectoryEntries { it.none() }
 }

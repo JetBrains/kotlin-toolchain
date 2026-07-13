@@ -74,6 +74,42 @@ private fun Path.insertGradleMetadataComment() {
     writeText(contentWithGradleMetadataComment)
 }
 
+private fun getDependencies(
+    module: AmperModule,
+    platform: Platform,
+    publicationCoordsOverrides: PublicationCoordinatesOverrides
+): Pair<List<Dependency>, DependencyManagement?> =
+    if (platform == Platform.COMMON && module.leafPlatforms.contains(Platform.JVM)) {
+        // We make the root pom.xml depend on the JVM-specific artifact of our library.
+        // This way, Maven builds can reference KMP libraries without adding the '-jvm' suffix.
+        val jvmCoords = module.publicationCoordinates(Platform.JVM)
+
+        val jvmDependency = Dependency()
+        jvmDependency.groupId = jvmCoords.groupId
+        jvmDependency.artifactId = jvmCoords.artifactId
+        jvmDependency.version = jvmCoords.version
+        jvmDependency.scope = "compile"
+
+        [jvmDependency] to null
+    } else {
+        val fragment = module.singleProductionFragmentOrNull(platform)
+            ?: error("Cannot generate pom for module '${module.userReadableName}': expected a single fragment for platform $platform")
+
+        // FIXME [distinct] can be error prone here, because we (I guess) have no guarantees about [externalDependencies] equality.
+        val [bomDependencies, regularDependencies] = fragment.ancestralPath()
+            .flatMap { it.externalDependencies }
+            .distinct()
+            .partition { it is BomDependency }
+        val bomPomDependencies = bomDependencies.map { it.toPomDependency(platform, publicationCoordsOverrides) }
+        val regularPomDependencies = regularDependencies.map { it.toPomDependency(platform, publicationCoordsOverrides) }
+
+        val dependencyManagement = if (bomDependencies.isNotEmpty()) {
+            DependencyManagement().apply { dependencies.addAll(bomPomDependencies) }
+        } else null
+
+        regularPomDependencies to dependencyManagement
+    }
+
 private fun generatePomModel(
     module: AmperModule,
     platform: Platform,
@@ -84,13 +120,7 @@ private fun generatePomModel(
         ?: error("Cannot generate pom for module '${module.userReadableName}': expected a single fragment for platform $platform")
     val publishSettings = fragment.settings.publishing
 
-    // FIXME [distinct] can be error prone here, because we (I guess) have no guarantees about [externalDependencies] equality.
-    val [bomDependencies, regularDependencies] = fragment.ancestralPath()
-        .flatMap { it.externalDependencies }
-        .distinct()
-        .partition { it is BomDependency }
-    val bomPomDependencies = bomDependencies.map { it.toPomDependency(platform, publicationCoordsOverrides) }
-    val regularPomDependencies = regularDependencies.map { it.toPomDependency(platform, publicationCoordsOverrides) }
+    val [regularPomDependencies, dependencyManagement] = getDependencies(module, platform, publicationCoordsOverrides)
 
     val model = Model()
     model.modelVersion = "4.0.0"
@@ -108,8 +138,8 @@ private fun generatePomModel(
     model.version = coords.version
     model.dependencies.addAll(regularPomDependencies)
 
-    if (bomDependencies.isNotEmpty()) {
-        model.dependencyManagement = DependencyManagement().apply { dependencies.addAll(bomPomDependencies) }
+    if (dependencyManagement != null) {
+        model.dependencyManagement = dependencyManagement
     }
 
     model.licenses = publishSettings.pom.licenses.map { it.toMavenLicense() }

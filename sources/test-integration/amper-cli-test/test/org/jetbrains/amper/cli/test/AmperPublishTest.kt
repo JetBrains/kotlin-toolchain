@@ -61,6 +61,7 @@ class AmperPublishTest : AmperCliTestBase() {
             "artifactName/2.2/artifactName-2.2-javadoc.jar",
             "artifactName/2.2/artifactName-2.2-sources.jar",
             "artifactName/2.2/artifactName-2.2.jar",
+            "artifactName/2.2/artifactName-2.2.module",
             "artifactName/2.2/artifactName-2.2.pom",
             "artifactName/maven-metadata-local.xml",
         )
@@ -70,6 +71,11 @@ class AmperPublishTest : AmperCliTestBase() {
             <?xml version="1.0" encoding="UTF-8"?>
             <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <!-- This module was also published with a richer model, Gradle metadata, -->
+              <!-- which should be used instead. Do not delete the following line which -->
+              <!-- is to indicate to Gradle or any Gradle module metadata file consumer -->
+              <!-- that they should prefer consuming it instead. -->
+              <!-- do_not_remove: published-with-gradle-metadata -->
               <modelVersion>4.0.0</modelVersion>
               <groupId>amper.test.jvm-publish</groupId>
               <artifactId>artifactName</artifactId>
@@ -160,6 +166,7 @@ class AmperPublishTest : AmperCliTestBase() {
             "artifactName/2.2/artifactName-2.2-javadoc.jar",
             "artifactName/2.2/artifactName-2.2-sources.jar",
             "artifactName/2.2/artifactName-2.2.jar",
+            "artifactName/2.2/artifactName-2.2.module",
             "artifactName/2.2/artifactName-2.2.pom",
             "artifactName/maven-metadata-local.xml",
         )
@@ -206,6 +213,8 @@ class AmperPublishTest : AmperCliTestBase() {
             "artifactName/2.2/artifactName-2.2-sources.jar.asc",
             "artifactName/2.2/artifactName-2.2.jar",
             "artifactName/2.2/artifactName-2.2.jar.asc",
+            "artifactName/2.2/artifactName-2.2.module",
+            "artifactName/2.2/artifactName-2.2.module.asc",
             "artifactName/2.2/artifactName-2.2.pom",
             "artifactName/2.2/artifactName-2.2.pom.asc",
             "artifactName/maven-metadata-local.xml",
@@ -260,6 +269,10 @@ class AmperPublishTest : AmperCliTestBase() {
             "artifactName/2.2/artifactName-2.2.jar.asc",
             "artifactName/2.2/artifactName-2.2.jar.md5",
             "artifactName/2.2/artifactName-2.2.jar.sha1",
+            "artifactName/2.2/artifactName-2.2.module",
+            "artifactName/2.2/artifactName-2.2.module.asc",
+            "artifactName/2.2/artifactName-2.2.module.md5",
+            "artifactName/2.2/artifactName-2.2.module.sha1",
             "artifactName/2.2/artifactName-2.2.pom",
             "artifactName/2.2/artifactName-2.2.pom.asc",
             "artifactName/2.2/artifactName-2.2.pom.md5",
@@ -321,6 +334,12 @@ class AmperPublishTest : AmperCliTestBase() {
             "artifactName/2.2/artifactName-2.2.jar.sha1",
             "artifactName/2.2/artifactName-2.2.jar.sha256",
             "artifactName/2.2/artifactName-2.2.jar.sha512",
+            "artifactName/2.2/artifactName-2.2.module",
+            "artifactName/2.2/artifactName-2.2.module.asc",
+            "artifactName/2.2/artifactName-2.2.module.md5",
+            "artifactName/2.2/artifactName-2.2.module.sha1",
+            "artifactName/2.2/artifactName-2.2.module.sha256",
+            "artifactName/2.2/artifactName-2.2.module.sha512",
             "artifactName/2.2/artifactName-2.2.pom",
             "artifactName/2.2/artifactName-2.2.pom.asc",
             "artifactName/2.2/artifactName-2.2.pom.md5",
@@ -376,6 +395,7 @@ class AmperPublishTest : AmperCliTestBase() {
             "artifactName/2.2/_remote.repositories",
             "artifactName/2.2/artifactName-2.2-javadoc.jar",
             "artifactName/2.2/artifactName-2.2.jar",
+            "artifactName/2.2/artifactName-2.2.module",
             "artifactName/2.2/artifactName-2.2.pom",
             "artifactName/maven-metadata-local.xml",
         )
@@ -385,6 +405,11 @@ class AmperPublishTest : AmperCliTestBase() {
             <?xml version="1.0" encoding="UTF-8"?>
             <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <!-- This module was also published with a richer model, Gradle metadata, -->
+              <!-- which should be used instead. Do not delete the following line which -->
+              <!-- is to indicate to Gradle or any Gradle module metadata file consumer -->
+              <!-- that they should prefer consuming it instead. -->
+              <!-- do_not_remove: published-with-gradle-metadata -->
               <modelVersion>4.0.0</modelVersion>
               <groupId>amper.test.jvm-publish-custom-pom</groupId>
               <artifactId>artifactName</artifactId>
@@ -446,47 +471,56 @@ class AmperPublishTest : AmperCliTestBase() {
             "jvm-lib/1.2.3/_remote.repositories",
             "jvm-lib/1.2.3/jvm-lib-1.2.3-javadoc.jar",
             "jvm-lib/1.2.3/jvm-lib-1.2.3.jar",
+            "jvm-lib/1.2.3/jvm-lib-1.2.3.module",
             "jvm-lib/1.2.3/jvm-lib-1.2.3.pom",
             "jvm-lib/maven-metadata-local.xml",
             "kmp-lib-android/1.2.3/_remote.repositories",
             "kmp-lib-android/1.2.3/kmp-lib-android-1.2.3-javadoc.jar",
             "kmp-lib-android/1.2.3/kmp-lib-android-1.2.3-sources.jar",
+            "kmp-lib-android/1.2.3/kmp-lib-android-1.2.3.jar",
+            "kmp-lib-android/1.2.3/kmp-lib-android-1.2.3.module",
             "kmp-lib-android/1.2.3/kmp-lib-android-1.2.3.pom",
             "kmp-lib-android/maven-metadata-local.xml",
             "kmp-lib-iosarm64/1.2.3/_remote.repositories",
             "kmp-lib-iosarm64/1.2.3/kmp-lib-iosarm64-1.2.3-javadoc.jar",
             "kmp-lib-iosarm64/1.2.3/kmp-lib-iosarm64-1.2.3-sources.jar",
             "kmp-lib-iosarm64/1.2.3/kmp-lib-iosarm64-1.2.3.klib",
+            "kmp-lib-iosarm64/1.2.3/kmp-lib-iosarm64-1.2.3.module",
             "kmp-lib-iosarm64/1.2.3/kmp-lib-iosarm64-1.2.3.pom",
             "kmp-lib-iosarm64/maven-metadata-local.xml",
             "kmp-lib-js/1.2.3/_remote.repositories",
             "kmp-lib-js/1.2.3/kmp-lib-js-1.2.3-javadoc.jar",
             "kmp-lib-js/1.2.3/kmp-lib-js-1.2.3-sources.jar",
             "kmp-lib-js/1.2.3/kmp-lib-js-1.2.3.klib",
+            "kmp-lib-js/1.2.3/kmp-lib-js-1.2.3.module",
             "kmp-lib-js/1.2.3/kmp-lib-js-1.2.3.pom",
             "kmp-lib-js/maven-metadata-local.xml",
             "kmp-lib-jvm/1.2.3/_remote.repositories",
             "kmp-lib-jvm/1.2.3/kmp-lib-jvm-1.2.3-javadoc.jar",
             "kmp-lib-jvm/1.2.3/kmp-lib-jvm-1.2.3-sources.jar",
             "kmp-lib-jvm/1.2.3/kmp-lib-jvm-1.2.3.jar",
+            "kmp-lib-jvm/1.2.3/kmp-lib-jvm-1.2.3.module",
             "kmp-lib-jvm/1.2.3/kmp-lib-jvm-1.2.3.pom",
             "kmp-lib-jvm/maven-metadata-local.xml",
             "kmp-lib-linuxx64/1.2.3/_remote.repositories",
             "kmp-lib-linuxx64/1.2.3/kmp-lib-linuxx64-1.2.3-javadoc.jar",
             "kmp-lib-linuxx64/1.2.3/kmp-lib-linuxx64-1.2.3-sources.jar",
             "kmp-lib-linuxx64/1.2.3/kmp-lib-linuxx64-1.2.3.klib",
+            "kmp-lib-linuxx64/1.2.3/kmp-lib-linuxx64-1.2.3.module",
             "kmp-lib-linuxx64/1.2.3/kmp-lib-linuxx64-1.2.3.pom",
             "kmp-lib-linuxx64/maven-metadata-local.xml",
             "kmp-lib-wasmjs/1.2.3/_remote.repositories",
             "kmp-lib-wasmjs/1.2.3/kmp-lib-wasmjs-1.2.3-javadoc.jar",
             "kmp-lib-wasmjs/1.2.3/kmp-lib-wasmjs-1.2.3-sources.jar",
             "kmp-lib-wasmjs/1.2.3/kmp-lib-wasmjs-1.2.3.klib",
+            "kmp-lib-wasmjs/1.2.3/kmp-lib-wasmjs-1.2.3.module",
             "kmp-lib-wasmjs/1.2.3/kmp-lib-wasmjs-1.2.3.pom",
             "kmp-lib-wasmjs/maven-metadata-local.xml",
             "kmp-lib-wasmwasi/1.2.3/_remote.repositories",
             "kmp-lib-wasmwasi/1.2.3/kmp-lib-wasmwasi-1.2.3-javadoc.jar",
             "kmp-lib-wasmwasi/1.2.3/kmp-lib-wasmwasi-1.2.3-sources.jar",
             "kmp-lib-wasmwasi/1.2.3/kmp-lib-wasmwasi-1.2.3.klib",
+            "kmp-lib-wasmwasi/1.2.3/kmp-lib-wasmwasi-1.2.3.module",
             "kmp-lib-wasmwasi/1.2.3/kmp-lib-wasmwasi-1.2.3.pom",
             "kmp-lib-wasmwasi/maven-metadata-local.xml",
             "kmp-lib/1.2.3/_remote.repositories",
@@ -499,6 +533,7 @@ class AmperPublishTest : AmperCliTestBase() {
             "main-lib/1.2.3/main-lib-1.2.3-javadoc.jar",
             "main-lib/1.2.3/main-lib-1.2.3-sources.jar",
             "main-lib/1.2.3/main-lib-1.2.3.jar",
+            "main-lib/1.2.3/main-lib-1.2.3.module",
             "main-lib/1.2.3/main-lib-1.2.3.pom",
             "main-lib/maven-metadata-local.xml",
         )
@@ -508,6 +543,11 @@ class AmperPublishTest : AmperCliTestBase() {
             <?xml version="1.0" encoding="UTF-8"?>
             <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <!-- This module was also published with a richer model, Gradle metadata, -->
+              <!-- which should be used instead. Do not delete the following line which -->
+              <!-- is to indicate to Gradle or any Gradle module metadata file consumer -->
+              <!-- that they should prefer consuming it instead. -->
+              <!-- do_not_remove: published-with-gradle-metadata -->
               <modelVersion>4.0.0</modelVersion>
               <groupId>amper.test.jvm-publish-multimodule</groupId>
               <artifactId>main-lib</artifactId>
@@ -640,6 +680,9 @@ class AmperPublishTest : AmperCliTestBase() {
             "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.jar",
             "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.jar.md5",
             "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.jar.sha1",
+            "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.module",
+            "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.module.md5",
+            "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.module.sha1",
             "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.pom",
             "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.pom.md5",
             "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.pom.sha1",
@@ -674,6 +717,11 @@ class AmperPublishTest : AmperCliTestBase() {
             "amper/test/jvm-publish/artifactName/2.3/artifactName-2.3.jar.sha1",
             "amper/test/jvm-publish/artifactName/2.3/artifactName-2.3.jar.sha256",
             "amper/test/jvm-publish/artifactName/2.3/artifactName-2.3.jar.sha512",
+            "amper/test/jvm-publish/artifactName/2.3/artifactName-2.3.module",
+            "amper/test/jvm-publish/artifactName/2.3/artifactName-2.3.module.md5",
+            "amper/test/jvm-publish/artifactName/2.3/artifactName-2.3.module.sha1",
+            "amper/test/jvm-publish/artifactName/2.3/artifactName-2.3.module.sha256",
+            "amper/test/jvm-publish/artifactName/2.3/artifactName-2.3.module.sha512",
             "amper/test/jvm-publish/artifactName/2.3/artifactName-2.3.pom",
             "amper/test/jvm-publish/artifactName/2.3/artifactName-2.3.pom.md5",
             "amper/test/jvm-publish/artifactName/2.3/artifactName-2.3.pom.sha1",
@@ -706,6 +754,9 @@ class AmperPublishTest : AmperCliTestBase() {
             "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.jar",
             "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.jar.md5",
             "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.jar.sha1",
+            "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.module",
+            "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.module.md5",
+            "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.module.sha1",
             "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.pom",
             "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.pom.md5",
             "amper/test/jvm-publish/artifactName/2.2/artifactName-2.2.pom.sha1",
@@ -720,7 +771,7 @@ class AmperPublishTest : AmperCliTestBase() {
         requestHistory: RequestHistory,
         vararg expectedArtifactsPaths: String,
     ) {
-        // We check the requests before the files, so that, when a missing file is reported, we know the requests were
+        // We check the requests before the files so that when a missing file is reported, we know the requests were
         // correct, and we can check other causes.
         val expectedRequests = expectedArtifactsPaths.map { Request("PUT", "/$it") }
         val actualRequests = requestHistory.requests.filter { it.method == "PUT" }.sortedBy { it.path }
@@ -810,6 +861,11 @@ class AmperPublishTest : AmperCliTestBase() {
                     <snapshotVersions>
                       <snapshotVersion>
                         <extension>jar</extension>
+                        <value>$lastVersion</value>
+                        <updated>TIMESTAMP</updated>
+                      </snapshotVersion>
+                      <snapshotVersion>
+                        <extension>module</extension>
                         <value>$lastVersion</value>
                         <updated>TIMESTAMP</updated>
                       </snapshotVersion>

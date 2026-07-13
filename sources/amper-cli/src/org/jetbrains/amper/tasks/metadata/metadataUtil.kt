@@ -84,10 +84,6 @@ private fun LocalModuleDependency.toVariantDependency(platform: Platform): Depen
     return dependency
 }
 
-// todo (AB): [AMPER=791]: How to map dependencies scope?
-//  KGP:
-//   - compileOnly, runtimeOnly - is not included into .module
-//   - api, implementation are added
 private fun MavenDependencyBase.toVariantDependency(): Dependency {
     val isBom = this@toVariantDependency is BomDependency
 

@@ -25,12 +25,10 @@ import org.jetbrains.amper.dependency.resolution.metadata.json.module.File
 import org.jetbrains.amper.dependency.resolution.metadata.json.module.KotlinToolchain
 import org.jetbrains.amper.dependency.resolution.metadata.json.module.Module
 import org.jetbrains.amper.frontend.AmperModule
-import org.jetbrains.amper.frontend.DefaultScopedNotation
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.frontend.publishingSettings
-import org.jetbrains.amper.frontend.schema.PublishingSettings
 import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.amper.tasks.MavenPublishable
 import java.nio.file.Files
@@ -38,6 +36,7 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
+import kotlin.io.path.extension
 import kotlin.io.path.fileSize
 
 /**
@@ -47,27 +46,23 @@ import kotlin.io.path.fileSize
  */
 private const val PUBLISHED_SUFFIX = "-published"
 
-internal suspend fun generateGradleModuleMetadata(
+internal suspend fun generateCommonGradleModuleMetadata(
     module: AmperModule,
     outputDir: Path,
     allMetadataJarPath: Path?,
     allMetadataSourcesJarPath: Path?,
     checksums: Map<String, List<MavenPublishable>>,
 ): Path {
-    val moduleCoordinates = module.publicationCoordinates(Platform.COMMON)
-
-    val modulePublicationSettings: PublishingSettings = module.publishingSettings
-
     val leafPlatformVariants: List<GradleVariant> = module.leafFragments
         .filterNot { it.isTest }
         .sortedBy { it.name }
         .flatMap { leafFragment ->
             buildList {
                 val scopes = getApplicableVariantScopes(leafFragment)
-                addAll(scopes.map { leafFragment.toGradleMetadataVariant(it) })
+                addAll(scopes.map { leafFragment.toGradleMetadataAvailableAtVariant(it) })
 
-                if (modulePublicationSettings.publishSources) {
-                    add(leafFragment.toGradleMetadataVariant(ResolutionScope.RUNTIME, isSources = true))
+                if (module.publishingSettings.publishSources) {
+                    add(leafFragment.toGradleMetadataAvailableAtVariant(ResolutionScope.RUNTIME, isSources = true))
                 }
             }
         }
@@ -76,52 +71,14 @@ internal suspend fun generateGradleModuleMetadata(
         if (allMetadataJarPath != null) {
             add(allMetadataVariant(module, allMetadataJarPath, checksums))
         }
-        if (modulePublicationSettings.publishSources && allMetadataSourcesJarPath != null) {
+        if (module.publishingSettings.publishSources && allMetadataSourcesJarPath != null) {
             add(allMetadataSourcesVariant(module, allMetadataSourcesJarPath, checksums))
         }
     }
 
     val variants = allMetadataVariants + leafPlatformVariants
 
-    val gradleMetadata = Module(
-        formatVersion = "1.1",
-        component = Component(
-            group = moduleCoordinates.groupId,
-            module = moduleCoordinates.artifactId,
-            version = moduleCoordinates.version ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'"),
-            attributes = mapOf("org.gradle.status" to "release")
-        ),
-        createdBy = CreatedBy(
-            // "Module.createdBy" accepts anything, not Gradle/Maven only.
-            // Gradle will not attempt to resolve or validate it — it skips the whole createdBy node during parsing
-            // since it is purely informational/diagnostic metadata.
-            kotlinToolchain = KotlinToolchain(
-                version = AmperBuild.mavenVersion,
-            )
-        ),
-        variants = variants
-    )
-
-    outputDir.createDirectories()
-
-    val commonCoordinates = module.publicationCoordinates(Platform.COMMON)
-    val commonArtifactId = commonCoordinates.artifactId
-    val version = commonCoordinates.version
-        ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
-
-    val gradleMetadataPath = outputDir / "$commonArtifactId-$version.module"
-
-    withContext(Dispatchers.IO) {
-        Files.writeString(
-            gradleMetadataPath,
-            json.encodeToString(gradleMetadata),
-            StandardOpenOption.CREATE,
-            StandardOpenOption.WRITE,
-            StandardOpenOption.TRUNCATE_EXISTING,
-        )
-    }
-
-    return gradleMetadataPath
+    return generateGradleModuleFile(variants, Platform.COMMON, module, outputDir)
 }
 
 private fun allMetadataVariant(
@@ -133,9 +90,6 @@ private fun allMetadataVariant(
         .allMetadataFragments()
         .flatMap { it.classPathForApiMetadata() }
         .distinct()
-        // KGP adds neither compileOnly nor runtimeOnly dependencies to the source set deps,
-        // but it adds implementation dependencies that correspond to compile+runtime dependencies in KTC
-        .filter { it !is DefaultScopedNotation || it.compile && it.runtime }
         .map { it.toVariantDependency(Platform.COMMON) }
         .toList()
 
@@ -155,7 +109,6 @@ private fun allMetadataVariant(
             this[Usage.name] = Usage.KotlinMetadata.value
             this[KotlinPlatformType.name] = KotlinPlatformType.fromPlatform(ResolutionPlatform.COMMON).value
         },
-        // todo (AB) : KGP add all compile dependencies here (excluding compileOnly)
         dependencies = dependencies,
         dependencyConstraints = [],
         files = [
@@ -212,10 +165,8 @@ private fun allMetadataSourcesVariant(
         },
         files = [
             File(
-                // todo (AB): [AMPER-719] Extract method and use it where the actual file is composed and stored
                 name = "$artifactId-kotlin-$version-sources.jar",
                 url = "$artifactId-$version-sources.jar",
-                // Todo (AB) : Take it from the SIGNED jar prepared by another task I guess?
                 size = allMetadataSourcesJarPath.fileSize(),
                 sha512 = getCheckSumFor(allMetadataSourcesJarPath, "sha512", checksums),
                 sha256 = getCheckSumFor(allMetadataSourcesJarPath, "sha256", checksums),
@@ -226,7 +177,7 @@ private fun allMetadataSourcesVariant(
     )
 }
 
-private fun LeafFragment.toGradleMetadataVariant(
+private fun LeafFragment.toGradleMetadataAvailableAtVariant(
     scope: ResolutionScope,
     isSources: Boolean = false,
 ): GradleVariant {
@@ -237,6 +188,53 @@ private fun LeafFragment.toGradleMetadataVariant(
     val version = platformSpecificCoordinates.version
         ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
 
+    val baseVariant = toBaseGradleVariant(scope, isSources)
+
+    return baseVariant.copy(
+
+        // no dependencies or constraints are declared for the leaf target fragment,
+        // those are declared for the corresponding 'available-at' .module
+        dependencies = [],
+        dependencyConstraints = [],
+        files = [],
+        `available-at` = AvailableAt(
+            url = "../../$artifactId/$version/$artifactId-$version.module",
+            group = groupId,
+            module = artifactId,
+            version = version
+        ),
+        capabilities = [],
+    )
+}
+
+suspend fun generateGradleMetadataForLeafPlatform(
+    module: AmperModule,
+    platform: Platform,
+    outputDir: Path,
+    checksums: Map<String, List<MavenPublishable>>,
+    platformSpecificArtifact: Path,
+    platformSpecificSourcesJar: Path? = null,
+): Path {
+    val leafFragment: LeafFragment = module.leafFragments
+        .filterNot { it.isTest }
+        .single { it.platform == platform }
+
+    val variants: List<GradleVariant> = buildList {
+        val scopes = getApplicableVariantScopes(leafFragment)
+        addAll(scopes.map { leafFragment.toGradleVariant(it, isSources = false, checksums = checksums, platformSpecificArtifact) })
+
+        if (module.publishingSettings.publishSources && platformSpecificSourcesJar != null) {
+            add(leafFragment.toGradleVariant(ResolutionScope.RUNTIME, isSources = true, checksums, platformSpecificSourcesJar))
+        }
+    }
+
+    return generateGradleModuleFile(variants, platform, module, outputDir)
+}
+
+private fun LeafFragment.toBaseGradleVariant(
+    scope: ResolutionScope,
+    isSources: Boolean = false,
+): GradleVariant {
     val nameSuffix = when {
         isSources -> "Sources"
         else -> when (scope) {
@@ -275,17 +273,107 @@ private fun LeafFragment.toGradleMetadataVariant(
             }
             this[KotlinPlatformType.name] = KotlinPlatformType.fromPlatform(resolutionPlatform).value
         },
-        // no dependencies or constraints are declared for the leaf target fragment,
-        // those are declared for the corresponding 'available-at' .module
         dependencies = [],
         dependencyConstraints = [],
         files = [],
-        `available-at` = AvailableAt(
-            url = "../../$artifactId/$version/$artifactId-$version.module",
-            group = groupId,
-            module = artifactId,
-            version = version
-        ),
+        `available-at` = null,
         capabilities = [],
     )
+}
+
+private fun LeafFragment.toGradleVariant(
+    scope: ResolutionScope,
+    isSources: Boolean = false,
+    checksums: Map<String, List<MavenPublishable>>,
+    platformSpecificArtifact: Path,
+): GradleVariant {
+
+    val baseVariant = toBaseGradleVariant(scope, isSources)
+
+    val dependencies = if (isSources) {
+        []
+    } else {
+        classPathForApiMetadata()
+            .distinct()
+            // KMP dependencies are declared in terms of common libraries root coordinates
+            .map { it.toVariantDependency(Platform.COMMON) }
+            .toList()
+    }
+
+    val platformSpecificCoordinates = module.publicationCoordinates(platform)
+    val artifactId = platformSpecificCoordinates.artifactId
+    val version = platformSpecificCoordinates.version
+        ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
+
+    val [name, url] = if (isSources) {
+        "$artifactId-$version-sources.jar" to "$artifactId-$version-sources.jar"
+    } else {
+        val extension = platformSpecificArtifact.extension
+        "${module.userReadableName}-${sourceSetName()}-$version.$extension" to "$artifactId-$version.$extension"
+    }
+
+    return baseVariant.copy(
+        dependencies = dependencies,
+        dependencyConstraints = [],
+        files = [
+            File(
+                name = name,
+                url = url,
+                size = platformSpecificArtifact.fileSize(),
+                sha512 = getCheckSumFor(platformSpecificArtifact, "sha512", checksums),
+                sha256 = getCheckSumFor(platformSpecificArtifact, "sha256", checksums),
+                sha1 = getCheckSumFor(platformSpecificArtifact, "sha1", checksums),
+                md5 = getCheckSumFor(platformSpecificArtifact, "md5", checksums),
+            )
+        ],
+        `available-at` = null,
+        capabilities = [],
+    )
+}
+
+suspend fun generateGradleModuleFile(variants: List<GradleVariant>, platform: Platform, module: AmperModule, outputDir: Path): Path {
+    val commonCoordinates = module.publicationCoordinates(Platform.COMMON)
+    val commonArtifactId = commonCoordinates.artifactId
+    val commonGroupId = commonCoordinates.groupId
+    val version = commonCoordinates.version
+        ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
+
+    val gradleMetadata = Module(
+        formatVersion = "1.1",
+        component = Component(
+            url = if (platform != Platform.COMMON) "../../$commonArtifactId/$version/$commonArtifactId-$version.module" else null,
+            group = commonGroupId,
+            module = commonArtifactId,
+            version = version,
+            attributes = mapOf("org.gradle.status" to "release")
+        ),
+        createdBy = CreatedBy(
+            // "Module.createdBy" accepts anything, not Gradle/Maven only.
+            // Gradle will not attempt to resolve or validate it — it skips the whole createdBy node during parsing
+            // since it is purely informational/diagnostic metadata.
+            kotlinToolchain = KotlinToolchain(
+                version = AmperBuild.mavenVersion,
+            )
+        ),
+        variants = variants
+    )
+
+    outputDir.createDirectories()
+
+    val platformSpecificCoordinates = module.publicationCoordinates(platform)
+    val platformSpecificArtifactId = platformSpecificCoordinates.artifactId
+
+    val gradleMetadataPath = outputDir / "$platformSpecificArtifactId-$version.module"
+
+    withContext(Dispatchers.IO) {
+        Files.writeString(
+            gradleMetadataPath,
+            json.encodeToString(gradleMetadata),
+            StandardOpenOption.CREATE,
+            StandardOpenOption.WRITE,
+            StandardOpenOption.TRUNCATE_EXISTING,
+        )
+    }
+
+    return gradleMetadataPath
 }
