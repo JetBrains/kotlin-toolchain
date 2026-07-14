@@ -1,6 +1,6 @@
 product: jvm/lib
 
-description: Library to download JDK metadata from the JetBrains JSON registry.
+description: Library represents the format of the Kotlin project structure metadata
 
 apply:
   - //sources/common.module-template.yaml
