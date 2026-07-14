@@ -77,6 +77,8 @@ class MavenPublishTask(
         val localRepositoryPath = mavenLocalRepository.repository
         val artifacts = dependenciesResult.filterIsInstance<PrepareMavenPublishablesTask.Result>()
             .flatMap { it.publishables }
+            // todo (AB) : [AMPER-719] Check if we could disable checksums generation in Eclise Aether library
+            //  and reuse what is already calculated by PrepareMavenPublishablesTask.
             .filterNot { it.isChecksum } // the Eclise Aether library generates checksums on its own
             .map { it.toMavenArtifact() }
             // We sort for reproducibility because the artifact order matters for the Eclipse Aether library
