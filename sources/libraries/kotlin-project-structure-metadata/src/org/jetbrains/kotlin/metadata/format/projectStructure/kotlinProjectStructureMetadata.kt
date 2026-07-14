@@ -1,15 +1,15 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure
+package org.jetbrains.kotlin.metadata.format.projectStructure
 
 import kotlinx.serialization.Serializable
-import org.jetbrains.amper.dependency.resolution.metadata.json.json
+import org.jetbrains.kotlin.metadata.format.json
 
-internal fun String.parseKmpLibraryMetadata(): KotlinProjectStructureMetadata = json.decodeFromString(this)
+fun String.parseKmpLibraryMetadata(): KotlinProjectStructureMetadata = json.decodeFromString(this)
 
-internal fun KotlinProjectStructureMetadata.serialize(): String = json.encodeToString(this)
+fun KotlinProjectStructureMetadata.serialize(): String = json.encodeToString(this)
 
 
 @Serializable

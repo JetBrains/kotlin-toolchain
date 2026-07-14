@@ -66,12 +66,12 @@ import org.jetbrains.amper.dependency.resolution.metadata.json.module.Module
 import org.jetbrains.amper.dependency.resolution.metadata.json.module.Variant
 import org.jetbrains.amper.dependency.resolution.metadata.json.module.Version
 import org.jetbrains.amper.dependency.resolution.metadata.json.module.parseMetadata
-import org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure.KotlinProjectStructureMetadata
-import org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure.parseKmpLibraryMetadata
 import org.jetbrains.amper.dependency.resolution.metadata.xml.Project
 import org.jetbrains.amper.dependency.resolution.metadata.xml.localRepository
 import org.jetbrains.amper.dependency.resolution.metadata.xml.parseSettings
 import org.jetbrains.amper.telemetry.use
+import org.jetbrains.kotlin.metadata.format.projectStructure.KotlinProjectStructureMetadata
+import org.jetbrains.kotlin.metadata.format.projectStructure.parseKmpLibraryMetadata
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.concurrent.CancellationException

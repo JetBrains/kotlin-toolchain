@@ -34,7 +34,7 @@ import kotlin.io.path.div
 import kotlin.io.path.exists
 
 typealias GradleVariant = org.jetbrains.amper.dependency.resolution.metadata.json.module.Variant
-typealias KotlinProjectStructureVariant = org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure.Variant
+typealias KotlinProjectStructureVariant = org.jetbrains.kotlin.metadata.format.projectStructure.Variant
 
 class AssembleAllMetadataTask (
     override val taskName: TaskName,

@@ -8,9 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.amper.dependency.resolution.PlatformType
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
-import org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure.KotlinProjectStructureMetadata
-import org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure.ProjectStructure
-import org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure.SourceSet
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.FragmentDependencyType
@@ -18,6 +15,9 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.tasks.MetadataCompileTask
+import org.jetbrains.kotlin.metadata.format.projectStructure.KotlinProjectStructureMetadata
+import org.jetbrains.kotlin.metadata.format.projectStructure.ProjectStructure
+import org.jetbrains.kotlin.metadata.format.projectStructure.SourceSet
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption

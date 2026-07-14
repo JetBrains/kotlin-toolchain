@@ -33,6 +33,7 @@ dependencies:
   - //sources/libraries/compress
   - //sources/libraries/concurrency
   - //sources/libraries/incremental-cache
+  - //sources/libraries/kotlin-project-structure-metadata
   - //sources/libraries/maven-central-configuration
   - //sources/libraries/pgp
   - //sources/libraries/serialization-extended

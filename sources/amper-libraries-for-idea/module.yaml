@@ -23,6 +23,7 @@ dependencies:
   - //sources/frontend-api: exported
   - //sources/frontend/dr: exported
   - //sources/frontend/schema: exported
+  - //sources/libraries/kotlin-project-structure-metadata: exported
   - //sources/libraries/maven-central-configuration: exported
   - //sources/libraries/maven-plugin-xml-parser: exported
   - //sources/libraries/system-info: exported
