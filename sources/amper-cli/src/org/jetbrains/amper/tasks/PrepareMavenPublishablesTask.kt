@@ -152,7 +152,8 @@ class PrepareMavenPublishablesTask(
         modulePublishablesFromOtherTasks: List<MavenPublishable>,
     ): List<MavenPublishable> =
         coordsPerPlatform.filterNot { it.key == Platform.COMMON }
-            .map { [platform, coords] ->
+            .entries
+            .mapConcurrently { [platform, coords] ->
                 val sourcesJar = if (module.publishingSettings.publishSources) {
                     val sourceCoordinates = coords.copy(classifier = "sources")
                     modulePublishablesFromOtherTasks.single { it.coordinates == sourceCoordinates }
