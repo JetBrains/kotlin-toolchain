@@ -4,7 +4,7 @@
 
 package org.jetbrains.amper.dependency.resolution
 
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Variant
+import org.jetbrains.gradle.module.metadata.format.Variant
 import org.jetbrains.amper.test.runTestWithMdc
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
@@ -56,7 +56,7 @@ class GradleLocalRepositoryTest {
                 Variant(
                     "",
                     files = listOf(
-                        org.jetbrains.amper.dependency.resolution.metadata.json.module.File(
+                        org.jetbrains.gradle.module.metadata.format.File(
                             name = "kotlin-test-1.9.10.jar",
                             "",
                             0,

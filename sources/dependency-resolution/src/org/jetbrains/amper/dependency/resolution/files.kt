@@ -40,11 +40,11 @@ import org.jetbrains.amper.dependency.resolution.files.deleteIfExistsWithLogging
 import org.jetbrains.amper.dependency.resolution.files.produceResultWithDoubleLock
 import org.jetbrains.amper.dependency.resolution.files.produceResultWithTempFile
 import org.jetbrains.amper.dependency.resolution.files.readTextWithRetry
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.File
 import org.jetbrains.amper.dependency.resolution.metadata.xml.parseMetadata
 import org.jetbrains.amper.dependency.resolution.telemetry.debugSpanBuilder
 import org.jetbrains.amper.filechannels.writeFrom
 import org.jetbrains.amper.telemetry.use
+import org.jetbrains.gradle.module.metadata.format.File
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.io.InputStream

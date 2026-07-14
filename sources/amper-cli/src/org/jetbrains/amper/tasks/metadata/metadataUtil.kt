@@ -8,10 +8,10 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.amper.dependency.resolution.PlatformType
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.dependency.resolution.attributes.Category
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.ArtifactSelector
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Dependency
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.ThirdPartyCompatibility
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Version
+import org.jetbrains.gradle.module.metadata.format.ArtifactSelector
+import org.jetbrains.gradle.module.metadata.format.Dependency
+import org.jetbrains.gradle.module.metadata.format.ThirdPartyCompatibility
+import org.jetbrains.gradle.module.metadata.format.Version
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.BomDependency
 import org.jetbrains.amper.frontend.DefaultScopedNotation

@@ -13,6 +13,7 @@ test-dependencies:
   - //sources/dependency-resolution
   - //sources/frontend-api # for DefaultVersions
   - //sources/frontend/schema
+  - //sources/libraries/gradle-module-metadata
   - //sources/libraries/system-info
   - //sources/libraries/telemetry
   - //sources/test-base

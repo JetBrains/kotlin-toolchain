@@ -4,9 +4,8 @@
 
 package org.jetbrains.amper.dependency.resolution.attributes
 
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Component
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Dependency
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Variant
+import org.jetbrains.gradle.module.metadata.format.Dependency
+import org.jetbrains.gradle.module.metadata.format.Variant
 
 /**
  * Represents a Gradle attribute of a dependency or variant.

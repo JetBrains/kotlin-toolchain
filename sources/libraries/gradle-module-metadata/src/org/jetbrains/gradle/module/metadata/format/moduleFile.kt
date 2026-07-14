@@ -2,16 +2,16 @@
  * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package org.jetbrains.amper.dependency.resolution.metadata.json.module
+package org.jetbrains.gradle.module.metadata.format
 
 import kotlinx.serialization.Serializable
-import org.jetbrains.amper.dependency.resolution.metadata.json.json
+import org.jetbrains.kotlin.metadata.format.json
 
 /**
  * [Gradle Module Metadata specification](https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md)
  */
-internal fun String.parseMetadata(): Module = json.decodeFromString(this)
-internal fun Module.serialize(): String = json.encodeToString(this)
+fun String.parseMetadata(): Module = json.decodeFromString(this)
+fun Module.serialize(): String = json.encodeToString(this)
 
 @Serializable
 data class Module(

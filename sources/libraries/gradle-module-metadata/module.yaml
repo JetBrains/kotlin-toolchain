@@ -1,0 +1,15 @@
+product: jvm/lib
+
+description: Library represents the format of the Gradle module metadata
+
+apply:
+  - //sources/common.module-template.yaml
+  - //sources/used-in-idea.module-template.yaml
+  - //sources/used-in-kotlin-notebook.module-template.yaml
+
+settings:
+  jvm:
+    # Used in IDEA (max 21) and Kotlin Notebook (max 11), so we take the lowest version 11
+    release: 11
+  kotlin:
+    serialization: json

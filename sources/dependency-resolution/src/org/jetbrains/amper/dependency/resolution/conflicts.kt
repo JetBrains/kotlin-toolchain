@@ -5,7 +5,7 @@
 package org.jetbrains.amper.dependency.resolution
 
 import org.apache.maven.artifact.versioning.ComparableVersion
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Version
+import org.jetbrains.gradle.module.metadata.format.Version
 
 /**
  * Defines a conflict on a group of nodes with the same key and provides a way to resolve it.

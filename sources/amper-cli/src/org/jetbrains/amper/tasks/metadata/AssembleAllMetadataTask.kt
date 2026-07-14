@@ -33,7 +33,7 @@ import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
 import kotlin.io.path.exists
 
-typealias GradleVariant = org.jetbrains.amper.dependency.resolution.metadata.json.module.Variant
+typealias GradleVariant = org.jetbrains.gradle.module.metadata.format.Variant
 typealias KotlinProjectStructureVariant = org.jetbrains.kotlin.metadata.format.projectStructure.Variant
 
 class AssembleAllMetadataTask (

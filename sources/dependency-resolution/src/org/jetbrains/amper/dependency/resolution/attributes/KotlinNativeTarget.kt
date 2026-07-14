@@ -5,7 +5,7 @@
 package org.jetbrains.amper.dependency.resolution.attributes
 
 import org.jetbrains.amper.dependency.resolution.ResolutionPlatform
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Variant
+import org.jetbrains.gradle.module.metadata.format.Variant
 
 sealed class KotlinNativeTarget(override val value: String) : AttributeValue {
     companion object : Attribute<KotlinNativeTarget> {

@@ -7,7 +7,7 @@ package org.jetbrains.amper.cli.test
 import kotlinx.serialization.json.Json
 import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.runSlowTest
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Module
+import org.jetbrains.gradle.module.metadata.format.Module
 import org.jetbrains.amper.test.Dirs
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Files

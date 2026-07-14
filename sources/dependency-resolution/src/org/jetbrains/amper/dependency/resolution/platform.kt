@@ -9,7 +9,7 @@ import org.jetbrains.amper.dependency.resolution.attributes.KotlinPlatformType
 import org.jetbrains.amper.dependency.resolution.attributes.getAttributeValue
 import org.jetbrains.amper.dependency.resolution.attributes.hasKotlinPlatformType
 import org.jetbrains.amper.dependency.resolution.attributes.hasNoAttribute
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Variant
+import org.jetbrains.gradle.module.metadata.format.Variant
 
 /**
  * This enum contains leaf platforms, dependencies resolution could be requested for.

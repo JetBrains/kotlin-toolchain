@@ -1,24 +1,23 @@
 /*
- * Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package org.jetbrains.amper.dependency.resolution.metadata.json.module
+package org.jetbrains.gradle.module.metadata.format
 
-import org.jetbrains.amper.dependency.resolution.metadata.json.JsonTestBase
-import org.jetbrains.amper.test.Dirs
+import org.jetbrains.kotlin.metadata.format.json
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
+import kotlin.io.path.readText
 import kotlin.test.assertTrue
 
-internal class ModuleJsonTest : JsonTestBase<Module>() {
+class ModuleJsonTest {
 
-    override fun getTestDataPath(name: String): Path =
-        Dirs.amperSourcesRoot.resolve("dependency-resolution/testData/metadata/json/module/${name}.module")
+    fun getTestDataPath(name: String): Path =
+        Path.of(this::class.java.getClassLoader().getResource("module/$name.module").toURI())
 
-    override fun String.parse(): Module = parseMetadata()
-
-    override fun serialize(model: Module): String = model.serialize()
+    fun String.parse(): Module = json.decodeFromString(this)
 
     @Test
     fun `kotlin-stdlib-1_9_20`(testInfo: TestInfo) = doTest(testInfo)
@@ -61,4 +60,16 @@ internal class ModuleJsonTest : JsonTestBase<Module>() {
             it.size == null && it.md5 == null && it.sha1 == null && it.sha256 == null && it.sha512 == null
         })
     }
+
+    private fun doTest(testInfo: TestInfo, sanitizer: (String) -> String = { it }) {
+        val expectedText = getTestDataText(testInfo.nameToDependency())
+        val model = expectedText.parse()
+        assertEquals(sanitizer(sanitize(expectedText)), sanitizer(model.serialize()))
+    }
+
+    private fun getTestDataText(name: String) = getTestDataPath(name).readText()
+
+    private fun sanitize(text: String) = text.replace("\\s+".toRegex(), "")
+
+    private fun TestInfo.nameToDependency(): String = testMethod.get().name.replace('_', '.').replace(' ', ':')
 }

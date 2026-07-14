@@ -8,7 +8,7 @@ import org.jetbrains.amper.dependency.resolution.attributes.Usage
 import org.jetbrains.amper.dependency.resolution.attributes.getAttributeValue
 import org.jetbrains.amper.dependency.resolution.attributes.hasKotlinPlatformType
 import org.jetbrains.amper.dependency.resolution.attributes.isDocumentation
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Variant
+import org.jetbrains.gradle.module.metadata.format.Variant
 import org.jetbrains.amper.dependency.resolution.metadata.xml.Dependency
 
 /**

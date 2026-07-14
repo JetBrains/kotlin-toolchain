@@ -18,12 +18,6 @@ import org.jetbrains.amper.dependency.resolution.attributes.KotlinNativeTarget
 import org.jetbrains.amper.dependency.resolution.attributes.KotlinPlatformType
 import org.jetbrains.amper.dependency.resolution.attributes.KotlinWasmTarget
 import org.jetbrains.amper.dependency.resolution.attributes.Usage
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.AvailableAt
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Component
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.CreatedBy
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.File
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.KotlinToolchain
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Module
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
@@ -31,6 +25,12 @@ import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.amper.tasks.MavenPublishable
+import org.jetbrains.gradle.module.metadata.format.AvailableAt
+import org.jetbrains.gradle.module.metadata.format.Component
+import org.jetbrains.gradle.module.metadata.format.CreatedBy
+import org.jetbrains.gradle.module.metadata.format.File
+import org.jetbrains.gradle.module.metadata.format.KotlinToolchain
+import org.jetbrains.gradle.module.metadata.format.Module
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption

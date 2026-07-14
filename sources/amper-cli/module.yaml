@@ -32,6 +32,7 @@ dependencies:
   - //sources/libraries/compose-resources
   - //sources/libraries/compress
   - //sources/libraries/concurrency
+  - //sources/libraries/gradle-module-metadata
   - //sources/libraries/incremental-cache
   - //sources/libraries/kotlin-project-structure-metadata
   - //sources/libraries/maven-central-configuration

@@ -59,13 +59,13 @@ import org.jetbrains.amper.dependency.resolution.diagnostics.asMessage
 import org.jetbrains.amper.dependency.resolution.diagnostics.hasErrors
 import org.jetbrains.amper.dependency.resolution.files.produceFileWithDoubleLockAndHash
 import org.jetbrains.amper.dependency.resolution.maven.resolvePom
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.AvailableAt
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Capability
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Dependency
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Module
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Variant
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Version
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.parseMetadata
+import org.jetbrains.gradle.module.metadata.format.AvailableAt
+import org.jetbrains.gradle.module.metadata.format.Capability
+import org.jetbrains.gradle.module.metadata.format.Dependency
+import org.jetbrains.gradle.module.metadata.format.Variant
+import org.jetbrains.gradle.module.metadata.format.Module
+import org.jetbrains.gradle.module.metadata.format.Version
+import org.jetbrains.gradle.module.metadata.format.parseMetadata
 import org.jetbrains.amper.dependency.resolution.metadata.xml.Project
 import org.jetbrains.amper.dependency.resolution.metadata.xml.localRepository
 import org.jetbrains.amper.dependency.resolution.metadata.xml.parseSettings
@@ -1303,7 +1303,7 @@ class MavenDependencyImpl internal constructor(
     }
 
     private fun Dependency.toMavenDependencyConstraint(context: Context): MavenDependencyConstraintImpl? {
-        return version?.let { context.createOrReuseDependencyConstraint(group, module, version) }
+        return version?.let { context.createOrReuseDependencyConstraint(group, module, it) }
     }
 
     private fun Dependency.toMavenDependency(
@@ -1407,7 +1407,7 @@ class MavenDependencyImpl internal constructor(
             // An empty version of transitive dependency might be resolved from some BOM file from the dependency graph
             null
         } else {
-            val resolvedVersion = version.resolve()
+            val resolvedVersion = version!!.resolve()
             if (resolvedVersion == null) {
                 reportError(DependencyResolutionBundle.message("version.attributes.not.defined"))
                 return null

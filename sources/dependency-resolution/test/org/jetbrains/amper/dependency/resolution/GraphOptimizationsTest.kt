@@ -5,7 +5,7 @@
 package org.jetbrains.amper.dependency.resolution
 
 import org.jetbrains.amper.dependency.resolution.DependencyGraph.Companion.toGraph
-import org.jetbrains.amper.dependency.resolution.metadata.json.module.Version
+import org.jetbrains.gradle.module.metadata.format.Version
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertSame
