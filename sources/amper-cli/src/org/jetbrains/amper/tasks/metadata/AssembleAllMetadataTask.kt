@@ -11,7 +11,6 @@ import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
-import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.publishingSettings
@@ -66,15 +65,13 @@ class AssembleAllMetadataTask (
         // todo (AB): [AMPER-719] Wrap into incremental cache
 
         val metadataCompilations = dependenciesResult.filterIsInstance<MetadataCompileTask.Result>()
-        val fragmentMetadata: Map<Fragment, MetadataCompileTask.Result> =
-            metadataCompilations.associateBy { it.fragment }
 
-        val projectStructureFilePath = generateKotlinProjectDescriptor(module, taskOutputRoot.path, fragmentMetadata)
+        val projectStructureFilePath = generateKotlinProjectDescriptor(module, taskOutputRoot.path, metadataCompilations)
 
-        val allMetadataJarPath = assembleAllMetadataJar(module, taskOutputRoot.path, fragmentMetadata, projectStructureFilePath)
+        val allMetadataJarPath = assembleAllMetadataJar(module, taskOutputRoot.path, metadataCompilations, projectStructureFilePath)
 
         val allMetadataSourcesJarPath = if (module.publishingSettings.publishSources) {
-            assembleAllMetadataSourcesJar(module, taskOutputRoot.path, fragmentMetadata)
+            assembleAllMetadataSourcesJar(module, taskOutputRoot.path, metadataCompilations)
         } else null
 
         return Result(
@@ -87,7 +84,7 @@ class AssembleAllMetadataTask (
     private fun assembleAllMetadataJar(
         module: AmperModule,
         outputDirectory: Path,
-        fragmentMetadata: Map<Fragment, MetadataCompileTask.Result>,
+        metadataCompilations: List<MetadataCompileTask.Result>,
         projectStructureFilePath: Path,
     ): Path? {
         // todo (AB): [AMPER-719] Wrap into incremental cache
@@ -99,9 +96,9 @@ class AssembleAllMetadataTask (
         // Creating all-metadata JAR
         // todo (AB): [AMPER-719] Pack commonized cinterop sourceSets as well
         val inputDirs = buildList {
-            fragmentMetadata.forEach { fragment, result ->
-                if (!result.metadataOutputRoot.isEmptyDirectory()) {
-                    add(ZipInput(path = result.metadataOutputRoot, destPathInArchive = Path(fragment.sourceSetName())))
+            metadataCompilations.forEach {
+                if (!it.metadataOutputRoot.isEmptyDirectory()) {
+                    add(ZipInput(path = it.metadataOutputRoot, destPathInArchive = Path(it.fragment.sourceSetName())))
                 }
             }
 
@@ -120,7 +117,7 @@ class AssembleAllMetadataTask (
     private fun assembleAllMetadataSourcesJar(
         module: AmperModule,
         outputDirectory: Path,
-        fragmentMetadata: Map<Fragment, MetadataCompileTask.Result>
+        metadataCompilations: List<MetadataCompileTask.Result>,
     ): Path? {
         // todo (AB): [AMPER-719] Wrap into incremental cache
         val moduleCoordinates = module.publicationCoordinates(Platform.COMMON)
@@ -130,7 +127,8 @@ class AssembleAllMetadataTask (
 
         // Creating all-metadata sources JAR
         val inputDirs = buildList {
-            fragmentMetadata.forEach { fragment, _ ->
+            metadataCompilations.forEach {
+                val fragment = it.fragment
                 addAll(
                     fragment.sourceRoots
                     .filter { it.exists() }

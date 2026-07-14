@@ -30,7 +30,7 @@ private const val KOTLIN_PROJECT_STRUCTURE_METADATA_FILE_NAME = "kotlin-project-
 internal suspend fun generateKotlinProjectDescriptor(
     module: AmperModule,
     outputDir: Path,
-    fragmentMetadata: Map<Fragment, MetadataCompileTask.Result>,
+    metadataCompilations: List<MetadataCompileTask.Result>,
 ): Path {
     // There is an entry for each module LEAF fragment in the project descriptor file.
     // Each entry contains a name of the variant from the Gradle metadata file that corresponds to the fragment
@@ -44,8 +44,8 @@ internal suspend fun generateKotlinProjectDescriptor(
         .sortedBy { it.name }
 
     // intermediate source sets are declared in 'sourceSets' sections
-    val sourceSets = fragmentMetadata
-        .map { it.key.toSourceSet() }
+    val sourceSets = metadataCompilations
+        .map { it.fragment.toSourceSet() }
         .sortedBy { it.name }
 
     val projectStructure = KotlinProjectStructureMetadata(
