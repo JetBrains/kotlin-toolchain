@@ -8,10 +8,6 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.amper.dependency.resolution.PlatformType
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.dependency.resolution.attributes.Category
-import org.jetbrains.gradle.module.metadata.format.ArtifactSelector
-import org.jetbrains.gradle.module.metadata.format.Dependency
-import org.jetbrains.gradle.module.metadata.format.ThirdPartyCompatibility
-import org.jetbrains.gradle.module.metadata.format.Version
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.BomDependency
 import org.jetbrains.amper.frontend.DefaultScopedNotation
@@ -21,9 +17,13 @@ import org.jetbrains.amper.frontend.LocalModuleDependency
 import org.jetbrains.amper.frontend.MavenDependencyBase
 import org.jetbrains.amper.frontend.Notation
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.dr.resolver.flow.classpath
+import org.jetbrains.amper.frontend.dr.resolver.flow.dependenciesAvailableForConsumerClasspath
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.maven.publish.publicationCoordinates
+import org.jetbrains.gradle.module.metadata.format.ArtifactSelector
+import org.jetbrains.gradle.module.metadata.format.Dependency
+import org.jetbrains.gradle.module.metadata.format.ThirdPartyCompatibility
+import org.jetbrains.gradle.module.metadata.format.Version
 
 internal val json = Json {
     ignoreUnknownKeys = true
@@ -48,11 +48,12 @@ internal fun Fragment.sourceSetName(): String {
     return if (name.endsWith("Main")) name else "${name}Main"
 }
 
-internal fun Fragment.classPathForApiMetadata() = classpath(
-    // We declare dependencies reachable from the consumer side,
-    // (COMPILE classpath of the consumer module should not know about non-exported
-    // compile dependencies of the fragment)
-    directDependencies = false,
+/**
+ * Returns dependencies reachable from the consumer side,
+ * For instance, COMPILE classpath of the consumer should not know about non-exported
+ * compile dependencies of this fragment (in non-native case)
+ */
+internal fun Fragment.classPathForApiMetadata() = dependenciesAvailableForConsumerClasspath(
     platforms = platforms.map { it.toResolutionPlatform()!! }.toSet(),
     scope = ResolutionScope.COMPILE,
     includeNonExportedNative = true,

@@ -236,21 +236,24 @@ internal class Classpath(
  *
  * @param platforms a set of platforms resolution is made for. It might be different from the set of own [Fragment]
  * platforms (in this case, [platforms] is a subset of this [Fragment.platforms]).
- * @param scope resolution scope to form classpath for
- * @param directDependencies should be set to true if caller is interested in the dependencies
+ * @param scope resolution scope to form a classpath for
+ * @param directDependencies should be set to true if a caller is interested in the dependencies
  * required for this particular fragment to be compiled or run. If that fragment is a nested dependency of some
- * larger compilation, then the value should be set to false
+ * larger resolution scope, then the value should be set to false
  * (in this case, for instance, non-exported COMPILE dependencies of the fragment
- * won't be added to resulting list, but only exported ones)
+ * won't be added to the resulting list, but only exported ones)
  *  @param includeNonExportedNative Default value is true. It specifies if transitive COMPILE dependencies should
  *  be included in the classpath for the native compilation (i.e., [platforms] contains native platforms only)
  */
-fun Fragment.classpath(
+private fun Fragment.classpath(
     directDependencies: Boolean,
     scope: ResolutionScope,
     platforms: Set<ResolutionPlatform>,
     includeNonExportedNative: Boolean = true,
 ): List<Notation> {
+    check(this.platforms.map { it.toResolutionPlatform() }.toSet().containsAll(platforms)) {
+        "Given set of platforms $platforms must be a subset of the Fragment.platforms ${this.platforms}"
+    }
     val classpath = Classpath(DependenciesFlowType.ClassPathType(
         scope, platforms, isTest, includeNonExportedNative
     ))
@@ -263,3 +266,27 @@ fun Fragment.classpath(
         }
     }
 }
+
+/**
+ * Returns a subset of dependencies of this [Fragment] that should be added
+ * to a classpath of another [Fragment] from a different module that depends on this one.
+ *
+ * The consumer classpath is defined by the following parameters
+ * [scope], [platforms] and [includeNonExportedNative]
+ *
+ * @param platforms a set of platforms resolution is made for. It might be different from the set of own [Fragment]
+ *  platforms (in this case, [platforms] is a subset of this [Fragment.platforms]).
+ *
+ * @param scope resolution scope to form a classpath for
+ *
+ * @param includeNonExportedNative Default value is true. It specifies if transitive COMPILE dependencies should
+ *  be included in the classpath for the native compilation (i.e., [platforms] contains native platforms only)
+ */
+fun Fragment.dependenciesAvailableForConsumerClasspath(
+    scope: ResolutionScope,
+    platforms: Set<ResolutionPlatform>,
+    includeNonExportedNative: Boolean = true,
+): List<Notation> = classpath(
+    directDependencies = false,
+    scope = scope, platforms = platforms, includeNonExportedNative = includeNonExportedNative
+)
