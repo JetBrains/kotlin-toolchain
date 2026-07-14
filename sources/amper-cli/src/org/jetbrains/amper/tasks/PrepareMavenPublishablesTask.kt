@@ -82,6 +82,8 @@ class PrepareMavenPublishablesTask(
                 "modulePublishablesFromOtherTasks" to Json.encodeToString(modulePublishablesFromOtherTasks),
                 "signingEnabled" to signingEnabled.toString(),
                 "moduleInfo" to Json.encodeToString(listOf(module.userReadableName, module.description)),
+                "checksums" to module.publishingSettings.checksums.joinToString(),
+                "publishSources" to module.publishingSettings.publishSources.toString(),
             ),
             inputFiles = modulePublishablesFromOtherTasks.map { it.path },
         ) {
@@ -106,7 +108,7 @@ class PrepareMavenPublishablesTask(
                 .toMap()
             )
 
-            generateGradleMetadata(dependenciesResult, checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks)
+            generateGradleMetadata(checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks)
                 .also {
                     meaningfulPublishables.addAll(it)
                     checksumPublishables.putAll(
@@ -133,7 +135,6 @@ class PrepareMavenPublishablesTask(
     }
 
     private suspend fun generateGradleMetadata(
-        dependenciesResult: List<TaskResult>,
         checksumPublishables: Map<String, List<MavenPublishable>>,
         coordsPerPlatform: Map<Platform, MavenCoordinates>,
         modulePublishablesFromOtherTasks: List<MavenPublishable>,
@@ -142,7 +143,7 @@ class PrepareMavenPublishablesTask(
             generateGradleMetadataForLeafPlatforms(
                 checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks)
         )
-        generateCommonGradleMetadata(dependenciesResult, checksumPublishables, coordsPerPlatform)
+        generateCommonGradleMetadata(checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks)
             ?.also { add(it) }
     }
 
@@ -154,40 +155,48 @@ class PrepareMavenPublishablesTask(
         coordsPerPlatform.filterNot { it.key == Platform.COMMON }
             .entries
             .mapConcurrently { [platform, coords] ->
-                val sourcesJar = if (module.publishingSettings.publishSources) {
-                    val sourceCoordinates = coords.copy(classifier = "sources")
-                    modulePublishablesFromOtherTasks.single { it.coordinates == sourceCoordinates }
-                } else null
-                val platformSpecificArtifactPath =
-                    modulePublishablesFromOtherTasks.single { it.coordinates == coords }
+                val platformSpecificArtifact = modulePublishablesFromOtherTasks.single { it.coordinates == coords }
+                val sourcesJar = findSourcesArtifactFor(coords, modulePublishablesFromOtherTasks)
                 generateGradleMetadataForLeafPlatform(
                     module,
                     platform,
                     taskOutputRoot.path,
                     checksumPublishables,
-                    platformSpecificArtifactPath.path,
+                    platformSpecificArtifact.path,
                     sourcesJar?.path,
                 ).toMavenPublishable(coords)
             }
 
     private suspend fun generateCommonGradleMetadata(
-        dependenciesResult: List<TaskResult>,
         checksumPublishables: Map<String, List<MavenPublishable>>,
         coordsPerPlatform: Map<Platform, MavenCoordinates>,
+        modulePublishablesFromOtherTasks: List<MavenPublishable>,
     ): MavenPublishable? {
-        val allMetadataTaskResult = dependenciesResult.filterIsInstance<AssembleAllMetadataTask.Result>()
-            .singleOrNull() ?: return null
+        if (module.leafPlatforms.size == 1) return null
+
+        val commonCoordinates = module.publicationCoordinates(Platform.COMMON)
+
+        val allMetadataArtifact = modulePublishablesFromOtherTasks.single { it.coordinates == commonCoordinates }
+        val allMetadataSourcesArtifact = findSourcesArtifactFor(commonCoordinates, modulePublishablesFromOtherTasks)
 
         val allMetadataGradleModuleFile = generateCommonGradleModuleMetadata(
             module, taskOutputRoot.path,
-            allMetadataJarPath = allMetadataTaskResult.allMetadataJarPath,
-            allMetadataSourcesJarPath = allMetadataTaskResult.allMetadataSourcesJarPath,
+            allMetadataJarPath = allMetadataArtifact.path,
+            allMetadataSourcesJarPath = allMetadataSourcesArtifact?.path,
             checksumPublishables
         )
         val allMetadataGradleModulePublishable =
             allMetadataGradleModuleFile.toMavenPublishable(coordsPerPlatform[Platform.COMMON]!!)
         return allMetadataGradleModulePublishable
     }
+
+    private fun findSourcesArtifactFor(
+        coords: MavenCoordinates,
+        modulePublishablesFromOtherTasks: List<MavenPublishable>,
+    ): MavenPublishable? = if (module.publishingSettings.publishSources) {
+        val sourceCoordinates = coords.copy(classifier = "sources")
+        modulePublishablesFromOtherTasks.single { it.coordinates == sourceCoordinates }
+    } else null
 
     private fun assertNoDirectories(publishables: List<MavenPublishable>) {
         val directoryPublishables = publishables.filter { it.path.isDirectory() }
