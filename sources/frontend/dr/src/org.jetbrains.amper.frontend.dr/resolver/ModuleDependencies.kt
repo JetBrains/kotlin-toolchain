@@ -46,7 +46,6 @@ import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.resolveProjectDependencies
 import org.jetbrains.amper.frontend.dr.resolver.flow.Classpath
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
-import org.jetbrains.amper.frontend.dr.resolver.publiation.rootPublicationCoordinates
 import org.jetbrains.amper.frontend.fragmentsToDependOnFromOtherModuleFragmentWith
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.schema.Repository.Companion.SpecialMavenLocalUrl
@@ -297,20 +296,6 @@ class ModuleDependencies private constructor(
         )
 
         return node
-    }
-
-    /**
-     * Returns a list of the given module COMPILE dependencies
-     * filtered the given [platforms], [isTest].
-     */
-    fun getDirectCompileDependenciesCoordinates(
-        isTest: Boolean,
-        platforms: Set<Platform>,
-        includeLocalModules: Boolean = true,
-    ): List<MavenCoordinates> {
-        return forPlatforms(platforms = platforms, isTest = isTest)
-            .compileSymbolsVisibilityDeps
-            .getDirectCompileDependenciesCoordinates(includeLocalModules)
     }
 
     companion object {
@@ -753,22 +738,6 @@ class ModuleDependencies private constructor(
                 .drop(1)
                 .filterIsInstance<ModuleDependencyNodeWithModuleAndContext>()
                 .map { it.module }
-        }
-
-        private fun ModuleDependencyNodeWithModuleAndContext.getDirectCompileDependenciesCoordinates(
-            includeLocalModules: Boolean = true
-        ): List<MavenCoordinates> {
-            return children.mapNotNull {
-                when {
-                    it is DirectFragmentDependencyNodeHolderWithContext -> {
-                        it.dependencyNode.getOriginalMavenCoordinates()
-                    }
-                    it is ModuleDependencyNodeWithModuleAndContext && includeLocalModules -> {
-                        it.module.rootPublicationCoordinates()
-                    }
-                    else -> null
-                }
-            }
         }
 
         /**

@@ -7,6 +7,7 @@ package org.jetbrains.amper.stdlib.io.path
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
+import kotlin.io.path.useDirectoryEntries
 
 /**
  * Returns `true` if this [Path] exists and is an empty directory, or `false` in any other case.

@@ -147,8 +147,8 @@ class PrepareMavenPublishablesTask(
                     generateChecksums(allMetadataGradleModulePublishable, checksumsToPublish)
             }
 
-            // Checksums are not mandatory for signatures itself, and we want to limit the number of published files, so we only
-            // have generated checksums for non-signature publishables.
+            // Checksums are not mandatory for the signature files themselves, and we want to limit the number
+            // of published files, so we don't generate checksums for the signatures here.
             val meaningfulPublishablesWithSignatures = if (signingEnabled) {
                 val artifactSigner = createSignerFromEnvConfig()
                 val signatures = meaningfulPublishables.map { artifactSigner.signArtifact(it) }
@@ -263,7 +263,7 @@ data class MavenPublishable(
     val isSignature: Boolean
         get() = mavenArtifactExtension.endsWith("asc")
 
-   val isChecksum: Boolean
+    val isChecksum: Boolean
         get() = Checksum.entries.any { mavenArtifactExtension.endsWith(it.mavenArtifactExtensionSuffix) }
 }
 

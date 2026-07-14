@@ -80,7 +80,7 @@ class AssembleAllMetadataTask (
         return Result(
             allMetadataJarPath = allMetadataJarPath,
             allMetadataSourcesJarPath = allMetadataSourcesJarPath,
-            module = module
+            module = module,
         )
     }
 
