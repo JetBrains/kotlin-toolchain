@@ -53,13 +53,14 @@ internal fun Fragment.sourceSetName(): String {
  * For instance, COMPILE classpath of the consumer should not know about non-exported
  * compile dependencies of this fragment (in non-native case)
  */
-internal fun Fragment.classPathForApiMetadata() = dependenciesAvailableForConsumerClasspath(
-    platforms = platforms.map { it.toResolutionPlatform()!! }.toSet(),
-    scope = ResolutionScope.COMPILE,
-    includeNonExportedNative = true,
-)
+internal fun Fragment.classPathForApiMetadata() =
+    dependenciesAvailableForConsumerClasspath(
+        platforms = platforms.map { it.toResolutionPlatform()!! }.toSet(),
+        scope = ResolutionScope.COMPILE,
+        includeNonExportedNative = true,
+    )
 
-    internal fun getApplicableVariantScopes(leafFragment: LeafFragment): List<ResolutionScope> = buildList {
+internal fun getApplicableVariantScopes(leafFragment: LeafFragment): List<ResolutionScope> = buildList {
     add(ResolutionScope.COMPILE)
     if (leafFragment.platform.toResolutionPlatform()?.type != PlatformType.NATIVE) {
         add(ResolutionScope.RUNTIME)

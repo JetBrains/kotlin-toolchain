@@ -26,7 +26,7 @@ import kotlin.io.path.div
 
 private const val KOTLIN_PROJECT_STRUCTURE_METADATA_FILE_NAME = "kotlin-project-structure-metadata.json"
 
-// todo (AB) : Wrap into incremental cache (perhaps all together with all-metadata jar ceation)
+// todo (AB): [AMPER-719] Wrap into incremental cache (perhaps all together with all-metadata jar creation)
 internal suspend fun generateKotlinProjectDescriptor(
     module: AmperModule,
     outputDir: Path,
@@ -75,14 +75,14 @@ internal suspend fun generateKotlinProjectDescriptor(
 }
 
 private fun Fragment.toSourceSet(): SourceSet {
-    // KGP adds neither compileOnly nor runtimeOnly dependencies to the source set deps (see  OSIP-667),
+    // KGP adds neither compileOnly nor runtimeOnly dependencies to the source set deps (see OSIP-667),
     // but it adds implementation dependencies for shared fragments
-    // (if a project have more than 1 native target platforms).
+    // (if a project has more than 1 native target platforms).
     // Kotlin Toolchain adds transitive compile dependencies (both api and implementation in terms of Gradle)
     // for pure native shared fragments only.
-    // Mixed fragments stays are still provided with exported compile dependencies only (api in terms of Gradle).
-    // This differs from KGP, but in fact KGP doesn't use transitive non-exported dependencies of mixed shared fragments.
-    // Those got filtered out on a consumer side (by intersection with leaf-platform classpath)
+    // Mixed fragments are still provided with exported compile dependencies only ('api' in terms of Gradle).
+    // This differs from KGP, but in fact, KGP doesn't use transitive non-exported dependencies of mixed shared fragments.
+    // Those got filtered out on a consumer side (by intersection with the leaf-platform classpath)
     val dependencies = classPathForApiMetadata()
         .map { it.toVariantDependency(Platform.COMMON) }
         .map { "${it.group}:${it.module}" }
