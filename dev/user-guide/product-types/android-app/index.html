@@ -1101,6 +1101,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#resolving-duplicate-java-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolving duplicate Java resources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#code-shrinking" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2553,6 +2564,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#resolving-duplicate-java-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolving duplicate Java resources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#code-shrinking" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2685,6 +2707,27 @@ configuration for it:</p>
 <p>You can use the <code>build</code> command to create an APK, or the <code>package</code> command to create an Android Application Bundle (AAB).</p>
 <p>The <code>package</code> command will not only build the APK, but also minify/obfuscate it with ProGuard, and sign it.
 See the dedicated <a href="#signing">signing</a> and <a href="#code-shrinking">code shrinking</a> sections below to learn how to configure this.</p>
+<h3 id="resolving-duplicate-java-resources">Resolving duplicate Java resources<a class="headerlink" href="#resolving-duplicate-java-resources" title="Permanent link">&para;</a></h3>
+<p>Dependencies can package Java resources under the same path. If Android packaging fails in <code>MergeJavaResWorkAction</code>
+with an error such as <code>2 files found with path ...</code>, use <code>settings.android.resourcePackaging</code> to tell the Android
+packager how to handle the conflict.</p>
+<p>For example, the following configuration excludes a duplicated resource from the APK:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">android</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">resourcePackaging</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">excludes</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">META-INF/versions/9/OSGI-INF/MANIFEST.MF</span>
+</code></pre></div>
+<p>Choose the rule that matches the resource's semantics:</p>
+<ul>
+<li><code>excludes</code> omits matching resources from the APK.</li>
+<li><code>pickFirsts</code> packages only the first matching resource.</li>
+<li><code>merges</code> concatenates all matching resources into a single APK entry.</li>
+</ul>
+<p>The values are glob patterns accepted by Android's
+<a href="https://developer.android.com/reference/tools/gradle-api/com/android/build/api/dsl/Resources"><code>Packaging.Resources</code></a>
+API. See the <a href="../../../reference/module/#settingsandroidresourcepackaging"><code>resourcePackaging</code> reference</a> for all
+available options.</p>
 <h3 id="code-shrinking">Code shrinking<a class="headerlink" href="#code-shrinking" title="Permanent link">&para;</a></h3>
 <p>When creating a release build with the Kotlin Toolchain, R8 will be used automatically, with minification and shrinking enabled.
 This is equivalent to the following Gradle configuration:</p>
@@ -2807,7 +2850,7 @@ your <code>google-services.json</code> file in the module containing an <code>an
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 25, 2026 23:21:04 UTC">May 25, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="July 14, 2026 12:44:25 UTC">July 14, 2026</span>
   </span>
 
     
