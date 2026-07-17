@@ -60,7 +60,7 @@ enum class Platform(
 
     WATCHOS(APPLE),
     WATCHOS_ARM64(WATCHOS, isLeaf = true, isAppleDevice = true),
-    WATCHOS_ARM32(WATCHOS, isLeaf = true, isAppleDevice = true),
+    WATCHOS_ARM32(WATCHOS, isLeaf = true, isAppleDevice = true, outdated = true), // Is planned to be removed in Kotlin 2.5.0, unsupported by Apple since Xcode 27 (KT-78078)
     WATCHOS_DEVICE_ARM64(WATCHOS, isLeaf = true, isAppleDevice = true),
     WATCHOS_SIMULATOR_ARM64(WATCHOS, isLeaf = true, isAppleDevice = false),
 
@@ -71,7 +71,8 @@ enum class Platform(
     ANDROID_NATIVE_ARM32(ANDROID_NATIVE, isLeaf = true),
     ANDROID_NATIVE_ARM64(ANDROID_NATIVE, isLeaf = true),
     ANDROID_NATIVE_X64(ANDROID_NATIVE, isLeaf = true),
-    ANDROID_NATIVE_X86(ANDROID_NATIVE, isLeaf = true),;
+    ANDROID_NATIVE_X86(ANDROID_NATIVE, isLeaf = true),
+    ;
 
     // TODO Copy pasted. Check why NoSuchMethodError arises when using outer method.
     private val prettyRegex = "_.".toRegex()
