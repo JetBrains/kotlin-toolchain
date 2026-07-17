@@ -63,7 +63,10 @@ enum class ResolutionPlatform(
     ANDROID_NATIVE_X64(PlatformType.NATIVE),
     ANDROID_NATIVE_X86(PlatformType.NATIVE);
 
-    val nativeTarget: String? = if (type == PlatformType.NATIVE) name.lowercase() else null
+    val nativeTarget: String? = if (type == PlatformType.NATIVE) when (this) {
+        ANDROID_NATIVE_ARM32, ANDROID_NATIVE_ARM64, ANDROID_NATIVE_X64, ANDROID_NATIVE_X86 -> name.replace("_NATIVE", "")
+        else -> name
+    }.lowercase() else null
     val wasmTarget: String? = if (type == PlatformType.WASM) name.lowercase().substringAfter("_") else null
 
     // TODO Copy pasted from Platform
