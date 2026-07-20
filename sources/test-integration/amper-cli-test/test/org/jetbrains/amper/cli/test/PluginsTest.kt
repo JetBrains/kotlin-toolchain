@@ -6,7 +6,6 @@ package org.jetbrains.amper.cli.test
 
 import org.jetbrains.amper.cli.test.utils.assertErrors
 import org.jetbrains.amper.cli.test.utils.assertLogContains
-import org.jetbrains.amper.cli.test.utils.assertSomeStderrLineContains
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
@@ -281,15 +280,25 @@ class PluginsTest : AmperCliTestBase() {
         )
 
         r.assertStderrContains("Unresolved reference 'Konfig'")
-
-        val app3 = r.projectDir / "app3" / "module.yaml"
         r.assertStdoutContains(
             """
-            Plugin `build-konfig` is not enabled, but has some explicit configuration.
-            ╰─ Values explicitly set at:
-               ├─ $app3:6:5
-               ╰─ $app3:9:5
-        """.trimIndent()
+            |    ╭─ WARNING: Plugin `build-konfig` is not enabled, but has some explicit configuration.
+            |    ├── Values explicitly set at:
+            |    │   ╭─ app3${File.separator}module.yaml:6:5
+            |    │   │
+            |    │   │     ⌄⌄⌄⌄⌄⌄⌄
+            |    │ 6 │     config:
+            |    │ 7 │       hello: foo
+            |    │ 8 │       bye: bar
+            |    │   │ ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    │   ╰─
+            |    │   ╭─ app3${File.separator}module.yaml:9:5
+            |    │   │
+            |    │ 9 │     packageName: com.example
+            |    │   │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    │   ╰─
+            |    ╰─
+            """.trimMargin()
         )
     }
 
@@ -383,8 +392,23 @@ class PluginsTest : AmperCliTestBase() {
         )
 
         with(result) {
-            assertSomeStderrLineContains("project.yaml:6:5: Plugin module `existing-but-not-included` is not included in the project `modules` list")
-            assertSomeStderrLineContains("project.yaml:7:5: Plugin module `non-existing` is not found")
+            val projectYaml = result.projectDir / "project.yaml"
+            assertStderrContains("""
+            |    ╭─ ERROR: Plugin module `existing-but-not-included` is not included in the project `modules` list
+            |    │ → $projectYaml:6:5
+            |    │
+            |  6 │   - existing-but-not-included
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─
+            """.trimMargin())
+            assertStderrContains("""
+            |    ╭─ ERROR: Plugin module `non-existing` is not found
+            |    │ → $projectYaml:7:5
+            |    │
+            |  7 │   - non-existing
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─
+            """.trimMargin())
             // May be changed in the future, beware
             assertNotEquals(
                 illegal = true,

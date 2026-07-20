@@ -4,7 +4,7 @@
 
 package org.jetbrains.amper.frontend.messages
 
-import org.jetbrains.amper.intellij.IntelliJApplicationConfigurator
+import org.jetbrains.amper.frontend.helpers.ModifiablePsiIntelliJApplicationConfigurator
 import org.jetbrains.amper.intellij.MockProjectInitializer
 import org.jetbrains.amper.problems.reporting.BuildProblemImpl
 import org.jetbrains.amper.problems.reporting.BuildProblemType
@@ -55,7 +55,7 @@ class ProblemReporterRenderingTest {
 
     @Test
     fun `reporting problem with file and line`() {
-        MockProjectInitializer.initMockProject(IntelliJApplicationConfigurator.EMPTY)
+        MockProjectInitializer.initMockProject(ModifiablePsiIntelliJApplicationConfigurator)
         val testFile = tempDirExtension.path / "test.yaml"
         testFile.writeText("""
             Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
@@ -77,7 +77,7 @@ class ProblemReporterRenderingTest {
 
     @Test
     fun `reporting problem with multiple locations`() {
-        MockProjectInitializer.initMockProject(IntelliJApplicationConfigurator.EMPTY)
+        MockProjectInitializer.initMockProject(ModifiablePsiIntelliJApplicationConfigurator)
         val testFile1 = tempDirExtension.path / "test.yaml"
         val testFile2 = tempDirExtension.path / "test2.yaml"
         testFile1.writeText("""

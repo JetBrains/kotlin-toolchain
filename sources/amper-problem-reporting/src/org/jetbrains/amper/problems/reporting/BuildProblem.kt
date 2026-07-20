@@ -115,11 +115,7 @@ data class BuildProblemImpl(
     override val diagnosticId: DiagnosticId,
 ) : BuildProblem
 
-data class LineAndColumn(val line: Int, val column: Int, val lineContent: String?) {
-    companion object {
-        val NONE: LineAndColumn = LineAndColumn(-1, -1, null)
-    }
-}
+data class LineAndColumn(val line: Int, val column: Int)
 
 /**
  * This range should be interpreted as all the symbols between [start] and [end] inclusive.

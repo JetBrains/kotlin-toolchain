@@ -20,17 +20,14 @@ import org.jetbrains.amper.cli.telemetry.setAmperModule
 import org.jetbrains.amper.cli.telemetry.setFragments
 import org.jetbrains.amper.cli.terminal.printCompilationSuccess
 import org.jetbrains.amper.cli.userReadableError
-import org.jetbrains.amper.compilation.CollectingCompilerBuildProblemProcessor
-import org.jetbrains.amper.compilation.CombiningCompilerBuildProblemProcessor
 import org.jetbrains.amper.compilation.CombiningKotlinLogger
 import org.jetbrains.amper.compilation.CompilationUserSettings
 import org.jetbrains.amper.compilation.CompilerBuildProblem
 import org.jetbrains.amper.compilation.ErrorsCollectorKotlinLogger
 import org.jetbrains.amper.compilation.JavaUserSettings
 import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
-import org.jetbrains.amper.compilation.TerminalCompilerBuildProblemProcessor
+import org.jetbrains.amper.compilation.ProblemReportingCompilerMessageRenderer
 import org.jetbrains.amper.compilation.TerminalPrintingKotlinLogger
-import org.jetbrains.amper.compilation.asBuildToolsCompilerMessageRenderer
 import org.jetbrains.amper.compilation.asKotlinLogger
 import org.jetbrains.amper.compilation.bta.CompilationDetectingBuildMetricsCollector
 import org.jetbrains.amper.compilation.bta.OpenTelemetryBuildMetricsCollector
@@ -58,7 +55,9 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.jvm.getJdkOrUserError
+import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
 import org.jetbrains.amper.problems.reporting.ProblemReporter
+import org.jetbrains.amper.problems.reporting.plus
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.withJavaArgFile
 import org.jetbrains.amper.tasks.ClasspathProvider
@@ -406,7 +405,7 @@ internal class JvmCompileTask(
         )
     }
 
-    context(_: ProblemReporter)
+    context(problemReporter: ProblemReporter)
     private suspend fun compileKotlinSources(
         userSettings: CompilationUserSettings,
         isMultiplatform: Boolean,
@@ -459,7 +458,7 @@ internal class JvmCompileTask(
             friendPaths = friendPaths,
         )
 
-        val collectingMessageProcessor = CollectingCompilerBuildProblemProcessor()
+        val collectingMessageProcessor = CollectingProblemReporter()
         val compilationDetectingBuildMetricsCollector = CompilationDetectingBuildMetricsCollector()
         val openTelemetryBuildMetricsCollector = OpenTelemetryBuildMetricsCollector(openTelemetry)
         val metricsCollector = CombiningMetricsCollector(
@@ -496,17 +495,10 @@ internal class JvmCompileTask(
                             userReadableError("Invalid compiler arguments: ${e.message}", cause = e)
                         }
                         if (isCompilerMessageRendererAPIAvailable) {
-                            val terminalCompilerMessageProcessor = TerminalCompilerBuildProblemProcessor(
-                                terminal = terminal,
-                                projectRoot = projectRoot.path,
-                                module = module,
+                            this[COMPILER_MESSAGE_RENDERER] = ProblemReportingCompilerMessageRenderer(
+                                reporter = problemReporter + collectingMessageProcessor,
+                                moduleName = module.userReadableName,
                             )
-                            this[COMPILER_MESSAGE_RENDERER] = CombiningCompilerBuildProblemProcessor(
-                                processors = [
-                                    terminalCompilerMessageProcessor,
-                                    collectingMessageProcessor,
-                                ],
-                            ).asBuildToolsCompilerMessageRenderer()
                         }
                         if (userSettings.kotlin.compileIncrementally) {
                             this[INCREMENTAL_COMPILATION] = snapshotBasedIcConfiguration(
@@ -545,7 +537,7 @@ internal class JvmCompileTask(
         }
 
         return CompilationResult(
-            problems = collectingMessageProcessor.messages,
+            problems = collectingMessageProcessor.problems.map { it as CompilerBuildProblem },
             didCompileSomething = compilationDetectingBuildMetricsCollector.didCompileSomething,
         )
     }
@@ -555,6 +547,7 @@ internal class JvmCompileTask(
         val didCompileSomething: Boolean,
     )
 
+    context(problemReporter: ProblemReporter)
     private fun replayCachedCompilerBuildProblems(result: IncrementalCache.ExecutionResult) {
         val serializedProblems = result.outputValues[JVM_COMPILER_BUILD_PROBLEMS_OUTPUT_KEY] ?: return
         val problems = try {
@@ -565,8 +558,7 @@ internal class JvmCompileTask(
         }
         if (problems.isEmpty()) return
 
-        val terminalProcessor = TerminalCompilerBuildProblemProcessor(terminal, projectRoot.path, module)
-        problems.forEach(terminalProcessor::process)
+        problems.forEach(problemReporter::reportMessage)
     }
 
     /**

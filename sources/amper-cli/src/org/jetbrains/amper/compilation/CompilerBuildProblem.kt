@@ -9,9 +9,11 @@ import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemSource
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
-import org.jetbrains.amper.problems.reporting.FileWithRangesBuildProblemSource
+import org.jetbrains.amper.problems.reporting.FileWithLineColumnProblemSource
 import org.jetbrains.amper.problems.reporting.GlobalBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
+import org.jetbrains.amper.problems.reporting.LineAndColumn
+import org.jetbrains.amper.problems.reporting.LineAndColumnRange
 import org.jetbrains.amper.problems.reporting.NonIdealDiagnostic
 import org.jetbrains.amper.serialization.paths.SerializablePath
 import org.jetbrains.annotations.Nls
@@ -21,6 +23,8 @@ object CompilerBuildProblemId : DiagnosticId
 
 @Serializable
 sealed interface CompilerBuildProblem : BuildProblem {
+    val moduleName: String
+
     override val diagnosticId: DiagnosticId
         get() = CompilerBuildProblemId
     override val type: BuildProblemType
@@ -30,6 +34,7 @@ sealed interface CompilerBuildProblem : BuildProblem {
 @NonIdealDiagnostic
 @Serializable
 data class GlobalCompilerBuildProblem(
+    override val moduleName: String,
     override val message: @Nls String,
     override val level: Level,
 ) : CompilerBuildProblem {
@@ -39,6 +44,7 @@ data class GlobalCompilerBuildProblem(
 
 @Serializable
 data class FileCompilerBuildProblem(
+    override val moduleName: String,
     override val message: @Nls String,
     override val level: Level,
     override val source: CompilerBuildProblemSource,
@@ -61,7 +67,10 @@ data class CompilerBuildProblemSource(
     val column: Int,
     val lineEnd: Int,
     val columnEnd: Int,
-) : FileWithRangesBuildProblemSource {
+) : FileWithLineColumnProblemSource {
+    override val lineColumnRange: LineAndColumnRange
+        get() = LineAndColumnRange(LineAndColumn(line, column), LineAndColumn(lineEnd, columnEnd))
+
     override val offsetRange: IntRange
         get() = run {
             val text = file.readText().lines()

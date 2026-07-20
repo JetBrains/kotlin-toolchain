@@ -50,3 +50,15 @@ interface FileWithRangesBuildProblemSource : FileBuildProblemSource {
      */
     val offsetRange: IntRange
 }
+
+/**
+ * A special kind of [FileWithRangesBuildProblemSource] that already has [lineColumnRange] available
+ * or can compute it in isolation in an optimized manner.
+ * There is no need to compute [lineColumnRange] externally based on [offsetRange].
+ */
+interface FileWithLineColumnProblemSource : FileWithRangesBuildProblemSource {
+    /**
+     * Precomputed line and column info that corresponds to the [offsetRange].
+     */
+    val lineColumnRange: LineAndColumnRange
+}

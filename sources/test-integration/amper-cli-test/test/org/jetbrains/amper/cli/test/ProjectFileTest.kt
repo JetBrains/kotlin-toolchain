@@ -85,26 +85,118 @@ class ProjectFileTest : AmperCliTestBase() {
             expectedExitCode = 1,
             assertEmptyStdErr = false,
         )
-        assertContains(r.stdout, "project.yaml:2:3: It is recommended to sort the `modules` list alphabetically. This reduces the chance of Git conflicts and makes it easier to visually locate a module in the list.")
-        assertContains(r.stdout, "project.yaml:7:5: Glob pattern `glob-with-no-matches-at-all/*` doesn't match any Kotlin module directory under the project root")
-        assertContains(r.stdout, "project.yaml:8:5: Glob pattern `not-a-modul?` doesn't match any Kotlin module directory under the project root")
-        assertContains(r.stdout, "project.yaml:14:5: The root module is included by default")
+        val projectYaml = projectDir / "project.yaml"
+        assertContains(r.stdout, """
+            |    ╭─ WEAK WARNING: It is recommended to sort the `modules` list alphabetically. This reduces the chance of Git conflicts and makes it easier to visually locate a module in the list.
+            |    │ → $projectYaml:2:3
+            |    │
+            |    │   ⌄⌄⌄⌄⌄⌄⌄
+            |  2 │   - valid
+            |  3 │   - ./does-not-exist
+            |  4 │   - ./does/not/exist
+            |  5 │   - not-a-dir
+            |  6 │   - not-a-module
+            |  7 │   - glob-with-no-matches-at-all/*
+            |  8 │   - not-a-modul? # matches some dirs, but none with a module.yaml in it
+            |  9 │   - broken[syntax
+            | 10 │   - broken[z-a]syntax
+            | 11 │   - broken[syntax/with/**
+            | 12 │   - forbidden/**/recursive
+            | 13 │   - ../jvm-default-compiler-settings # out of root
+            | 14 │   - ./ # redundant root module
+            |    │ ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─""".trimMargin())
+        assertContains(r.stdout, """
+            |    ╭─ WEAK WARNING: Glob pattern `glob-with-no-matches-at-all/*` doesn't match any Kotlin module directory under the project root
+            |    │ → $projectYaml:7:5
+            |    │
+            |  7 │   - glob-with-no-matches-at-all/*
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─""".trimMargin())
+        assertContains(r.stdout, """
+            |    ╭─ WEAK WARNING: Glob pattern `not-a-modul?` doesn't match any Kotlin module directory under the project root
+            |    │ → $projectYaml:8:5
+            |    │
+            |  8 │   - not-a-modul? # matches some dirs, but none with a module.yaml in it
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─""".trimMargin())
+        assertContains(r.stdout, """
+            |    ╭─ WEAK WARNING: The root module is included by default
+            |    │ → $projectYaml:14:5
+            |    │
+            | 14 │   - ./ # redundant root module
+            |    │     ⌃⌃
+            |    ╰─""".trimMargin())
 
-        assertContains(r.stderr, "project.yaml:3:5: Unresolved module path `./does-not-exist`")
-        assertContains(r.stderr, "project.yaml:4:5: Unresolved module path `./does/not/exist`")
-        assertContains(r.stderr, "project.yaml:5:5: `not-a-dir` is not a directory")
-        assertContains(r.stderr, "project.yaml:6:5: Directory `not-a-module` doesn't contain a Kotlin module file")
-        assertContains(r.stderr, "project.yaml:9:5: Invalid glob pattern `broken[syntax`: Missing '] near index 12\n" +
-                "broken[syntax\n" +
-                "            ^")
-        assertContains(r.stderr, "project.yaml:10:5: Invalid glob pattern `broken[z-a]syntax`: Invalid range near index 7\n" +
-                "broken[z-a]syntax\n" +
-                "       ^")
-        assertContains(r.stderr, "project.yaml:11:5: Invalid glob pattern `broken[syntax/with/**`: Explicit 'name separator' in class near index 13\n" +
-                "broken[syntax/with/**\n" +
-                "             ^")
-        assertContains(r.stderr, "project.yaml:12:5: Unsupported `**` in module glob pattern `forbidden/**/recursive`. Use multiple single-level `*` segments instead to specify the depth exactly.")
-        assertContains(r.stderr, "project.yaml:13:5: Directory `../jvm-default-compiler-settings` is not under the project root")
+        assertContains(r.stderr, """
+            |    ╭─ ERROR: Unresolved module path `./does-not-exist`
+            |    │ → $projectYaml:3:5
+            |    │
+            |  3 │   - ./does-not-exist
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─""".trimMargin())
+        assertContains(r.stderr, """
+            |    ╭─ ERROR: Unresolved module path `./does/not/exist`
+            |    │ → $projectYaml:4:5
+            |    │
+            |  4 │   - ./does/not/exist
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─""".trimMargin())
+        assertContains(r.stderr, """
+            |    ╭─ ERROR: `not-a-dir` is not a directory
+            |    │ → $projectYaml:5:5
+            |    │
+            |  5 │   - not-a-dir
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─""".trimMargin())
+        assertContains(r.stderr, """
+            |    ╭─ ERROR: Directory `not-a-module` doesn't contain a Kotlin module file
+            |    │ → $projectYaml:6:5
+            |    │
+            |  6 │   - not-a-module
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─""".trimMargin())
+        assertContains(r.stderr, """
+            |    ╭─ ERROR: Invalid glob pattern `broken[syntax`: Missing '] near index 12
+            |    │ broken[syntax
+            |    │             ^
+            |    │ → $projectYaml:9:5
+            |    │
+            |  9 │   - broken[syntax
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─""".trimMargin())
+        assertContains(r.stderr, """
+            |    ╭─ ERROR: Invalid glob pattern `broken[z-a]syntax`: Invalid range near index 7
+            |    │ broken[z-a]syntax
+            |    │        ^
+            |    │ → $projectYaml:10:5
+            |    │
+            | 10 │   - broken[z-a]syntax
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─""".trimMargin())
+        assertContains(r.stderr, """
+            |    ╭─ ERROR: Invalid glob pattern `broken[syntax/with/**`: Explicit 'name separator' in class near index 13
+            |    │ broken[syntax/with/**
+            |    │              ^
+            |    │ → $projectYaml:11:5
+            |    │
+            | 11 │   - broken[syntax/with/**
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─""".trimMargin())
+        assertContains(r.stderr, """
+            |    ╭─ ERROR: Unsupported `**` in module glob pattern `forbidden/**/recursive`. Use multiple single-level `*` segments instead to specify the depth exactly.
+            |    │ → $projectYaml:12:5
+            |    │
+            | 12 │   - forbidden/**/recursive
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─""".trimMargin())
+        assertContains(r.stderr, """
+            |    ╭─ ERROR: Directory `../jvm-default-compiler-settings` is not under the project root
+            |    │ → $projectYaml:13:5
+            |    │
+            | 13 │   - ../jvm-default-compiler-settings # out of root
+            |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+            |    ╰─""".trimMargin())
         assertContains(r.stderr, "ERROR: Aborting because there were errors in the Kotlin project file, please see above")
     }
 

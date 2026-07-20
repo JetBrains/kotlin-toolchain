@@ -129,7 +129,7 @@ class ErrorsCollectorKotlinLogger : KotlinLogger {
 /**
  * Logger that prints Kotlin messages to the CLI.
  *
- * For Kotlin >= 2.4.0-Beta2 use [TerminalCompilerBuildProblemProcessor] to have better structured output.
+ * For Kotlin >= 2.4.0-Beta2 use [ProblemReportingCompilerMessageRenderer] to have better structured output.
  */
 internal class TerminalPrintingKotlinLogger(
     private val terminal: Terminal,

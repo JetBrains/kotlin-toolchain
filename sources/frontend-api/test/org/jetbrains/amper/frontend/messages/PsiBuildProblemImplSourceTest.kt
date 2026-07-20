@@ -39,10 +39,10 @@ class PsiBuildProblemImplSourceTest {
         assertNotNull(dependenciesBlock)
         val source = PsiBuildProblemSource(dependenciesBlock) as PsiBuildProblemSource.Element
         assertEquals(
-            source.computeRange(),
-            LineAndColumnRange(
-                LineAndColumn(3, 1, "dependencies:"),
-                LineAndColumn(4, 21, "  - ./bad-dependency"),
+            actual = source.computeRange(),
+            expected = LineAndColumnRange(
+                LineAndColumn(3, 1),
+                LineAndColumn(4, 21),
             )
         )
     }

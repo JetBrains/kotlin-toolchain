@@ -43,7 +43,7 @@ internal abstract class AmperSubcommand(name: String) : SuspendingCliktCommand(n
     ): CliContext = spanBuilder("Create CLI context").use {
         require(commandName.isNotBlank()) { "commandName should not be blank" }
 
-        val problemReporter = createProblemReporterForCli(terminal)
+        val problemReporter = createProblemReporterForCli(terminal, projectRoot = null)
 
         val projectContext = context(problemReporter) {
             findProjectContext(
@@ -64,7 +64,10 @@ internal abstract class AmperSubcommand(name: String) : SuspendingCliktCommand(n
                 projectContext = projectContext,
                 userCacheRoot = commonOptions.sharedCachesRoot,
                 terminal = terminal,
-                problemReporter = problemReporter,
+                problemReporter = createProblemReporterForCli(
+                    terminal = terminal,
+                    projectRoot = projectContext.projectRoot.path,
+                ),
             )
         }
     }

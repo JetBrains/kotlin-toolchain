@@ -478,12 +478,12 @@ class DiagnosticsTest : AbstractDependencyInsightsTest() {
         val source = buildProblem.source
         assertInstanceOf<FileWithRangesBuildProblemSource>(source)
         assertEquals(
-            LineAndColumnRange(
-                LineAndColumn(7, 14, "    version: 2.1.10"),
-                LineAndColumn(7, 20, "    version: 2.1.10"),
+            expected = LineAndColumnRange(
+                LineAndColumn(7, 14),
+                LineAndColumn(7, 20),
             ),
-            source.computeRange(),
-            "Unexpected source range for build problem. The Kotlin version value should be highlighted."
+            actual = source.computeRange(),
+            message = "Unexpected source range for build problem. The Kotlin version value should be highlighted."
         )
     }
 

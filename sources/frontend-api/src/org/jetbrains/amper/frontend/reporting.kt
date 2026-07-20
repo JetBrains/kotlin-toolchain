@@ -104,19 +104,15 @@ private fun offsetToLineAndColumn(
     offset: Int
 ): LineAndColumn {
     if (document == null || document.textLength == 0) {
-        return LineAndColumn(-1, offset, null)
+        return LineAndColumn(-1, offset)
     }
 
     val lineNumber = document.getLineNumber(offset)
     val lineStartOffset = document.getLineStartOffset(lineNumber)
     val column = offset - lineStartOffset
 
-    val lineEndOffset = document.getLineEndOffset(lineNumber)
-    val lineContent = document.charsSequence.subSequence(lineStartOffset, lineEndOffset)
-
     return LineAndColumn(
         lineNumber + 1,
         column + 1,
-        lineContent.toString()
     )
 }

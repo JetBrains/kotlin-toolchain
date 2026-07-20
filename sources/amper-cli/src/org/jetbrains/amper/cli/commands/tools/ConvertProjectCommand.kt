@@ -48,7 +48,7 @@ internal class ConvertProjectCommand : AmperSubcommand(name = "convert-project")
                 userReadableError("pom.xml file not found at: $pathToPomXml")
             }
             spanBuilder("Convert Maven Project to use the Kotlin Toolchain").use {
-                context(createProblemReporterForCli(terminal)) {
+                context(createProblemReporterForCli(terminal, null)) {
                     MavenProjectConvertor.convert(
                         pathToPomXml,
                         overwriteExisting,

@@ -18,6 +18,7 @@ import org.jetbrains.amper.test.spans.kotlinJvmCompilationSpans
 import org.jetbrains.amper.test.spans.withAmperModule
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.io.File
 import java.nio.file.Path
 import java.util.jar.Attributes
 import java.util.jar.JarFile
@@ -201,16 +202,20 @@ class AmperBuildTest : AmperCliTestBase() {
             .filter { it.isNotBlank() }
             .filterNot { it.startsWith("ERROR: Task ") }
             .joinToString("\n")
-        val sharedModule = r.projectDir.resolve("shared/module.yaml")
 
         val expected = """
-            ERROR $sharedModule:6:5: Unable to resolve dependency org.junit.jupiter:junit-jupiter-api:9999
-              Unable to download checksums of file junit-jupiter-api-9999.pom
-              Unable to download checksums of file junit-jupiter-api-9999.module
-            Repositories used for resolution:
-              - https://cache-redirector.jetbrains.com/kotlin/repo1.maven.org/maven2
-              - https://maven.google.com
-        """.trimIndent()
+        |    ╭─ ERROR: Unable to resolve dependency org.junit.jupiter:junit-jupiter-api:9999
+        |    │   Unable to download checksums of file junit-jupiter-api-9999.pom
+        |    │   Unable to download checksums of file junit-jupiter-api-9999.module
+        |    │ Repositories used for resolution:
+        |    │   - https://cache-redirector.jetbrains.com/kotlin/repo1.maven.org/maven2
+        |    │   - https://maven.google.com
+        |    │ → shared${File.separator}module.yaml:6:5
+        |    │
+        |  6 │   - org.junit.jupiter:junit-jupiter-api:9999
+        |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+        |    ╰─
+        """.trimMargin()
 
         assertEquals(expected, actualStderr)
     }

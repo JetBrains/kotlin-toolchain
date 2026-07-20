@@ -6,7 +6,6 @@ package org.jetbrains.amper.cli.commands
 
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.context
-import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.output.HelpFormatter.ParameterHelp
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
@@ -25,7 +24,6 @@ import org.jetbrains.amper.cli.context.GlobalCliContext
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.context.copyWithNewProjectContext
 import org.jetbrains.amper.cli.context.findProjectContext
-import org.jetbrains.amper.cli.createProblemReporterForCli
 import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.cli.options.ProjectLayoutOptions
 import org.jetbrains.amper.cli.options.UserJvmArgsOption
@@ -265,7 +263,7 @@ internal class RunCommand : AmperSubcommand(name = "run") {
                   then this throws an error, as we use explicit directories detected/specified initially.
                 */
                 initialCliContext.copyWithNewProjectContext(
-                    projectContext = context(createProblemReporterForCli(terminal)) {
+                    projectContext = context(initialCliContext.problemReporter) {
                         checkNotNull(
                             findProjectContext(
                                 explicitProjectDir = initialCliContext.projectRoot.path,

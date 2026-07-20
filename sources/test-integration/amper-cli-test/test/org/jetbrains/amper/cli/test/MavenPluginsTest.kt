@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.cli.test
 
+import org.jetbrains.amper.cli.test.utils.assertLogContains
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
@@ -11,6 +12,7 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.OS
+import org.slf4j.event.Level
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -173,7 +175,7 @@ class MavenPluginsTest : AmperCliTestBase() {
             taskName = "maven-enforcer-plugin.enforce",
             expectedExitCode = 1,
         )
-        result.assertStderrContains("app${File.separator}module.yaml:8:14: Expected a valid XML object for `PlexusConfiguration`, but the provided value is not valid XML")
+        result.assertLogContains("app${File.separator}module.yaml:8:14: Expected a valid XML object for `PlexusConfiguration`, but the provided value is not valid XML", level = Level.ERROR)
     }
     
     @Test

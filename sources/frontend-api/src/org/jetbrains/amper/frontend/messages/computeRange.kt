@@ -8,6 +8,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.findDocument
 import org.jetbrains.amper.frontend.getLineAndColumnRangeInDocument
+import org.jetbrains.amper.problems.reporting.FileWithLineColumnProblemSource
 import org.jetbrains.amper.problems.reporting.FileWithRangesBuildProblemSource
 import org.jetbrains.amper.problems.reporting.LineAndColumnRange
 
@@ -17,6 +18,9 @@ import org.jetbrains.amper.problems.reporting.LineAndColumnRange
  * code.
  */
 fun FileWithRangesBuildProblemSource.computeRange(): LineAndColumnRange {
+    if (this is FileWithLineColumnProblemSource)
+        return lineColumnRange
+
     val document = when (this) {
         is PsiBuildProblemSource -> psiElement.containingFile.viewProvider.document
         else -> runReadAction {  // Fixme: do this via FrontendPathResolver?
