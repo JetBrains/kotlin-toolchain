@@ -29,11 +29,13 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForSerializable
 import org.jetbrains.amper.incrementalcache.getDynamicInputs
 import org.jetbrains.amper.maven.publish.PublicationCoordinatesOverrides
+import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.maven.publish.merge
 import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.amper.maven.publish.writePomFor
 import org.jetbrains.amper.serialization.paths.SerializablePath
 import org.jetbrains.amper.stdlib.hashing.hash
+import org.jetbrains.amper.tasks.android.AndroidAarTask
 import org.jetbrains.amper.tasks.jvm.JvmClassesJarTask
 import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
 import org.jetbrains.amper.tasks.metadata.generateCommonGradleModuleMetadata
@@ -67,7 +69,7 @@ class PrepareMavenPublishablesTask(
             .map { it.coordinateOverridesForPublishing }
             .merge()
 
-        val platforms = if (module.leafPlatforms.size > 1) module.leafPlatforms + Platform.COMMON else module.leafPlatforms
+        val platforms = if (module.isMultiplatformPublication()) module.leafPlatforms + Platform.COMMON else module.leafPlatforms
         val coordsPerPlatform = platforms.associateWith { module.publicationCoordinates(platform = it) }
         val modulePublishablesFromOtherTasks = dependenciesResult.flatMap { it.toMavenPublishables(coordsPerPlatform) }
 
@@ -108,7 +110,7 @@ class PrepareMavenPublishablesTask(
                 .toMap()
             )
 
-            generateGradleMetadata(checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks)
+            generateGradleMetadata(checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks, depsCoordinatesOverrides)
                 .also {
                     meaningfulPublishables.addAll(it)
                     checksumPublishables.putAll(
@@ -138,10 +140,12 @@ class PrepareMavenPublishablesTask(
         checksumPublishables: Map<String, List<MavenPublishable>>,
         coordsPerPlatform: Map<Platform, MavenCoordinates>,
         modulePublishablesFromOtherTasks: List<MavenPublishable>,
+        overrides: PublicationCoordinatesOverrides,
     ): List<MavenPublishable> = buildList {
         addAll(
             generateGradleMetadataForLeafPlatforms(
-                checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks)
+                checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks, overrides
+            )
         )
         generateCommonGradleMetadata(checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks)
             ?.also { add(it) }
@@ -151,6 +155,7 @@ class PrepareMavenPublishablesTask(
         checksumPublishables: Map<String, List<MavenPublishable>>,
         coordsPerPlatform: Map<Platform, MavenCoordinates>,
         modulePublishablesFromOtherTasks: List<MavenPublishable>,
+        overrides: PublicationCoordinatesOverrides,
     ): List<MavenPublishable> =
         coordsPerPlatform.filterNot { it.key == Platform.COMMON }
             .entries
@@ -164,6 +169,7 @@ class PrepareMavenPublishablesTask(
                     checksumPublishables,
                     platformSpecificArtifact.path,
                     sourcesJar?.path,
+                    overrides
                 ).toMavenPublishable(coords)
             }
 
@@ -172,7 +178,7 @@ class PrepareMavenPublishablesTask(
         coordsPerPlatform: Map<Platform, MavenCoordinates>,
         modulePublishablesFromOtherTasks: List<MavenPublishable>,
     ): MavenPublishable? {
-        if (module.leafPlatforms.size == 1) return null
+        if (!module.isMultiplatformPublication()) return null
 
         val commonCoordinates = module.publicationCoordinates(Platform.COMMON)
 
@@ -206,12 +212,14 @@ class PrepareMavenPublishablesTask(
         }
     }
 
+    // Todo (AB): file name should be taken from publication coordinates.
     private fun generatePomFile(
         module: AmperModule,
         platform: Platform,
         overrides: PublicationCoordinatesOverrides,
     ): Path {
-        val tempPath = taskOutputRoot.path.resolve("${module.userReadableName}-${platform.pretty}.pom")
+        val artifactId = module.publishingSettings.artifactId ?: module.userReadableName
+        val tempPath = taskOutputRoot.path.resolve("$artifactId-${platform.pretty}.pom")
         tempPath.writePomFor(module, platform, overrides, gradleMetadataComment = true)
         return tempPath
     }
@@ -312,6 +320,7 @@ private fun TaskResult.toMavenPublishables(coordsPerPlatform: Map<Platform, Mave
     is WebCompileKlibTask.Result -> toMavenPublishables(coordsPerPlatform)
     is ResolveExternalDependenciesTask.Result -> emptyList() // this is just for coords overrides, not extra artifacts
     is AssembleAllMetadataTask.Result -> toMavenPublishables(coordsPerPlatform)
+    is AndroidAarTask.Result -> toMavenPublishables(coordsPerPlatform)
     else -> error("Unsupported dependency result: ${javaClass.name}")
 }
 
@@ -338,6 +347,10 @@ private fun AssembleAllMetadataTask.Result.toMavenPublishables(
     allMetadataJarPath?.toMavenPublishable(coordsPerPlatform.getValue(Platform.COMMON)),
     allMetadataSourcesJarPath?.toMavenPublishable(coordsPerPlatform.getValue(Platform.COMMON).copy(classifier = "sources")  ),
 )
+
+private fun AndroidAarTask.Result.toMavenPublishables(
+    coordsPerPlatform: Map<Platform, MavenCoordinates>
+): List<MavenPublishable> = [ aarPath.toMavenPublishable(coordsPerPlatform.getValue(Platform.ANDROID)) ]
 
 private fun Path.toMavenPublishable(
     coords: MavenCoordinates,

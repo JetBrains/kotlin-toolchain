@@ -510,7 +510,7 @@ private fun ModuleSequenceCtx.checkDependencySupportsJvm(dependsOn: AmperModule)
     }
 }
 
-private enum class AndroidTaskType(
+internal enum class AndroidTaskType(
     override val internalName: String,
     override val operationMoniker: String,
 ) : TaskNameFactory.LeafPlatform {

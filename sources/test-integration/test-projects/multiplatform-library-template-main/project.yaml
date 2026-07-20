@@ -1,4 +1,8 @@
 modules:
+  - edgeCase_jvmLib
+  - edgeCase_jvmPlusAndroid
+  - edgeCase_kmpSinglePlatform
+  - edgeCase_wasmJsPlusWasmWasi
   - library
   - libraryNested
   - linuxWindowsShared

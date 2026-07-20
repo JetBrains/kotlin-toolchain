@@ -19,6 +19,8 @@ import org.jetbrains.amper.frontend.Notation
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.dr.resolver.flow.dependenciesAvailableForConsumerClasspath
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
+import org.jetbrains.amper.frontend.dr.resolver.toDrMavenCoordinates
+import org.jetbrains.amper.maven.publish.PublicationCoordinatesOverrides
 import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.gradle.module.metadata.format.ArtifactSelector
 import org.jetbrains.gradle.module.metadata.format.Dependency
@@ -32,11 +34,21 @@ internal val json = Json {
     prettyPrintIndent = "  "
 }
 
+/**
+ * Contains sets of platforms for which metadata compilation is not executed.
+ */
+private val noMetadataCompilationSets: Set<Set<Platform>> = setOf(
+    setOf(Platform.JVM, Platform.ANDROID),
+    setOf(Platform.WASM_JS, Platform.WASM_WASI),
+)
+
 internal fun AmperModule.allMetadataFragments() =
     fragments.asSequence().allMetadataFragments()
 
 internal fun Sequence<Fragment>.allMetadataFragments() =
-    filter { it.platforms.size > 1 && !it.isTest }
+    filter { !it.isTest && it.platforms.isMetadataCompilationRequired() }
+
+internal fun Set<Platform>.isMetadataCompilationRequired() = size > 1 && this !in noMetadataCompilationSets
 
 internal fun ResolutionScope.toVariantSuffix(): String = when (this) {
     ResolutionScope.COMPILE -> "Api"
@@ -45,18 +57,27 @@ internal fun ResolutionScope.toVariantSuffix(): String = when (this) {
 
 internal fun Fragment.sourceSetName(): String {
     check(!isTest) { "Test fragments are not a part of all metadata, only main fragments are allowed" }
-    return if (name.endsWith("Main")) name else "${name}Main"
+    return if (name.endsWith("Main", ignoreCase = true)) name else "${name}Main"
 }
 
 /**
- * Returns dependencies reachable from the consumer side,
+ * Returns dependencies of this [Fragment] reachable from the consumer compilation classpath,
  * For instance, COMPILE classpath of the consumer should not know about non-exported
- * compile dependencies of this fragment (in non-native case)
+ * compile dependencies of this fragment (in non-native case).
  */
 internal fun Fragment.classPathForApiMetadata() =
+    dependenciesAvailableForConsumer(scope = ResolutionScope.COMPILE)
+
+/**
+ * Returns dependencies of this [Fragment] reachable from the consumer side,
+ * For instance, COMPILE classpath of the consumer should not know about non-exported
+ * compile dependencies of this fragment (in non-native case).
+ * At the same time, RUNTIME dependencies of the [Fragment] should be available on the runtime classpath of the consumer.
+ */
+internal fun Fragment.dependenciesAvailableForConsumer(scope: ResolutionScope) =
     dependenciesAvailableForConsumerClasspath(
         platforms = platforms.map { it.toResolutionPlatform()!! }.toSet(),
-        scope = ResolutionScope.COMPILE,
+        scope = scope,
         includeNonExportedNative = true,
     )
 
@@ -68,9 +89,10 @@ internal fun getApplicableVariantScopes(leafFragment: LeafFragment): List<Resolu
 }
 
 internal fun Notation.toVariantDependency(
-    platform: Platform
+    platform: Platform,
+    overrides: PublicationCoordinatesOverrides? = null,
 ): Dependency = when (this) {
-    is MavenDependencyBase -> toVariantDependency()
+    is MavenDependencyBase -> toVariantDependency(overrides)
     is LocalModuleDependency -> toVariantDependency(platform)
     is DefaultScopedNotation -> error("Dependency type ${this::class.simpleName} is not supported for .module publication")
 }
@@ -86,18 +108,22 @@ private fun LocalModuleDependency.toVariantDependency(platform: Platform): Depen
     return dependency
 }
 
-private fun MavenDependencyBase.toVariantDependency(): Dependency {
+private fun MavenDependencyBase.toVariantDependency(overrides: PublicationCoordinatesOverrides?): Dependency {
     val isBom = this@toVariantDependency is BomDependency
 
+    val effectiveCoordinates = toDrMavenCoordinates().let {
+        overrides?.actualCoordinatesFor(it) ?: it
+    }
+
     val dependency = Dependency(
-        group = coordinates.groupId,
-        module = coordinates.artifactId,
-        version = Version(requires = coordinates.version?.value),
-        thirdPartyCompatibility = if (coordinates.classifier != null || coordinates.packagingType != null)
+        group = effectiveCoordinates.groupId,
+        module = effectiveCoordinates.artifactId,
+        version = Version(requires = effectiveCoordinates.version),
+        thirdPartyCompatibility = if (effectiveCoordinates.classifier != null || effectiveCoordinates.packagingType != null)
             ThirdPartyCompatibility(
                 artifactSelector = ArtifactSelector(
-                    classifier = coordinates.classifier,
-                    type = coordinates.packagingType,
+                    classifier = effectiveCoordinates.classifier,
+                    type = effectiveCoordinates.packagingType,
                     // todo (AB): Should we support extension field here?
 //                    extension = resolveArtifactExtension(coordinates.packagingType).
                 )
@@ -108,7 +134,7 @@ private fun MavenDependencyBase.toVariantDependency(): Dependency {
             }
         },
         endorseStrictVersions = if (isBom) true else null,
-
     )
+
     return dependency
 }

@@ -1,0 +1,13 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, android]
+
+apply:
+  - ../common.module-template.yaml
+
+dependencies:
+  - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2
+  - org.tinylog:tinylog-api-kotlin:2.7.0
+
+test-dependencies:
+  - $kotlin.test

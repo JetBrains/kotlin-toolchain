@@ -1,0 +1,17 @@
+product:
+  type: jvm/lib
+
+apply:
+  - ../common.module-template.yaml
+
+dependencies:
+  - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0
+  - org.tinylog:tinylog-api-kotlin:2.7.0: exported
+
+test-dependencies:
+  - $kotlin.test
+
+
+settings:
+  publishing:
+    artifactId: jvmLib

@@ -15,6 +15,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.tasks.MetadataCompileTask
+import org.jetbrains.amper.tasks.rootFragment
 import org.jetbrains.kotlin.metadata.format.projectStructure.KotlinProjectStructureMetadata
 import org.jetbrains.kotlin.metadata.format.projectStructure.ProjectStructure
 import org.jetbrains.kotlin.metadata.format.projectStructure.SourceSet
@@ -44,8 +45,12 @@ internal suspend fun generateKotlinProjectDescriptor(
         .sortedBy { it.name }
 
     // intermediate source sets are declared in 'sourceSets' sections
-    val sourceSets = metadataCompilations
-        .map { it.fragment.toSourceSet() }
+    val fragments = metadataCompilations.takeIf { it.isNotEmpty() }?.map { it.fragment }
+        // If there is no multiplatform fragment with calculated metadata compilation, use empty 'commonMain'
+        ?: [module.rootFragment]
+
+    val sourceSets = fragments
+        .map { it.toSourceSet() }
         .sortedBy { it.name }
 
     val projectStructure = KotlinProjectStructureMetadata(
@@ -104,7 +109,8 @@ private fun Fragment.toProjectStructureVariant(scope: ResolutionScope): KotlinPr
     return KotlinProjectStructureVariant(
         name = "${name}${scope.toVariantSuffix()}Elements",
         sourceSet = allFragmentDependencies(dependencyType = FragmentDependencyType.REFINE)
-            .mapNotNull { it.takeIf { it.platforms.size > 1 }?.sourceSetName() }
+            // in case of single platform kmp/lib there will be 'commonMain' fragment in the list
+            .map { it.sourceSetName() }
             .toList()
     )
 }

@@ -4,15 +4,11 @@
 
 package org.jetbrains.amper.cli.test
 
-import kotlinx.serialization.json.Json
 import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.runSlowTest
-import org.jetbrains.gradle.module.metadata.format.Module
 import org.jetbrains.amper.test.Dirs
 import org.junit.jupiter.api.TestInfo
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption
 import kotlin.io.path.div
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -147,73 +143,12 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
             tempRoot / "build" / "tasks" / "_libraryNested_assembleMetadata" / "kotlin-project-structure-metadata.json"
         )
 
-        // todo (AB) : [AMPER-721] Check -metadata and -sources files content
+        // todo (AB) : [AMPER-721] Check
+        //  -metadata and -sources files existence
+        //  -metadata and -sources content
     }
 
-    @Test
-    fun `generate Gradle module metadata of libraryNested module`(testInfo: TestInfo) = runSlowTest {
-        runCli(projectDir = testProject("multiplatform-library-template-main"),
-            "task",
-            ":libraryNested:prepareMavenPublishables",
-        )
-
-        val sanitizedGradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_libraryNested_prepareMavenPublishables" / "libraryNested-1.0.0.module"
-        )
-
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.module.json"),
-            sanitizedGradleModuleMetadata
-        )
-
-        val sanitizedLinuxX64GradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_libraryNested_prepareMavenPublishables" / "libraryNested-linuxX64-1.0.0.module"
-        )
-
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.linuxX64-module.json"),
-            sanitizedLinuxX64GradleModuleMetadata
-        )
-    }
-
-    private fun getSanitizedGradleMetadataProducedByCli(
-        gradleModuleMetadataFile: Path,
-    ): Path {
-        val gradleModuleMetadata = gradleModuleMetadataFile.readPGradleModuleMetadata()
-        val sanitizedGradleModuleMetadata = gradleModuleMetadata.copy(
-            variants = gradleModuleMetadata.variants.map {
-                if (it.files.isNotEmpty()) {
-                    it.copy(files = it.files.map {
-                        it.copy(sha512 = "mocked", sha256 = "mocked", sha1 = "mocked", md5 = "mocked", size = -1)
-                    })
-                } else {
-                    it
-                }
-            }
-        ).serialize()
-
-        val patchedGradleModuleMetadata = gradleModuleMetadataFile.parent.resolve("${gradleModuleMetadataFile.fileName}-patched")
-
-        Files.writeString(patchedGradleModuleMetadata, sanitizedGradleModuleMetadata,
-            StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
-
-        return patchedGradleModuleMetadata
-    }
-
-    // todo (AB): [AMPER-721] Add test for js, wasm_js, wasm_wasi module and check PSM/Gradle metadata generation
-
-    companion object {
-        private val json = Json {
-            ignoreUnknownKeys = true
-            isLenient = true
-            prettyPrint = true
-            prettyPrintIndent = "  "
-        }
-
-
-        fun Path.readPGradleModuleMetadata(): Module = json.decodeFromString(Files.readString(this))
-        fun Module.serialize(): String = json.encodeToString(this)
-    }
+    // todo (AB): [AMPER-721] check PSM/Gradle metadata generation for edge cases
 }
 
 

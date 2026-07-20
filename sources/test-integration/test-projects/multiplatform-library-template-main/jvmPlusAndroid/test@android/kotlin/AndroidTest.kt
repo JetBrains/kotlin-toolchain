@@ -1,0 +1,16 @@
+/*
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package io.github.kotlin.sample
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class AndroidTest {
+
+    @Test
+    fun `test android number`() {
+        assertEquals(1, platformSpecificElement)
+    }
+}

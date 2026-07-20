@@ -1,0 +1,12 @@
+product:
+  type: kmp/lib
+  platforms: [linuxX64, linuxArm64, mingwX64]
+
+apply:
+  - ../common.module-template.yaml
+
+dependencies:
+  - ../nativeShared
+
+test-dependencies:
+  - $kotlin.test

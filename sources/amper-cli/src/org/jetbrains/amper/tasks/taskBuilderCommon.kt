@@ -18,7 +18,9 @@ import org.jetbrains.amper.frontend.isPublishingEnabled
 import org.jetbrains.amper.frontend.mavenPublishRepositories
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.shouldPublishSourcesJars
+import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
+import org.jetbrains.amper.tasks.android.AndroidTaskType
 import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
 import org.jetbrains.amper.tasks.metadata.allMetadataFragments
 import org.jetbrains.amper.tasks.native.CommonizeNativeDistributionTask
@@ -80,8 +82,8 @@ fun ProjectTasksBuilder.setupCommonTasks() {
         }
 
     allFragments()
-        // Metadata compilation is done for multi-platform main fragments.
-        // todo (AB) : [AMPER-721] "android+jvm", "webMain" should be also skipped.
+        // Metadata compilation is done for multi-platform main fragments (with some exceptions).
+        // Metadata compilation is skipped for { jvm + android } and { wasmjs + wasmwasi } modules.
         .allMetadataFragments()
         .forEach {
             val taskName = CommonFragmentTaskType.CompileMetadata.getTaskName(it)
@@ -113,8 +115,8 @@ fun ProjectTasksBuilder.setupCommonTasks() {
         }
 
     allModules()
-        // todo (AB): [AMPER-719] What is about android + jvm modules?
-        .filter { it.module.leafPlatforms.size > 1 && !it.isTest }
+        // Any KMP module containing common main fragment is subject of the KMP publication
+        .filter { !it.isTest && it.module.isMultiplatformPublication() }
         .withEach {
             val taskName = ModuleTaskTypes.AssembleAllMetadata.getTaskName(module)
             tasks.registerTask(
@@ -130,7 +132,8 @@ fun ProjectTasksBuilder.setupCommonTasks() {
                 dependsOn = buildList {
                     addAll(
                         module.fragments
-                            .filter { it.platforms.size > 1 && !it.isTest }
+                            .asSequence()
+                            .allMetadataFragments()
                             .map { CommonFragmentTaskType.CompileMetadata.getTaskName(it) }
                     )
                 }
@@ -183,7 +186,7 @@ fun ProjectTasksBuilder.setupCommonTasks() {
                             // we need dependencies to get publication coordinate overrides (e.g. -jvm variant)
                             add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest = false))
                         }
-                        if (module.leafPlatforms.size > 1) {
+                        if (module.isMultiplatformPublication()) {
                             add(ModuleTaskTypes.AssembleAllMetadata.getTaskName(module))
                         }
                     },
@@ -245,7 +248,7 @@ fun ProjectTasksBuilder.setupCommonTasks() {
 private fun ModuleSequenceCtx.tasksWithPlatformSpecificPublishablesFor(platform: Platform): List<TaskName> = buildList {
     when (platform) {
         Platform.JVM -> add(CommonTaskType.Jar.getTaskName(module, platform, isTest = false))
-        Platform.ANDROID -> add(CommonTaskType.Jar.getTaskName(module, platform, isTest = false, BuildType.Release))
+        Platform.ANDROID -> add(AndroidTaskType.Aar.getTaskName(module, platform, isTest = false, BuildType.Release))
         Platform.JS,
         Platform.WASM_JS,
         Platform.WASM_WASI,

@@ -18,6 +18,7 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jar.JarConfig
 import org.jetbrains.amper.jar.ZipInput
 import org.jetbrains.amper.jar.writeJar
+import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.amper.stdlib.io.path.isEmptyDirectory
 import org.jetbrains.amper.tasks.MetadataCompileTask
@@ -50,7 +51,9 @@ class AssembleAllMetadataTask (
     override suspend fun run(
         dependenciesResult: List<TaskResult>,
     ): TaskResult {
-        check(module.leafPlatforms.size > 1) { "Running the task ${taskName.id} for a single-platform module is not allowed" }
+        check(module.isMultiplatformPublication()) {
+            "Running the task ${taskName.id} for the module ${module.userReadableName} is not allowed"
+        }
 
         logger.infoNoConsole("Assembling all metadata artifact for module ${module.userReadableName}")
 

@@ -18,10 +18,12 @@ import org.jetbrains.amper.frontend.schema.ProductType
  * * For `kmp/lib` modules, the common platform gets the base artifact ID, and leaf platforms use a platform suffix.
  */
 fun AmperModule.publicationCoordinates(platform: Platform): MavenCoordinates = when {
-    platform == Platform.COMMON || type == ProductType.JVM_LIB -> rootPublicationCoordinates()
+    platform == Platform.COMMON || !isMultiplatformPublication() -> rootPublicationCoordinates()
     platform.isLeaf -> kmpLeafPlatformPublicationCoordinates(platform)
     else -> error("Cannot generate Maven coordinates for $platform: only COMMON and leaf platforms are supported")
 }
+
+fun AmperModule.isMultiplatformPublication() = type.supportedPlatforms.size > 1
 
 private fun AmperModule.kmpLeafPlatformPublicationCoordinates(platform: Platform): MavenCoordinates {
     val fragment = leafFragments.singleOrNull { !it.isTest && platform in it.platforms }

@@ -477,7 +477,7 @@ class AmperPublishTest : AmperCliTestBase() {
             "kmp-lib-android/1.2.3/_remote.repositories",
             "kmp-lib-android/1.2.3/kmp-lib-android-1.2.3-javadoc.jar",
             "kmp-lib-android/1.2.3/kmp-lib-android-1.2.3-sources.jar",
-            "kmp-lib-android/1.2.3/kmp-lib-android-1.2.3.jar",
+            "kmp-lib-android/1.2.3/kmp-lib-android-1.2.3.aar",
             "kmp-lib-android/1.2.3/kmp-lib-android-1.2.3.module",
             "kmp-lib-android/1.2.3/kmp-lib-android-1.2.3.pom",
             "kmp-lib-android/maven-metadata-local.xml",

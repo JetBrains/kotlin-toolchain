@@ -23,8 +23,11 @@ import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.frontend.publishingSettings
+import org.jetbrains.amper.maven.publish.PublicationCoordinatesOverrides
+import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.amper.tasks.MavenPublishable
+import org.jetbrains.amper.tasks.rootFragment
 import org.jetbrains.gradle.module.metadata.format.AvailableAt
 import org.jetbrains.gradle.module.metadata.format.Component
 import org.jetbrains.gradle.module.metadata.format.CreatedBy
@@ -86,10 +89,11 @@ private fun allMetadataVariant(
     allMetadataJarPath: Path,
     checksums: Map<String, List<MavenPublishable>>,
 ): GradleVariant {
-    val dependencies = module
-        .allMetadataFragments()
+    val fragments = module.allMetadataFragments().takeIf { it.any() } ?: [module.rootFragment]
+    val dependencies = fragments
         .flatMap { it.classPathForApiMetadata() }
         .distinct()
+        // Dependencies in Gradle module metadata of KMP project are declared in terms of common libraries root coordinates.
         .map { it.toVariantDependency(Platform.COMMON) }
         .toList()
 
@@ -113,7 +117,7 @@ private fun allMetadataVariant(
         dependencyConstraints = [],
         files = [
             File(
-                name = "$artifactId-metadata-$version.jar",
+                name = "${module.userReadableName}-metadata-$version.jar",
                 url = "$artifactId-$version.jar",
                 size = allMetadataJarPath.fileSize(),
                 sha512 = getCheckSumFor(allMetadataJarPath, "sha512", checksums),
@@ -165,7 +169,7 @@ private fun allMetadataSourcesVariant(
         },
         files = [
             File(
-                name = "$artifactId-kotlin-$version-sources.jar",
+                name = "${module.userReadableName}-kotlin-$version-sources.jar",
                 url = "$artifactId-$version-sources.jar",
                 size = allMetadataSourcesJarPath.fileSize(),
                 sha512 = getCheckSumFor(allMetadataSourcesJarPath, "sha512", checksums),
@@ -214,6 +218,7 @@ suspend fun generateGradleMetadataForLeafPlatform(
     checksums: Map<String, List<MavenPublishable>>,
     platformSpecificArtifact: Path,
     platformSpecificSourcesJar: Path? = null,
+    overrides: PublicationCoordinatesOverrides,
 ): Path {
     val leafFragment: LeafFragment = module.leafFragments
         .filterNot { it.isTest }
@@ -221,10 +226,10 @@ suspend fun generateGradleMetadataForLeafPlatform(
 
     val variants: List<GradleVariant> = buildList {
         val scopes = getApplicableVariantScopes(leafFragment)
-        addAll(scopes.map { leafFragment.toGradleVariant(it, isSources = false, checksums = checksums, platformSpecificArtifact) })
+        addAll(scopes.map { leafFragment.toGradleVariant(it, isSources = false, checksums = checksums, platformSpecificArtifact, overrides) })
 
         if (module.publishingSettings.publishSources && platformSpecificSourcesJar != null) {
-            add(leafFragment.toGradleVariant(ResolutionScope.RUNTIME, isSources = true, checksums, platformSpecificSourcesJar))
+            add(leafFragment.toGradleVariant(ResolutionScope.RUNTIME, isSources = true, checksums, platformSpecificSourcesJar, overrides))
         }
     }
 
@@ -242,9 +247,15 @@ private fun LeafFragment.toBaseGradleVariant(
             ResolutionScope.RUNTIME -> "Runtime"
         }
     }
+    val name =
+        if (platform == Platform.JVM && !module.isMultiplatformPublication()) {
+            "${nameSuffix.lowercase()}Elements"
+        } else {
+            "${name}${nameSuffix}Elements$PUBLISHED_SUFFIX"
+        }
 
     return GradleVariant(
-        name = "${name}${nameSuffix}Elements$PUBLISHED_SUFFIX",
+        name = name,
         attributes = buildMap {
             val resolutionPlatform = platform.toResolutionPlatform()!!
 
@@ -255,9 +266,19 @@ private fun LeafFragment.toBaseGradleVariant(
             if (isSources) {
                 this[DependencyBundling.name] = DependencyBundling.External.value
                 this["org.gradle.docstype"] = "sources"
+            } else {
+                if (platform == Platform.JVM && !module.isMultiplatformPublication()) {
+                    this[DependencyBundling.name] = DependencyBundling.External.value
+                    // todo (AB): Value of attribute 'org.gradle.jvm.version' is Int (but Map<String, String> is supported only)
+//                    settings.jvm.release?.let { this["org.gradle.jvm.version"] = it }
+                }
             }
-            this[JvmEnvironment.name] = JvmEnvironment.fromPlatform(resolutionPlatform).value
-            if (resolutionPlatform.type != PlatformType.NATIVE) {
+            if (module.isMultiplatformPublication()) {
+                this[JvmEnvironment.name] = JvmEnvironment.fromPlatform(resolutionPlatform).value
+            }
+            if (resolutionPlatform.type != PlatformType.NATIVE
+                && resolutionPlatform.type != PlatformType.WASM
+            ) {
                 this["org.gradle.libraryelements"] =
                     if (resolutionPlatform.type == PlatformType.ANDROID_JVM && !isSources) "aar" else "jar"
             }
@@ -268,10 +289,13 @@ private fun LeafFragment.toBaseGradleVariant(
             KotlinNativeTarget.fromPlatform(resolutionPlatform)?.also {
                 this[KotlinNativeTarget.name] = it.value
             }
+            if (module.isMultiplatformPublication()) {
+                this[KotlinPlatformType.name] = KotlinPlatformType.fromPlatform(resolutionPlatform).value
+            }
+
             KotlinWasmTarget.fromPlatform(resolutionPlatform)?.also {
                 this[KotlinWasmTarget.name] = it.value
             }
-            this[KotlinPlatformType.name] = KotlinPlatformType.fromPlatform(resolutionPlatform).value
         },
         dependencies = [],
         dependencyConstraints = [],
@@ -286,6 +310,7 @@ private fun LeafFragment.toGradleVariant(
     isSources: Boolean = false,
     checksums: Map<String, List<MavenPublishable>>,
     platformSpecificArtifact: Path,
+    overrides: PublicationCoordinatesOverrides,
 ): GradleVariant {
 
     val baseVariant = toBaseGradleVariant(scope, isSources)
@@ -293,10 +318,17 @@ private fun LeafFragment.toGradleVariant(
     val dependencies = if (isSources) {
         []
     } else {
-        classPathForApiMetadata()
+        dependenciesAvailableForConsumer(scope = scope)
             .distinct()
-            // KMP dependencies are declared in terms of common libraries root coordinates
-            .map { it.toVariantDependency(Platform.COMMON) }
+            .map {
+                val [platform, overrides] = if (module.isMultiplatformPublication())
+                    // KMP project declares dependencies in terms of common libraries root coordinates.
+                    Platform.COMMON to null
+                else
+                    // non-KMP project declare dependencies in terms of platform-specific coordinates.
+                    platform to overrides
+                it.toVariantDependency(platform, overrides)
+            }
             .toList()
     }
 
@@ -305,11 +337,19 @@ private fun LeafFragment.toGradleVariant(
     val version = platformSpecificCoordinates.version
         ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
 
-    val [name, url] = if (isSources) {
-        "$artifactId-$version-sources.jar" to "$artifactId-$version-sources.jar"
+    val [name, url] = if (platform == Platform.JVM && !module.isMultiplatformPublication()) {
+        // JVM only publication
+        val sourcesSuffix = if (isSources) "-sources" else ""
+        val artifactFileName = "$artifactId-$version$sourcesSuffix.jar"
+        artifactFileName to artifactFileName
     } else {
-        val extension = platformSpecificArtifact.extension
-        "${module.userReadableName}-${sourceSetName()}-$version.$extension" to "$artifactId-$version.$extension"
+        // Regular KMP publication
+        if (isSources) {
+            "${module.userReadableName}-${sourceSetName()}-$version-sources.jar" to "$artifactId-$version-sources.jar"
+        } else {
+            val extension = platformSpecificArtifact.extension
+            "${module.userReadableName}-${sourceSetName()}-$version.$extension" to "$artifactId-$version.$extension"
+        }
     }
 
     return baseVariant.copy(
@@ -341,7 +381,11 @@ suspend fun generateGradleModuleFile(variants: List<GradleVariant>, platform: Pl
     val gradleMetadata = Module(
         formatVersion = "1.1",
         component = Component(
-            url = if (platform != Platform.COMMON) "../../$commonArtifactId/$version/$commonArtifactId-$version.module" else null,
+            url =
+                if (platform != Platform.COMMON && module.isMultiplatformPublication())
+                    "../../$commonArtifactId/$version/$commonArtifactId-$version.module"
+                else
+                    null,
             group = commonGroupId,
             module = commonArtifactId,
             version = version,
