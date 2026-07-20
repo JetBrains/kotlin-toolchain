@@ -1,0 +1,130 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "url": "../../kmpSinglePlatform/1.0.0/kmpSinglePlatform-1.0.0.module",
+    "group": "io.github.kotlin",
+    "module": "kmpSinglePlatform",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.1.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "jvmApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.10.2"
+          }
+        },
+        {
+          "group": "org.tinylog",
+          "module": "tinylog-api-kotlin",
+          "version": {
+            "requires": "2.7.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "edgeCase_kmpSinglePlatform-jvm-1.0.0.jar",
+          "url": "kmpSinglePlatform-jvm-1.0.0.jar",
+          "size": 1498,
+          "sha512": "2e272a387af3bdfc63ad54812698ec6bb9b9ef27261e84053fde4e57b228a132808975a241b83703cf2acd2859f4eed8ac36f964b1e27dba3041904bff218156",
+          "sha256": "d49ae01318f46f380255f917c0802d61137174f0ed90cc951bae9e4bcb9fb43e",
+          "sha1": "f605c128acd737f9709099944ca260a33ebe6e3f",
+          "md5": "44c7449db22f4b42cfb4bf8339733cfa"
+        }
+      ]
+    },
+    {
+      "name": "jvmRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.10.2"
+          }
+        },
+        {
+          "group": "org.tinylog",
+          "module": "tinylog-api-kotlin",
+          "version": {
+            "requires": "2.7.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "edgeCase_kmpSinglePlatform-jvm-1.0.0.jar",
+          "url": "kmpSinglePlatform-jvm-1.0.0.jar",
+          "size": 1498,
+          "sha512": "2e272a387af3bdfc63ad54812698ec6bb9b9ef27261e84053fde4e57b228a132808975a241b83703cf2acd2859f4eed8ac36f964b1e27dba3041904bff218156",
+          "sha256": "d49ae01318f46f380255f917c0802d61137174f0ed90cc951bae9e4bcb9fb43e",
+          "sha1": "f605c128acd737f9709099944ca260a33ebe6e3f",
+          "md5": "44c7449db22f4b42cfb4bf8339733cfa"
+        }
+      ]
+    },
+    {
+      "name": "jvmSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "files": [
+        {
+          "name": "edgeCase_kmpSinglePlatform-jvm-1.0.0-sources.jar",
+          "url": "kmpSinglePlatform-jvm-1.0.0-sources.jar",
+          "size": 1050,
+          "sha512": "6071becffa5179418a21dc9c6268a526b985011236e64dd1c388b02bc8262825aecbdf707181490d148ab5be6219a9968778d57c44f47a0920bd73f6f59ee1c5",
+          "sha256": "66ed73c3a2a429705f3c60cf512ac75fb6882eaf03f61e0139d1c01212e3bf6a",
+          "sha1": "d0ef22cb95f46488cf88280d7e763df2493929d1",
+          "md5": "488965f5917da30474d246e9a8eb2a19"
+        }
+      ]
+    }
+  ]
+}

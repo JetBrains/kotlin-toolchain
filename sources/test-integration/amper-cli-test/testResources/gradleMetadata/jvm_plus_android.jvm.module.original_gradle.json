@@ -1,0 +1,123 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "url": "../../jvmPlusAndroid/1.0.0/jvmPlusAndroid-1.0.0.module",
+    "group": "io.github.kotlin",
+    "module": "jvmPlusAndroid",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.1.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "jvmApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.tinylog",
+          "module": "tinylog-api-kotlin",
+          "version": {
+            "requires": "2.7.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "edgeCase_jvmPlusAndroid-jvm-1.0.0.jar",
+          "url": "jvmPlusAndroid-jvm-1.0.0.jar",
+          "size": 1492,
+          "sha512": "f0928d7e688c49116a6e4d028584d362146ee5e5a6567c01354ff5521136eacfe9aba24b115e4e084e4b794e95ba67ea773e50bbb1fdfe7f8635a3a221d43d3d",
+          "sha256": "ab5706de1d968edd46b4300780df05d1951dac9441cff60aea74a38b2b8f3450",
+          "sha1": "35257d7f0ce4c0891f4055ee84ad51137a5a90c7",
+          "md5": "2d36fa71255b83f35c5d6ab11d1384f6"
+        }
+      ]
+    },
+    {
+      "name": "jvmRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.tinylog",
+          "module": "tinylog-api-kotlin",
+          "version": {
+            "requires": "2.7.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.20"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.10.2"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "edgeCase_jvmPlusAndroid-jvm-1.0.0.jar",
+          "url": "jvmPlusAndroid-jvm-1.0.0.jar",
+          "size": 1492,
+          "sha512": "f0928d7e688c49116a6e4d028584d362146ee5e5a6567c01354ff5521136eacfe9aba24b115e4e084e4b794e95ba67ea773e50bbb1fdfe7f8635a3a221d43d3d",
+          "sha256": "ab5706de1d968edd46b4300780df05d1951dac9441cff60aea74a38b2b8f3450",
+          "sha1": "35257d7f0ce4c0891f4055ee84ad51137a5a90c7",
+          "md5": "2d36fa71255b83f35c5d6ab11d1384f6"
+        }
+      ]
+    },
+    {
+      "name": "jvmSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "files": [
+        {
+          "name": "edgeCase_jvmPlusAndroid-jvm-1.0.0-sources.jar",
+          "url": "jvmPlusAndroid-jvm-1.0.0-sources.jar",
+          "size": 1050,
+          "sha512": "6071becffa5179418a21dc9c6268a526b985011236e64dd1c388b02bc8262825aecbdf707181490d148ab5be6219a9968778d57c44f47a0920bd73f6f59ee1c5",
+          "sha256": "66ed73c3a2a429705f3c60cf512ac75fb6882eaf03f61e0139d1c01212e3bf6a",
+          "sha1": "d0ef22cb95f46488cf88280d7e763df2493929d1",
+          "md5": "488965f5917da30474d246e9a8eb2a19"
+        }
+      ]
+    }
+  ]
+}

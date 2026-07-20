@@ -1,0 +1,176 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.github.kotlin",
+    "module": "wasmJsPlusWasmWasi",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.1.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "metadataApiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.10.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "edgeCase_wasmJsPlusWasmWasi-metadata-1.0.0.jar",
+          "url": "wasmJsPlusWasmWasi-1.0.0.jar",
+          "size": 660,
+          "sha512": "1751f733a306084cfb230ba70ab32c8f1e2e4c48dc3ccc9a2b32af0e31a296048038154b5e86876701195dee2ec7e64289ed17f5888ffbd4635070500c848616",
+          "sha256": "9fc3f063bb212380f4f777ed190a3cae808f09619dfa4831e821494c5b292e53",
+          "sha1": "db299be7ebdbabbec3e97a6b66554cdf9aae9d6b",
+          "md5": "55cb10a5e0c875f1a8fa1a2c90f9ea60"
+        }
+      ]
+    },
+    {
+      "name": "metadataSourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "files": [
+        {
+          "name": "edgeCase_wasmJsPlusWasmWasi-kotlin-1.0.0-sources.jar",
+          "url": "wasmJsPlusWasmWasi-1.0.0-sources.jar",
+          "size": 261,
+          "sha512": "1487e5a20c9e4d74f298e07c42e96a61be11b7a768c3fbc199ee138cd68e1fc2267d1cfe3f11f288acc05df755315344d052cc5f6f751f126ab4fe1caa5125ea",
+          "sha256": "c6deada2fac53b8ea6523dbda77597b128006674616f140f04df23264c6d1aa3",
+          "sha1": "2ad14aed781c4a73ed4dbb421966d408a0a06686",
+          "md5": "f43436d6bec321290f6af228ad602604"
+        }
+      ]
+    },
+    {
+      "name": "wasmJsApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "available-at": {
+        "url": "../../wasmJsPlusWasmWasi-wasm-js/1.0.0/wasmJsPlusWasmWasi-wasm-js-1.0.0.module",
+        "group": "io.github.kotlin",
+        "module": "wasmJsPlusWasmWasi-wasm-js",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "wasmJsRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "available-at": {
+        "url": "../../wasmJsPlusWasmWasi-wasm-js/1.0.0/wasmJsPlusWasmWasi-wasm-js-1.0.0.module",
+        "group": "io.github.kotlin",
+        "module": "wasmJsPlusWasmWasi-wasm-js",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "wasmJsSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "available-at": {
+        "url": "../../wasmJsPlusWasmWasi-wasm-js/1.0.0/wasmJsPlusWasmWasi-wasm-js-1.0.0.module",
+        "group": "io.github.kotlin",
+        "module": "wasmJsPlusWasmWasi-wasm-js",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "wasmWasiApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "wasi"
+      },
+      "available-at": {
+        "url": "../../wasmJsPlusWasmWasi-wasm-wasi/1.0.0/wasmJsPlusWasmWasi-wasm-wasi-1.0.0.module",
+        "group": "io.github.kotlin",
+        "module": "wasmJsPlusWasmWasi-wasm-wasi",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "wasmWasiRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "wasi"
+      },
+      "available-at": {
+        "url": "../../wasmJsPlusWasmWasi-wasm-wasi/1.0.0/wasmJsPlusWasmWasi-wasm-wasi-1.0.0.module",
+        "group": "io.github.kotlin",
+        "module": "wasmJsPlusWasmWasi-wasm-wasi",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "wasmWasiSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "wasi"
+      },
+      "available-at": {
+        "url": "../../wasmJsPlusWasmWasi-wasm-wasi/1.0.0/wasmJsPlusWasmWasi-wasm-wasi-1.0.0.module",
+        "group": "io.github.kotlin",
+        "module": "wasmJsPlusWasmWasi-wasm-wasi",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}
