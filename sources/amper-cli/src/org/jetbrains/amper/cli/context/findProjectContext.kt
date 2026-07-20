@@ -37,7 +37,7 @@ internal suspend fun findProjectContext(
     val context = context(collecting + problemReporter) {
         if (explicitProjectDir != null) {
             AmperProjectContext.create(
-                rootDir = explicitProjectDir.absolute(),
+                rootDir = explicitProjectDir.absolute().normalize(),
                 buildDir = explicitBuildDir?.absolute(),
             )
                 ?: userReadableError(
