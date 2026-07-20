@@ -1,0 +1,7 @@
+root
+╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0
+     ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.11.0
+          ├─── org.jetbrains:annotations:23.0.0
+          ├─── org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.11.0
+          ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20
+               ╰─── org.jetbrains:annotations:13.0 -> 23.0.0

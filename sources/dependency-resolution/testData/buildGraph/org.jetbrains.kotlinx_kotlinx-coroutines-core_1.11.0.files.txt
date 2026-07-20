@@ -1,0 +1,3 @@
+annotations-23.0.0.jar
+kotlin-stdlib-2.2.20.jar
+kotlinx-coroutines-core-jvm-1.11.0.jar

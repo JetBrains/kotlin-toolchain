@@ -308,7 +308,7 @@ class DependencyFileTest: BaseDRTest() {
     @Test
     fun `org_jetbrains_kotlinx kotlinx_coroutines_core 1_9_0 check metadata`() = runDrTest {
         Context {
-            platforms = setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID)
+            platforms = setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID, ResolutionPlatform.JS)
             repositories = listOf(REDIRECTOR_MAVEN_CENTRAL)
             cache = {
                 amperCache = amperPath
@@ -447,7 +447,7 @@ class DependencyFileTest: BaseDRTest() {
     @Test
     fun `org_jetbrains_kotlinx kotlinx_datetime 0_4_0`() = runDrTest {
         Context {
-            platforms = setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID)
+            platforms = setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID, ResolutionPlatform.JS)
             repositories = listOf(REDIRECTOR_MAVEN_CENTRAL)
             cache = {
                 amperCache = amperPath

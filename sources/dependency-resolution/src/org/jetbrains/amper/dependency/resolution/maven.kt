@@ -1098,9 +1098,20 @@ class MavenDependencyImpl internal constructor(
                 }
             }
         } else {
-            // Regular library
-            if (context.settings.platforms.size == 1) {
-                val platform = context.settings.platforms.single()
+            // Single platform (or jvm+android) context
+            if (context.settings.platforms.size == 1
+                // [KTC-4474] Supporting JVM dependencies in jvm+android fragments.
+                || context.settings.platforms == setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID))
+            {
+                val platform =
+                    if (context.settings.platforms == setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID))
+                        // Even if the KMP library has a commonMain sourceSet resolvable in the jvm+android context,
+                        // we should not use it because it could contain fewer symbols than jvm-specific variant
+                        // which is still suitable for both platforms.
+                        ResolutionPlatform.JVM
+                    else
+                        context.settings.platforms.single()
+
                 val validVariants = resolveVariants(moduleMetadata, context.settings, platform)
 
                 if (validVariants.isEmpty()) {

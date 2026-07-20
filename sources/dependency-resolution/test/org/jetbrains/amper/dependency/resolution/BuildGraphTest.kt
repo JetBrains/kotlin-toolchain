@@ -486,14 +486,21 @@ class BuildGraphTest : BaseDRTest() {
         downloadAndAssertFiles(listOf("jna-3.0.9.jar"), root, verifyMessages = true)
     }
 
-
     /**
-     * This test checks that a non-KMP library declared in JVM+Android module won't fail dependency resolution
-     * and produce a warning instead.
-     * Such a dependency could be used in single-platform fragments later.
+     * This test checks that a KMP library declared in JVM+Android module as a dependency
+     * won't fail dependency resolution and will be resolved correctly.
+     * I.e.,`jvm` specific variant will be used instead of `commonMain`sourceSet.
+     *
+     * Note: This is exceptional behavior supported for jvm+android fragments only.
+     * For all other combinations of platforms, the standard sourceSet-visibility-based approach is used.
+     * It doesn't fit jvm+android case, because, despite jvm and android having much in common
+     * (basically everything from jvm world is available in android),
+     * those to platforms don't belong to the same intermediate platform.
+     * This way commonized `commonMain` sourceSet of a library, in general, provides way fewer symbols than
+     * jvm-specific variant does.
      */
     @Test
-    fun `org_jetbrains_androidx_lifecycle lifecycle-viewmodel-compose 2_8_0`(testInfo: TestInfo) = runDrTest {
+    fun `org_jetbrains_kotlinx kotlinx-coroutines-core 1_11_0`(testInfo: TestInfo) = runDrTest {
         val root = doTestByFile(
             testInfo,
             repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_DL_GOOGLE_ANDROID),
@@ -501,14 +508,39 @@ class BuildGraphTest : BaseDRTest() {
             verifyMessages = false
         )
 
-        assertTheOnlyNonInfoMessage(
-            root,
-            DependencyResolutionDiagnostics.DependencyIsNotMultiplatform,
-            Severity.WARNING,
-            transitively = true
+        downloadAndAssertFiles(testInfo, root)
+    }
+
+    /**
+     * This test checks that a non-KMP jvm library published WITH Gradle metadata and declared in JVM+Android module
+     * won't fail dependency resolution and will be correctly resolved.
+     * I.e., jvm variant will be used.
+     */
+    @Test
+    fun `com_fasterxml_jackson_core jackson-core 2_18_0`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL),
+            platform = setOf(ResolutionPlatform.ANDROID, ResolutionPlatform.JVM)
         )
 
-        assertFiles(testInfo, root, checkExistence = true)
+        downloadAndAssertFiles(testInfo, root)
+    }
+
+    /**
+     * This test checks that a non-KMP jvm library published WITHOUT Gradle metadata and declared in JVM+Android module
+     * won't fail dependency resolution and will be correctly resolved.
+     * I.e., the library will be resoled from pom.xml as if it was resolved in JVM-only resolution context.
+     */
+    @Test
+    fun `org_slf4j slf4j-api 2_0_9`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL),
+            platform = setOf(ResolutionPlatform.ANDROID, ResolutionPlatform.JVM)
+        )
+
+        downloadAndAssertFiles(testInfo, root)
     }
 
     @Test
