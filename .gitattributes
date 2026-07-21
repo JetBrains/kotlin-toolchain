@@ -17,5 +17,7 @@ mkdocs text eol=lf
 
 # Gradle metadata test files
 *.module text eol=lf
+# Golden Gradle module metadata files compared byte-for-byte against LF-generated output
+sources/test-integration/amper-cli-test/testResources/gradleMetadata/*.json text eol=lf
 # Gradle wrapper from BOM-generation project used for tests
 gradlew text eol=lf
