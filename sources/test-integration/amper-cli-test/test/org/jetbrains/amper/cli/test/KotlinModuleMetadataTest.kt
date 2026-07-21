@@ -4,7 +4,7 @@
 
 package org.jetbrains.amper.cli.test
 
-import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
+import org.jetbrains.amper.cli.test.utils.assertTextFileContentEqualsIgnoringLineEndings
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.Dirs
 import org.junit.jupiter.api.TestInfo
@@ -138,7 +138,7 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
             ":libraryNested:assembleMetadata",
         )
 
-        assertFileContentEquals(
+        assertTextFileContentEqualsIgnoringLineEndings(
             testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.kotlin-project-structure-metadata.json"),
             tempRoot / "build" / "tasks" / "_libraryNested_assembleMetadata" / "kotlin-project-structure-metadata.json"
         )
