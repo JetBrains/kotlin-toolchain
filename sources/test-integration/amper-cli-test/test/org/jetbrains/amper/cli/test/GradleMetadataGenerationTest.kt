@@ -41,7 +41,7 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
         )
 
         val sanitizedLinuxX64GradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_libraryNested_prepareMavenPublishables" / "libraryNested-linuxX64-1.0.0.module"
+            tempRoot / "build" / "tasks" / "_libraryNested_prepareMavenPublishables" / "libraryNested-linuxx64-1.0.0.module"
         )
 
         assertFileContentEquals(
@@ -99,7 +99,7 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
         )
 
         val wasmJsGradleModuleMetadataSanitized = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_edgeCase_wasmJsPlusWasmWasi_prepareMavenPublishables" / "wasmJsPlusWasmWasi-wasmJs-1.0.0.module"
+            tempRoot / "build" / "tasks" / "_edgeCase_wasmJsPlusWasmWasi_prepareMavenPublishables" / "wasmJsPlusWasmWasi-wasmjs-1.0.0.module"
         )
         assertFileContentEquals(
             testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.wasmJs.module.json"),
@@ -107,7 +107,7 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
         )
 
         val wasmWasiGradleModuleMetadataSanitized = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_edgeCase_wasmJsPlusWasmWasi_prepareMavenPublishables" / "wasmJsPlusWasmWasi-wasmWasi-1.0.0.module"
+            tempRoot / "build" / "tasks" / "_edgeCase_wasmJsPlusWasmWasi_prepareMavenPublishables" / "wasmJsPlusWasmWasi-wasmwasi-1.0.0.module"
         )
         assertFileContentEquals(
             testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.wasmWasi.module.json"),
