@@ -28,6 +28,7 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
         runCli(projectDir = testProject("multiplatform-library-template-main"),
             "task",
             ":libraryNested:prepareMavenPublishables",
+            configureAndroidHome = true,
         )
 
         val sanitizedGradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
@@ -54,6 +55,7 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
         runCli(projectDir = testProject("multiplatform-library-template-main"),
             "task",
             ":edgeCase_jvmPlusAndroid:prepareMavenPublishables",
+            configureAndroidHome = true,
         )
 
         val allMetadataGradleModuleMetadataSanitized = getSanitizedGradleMetadataProducedByCli(
