@@ -2248,6 +2248,42 @@ class BuildGraphTest : BaseDRTest() {
     }
 
     /**
+     * This test checks that source set visibility resolution
+     * works even if the PSM descriptor (kotlin-project-structure-metadata.json)
+     * contains variants with an empty set of visible sourceSets.
+     *
+     * Such a declaration is a mistake, but it appears in the wild.
+     * Source set visibility algorithm ignores such empty-sourceSets-variants.
+     *
+     * In particular, PSM of 'org.jetbrains.compose.material3:material3:1.12.0-alpha03'
+     * declares variants with the empty list of visible source sets. Those should be ignored.
+     *
+     * {
+     *   "name": "androidApiElements",
+     *   "sourceSet": []
+     * },
+     * {
+     *   "name": "androidRuntimeElements",
+     *   "sourceSet": []
+     * },
+     */
+    @Test
+    fun `org_jetbrains_compose_material3 material3 1_12_0-alpha03`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            platform = setOf(
+                ResolutionPlatform.JVM,
+                ResolutionPlatform.ANDROID,
+                ResolutionPlatform.IOS_ARM64,
+                ResolutionPlatform.IOS_SIMULATOR_ARM64
+            ),
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_JETBRAINS_KPM_PUBLIC, REDIRECTOR_MAVEN_GOOGLE),
+        )
+
+        downloadAndAssertFiles(testInfo, root)
+    }
+
+    /**
      * This test checks that host-specific sourceSet not included in a KMP library
      * is resolved from a platform-specific artifact.
      *

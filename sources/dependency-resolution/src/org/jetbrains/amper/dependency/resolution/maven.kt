@@ -1533,6 +1533,7 @@ class MavenDependencyImpl internal constructor(
                 return
             }
 
+        // Resolving all leaf platform variants
         val resolvedVariants = context.settings.platforms.associateWith {
             resolveVariants(moduleMetadata, context.settings, it).withoutDocumentationAndMetadata
         }
@@ -1541,14 +1542,25 @@ class MavenDependencyImpl internal constructor(
             reportVariantMismatchForLibrary(diagnosticsReporter, moduleMetadata, platformsWithoutVariants.keys)
         }
 
-        val allPlatformsVariants = resolvedVariants.values.flatten().associateBy { it.name }
+        val allPsmVariants = kotlinProjectStructureMetadata.projectStructure.variants.associateBy { it.name }
+
+        // Mapping leaf platforms to visible sourceSets:
+        //  - variants declared in Gradle metadata, but missing in PSM are ignored,
+        //  - variants in PSM declaring empty list of visible "sourceSets" are ignored (those declarations make no sense)
+        val resolvedPlatformSourceSets = resolvedVariants.mapValues {
+            // join together visible source sets from multiple variants of the same platform
+            it.value
+                .mapNotNull { gradleVariant ->
+                    allPsmVariants[gradleVariant.name]
+                        ?: allPsmVariants[gradleVariant.name.removeSuffix(PUBLISHED_SUFFIX)]
+                }.flatMap { it.sourceSet }.toSet()
+        }
 
         val allSourceSetNames = kotlinProjectStructureMetadata.projectStructure.sourceSets.map { it.name }
 
-        // Selecting source sets related to target platforms (intersection).
-        val sourceSetsIntersection = kotlinProjectStructureMetadata.projectStructure.variants
-            .filter { it.name in (allPlatformsVariants.keys + allPlatformsVariants.keys.map { it.removeSuffix(PUBLISHED_SUFFIX) }) }
-            .map { it.sourceSet.toSet() }
+        // Selecting source sets visible for all target platforms (intersection).
+        val sourceSetsIntersection = resolvedPlatformSourceSets.values
+            .filter { it.isNotEmpty() }
             .let {
                 if (it.isEmpty()) emptySet() else it.reduce { l1, l2 -> l1.intersect(l2) }
             }
