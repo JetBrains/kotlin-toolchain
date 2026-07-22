@@ -54,7 +54,10 @@ class ProjectFileTest : AmperCliTestBase() {
         val result = runCli(projectRoot, "build")
         result.assertWarnings("Nothing to build")
         // The following warning doesn't show up in the logs, so we check for it separately in the stdout.
-        result.assertStdoutContains("${projectRoot.resolve("project.yaml")}: Project has no modules: no root module file and no modules listed in the project file")
+        result.assertStdoutContains("""
+        |WARNING: Project has no modules: no root module file and no modules listed in the project file
+        | ╰→ ${projectRoot.resolve("project.yaml")}
+        """.trimMargin())
     }
 
     @Test
@@ -87,7 +90,9 @@ class ProjectFileTest : AmperCliTestBase() {
         )
         val projectYaml = projectDir / "project.yaml"
         assertContains(r.stdout, """
-            |    ╭─ WEAK WARNING: It is recommended to sort the `modules` list alphabetically. This reduces the chance of Git conflicts and makes it easier to visually locate a module in the list.
+            |    ╭─ WEAK WARNING: It is recommended to sort the `modules` list alphabetically. This reduces the chance of Git
+            |    │ conflicts and makes it easier to visually locate a module in the list.
+            |    │
             |    │ → $projectYaml:2:3
             |    │
             |    │   ⌄⌄⌄⌄⌄⌄⌄
@@ -107,7 +112,9 @@ class ProjectFileTest : AmperCliTestBase() {
             |    │ ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
             |    ╰─""".trimMargin())
         assertContains(r.stdout, """
-            |    ╭─ WEAK WARNING: Glob pattern `glob-with-no-matches-at-all/*` doesn't match any Kotlin module directory under the project root
+            |    ╭─ WEAK WARNING: Glob pattern `glob-with-no-matches-at-all/*` doesn't match any Kotlin module directory under the
+            |    │ project root
+            |    │
             |    │ → $projectYaml:7:5
             |    │
             |  7 │   - glob-with-no-matches-at-all/*
@@ -160,6 +167,7 @@ class ProjectFileTest : AmperCliTestBase() {
             |    ╭─ ERROR: Invalid glob pattern `broken[syntax`: Missing '] near index 12
             |    │ broken[syntax
             |    │             ^
+            |    │
             |    │ → $projectYaml:9:5
             |    │
             |  9 │   - broken[syntax
@@ -169,6 +177,7 @@ class ProjectFileTest : AmperCliTestBase() {
             |    ╭─ ERROR: Invalid glob pattern `broken[z-a]syntax`: Invalid range near index 7
             |    │ broken[z-a]syntax
             |    │        ^
+            |    │
             |    │ → $projectYaml:10:5
             |    │
             | 10 │   - broken[z-a]syntax
@@ -178,13 +187,16 @@ class ProjectFileTest : AmperCliTestBase() {
             |    ╭─ ERROR: Invalid glob pattern `broken[syntax/with/**`: Explicit 'name separator' in class near index 13
             |    │ broken[syntax/with/**
             |    │              ^
+            |    │
             |    │ → $projectYaml:11:5
             |    │
             | 11 │   - broken[syntax/with/**
             |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
             |    ╰─""".trimMargin())
         assertContains(r.stderr, """
-            |    ╭─ ERROR: Unsupported `**` in module glob pattern `forbidden/**/recursive`. Use multiple single-level `*` segments instead to specify the depth exactly.
+            |    ╭─ ERROR: Unsupported `**` in module glob pattern `forbidden/**/recursive`. Use multiple single-level `*` segments
+            |    │ instead to specify the depth exactly.
+            |    │
             |    │ → $projectYaml:12:5
             |    │
             | 12 │   - forbidden/**/recursive

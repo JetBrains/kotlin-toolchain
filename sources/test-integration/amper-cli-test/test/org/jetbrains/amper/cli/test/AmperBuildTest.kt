@@ -210,6 +210,7 @@ class AmperBuildTest : AmperCliTestBase() {
         |    │ Repositories used for resolution:
         |    │   - https://cache-redirector.jetbrains.com/kotlin/repo1.maven.org/maven2
         |    │   - https://maven.google.com
+        |    │
         |    │ → shared${File.separator}module.yaml:6:5
         |    │
         |  6 │   - org.junit.jupiter:junit-jupiter-api:9999

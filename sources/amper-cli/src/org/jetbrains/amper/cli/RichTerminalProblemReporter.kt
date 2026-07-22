@@ -4,10 +4,21 @@
 
 package org.jetbrains.amper.cli
 
+import com.github.ajalt.mordant.markdown.Markdown
+import com.github.ajalt.mordant.rendering.AnsiLevel
+import com.github.ajalt.mordant.rendering.Line
+import com.github.ajalt.mordant.rendering.Lines
 import com.github.ajalt.mordant.rendering.TextStyle
 import com.github.ajalt.mordant.rendering.TextStyles
+import com.github.ajalt.mordant.rendering.Whitespace
+import com.github.ajalt.mordant.rendering.Widget
+import com.github.ajalt.mordant.rendering.WidthRange
+import com.github.ajalt.mordant.table.horizontalLayout
+import com.github.ajalt.mordant.table.verticalLayout
 import com.github.ajalt.mordant.terminal.Terminal
+import com.github.ajalt.mordant.widgets.Text
 import kotlinx.io.IOException
+import org.jetbrains.amper.cli.widgets.withStyle
 import org.jetbrains.amper.compilation.CompilerBuildProblem
 import org.jetbrains.amper.frontend.catalogs.ComposeMaterial3UnknownVersionMappingProblem
 import org.jetbrains.amper.frontend.messages.computeRange
@@ -50,24 +61,41 @@ class RichTerminalProblemReporter(
     private fun render(problem: BuildProblem) {
         val moduleName = (problem as? CompilerBuildProblem)?.moduleName
         val message = when (val source = problem.source) {
-            is FileBuildProblemSource -> renderImpl(source, problem.level, problem.message, moduleName)
+            is FileBuildProblemSource -> renderImpl(source, problem.level, problemTextWidget(problem), moduleName)
             is MultipleLocationsBuildProblemSource -> {
-                val renderedLocations = source.sources.joinToString("\n") {
-                    renderImpl(it, problem.level, message = null, moduleName = null, minGutterWidth = 0)
-                }
+                val muted = terminal.theme.muted
                 val borderPrefix = " ".repeat(MIN_GUTTER_WIDTH + 1)
-                buildString {
-                    appendLine("$borderPrefix╭─ ${severityStyledText(problem.level)}${TextStyles.bold(problem.message)}")
-                    renderedLocations.lines().joinTo(
-                        buffer = this,
-                        prefix = "$borderPrefix├── ${source.groupingMessage}\n",
-                        transform = { "$borderPrefix│ $it\n" },
-                        separator = "",
-                        postfix = "$borderPrefix╰─",
+                verticalLayout {
+                    cell(
+                        PrefixedWidget(
+                            prefix = muted("$borderPrefix╭─ ") + severityStyledText(problem.level),
+                            continuationPrefix = muted("$borderPrefix│ "),
+                            content = problemTextWidget(problem),
+                        )
                     )
+                    cell(muted("$borderPrefix├── ") + source.groupingMessage)
+                    cell(
+                        PrefixedWidget(
+                            prefix = "$borderPrefix│ ",
+                            content = verticalLayout {
+                                source.sources.forEach { source ->
+                                    cell(
+                                        renderImpl(
+                                            source, problem.level,
+                                            message = null, moduleName = null, minGutterWidth = 0,
+                                        )
+                                    )
+                                }
+                            },
+                        )
+                    )
+                    cell(muted("$borderPrefix╰─"))
                 }
             }
-            GlobalBuildProblemSource -> "${severityStyledText(problem.level)}${TextStyles.bold(problem.message)}"
+            GlobalBuildProblemSource -> horizontalLayout {
+                cells(severityStyledText(problem.level), problemTextWidget(problem))
+                spacing = 0
+            }
         }
         terminal.println(message, stderr = problem.level == Level.Error)
     }
@@ -81,10 +109,10 @@ class RichTerminalProblemReporter(
     private fun renderImpl(
         source: FileBuildProblemSource,
         level: Level,
-        message: String?,
+        message: Widget?,
         moduleName: String?,
         minGutterWidth: Int = MIN_GUTTER_WIDTH,
-    ): String {
+    ): Widget {
         val span = source.getLineColumnRange()
         val location = buildString {
             append(if (projectRoot != null) source.file.relativeToOrSelf(projectRoot) else source.file)
@@ -96,58 +124,71 @@ class RichTerminalProblemReporter(
         val severityStyle = severityStyle(level)
         val muted = terminal.theme.muted
 
-        return buildString {
-            if (span != null && snippet != null) {
-                val maxLineNo = span.start.line + snippet.size - 1
-                val gutterWidth = maxLineNo.toString().length.coerceAtLeast(minGutterWidth)
-                val borderPrefix = " ".repeat(gutterWidth + 1)
-                val isMultiLine = snippet.size > 1
-                append(muted("$borderPrefix╭─ "))
-                if (message != null) {
-                    append(severityStyledText(level))
-                    message.lines().joinTo(
-                        buffer = this,
-                        separator = "\n$borderPrefix│ ",
-                    )
-                } else {
-                    append(locationWithHyperlink)
+        if (span == null || snippet == null) {
+            return if (message != null) {
+                verticalLayout {
+                    cell(horizontalLayout {
+                        cells(severityStyledText(level), message)
+                        spacing = 0
+                    })
+                    cell(muted(" ╰→ ") + locationWithHyperlink)
                 }
-                appendLine()
-
-                if (message != null) {
-                    append(muted("$borderPrefix│ → "))
-                    append(locationWithHyperlink)
-                    appendLine()
-                }
-
-                appendLine(muted("$borderPrefix│"))
-
-                if (isMultiLine) {
-                    append(muted("$borderPrefix│ "))
-                    append(severityStyle(buildTopPointer(span, snippet.first())))
-                    appendLine()
-                }
-
-                snippet.forEachIndexed { i, line ->
-                    val lineNo = (span.start.line + i).toString().padStart(gutterWidth)
-                    append(muted("$lineNo │ "))
-                    append(highlightRange(line, span, i, snippet.size, severityStyle))
-                    appendLine()
-                }
-
-                append(muted("$borderPrefix│ "))
-                append(severityStyle(buildBottomPointer(span, isMultiLine)))
-                appendLine()
-
-                append(muted("$borderPrefix╰─"))
-            } else if (message != null) {
-                append(severityStyledText(level))
-                append("$locationWithHyperlink: ")
-                append(TextStyles.bold(message))
             } else {
-                append(locationWithHyperlink)
+                Text(locationWithHyperlink)
             }
         }
+
+        val maxLineNo = span.start.line + snippet.size - 1
+        val gutterWidth = maxLineNo.toString().length.coerceAtLeast(minGutterWidth)
+        val borderPrefix = " ".repeat(gutterWidth + 1)
+        val isMultiLine = snippet.size > 1
+        return verticalLayout {
+            if (message != null) {
+                cell(
+                    PrefixedWidget(
+                        prefix = muted("$borderPrefix╭─ ") + severityStyledText(level),
+                        continuationPrefix = muted("$borderPrefix│ "),
+                        trailingContinuationIfMultiline = muted("$borderPrefix│"),
+                        content = message,
+                    )
+                )
+                cell(muted("$borderPrefix│ → ") + locationWithHyperlink)
+            } else {
+                cell(muted("$borderPrefix╭─ ") + locationWithHyperlink)
+            }
+
+            cell(muted("$borderPrefix│"))
+
+            if (isMultiLine) {
+                cell(muted("$borderPrefix│ ") + severityStyle(buildTopPointer(span, snippet.first())))
+            }
+
+            snippet.forEachIndexed { i, line ->
+                val lineNo = (span.start.line + i).toString().padStart(gutterWidth)
+                cell(muted("$lineNo │ ") + highlightRange(line, span, i, snippet.size, severityStyle))
+            }
+
+            cell(muted("$borderPrefix│ ") + severityStyle(buildBottomPointer(span, isMultiLine)))
+            cell(muted("$borderPrefix╰─"))
+        }
+    }
+
+    private fun problemTextWidget(problem: BuildProblem): Widget {
+        if (problem is CompilerBuildProblem ||  // We don't own those messages - they are not Markdown
+            // It's better to leave potential Markdown markup than to lose the info altogether.
+            !terminal.terminalInfo.interactive ||
+            terminal.terminalInfo.ansiLevel < AnsiLevel.ANSI256
+        ) {
+            // Return message as is
+            return Text(problem.message, whitespace = Whitespace.PRE_WRAP)
+                .withStyle(TextStyles.bold.style)
+        }
+
+        // Render as Markdown
+        return Markdown(
+            // We'd like to treat newlines as paragraphs
+            problem.message.replace("\n", "  \n")
+        ).withStyle(TextStyles.bold.style)
     }
 
     private fun severityStyle(level: Level): TextStyle = when (level) {
@@ -235,6 +276,49 @@ class RichTerminalProblemReporter(
     }
 
     private val internalLogger = LoggerFactory.getLogger(javaClass)
+}
+
+/**
+ * Prepends [prefix] to the first line of the rendered [content],
+ * prepends [continuationPrefix] to the following lines, if any.
+ *
+ * If [trailingContinuationIfMultiline] is not `null` and the [content] is multiline,
+ *  then add an extra line consisting of this string at the end.
+ *
+ * NOTE: all the prefix values and trailing continutation must be single line.
+ */
+private class PrefixedWidget(
+    prefix: String,
+    continuationPrefix: String = prefix,
+    trailingContinuationIfMultiline: String? = null,
+    private val content: Widget,
+) : Widget {
+    private val firstPrefix = Text(prefix)
+    private val continuationPrefix = Text(continuationPrefix)
+    private val trailingContinuationIfMultiline = trailingContinuationIfMultiline?.let(::Text)
+
+    override fun measure(t: Terminal, width: Int): WidthRange {
+        val prefixWidth = firstPrefix.measure(t, width).max
+        return content.measure(t, (width - prefixWidth).coerceAtLeast(1)) + prefixWidth
+    }
+
+    override fun render(t: Terminal, width: Int): Lines {
+        val firstPrefixLine = firstPrefix.render(t, width).lines.first()
+        val prefixWidth = firstPrefix.measure(t, width).max
+        val continuationPrefixLine = continuationPrefix.render(t, width).lines.first()
+        val contentLines = content.render(t, (width - prefixWidth).coerceAtLeast(1)).lines
+        if (contentLines.isEmpty()) return Lines(listOf(firstPrefixLine))
+
+        return Lines(buildList {
+            contentLines.forEachIndexed { index, line ->
+                val prefix = if (index == 0) firstPrefixLine else continuationPrefixLine
+                add(Line(prefix.spans + line.spans, line.endStyle))
+            }
+            if (trailingContinuationIfMultiline != null && contentLines.size > 1) {
+                add(trailingContinuationIfMultiline.render(t, width).lines.first())
+            }
+        })
+    }
 }
 
 // At least 3, so most diagnostics are aligned
