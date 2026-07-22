@@ -34,10 +34,10 @@ import org.jetbrains.amper.core.extract.extractFileToCacheLocation
 import org.jetbrains.amper.intellij.CommandLineUtils
 import org.jetbrains.amper.processes.PrintToTerminalProcessOutputListener
 import org.jetbrains.amper.processes.runProcess
-import org.jetbrains.amper.processes.runProcessWithInheritedIO
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
+import org.jetbrains.amper.util.openBrowser
 import java.net.Socket
 import java.nio.file.Files
 import java.nio.file.Path
@@ -181,23 +181,7 @@ internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
         awaitJaegerPortReady()
         val url = "http://127.0.0.1:$port"
         terminal.println("${green("*** Opening browser $url ***")} (specify --open-browser=false to disable)")
-        openBrowser(url)
-    }
-
-    private suspend fun openBrowser(url: String) {
-        val cmd = when {
-            OsFamily.current.isWindows -> listOf("rundll32", "url.dll,FileProtocolHandler", url)
-            OsFamily.current.isLinux -> listOf("xdg-open", url)
-            OsFamily.current.isMac -> listOf("open", url)
-            else -> return
-        }
-
-        terminal.println("Starting $cmd")
-
-        val exitCode = runProcessWithInheritedIO(command = cmd)
-        if (exitCode != 0) {
-            terminal.println("$cmd failed with exit code $exitCode")
-        }
+        openBrowser(url, terminal::println)
     }
 
     private suspend fun awaitJaegerPortReady(shouldKeepTrying: () -> Boolean = { true }) {

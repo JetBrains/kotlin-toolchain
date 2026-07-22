@@ -129,6 +129,15 @@ internal class RunCommand : AmperSubcommand(name = "run") {
         """.trimIndent(),
     ).int()
 
+    private val openBrowser by option(
+        "--open-browser",
+        help = """
+            Whether to open the default browser when running the web application.
+            
+            Only Wasm/JS platform is currently supported.
+        """.trimIndent(),
+    ).flag("--no-open-browser", default = true)
+
     private val layoutOptions by ProjectLayoutOptions()
 
     private val scriptOptions by ScriptOptions()
@@ -240,6 +249,7 @@ internal class RunCommand : AmperSubcommand(name = "run") {
         deviceId = deviceId,
         composeHotReloadSettings = composeHotReloadMode,
         port = port,
+        openBrowser = openBrowser,
     )
 
     private inner class HotReloadDelegateImpl(

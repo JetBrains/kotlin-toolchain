@@ -140,6 +140,8 @@ sealed interface NativeTestRunSettings : NativeRunSettings, TestRunSettings
 
 sealed interface WebRunSettings : RunSettings {
     val port: Int?
+
+    val openBrowser: Boolean
 }
 
 /**
@@ -159,6 +161,7 @@ data class AllRunSettings(
     override val deviceId: String? = null,
     override val composeHotReloadSettings: ComposeHotReloadSettings? = null,
     override val port: Int? = null,
+    override val openBrowser: Boolean = true,
 ) : JvmMainRunSettings,
     NativeDesktopRunSettings,
     MobileRunSettings,

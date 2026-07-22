@@ -454,6 +454,7 @@ ARG2: <${argumentsWithSpecialChars[2]}>"""
                 projectDir = projectRoot,
                 "run",
                 "--port=0",
+                "--no-open-browser",
                 outputListener = TestReporterProcessOutputListener("amper", testReporter)
                         + lineWaitingListener,
             )

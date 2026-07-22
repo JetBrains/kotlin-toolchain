@@ -4,10 +4,12 @@
 
 package org.jetbrains.amper.tasks.wasm
 
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.launch
 import org.jetbrains.amper.engine.RunTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
@@ -18,6 +20,8 @@ import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.WebRunSettings
 import org.jetbrains.amper.util.BuildType
+import org.jetbrains.amper.util.openBrowser
+import org.slf4j.LoggerFactory
 
 private const val defaultWebBrowserRunPort = 8080
 
@@ -33,13 +37,23 @@ class BrowserRunTask(
         dependenciesResult: List<TaskResult>,
     ): TaskResult {
         val port = runSettings.port ?: defaultWebBrowserRunPort
+        val openBrowser = runSettings.openBrowser
         val builtApp = dependenciesResult.requireSingleDependency<WasmJsBuildTask.Result>().appPath
+        val defaultHost = "127.0.0.1"
 
         embeddedServer(
             Netty,
-            host = "127.0.0.1",
+            host = defaultHost,
             port = port
         ) {
+            if (openBrowser) {
+                monitor.subscribe(ApplicationStarted) {
+                    launch {
+                        val port = it.engine.resolvedConnectors().single().port
+                        openBrowser("http://$defaultHost:$port", logger::debug)
+                    }
+                }
+            }
             routing {
                 staticFiles("/", builtApp.toFile())
             }
@@ -47,4 +61,6 @@ class BrowserRunTask(
 
         return EmptyTaskResult
     }
+
+    private val logger = LoggerFactory.getLogger(javaClass)
 }
