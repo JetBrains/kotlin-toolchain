@@ -14,7 +14,6 @@ dependencies:
   - //sources/core
   - //sources/frontend/plain/toml-psi
   - //sources/frontend/plain/yaml-psi
-  - //sources/frontend/plain/amper-psi
   - //sources/libraries/telemetry
   - $libs.intellij.platform.util
   - $libs.intellij.platform.core

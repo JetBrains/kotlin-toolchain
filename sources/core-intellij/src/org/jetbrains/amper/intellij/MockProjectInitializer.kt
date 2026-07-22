@@ -1,14 +1,11 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("UnstableApiUsage")
 
 package org.jetbrains.amper.intellij
 
-import com.intellij.amper.lang.AmperLanguage
-import com.intellij.amper.langImpl.AmperFileType
-import com.intellij.amper.langImpl.AmperParserDefinition
 import com.intellij.core.CoreApplicationEnvironment
 import com.intellij.core.CoreProjectEnvironment
 import com.intellij.lang.LanguageASTFactory
@@ -123,9 +120,6 @@ object MockProjectInitializer {
         // Register TOML support
         LanguageASTFactory.INSTANCE.addExplicitExtension(TomlLanguage, TomlASTFactory())
         registerFileType(TomlFileType, "toml")
-
-        LanguageParserDefinitions.INSTANCE.addExplicitExtension(AmperLanguage.INSTANCE, AmperParserDefinition())
-        registerFileType(AmperFileType.INSTANCE, "amper")
 
         // Register mock Kotlin file type to allow loading Kotlin files as non-binary Documents
         registerFileType(MockKotlinFileType, "kt")

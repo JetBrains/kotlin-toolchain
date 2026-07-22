@@ -29,7 +29,6 @@ dependencies:
   - //sources/core
   - //sources/frontend/plain/toml-psi
   - //sources/frontend/plain/yaml-psi
-  - //sources/frontend/plain/amper-psi
   - //sources/libraries/maven-central-configuration
   - //sources/libraries/maven-plugin-xml-parser: exported
   - //sources/libraries/stdlib-extended
