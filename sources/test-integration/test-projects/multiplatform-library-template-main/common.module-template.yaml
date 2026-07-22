@@ -1,6 +1,6 @@
 settings:
   publishing:
-    group: io.github.kotlin
+    group: org.jetbrains.kotlintoolchain.kmp.test.sample
     version: 1.0.0
     publishSources: true
     enabled: true

@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.vanniktech.mavenPublish)
 }
 
-group = "io.github.kotlin"
+group = "org.jetbrains.kotlintoolchain.kmp.test.sample"
 version = "1.0.0"
 
 kotlin {

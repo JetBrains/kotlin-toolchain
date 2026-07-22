@@ -1,3 +1,3 @@
-package io.github.kotlin.x
+package org.jetbrains.kotlintoolchain.kmp.test.sample.x
 
 private val k = 0

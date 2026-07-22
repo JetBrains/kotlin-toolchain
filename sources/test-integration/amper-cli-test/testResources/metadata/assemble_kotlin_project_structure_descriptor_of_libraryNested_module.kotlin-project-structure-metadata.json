@@ -70,7 +70,7 @@
         ],
         "moduleDependency": [
           "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-          "io.github.kotlin:library",
+          "org.jetbrains.kotlintoolchain.kmp.test.sample:library",
           "com.fasterxml.jackson:jackson-bom",
           "org.jetbrains.kotlin:kotlin-stdlib"
         ],
@@ -92,7 +92,7 @@
         ],
         "moduleDependency": [
           "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-          "io.github.kotlin:library",
+          "org.jetbrains.kotlintoolchain.kmp.test.sample:library",
           "com.fasterxml.jackson:jackson-bom",
           "org.jetbrains.kotlin:kotlin-stdlib"
         ],
@@ -106,7 +106,7 @@
         ],
         "moduleDependency": [
           "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-          "io.github.kotlin:library",
+          "org.jetbrains.kotlintoolchain.kmp.test.sample:library",
           "com.fasterxml.jackson:jackson-bom",
           "org.jetbrains.kotlin:kotlin-stdlib"
         ],
@@ -120,7 +120,7 @@
         ],
         "moduleDependency": [
           "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-          "io.github.kotlin:library",
+          "org.jetbrains.kotlintoolchain.kmp.test.sample:library",
           "com.fasterxml.jackson:jackson-bom",
           "org.jetbrains.kotlin:kotlin-stdlib"
         ],

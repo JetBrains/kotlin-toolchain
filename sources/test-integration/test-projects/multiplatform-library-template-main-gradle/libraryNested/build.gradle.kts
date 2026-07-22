@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.vanniktech.mavenPublish)
 }
 
-group = "io.github.kotlin"
+group = "org.jetbrains.kotlintoolchain.kmp.test.sample"
 version = "1.0.0"
 
 kotlin {
@@ -14,7 +14,7 @@ kotlin {
     macosX64()
     jvm()
     android {
-        namespace = "io.github.kotlin.libraryNested"
+        namespace = "org.jetbrains.kotlintoolchain.kmp.test.sample.libraryNested"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 

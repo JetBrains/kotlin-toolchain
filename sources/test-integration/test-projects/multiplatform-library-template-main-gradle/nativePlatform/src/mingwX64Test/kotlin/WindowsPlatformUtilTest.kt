@@ -1,6 +1,6 @@
-package io.github.kotlin.fibonacci
+package org.jetbrains.kotlintoolchain.kmp.test.sample.fibonacci
 
-import io.github.kotlin.platform.getPosixPathMax
+import org.jetbrains.kotlintoolchain.kmp.test.sample.platform.getPosixPathMax
 import kotlin.test.Test
 import kotlin.test.assertTrue
 

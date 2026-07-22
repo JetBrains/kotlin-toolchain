@@ -1,4 +1,4 @@
-package io.github.kotlin.crypto.cinterop
+package org.jetbrains.kotlintoolchain.kmp.test.sample.crypto.cinterop
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import org.kotlincrypto.random.internal.__getrandom

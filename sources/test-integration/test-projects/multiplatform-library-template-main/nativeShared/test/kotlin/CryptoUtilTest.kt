@@ -1,7 +1,7 @@
 /*
  * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-package io.github.kotlin.ctypto
+package org.jetbrains.kotlintoolchain.kmp.test.sample.ctypto
 
 import org.kotlincrypto.random.RandomnessProcurementException
 import kotlin.test.Test

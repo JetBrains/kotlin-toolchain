@@ -1,4 +1,4 @@
-package io.github.kotlin.platform
+package org.jetbrains.kotlintoolchain.kmp.test.sample.platform
 
 import kotlin.test.Test
 import kotlin.test.assertTrue
