@@ -76,7 +76,7 @@ class RichTerminalProblemReporter(
                     cell(muted("$borderPrefix├── ") + source.groupingMessage)
                     cell(
                         PrefixedWidget(
-                            prefix = "$borderPrefix│ ",
+                            prefix = muted("$borderPrefix│ "),
                             content = verticalLayout {
                                 source.sources.forEach { source ->
                                     cell(
