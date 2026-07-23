@@ -41,7 +41,7 @@ internal object InvalidTaskNameReferencesDiagnosticFactory : IsolatedPluginYamlD
                     diagnosticId = PluginDiagnosticId.InvalidCheckerTaskName,
                     messageKey = "plugin.invalid.task.name.reference",
                     taskNameReference.value,
-                    taskNames.joinToString { "`$it`" },
+                    taskNames.ifEmpty { ["<none>"] }.joinToString { "`$it`" },
                 )
             }
         }

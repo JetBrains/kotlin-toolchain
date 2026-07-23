@@ -59,6 +59,6 @@ class MissingTaskActionType(
 
 private fun formatAvailableTasks(type: SchemaVariantDeclaration): String {
     val string = if (type.variants.isEmpty())
-        "<none>" else type.variants.joinToString { it.displayName }
+        "`<none>`" else type.variants.joinToString { "`${it.displayName}`" }
     return string
 }

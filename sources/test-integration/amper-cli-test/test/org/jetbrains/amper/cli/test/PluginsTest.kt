@@ -442,9 +442,9 @@ class PluginsTest : AmperCliTestBase() {
                 "${projectDir / "invalid-plugin-yaml" / "plugin.yaml"}:5:3: Expected a value: `Task {..}`",
                 "${projectDir / "invalid-plugin-yaml" / "plugin.yaml"}:6:22: Unexpected custom YAML type tag",
                 "${projectDir / "invalid-plugin-yaml" / "plugin.yaml"}:6:3: Expected a value: `Task {..}`",
-                "${projectDir / "invalid-plugin-yaml" / "plugin.yaml"}:8:13: The task action function specifier `com.example.nonExistentTask` doesn't correspond to any available `@TaskAction`-annotated top-level functions. Available task action functions: <none>",
-                "${projectDir / "invalid-plugin-yaml" / "plugin.yaml"}:10:13: The task action function specifier `com.example.nonExistentTask` doesn't correspond to any available `@TaskAction`-annotated top-level functions. Available task action functions: <none>",
-                "${projectDir / "invalid-plugin-yaml" / "plugin.yaml"}:4:13: Missing task action function specifier. Add the `!<fully-qualified-task-action-function-name>` YAML type tag to the mapping. Available task action functions: <none>",
+                "${projectDir / "invalid-plugin-yaml" / "plugin.yaml"}:8:13: The task action function specifier `com.example.nonExistentTask` doesn't correspond to any available `@TaskAction`-annotated top-level functions. Available task action functions: `<none>`",
+                "${projectDir / "invalid-plugin-yaml" / "plugin.yaml"}:10:13: The task action function specifier `com.example.nonExistentTask` doesn't correspond to any available `@TaskAction`-annotated top-level functions. Available task action functions: `<none>`",
+                "${projectDir / "invalid-plugin-yaml" / "plugin.yaml"}:4:13: Missing task action function specifier. Add the `!<fully-qualified-task-action-function-name>` YAML type tag to the mapping. Available task action functions: `<none>`",
                 "${projectDir / "plugin-deprecated-api" / "plugin.yaml"}:5:5: `markOutputsAs` per-task property is deprecated and no longer has any effect. " +
                         "Use the top-level `generated:` block instead and put your generated output in the corresponding category, e.g., `sources`, `resources`, etc. " +
                         "The actual output path can be referenced from there using the `\${tasks.<your-task-name>.action.<parameter-name>}` syntax.",
@@ -797,7 +797,7 @@ class PluginsTest : AmperCliTestBase() {
         )
         val plugin2Yaml = r1.projectDir / "unregistered-plugin-2" / "plugin.yaml"
         r3.assertErrors(
-            "$plugin2Yaml:3:13: The task action function specifier `nonExistedType` doesn't correspond to any available `@TaskAction`-annotated top-level functions. Available task action functions: <none>",
+            "$plugin2Yaml:3:13: The task action function specifier `nonExistedType` doesn't correspond to any available `@TaskAction`-annotated top-level functions. Available task action functions: `<none>`",
             "Task ':unregistered-plugin-2:buildAmperPluginInfo' failed: `plugin.yaml` processing failed, see the errors above.",
         )
         r3.assertStderrContains("Task ':unregistered-plugin-2:buildAmperPluginInfo' failed: `plugin.yaml` processing failed, see the errors above.")

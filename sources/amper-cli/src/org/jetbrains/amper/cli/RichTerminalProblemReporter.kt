@@ -187,7 +187,8 @@ class RichTerminalProblemReporter(
         // Render as Markdown
         return Markdown(
             // We'd like to treat newlines as paragraphs
-            problem.message.replace("\n", "  \n")
+            problem.message.replace("\n", "  \n"),
+            showHtml = true,  // Sometimes we use `<` or `>` in the messages that are not escaped or in the code.
         ).withStyle(TextStyles.bold.style)
     }
 
