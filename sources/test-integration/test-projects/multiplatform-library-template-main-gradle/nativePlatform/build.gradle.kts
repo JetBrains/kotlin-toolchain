@@ -15,7 +15,7 @@ kotlin {
         commonMain.dependencies {
             //put your multiplatform dependencies here
             implementation(libs.kotlinx.coroutines.core)
-            implementation(project(":library"))
+//            implementation(project(":library"))
         }
 
         commonTest.dependencies {

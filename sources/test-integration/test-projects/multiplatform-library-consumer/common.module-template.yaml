@@ -1,0 +1,12 @@
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: true
+
+settings:
+  publishing:
+    group: org.jetbrains.kotlintoolchain.kmp.test.sample.consumer
+    version: 1.0.0
+    publishSources: true
+  kotlin:
+    version: 2.2.20

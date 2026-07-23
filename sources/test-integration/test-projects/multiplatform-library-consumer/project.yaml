@@ -1,0 +1,8 @@
+modules:
+  - jvmLibConsumer
+  - jvmPlusAndroidConsumer
+  - kmpJvmLibConsumer
+  - libraryConsumer
+  - nativePlatformConsumer
+  - wasmJsPlusWasmWasiConsumer
+

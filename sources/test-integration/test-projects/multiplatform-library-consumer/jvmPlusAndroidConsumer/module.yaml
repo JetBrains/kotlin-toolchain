@@ -1,0 +1,9 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, android]
+
+apply:
+  - ../common.module-template.yaml
+
+dependencies:
+  - org.jetbrains.kotlintoolchain.kmp.test.sample:jvmPlusAndroid:1.0.0

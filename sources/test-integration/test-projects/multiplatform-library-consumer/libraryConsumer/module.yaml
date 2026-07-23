@@ -1,0 +1,12 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, android, iosArm64, iosSimulatorArm64, linuxX64, linuxArm64, mingwX64]
+
+apply:
+  - ../common.module-template.yaml
+
+dependencies:
+  - org.jetbrains.kotlintoolchain.kmp.test.sample:library:1.0.0
+
+test-dependencies:
+  - $kotlin.test

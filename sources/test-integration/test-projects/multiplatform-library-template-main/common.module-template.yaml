@@ -6,3 +6,8 @@ settings:
     enabled: true
   kotlin:
     version: 2.2.20
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    publish: true
