@@ -18,6 +18,9 @@ import org.jetbrains.amper.tasks.TaskResult
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.extension
+import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
+import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.nameWithoutExtension
 
 class TransformAarExternalDependenciesTask(
@@ -39,7 +42,7 @@ class TransformAarExternalDependenciesTask(
             if (resolvedAndroidCompileDependencies.isNotEmpty()) {
                 logger.info("Transforming AAR external dependencies...")
             }
-            val outputs = resolvedAndroidCompileDependencies.extractAars().map { it / "classes.jar" }
+            val outputs = resolvedAndroidCompileDependencies.extractAars().flatMap(::extractedAarClasspathJars)
             IncrementalCache.ExecutionResult(outputs, emptyMap())
         }
         return Result(executionResult.outputFiles, executionResult.outputFiles)
@@ -49,6 +52,22 @@ class TransformAarExternalDependenciesTask(
         override val compileClasspath: List<Path>,
         override val runtimeClasspath: List<Path>,
     ) : TaskResult, ClasspathProvider
+}
+
+internal fun extractedAarClasspathJars(extractedAar: Path): List<Path> = buildList {
+    val classesJar = extractedAar / "classes.jar"
+    if (classesJar.isRegularFile()) {
+        add(classesJar)
+    }
+
+    val libsDirectory = extractedAar / "libs"
+    if (libsDirectory.isDirectory()) {
+        addAll(
+            libsDirectory.listDirectoryEntries()
+                .filter { it.isRegularFile() && it.extension == "jar" }
+                .sortedBy { it.fileName.toString() },
+        )
+    }
 }
 
 private suspend fun List<Path>.extractAars(): List<Path> = coroutineScope {

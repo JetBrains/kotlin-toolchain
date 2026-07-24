@@ -82,6 +82,18 @@ class AndroidExampleProjectsTest : AmperCliTestBase() {
     }
 
     @Test
+    fun `AAR libs jars are available on the Android compile classpath`() = runSlowTest {
+        val taskName = ":aar-libs-only:buildAndroidDebug"
+        val result = runCli(
+            projectDir = testProject("android/aar-libs-only"),
+            "task", taskName,
+            configureAndroidHome = true,
+        )
+        val apkPath = result.getArtifactPath(taskName)
+        assertClassContainsInApk("Lcom/netease/nrtc/engine/rawapi/RtcConfig;", apkPath)
+    }
+
+    @Test
     fun `appcompat compiles successfully and contains dependencies`() = runSlowTest {
         val taskName = ":appcompat:buildAndroidDebug"
         val result = runCli(
