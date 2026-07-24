@@ -119,7 +119,7 @@ internal class MetadataCompileTask(
         val mavenClasspath = resolvedGraph.root.children.filter {
             it is ModuleDependencyNode
                     && it.isForTests == isTest
-                    && it.resolutionConfig.platforms == fragment.platforms.mapNotNull { it.toResolutionPlatform() }.toSet()
+                    && it.resolutionConfig.platforms == fragmentPlatforms
                     && it.resolutionConfig.scope == ResolutionScope.COMPILE
         }.let {
             it.singleOrNull() as? ModuleDependencyNode

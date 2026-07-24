@@ -1928,7 +1928,12 @@ class MavenDependencyImpl internal constructor(
         diagnosticsReporter: DiagnosticReporter,
     ) = if (hasJarEntry(kmpMetadataFile.getPath()!!, sourceSetName) == true) {
         kmpMetadataFile.getPath()!!
-    } else if (kotlinProjectStructureMetadata == null) {
+    } else if (kotlinProjectStructureMetadata == null
+        // Kotlin Toolchain doesn't support native leaf platform metadata files.
+        // All existing source sets are packed in the all-metadata JAR.
+        // If sourceSet is not found there, then it is empty.
+        || moduleMetadata.createdBy?.kotlinToolchain != null)
+    {
         null
     } else {
         val contextApplePlatforms = allApplePlatforms.intersect(context.settings.platforms)

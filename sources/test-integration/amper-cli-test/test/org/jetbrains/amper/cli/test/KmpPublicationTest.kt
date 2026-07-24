@@ -171,7 +171,7 @@ class KmpPublicationTest : AmperCliTestBase() {
     }
 
     @Test
-    @LinuxOnly
+    @MacOnly
     fun `using published library for running libraryConsumer ios leaf platform test`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
@@ -193,7 +193,7 @@ class KmpPublicationTest : AmperCliTestBase() {
 
     @Test
     @MacOnly
-    fun `using published library for libraryConsumer metadata compilation`() = runSlowTest {
+    fun `using published library for libraryConsumer assemble all metadata`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
             "task", ":libraryConsumer:assembleMetadata",
