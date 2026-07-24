@@ -148,7 +148,7 @@ class KmpPublicationTest : AmperCliTestBase() {
 
     @Test
     @WindowsOnly
-    fun `using published library for running libraryConsumer Windows leaf platform test`() = runSlowTest {
+    fun `using published library in Windows leaf platform test`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
             "test", "--format", "teamcity", "--include-module", "libraryConsumer", "--platform", "mingwX64",
@@ -160,7 +160,7 @@ class KmpPublicationTest : AmperCliTestBase() {
 
     @Test
     @LinuxOnly
-    fun `using published library for running libraryConsumer Linux leaf platform test`() = runSlowTest {
+    fun `using published library in Linux leaf platform test`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
             "test", "--format", "teamcity", "--include-module", "libraryConsumer", "--platform", "linuxX64",
@@ -172,12 +172,12 @@ class KmpPublicationTest : AmperCliTestBase() {
 
     @Test
     @MacOnly
-    fun `using published library for running libraryConsumer ios leaf platform test`() = runSlowTest {
+    fun `using published library in macos leaf platform test`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
-            "test", "--format", "teamcity", "--include-module", "libraryConsumer", "--platform", "iosArm64",
+            "test", "--format", "teamcity", "--include-module", "libraryConsumer", "--platform", "macosArm64",
             "--include-test",
-            "\"org.jetbrains.kotlintoolchain.kmp.test.sample.consumer.LibraryIosConsumerTest.test 3rd element()\" ",
+            "\"org.jetbrains.kotlintoolchain.kmp.test.sample.consumer.LibraryMacosConsumerTest.test 3rd element()\" ",
             configureAndroidHome = true,
         )
     }
@@ -193,7 +193,7 @@ class KmpPublicationTest : AmperCliTestBase() {
 
     @Test
     @MacOnly
-    fun `using published library for libraryConsumer assemble all metadata`() = runSlowTest {
+    fun `using published library for assembling all libraryConsumer metadata`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
             "task", ":libraryConsumer:assembleMetadata",
