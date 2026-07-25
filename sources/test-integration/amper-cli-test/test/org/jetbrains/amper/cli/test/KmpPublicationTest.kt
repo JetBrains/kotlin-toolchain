@@ -96,7 +96,6 @@ class KmpPublicationTest : AmperCliTestBase() {
     /**
      * This test checks that a published jvm plus android KMP library is consumable from another jvm plus android module
      */
-    @Ignore("Remove annotation after KTC-5583 is fixed")
     @Test
     fun `using published jvm plus android library`() = runSlowTest {
         val r = runCliWithCustomM2(

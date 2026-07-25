@@ -89,7 +89,7 @@ private fun allMetadataVariant(
     allMetadataJarPath: Path,
     checksums: Map<String, List<MavenPublishable>>,
 ): GradleVariant {
-    val fragments = module.allMetadataFragments().takeIf { it.any() } ?: [module.rootFragment]
+    val fragments = module.allMetadataFragments().ifEmpty { [module.rootFragment] }
     val dependencies = fragments
         .flatMap { it.classPathForApiMetadata() }
         .distinct()
@@ -321,12 +321,13 @@ private fun LeafFragment.toGradleVariant(
         dependenciesAvailableForConsumer(scope = scope)
             .distinct()
             .map {
-                val [platform, overrides] = if (module.isMultiplatformPublication())
+                val [platform, overrides] = if (module.isMultiplatformPublication()) {
                     // KMP project declares dependencies in terms of common libraries root coordinates.
                     Platform.COMMON to null
-                else
+                } else {
                     // non-KMP project declare dependencies in terms of platform-specific coordinates.
                     platform to overrides
+                }
                 it.toVariantDependency(platform, overrides)
             }
             .toList()
