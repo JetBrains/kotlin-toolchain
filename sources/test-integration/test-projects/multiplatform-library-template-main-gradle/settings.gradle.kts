@@ -15,10 +15,11 @@ dependencyResolutionManagement {
 
 rootProject.name = "multiplatform-library-template"
 include(":library")
+include(":libraryCinterop")
 include(":libraryNested")
+include(":linuxWindowsShared")
 include(":nativeShared")
 include(":nativePlatform")
-include(":linuxWindowsShared")
 include(":nonNativeShared")
 include(":edgeCase_jvmLib")
 include(":edgeCase_jvmPlusAndroid")

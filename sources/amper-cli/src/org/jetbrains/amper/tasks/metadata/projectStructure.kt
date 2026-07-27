@@ -11,6 +11,7 @@ import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.FragmentDependencyType
+import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
@@ -99,13 +100,13 @@ private fun Fragment.toSourceSet(): SourceSet {
             .map { it.target.sourceSetName() }
             .toList(),
         moduleDependency = dependencies,
-        sourceSetCInteropMetadataDirectory = if (isNative()) "${sourceSetName()}-cinterop" else null,
+        sourceSetCInteropMetadataDirectory = if (isNative()) cinteropMetadataDirectoryName(this) else null,
         binaryLayout = "klib",
         hostSpecific = null,
     )
 }
 
-private fun Fragment.toProjectStructureVariant(scope: ResolutionScope): KotlinProjectStructureVariant {
+private fun LeafFragment.toProjectStructureVariant(scope: ResolutionScope): KotlinProjectStructureVariant {
     return KotlinProjectStructureVariant(
         name = "${name}${scope.toVariantSuffix()}Elements",
         sourceSet = allFragmentDependencies(dependencyType = FragmentDependencyType.REFINE)

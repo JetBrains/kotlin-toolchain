@@ -1,0 +1,127 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "url": "../../libraryCinterop/1.0.0/libraryCinterop-1.0.0.module",
+    "group": "org.jetbrains.kotlintoolchain.kmp.sample",
+    "module": "libraryCinterop",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.1.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "macosArm64ApiElements-published",
+      "attributes": {
+        "artifactType": "org.jetbrains.kotlin.klib",
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "macos_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlintoolchain.kmp.sample",
+          "module": "libraryNested",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "libraryCinterop-macosArm64Main-1.0.0.klib",
+          "url": "libraryCinterop-macosarm64-1.0.0.klib",
+          "size": 5723,
+          "sha512": "e5a5a33a74e229b2891dc0918de3076eaffdb32036468ea05e78018439cd6dda241ef09af12ec664f8bdaed2a2066db5b1a46a3d05a24ca5faf70fb67e1087d7",
+          "sha256": "f2b84fa6a84161089d08cb8cf0f1becc5c81bf50614f8d1e72a3621c2ab9195b",
+          "sha1": "07e43252277340f04f311c053051c7576cda2378",
+          "md5": "4e66de6a46ae06e2da248fb21a4d8e36"
+        },
+        {
+          "name": "libraryCinterop-macosArm64Cinterop-libcurlMain-1.0.0.klib",
+          "url": "libraryCinterop-macosarm64-1.0.0-cinterop-libcurl.klib",
+          "size": 44115,
+          "sha512": "62ced17fd6b278b2da268252540bd3435a96b920bc251e8ab8e166cbf9b190d266171b47d4a541a043fd5790dfa6f72cfadd3ad6201279a56260393573ea80cd",
+          "sha256": "9c18a31fdae263192899573ad330b366ce056534d7e908be11d7920741fd2148",
+          "sha1": "adf5ac97da99439f12bbd23f672925b86a5da268",
+          "md5": "a49484331d7bbb04ba7f0efcedb1e20f"
+        }
+      ]
+    },
+    {
+      "name": "macosArm64SourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.native.target": "macos_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "files": [
+        {
+          "name": "libraryCinterop-macosarm64-1.0.0-sources.jar",
+          "url": "libraryCinterop-macosarm64-1.0.0-sources.jar",
+          "size": 923,
+          "sha512": "32c6d14abf5605fc99b24673ab3f5c1ecf47599841ded7239d0ea899630807a71d11b67478908c1d6bd4fc0b58763b92bbde6d7b0713e1fc29035a26e725c3d5",
+          "sha256": "4ed5ab8550a6264b5459622b6fc7892a2f424a581da53d492edf1eccd386a549",
+          "sha1": "edc9ffbbdc8c03b03215ec3d8d336334e84ad4d1",
+          "md5": "2bf9ccbd57bd656669c5cf43367432a6"
+        }
+      ]
+    },
+    {
+      "name": "macosArm64MetadataElements-published",
+      "attributes": {
+        "artifactType": "org.jetbrains.kotlin.klib",
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.native.target": "macos_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlintoolchain.kmp.sample",
+          "module": "libraryNested",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.2.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "libraryCinterop-macosarm64-1.0.0-metadata.jar",
+          "url": "libraryCinterop-macosarm64-1.0.0-metadata.jar",
+          "size": 90855,
+          "sha512": "93af802a0fe23f1be57a40b46e95109a0c62c8c4a3a672ebc1bcbfaae19203fc33581536b82e0523380a9f29082f2bcc63604de8ddaa91f724c02a78143f12e1",
+          "sha256": "aaa395b9e02c7968ecaa6535d052af42fc38ce0faf715abc2ded5afc69cba9f7",
+          "sha1": "c94836f778625dd1a2d509609b810bf7a81d7d07",
+          "md5": "55f425d19f01e63f62c565120a5a18d9"
+        }
+      ]
+    }
+  ]
+}

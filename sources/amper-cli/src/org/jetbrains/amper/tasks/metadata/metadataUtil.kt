@@ -61,6 +61,14 @@ internal fun Fragment.sourceSetName(): String {
 }
 
 /**
+ * The name of the directory inside the all-metadata JAR that holds the commonized cinterop klibs of [fragment].
+ *
+ * The very same name is published in the `sourceSetCInteropMetadataDirectory` field of the Kotlin project structure
+ * metadata, this is how consumers locate those klibs. Both places must use this function to stay in sync.
+ */
+internal fun cinteropMetadataDirectoryName(fragment: Fragment) = "${fragment.sourceSetName()}-cinterop"
+
+/**
  * Returns dependencies of this [Fragment] reachable from the consumer compilation classpath,
  * For instance, COMPILE classpath of the consumer should not know about non-exported
  * compile dependencies of this fragment (in non-native case).

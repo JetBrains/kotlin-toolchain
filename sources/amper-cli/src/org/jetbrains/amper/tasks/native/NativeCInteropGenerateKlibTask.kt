@@ -39,6 +39,7 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
+import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.nameWithoutExtension
@@ -111,13 +112,14 @@ internal class NativeCInteropGenerateKlibTask(
         val results = inputDefFiles.mapConcurrently { defFile ->
             val cinteropName = defFile.nameWithoutExtension
             try {
+                val includeDir = defFile.parent.resolve("include").takeIf { it.exists() }
                 incrementalCache.executeForFiles(
                     key = "${taskName.id.value}-$cinteropName",
                     inputValues = mapOf(
                         "target" to platform.nameForCompiler,
                         "kotlinVersion" to kotlinCompilerVersion,
                     ),
-                    inputFiles = listOf(defFile),
+                    inputFiles = listOf(defFile) + listOfNotNull(includeDir),
                 ) {
                     val outputKlib = outputKlibsDirectoryArtifact.path / "$cinteropName.klib"
                     outputKlib.createParentDirectories()
@@ -131,6 +133,10 @@ internal class NativeCInteropGenerateKlibTask(
                         add(platform.nameForCompiler)
                         add("-o")
                         add(outputKlib.pathString)
+                        includeDir?.let {
+                            add("-compiler-option")
+                            add("-I${it.absolutePathString()}")
+                        }
                     }
 
                     logger.info("Running cinterop '$cinteropName' for platform '${platform.pretty}'...")
@@ -162,13 +168,22 @@ internal class NativeCInteropGenerateKlibTask(
         val relevantOutputs = results.mapNotNull { it.outputFile }
         cleanDirectoryExcept(outputKlibsDirectoryArtifact.path, relevantOutputs)
 
-        return EmptyTaskResult
+        return Result(
+            outputKlibsDirectoryArtifact.path,
+            platform,
+        )
+
     }
 
     private class CinteropResult(
         val outputFile: Path?,
         val isSuccess: Boolean = true,
     )
+
+    data class Result(
+        val path: Path,
+        val platform: Platform,
+    ) : TaskResult
 
     override val buildType: BuildType?
         get() = null

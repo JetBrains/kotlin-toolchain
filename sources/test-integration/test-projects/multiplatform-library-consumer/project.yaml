@@ -2,6 +2,7 @@ modules:
   - jvmLibConsumer
   - jvmPlusAndroidConsumer
   - kmpJvmLibConsumer
+  - libraryCinteropConsumer
   - libraryConsumer
   - nativePlatformConsumer
   - wasmJsPlusWasmWasiConsumer

@@ -2,6 +2,9 @@ product:
   type: kmp/lib
   platforms: [linuxX64, linuxArm64, macosArm64, macosX64, jvm, android]
 
+aliases:
+  - macPlusLinux: [linuxX64, linuxArm64, macosArm64, macosX64]
+
 apply:
   - ../common.module-template.yaml
 

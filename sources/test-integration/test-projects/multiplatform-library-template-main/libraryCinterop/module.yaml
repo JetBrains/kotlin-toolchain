@@ -1,0 +1,16 @@
+product:
+  type: kmp/lib
+  platforms: [linuxX64, linuxArm64, macosArm64, macosX64]
+
+apply:
+  - ../common.module-template.yaml
+
+dependencies:
+  - ../libraryNested: exported
+
+test-dependencies:
+  - $kotlin.test
+
+settings:
+  publishing:
+    artifactId: libraryCinterop

@@ -87,8 +87,6 @@ internal class MetadataCompileTask(
     private val processRunner: ProcessRunner,
 ): ArtifactTaskBase(), BuildTask {
 
-    // todo (AB) : [AMPER-721] What is about build type for native metadata compilation.
-    //  KGP provides option `-g` that is equivalent to DEBUG
     override val buildType: BuildType get() = BuildType.Debug
     override val platform: Platform = Platform.COMMON
     override val isTest: Boolean = fragment.isTest
@@ -138,7 +136,15 @@ internal class MetadataCompileTask(
             it.metadataOutputRoot.takeIf { !it.isEmptyDirectory() }
         }
 
-        val fragmentClasspath = localClasspath + mavenClasspath.dependencyPaths()
+        val cinteropDependencies = dependenciesResult.filterIsInstance<CommonizeCInteropKlibsTask.Result>()
+            .mapNotNull {
+                val commonizedCInterops = it.path.listDirectoryEntriesIfExistsOrEmpty().associateBy { it.fileName.toString() }
+                val commonizerTarget = fragment.platforms.asCommonizerTarget()
+                val commonizedCinteropsDir = commonizedCInterops[commonizerTarget.dirName]
+                commonizedCinteropsDir?.listDirectoryEntries()
+            }.flatten()
+
+        val fragmentClasspath = localClasspath + cinteropDependencies + mavenClasspath.dependencyPaths()
 
         val refinesPaths = fragment
             .allFragmentDependencies(dependencyType = FragmentDependencyType.REFINE)
@@ -341,7 +347,6 @@ internal class MetadataCompileTask(
             }
     }
 
-    // todo (AB) : [KTC-5585] Add commonized cinterop Klibs as an input of native metadata compilation.
     context(_: ProblemReporter)
     private suspend fun compileNativeMetadata(
         fragmentClasspath: List<Path>,

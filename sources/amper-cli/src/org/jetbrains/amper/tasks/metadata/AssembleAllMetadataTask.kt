@@ -18,13 +18,16 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jar.JarConfig
 import org.jetbrains.amper.jar.ZipInput
 import org.jetbrains.amper.jar.writeJar
+import org.jetbrains.amper.kotlin.native.asCommonizerTarget
 import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.amper.stdlib.io.path.isEmptyDirectory
+import org.jetbrains.amper.stdlib.io.path.listDirectoryEntriesIfExistsOrEmpty
 import org.jetbrains.amper.tasks.MetadataCompileTask
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
+import org.jetbrains.amper.tasks.native.CommonizeCInteropKlibsTask
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -33,6 +36,7 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
 import kotlin.io.path.exists
+import kotlin.io.path.listDirectoryEntries
 
 typealias GradleVariant = org.jetbrains.gradle.module.metadata.format.Variant
 typealias KotlinProjectStructureVariant = org.jetbrains.kotlin.metadata.format.projectStructure.Variant
@@ -68,10 +72,12 @@ class AssembleAllMetadataTask (
         // todo (AB): [AMPER-719] Wrap into incremental cache
 
         val metadataCompilations = dependenciesResult.filterIsInstance<MetadataCompileTask.Result>()
+        val commonizedCinteropResult = dependenciesResult.filterIsInstance<CommonizeCInteropKlibsTask.Result>().singleOrNull()
 
         val projectStructureFilePath = generateKotlinProjectDescriptor(module, taskOutputRoot.path, metadataCompilations)
 
-        val allMetadataJarPath = assembleAllMetadataJar(module, taskOutputRoot.path, metadataCompilations, projectStructureFilePath)
+        val allMetadataJarPath = assembleAllMetadataJar(
+            module, taskOutputRoot.path, metadataCompilations, projectStructureFilePath, commonizedCinteropResult)
 
         val allMetadataSourcesJarPath = if (module.publishingSettings.publishSources) {
             assembleAllMetadataSourcesJar(module, taskOutputRoot.path, metadataCompilations)
@@ -89,6 +95,7 @@ class AssembleAllMetadataTask (
         outputDirectory: Path,
         metadataCompilations: List<MetadataCompileTask.Result>,
         projectStructureFilePath: Path,
+        commonizedCinteropResult: CommonizeCInteropKlibsTask.Result?,
     ): Path? {
         // todo (AB): [AMPER-719] Wrap into incremental cache
         val moduleCoordinates = module.publicationCoordinates(Platform.COMMON)
@@ -97,11 +104,36 @@ class AssembleAllMetadataTask (
             ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
 
         // Creating all-metadata JAR
-        // todo (AB): [AMPER-719] Pack commonized cinterop sourceSets as well
         val inputDirs = buildList {
+            // multiplatform sourceSets
             metadataCompilations.forEach {
                 if (!it.metadataOutputRoot.isEmptyDirectory()) {
                     add(ZipInput(path = it.metadataOutputRoot, destPathInArchive = Path(it.fragment.sourceSetName())))
+                }
+            }
+
+            // commonized cinterop sourceSets
+            if (commonizedCinteropResult != null) {
+                val commonizedCInterops = commonizedCinteropResult.path
+                    .listDirectoryEntriesIfExistsOrEmpty().associateBy { it.fileName.toString() }
+                if (commonizedCInterops.isNotEmpty()) {
+                    module.fragments.filter { it.cinteropPath != null }.forEach { fragment ->
+                        val commonizerTarget = fragment.platforms.asCommonizerTarget()
+                        val commonizedCinteropsDir = commonizedCInterops[commonizerTarget.dirName]
+                        // The commonized directory is added as a whole (instead of one input per klib), so that
+                        // the '<sourceSet>-cinterop' directory itself gets an entry in the archive.
+                        // Consumers look this entry up by name to detect the cinterop source set declared in
+                        // 'sourceSetCInteropMetadataDirectory' of the project structure metadata,
+                        // and KGP-published libraries have such an entry too.
+                        if (commonizedCinteropsDir != null && !commonizedCinteropsDir.isEmptyDirectory()) {
+                            add(
+                                ZipInput(
+                                    path = commonizedCinteropsDir,
+                                    destPathInArchive = Path(cinteropMetadataDirectoryName(fragment)),
+                                )
+                            )
+                        }
+                    }
                 }
             }
 

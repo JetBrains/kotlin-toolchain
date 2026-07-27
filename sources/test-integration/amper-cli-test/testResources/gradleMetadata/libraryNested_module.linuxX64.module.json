@@ -68,6 +68,24 @@
           "sha256": "mocked",
           "sha1": "mocked",
           "md5": "mocked"
+        },
+        {
+          "name": "libraryNested-linuxX64Cinterop-customMain-1.0.0.klib",
+          "url": "libraryNested-linuxx64-1.0.0-cinterop-custom.klib",
+          "size": -1,
+          "sha512": "mocked",
+          "sha256": "mocked",
+          "sha1": "mocked",
+          "md5": "mocked"
+        },
+        {
+          "name": "libraryNested-linuxX64Cinterop-custom2Main-1.0.0.klib",
+          "url": "libraryNested-linuxx64-1.0.0-cinterop-custom2.klib",
+          "size": -1,
+          "sha512": "mocked",
+          "sha256": "mocked",
+          "sha1": "mocked",
+          "md5": "mocked"
         }
       ]
     },

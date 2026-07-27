@@ -38,8 +38,11 @@ import org.jetbrains.amper.stdlib.hashing.hash
 import org.jetbrains.amper.tasks.android.AndroidAarTask
 import org.jetbrains.amper.tasks.jvm.JvmClassesJarTask
 import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
+import org.jetbrains.amper.tasks.metadata.cinteropClassifier
 import org.jetbrains.amper.tasks.metadata.generateCommonGradleModuleMetadata
 import org.jetbrains.amper.tasks.metadata.generateGradleMetadataForLeafPlatform
+import org.jetbrains.amper.tasks.metadata.isCinteropClassifier
+import org.jetbrains.amper.tasks.native.NativeCInteropGenerateKlibTask
 import org.jetbrains.amper.tasks.native.NativeCompileKlibTask
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
 import org.slf4j.Logger
@@ -50,6 +53,7 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
+import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.io.path.readBytes
 import kotlin.io.path.writeText
@@ -161,6 +165,10 @@ class PrepareMavenPublishablesTask(
             .entries
             .mapConcurrently { [platform, coords] ->
                 val platformSpecificArtifact = modulePublishablesFromOtherTasks.single { it.coordinates == coords }
+                val platformSpecificCinteropArtifacts = modulePublishablesFromOtherTasks.filter {
+                    it.coordinates.isCinteropClassifier && it.coordinates.copy(classifier = null) == coords
+                }
+
                 val sourcesJar = findSourcesArtifactFor(coords, modulePublishablesFromOtherTasks)
                 generateGradleMetadataForLeafPlatform(
                     module,
@@ -168,6 +176,7 @@ class PrepareMavenPublishablesTask(
                     taskOutputRoot.path,
                     checksumPublishables,
                     platformSpecificArtifact.path,
+                    platformSpecificCinteropArtifacts.map { it.path },
                     sourcesJar?.path,
                     overrides
                 ).toMavenPublishable(coords)
@@ -212,7 +221,6 @@ class PrepareMavenPublishablesTask(
         }
     }
 
-    // Todo (AB): file name should be taken from publication coordinates.
     private fun generatePomFile(
         module: AmperModule,
         platform: Platform,
@@ -317,10 +325,12 @@ private fun TaskResult.toMavenPublishables(coordsPerPlatform: Map<Platform, Mave
     is SourcesJarTask.Result -> listOf(toMavenPublishable(coordsPerPlatform))
     is JavadocJarTask.Result -> listOf(toMavenPublishable(coordsPerPlatform))
     is NativeCompileKlibTask.Result -> toMavenPublishables(coordsPerPlatform)
+    is NativeCInteropGenerateKlibTask.Result -> toMavenPublishables(coordsPerPlatform)
     is WebCompileKlibTask.Result -> toMavenPublishables(coordsPerPlatform)
     is ResolveExternalDependenciesTask.Result -> emptyList() // this is just for coords overrides, not extra artifacts
     is AssembleAllMetadataTask.Result -> toMavenPublishables(coordsPerPlatform)
     is AndroidAarTask.Result -> toMavenPublishables(coordsPerPlatform)
+    is EmptyTaskResult -> emptyList() // task ia noop and has not produced a result
     else -> error("Unsupported dependency result: ${javaClass.name}")
 }
 
@@ -336,6 +346,17 @@ private fun JavadocJarTask.Result.toMavenPublishable(coordsPerPlatform: Map<Plat
 private fun NativeCompileKlibTask.Result.toMavenPublishables(
     coordsPerPlatform: Map<Platform, MavenCoordinates>
 ): List<MavenPublishable> = listOfNotNull(compiledKlib?.toMavenPublishable(coordsPerPlatform.getValue(platform)))
+
+private fun NativeCInteropGenerateKlibTask.Result.toMavenPublishables(
+    coordsPerPlatform: Map<Platform, MavenCoordinates>
+): List<MavenPublishable> = path.listDirectoryEntries()
+    .filter { it.extension == "klib" }
+    // sorted, so that the order of cinterop artifacts in the Gradle module metadata is reproducible
+    .sorted()
+    .map {
+        val cinteropKLibCoordinates = coordsPerPlatform.getValue(platform).copy(classifier = it.cinteropClassifier())
+        it.toMavenPublishable(cinteropKLibCoordinates)
+    }
 
 private fun WebCompileKlibTask.Result.toMavenPublishables(
     coordsPerPlatform: Map<Platform, MavenCoordinates>

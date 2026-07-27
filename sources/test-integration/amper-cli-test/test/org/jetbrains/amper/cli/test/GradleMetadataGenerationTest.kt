@@ -8,6 +8,7 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.Dirs
+import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.gradle.module.metadata.format.Module
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Files
@@ -16,7 +17,7 @@ import java.nio.file.StandardOpenOption
 import kotlin.io.path.div
 import kotlin.test.Test
 
-// todo (AB) : [AMPER-721]
+// todo (AB) : [KTC-5585]
 //  - add cinterop (direct and in refined fragment) to check that
 //    commonized cinterop klibs are a part of KMP publication
 class GradleMetadataGenerationTest : AmperCliTestBase() {
@@ -24,6 +25,7 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
     val testGoldenFilesRoot: Path = Dirs.amperSourcesRoot.resolve("test-integration/amper-cli-test/testResources/gradleMetadata")
 
     @Test
+    @MacOnly
     fun `libraryNested module`(testInfo: TestInfo) = runSlowTest {
         runCli(projectDir = testProject("multiplatform-library-template-main"),
             "task",
@@ -80,6 +82,43 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
         assertFileContentEquals(
             testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.android.module.json"),
             androidGradleModuleMetadataSanitized
+        )
+    }
+
+    @Test
+    @MacOnly
+    fun `libraryCinterop module`(testInfo: TestInfo) = runSlowTest {
+        runCli(projectDir = testProject("multiplatform-library-template-main"),
+            "task",
+            ":libraryCinterop:prepareMavenPublishables",
+            configureAndroidHome = true,
+        )
+
+        val sanitizedGradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
+            tempRoot / "build" / "tasks" / "_libraryCinterop_prepareMavenPublishables" / "libraryCinterop-1.0.0.module"
+        )
+
+        assertFileContentEquals(
+            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.module.json"),
+            sanitizedGradleModuleMetadata
+        )
+
+        val sanitizedLinuxX64GradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
+            tempRoot / "build" / "tasks" / "_libraryCinterop_prepareMavenPublishables" / "libraryCinterop-linuxx64-1.0.0.module"
+        )
+
+        assertFileContentEquals(
+            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.linuxX64-module.json"),
+            sanitizedLinuxX64GradleModuleMetadata
+        )
+
+        val sanitizedMacosX64GradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
+            tempRoot / "build" / "tasks" / "_libraryCinterop_prepareMavenPublishables" / "libraryCinterop-macosarm64-1.0.0.module"
+        )
+
+        assertFileContentEquals(
+            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.macosArm64-module.json"),
+            sanitizedMacosX64GradleModuleMetadata
         )
     }
 

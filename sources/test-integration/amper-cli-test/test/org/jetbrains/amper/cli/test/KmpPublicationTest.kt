@@ -6,6 +6,7 @@ package org.jetbrains.amper.cli.test
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
@@ -22,10 +23,8 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.test.Ignore
 import kotlin.test.Test
+import kotlin.test.assertTrue
 
-// todo (AB) : [AMPER-721]
-//  - add cinterop (direct and in refined fragment) to check that
-//    commonized cinterop klibs are added as an input to the native metadata compilation
 class KmpPublicationTest : AmperCliTestBase() {
 
     @BeforeEach
@@ -50,7 +49,8 @@ class KmpPublicationTest : AmperCliTestBase() {
                         add("nativeShared")
 
                         if (SystemInfo.CurrentHost.family == OsFamily.MacOs) {
-                            add("libraryNested") // contains Mac cinterops => should be published from Mac only.
+                            add("libraryCinterop") // contains Mac/Linux specific cinterops => could be published from Mac only.
+                            add("libraryNested") // contains Mac specific cinterops => could be published from Mac only.
                         }
                     }
 
@@ -62,9 +62,6 @@ class KmpPublicationTest : AmperCliTestBase() {
                 }
             }
         }
-
-        // todo (AB) :
-        //  1. Create test that consumes project for every publication use case both platform-wise and metadata-compaltion-cases-wise.
     }
 
     /**
@@ -78,6 +75,20 @@ class KmpPublicationTest : AmperCliTestBase() {
             "build", "--module=jvmLibConsumer",
             configureAndroidHome = true,
         )
+    }
+
+    @Test
+    fun `using published pure jvm library in test`() = runSlowTest {
+        val r = runCliWithCustomM2(
+            projectDir = testProject("multiplatform-library-consumer"),
+            "test", "--include-module", "jvmLibConsumer",
+            "--platform", "jvm",
+            configureAndroidHome = true,
+        )
+
+        // Asserts that test was actually run.
+        r.assertStdoutContains("[         1 tests successful      ]")
+        r.assertStdoutContains("[         0 tests failed          ]")
     }
 
     /**
@@ -145,40 +156,70 @@ class KmpPublicationTest : AmperCliTestBase() {
         )
     }
 
+    /**
+     * This test checks that a symbol from a commonized OS platform used in a dependency ('nativePlatform') and
+     * exposed as a public API is accessible from a comsuming library
+     * (it is used in a test called on 'nativePlatformConsumer')
+     */
+    @Test
+    @WindowsOnly
+    fun `using published library in nativePlatform test on Windows`() = runSlowTest {
+        val r = runCliWithCustomM2(
+            projectDir = testProject("multiplatform-library-consumer"),
+            "test", "--include-module", "nativePlatformConsumer", "--platform", "mingwX64",
+            "--include-test",
+            "org.jetbrains.kotlintoolchain.kmp.sample.consumer.NativePlatformMingwX64ConsumerTest.test getPosixPathMax()",
+            configureAndroidHome = true,
+        )
+
+        // Asserts that test was actually run.
+        r.assertStdoutContains("[  PASSED  ] 1 tests")
+    }
+
     @Test
     @WindowsOnly
     fun `using published library in Windows leaf platform test`() = runSlowTest {
-        runCliWithCustomM2(
+        val r = runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
-            "test", "--format", "teamcity", "--include-module", "libraryConsumer", "--platform", "mingwX64",
+            "test", "--include-module", "libraryConsumer", "--platform", "mingwX64",
             "--include-test",
-            "\"org.jetbrains.kotlintoolchain.kmp.sample.consumer.LibraryWindowsConsumerTest.test 3rd element()\" ",
+            "org.jetbrains.kotlintoolchain.kmp.sample.consumer.LibraryWindowsConsumerTest.test 3rd element()",
             configureAndroidHome = true,
         )
+
+        // Asserts that test was actually run.
+        r.assertStdoutContains("[  PASSED  ] 1 tests.")
     }
 
     @Test
     @LinuxOnly
     fun `using published library in Linux leaf platform test`() = runSlowTest {
-        runCliWithCustomM2(
+        val r = runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
-            "test", "--format", "teamcity", "--include-module", "libraryConsumer", "--platform", "linuxX64",
+            "test", "--include-module", "libraryConsumer", "--platform", "linuxX64",
             "--include-test",
-            "\"org.jetbrains.kotlintoolchain.kmp.sample.consumer.LibraryLinuxConsumerTest.test 3rd element()\" ",
+            "org.jetbrains.kotlintoolchain.kmp.sample.consumer.LibraryLinuxConsumerTest.test 3rd element()",
             configureAndroidHome = true,
         )
+
+        // Asserts that test was actually run.
+        r.assertStdoutContains("[         1 tests successful      ]")
+        r.assertStdoutContains("[         0 tests failed          ]")
     }
 
     @Test
     @MacOnly
     fun `using published library in macos leaf platform test`() = runSlowTest {
-        runCliWithCustomM2(
+        val r = runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
-            "test", "--format", "teamcity", "--include-module", "libraryConsumer", "--platform", "macosArm64",
+            "test", "--include-module", "libraryConsumer", "--platform", "macosArm64",
             "--include-test",
-            "\"org.jetbrains.kotlintoolchain.kmp.sample.consumer.LibraryMacosConsumerTest.test 3rd element()\" ",
+            "org.jetbrains.kotlintoolchain.kmp.sample.consumer.LibraryMacosConsumerTest.test 3rd element()",
             configureAndroidHome = true,
         )
+
+        // Asserts that test was actually run.
+        r.assertStdoutContains("[  PASSED  ] 1 tests")
     }
 
     @Test
@@ -200,10 +241,20 @@ class KmpPublicationTest : AmperCliTestBase() {
         )
     }
 
-    // todo (AB) :
-    //  1. This test should check that metadata compilation fails with some non-cryptic error.
-    //  2. Run it on Linux as well
-    @Ignore
+    /**
+     * This test checks that the published multiplatform native KMP library with cinterops is consumable
+     * from another KMP project.
+     */
+    @Test
+    @MacOnly
+    fun `using published library for assembling all libraryCinteropConsumer metadata`() = runSlowTest {
+        runCliWithCustomM2(
+            projectDir = testProject("multiplatform-library-consumer"),
+            "task", ":libraryCinteropConsumer:assembleMetadata",
+            configureAndroidHome = true,
+        )
+    }
+
     @Test
     @WindowsOnly
     fun `published library can not be used for libraryConsumer metadata compilation on non-Mac platform`() = runSlowTest {
@@ -222,13 +273,24 @@ class KmpPublicationTest : AmperCliTestBase() {
      */
     @Test
     @WindowsOnly
-    // todo (AB) : This test should fail on Windows.
-    //  It does work until cinterop metadata compilation is supported in publication.
     fun `publication of apple fragments with cinterop is forbidden from Windows`() = runSlowTest {
-        runCliWithCustomM2(
+        val r = runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-template-main"),
             "publish", "mavenLocal", "--modules=libraryNested",
             configureAndroidHome = true,
+            expectedExitCode = 1,
+            assertEmptyStdErr = false
+        )
+
+        assertTrue(
+            actual = r.stderr.contains("Key macos_arm64 is missing in the map.")
+                    || r.stderr.contains("Key macos_x64 is missing in the map."),
+            message = """
+                    Process stderr must contain an error for the Kotlin CLI call (PID ${r.pid}):
+                    "kotlin task ':libraryNested:cinteropMacosArm64' or ':libraryNested:cinteropMacosX64'",
+                    Kotlin Toolchain STDERR:
+                    ${r.stderr.prependIndent("                    ")}
+                """.trimMargin(),
         )
     }
 
@@ -259,5 +321,3 @@ class KmpPublicationTest : AmperCliTestBase() {
         private val mutex = Mutex()
     }
 }
-
-

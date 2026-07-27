@@ -4,6 +4,7 @@ modules:
   - edgeCase_kmpSinglePlatform
   - edgeCase_wasmJsPlusWasmWasi
   - library
+  - libraryCinterop
   - libraryNested
   - linuxWindowsShared
   - nativePlatform

@@ -55,7 +55,7 @@ fun ProjectTasksBuilder.setupNativeTasks() {
     }
 
     allModules().withEach {
-        if (module.fragments.none { it.cinteropPath != null }) {
+        if (!module.canHaveCinterop()) {
             return@withEach
         }
         tasks.registerTask(
@@ -218,6 +218,8 @@ private fun needsLinkedExecutable(module: AmperModule, isTest: Boolean) =
 
 private fun getNativeLinkTaskName(platform: Platform, module: AmperModule, isTest: Boolean, buildType: BuildType) =
     getNativeLinkTaskDetails(platform, module, isTest, buildType).first
+
+internal fun AmperModule.canHaveCinterop() = fragments.any { it.cinteropPath != null }
 
 private fun getNativeLinkTaskDetails(
     platform: Platform,

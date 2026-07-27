@@ -262,8 +262,10 @@ internal fun kotlinNativeCompilerArgs(
     add("-ea")
     add("-produce=${compilationType.argName}")
 
-    // todo (AB) : [AMPER-721] This is replicated from KGP logic, though it seems to be some outdated stuff
-    //  https://jetbrains.team/p/kt/repositories/kotlin/revision/686d00ddf54aa082ed98ad87747befa04ed9168f?file=libraries%2Ftools%2Fkotlin-gradle-plugin%2Fsrc%2Fmain%2Fkotlin%2Forg%2Fjetbrains%2Fkotlin%2Fgradle%2Ftargets%2Fnative%2FKotlinNativeCompilation.kt&from-line=NEW%3A105
+    // This is replicated from KGP logic.
+    // Parameter 'target' is needed for single-platform compilations only and is not applicable to the multiplatform compilation,
+    // but it is left mandatory for that case as well:
+    // https://jetbrains.team/p/kt/repositories/kotlin/revision/686d00ddf54aa082ed98ad87747befa04ed9168f?file=libraries%2Ftools%2Fkotlin-gradle-plugin%2Fsrc%2Fmain%2Fkotlin%2Forg%2Fjetbrains%2Fkotlin%2Fgradle%2Ftargets%2Fnative%2FKotlinNativeCompilation.kt&from-line=NEW%3A105
     add("-target=${selectKotlinNativeCompilerTarget(fragmentPlatforms).nameForCompiler}")
 
     if (refinesPaths.isNotEmpty()) {

@@ -7,6 +7,7 @@ package org.jetbrains.amper.tasks.metadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.amper.buildinfo.AmperBuild
+import org.jetbrains.amper.dependency.resolution.MavenCoordinates
 import org.jetbrains.amper.dependency.resolution.PlatformType
 import org.jetbrains.amper.dependency.resolution.ResolutionPlatform
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
@@ -41,6 +42,7 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.extension
 import kotlin.io.path.fileSize
+import kotlin.io.path.nameWithoutExtension
 
 /**
  * Suffix is added to the Gradle Metadata variant name.
@@ -217,6 +219,7 @@ suspend fun generateGradleMetadataForLeafPlatform(
     outputDir: Path,
     checksums: Map<String, List<MavenPublishable>>,
     platformSpecificArtifact: Path,
+    platformSpecificCinteropArtifacts: List<Path>,
     platformSpecificSourcesJar: Path? = null,
     overrides: PublicationCoordinatesOverrides,
 ): Path {
@@ -226,15 +229,84 @@ suspend fun generateGradleMetadataForLeafPlatform(
 
     val variants: List<GradleVariant> = buildList {
         val scopes = getApplicableVariantScopes(leafFragment)
-        addAll(scopes.map { leafFragment.toGradleVariant(it, isSources = false, checksums = checksums, platformSpecificArtifact, overrides) })
+        scopes.forEach { scope ->
+            val mainArtifact = platformSpecificArtifact.toGradleMetadataFile(leafFragment, checksums = checksums)
+            val cinteropArtifacts = platformSpecificCinteropArtifacts.map { it.toGradleMetadataFile(leafFragment, checksums = checksums, isCinterop = true) }
+            add(leafFragment.toGradleVariant(scope, isSources = false, [ mainArtifact ] + cinteropArtifacts, overrides))
+        }
 
         if (module.publishingSettings.publishSources && platformSpecificSourcesJar != null) {
-            add(leafFragment.toGradleVariant(ResolutionScope.RUNTIME, isSources = true, checksums, platformSpecificSourcesJar, overrides))
+            // The sources JAR itself must be described here, not the main artifact:
+            // both the file extension and the checksums/size are taken from the described file.
+            val sourcesFile = platformSpecificSourcesJar.toGradleMetadataFile(leafFragment, isSources = true, checksums = checksums)
+            add(leafFragment.toGradleVariant(ResolutionScope.RUNTIME, isSources = true, [ sourcesFile ], overrides))
         }
     }
 
     return generateGradleModuleFile(variants, platform, module, outputDir)
 }
+
+private fun Path.toGradleMetadataFile(
+    fragment: LeafFragment,
+    checksums: Map<String, List<MavenPublishable>>,
+    isSources: Boolean = false,
+    isCinterop: Boolean = false,
+): File {
+    val platformSpecificArtifact = this
+    val module = fragment.module
+
+    val platformSpecificCoordinates = module.publicationCoordinates(fragment.platform)
+    val artifactId = platformSpecificCoordinates.artifactId
+    val version = platformSpecificCoordinates.version
+        ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
+
+    val [name, url] = if (fragment.platform == Platform.JVM && !module.isMultiplatformPublication()) {
+        // JVM-only publication
+        val sourcesSuffix = if (isSources) "-sources" else ""
+        val artifactFileName = "$artifactId-$version$sourcesSuffix.jar"
+        artifactFileName to artifactFileName
+    } else {
+        val extension = platformSpecificArtifact.extension
+        if (isCinterop) {
+            // Regular KMP publication of a cinterop klib, follows the KGP naming convention:
+            // name 'atomicfu-linuxX64Cinterop-interopMain-0.32.1.klib',
+            // url  'atomicfu-linuxx64-0.32.1-cinterop-interop.klib'.
+            val interopName = platformSpecificArtifact.fileName.nameWithoutExtension
+            "${module.userReadableName}-${fragment.name}Cinterop-${interopName}Main-$version.$extension" to
+                    "$artifactId-$version-${platformSpecificArtifact.cinteropClassifier()}.$extension"
+        } else {
+            // Regular KMP publication
+            val sourcesSuffix = if (isSources) "-sources" else ""
+            "${module.userReadableName}-${fragment.sourceSetName()}-$version$sourcesSuffix.$extension" to
+                    "$artifactId-$version$sourcesSuffix.$extension"
+        }
+    }
+
+    return File(
+        name = name,
+        url = url,
+        size = platformSpecificArtifact.fileSize(),
+        sha512 = getCheckSumFor(platformSpecificArtifact, "sha512", checksums),
+        sha256 = getCheckSumFor(platformSpecificArtifact, "sha256", checksums),
+        sha1 = getCheckSumFor(platformSpecificArtifact, "sha1", checksums),
+        md5 = getCheckSumFor(platformSpecificArtifact, "md5", checksums),
+    )
+}
+
+private const val CINTEROP_CLASSIFIER_PREFIX = "cinterop-"
+
+/**
+ * The Maven classifier used to publish the cinterop klib at this path.
+ *
+ * Follows the KGP convention, e.g. `atomicfu-linuxx64-0.32.1-cinterop-interop.klib`.
+ */
+internal fun Path.cinteropClassifier() = "$CINTEROP_CLASSIFIER_PREFIX${fileName.nameWithoutExtension}"
+
+/**
+ * Whether these coordinates point at a cinterop klib published by [cinteropClassifier].
+ */
+internal val MavenCoordinates.isCinteropClassifier: Boolean
+    get() = classifier?.startsWith(CINTEROP_CLASSIFIER_PREFIX) == true
 
 private fun LeafFragment.toBaseGradleVariant(
     scope: ResolutionScope,
@@ -308,8 +380,7 @@ private fun LeafFragment.toBaseGradleVariant(
 private fun LeafFragment.toGradleVariant(
     scope: ResolutionScope,
     isSources: Boolean = false,
-    checksums: Map<String, List<MavenPublishable>>,
-    platformSpecificArtifact: Path,
+    files: List<File>,
     overrides: PublicationCoordinatesOverrides,
 ): GradleVariant {
 
@@ -321,52 +392,21 @@ private fun LeafFragment.toGradleVariant(
         dependenciesAvailableForConsumer(scope = scope)
             .distinct()
             .map {
-                val [platform, overrides] = if (module.isMultiplatformPublication()) {
-                    // KMP project declares dependencies in terms of common libraries root coordinates.
+                val [platform, overrides] = if (module.isMultiplatformPublication())
+                // KMP project declares dependencies in terms of common libraries root coordinates.
                     Platform.COMMON to null
-                } else {
-                    // non-KMP project declare dependencies in terms of platform-specific coordinates.
+                else
+                // non-KMP project declares dependencies in terms of platform-specific coordinates.
                     platform to overrides
-                }
                 it.toVariantDependency(platform, overrides)
             }
             .toList()
     }
 
-    val platformSpecificCoordinates = module.publicationCoordinates(platform)
-    val artifactId = platformSpecificCoordinates.artifactId
-    val version = platformSpecificCoordinates.version
-        ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
-
-    val [name, url] = if (platform == Platform.JVM && !module.isMultiplatformPublication()) {
-        // JVM only publication
-        val sourcesSuffix = if (isSources) "-sources" else ""
-        val artifactFileName = "$artifactId-$version$sourcesSuffix.jar"
-        artifactFileName to artifactFileName
-    } else {
-        // Regular KMP publication
-        if (isSources) {
-            "${module.userReadableName}-${sourceSetName()}-$version-sources.jar" to "$artifactId-$version-sources.jar"
-        } else {
-            val extension = platformSpecificArtifact.extension
-            "${module.userReadableName}-${sourceSetName()}-$version.$extension" to "$artifactId-$version.$extension"
-        }
-    }
-
     return baseVariant.copy(
         dependencies = dependencies,
         dependencyConstraints = [],
-        files = [
-            File(
-                name = name,
-                url = url,
-                size = platformSpecificArtifact.fileSize(),
-                sha512 = getCheckSumFor(platformSpecificArtifact, "sha512", checksums),
-                sha256 = getCheckSumFor(platformSpecificArtifact, "sha256", checksums),
-                sha1 = getCheckSumFor(platformSpecificArtifact, "sha1", checksums),
-                md5 = getCheckSumFor(platformSpecificArtifact, "md5", checksums),
-            )
-        ],
+        files = files,
         `available-at` = null,
         capabilities = [],
     )

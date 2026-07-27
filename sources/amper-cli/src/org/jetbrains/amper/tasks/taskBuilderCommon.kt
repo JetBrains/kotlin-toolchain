@@ -25,6 +25,7 @@ import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
 import org.jetbrains.amper.tasks.metadata.allMetadataFragments
 import org.jetbrains.amper.tasks.native.CommonizeNativeDistributionTask
 import org.jetbrains.amper.tasks.native.NativeTaskType
+import org.jetbrains.amper.tasks.native.canHaveCinterop
 import org.jetbrains.amper.tasks.publication.MavenCentralPublishTask
 import org.jetbrains.amper.tasks.publication.MavenPublishTask
 import org.jetbrains.amper.tasks.publication.PrepareMavenCentralBundleTask
@@ -108,7 +109,12 @@ fun ProjectTasksBuilder.setupCommonTasks() {
                         it.getSymbolsVisibilityFragmentsDependencies(moduleDependenciesMap[it.module]!!)
                     }
                     addAll(allFragmentDependencies.map{ CommonFragmentTaskType.CompileMetadata.getTaskName(it) })
-
+                    ([it] + allFragmentDependencies)
+                        .map { it.module }.distinct().forEach {
+                            if (it.canHaveCinterop()) {
+                                add(ModuleTaskTypes.CommonizeCinterop.getTaskName(it))
+                            }
+                        }
                     add(CommonizeNativeDistributionTask.TASK_NAME)
                 }
             )
@@ -136,6 +142,9 @@ fun ProjectTasksBuilder.setupCommonTasks() {
                             .allMetadataFragments()
                             .map { CommonFragmentTaskType.CompileMetadata.getTaskName(it) }
                     )
+                    if (module.canHaveCinterop()) {
+                        add(ModuleTaskTypes.CommonizeCinterop.getTaskName(module))
+                    }
                 }
             )
         }
@@ -271,8 +280,10 @@ private fun ModuleSequenceCtx.tasksWithPlatformSpecificPublishablesFor(platform:
         Platform.ANDROID_NATIVE_ARM32,
         Platform.ANDROID_NATIVE_ARM64,
         Platform.ANDROID_NATIVE_X64,
-        Platform.ANDROID_NATIVE_X86,
-            -> add(NativeTaskType.CompileKLib.getTaskName(module, platform, isTest = false, BuildType.Release))
+        Platform.ANDROID_NATIVE_X86 -> {
+            add(NativeTaskType.CompileKLib.getTaskName(module, platform, isTest = false, BuildType.Release))
+            add(NativeTaskType.Cinterop.getTaskName(module, platform))
+        }
         Platform.COMMON,
         Platform.WEB,
         Platform.NATIVE,

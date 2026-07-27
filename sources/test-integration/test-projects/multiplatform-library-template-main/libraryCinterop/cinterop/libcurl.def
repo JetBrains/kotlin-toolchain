@@ -1,0 +1,8 @@
+headers.osx = curl/curl.h
+headers.linux = linux/curl.h
+headerFilter.linux = linux/*
+headerFilter.osx = curl/*
+
+compilerOpts.linux = -I/usr/include -I/usr/include/x86_64-linux-gnu -Ilinux
+linkerOpts.osx = -L/opt/local/lib -L/usr/local/opt/curl/lib -lcurl
+linkerOpts.linux = -L/usr/lib/x86_64-linux-gnu -lcurl -llinux

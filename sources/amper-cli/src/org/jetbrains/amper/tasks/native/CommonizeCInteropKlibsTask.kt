@@ -43,6 +43,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
+import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
@@ -99,12 +100,14 @@ class CommonizeCInteropKlibsTask(
         // TODO: Cluster sets of commonization targets if they are non-intersecting?
         //  this way there is no benefit of not re-reading klibs (no shared klibs)
         //  and there might be a benefit of incremental granularity.
-        val relevantOutputs = commonize(allKlibsFlat)
+        val relevantOutputs = allKlibsFlat.takeIf { it.isNotEmpty() }?.let { commonize(it) }.orEmpty()
 
         cleanDirectoryExcept(output.path, keepPaths = relevantOutputs)
 
-        return EmptyTaskResult
+        return Result(output.path)
     }
+
+    data class Result(val path: Path): TaskResult
 
     context(_: ProblemReporter)
     private suspend fun commonize(
