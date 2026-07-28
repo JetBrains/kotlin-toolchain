@@ -173,10 +173,11 @@ open class DefaultFragment(
         generatedFilesRoot(buildOutputRoot) / "preparedComposeResources"
 
     override fun generatedCinteropKlibsDirPath(buildOutputRoot: Path): Path? {
-        if (cinteropPath == null) return null
+        if (cinteropPath == null || platforms.size > 1) return null
         return generatedFilesRoot(buildOutputRoot) / "cinterop"
     }
 
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun generatedCinteropKlibPaths(buildOutputRoot: Path): List<Path> {
         val defFilesCache = mutableMapOf<Fragment, List<Path>>()
         // NOTE: Keep the implementation in sync with the task outputs! (it's tested)

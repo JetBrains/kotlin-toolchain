@@ -1,1 +1,6 @@
 product: ios/app
+
+aliases:
+  ios2:
+    - iosArm64
+    - iosSimulatorArm64

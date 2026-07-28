@@ -1,0 +1,6 @@
+package = com.example.native.custom
+---
+#include <stdlib.h>
+static inline const char* getCustomGreeting2(size_t size) {
+  return "Hello From Native";
+}

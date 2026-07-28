@@ -8,13 +8,13 @@ import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.commonizedCinteropLibrariesRoot
+import org.jetbrains.amper.stdlib.io.path.listDirectoryEntriesIfExistsOrEmpty
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.testSuffix
 import org.jetbrains.amper.tasks.artifacts.api.Artifact
 import java.io.Serializable
 import java.nio.file.Path
 import kotlin.io.path.div
-import kotlin.io.path.listDirectoryEntries
-import kotlin.io.path.nameWithoutExtension
 
 /**
  * A base class for all artifact implementations.
@@ -54,6 +54,16 @@ abstract class FragmentScopedArtifact(
     val platforms get() = fragment.platforms
 
     override fun idComponents() = listOf(module.userReadableName, fragmentName)
+}
+
+/**
+ * An artifact is associated with a [module].
+ */
+abstract class ModuleScopedArtifact(
+    buildOutputRoot: AmperBuildOutputRoot,
+    val module: AmperModule,
+) : ArtifactBase(buildOutputRoot) {
+    override fun idComponents() = [module.userReadableName]
 }
 
 /**
@@ -103,20 +113,30 @@ open class CinteropDefFileArtifact(
 ) : FragmentScopedArtifact(buildOutputRoot, fragment)
 
 /**
- * Commonized klib for cinterop.
+ * All the commonized cinterop libraries for the [module].
+ * The layout is dictated by the commonizer tool:
+ * ```
+ * "dir"/
+ *   - "(platform1; platform2)"
+ *     - "foo"/ **
+ *     - "bar"/ **
+ *   - "(platform1; platform2; platform3)"
+ *     - "foo"/ **
+ *   - "(platform4; platform5)"
+ *     - "baz"/ **
+ * ```
+ * Use [org.jetbrains.amper.kotlin.native.asCommonizerTarget] to get subdirectory names for the platform sets.
  */
 open class CinteropCommonizedKlibArtifact(
     buildOutputRoot: AmperBuildOutputRoot,
-    fragment: Fragment,
-    override val path: Path,
-) : FragmentScopedArtifact(buildOutputRoot, fragment)
+    module: AmperModule,
+) : ModuleScopedArtifact(buildOutputRoot, module) {
+    override val path: Path = module.commonizedCinteropLibrariesRoot(buildOutputRoot.path)
+}
 
 /**
  * A directory that contains compiled cinterop `.klib` files.
- * The directory may be empty.
- *
- * The file tree structure under [path] is implementation-defined and should not be relied upon externally;
- * use [getPathForKlib] and [allKlibs] to interfaces with the underlying klib files.
+ * The directory may be empty/non-existent.
  */
 open class CinteropKlibsArtifact(
     buildOutputRoot: AmperBuildOutputRoot,
@@ -128,28 +148,5 @@ open class CinteropKlibsArtifact(
         require(platform.isLeaf) { "Only leaf platforms are expected here, got $platform" }
     }
 
-    data class Klib(
-        /** cinterop klib path */
-        val path: Path,
-        /** cinterop name */
-        val name: String,
-        /** A fragment name with which the original `*.def` file is associated. */
-        val defOriginFragmentName: String,
-    )
-
-    fun getPathForKlib(
-        name: String,
-        defOriginFragment: Fragment,
-    ) = path / "$name@${defOriginFragment.name}.klib"
-
-    fun allKlibs() = path.listDirectoryEntries("*.klib").mapNotNull { path ->
-        val parts = path.nameWithoutExtension.split('@')
-        if (parts.size != 2) return@mapNotNull null
-        val [name, fragmentName] = parts
-        Klib(
-            path = path,
-            name = name,
-            defOriginFragmentName = fragmentName,
-        )
-    }
+    fun allKlibs() = path.listDirectoryEntriesIfExistsOrEmpty("*.klib")
 }

@@ -21,6 +21,13 @@ sealed class ModuleTaskTypes(
         operationMoniker = "building plugin info",
     )
 
+    // ***** Cinterop *****
+
+    data object CommonizeCinterop : ModuleTaskTypes(
+        internalName = "commonizeCinterop",
+        operationMoniker = "commonizing cinterop definitions",
+    )
+
     // ***** iOS *****
 
     data object ManageXCodeProject : ModuleTaskTypes(

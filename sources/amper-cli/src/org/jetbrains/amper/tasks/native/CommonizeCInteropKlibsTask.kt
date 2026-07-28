@@ -9,18 +9,20 @@ import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
-import org.jetbrains.amper.compilation.KotlinNativeCompiler
 import org.jetbrains.amper.compilation.downloadNativeCompiler
-import org.jetbrains.amper.concurrency.mapConcurrently
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.GenerateKlibsForIdeTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
-import org.jetbrains.amper.frontend.Fragment
+import org.jetbrains.amper.frontend.AmperModule
+import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
+import org.jetbrains.amper.kotlin.native.CommonizerTarget
 import org.jetbrains.amper.kotlin.native.asCommonizerTarget
 import org.jetbrains.amper.kotlin.native.dependencyLibrariesForCommonization
+import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.runJava
@@ -38,12 +40,11 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
-import kotlin.io.path.createTempDirectory
-import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
+import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
-import kotlin.io.path.moveTo
-import kotlin.io.path.nameWithoutExtension
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
 
 class CommonizeCInteropKlibsTask(
     buildOutputRoot: AmperBuildOutputRoot,
@@ -53,135 +54,170 @@ class CommonizeCInteropKlibsTask(
     private val jdkProvider: JdkProvider,
     private val processRunner: ProcessRunner,
     override val taskName: TaskName,
-    val fragment: Fragment,
+    val module: AmperModule,
 ) : ArtifactTaskBase(), GenerateKlibsForIdeTask {
-    init {
-        require(fragment.platforms.size > 1) { "Nothing to commonize for a single-platform fragment ${fragment.name}" }
-    }
-
-    private val kotlinVersion = fragment.settings.kotlin.version
     private val kotlinDownloader = KotlinArtifactsDownloader(userCacheRoot, incrementalCache)
+    private val kotlinVersion = module.fragments.first().settings.kotlin.version
 
     val cinteropKlibs by ArtifactSelector(
         type = ArtifactType(CinteropKlibsArtifact::class),
-        predicate = {
-            it.module == fragment.module &&
-                    it.isTest == fragment.isTest &&
-                    it.platform in fragment.platforms
-        },
-        description = "All cinterop klibs from ${fragment.module} that target any of ${fragment.platforms}",
+        predicate = { it.module == module },
+        description = "All cinterop klibs from ${module.userReadableName}",
         quantifier = Quantifier.AnyOrNone,
     )
 
     val output by CinteropCommonizedKlibArtifact(
         buildOutputRoot = buildOutputRoot,
-        fragment = fragment,
-        path = fragment.generatedCinteropKlibsDirPath(buildOutputRoot.path)!!,
+        module = module,
+    )
+
+    private data class CinteropKlib(
+        /** `null` if there was an error generating this klib. */
+        val klibPath: Path?,
+        val name: String,
+        val leafPlatform: Platform,
     )
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(
         dependenciesResult: List<TaskResult>,
     ): TaskResult {
-        val compiler = downloadNativeCompiler(kotlinVersion, userCacheRoot, jdkProvider)
-        val commonizerClasspath = kotlinDownloader.downloadKotlinCommonizerEmbeddable(kotlinVersion)
-
         // cinterop "name" -> all the corresponding klibs from all the leaf platforms.
-        val klibsGroupedByName: Map<String, List<CinteropKlibsArtifact.Klib>> = cinteropKlibs.flatMap { klibsDir ->
-            klibsDir.allKlibs().filter { it.defOriginFragmentName == fragment.name }
-        }.groupBy { it.name }
-
-        if (klibsGroupedByName.isEmpty()) {
-            logger.debug("No relevant .klibs found to commonize, bailing out")
-            output.path.deleteRecursively()
-            return EmptyTaskResult
+        val allKlibsFlat = cinteropKlibs.flatMap { artifact ->
+            artifact.path.listDirectoryEntries().map {
+                CinteropKlib(
+                    name = it.name.substringBefore('.'),
+                    klibPath = it.takeIf { it.extension == "klib" },
+                    leafPlatform = artifact.platform,
+                )
+            }
         }
 
-        output.path.createDirectories()
-        val relevantOutputs = klibsGroupedByName.entries.mapConcurrently { [name, klibs] ->
-            commonize(compiler, commonizerClasspath, name, klibs)
-        }
+        // The Kotlin version can only be configured for the whole module, so every fragment uses the same one.
+        // Therefore, it is safe to take the version from an arbitrary first fragment.
+        // TODO: Cluster sets of commonization targets if they are non-intersecting?
+        //  this way there is no benefit of not re-reading klibs (no shared klibs)
+        //  and there might be a benefit of incremental granularity.
+        val relevantOutputs = commonize(allKlibsFlat)
 
-        cleanDirectoryExcept(output.path, relevantOutputs)
+        cleanDirectoryExcept(output.path, keepPaths = relevantOutputs)
 
         return EmptyTaskResult
     }
 
+    context(_: ProblemReporter)
     private suspend fun commonize(
-        compiler: KotlinNativeCompiler,
-        commonizerClasspath: List<Path>,
-        name: String,
-        klibs: List<CinteropKlibsArtifact.Klib>,
-    ): Path {
-        val target = fragment.platforms.asCommonizerTarget()
+        klibs: List<CinteropKlib>,
+    ): List<Path> {
+        check(klibs.isNotEmpty())
 
-        // We depend on the task that populates the Kotlin/Native distribution's cache, so this is ok
-        val dependencies = compiler.konanDistribution.dependencyLibrariesForCommonization(target)
+        val groupedByName: Map<String, List<CinteropKlib>> = klibs.groupBy(
+            keySelector = { it.name },
+        ).filter { [_, libs] ->
+            // Only include those entries where there are multiple klibs for one name;
+            // otherwise there is nothing to commonize.
+            libs.size > 1
+        }
 
-        val inputLibraries = klibs.joinToString(";") { it.path.absolutePathString() }
-        val dependencyLibraries = dependencies.joinToString(";") { it.absolutePathString() }
+        if (groupedByName.isEmpty()) {
+            logger.debug("No relevant .klibs found to commonize, bailing out")
+            return []
+        }
 
-        val key = "${taskName.id.value}-$name"
-        return incrementalCache.execute(
-            key = key,
+        val compiler = downloadNativeCompiler(kotlinVersion, userCacheRoot, jdkProvider)
+        val commonizerClasspath = kotlinDownloader.downloadKotlinCommonizerEmbeddable(kotlinVersion)
+
+        val [targets: Set<CommonizerTarget>, outputs: Set<Path>] = run {
+            val targets = mutableSetOf<CommonizerTarget>()
+            val outputs = mutableSetOf<Path>()
+
+            groupedByName.forEach { [name, libs] ->
+                val platforms = libs.mapTo(mutableSetOf()) { it.leafPlatform }
+                val commonizerTargets = commonizerTargetsFor(platforms)
+                targets.addAll(commonizerTargets)
+
+                commonizerTargets.forEach {
+                    outputs.add(output.path / it.dirName / name)
+                }
+            }
+
+            targets to outputs
+        }
+
+        val dependenciesString = targets
+            .flatMap {
+                // We depend on the task that populates the Kotlin/Native distribution's cache, so this is ok
+                // TODO: Need to prepend the target here like in KGP?
+                compiler.konanDistribution
+                    .dependencyLibrariesForCommonization(it)
+            }.distinct()
+            .joinToString(";") { it.absolutePathString() }
+
+        val inputLibrariesString = klibs
+            .mapNotNull { it.klibPath }
+            .joinToString(";") { it.absolutePathString() }
+
+        return incrementalCache.executeForFiles(
+            key = "${taskName.id.value}-$kotlinVersion",
             inputValues = mapOf(
-                "output" to output.path.absolutePathString(),
-                "inputLibraries" to inputLibraries,
-                "dependencyLibraries" to dependencyLibraries,
+                "outputs" to outputs.joinToString(";") { it.absolutePathString() },
+                "inputLibraries" to inputLibrariesString,
+                "dependencyLibraries" to dependenciesString,
             ),
             inputFiles = buildList {
                 add(compiler.konanDistribution.homeDir)
-                klibs.mapTo(this) { it.path }
+                klibs.mapNotNullTo(this) { it.klibPath }
                 addAll(commonizerClasspath)
             }
         ) {
-            logger.info("Commonizing '$name' (from ${klibs.size} klibs)...")
-            val tempOutput = createTempDirectory(tempRoot.path, key)
-            try {
-                val commonizerArgs: MutableList<String> = [
-                    "native-klib-commonize",
-                    "-distribution-path",
-                    compiler.konanDistribution.homeDir.absolutePathString(),
-                    "-output-path",
-                    tempOutput.absolutePathString(),
-                    "-input-libraries",
-                    inputLibraries,
-                    "-output-targets",
-                    target.targetNameForCompiler,
-                ]
-                if (dependencies.isNotEmpty()) {
-                    commonizerArgs += "-dependency-libraries"
-                    commonizerArgs += dependencyLibraries
-                }
+            output.path.createDirectories()
 
-                val result = processRunner.runJava(
-                    jdk = compiler.jdk,
-                    workingDir = Path("."),
-                    mainClass = "org.jetbrains.kotlin.commonizer.cli.CommonizerCLI",
-                    classpath = commonizerClasspath,
-                    programArgs = commonizerArgs,
-                    argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
-                    outputListener = LoggingProcessOutputListener(logger),
-                )
-                if (result.exitCode != 0) {
-                    userReadableError("cinterop commonization failed, see the errors above")
-                }
-                val tempResult = tempOutput / target.dirName / klibs.first().path.nameWithoutExtension
-                check(tempResult.isDirectory()) {
-                    "Expected $tempResult to exist after commonization"
-                }
+            logger.debug("Commonizing from ${klibs.size} klibs...")
+            // NOTE: commonizer takes care of grouping the relevant klibs itself
+            val commonizerArgs: MutableList<String> = [
+                "native-klib-commonize",
+                "-distribution-path",
+                compiler.konanDistribution.homeDir.absolutePathString(),
+                "-output-path",
+                output.path.absolutePathString(),
+                "-input-libraries",
+                inputLibrariesString,
+                "-output-targets",
+                targets.joinToString(";") { it.targetNameForCompiler },
+            ]
 
-                val actualResult = output.path / name
-                actualResult.deleteRecursively()
-
-                // We move the result to avoid these `(linuxArm64; linuxX64)` directory names.
-                // This makes the expected layout plain, avoiding extra nestedness.
-                tempResult.moveTo(actualResult)
-                IncrementalCache.ExecutionResult([actualResult])
-            } finally {
-                tempOutput.deleteRecursively()
+            if (dependenciesString.isNotBlank()) {
+                commonizerArgs += "-dependency-libraries"
+                commonizerArgs += dependenciesString
             }
-        }.outputFiles.single()
+
+            val result = processRunner.runJava(
+                jdk = compiler.jdk,
+                workingDir = Path("."),
+                mainClass = "org.jetbrains.kotlin.commonizer.cli.CommonizerCLI",
+                classpath = commonizerClasspath,
+                programArgs = commonizerArgs,
+                argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
+                outputListener = LoggingProcessOutputListener(logger = logger),
+            )
+            if (result.exitCode != 0) {
+                userReadableError("cinterop commonization failed, see the errors above")
+            }
+            outputs.forEach {
+                check(it.isDirectory()) { "Expected `$it` to exist after commonization" }
+            }
+            outputs.toList()
+        }
+    }
+
+    /** All the commonizer targets from all the matching fragments for the given set of platforms */
+    private fun commonizerTargetsFor(platforms: Set<Platform>): Set<CommonizerTarget> {
+        return module.fragments
+            .filter { !it.isTest && it.cinteropPath != null && it.platforms.size > 1 }
+            .map { it.platforms }
+            .distinct()
+            .filter { fragmentPlatforms -> platforms.containsAll(fragmentPlatforms) }
+            .mapTo(mutableSetOf()) { it.asCommonizerTarget() }
     }
 
     private val logger = LoggerFactory.getLogger(javaClass)

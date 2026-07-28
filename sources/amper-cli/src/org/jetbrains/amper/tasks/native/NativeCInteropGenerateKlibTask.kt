@@ -20,10 +20,11 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.stdlib.collections.distinctBy
-import org.jetbrains.amper.stdlib.io.path.clean
 import org.jetbrains.amper.stdlib.io.path.cleanDirectoryExcept
+import org.jetbrains.amper.stdlib.io.path.createRegularFileIfNotExists
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
@@ -35,6 +36,9 @@ import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.createParentDirectories
+import kotlin.io.path.deleteRecursively
+import kotlin.io.path.div
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.nameWithoutExtension
@@ -77,56 +81,46 @@ internal class NativeCInteropGenerateKlibTask(
     override suspend fun run(
         dependenciesResult: List<TaskResult>,
     ): TaskResult {
-        data class CinteropEntry(
-            val defFile: Path,
-            val associatedWith: Fragment,
-        )
-
         val inputDefFiles = buildList {
             defFileArtifacts.forEach {
-                add(CinteropEntry(it.path, it.fragment))
+                add(it.path)
             }
             for (fragment in fragments) {
                 val path = fragment.cinteropPath?.takeIf { it.isDirectory() } ?: continue
-                for (defFile in path.listDirectoryEntries("*.def")) {
-                    add(CinteropEntry(defFile, fragment))
-                }
+                addAll(path.listDirectoryEntries("*.def"))
             }
         }
 
         inputDefFiles.distinctBy(
-            selector = { it.defFile.nameWithoutExtension },
+            selector = { it.nameWithoutExtension },
             onDuplicates = { name, entries ->
-                val conflictingPaths = entries.joinToString { it.defFile.absolutePathString() }
+                val conflictingPaths = entries.joinToString { it.absolutePathString() }
                 userReadableError("Got multiple cinterop definitions with the name `$name`: $conflictingPaths")
             }
         )
 
         if (inputDefFiles.isEmpty()) {
             logger.debug("No .def files found, bailing out")
-            outputKlibsDirectoryArtifact.path.clean()
+            outputKlibsDirectoryArtifact.path.deleteRecursively()
             return EmptyTaskResult
         }
 
         val targetLeafFragment = module.leafFragments.single { it.platform == platform && !it.isTest }
         val kotlinCompilerVersion = targetLeafFragment.serializableKotlinSettings().compilerVersion
 
-        val results = inputDefFiles.mapConcurrently { (defFile, associatedWith) ->
+        val results = inputDefFiles.mapConcurrently { defFile ->
+            val cinteropName = defFile.nameWithoutExtension
             try {
-                incrementalCache.execute(
-                    key = "${taskName.id.value}-${defFile.nameWithoutExtension}",
+                incrementalCache.executeForFiles(
+                    key = "${taskName.id.value}-$cinteropName",
                     inputValues = mapOf(
                         "target" to platform.nameForCompiler,
                         "kotlinVersion" to kotlinCompilerVersion,
                     ),
                     inputFiles = listOf(defFile),
                 ) {
-                    val cinteropName = defFile.nameWithoutExtension
-                    val outputKlib = outputKlibsDirectoryArtifact.getPathForKlib(
-                        name = cinteropName,
-                        defOriginFragment = associatedWith,
-                    )
-                    outputKlib.parent.clean()
+                    val outputKlib = outputKlibsDirectoryArtifact.path / "$cinteropName.klib"
+                    outputKlib.createParentDirectories()
 
                     val nativeCompiler =
                         downloadNativeCompiler(kotlinCompilerVersion, userCacheRoot, jdkProvider)
@@ -142,28 +136,39 @@ internal class NativeCInteropGenerateKlibTask(
                     logger.info("Running cinterop '$cinteropName' for platform '${platform.pretty}'...")
                     nativeCompiler.cinterop(processRunner, args)
 
-                    IncrementalCache.ExecutionResult(listOf(outputKlib))
-                }.outputFiles.single().let { Result.success(it) }
+                    [outputKlib]
+                }.single().let { CinteropResult(it) }
             } catch (e: UserReadableError) {
                 if (ignorePlatformFailures) {
                     logger.warn(e.message)
+                    CinteropResult(
+                        // A marker for the commonizer to include the failed target anyway
+                        outputFile = (outputKlibsDirectoryArtifact.path / "$cinteropName.klib.failed")
+                            .createRegularFileIfNotExists(),
+                        isSuccess = false,
+                    )
                 } else {
                     logger.error(e.message)
+                    CinteropResult(null, isSuccess = false)
                 }
-                Result.failure(e)
             }
         }
 
-        if (!ignorePlatformFailures && results.any { it.exceptionOrNull() is UserReadableError }) {
+        if (!ignorePlatformFailures && results.any { !it.isSuccess }) {
             userReadableError("cinterop processing failed for ${leafFragment.platform}, see the errors above")
         }
 
         // Clean any stale output Klibs
-        val relevantOutputs = results.mapNotNull { it.getOrNull() }
+        val relevantOutputs = results.mapNotNull { it.outputFile }
         cleanDirectoryExcept(outputKlibsDirectoryArtifact.path, relevantOutputs)
 
         return EmptyTaskResult
     }
+
+    private class CinteropResult(
+        val outputFile: Path?,
+        val isSuccess: Boolean = true,
+    )
 
     override val buildType: BuildType?
         get() = null

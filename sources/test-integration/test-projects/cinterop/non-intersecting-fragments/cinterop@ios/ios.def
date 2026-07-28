@@ -1,0 +1,6 @@
+package = com.example.native.ios
+---
+#include <stdlib.h>
+static inline const char* getIosGreeting(size_t size) {
+  return "Hello From iOS Native";
+}

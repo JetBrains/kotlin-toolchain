@@ -10,7 +10,6 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.isDescendantOf
-import org.jetbrains.amper.tasks.CommonFragmentTaskType
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.LinkTaskType
 import org.jetbrains.amper.tasks.ModuleTaskTypes
@@ -55,13 +54,9 @@ fun ProjectTasksBuilder.setupNativeTasks() {
         )
     }
 
-    allFragments().forEach { fragment ->
-        if (fragment.cinteropPath == null) {
-            return@forEach
-        }
-        if (fragment.platforms.size < 2) {
-            // No need to commonize anything for leaf or single-platform fragments
-            return@forEach
+    allModules().withEach {
+        if (module.fragments.none { it.cinteropPath != null }) {
+            return@withEach
         }
         tasks.registerTask(
             CommonizeCInteropKlibsTask(
@@ -71,8 +66,8 @@ fun ProjectTasksBuilder.setupNativeTasks() {
                 incrementalCache = context.incrementalCache,
                 processRunner = context.processRunner,
                 tempRoot = context.projectTempRoot,
-                fragment = fragment,
-                taskName = CommonFragmentTaskType.CommonizeCinterop.getTaskName(fragment),
+                module = module,
+                taskName = ModuleTaskTypes.CommonizeCinterop.getTaskName(module),
             ),
             dependsOn = [CommonizeNativeDistributionTask.TASK_NAME],
         )

@@ -118,11 +118,13 @@ interface Fragment {
     /**
      * A path to the directory where all the cinterop generated/commonized klibs are for this fragment.
      *
-     * - If this is a leaf fragment, there are `.klib` archives in the directory for all the `.def` files of the
-     *   *refined closure* of this fragment.
-     * - If this is an intermediate fragment, then there are exploded klibs (directories) for the commonized libraries
-     *   for the `.def` files associated with this fragment.
-     * - If this is a bamboo fragment (non-leaf single platform), then the directory is empty.
+     * - If this is a fragment with a *single platform*,
+     *   there are `.klib` archives in the directory for all the `.def` files of the *refined closure* of this fragment.
+     * - If this is a multi-platform fragment, then `null` is returned here.
+     *
+     * Always returns `null` for the fragments that do not support `cinterop` ([cinteropPath] is `null`).
+     *
+     * NOTE: For commonized cinterop libraries use [AmperModule.commonizedCinteropLibrariesRoot].
      */
     @UsedInIdePlugin
     fun generatedCinteropKlibsDirPath(buildOutputRoot: Path): Path?
@@ -137,6 +139,11 @@ interface Fragment {
      * All the paths are children of [generatedCinteropKlibsDirPath] of *some* fragment in the same [module].
      */
     @UsedInIdePlugin
+    @Deprecated(
+        "This function no longer correctly predicts the build output. " +
+                "Use `generatedCinteropKlibsDirPath` or `AmperModule.commonizedCinteropLibrariesRoot` instead " +
+                "and enumerate file entries within after the build.",
+    )
     fun generatedCinteropKlibPaths(buildOutputRoot: Path): List<Path>
 }
 

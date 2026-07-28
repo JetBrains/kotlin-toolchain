@@ -121,7 +121,7 @@ internal class NativeCompileKlibTask(
         logger.debug("native compile klib '${module.userReadableName}' -- ${fragments.joinToString(" ") { it.name }}")
 
         val libraryPaths = compiledModuleDependencies + externalDependencies +
-                cinteropKlibs.flatMap { it.allKlibs() }.map { it.path }
+                cinteropKlibs.flatMap { it.allKlibs() }
 
         val additionalSources = additionalKotlinJavaSourceDirs.map { artifact ->
             SourceRoot(

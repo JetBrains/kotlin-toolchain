@@ -53,7 +53,6 @@ internal enum class CommonFragmentTaskType(
     override val operationMoniker: String,
 ) : TaskNameFactory.Fragment {
     CompileMetadata("compileMetadata", "compiling Kotlin metadata"),
-    CommonizeCinterop("commonizeCinterop", "commonizing cinterop definitions"),
 }
 
 fun ProjectTasksBuilder.setupCommonTasks() {

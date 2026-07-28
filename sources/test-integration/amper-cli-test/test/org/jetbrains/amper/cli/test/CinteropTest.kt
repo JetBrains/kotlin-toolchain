@@ -9,15 +9,16 @@ import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.aomBuilder.readProjectModel
+import org.jetbrains.amper.frontend.commonizedCinteropLibrariesRoot
 import org.jetbrains.amper.frontend.project.AmperProjectContext
 import org.jetbrains.amper.problems.reporting.NoopProblemReporter
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.LinuxOnly
 import org.jetbrains.amper.test.MacOnly
 import java.nio.file.Path
-import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
-import kotlin.io.path.isRegularFile
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
 import kotlin.io.path.relativeTo
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -53,20 +54,54 @@ class CinteropTest : AmperCliTestBase() {
             result = result,
             expectedRepresentation = """
                 module: ios-cinterop
-                 fragment: apple
-                  - generated/ios-cinterop/common/cinterop/custom: directory
-                 fragment: common
-                  - generated/ios-cinterop/common/cinterop/custom: directory
-                 fragment: ios
-                  - generated/ios-cinterop/common/cinterop/custom: directory
-                 fragment: iosArm64
-                  - generated/ios-cinterop/iosArm64/cinterop/custom@common.klib: regular-file
-                 fragment: iosSimulatorArm64
-                  - generated/ios-cinterop/iosSimulatorArm64/cinterop/custom@common.klib: regular-file
-                 fragment: iosX64
-                  - generated/ios-cinterop/iosX64/cinterop/custom@common.klib: regular-file
-                 fragment: native
-                  - generated/ios-cinterop/common/cinterop/custom: directory
+                 commonized/ios-cinterop/(ios_arm64, ios_simulator_arm64)/
+                  - foo
+                  - bar
+                  - custom
+                 commonized/ios-cinterop/(ios_arm64, ios_simulator_arm64, ios_x64)/
+                  - bar
+                  - custom
+                 fragment: iosArm64 | generated/ios-cinterop/iosArm64/cinterop
+                  - foo.klib
+                  - bar.klib
+                  - custom.klib
+                 fragment: iosSimulatorArm64 | generated/ios-cinterop/iosSimulatorArm64/cinterop
+                  - foo.klib
+                  - bar.klib
+                  - custom.klib
+                 fragment: iosX64 | generated/ios-cinterop/iosX64/cinterop
+                  - bar.klib
+                  - custom.klib
+            """.trimIndent(),
+        )
+    }
+
+    @Test
+    @MacOnly
+    fun `ide sync - commonize cinterop in non-intersecting fragments`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("cinterop/non-intersecting-fragments"),
+            "ide-integration", "generate-klibs",
+        )
+
+        assertCinteropModel(
+            result = result,
+            expectedRepresentation = """
+                module: non-intersecting-fragments
+                 commonized/non-intersecting-fragments/(linux_arm64, linux_x64)/
+                  - linux
+                 commonized/non-intersecting-fragments/(ios_arm64, ios_simulator_arm64, ios_x64)/
+                  - ios
+                 fragment: iosArm64 | generated/non-intersecting-fragments/iosArm64/cinterop
+                  - ios.klib
+                 fragment: iosSimulatorArm64 | generated/non-intersecting-fragments/iosSimulatorArm64/cinterop
+                  - ios.klib
+                 fragment: iosX64 | generated/non-intersecting-fragments/iosX64/cinterop
+                  - ios.klib
+                 fragment: linuxArm64 | generated/non-intersecting-fragments/linuxArm64/cinterop
+                  - linux.klib
+                 fragment: linuxX64 | generated/non-intersecting-fragments/linuxX64/cinterop
+                  - linux.klib
             """.trimIndent(),
         )
     }
@@ -83,16 +118,8 @@ class CinteropTest : AmperCliTestBase() {
             result = result,
             expectedRepresentation = """
                 module: single-platform
-                 fragment: apple
-                  - generated/single-platform/macosArm64/cinterop/custom@common.klib: regular-file
-                 fragment: common
-                  - generated/single-platform/macosArm64/cinterop/custom@common.klib: regular-file
-                 fragment: macos
-                  - generated/single-platform/macosArm64/cinterop/custom@common.klib: regular-file
-                 fragment: macosArm64
-                  - generated/single-platform/macosArm64/cinterop/custom@common.klib: regular-file
-                 fragment: native
-                  - generated/single-platform/macosArm64/cinterop/custom@common.klib: regular-file
+                 fragment: macosArm64 | generated/single-platform/macosArm64/cinterop
+                  - custom.klib
             """.trimIndent(),
         )
     }
@@ -112,20 +139,12 @@ class CinteropTest : AmperCliTestBase() {
             result = result,
             expectedRepresentation = """
                 module: mac-and-win
-                 fragment: apple
-                  - generated/mac-and-win/macosArm64/cinterop/libcurl@common.klib: regular-file
-                 fragment: common
-                  - generated/mac-and-win/common/cinterop/libcurl: directory
-                 fragment: macos
-                  - generated/mac-and-win/macosArm64/cinterop/libcurl@common.klib: regular-file
-                 fragment: macosArm64
-                  - generated/mac-and-win/macosArm64/cinterop/libcurl@common.klib: regular-file
-                 fragment: mingw
-                  - generated/mac-and-win/mingwX64/cinterop/libcurl@common.klib: missing
-                 fragment: mingwX64
-                  - generated/mac-and-win/mingwX64/cinterop/libcurl@common.klib: missing
-                 fragment: native
-                  - generated/mac-and-win/common/cinterop/libcurl: directory
+                 commonized/mac-and-win/(macos_arm64, mingw_x64)/
+                  - libcurl
+                 fragment: macosArm64 | generated/mac-and-win/macosArm64/cinterop
+                  - libcurl.klib
+                 fragment: mingwX64 | generated/mac-and-win/mingwX64/cinterop
+                  - libcurl.klib.failed
             """.trimIndent(),
         )
     }
@@ -168,20 +187,21 @@ class CinteropTest : AmperCliTestBase() {
             val model = readProjectModel(result.projectDir)
             for (module in model.modules.sortedBy { it.userReadableName }) {
                 appendLine("module: ${module.userReadableName}")
+                module.commonizedCinteropLibrariesRoot(result.buildDir)
+                    .takeIf { it.isDirectory() }
+                    ?.listDirectoryEntries()
+                    ?.forEach { targetDir ->
+                        appendLine(" ${targetDir.relativeTo(result.buildDir)}/")
+                        targetDir.listDirectoryEntries().forEach {
+                            appendLine("  - ${it.name}")
+                        }
+                    }
                 for (fragment in module.fragments.sortedBy { it.name }) {
-                    val paths = fragment.generatedCinteropKlibPaths(result.buildDir)
-                    if (paths.isEmpty()) continue
-                    appendLine(" fragment: ${fragment.name}")
-                    for (path in paths.sorted()) {
-                        append("  - ${path.relativeTo(result.buildDir)}: ")
-                        appendLine(
-                            when {
-                                path.isRegularFile() -> "regular-file"
-                                path.isDirectory() -> "directory"
-                                path.exists() -> "exists"
-                                else -> "missing"
-                            }
-                        )
+                    val dir = fragment.generatedCinteropKlibsDirPath(result.buildDir)
+                        ?.takeIf { it.isDirectory() } ?: continue
+                    appendLine(" fragment: ${fragment.name} | ${dir.relativeTo(result.buildDir)}")
+                    for (path in dir.listDirectoryEntries()) {
+                        appendLine("  - ${path.name}")
                     }
                 }
             }

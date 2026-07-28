@@ -124,7 +124,7 @@ internal class NativeLinkTask(
         check(exportedKLibDependencies.size == exportedKLibTaskIds.size)
 
         val compiledKLibs = compileKLibDependencies.mapNotNull { it.compiledKlib } +
-                cinteropKlibs.flatMap { it.allKlibs() }.map { it.path }
+                cinteropKlibs.flatMap { it.allKlibs() }
         val exportedKLibs = exportedKLibDependencies.mapNotNull { it.compiledKlib }
 
         val kotlinUserSettings = fragments.singleLeafFragment().serializableKotlinSettings()

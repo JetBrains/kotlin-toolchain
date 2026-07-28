@@ -1,0 +1,6 @@
+package = com.example.native.linux
+---
+#include <stdlib.h>
+static inline const char* getLinuxGreeting(size_t size) {
+  return "Hello From Linux Native";
+}

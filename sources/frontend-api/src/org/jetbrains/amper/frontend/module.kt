@@ -19,6 +19,7 @@ import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.schema.PublishingSettings
 import org.jetbrains.amper.frontend.schema.Repository.Companion.SpecialMavenLocalUrl
 import java.nio.file.Path
+import kotlin.io.path.div
 
 data class AmperModuleFileSource(val buildFile: Path) {
     /**
@@ -150,6 +151,24 @@ interface AmperModule {
      */
     val commonModuleNode: Module
 }
+
+/**
+ * All the commonized cinterop libraries for the module.
+ * The layout is dictated by the commonizer tool:
+ * ```
+ * "dir"/
+ *   - "(platform1; platform2)"
+ *     - "foo"/ **
+ *     - "bar"/ **
+ *   - "(platform1; platform2; platform3)"
+ *     - "foo"/ **
+ *   - "(platform4; platform5)"
+ *     - "baz"/ **
+ * ```
+ * Use the `asCommonizerTarget` API to get subdirectory names for the platform sets.
+ */
+fun AmperModule.commonizedCinteropLibrariesRoot(buildOutputRoot: Path): Path =
+    buildOutputRoot / "commonized" / userReadableName
 
 /**
  * Returns all fragments in this module that target at least the given set of [platforms].
