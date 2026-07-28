@@ -14,8 +14,10 @@ import com.github.ajalt.mordant.table.verticalLayout
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.ProgressBar
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,10 +27,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.jetbrains.amper.engine.RunTask
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskExecutor
 import org.jetbrains.amper.engine.TaskGraphExecutionListener
 import org.jetbrains.amper.engine.TaskName
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.min
 import kotlin.time.ComparableTimeMark
 import kotlin.time.Duration
@@ -63,42 +67,62 @@ class TaskProgressRenderer(
 
     private val platformProgressReporter = PlatformProgressReporter(terminal)
 
-    private val animationJob = coroutineScope.launch(Dispatchers.IO) {
-        val animation = terminal.animation<ProgressState> { state ->
-            createTasksProgressWidget(state)
+    private var animationJob = AtomicReference<Job?>(null)
+
+    init {
+        ensureAnimationStarted()
+    }
+
+    private fun ensureAnimationStarted() {
+        if (animationJob.get() != null) {
+            return
         }
 
-        terminal.cursor.hide(showOnExit = true)
-
-        launch {
-            while (true) {
-                updateElapsedTime()
-                delay(100.milliseconds)
+        val newJob = coroutineScope.launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
+            val animation = terminal.animation<ProgressState> { state ->
+                createTasksProgressWidget(state)
             }
-        }
 
-        val mutex = Mutex()
-        try {
-            progressStateFlow.debounce(30.milliseconds).collectLatest { snapshot ->
-                // animation code is single-threaded
-                mutex.withLock {
-                    animation.update(snapshot)
-                    platformProgressReporter.update(
-                        state = PlatformProgressReporter.Progress.Percentage(
-                            ratio = snapshot.completeTasksCount.toFloat() / totalTasksCount,
-                        )
-                    )
+            terminal.cursor.hide(showOnExit = true)
+
+            launch {
+                while (true) {
+                    updateElapsedTime()
+                    delay(100.milliseconds)
                 }
             }
-        } finally {
-            animation.clear()
-            terminal.cursor.show()
-            platformProgressReporter.update(PlatformProgressReporter.Progress.Hidden)
+
+            val mutex = Mutex()
+            try {
+                progressStateFlow.debounce(30.milliseconds).collectLatest { snapshot ->
+                    // animation code is single-threaded
+                    mutex.withLock {
+                        animation.update(snapshot)
+                        platformProgressReporter.update(
+                            state = PlatformProgressReporter.Progress.Percentage(
+                                ratio = snapshot.completeTasksCount.toFloat() / totalTasksCount,
+                            )
+                        )
+                    }
+                }
+            } finally {
+                animation.clear()
+                terminal.cursor.show()
+                platformProgressReporter.update(PlatformProgressReporter.Progress.Hidden)
+            }
+        }
+
+        if (animationJob.compareAndSet(null, newJob)) {
+            newJob.start()
         }
     }
 
+    private suspend fun ensureAnimationStopped() {
+        animationJob.getAndSet(null)?.cancelAndJoin()
+    }
+
     override suspend fun taskGraphExecutionFinished() {
-        animationJob.cancelAndJoin()
+        ensureAnimationStopped()
     }
 
     private fun createTasksProgressWidget(state: ProgressState): Widget = verticalLayout {
@@ -160,6 +184,13 @@ class TaskProgressRenderer(
     }
 
     override suspend fun taskStarted(task: Task): TaskGraphExecutionListener.TaskExecutionListener {
+        if (task is RunTask) {
+            // Quick-fix: before the `RunTask` implementors are properly refactored to not be tasks,
+            // we simply cancel the widget to not mess with the potentially interactive processes that are launched from
+            // the task.
+            ensureAnimationStopped()
+        }
+
         val job = coroutineScope.launch(Dispatchers.IO) {
             val newTaskEntry = TaskEntry(task, startTime = timeSource.markNow(), elapsed = Duration.ZERO)
             delay(200.milliseconds)
@@ -179,6 +210,11 @@ class TaskProgressRenderer(
                         taskEntries = current.taskEntries.filterNot { it.task === task },
                         completeTasksCount = current.completeTasksCount + 1,
                     )
+                }
+
+                if (task is RunTask) {
+                    // Restart animation once the run task is done (can be useful in hot reload scenarios)
+                    ensureAnimationStarted()
                 }
             }
         }
