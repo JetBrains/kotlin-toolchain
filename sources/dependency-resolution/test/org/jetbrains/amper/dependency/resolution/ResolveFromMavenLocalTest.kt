@@ -48,25 +48,24 @@ class ResolveFromMavenLocalTest : BaseDRTest() {
     fun `gradle variant artifact with custom artifact name resolves to correct file in MavenLocal`(testInfo: TestInfo) = runDrTest {
         val testCacheRoot = uniqueCacheRoot()
 
-        val resolutionException = runCatching {
-            checkLocalRepositoryUsage(
-                testInfo,
-                "foo:custom_name_in_gradle_variant:1.0".toMavenCoordinates(),
-                testCacheRoot,
-                filesThatShouldNotBeDownloaded = emptyList(),
-                filesThatMustBeDownloaded = emptyList(),
-                repositories = listOf(MAVEN_LOCAL),
-                initMavenLocalRepository = {
-                    val mavenLocal = MavenLocalRepository(testCacheRoot)
-                    val componentPath = mavenLocal.repository.resolve("foo/custom_name_in_gradle_variant/1.0")
-                    componentPath.createDirectories()
-                    val artifact = componentPath.resolve("custom_name_in_gradle_variant-1.0.jar")
-                    artifact.writeText("f")
-                    val pom = componentPath.resolve("custom_name_in_gradle_variant-1.0.pom")
-                    pom.writeText("do_not_remove: published-with-gradle-metadata")
-                    val moduleMetadata = componentPath.resolve("custom_name_in_gradle_variant-1.0.module")
-                    moduleMetadata.writeText(
-                        """
+        checkLocalRepositoryUsage(
+            testInfo,
+            "foo:custom_name_in_gradle_variant:1.0".toMavenCoordinates(),
+            testCacheRoot,
+            filesThatShouldNotBeDownloaded = emptyList(),
+            filesThatMustBeDownloaded = emptyList(),
+            repositories = listOf(MAVEN_LOCAL),
+            initMavenLocalRepository = {
+                val mavenLocal = MavenLocalRepository(testCacheRoot)
+                val componentPath = mavenLocal.repository.resolve("foo/custom_name_in_gradle_variant/1.0")
+                componentPath.createDirectories()
+                val artifact = componentPath.resolve("custom_name_in_gradle_variant-1.0.jar")
+                artifact.writeText("f")
+                val pom = componentPath.resolve("custom_name_in_gradle_variant-1.0.pom")
+                pom.writeText("do_not_remove: published-with-gradle-metadata")
+                val moduleMetadata = componentPath.resolve("custom_name_in_gradle_variant-1.0.module")
+                moduleMetadata.writeText(
+                    """
                         {
                           "formatVersion": "1.1",
                           "component": {
@@ -97,14 +96,11 @@ class ResolveFromMavenLocalTest : BaseDRTest() {
                         }
 
                     """.trimIndent()
-                    )
+                )
 
-                    mavenLocal
-                }
-            )
-        }.exceptionOrNull()!!
-
-        assertContains(resolutionException.message!!, "custom_name_in_gradle_variant-1.0.customName' was returned from dependency resolution, but is missing on disk")
+                mavenLocal
+            }
+        )
     }
 
     @Test

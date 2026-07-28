@@ -231,7 +231,7 @@ internal fun getDependencyFile(dependency: MavenDependencyImpl, file: File, isDo
     getDependencyFile(
         dependency,
         file.url.substringBeforeLast('.'),
-        file.name.substringAfterLast('.'),
+        file.url.substringAfterLast('.'),
         isDocumentation = isDocumentation
     )
 
