@@ -30,6 +30,7 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.moveTo
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
+import kotlin.test.assertContains
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -42,6 +43,69 @@ class ResolveFromMavenLocalTest : BaseDRTest() {
     lateinit var tmpDir: Path
 
     private fun uniqueCacheRoot() = (tmpDir / UUID.randomUUID().toString().substring(0, 8)).createDirectories()
+
+    @Test
+    fun `gradle variant artifact with custom artifact name resolves to correct file in MavenLocal`(testInfo: TestInfo) = runDrTest {
+        val testCacheRoot = uniqueCacheRoot()
+
+        val resolutionException = runCatching {
+            checkLocalRepositoryUsage(
+                testInfo,
+                "foo:custom_name_in_gradle_variant:1.0".toMavenCoordinates(),
+                testCacheRoot,
+                filesThatShouldNotBeDownloaded = emptyList(),
+                filesThatMustBeDownloaded = emptyList(),
+                repositories = listOf(MAVEN_LOCAL),
+                initMavenLocalRepository = {
+                    val mavenLocal = MavenLocalRepository(testCacheRoot)
+                    val componentPath = mavenLocal.repository.resolve("foo/custom_name_in_gradle_variant/1.0")
+                    componentPath.createDirectories()
+                    val artifact = componentPath.resolve("custom_name_in_gradle_variant-1.0.jar")
+                    artifact.writeText("f")
+                    val pom = componentPath.resolve("custom_name_in_gradle_variant-1.0.pom")
+                    pom.writeText("do_not_remove: published-with-gradle-metadata")
+                    val moduleMetadata = componentPath.resolve("custom_name_in_gradle_variant-1.0.module")
+                    moduleMetadata.writeText(
+                        """
+                        {
+                          "formatVersion": "1.1",
+                          "component": {
+                            "group": "foo",
+                            "module": "custom_name_in_gradle_variant",
+                            "version": "1.0"
+                          },
+                          "createdBy": {
+                            "gradle": {
+                              "version": "9.4.0"
+                            }
+                          },
+                          "variants": [
+                            {
+                              "name": "variantWithCustomFileName",
+                              "attributes": {
+                                "org.gradle.category": "library",
+                                "org.gradle.usage": "kotlin-api"
+                              },
+                              "files": [
+                                {
+                                  "name": "customName",
+                                  "url": "custom_name_in_gradle_variant-1.0.jar"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+
+                    """.trimIndent()
+                    )
+
+                    mavenLocal
+                }
+            )
+        }.exceptionOrNull()!!
+
+        assertContains(resolutionException.message!!, "custom_name_in_gradle_variant-1.0.customName' was returned from dependency resolution, but is missing on disk")
+    }
 
     @Test
     fun `release artifacts are resolved from mavenLocal`(testInfo: TestInfo) = runDrTest {
