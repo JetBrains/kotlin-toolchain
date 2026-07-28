@@ -1,0 +1,5 @@
+package = com.example.native
+---
+static int getCinteropAnswer(void) {
+  return 42;
+}

@@ -1,0 +1,6 @@
+product:
+  type: kmp/lib
+  platforms: [ macosArm64 ]
+
+dependencies:
+  - ..

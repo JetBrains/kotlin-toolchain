@@ -135,6 +135,8 @@ object Selectors {
 
     /**
      * From the [module] and its dependencies, which has [platform] and [isTest] matching.
+     *
+     * @param isTest
      */
     fun <T : CompilationScopedArtifact, Q : Quantifier.Multiple> fromModuleWithDependencies(
         type: KClass<T>,
@@ -163,9 +165,16 @@ object Selectors {
         return ArtifactSelector(
             type = ArtifactType(type),
             predicate = {
+                val matchesTestRequirement = if (it.module == module && includeSelf) {
+                    !it.isTest || isTest  // include main always, include test only when `isTest` is `true`
+                } else {
+                    // Never include test from dependencies
+                    !it.isTest
+                }
+
                 it.module in modules &&
                         it.platform == platform &&
-                        it.isTest == isTest &&
+                        matchesTestRequirement &&
                         additionalFilter(it)
             },
             description = "from module ${module.userReadableName} with platform $platform and its dependencies",
