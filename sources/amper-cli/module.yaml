@@ -13,12 +13,15 @@ repositories:
 dependencies:
   - //sources/amper-build-info
   - //sources/amper-compose-hot-reload
+  - //sources/amper-events
   - //sources/amper-jdk-provisioning
+  - //sources/amper-junit-event-protocol
   - //sources/amper-kotlin-native
   - //sources/amper-maven-converter
   - //sources/amper-maven-publish
   - //sources/amper-project-templates
   - //sources/amper-telemetry
+  - //sources/amper-test-events
   - //sources/amper-wrapper
   - //sources/core
   - //sources/core-intellij

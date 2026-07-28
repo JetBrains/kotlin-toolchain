@@ -7,7 +7,6 @@ apply:
   - //sources/used-in-user-tests.module-template.yaml
 
 dependencies:
+  - //sources/amper-junit-event-protocol
   - $libs.junit5.platform.engine: compile-only
   - $libs.junit5.platform.launcher: compile-only
-  - $libs.mordant
-  - $libs.teamcity.serviceMessages

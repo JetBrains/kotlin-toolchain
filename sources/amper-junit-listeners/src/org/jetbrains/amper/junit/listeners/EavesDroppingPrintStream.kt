@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.junit.listeners
@@ -63,10 +63,12 @@ internal class ThreadAwareEavesdroppingOutputStream<K>(
     private val onLinePrinted: (key: K, line: String) -> Unit,
 ) : FilterOutputStream(original) {
 
-    private val threadBuffers = ConcurrentHashMap<K, StringBuffer>() // not StringBuilder because we want thread safety
+    // Used when thread local key is `null`
+    private val unattributedThreadBuffer = ThreadLocal.withInitial(::StringBuffer)
+    private val threadBuffers = ConcurrentHashMap<K & Any, StringBuffer>() // not StringBuilder because we want thread safety
 
-    private fun getThreadBuffer(): StringBuffer? {
-        val key = threadLocalKey.get() ?: return null
+    private fun getThreadBuffer(): StringBuffer {
+        val key = threadLocalKey.get() ?: return unattributedThreadBuffer.get()
         return threadBuffers.computeIfAbsent(key) { StringBuffer() }
     }
 
@@ -74,21 +76,21 @@ internal class ThreadAwareEavesdroppingOutputStream<K>(
         if (forwardToOriginalStream) {
             original.write(buf, off, len)
         }
-        getThreadBuffer()?.append(String(buf, off, len))
+        getThreadBuffer().append(String(buf, off, len))
     }
 
     override fun write(b: Int) {
         if (forwardToOriginalStream) {
             original.write(b)
         }
-        getThreadBuffer()?.append(b.toChar().toString())
+        getThreadBuffer().append(b.toChar().toString())
     }
 
     override fun flush() {
         if (forwardToOriginalStream) {
             original.flush()
         }
-        val buffer = getThreadBuffer() ?: return
+        val buffer = getThreadBuffer()
         if (allowPartialLineFlush || buffer.endsWith("\n")) {
             sendAndClearBuffer()
         }
@@ -105,7 +107,7 @@ internal class ThreadAwareEavesdroppingOutputStream<K>(
     }
 
     private fun sendAndClearBuffer() {
-        val buffer = getThreadBuffer() ?: return
+        val buffer = getThreadBuffer()
         val text = buffer.toString()
         if (text.isEmpty()) return
         onLinePrinted(threadLocalKey.get(), text)

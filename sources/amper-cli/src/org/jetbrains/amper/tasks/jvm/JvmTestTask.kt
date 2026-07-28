@@ -23,7 +23,6 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.jvm.getJdkOrUserError
 import org.jetbrains.amper.processes.ArgsMode
-import org.jetbrains.amper.processes.PrintToTerminalProcessOutputListener
 import org.jetbrains.amper.processes.runJava
 import org.jetbrains.amper.stdlib.io.path.clean
 import org.jetbrains.amper.tasks.EmptyTaskResult
@@ -36,6 +35,8 @@ import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.test.FilterMode
+import org.jetbrains.amper.test.PrettyRenderer
+import org.jetbrains.amper.test.TeamCityRenderer
 import org.jetbrains.amper.test.TestFilter
 import org.jetbrains.amper.test.wildcardsToRegex
 import org.jetbrains.amper.util.BuildType
@@ -137,20 +138,6 @@ class JvmTestTask(
         val jvmArgs = buildList {
             add("-ea")
 
-            if (runSettings.testResultsFormat == TestResultsFormat.Pretty) {
-                add("-Dorg.jetbrains.amper.junit.listener.console.enabled=true")
-                // We don't use inherited IO when starting the test launcher process, so the Mordant Terminal library
-                // inside the test launcher cannot detect the supported features of the current console.
-                // This is why we currently just "transfer" the detected features via CLI arguments.
-                // Using ProcessBuilder.inheritIO() would make any auto-detection in the test launcher work, but then the
-                // test launcher output doesn't mix well with our task progress renderer.
-                add("-Dorg.jetbrains.amper.junit.listener.console.ansiLevel=${terminal.terminalInfo.ansiLevel}")
-                add("-Dorg.jetbrains.amper.junit.listener.console.ansiHyperlinks=${terminal.terminalInfo.ansiHyperLinks}")
-            }
-            if (runSettings.testResultsFormat == TestResultsFormat.TeamCity) {
-                add("-Dorg.jetbrains.amper.junit.listener.teamcity.enabled=true")
-            }
-
             // The JUnit Vintage engine (used to run JUnit 4 tests) is deprecated since JUnit Platform 6.0.0.
             // The built-in warning about this inside the JUnit Platform is not user-friendly (it talks about the JUnit
             // Vintage engine, which users shouldn't have to know about). Instead, if we want to warn users about this,
@@ -178,7 +165,11 @@ class JvmTestTask(
         // some cases it is harmful. It is loaded in a separate class loader that is closed at the end of the tests,
         // but before the test JVM shuts down. If the user code uses shutdown hooks (e.g., in testcontainers), they
         // would not be able to load user classes anymore because of this.
-        val testJvmClasspath = listOf(junitConsole) + amperJUnitListenersJars + userTestRuntimeClasspath
+        val testJvmClasspath = buildList {
+            add(junitConsole)
+            addAll(amperJUnitListenersJars)
+            addAll(userTestRuntimeClasspath)
+        }
 
         // TODO should be customizable?
         // There is no way of knowing what the working dir should be for generated/unresolved test modules,
@@ -208,10 +199,15 @@ class JvmTestTask(
                     argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
                     jvmArgs = finalJvmArgs,
                     environment = environment,
-                    outputListener = PrintToTerminalProcessOutputListener(terminal),
+                    outputListener = StructuredJUnitProcessOutputListener(
+                        renderer = when (runSettings.testResultsFormat) {
+                            TestResultsFormat.Pretty -> PrettyRenderer(terminal)
+                            TestResultsFormat.TeamCity -> TeamCityRenderer(terminal)
+                        },
+                    ),
                 )
 
-                // TODO exit code from junit launcher should be carefully become some kind of exit code for entire Amper run
+                // TODO exit code from JUnit launcher should be carefully become some kind of exit code for entire Amper run
                 //  + one more interesting case: if we reported some failed tests to TeamCity, exit code of Amper should be 0,
                 //  since the build will be failed anyway and it'll just have one more useless build failure about exit code
                 if (result.exitCode != 0) {
@@ -264,7 +260,7 @@ class JvmTestTask(
     private fun TestFilter.SpecificTestInclude.toJUnitSelectArgument(): String {
         // Note: using --select=nested-method:com.example.Enclosing/Nested.myTest as specified in the docs doesn't
         // work, but using the plain --select-method with a $ sign to separate the nested class works fine...
-        val nestedClassSuffix = if (nestedClassName != null) "\$$nestedClassName" else ""
+        val nestedClassSuffix = if (nestedClassName != null) "$$nestedClassName" else ""
         val paramsList = if (paramTypes != null) "(${paramTypes.joinToString(",")})" else ""
         return "--select-method=$suiteFqn$nestedClassSuffix#$testName$paramsList"
     }

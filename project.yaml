@@ -13,7 +13,9 @@ modules:
   - sources/amper-build-info
   - sources/amper-cli
   - sources/amper-compose-hot-reload
+  - sources/amper-events
   - sources/amper-jdk-provisioning
+  - sources/amper-junit-event-protocol
   - sources/amper-junit-listeners
   - sources/amper-kotlin-native
   - sources/amper-libraries-for-idea
@@ -25,6 +27,7 @@ modules:
   - sources/amper-project-templates
   - sources/amper-project-templates/amper-project-template-resources
   - sources/amper-telemetry
+  - sources/amper-test-events
   - sources/amper-wrapper
   - sources/android-integration/amper-android-gradle-api
   - sources/android-integration/amper-android-gradle-plugin

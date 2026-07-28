@@ -1,0 +1,15 @@
+product: jvm/lib
+
+description: Structured test-reporting events for the Kotlin Toolchain.
+
+apply:
+  - //sources/common.module-template.yaml
+  - //sources/used-in-idea.module-template.yaml
+
+dependencies:
+  - //sources/amper-events
+  - //sources/libraries/serialization-extended
+
+settings:
+  kotlin:
+    serialization: enabled

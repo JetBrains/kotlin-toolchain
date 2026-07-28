@@ -5,17 +5,14 @@
 package org.jetbrains.amper.cli.test
 
 import jetbrains.buildServer.messages.serviceMessages.ServiceMessage
+import jetbrains.buildServer.messages.serviceMessages.TestStdErr
+import jetbrains.buildServer.messages.serviceMessages.TestStdOut
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.buildServiceMessages
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.junit.jupiter.api.condition.OS
 import kotlin.test.Test
-
-/**
- * New line character for the current OS.
- */
-private val NL = System.lineSeparator()
 
 /**
  * TeamCity-encoded new line for the current OS.
@@ -113,7 +110,14 @@ class AmperTestFormatTest : AmperCliTestBase() {
                     }
                 }
             }
-            assertServiceMessagesEqual(expectedMessages, serviceMessages)
+            // TODO: JUnit Launcher has no way to disable summary in case of failures.
+            //  Thus, we simply ignore unattributed messages for the sake of this test. Later, when we have our own
+            //  launcher this filtering can be removed.
+            val actualMessagesWithoutSummary = serviceMessages.filterNot {
+                (it is TestStdOut || it is TestStdErr) && it.testName.isBlank()
+            }
+
+            assertServiceMessagesEqual(expectedMessages, actualMessagesWithoutSummary)
         }
     }
 
@@ -144,13 +148,9 @@ class AmperTestFormatTest : AmperCliTestBase() {
                             locationHint = "java:test://com.example.jvmcli.JvmIntegrationTest/integrationTest"
                         ) {
                             testStdOut("output line 1 in JvmIntegrationTest.integrationTest")
-                            testStdOut(NL)
                             testStdErr("error line 1 in JvmIntegrationTest.integrationTest")
-                            testStdErr(NL)
                             testStdOut("output line 2 in JvmIntegrationTest.integrationTest")
-                            testStdOut(NL)
                             testStdErr("error line 2 in JvmIntegrationTest.integrationTest")
-                            testStdErr(NL)
                         }
                     }
                     suiteWithFlow(
@@ -164,7 +164,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                             locationHint = "java:test://com.example.jvmcli.MyClass1Test/test1"
                         ) {
                             testStdOut("running MyClass1Test.test1")
-                            testStdOut(NL)
                         }
                         testWithFlow(
                             name = "com.example.jvmcli.OrderedTestSuite: com.example.jvmcli.com.example.jvmcli.MyClass1Test: com.example.jvmcli.MyClass1Test.test2",
@@ -172,7 +171,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                             locationHint = "java:test://com.example.jvmcli.MyClass1Test/test2"
                         ) {
                             testStdOut("running MyClass1Test.test2")
-                            testStdOut(NL)
                         }
                         testWithFlow(
                             name = "com.example.jvmcli.OrderedTestSuite: com.example.jvmcli.com.example.jvmcli.MyClass1Test: com.example.jvmcli.MyClass1Test.test3",
@@ -180,7 +178,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                             locationHint = "java:test://com.example.jvmcli.MyClass1Test/test3"
                         ) {
                             testStdOut("running MyClass1Test.test3")
-                            testStdOut(NL)
                         }
                     }
                     suiteWithFlow(
@@ -194,7 +191,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                             locationHint = "java:test://com.example.jvmcli.MyClass2Test/test1"
                         ) {
                             testStdOut("running MyClass2Test.test1")
-                            testStdOut(NL)
                         }
                         testWithFlow(
                             name = "com.example.jvmcli.OrderedTestSuite: com.example.jvmcli.com.example.jvmcli.MyClass2Test: com.example.jvmcli.MyClass2Test.test2",
@@ -202,7 +198,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                             locationHint = "java:test://com.example.jvmcli.MyClass2Test/test2"
                         ) {
                             testStdOut("running MyClass2Test.test2")
-                            testStdOut(NL)
                         }
                         testWithFlow(
                             name = "com.example.jvmcli.OrderedTestSuite: com.example.jvmcli.com.example.jvmcli.MyClass2Test: com.example.jvmcli.MyClass2Test.test3",
@@ -210,7 +205,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                             locationHint = "java:test://com.example.jvmcli.MyClass2Test/test3"
                         ) {
                             testStdOut("running MyClass2Test.test3")
-                            testStdOut(NL)
                         }
                     }
                 }
@@ -253,7 +247,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                         locationHint = "java:test://com.example.testswithparams.OverloadsTest/test",
                     ) {
                         testStdOut("running OverloadsTest.test()")
-                        testStdOut(NL)
                     }
                     testWithFlow(
                         name = "com.example.testswithparams.OverloadsTest: com.example.testswithparams.OverloadsTest.test(TestInfo)",
@@ -261,7 +254,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                         locationHint = "java:test://com.example.testswithparams.OverloadsTest/test[org.junit.jupiter.api.TestInfo]",
                     ) {
                         testStdOut("running OverloadsTest.test(TestInfo)")
-                        testStdOut(NL)
                     }
                     testWithFlow(
                         name = "com.example.testswithparams.OverloadsTest: com.example.testswithparams.OverloadsTest.test(TestInfo, TestReporter)",
@@ -269,7 +261,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                         locationHint = "java:test://com.example.testswithparams.OverloadsTest/test[org.junit.jupiter.api.TestInfo, org.junit.jupiter.api.TestReporter]",
                     ) {
                         testStdOut("running OverloadsTest.test(TestInfo, TestReporter)")
-                        testStdOut(NL)
                     }
                 }
             }
@@ -299,7 +290,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                             locationHint = "java:test://GeneratorTest/testFactory",
                         ) {
                             testStdOut("running generated test with 0")
-                            testStdOut(NL)
                         }
                         testWithFlow(
                             name = "GeneratorTest: GeneratorTest.testFactory(): GeneratorTest.Generated number is 1",
@@ -307,7 +297,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                             locationHint = "java:test://GeneratorTest/testFactory",
                         ) {
                             testStdOut("running generated test with 1")
-                            testStdOut(NL)
                         }
                         testWithFlow(
                             name = "GeneratorTest: GeneratorTest.testFactory(): GeneratorTest.Generated number is 2",
@@ -315,7 +304,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                             locationHint = "java:test://GeneratorTest/testFactory",
                         ) {
                             testStdOut("running generated test with 2")
-                            testStdOut(NL)
                         }
                     }
                 }
@@ -341,7 +329,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                         locationHint = "java:test://AbortedTest/assumeWithoutMessage",
                     ) {
                         testStdOut("running assume without message")
-                        testStdOut(NL)
                         testIgnored("Assumption failed: assumption is not true")
                     }
                     testWithFlow(
@@ -350,7 +337,6 @@ class AmperTestFormatTest : AmperCliTestBase() {
                         locationHint = "java:test://AbortedTest/assumeWithMessage",
                     ) {
                         testStdOut("running assume with message")
-                        testStdOut(NL)
                         testIgnored("Assumption failed: 1 is not equal to 2 in this universe")
                     }
                 }

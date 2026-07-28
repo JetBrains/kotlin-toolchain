@@ -1,0 +1,7 @@
+product: jvm/lib
+
+description: Dependency-free protocol used for passing JUnit events to the CLI.
+
+apply:
+  - //sources/common.module-template.yaml
+  - //sources/used-in-user-tests.module-template.yaml
