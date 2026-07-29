@@ -1,0 +1,23 @@
+product: jvm/lib
+
+description: SwiftPM dependencies models
+
+apply:
+  - //sources/common.module-template.yaml
+  # Because also consumed in frontend-api
+  - //sources/used-in-gradle.module-template.yaml
+  - //sources/used-in-idea.module-template.yaml
+  - //sources/used-in-kotlin-notebook.module-template.yaml
+
+dependencies:
+  - $libs.kotlinx.coroutines.core
+  - ../libraries/serialization-extended
+
+settings:
+  kotlin:
+    serialization: json
+  publishing:
+    enabled: true
+  jvm:
+    # Notebooks
+    release: 11

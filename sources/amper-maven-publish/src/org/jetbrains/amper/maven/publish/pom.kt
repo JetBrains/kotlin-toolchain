@@ -15,10 +15,12 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.BomDependency
 import org.jetbrains.amper.frontend.DefaultScopedNotation
 import org.jetbrains.amper.frontend.LocalModuleDependency
+import org.jetbrains.amper.frontend.LocalSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.MavenDependency
 import org.jetbrains.amper.frontend.MavenDependencyBase
 import org.jetbrains.amper.frontend.Notation
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.RemoteSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.ancestralPath
 import org.jetbrains.amper.frontend.dr.resolver.toDrMavenCoordinates
 import org.jetbrains.amper.frontend.schema.DeveloperInfo
@@ -105,8 +107,8 @@ private fun getDependencies(
             .flatMap { it.externalDependencies }
             .distinct()
             .partition { it is BomDependency }
-        val bomPomDependencies = bomDependencies.map { it.toPomDependency(platform, publicationCoordsOverrides) }
-        val regularPomDependencies = regularDependencies.map { it.toPomDependency(platform, publicationCoordsOverrides) }
+        val bomPomDependencies = bomDependencies.mapNotNull { it.toPomDependency(platform, publicationCoordsOverrides) }
+        val regularPomDependencies = regularDependencies.mapNotNull { it.toPomDependency(platform, publicationCoordsOverrides) }
 
         val dependencyManagement = if (bomDependencies.isNotEmpty()) {
             DependencyManagement().apply { dependencies.addAll(bomPomDependencies) }
@@ -194,9 +196,11 @@ private fun DeveloperInfo.toMavenDeveloper(): Developer = Developer().apply {
 private fun Notation.toPomDependency(
     platform: Platform,
     publicationCoordsOverrides: PublicationCoordinatesOverrides,
-): Dependency = when (this) {
+): Dependency? = when (this) {
     is MavenDependencyBase -> toPomDependency(platform, publicationCoordsOverrides)
     is LocalModuleDependency -> toPomDependency(platform)
+    is LocalSwiftPMDependencyNotation,
+    is RemoteSwiftPMDependencyNotation -> null
     is DefaultScopedNotation -> error("Dependency type ${this::class.simpleName} is not supported for pom.xml publication")
 }
 

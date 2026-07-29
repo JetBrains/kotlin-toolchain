@@ -13,6 +13,7 @@ dependencies:
   - //sources/core: exported
   - //sources/extensibility/amper-extensibility-schema-model: exported
   - //sources/libraries/stdlib-extended
+  - //sources/amper-swift-pm-resolution-model
   - $libs.intellij.platform.core
   - $libs.intellij.platform.util
   - $libs.maven.artifact

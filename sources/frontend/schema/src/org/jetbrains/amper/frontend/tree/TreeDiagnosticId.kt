@@ -62,4 +62,5 @@ enum class TreeDiagnosticId : DiagnosticId {
     MavenCoordinatesShouldBuildValidPath,
     MissingTaskActionType,
     WrongDependencyFormat,
+    SwiftPMDependencyIsNotSupported,
 }

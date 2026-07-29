@@ -23,6 +23,7 @@ plugins:
 dependencies:
   - //sources/amper-build-info
   - //sources/amper-problem-reporting: exported
+  - //sources/amper-swift-pm-resolution-model
   - //sources/amper-telemetry
   - //sources/frontend-api: exported
   - //sources/extensibility/amper-extensibility-schema-model: exported

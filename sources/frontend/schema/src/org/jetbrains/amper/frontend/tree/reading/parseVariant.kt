@@ -12,7 +12,9 @@ import org.jetbrains.amper.frontend.tree.reading.DependencyTypeInferenceResult.B
 import org.jetbrains.amper.frontend.tree.reading.DependencyTypeInferenceResult.Catalog
 import org.jetbrains.amper.frontend.tree.reading.DependencyTypeInferenceResult.Failed
 import org.jetbrains.amper.frontend.tree.reading.DependencyTypeInferenceResult.Local
+import org.jetbrains.amper.frontend.tree.reading.DependencyTypeInferenceResult.LocalSwiftPackage
 import org.jetbrains.amper.frontend.tree.reading.DependencyTypeInferenceResult.Maven
+import org.jetbrains.amper.frontend.tree.reading.DependencyTypeInferenceResult.SwiftPackage
 import org.jetbrains.amper.frontend.types.SchemaObjectDeclaration
 import org.jetbrains.amper.frontend.types.SchemaType
 import org.jetbrains.amper.frontend.types.SchemaVariantDeclaration
@@ -32,6 +34,8 @@ internal fun parseVariant(
     // Do not parse directly, delegate to another branch for composability and DRY
     DeclarationOfVariantDependency -> when (inferDependencyType(value, isScoped = true)) {
         Bom -> parseObject(value, type.checkSubType(DeclarationOfBomDependency))
+        LocalSwiftPackage -> parseObject(value, type.checkSubType(DeclarationOfLocalSwiftPMDependencySchema))
+        SwiftPackage -> parseObject(value, type.checkSubType(DeclarationOfRemoteSwiftPMDependencySchema))
         Failed -> {
             reportParsing(
                 value,
@@ -51,6 +55,14 @@ internal fun parseVariant(
             reportParsing(value, TreeDiagnosticId.BomIsNotSupported, "unexpected.bom")
             errorNode(value, type)
         }
+        LocalSwiftPackage -> {
+            reportParsing(value, TreeDiagnosticId.SwiftPMDependencyIsNotSupported, "unexpected.swift.package")
+            errorNode(value, type)
+        }
+        SwiftPackage -> {
+            reportParsing(value, TreeDiagnosticId.SwiftPMDependencyIsNotSupported, "unexpected.swift.package")
+            errorNode(value, type)
+        }
         Failed -> {
             reportParsing(
                 value,
@@ -66,6 +78,14 @@ internal fun parseVariant(
         // Do not parse directly, delegate to another branch for composability and DRY
         Maven, Catalog -> parseVariant(value, type.checkSubType(DeclarationOfVariantUnscopedExternalDependency))
         Bom -> parseObject(value, type.checkSubType(DeclarationOfUnscopedBomDependency))
+        LocalSwiftPackage -> {
+            reportParsing(value, TreeDiagnosticId.SwiftPMDependencyIsNotSupported, "unexpected.swift.package")
+            errorNode(value, type)
+        }
+        SwiftPackage -> {
+            reportParsing(value, TreeDiagnosticId.SwiftPMDependencyIsNotSupported, "unexpected.swift.package")
+            errorNode(value, type)
+        }
         Failed -> {
             reportParsing(
                 value,
@@ -87,6 +107,14 @@ internal fun parseVariant(
             reportParsing(value, TreeDiagnosticId.BomIsNotSupported, "unexpected.bom")
             errorNode(value, type)
         }
+        LocalSwiftPackage -> {
+            reportParsing(value, TreeDiagnosticId.SwiftPMDependencyIsNotSupported, "unexpected.swift.package")
+            errorNode(value, type)
+        }
+        SwiftPackage -> {
+            reportParsing(value, TreeDiagnosticId.SwiftPMDependencyIsNotSupported, "unexpected.swift.package")
+            errorNode(value, type)
+        }
         Failed -> {
             reportParsing(
                 value,
@@ -103,6 +131,14 @@ internal fun parseVariant(
         Maven -> parseObject(value, type.checkSubType(DeclarationOfShadowDependencyMaven))
         Bom -> {
             reportParsing(value, TreeDiagnosticId.BomIsNotSupported, "unexpected.bom")
+            errorNode(value, type)
+        }
+        LocalSwiftPackage -> {
+            reportParsing(value, TreeDiagnosticId.SwiftPMDependencyIsNotSupported, "unexpected.swift.package")
+            errorNode(value, type)
+        }
+        SwiftPackage -> {
+            reportParsing(value, TreeDiagnosticId.SwiftPMDependencyIsNotSupported, "unexpected.swift.package")
             errorNode(value, type)
         }
         Failed -> {
@@ -160,6 +196,12 @@ internal enum class DependencyTypeInferenceResult {
     /** has a single 'bom' property **/
     Bom,
 
+    /** Swift package on the file system **/
+    LocalSwiftPackage,
+
+    /** Swift package from a repository or a Swift Package Registry **/
+    SwiftPackage,
+
     /** type inference is failed - the value has no chance to be correctly parsed as any type */
     Failed,
 }
@@ -197,7 +239,11 @@ private fun inferDependencyTypeFromStringKey(keyText: String) = when (keyText.fi
     '$' -> Catalog
     '.' -> Local
     '/' -> Local
-    else -> Maven
+    else -> when (keyText) {
+        "localSwiftPackage" -> LocalSwiftPackage
+        "swiftPackage" -> SwiftPackage
+        else -> Maven
+    }
 }
 
 private fun SchemaType.VariantType.checkSubType(leaf: SchemaObjectDeclaration): SchemaType.ObjectType {

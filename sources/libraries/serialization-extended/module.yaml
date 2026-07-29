@@ -7,6 +7,7 @@ apply:
   - //sources/used-in-gradle.module-template.yaml
   - //sources/used-in-idea.module-template.yaml
   - //sources/used-in-jic.module-template.yaml
+  - //sources/used-in-kotlin-notebook.module-template.yaml
 
 settings:
   kotlin:
