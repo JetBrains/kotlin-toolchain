@@ -22,6 +22,7 @@ dependencies:
   - //sources/libraries/telemetry
   - //sources/libraries/incremental-cache
   - //sources/libraries/maven-central-configuration
+  - //sources/libraries/serialization-extended
   - $libs.slf4j.api
   - $libs.intellij.platform.util
 

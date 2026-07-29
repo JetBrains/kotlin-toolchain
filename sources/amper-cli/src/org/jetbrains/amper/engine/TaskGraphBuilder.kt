@@ -64,7 +64,7 @@ class TaskGraphBuilder {
             valueTransform = { [_, task] -> task },
         ).forEach { [path, tasks] ->
             if (tasks.size > 1) {
-                error("Artifact with $path is built by multiple tasks: ${tasks.map { it.taskName }}")
+                error("Artifact with $path is built by multiple tasks: ${tasks.map { it.taskName.id }}")
             }
         }
 

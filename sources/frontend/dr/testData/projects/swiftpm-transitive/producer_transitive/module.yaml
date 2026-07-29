@@ -1,0 +1,13 @@
+product:
+  type: kmp/lib
+  platforms: [iosSimulatorArm64, iosArm64, iosX64, macosArm64]
+dependencies:
+  - localSwiftPackage:
+      absolutePath: "/foo/transitive"
+      products:
+        - name: transitive
+dependencies@ios:
+  - localSwiftPackage:
+      absolutePath: "/foo/transitive_ios"
+      products:
+        - name: ios

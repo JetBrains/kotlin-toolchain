@@ -1,0 +1,17 @@
+product:
+  type: kmp/lib
+  platforms: [ iosSimulatorArm64, iosArm64 ]
+
+dependencies:
+  - swiftPackage:
+      repository:
+        value: "https://foo/bar/first.git"
+      version:
+        value: "1.0.0"
+      products: [ "product" ]
+  - swiftPackage:
+      repository:
+        value: "https://foo/bar/second.git"
+      version:
+        value: "1.0.0"
+      products: [ "product" ]

@@ -1,0 +1,7 @@
+product: ios/app
+
+dependencies:
+  - "foo:kgp_swiftpm_publication:1.0"
+
+repositories:
+  - mavenLocal

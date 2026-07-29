@@ -112,6 +112,12 @@ open class CinteropDefFileArtifact(
     override val conventionPath: Path? = null,
 ) : FragmentScopedArtifact(buildOutputRoot, fragment)
 
+class KotlinNativeLinkerArgumentsArtifact(
+    buildOutputRoot: AmperBuildOutputRoot,
+    fragment: Fragment,
+    override val conventionPath: Path? = null,
+) : FragmentScopedArtifact(buildOutputRoot, fragment)
+
 /**
  * All the commonized cinterop libraries for the [module].
  * The layout is dictated by the commonizer tool:

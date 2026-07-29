@@ -23,7 +23,7 @@ import kotlin.io.path.deleteIfExists
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
 
-internal class XCodeIntegrationCommand : AmperProjectAwareCommand(name = "xcode-integration") {
+internal class XCodeIntegrationCommand : AmperProjectAwareCommand(name = COMMAND_NAME) {
 
     private val env: Map<String, String> = System.getenv()
 
@@ -119,6 +119,10 @@ internal class XCodeIntegrationCommand : AmperProjectAwareCommand(name = "xcode-
         return env[name] ?: userReadableError(
             "Invalid environment: missing xcode variable `$name`"
         )
+    }
+
+    companion object {
+        const val COMMAND_NAME = "xcode-integration"
     }
 }
 

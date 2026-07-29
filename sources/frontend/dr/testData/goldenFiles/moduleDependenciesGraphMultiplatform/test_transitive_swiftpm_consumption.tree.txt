@@ -1,0 +1,197 @@
+Module consumer
+│ - main
+│ - scope = COMPILE
+│ - platforms = [iosArm64, iosSimulatorArm64, iosX64]
+├─── Module producer_direct
+├─── consumer:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+╰─── consumer:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+Module consumer
+│ - main
+│ - scope = COMPILE
+│ - platforms = [iosArm64]
+├─── Module producer_direct
+├─── consumer:iosArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+╰─── consumer:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+Module consumer
+│ - main
+│ - scope = COMPILE
+│ - platforms = [iosSimulatorArm64]
+├─── Module producer_direct
+├─── consumer:iosSimulatorArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+╰─── consumer:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+Module consumer
+│ - main
+│ - scope = COMPILE
+│ - platforms = [iosX64]
+├─── Module producer_direct
+├─── consumer:iosX64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+╰─── consumer:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+Module consumer
+│ - test
+│ - scope = COMPILE
+│ - platforms = [iosArm64]
+├─── Module producer_direct
+├─── consumer:iosArm64Test:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosArm64Test:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:iosArm64Test:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion
+│         ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+╰─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+Module consumer
+│ - test
+│ - scope = COMPILE
+│ - platforms = [iosSimulatorArm64]
+├─── Module producer_direct
+├─── consumer:iosSimulatorArm64Test:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosSimulatorArm64Test:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:iosSimulatorArm64Test:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion
+│         ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+╰─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+Module consumer
+│ - test
+│ - scope = COMPILE
+│ - platforms = [iosArm64, iosSimulatorArm64, iosX64]
+├─── Module producer_direct
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+│         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion
+│         ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion (*)
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion (*)
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion (*)
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion (*)
+╰─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+Module consumer
+│ - test
+│ - scope = COMPILE
+│ - platforms = [iosX64]
+├─── Module producer_direct
+├─── consumer:iosX64Test:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosX64Test:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:iosX64Test:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion
+│         ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+╰─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)

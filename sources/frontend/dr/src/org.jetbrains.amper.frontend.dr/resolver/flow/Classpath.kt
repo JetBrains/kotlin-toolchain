@@ -13,14 +13,17 @@ import org.jetbrains.amper.frontend.BomDependency
 import org.jetbrains.amper.frontend.DefaultScopedNotation
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.LocalModuleDependency
+import org.jetbrains.amper.frontend.LocalSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.MavenDependency
 import org.jetbrains.amper.frontend.MavenDependencyBase
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.RemoteSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings
 import org.jetbrains.amper.frontend.dr.resolver.DependenciesFlowType
 import org.jetbrains.amper.frontend.dr.resolver.DependencyNodeHolderWithNotationAndContext
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencyNodeWithModuleAndContext
+import org.jetbrains.amper.frontend.dr.resolver.swiftpm.getOrCreateSwiftPMDependencyNodeFromAmperModule
 import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.fragmentsToDependOnFromOtherModuleFragmentWith
 
@@ -163,6 +166,29 @@ internal class Classpath(
                             } else null
                         } else null
                     }
+
+                    is LocalSwiftPMDependencyNotation -> if (resolutionSettings.includeSwiftPMDependencies) {
+                        getOrCreateSwiftPMDependencyNodeFromAmperModule(
+                            sharedResolutionCache = sharedResolutionCache,
+                            module = module,
+                            swiftPMDependency = dependency.swiftPMDependency,
+                            // swiftPMDependencyDeclarationIndex = index,
+                            platformQualifier = dependency.platformQualifier,
+                            notation = dependency,
+                            templateContext = moduleContext,
+                        )
+                    } else null
+                    is RemoteSwiftPMDependencyNotation -> if (resolutionSettings.includeSwiftPMDependencies) {
+                        getOrCreateSwiftPMDependencyNodeFromAmperModule(
+                            sharedResolutionCache = sharedResolutionCache,
+                            module = module,
+                            swiftPMDependency = dependency.swiftPMDependency,
+                            // swiftPMDependencyDeclarationIndex = index,
+                            platformQualifier = name,
+                            notation = dependency,
+                            templateContext = moduleContext,
+                        )
+                    } else null
 
                     is DefaultScopedNotation -> error(
                         "Unsupported dependency type: '$dependency' " +

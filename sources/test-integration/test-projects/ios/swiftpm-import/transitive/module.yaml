@@ -1,0 +1,8 @@
+product:
+  type: kmp/lib
+  platforms: [iosSimulatorArm64, iosArm64, jvm]
+
+dependencies:
+  - localSwiftPackage:
+      path: "packageDependency"
+      products: ["packageProduct"]

@@ -15,10 +15,12 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.BomDependency
 import org.jetbrains.amper.frontend.DefaultScopedNotation
 import org.jetbrains.amper.frontend.LocalModuleDependency
+import org.jetbrains.amper.frontend.LocalSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.MavenDependency
 import org.jetbrains.amper.frontend.MavenDependencyBase
 import org.jetbrains.amper.frontend.Notation
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.RemoteSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.ancestralPath
 import org.jetbrains.amper.frontend.dr.resolver.toDrMavenCoordinates
 import org.jetbrains.amper.frontend.schema.DeveloperInfo
@@ -151,6 +153,8 @@ private fun Notation.toPomDependency(
 ): Dependency = when (this) {
     is MavenDependencyBase -> toPomDependency(publicationCoordsOverrides)
     is LocalModuleDependency -> toPomDependency(platform)
+    is LocalSwiftPMDependencyNotation,
+    is RemoteSwiftPMDependencyNotation,
     is DefaultScopedNotation -> error("Dependency type ${this::class.simpleName} is not supported for pom.xml publication")
 }
 

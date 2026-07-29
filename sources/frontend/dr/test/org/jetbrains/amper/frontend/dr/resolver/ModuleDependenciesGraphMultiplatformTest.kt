@@ -34,6 +34,24 @@ class ModuleDependenciesGraphMultiplatformTest : BaseModuleDrTest() {
     override val testGoldenFilesRoot: Path = super.testGoldenFilesRoot / "moduleDependenciesGraphMultiplatform"
 
     @Test
+    fun `test transitive swiftpm consumption`(testInfo: TestInfo) = runSlowModuleDependenciesTest {
+        val aom = getTestProjectModel("swiftpm-transitive", testDataRoot)
+        val deps = doTestByFile(
+            testInfo,
+            aom,
+            ideSyncTestResolutionInput.copy(
+                resolutionSettings = ideSyncTestResolutionInput.resolutionSettings.copy(
+                    includeSwiftPMDependencies = true,
+                    includeNonExportedNative = true,
+                )
+            ),
+            module = "consumer",
+            filter = ideSyncModuleResolutionFilter.copy(scope = ResolutionScope.COMPILE)
+        )
+        println(deps)
+    }
+
+    @Test
     fun `test sync empty jvm module`(testInfo: TestInfo) = runSlowModuleDependenciesTest {
         val aom = getTestProjectModel("jvm-empty", testDataRoot)
 

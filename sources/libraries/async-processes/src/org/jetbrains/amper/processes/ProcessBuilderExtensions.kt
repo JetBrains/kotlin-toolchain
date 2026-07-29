@@ -128,7 +128,7 @@ internal suspend fun ProcessBuilder.runAndCaptureOutput(
  *
  * @return the exit code of the process
  */
-internal suspend fun ProcessBuilder.run(
+suspend fun ProcessBuilder.run(
     outputListener: ProcessOutputListener,
     input: ProcessInput = ProcessInput.Empty,
     onStart: (pid: Long) -> Unit = {},

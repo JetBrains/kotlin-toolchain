@@ -55,17 +55,17 @@ up_to_date_file="$script_dir/build/up-to-date-from-sources-wrapper.txt"
 current="$(current_state)"
 if [ ! -f "$up_to_date_file" ] || [ "$(cat "$up_to_date_file")" != "$current" ]; then
   use_alt_screen=0
-  cleanup() {
-    if [ "$use_alt_screen" -eq 1 ]; then
-      tput rmcup
-    fi
-  }
-  if [ -n "${TERM:-}" ] && tput smcup >/dev/null 2>&1; then
-      tput smcup
-      tput clear
-      use_alt_screen=1
-      trap cleanup EXIT INT TERM
-  fi
+#  cleanup() {
+#    if [ "$use_alt_screen" -eq 1 ]; then
+#      tput rmcup
+#    fi
+#  }
+#  if [ -n "${TERM:-}" ] && tput smcup >/dev/null 2>&1; then
+#      tput smcup
+#      tput clear
+#      use_alt_screen=1
+#      trap cleanup EXIT INT TERM
+#  fi
 
   echo "Building Kotlin Toolchain distribution from sources..."
   # Amper needs a published Amper Android Gradle plugin support for the delegated Gradle builds
@@ -74,16 +74,16 @@ if [ ! -f "$up_to_date_file" ] || [ "$(cat "$up_to_date_file")" != "$current" ];
   else
     build_exit=$?
     echo
-    if [ "$use_alt_screen" -eq 1 ]; then
-      read -r -p "!!!  Building from sources failed - press Enter to exit  !!!"
-    fi
-    cleanup
+#    if [ "$use_alt_screen" -eq 1 ]; then
+#      read -r -p "!!!  Building from sources failed - press Enter to exit  !!!"
+#    fi
+#    cleanup
     trap - EXIT INT TERM
     echo "Building from sources failed."
     exit $build_exit
   fi
 
-  cleanup
+#  cleanup
   trap - EXIT INT TERM
 fi
 

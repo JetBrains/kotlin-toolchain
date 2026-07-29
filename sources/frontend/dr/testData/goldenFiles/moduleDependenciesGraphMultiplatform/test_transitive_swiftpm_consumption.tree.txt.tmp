@@ -1,0 +1,528 @@
+Module consumer
+│ - main
+│ - scope = COMPILE
+│ - platforms = [iosArm64, iosSimulatorArm64, iosX64]
+├─── Module producer_direct
+│    ├─── Module producer_transitive
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ╰─── producer_transitive:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ╰─── producer_direct:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+╰─── consumer:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+Module consumer
+│ - main
+│ - scope = COMPILE
+│ - platforms = [iosArm64]
+├─── Module producer_direct
+│    ├─── Module producer_transitive
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:iosArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ╰─── producer_transitive:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:iosArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ╰─── producer_direct:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+╰─── consumer:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+Module consumer
+│ - main
+│ - scope = COMPILE
+│ - platforms = [iosSimulatorArm64]
+├─── Module producer_direct
+│    ├─── Module producer_transitive
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:iosSimulatorArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ╰─── producer_transitive:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:iosSimulatorArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ╰─── producer_direct:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosSimulatorArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+╰─── consumer:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+Module consumer
+│ - main
+│ - scope = COMPILE
+│ - platforms = [iosX64]
+├─── Module producer_direct
+│    ├─── Module producer_transitive
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:iosX64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ╰─── producer_transitive:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:iosX64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ╰─── producer_direct:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosX64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+╰─── consumer:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+Module consumer
+│ - test
+│ - scope = COMPILE
+│ - platforms = [iosArm64]
+├─── Module producer_direct
+│    ├─── Module producer_transitive
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:iosArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ╰─── producer_transitive:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:iosArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ╰─── producer_direct:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosArm64Test:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosArm64Test:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:iosArm64Test:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion
+│         ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+╰─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+Module consumer
+│ - test
+│ - scope = COMPILE
+│ - platforms = [iosSimulatorArm64]
+├─── Module producer_direct
+│    ├─── Module producer_transitive
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:iosSimulatorArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ╰─── producer_transitive:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:iosSimulatorArm64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ╰─── producer_direct:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosSimulatorArm64Test:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosSimulatorArm64Test:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:iosSimulatorArm64Test:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion
+│         ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+╰─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+Module consumer
+│ - test
+│ - scope = COMPILE
+│ - platforms = [iosArm64, iosSimulatorArm64, iosX64]
+├─── Module producer_direct
+│    ├─── Module producer_transitive
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ╰─── producer_transitive:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ╰─── producer_direct:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+│         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion
+│         ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion (*)
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion (*)
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion (*)
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion (*)
+╰─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+Module consumer
+│ - test
+│ - scope = COMPILE
+│ - platforms = [iosX64]
+├─── Module producer_direct
+│    ├─── Module producer_transitive
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:iosX64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ╰─── producer_transitive:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:iosX64:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ╰─── producer_direct:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosX64Test:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosX64Test:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:iosX64Test:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion
+│         ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:appleTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:commonTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+├─── consumer:iosTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-test:#kotlinVersion
+╰─── consumer:nativeTest:org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-test-annotations-common:#kotlinVersion (*)
+Module consumer
+│ - main
+│ - scope = COMPILE
+│ - platforms = [iosArm64, iosSimulatorArm64, iosX64]
+├─── Module producer_direct
+│    ├─── Module producer_transitive
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive_ios","products":[{"name":"ios","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive_ios","traits":[]}
+│    │    ├─── producer_transitive:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ├─── producer_transitive:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    │    ├─── SwiftPMDependency:producer_transitive:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/transitive","products":[{"name":"transitive","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"transitive","traits":[]}
+│    │    ╰─── producer_transitive:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ├─── producer_direct:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct","products":[{"name":"direct","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct","traits":[]}
+│    ├─── SwiftPMDependency:producer_direct:{"type":"org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency.Local","absolutePath":"/foo/direct_apple","products":[{"name":"direct_apple","cinteropClangModules":[]}],"cinteropClangModules":[],"packageName":"direct_apple","traits":[]}
+│    ╰─── producer_direct:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│         ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:apple:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:common:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+├─── consumer:ios:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+│    ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+╰─── consumer:native:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion

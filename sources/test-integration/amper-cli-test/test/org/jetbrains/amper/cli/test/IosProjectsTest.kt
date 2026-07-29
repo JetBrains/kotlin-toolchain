@@ -37,6 +37,16 @@ import kotlin.test.expect
 
 @MacOnly
 class IosProjectsTest : AmperCliTestBase() {
+//
+//    @Test
+//    fun `transitive SwiftPM dependency from amper module dependency`() = runSlowTest {
+//        val result = runCli(
+//            projectDir = testProject("ios/swift"),
+//            "task", ":interop:frameworkIosSimulatorArm64Debug",
+//            assertEmptyStdErr = false,
+//        )
+//        result.readTelemetrySpans().konancSpans.assertZeroExitCode(times = 2)
+//    }
 
     @Test
     fun `framework for simple for iosSimulatorArm64`() = runSlowTest {

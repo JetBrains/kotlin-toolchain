@@ -10,6 +10,7 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.isDescendantOf
+import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.LinkTaskType
 import org.jetbrains.amper.tasks.ModuleTaskTypes
@@ -19,6 +20,13 @@ import org.jetbrains.amper.tasks.TaskNameFactory
 import org.jetbrains.amper.tasks.getModuleDependencies
 import org.jetbrains.amper.tasks.getTaskName
 import org.jetbrains.amper.tasks.ios.IosTaskType
+import org.jetbrains.amper.tasks.native.swiftpm.CheckSwiftPMImportIsWiredWithXcodeProjectTask
+import org.jetbrains.amper.tasks.native.swiftpm.DumpSwiftPMDependencyResolution
+import org.jetbrains.amper.tasks.native.swiftpm.IntegrateLinkagePackageTask
+import org.jetbrains.amper.tasks.native.swiftpm.InternalGenerateSwiftPMImportPackage
+import org.jetbrains.amper.tasks.native.swiftpm.SwiftPMImportTask
+import org.jetbrains.amper.tasks.native.swiftpm.XcodeWiredGenerateSwiftPMImportPackage
+import org.jetbrains.amper.tasks.native.swiftpm.transitiveSwiftPMDependenciesResolver
 import org.jetbrains.amper.util.BuildType
 
 private fun isIosApp(platform: Platform, module: AmperModule) =
@@ -72,6 +80,71 @@ fun ProjectTasksBuilder.setupNativeTasks() {
             dependsOn = [CommonizeNativeDistributionTask.TASK_NAME],
         )
     }
+
+    allModules()
+        .withEach {
+            val transitiveSwiftPMDependenciesResolver = transitiveSwiftPMDependenciesResolver()
+
+            tasks.registerTask(
+                task = DumpSwiftPMDependencyResolution(
+                    transitiveSwiftPMDependenciesResolver = transitiveSwiftPMDependenciesResolver,
+                    taskName = ModuleTaskTypes.DumpSwiftPMDependencyResolution.getTaskName(module),
+                )
+            )
+
+            val internalPackageGenTaskName = ModuleTaskTypes.ImportSwiftPMDependenciesPackageGen.getTaskName(module)
+            tasks.registerTask(
+                task = InternalGenerateSwiftPMImportPackage(
+                    module = module,
+                    taskName = internalPackageGenTaskName,
+                    taskOutputRoot = context.getTaskOutputPath(internalPackageGenTaskName),
+                    transitiveSwiftPMDependenciesResolver = transitiveSwiftPMDependenciesResolver,
+                )
+            )
+
+            val importTaskName = ModuleTaskTypes.ImportSwiftPMDependencies.getTaskName(module)
+            tasks.registerTask(
+                task = SwiftPMImportTask(
+                    module = module,
+                    platform = platform,
+                    taskOutputRoot = context.getTaskOutputPath(importTaskName),
+                    incrementalCache = context.incrementalCache,
+                    taskName = importTaskName,
+                    isTest = isTest,
+                    buildType = buildType,
+                    buildOutputRoot = context.buildOutputRoot,
+                ),
+            )
+
+            if (module.type == ProductType.IOS_APP) {
+                val xcodeIntegrationPackageGenTaskName = ModuleTaskTypes.XcodeIntegrationSwiftPMDependenciesPackageGen.getTaskName(module)
+                tasks.registerTask(
+                    task = CheckSwiftPMImportIsWiredWithXcodeProjectTask(
+                        module = module,
+                        projectRootPath = context.projectRoot.path,
+                        taskName = ModuleTaskTypes.CheckIntegrateLinkagePackage.getTaskName(module),
+                        transitiveSwiftPMDependenciesResolver = transitiveSwiftPMDependenciesResolver,
+                    ),
+                )
+
+                tasks.registerTask(
+                    task = XcodeWiredGenerateSwiftPMImportPackage(
+                        module = module,
+                        taskName = xcodeIntegrationPackageGenTaskName,
+                        transitiveSwiftPMDependenciesResolver = transitiveSwiftPMDependenciesResolver,
+                    )
+                )
+
+                tasks.registerTask(
+                    task = IntegrateLinkagePackageTask(
+                        module = module,
+                        taskName = ModuleTaskTypes.IntegrateLinkagePackage.getTaskName(module),
+                    ),
+                    // FIXME: Use artifact dependency
+                    dependsOn = listOf(xcodeIntegrationPackageGenTaskName)
+                )
+            }
+        }
 
     allModules()
         .alsoPlatforms(Platform.NATIVE)

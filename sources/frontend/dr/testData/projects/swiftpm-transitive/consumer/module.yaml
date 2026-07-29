@@ -1,0 +1,3 @@
+product: ios/app
+dependencies:
+  - //producer_direct

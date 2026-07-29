@@ -84,7 +84,7 @@ internal abstract class AmperSubcommand(name: String) : SuspendingCliktCommand(n
         spanBuilder("Setup file logging and monitoring").use {
             LoggingInitializer.setupFileLogging(projectCliContext.currentLogsRoot)
         }
-        checkWrapperVersionConsistency(projectCliContext.projectRoot)
+        // checkWrapperVersionConsistency(projectCliContext.projectRoot)
     }
 
     private fun checkWrapperVersionConsistency(projectRoot: AmperProjectRoot) {

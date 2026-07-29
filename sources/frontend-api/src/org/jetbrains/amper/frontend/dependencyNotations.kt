@@ -7,6 +7,7 @@ package org.jetbrains.amper.frontend
 import org.jetbrains.amper.frontend.api.Trace
 import org.jetbrains.amper.frontend.api.Traceable
 import org.jetbrains.amper.frontend.api.TraceableString
+import org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependency
 
 /**
  * A dependency notation. It can have many different forms, defined by the subtypes of this interface.
@@ -64,3 +65,18 @@ data class BomDependency(
     override val coordinates: MavenCoordinates,
     override val trace: Trace,
 ) : MavenDependencyBase
+
+sealed interface SwiftPMDependencyNotation : Notation
+
+data class RemoteSwiftPMDependencyNotation(
+    val swiftPMDependency: SwiftPMDependency.Remote,
+    // null means the dependency qualifies everywhere
+    val platformQualifier: String?,
+    override val trace: Trace,
+) : SwiftPMDependencyNotation
+
+data class LocalSwiftPMDependencyNotation(
+    val swiftPMDependency: SwiftPMDependency.Local,
+    val platformQualifier: String?,
+    override val trace: Trace,
+) : SwiftPMDependencyNotation

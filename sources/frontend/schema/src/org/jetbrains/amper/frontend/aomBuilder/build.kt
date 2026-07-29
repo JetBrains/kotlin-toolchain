@@ -10,9 +10,11 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.BomDependency
 import org.jetbrains.amper.frontend.DefaultScopedNotation
 import org.jetbrains.amper.frontend.FrontendPathResolver
+import org.jetbrains.amper.frontend.LocalSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.MavenDependency
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Notation
+import org.jetbrains.amper.frontend.RemoteSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.VersionCatalog
 import org.jetbrains.amper.frontend.aomBuilder.plugins.buildAndApplyPlugins
 import org.jetbrains.amper.frontend.api.Trace
@@ -23,6 +25,7 @@ import org.jetbrains.amper.frontend.contexts.DefaultInheritance
 import org.jetbrains.amper.frontend.contexts.MainTestInheritance
 import org.jetbrains.amper.frontend.contexts.PathCtx
 import org.jetbrains.amper.frontend.contexts.PathInheritance
+import org.jetbrains.amper.frontend.contexts.PlatformCtx
 import org.jetbrains.amper.frontend.contexts.plus
 import org.jetbrains.amper.frontend.contexts.tryReadMinimalModule
 import org.jetbrains.amper.frontend.diagnostics.AomModelDiagnosticFactories
@@ -45,6 +48,7 @@ import org.jetbrains.amper.frontend.schema.Module
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.schema.Settings
 import org.jetbrains.amper.frontend.schema.UnscopedExternalMavenDependency
+import org.jetbrains.amper.frontend.schema.swiftpm.convertSchema
 import org.jetbrains.amper.frontend.schema.toMavenCoordinates
 import org.jetbrains.amper.frontend.tree.MappingNode
 import org.jetbrains.amper.frontend.tree.RefinedMappingNode
@@ -224,7 +228,11 @@ private fun buildAmperModules(
         val seeds = module.moduleCtxModule.buildFragmentSeeds()
 
         val moduleFragments = createFragments(seeds, module) {
-            it.resolveInternalDependency(dir2module, reportedUnresolvedModules)
+            it.resolveInternalDependency(
+                dir2module,
+                reportedUnresolvedModules,
+                module.moduleFile.parent.toNioPath(),
+            )
         }
         val [leaves, testLeaves] = moduleFragments.filterIsInstance<DefaultLeafFragment>().partition { !it.isTest }
 
@@ -255,6 +263,7 @@ context(_: ProblemReporter, _: AmperFrontendProjectRoot)
 private fun Dependency.resolveInternalDependency(
     moduleDir2module: Map<Path, AmperModule>,
     reportedUnresolvedModules: MutableSet<Trace>,
+    resolvingModulePath: Path,
 ): Notation? = when (this) {
     is ExternalMavenDependency -> MavenDependency(
         coordinates = toMavenCoordinates(),
@@ -267,6 +276,21 @@ private fun Dependency.resolveInternalDependency(
     is org.jetbrains.amper.frontend.schema.BomDependency -> BomDependency(
         // We can safely caset here, because catalogs were substituted.
         coordinates = (bom as UnscopedExternalMavenDependency).toMavenCoordinates(),
+        trace = trace,
+    )
+    is org.jetbrains.amper.frontend.schema.RemoteSwiftPMDependencySchema -> RemoteSwiftPMDependencyNotation(
+        swiftPMDependency = swiftPackage.convertSchema(),
+        /**
+         * FIXME: platformQualifier should just be translated to a set of platform constraints
+         * - If unqualified, then we take all platforms of a module
+         * - If qualified, then we take a subset with the qualifier
+         */
+        platformQualifier = this.backingTree.contexts.filterIsInstance<PlatformCtx>().singleOrNull()?.value,
+        trace = trace,
+    )
+    is org.jetbrains.amper.frontend.schema.LocalSwiftPMDependencySchema -> LocalSwiftPMDependencyNotation(
+        swiftPMDependency = localSwiftPackage.convertSchema(resolvingModulePath),
+        platformQualifier = this.backingTree.contexts.filterIsInstance<PlatformCtx>().singleOrNull()?.value,
         trace = trace,
     )
     is CatalogDependency -> error("Catalog dependency must be processed earlier!")

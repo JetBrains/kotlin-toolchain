@@ -87,6 +87,16 @@ class ModuleDependencies private constructor(
     private val mainDepsPerLeafPlatform: Map<Platform, PerFragmentDependencies>
     private val testDepsPerLeafPlatform: Map<Platform, PerFragmentDependencies>
 
+    val swiftPMDependencies : ModuleDependencyNodeWithModuleAndContext by lazy {
+        module.buildDependenciesGraph(
+            isTest = false,
+            platforms = module.fragments.flatMap { it.platforms }.filter { it.isDescendantOf(Platform.APPLE) }.toSet(),
+            dependencyReason = ResolutionScope.COMPILE,
+            resolutionSettings = resolutionSettings.copy(includeSwiftPMDependencies = true),
+            sharedResolutionCache = sharedResolutionCache,
+        )
+    }
+
     init {
         mainDepsPerPlatforms = perPlatformDependencies(false)
         testDepsPerPlatforms = perPlatformDependencies(true)
@@ -522,6 +532,9 @@ class ModuleDependencies private constructor(
                                 add(it.allFragmentsGraph(isForTests = true, flattenGraph = false))
                             }
                         }
+                        if (it.resolutionSettings.includeSwiftPMDependencies) {
+                            add(it.swiftPMDependencies)
+                        }
                     }
                 }
 
@@ -913,25 +926,6 @@ class PerFragmentDependencies(
     val runtimeDepsCoordinates: List<MavenCoordinates> by lazy { runtimeDeps?.getExternalDependencies() ?: emptyList() }
 
     val compileDirectDepsCoordinates: List<MavenCoordinates> by lazy { compileDeps.getExternalDependencies(true) }
-
-    private fun AmperModule.buildDependenciesGraph(
-        isTest: Boolean,
-        platforms: Set<Platform>,
-        dependencyReason: ResolutionScope,
-        resolutionSettings: AmperResolutionSettings,
-        sharedResolutionCache: Cache,
-    ): ModuleDependencyNodeWithModuleAndContext {
-        val resolutionPlatform = platforms.map { it.toResolutionPlatform()
-            ?: throw IllegalArgumentException("Dependency resolution is not supported for the platform $it") }.toSet()
-
-        val classpathResolutionFlow = Classpath(DependenciesFlowType.ClassPathType(
-            dependencyReason, resolutionPlatform, isTest, resolutionSettings.includeNonExportedNative
-        ))
-
-        return classpathResolutionFlow.directDependenciesGraph(
-            this@buildDependenciesGraph, resolutionSettings, sharedResolutionCache
-        )
-    }
 }
 
 enum class ResolutionType(
@@ -980,6 +974,7 @@ data class AmperResolutionSettings(
      * and the RUNTIME graph will contain all dependencies.
      */
     val includeNonExportedNative: Boolean = true,
+    val includeSwiftPMDependencies: Boolean = false,
 ) {
     val fileCacheBuilder: FileCacheBuilder.() -> Unit = getAmperFileCacheBuilder(userCacheRoot)
 }
@@ -989,3 +984,22 @@ private fun AmperResolutionSettings.toEmptyContext(scope: ResolutionScope? = nul
     openTelemetry = openTelemetry,
     incrementalCache = incrementalCache,
 )
+
+private fun AmperModule.buildDependenciesGraph(
+    isTest: Boolean,
+    platforms: Set<Platform>,
+    dependencyReason: ResolutionScope,
+    resolutionSettings: AmperResolutionSettings,
+    sharedResolutionCache: Cache,
+): ModuleDependencyNodeWithModuleAndContext {
+    val resolutionPlatform = platforms.map { it.toResolutionPlatform()
+        ?: throw IllegalArgumentException("Dependency resolution is not supported for the platform $it") }.toSet()
+
+    val classpathResolutionFlow = Classpath(DependenciesFlowType.ClassPathType(
+        dependencyReason, resolutionPlatform, isTest, resolutionSettings.includeNonExportedNative
+    ))
+
+    return classpathResolutionFlow.directDependenciesGraph(
+        this@buildDependenciesGraph, resolutionSettings, sharedResolutionCache
+    )
+}

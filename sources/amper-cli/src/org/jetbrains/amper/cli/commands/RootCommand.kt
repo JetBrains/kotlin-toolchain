@@ -82,6 +82,7 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
             TestCommand(),
             ToolCommand(),
             UpdateCommand(),
+            IntegrateLinkagePackageCommand(),
         )
         context {
             // one would be created by default, but we manually set it to customize the theme

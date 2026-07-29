@@ -13,6 +13,7 @@ dependencies:
   - //sources/core: exported
   - //sources/extensibility/amper-extensibility-schema-model: exported
   - //sources/libraries/stdlib-extended
+  - //sources/libraries/serialization-extended
   - $libs.intellij.platform.core
   - $libs.intellij.platform.util
   - $libs.maven.artifact
@@ -27,6 +28,7 @@ settings:
   kotlin:
     optIns:
       - org.jetbrains.amper.frontend.schema.DiscouragedDirectDefaultVersionAccess # the frontend API is the intended place for it
+    serialization: json
   jvm:
     # Used in Android Gradle builds (max 17) and IDEA (max 21), so we pick 17
     release: 17

@@ -138,7 +138,7 @@ fun startLongLivedProcess(
         .pid()
 }
 
-private fun process(
+fun process(
     workingDir: Path? = null,
     command: List<String>,
     environment: Map<String, String> = emptyMap(),

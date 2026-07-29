@@ -17,6 +17,7 @@ import org.jetbrains.amper.frontend.api.Shorthand
 import org.jetbrains.amper.frontend.api.Trace
 import org.jetbrains.amper.frontend.api.Traceable
 import org.jetbrains.amper.frontend.api.TraceableString
+import org.jetbrains.amper.frontend.schema.swiftpm.SwiftPMDependencySchema
 import org.jetbrains.amper.frontend.userGuideUrl
 import java.nio.file.Path
 
@@ -141,6 +142,14 @@ class UnscopedBomDependency : UnscopedDependency() {
 
 class BomDependency : Dependency() {
     val bom by value<UnscopedExternalDependency>()
+}
+
+class RemoteSwiftPMDependencySchema : Dependency() {
+    val swiftPackage by value<SwiftPMDependencySchema.Remote>()
+}
+
+class LocalSwiftPMDependencySchema : Dependency() {
+    val localSwiftPackage by value<SwiftPMDependencySchema.Local>()
 }
 
 fun SchemaMavenCoordinates.toMavenCoordinates() = MavenCoordinates(

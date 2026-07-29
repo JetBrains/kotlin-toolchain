@@ -87,6 +87,8 @@ fun ProjectTasksBuilder.setupIosTasks() {
                         add(IosTaskType.PrepareComposeResources.getTaskName(module, platform))
                     }
                     add(IosTaskType.Framework.getTaskName(module, platform, isTest = false, buildType))
+                    add(ModuleTaskTypes.CheckIntegrateLinkagePackage.getTaskName(module))
+                    add(ModuleTaskTypes.XcodeIntegrationSwiftPMDependenciesPackageGen.getTaskName(module))
                 },
             )
 

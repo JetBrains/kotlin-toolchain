@@ -52,6 +52,13 @@ import kotlin.io.path.relativeTo
  * * If the project exists, checks the Amper integration there and makes adjustments where possible;
  *   if not possible, errors are reported.
  */
+
+private const val XCODE_PROJECT_DIR_NAME = "module.xcodeproj"
+fun AmperModule.xcodeprojPath(): Path {
+    val baseDir = source.moduleDir
+    return baseDir / XCODE_PROJECT_DIR_NAME
+}
+
 class ManageXCodeProjectTask(
     override val taskName: TaskName,
     private val module: AmperModule,
@@ -64,7 +71,7 @@ class ManageXCodeProjectTask(
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
         initializeXcodeComponentManager()
         val baseDir = module.source.moduleDir
-        val projectDir = baseDir / XCODE_PROJECT_DIR_NAME
+        val projectDir = module.xcodeprojPath()
         val pbxProjectFilePath = projectDir / PBXProjectFile.PROJECT_FILE
 
         return if (pbxProjectFilePath.exists()) {
@@ -374,7 +381,6 @@ class ManageXCodeProjectTask(
     companion object {
         private const val DEFAULT_TARGET_NAME = "app"
         private const val PRODUCT_MODULE_NAME = DEFAULT_TARGET_NAME
-        private const val XCODE_PROJECT_DIR_NAME = "module.xcodeproj"
 
         private const val KOTLIN_CLI_WRAPPER_PATH_CONF = "KOTLIN_CLI_WRAPPER_PATH"
 

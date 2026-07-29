@@ -1,0 +1,14 @@
+product:
+  type: kmp/lib
+  platforms: [iosSimulatorArm64, iosArm64, iosX64, macosArm64]
+dependencies:
+  - //producer_transitive
+  - localSwiftPackage:
+      absolutePath: "/foo/direct"
+      products:
+        - name: direct
+dependencies@apple:
+  - localSwiftPackage:
+      absolutePath: "/foo/direct_apple"
+      products:
+        - name: direct_apple

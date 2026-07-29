@@ -71,6 +71,7 @@ import org.jetbrains.amper.dependency.resolution.metadata.json.projectStructure.
 import org.jetbrains.amper.dependency.resolution.metadata.xml.Project
 import org.jetbrains.amper.dependency.resolution.metadata.xml.localRepository
 import org.jetbrains.amper.dependency.resolution.metadata.xml.parseSettings
+import org.jetbrains.amper.dependency.resolution.swiftpm.SwiftPMDependenciesMetadataNodeImpl
 import org.jetbrains.amper.telemetry.use
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -228,11 +229,13 @@ class MavenDependencyNodeWithContext internal constructor(
     override val children: List<DependencyNodeWithContext> by PropertyWithDependencyGeneric(
         dependencyProviders = listOf(
             { thisRef: MavenDependencyNodeWithContext -> thisRef.dependency.children },
-            { thisRef: MavenDependencyNodeWithContext -> thisRef.dependency.dependencyConstraints }
+            { thisRef: MavenDependencyNodeWithContext -> thisRef.dependency.dependencyConstraints },
+            { thisRef: MavenDependencyNodeWithContext -> thisRef.dependency.swiftPMDependenciesMetadata },
         ),
         valueProvider = { dependencies ->
             val children = dependencies[0] as List<*>
             val dependencyConstraints = dependencies[1] as List<*>
+            val swiftPMDependenciesMetadata = dependencies[2] as DependencyFileImpl?
             val parentsClosure = this.withTransitiveParents()
             children.map { it as MavenDependencyImpl }.mapNotNull { mavenDependency ->
                 context
@@ -244,7 +247,9 @@ class MavenDependencyNodeWithContext internal constructor(
                     }
             } + dependencyConstraints.map {
                 context.getOrCreateConstraintNode(it as MavenDependencyConstraintImpl, this)
-            }
+            } + swiftPMDependenciesMetadata?.let {
+                listOf(SwiftPMDependenciesMetadataNodeImpl(it, this@MavenDependencyNodeWithContext, templateContext))
+            }.orEmpty()
         },
         onValueRecalculated = { oldValue, newValue ->
             if (oldValue != null) {
@@ -732,6 +737,10 @@ class MavenDependencyImpl internal constructor(
         private set
 
     @Volatile
+    var swiftPMDependenciesMetadata: DependencyFileImpl? = null
+        private set
+
+    @Volatile
     internal var dependencyConstraints: List<MavenDependencyConstraintImpl> = emptyList()
         private set
 
@@ -1167,6 +1176,12 @@ class MavenDependencyImpl internal constructor(
                         kotlinMetadataVariant,
                         diagnosticsReporter
                     )
+
+
+                    val swiftPMMetadata = moduleMetadata.variants.firstOrNull { it.getAttributeValue(Usage)?.value == "swiftPMDependenciesMetadata" }
+                    if (swiftPMMetadata != null) {
+                        swiftPMDependenciesMetadata = getDependencyFile(this, swiftPMMetadata.files.single(), false)
+                    }
 
                     // Add KMP sources
                     val sourcesDependencyFile =
