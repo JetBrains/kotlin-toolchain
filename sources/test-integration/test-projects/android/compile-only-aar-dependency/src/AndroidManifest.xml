@@ -1,0 +1,17 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+            android:description="@string/module_description"
+            android:label="Xposed Example">
+
+        <!--  com.sample.app 包名   -->
+        <activity
+                android:name="com.sample.app.MainActivity"
+                android:theme="@android:style/Theme.Material.Light.NoActionBar"
+                android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

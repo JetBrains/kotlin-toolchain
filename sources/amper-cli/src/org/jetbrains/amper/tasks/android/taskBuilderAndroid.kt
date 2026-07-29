@@ -142,7 +142,6 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
                 task = TransformAarExternalDependenciesTask(
                     taskName = CommonTaskType.TransformDependencies.getTaskName(module, Platform.ANDROID, isTest),
                     incrementalCache = context.incrementalCache,
-                    classpathExtractor = { it.runtimeClasspath }
                 ),
                 dependsOn = CommonTaskType.Dependencies.getTaskName(module, Platform.ANDROID, isTest),
             )

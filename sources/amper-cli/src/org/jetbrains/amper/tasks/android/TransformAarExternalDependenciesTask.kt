@@ -26,23 +26,23 @@ import kotlin.io.path.nameWithoutExtension
 class TransformAarExternalDependenciesTask(
     override val taskName: TaskName,
     private val incrementalCache: IncrementalCache,
-    private val classpathExtractor: (ResolveExternalDependenciesTask.Result) -> List<Path> = { it.compileClasspath },
 ) : Task {
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
-        val resolvedAndroidCompileDependencies = dependenciesResult
+        val resolvedAndroidDependencies = dependenciesResult
             .filterIsInstance<ResolveExternalDependenciesTask.Result>()
-            .flatMap { classpathExtractor(it) }
+            .map { it.compileClasspath + it.runtimeClasspath }
+            .flatten()
 
         val executionResult = incrementalCache.execute(
             key = taskName.id.value,
             inputValues = emptyMap(),
-            inputFiles = resolvedAndroidCompileDependencies,
+            inputFiles = resolvedAndroidDependencies,
         ) {
-            if (resolvedAndroidCompileDependencies.isNotEmpty()) {
+            if (resolvedAndroidDependencies.isNotEmpty()) {
                 logger.info("Transforming AAR external dependencies...")
             }
-            val outputs = resolvedAndroidCompileDependencies.extractAars().flatMap(::extractedAarClasspathJars)
+            val outputs = resolvedAndroidDependencies.extractAars().flatMap(::extractedAarClasspathJars)
             IncrementalCache.ExecutionResult(outputs, emptyMap())
         }
         return Result(executionResult.outputFiles, executionResult.outputFiles)

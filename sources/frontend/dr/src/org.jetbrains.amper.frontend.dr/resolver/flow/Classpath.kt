@@ -94,7 +94,7 @@ internal class Classpath(
 
         val platforms = resolutionPlatforms.map { it.toPlatform() }.toSet()
         val allMatchingFragments = if (directDependencies) {
-            // If we are collecting direct dependencies then we collect strictly fragments targeting the resolution
+            // If we are collecting direct dependencies, then we collect fragments targeting the resolution
             // parameters.
             this.fragmentsTargeting(platforms, isTest = flowType.isTest)
         } else {

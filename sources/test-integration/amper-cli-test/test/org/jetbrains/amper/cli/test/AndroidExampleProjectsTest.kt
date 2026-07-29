@@ -59,6 +59,18 @@ class AndroidExampleProjectsTest : AmperCliTestBase() {
         result.assertStdoutContains("1 tests successful")
     }
 
+    /**
+     * This test checks that compile-only AAR dependencies are correctly transformed and passed to the compiler
+     */
+    @Test
+    fun `android compile only aar dependency`() = runSlowTest {
+        runCli(
+            projectDir = testProject("android/compile-only-aar-dependency"),
+            "build",
+            configureAndroidHome = true,
+        )
+    }
+
     @Test
     fun `simple tests release`() = runSlowTest {
         val result = runCli(

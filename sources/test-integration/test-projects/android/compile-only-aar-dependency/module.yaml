@@ -1,0 +1,27 @@
+product: android/app
+
+repositories:
+  - mavenLocal
+  - id: google-direct
+    url: https://dl.google.com/dl/android/maven2/
+  - id: aliyun-google
+    url: https://maven.aliyun.com/repository/google
+  - id: aliyun-central
+    url: https://maven.aliyun.com/repository/central
+  - id: jitpack
+    url: https://jitpack.io
+
+dependencies:
+  - io.github.libxposed:api:101.0.1: compile-only
+
+settings:
+  android:
+    namespace: com.sample.app
+    targetSdk: 36
+    compileSdk: 36
+    minSdk: 28
+    resourcePackaging:
+      merges:
+        - "META-INF/xposed/*"
+      excludes:
+        - "**"
