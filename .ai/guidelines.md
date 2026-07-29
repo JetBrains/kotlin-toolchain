@@ -13,7 +13,9 @@ Here are useful commands:
 * To learn about the specific options of some command: `./kotlin <command> --help` (Example: `./kotlin build --help`)
 * To compile the project: `./kotlin build`
 * To run all tests of a given module: `./kotlin test -m <module_name>`
-* To run a specific test: `./kotlin test -m <module_name> --include-test <test_fqn>`, where `<test_fqn>` is the 
+* To run a specific test class: `./kotlin test -m <module_name> --include-class <test_class_fqn>`, where <test_class_fqn> is the
+  fully-qualified name of the test class.
+* To run a specific test: `./kotlin test -m <module_name> --include-test <test_method_fqn>`, where `<test_method_fqn>` is the 
   fully-qualified name of the test method (don't forget to quote it if it contains spaces)
 * To inspect the dependencies of a module: `./kotlin show dependencies -m <module_name>`
 * To inspect the settings of a module: `./kotlin show settings -m <module_name>`
