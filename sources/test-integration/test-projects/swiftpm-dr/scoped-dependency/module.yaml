@@ -1,0 +1,19 @@
+product:
+  type: kmp/lib
+  platforms: [ iosSimulatorArm64, iosArm64, macosArm64 ]
+
+dependencies@ios:
+  - swiftPackage:
+      repository:
+        value: "https://foo/bar/baz.git"
+      version:
+        value: "1.0.0"
+      products: ["scoped"]
+
+dependencies:
+  - swiftPackage:
+      repository:
+        value: "https://foo/bar/baz.git"
+      version:
+        value: "1.0.0"
+      products: ["unscoped"]

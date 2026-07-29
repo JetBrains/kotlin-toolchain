@@ -35,6 +35,11 @@ sealed class ModuleTaskTypes(
         operationMoniker = "working with the Xcode project",
     )
 
+    data object DumpSwiftPMDependencyResolution : ModuleTaskTypes(
+        internalName = "dumpSwiftPMDependencyResolution",
+        operationMoniker = "SwiftPM dependency resolution debug dump",
+    )
+
     // ***** Publish *****
 
     data object PrepareMavenPublishables : ModuleTaskTypes(

@@ -11,6 +11,7 @@ test-dependencies:
   - //sources/amper-wrapper
   - //sources/core
   - //sources/frontend-api # for DefaultVersions
+  - //sources/amper-swift-pm-resolution-model
   - //sources/frontend/schema
   - //sources/libraries/gradle-module-metadata
   - //sources/libraries/system-info
