@@ -54,7 +54,7 @@ internal class ComposeHotReloadMcpServerCommand : AmperProjectAwareCommand(name 
 
         val hotReloadVersion = model.modules
             .filter { isComposeEnabledFor(it) }
-            .map { getComposeHotReloadVersion(it) }
+            .mapNotNull { getComposeHotReloadVersion(it) }
             .maxOfOrNull { ComparableVersion(it) }
             // We have a diagnostic that reports if there are multiple different versions across the project
             ?: userReadableError("No modules supporting Compose Hot Reload detected")
