@@ -46,6 +46,9 @@ import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.resolveProjectDependencies
 import org.jetbrains.amper.frontend.dr.resolver.flow.Classpath
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
+import org.jetbrains.amper.frontend.dr.resolver.swiftpm.SerializableSwiftPMDependencyNodeFromAmperModule
+import org.jetbrains.amper.frontend.dr.resolver.swiftpm.SwiftPMDependencyNodeFromAmperModule
+import org.jetbrains.amper.frontend.dr.resolver.swiftpm.SwiftPMDependencyNodeFromAmperModuleImpl
 import org.jetbrains.amper.frontend.fragmentsToDependOnFromOtherModuleFragmentWith
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.schema.Repository.Companion.SpecialMavenLocalUrl
@@ -622,6 +625,10 @@ class ModuleDependencies private constructor(
                         val sourceNode = sourceDirectDeps[serializableNode.key].resolveCorrespondingSourceNode<RootDependencyNodeWithContext>(serializableNode)
                         serializableNode.fillNotation(sourceNode)
                     }
+                    is SerializableSwiftPMDependencyNodeFromAmperModule -> {
+                        val sourceNode = sourceDirectDeps[serializableNode.key].resolveCorrespondingSourceNode<SwiftPMDependencyNodeFromAmperModule>(serializableNode)
+                        serializableNode.notation = sourceNode.notation
+                    }
                 }
             }
         }
@@ -966,6 +973,7 @@ data class AmperResolutionSettings(
      * and the RUNTIME graph will contain all dependencies.
      */
     val includeNonExportedNative: Boolean = true,
+    val includeSwiftPMDependencies: Boolean = false,
 ) {
     val fileCacheBuilder: FileCacheBuilder.() -> Unit = getAmperFileCacheBuilder(userCacheRoot)
 }

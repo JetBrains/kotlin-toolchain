@@ -97,7 +97,7 @@ private fun allMetadataVariant(
         .flatMap { it.classPathForApiMetadata() }
         .distinct()
         // Dependencies in Gradle module metadata of KMP project are declared in terms of common libraries root coordinates.
-        .map { it.toVariantDependency(Platform.COMMON) }
+        .mapNotNull { it.toVariantDependency(Platform.COMMON) }
         .toList()
 
     // Passing Platform.COMMON because
@@ -398,7 +398,7 @@ private fun LeafFragment.toGradleVariant(
     } else {
         dependenciesAvailableForConsumer(scope = scope)
             .distinct()
-            .map {
+            .mapNotNull {
                 val [platform, overrides] = if (module.isMultiplatformPublication())
                 // KMP project declares dependencies in terms of common libraries root coordinates.
                     Platform.COMMON to null

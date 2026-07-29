@@ -90,7 +90,7 @@ private fun Fragment.toSourceSet(): SourceSet {
     // This differs from KGP, but in fact, KGP doesn't use transitive non-exported dependencies of mixed shared fragments.
     // Those got filtered out on a consumer side (by intersection with the leaf-platform classpath)
     val dependencies = classPathForApiMetadata()
-        .map { it.toVariantDependency(Platform.COMMON) }
+        .mapNotNull { it.toVariantDependency(Platform.COMMON) }
         .map { "${it.group}:${it.module}" }
         .distinct()
 

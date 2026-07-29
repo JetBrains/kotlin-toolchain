@@ -14,9 +14,11 @@ import org.jetbrains.amper.frontend.DefaultScopedNotation
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.LocalModuleDependency
+import org.jetbrains.amper.frontend.LocalSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.MavenDependencyBase
 import org.jetbrains.amper.frontend.Notation
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.RemoteSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.dr.resolver.flow.dependenciesAvailableForConsumerClasspath
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.frontend.dr.resolver.toDrMavenCoordinates
@@ -99,9 +101,11 @@ internal fun getApplicableVariantScopes(leafFragment: LeafFragment): List<Resolu
 internal fun Notation.toVariantDependency(
     platform: Platform,
     overrides: PublicationCoordinatesOverrides? = null,
-): Dependency = when (this) {
+): Dependency? = when (this) {
     is MavenDependencyBase -> toVariantDependency(platform, overrides)
     is LocalModuleDependency -> toVariantDependency(platform)
+    is LocalSwiftPMDependencyNotation,
+    is RemoteSwiftPMDependencyNotation -> null // FIXME: Support SwiftPM metadata variant publication
     is DefaultScopedNotation -> error("Dependency type ${this::class.simpleName} is not supported for .module publication")
 }
 

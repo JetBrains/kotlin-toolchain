@@ -12,17 +12,25 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.BomDependency
 import org.jetbrains.amper.frontend.DefaultScopedNotation
 import org.jetbrains.amper.frontend.Fragment
+import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.LocalModuleDependency
+import org.jetbrains.amper.frontend.LocalSwiftPMDependencyNotation
+import org.jetbrains.amper.frontend.MavenDependency
 import org.jetbrains.amper.frontend.MavenDependencyBase
 import org.jetbrains.amper.frontend.Notation
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.RemoteSwiftPMDependencyNotation
+import org.jetbrains.amper.frontend.SwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings
 import org.jetbrains.amper.frontend.dr.resolver.DependenciesFlowType
 import org.jetbrains.amper.frontend.dr.resolver.DependencyNodeHolderWithNotationAndContext
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencyNodeWithModuleAndContext
+import org.jetbrains.amper.frontend.dr.resolver.swiftpm.SwiftPMDependencyNodeFromAmperModuleImpl
 import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.fragmentsToDependOnFromOtherModuleFragmentWith
+import org.jetbrains.amper.frontend.isDescendantOf
+import org.jetbrains.amper.swiftpm.SwiftPMDependency
 
 /**
  * Performs the initial resolution of module classpath dependencies.
@@ -76,6 +84,16 @@ internal class Classpath(
         return module.fragmentsModuleDependencies(resolutionSettings = resolutionSettings, sharedResolutionCache = sharedResolutionCache)
     }
 
+    private fun Platform.toSwiftPMPlatform(): SwiftPMDependency.Platform {
+        return when {
+            isDescendantOf(Platform.IOS) -> SwiftPMDependency.Platform.iOS
+            isDescendantOf(Platform.MACOS) -> SwiftPMDependency.Platform.macOS
+            isDescendantOf(Platform.TVOS) -> SwiftPMDependency.Platform.tvOS
+            isDescendantOf(Platform.WATCHOS) -> SwiftPMDependency.Platform.watchOS
+            else -> error("Non Apple platform $this")
+        }
+    }
+
     private fun AmperModule.fragmentsModuleDependencies(
         directDependencies: Boolean = true,
         notation: LocalModuleDependency? = null,
@@ -117,16 +135,121 @@ internal class Classpath(
             .flatMap { it.toDependencyNode(resolutionPlatforms, directDependencies, moduleContext, visitedModules, resolutionSettings, sharedResolutionCache) }
             .sortedByDescending { (it.notation as? DefaultScopedNotation)?.exported == true }
 
+        val firstAppleFragment = this.fragments.filterIsInstance<LeafFragment>().sortedBy { it.name }.firstOrNull {
+            it.platform.isDescendantOf(Platform.APPLE) == true
+        }
+        val swiftPMDependencies = if (
+            resolutionSettings.includeSwiftPMDependencies
+            && moduleContext.settings.scope == ResolutionScope.COMPILE
+            && firstAppleFragment != null
+            && flowType.platforms.singleOrNull()?.toPlatform() == firstAppleFragment.platform
+        ) {
+            deduplicateSwiftPMDependenciesAndApplyPlatformConstraints(
+                module = this,
+            ).map {
+                SwiftPMDependencyNodeFromAmperModuleImpl(
+                    swiftPMDependency = it.swiftPMDependency,
+                    notation =
+                        // FIXME: Pass all notations related to a SwiftPM dependency
+                        it.notations.first(),
+                    templateContext = moduleContext,
+                )
+            }
+        } else emptyList()
+
         val node = ModuleDependencyNodeWithModuleAndContext(
             module = this,
             isForTests = flowType.isTest,
-            children = dependencies,
+            children = dependencies + swiftPMDependencies,
             templateContext = moduleContext,
             notation = notation,
             topLevel = directDependencies,
         )
 
         return node
+    }
+
+    /**
+     * SwiftPM dependencies are initially duplicated (as regular dependencies) in every fragment. Here we deduplicate
+     * them by absolutePath/repository and apply platform constraints if SwiftPM dependency was consumed in a qualified
+     * fragment.
+     */
+    private class SwiftPMDependencyWithNotations(
+        val swiftPMDependency: SwiftPMDependency,
+        val notations: Set<SwiftPMDependencyNotation>,
+    )
+    private fun deduplicateSwiftPMDependenciesAndApplyPlatformConstraints(
+        module: AmperModule
+    ): List<SwiftPMDependencyWithNotations> {
+        class SwiftPMDependencyPlatformsAndNotations(
+            val platforms: Set<SwiftPMDependency.Platform>,
+            val notations: Set<SwiftPMDependencyNotation>,
+        )
+
+        val appleFragments = module.fragments.filter { it.platforms.all { it.isDescendantOf(Platform.APPLE) } }
+        val modulePlatformConstraints = appleFragments.flatMap { it.platforms }.map { it.toSwiftPMPlatform() }.toSet()
+        val platformsByDeclaredSwiftPMDependency = mutableMapOf<SwiftPMDependency, SwiftPMDependencyPlatformsAndNotations>()
+        // Deduplicate SwiftPM dependencies coming from notation
+        appleFragments.forEach { appleFragment ->
+            val fragmentSwiftPMPlatforms = appleFragment.platforms.map { it.toSwiftPMPlatform() }.toSet()
+            appleFragment.externalDependencies.forEach { notation ->
+                val dependency = when (notation) {
+                    is LocalSwiftPMDependencyNotation -> notation.swiftPMDependency
+                    is RemoteSwiftPMDependencyNotation -> notation.swiftPMDependency
+                    is DefaultScopedNotation,
+                    is BomDependency,
+                    is MavenDependency -> return@forEach
+                }
+                val existing = platformsByDeclaredSwiftPMDependency[dependency]
+                if (existing != null) {
+                    val right = fragmentSwiftPMPlatforms - existing.platforms
+                    if (right.isNotEmpty()) {
+                        platformsByDeclaredSwiftPMDependency[dependency] = SwiftPMDependencyPlatformsAndNotations(
+                            platforms = right,
+                            notations = existing.notations + notation,
+                        )
+                    }
+                } else {
+                    platformsByDeclaredSwiftPMDependency[dependency] = SwiftPMDependencyPlatformsAndNotations(
+                        platforms = fragmentSwiftPMPlatforms,
+                        notations = setOf(notation),
+                    )
+                }
+            }
+        }
+
+        val swiftPMDependencyByIdentifier = mutableMapOf<Any, SwiftPMDependencyWithNotations>()
+        platformsByDeclaredSwiftPMDependency.toList().forEach {
+            val swiftPMDependency = it.first
+            val platformsAndNotations = it.second
+            val id = when (swiftPMDependency) {
+                is SwiftPMDependency.Local -> swiftPMDependency.absolutePath
+                is SwiftPMDependency.Remote -> swiftPMDependency.repository to swiftPMDependency.version
+            }
+            val effectivePlatformConstraints = if (platformsAndNotations.platforms == modulePlatformConstraints) {
+                null
+            } else {
+                platformsAndNotations.platforms
+            }
+
+            val existingProducts = swiftPMDependencyByIdentifier[id]?.swiftPMDependency?.products ?: emptyList()
+            val existingNotations = swiftPMDependencyByIdentifier[id]?.notations ?: emptySet()
+            val combinedProductsList = existingProducts + swiftPMDependency.products.map {
+                it.copy(
+                    platformConstraints = effectivePlatformConstraints?.toList()
+                )
+            }
+
+            swiftPMDependencyByIdentifier[id] = SwiftPMDependencyWithNotations(
+                swiftPMDependency = when (swiftPMDependency) {
+                    is SwiftPMDependency.Local -> swiftPMDependency.copy(products = combinedProductsList)
+                    is SwiftPMDependency.Remote -> swiftPMDependency.copy(products = combinedProductsList)
+                },
+                notations = existingNotations + platformsAndNotations.notations,
+            )
+        }
+
+        return swiftPMDependencyByIdentifier.values.toList()
     }
 
     private fun Fragment.toDependencyNode(
@@ -161,6 +284,11 @@ internal class Classpath(
                             } else null
                         } else null
                     }
+                    /**
+                     * These are handled separately in [deduplicateSwiftPMDependenciesAndApplyPlatformConstraints]
+                     */
+                    is LocalSwiftPMDependencyNotation,
+                    is RemoteSwiftPMDependencyNotation -> null
 
                     is DefaultScopedNotation -> error(
                         "Unsupported dependency type: '$dependency' " +
@@ -189,6 +317,8 @@ internal class Classpath(
                     ResolutionScope.RUNTIME -> true
                 }
             }
+            is LocalSwiftPMDependencyNotation,
+            is RemoteSwiftPMDependencyNotation -> true
         }
     }
 

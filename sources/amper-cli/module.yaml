@@ -20,6 +20,7 @@ dependencies:
   - //sources/amper-maven-converter
   - //sources/amper-maven-publish
   - //sources/amper-project-templates
+  - //sources/amper-swift-pm-resolution-model
   - //sources/amper-telemetry
   - //sources/amper-test-events
   - //sources/amper-wrapper

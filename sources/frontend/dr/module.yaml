@@ -15,6 +15,7 @@ test-dependencies:
 dependencies:
   - //sources/frontend/schema
   - //sources/amper-kotlin-native
+  - //sources/amper-swift-pm-resolution-model
   - //sources/amper-telemetry
   - //sources/core
   - //sources/dependency-resolution: exported

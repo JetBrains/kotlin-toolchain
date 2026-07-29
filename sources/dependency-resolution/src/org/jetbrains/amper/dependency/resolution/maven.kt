@@ -62,6 +62,7 @@ import org.jetbrains.amper.dependency.resolution.maven.resolvePom
 import org.jetbrains.amper.dependency.resolution.metadata.xml.Project
 import org.jetbrains.amper.dependency.resolution.metadata.xml.localRepository
 import org.jetbrains.amper.dependency.resolution.metadata.xml.parseSettings
+import org.jetbrains.amper.dependency.resolution.swiftpm.SwiftPMDependenciesMetadataNodeImpl
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.gradle.module.metadata.format.AvailableAt
 import org.jetbrains.gradle.module.metadata.format.Capability
@@ -229,11 +230,13 @@ class MavenDependencyNodeWithContext internal constructor(
     override val children: List<DependencyNodeWithContext> by PropertyWithDependencyGeneric(
         dependencyProviders = listOf(
             { thisRef: MavenDependencyNodeWithContext -> thisRef.dependency.children },
-            { thisRef: MavenDependencyNodeWithContext -> thisRef.dependency.dependencyConstraints }
+            { thisRef: MavenDependencyNodeWithContext -> thisRef.dependency.dependencyConstraints },
+            { thisRef: MavenDependencyNodeWithContext -> thisRef.dependency.swiftPMDependenciesMetadata },
         ),
         valueProvider = { dependencies ->
             val children = dependencies[0] as List<*>
             val dependencyConstraints = dependencies[1] as List<*>
+            val swiftPMDependenciesMetadata = dependencies[2] as DependencyFileImpl?
             val parentsClosure = this.withTransitiveParents()
             children.map { it as MavenDependencyImpl }.mapNotNull { mavenDependency ->
                 context
@@ -245,7 +248,9 @@ class MavenDependencyNodeWithContext internal constructor(
                     }
             } + dependencyConstraints.map {
                 context.getOrCreateConstraintNode(it as MavenDependencyConstraintImpl, this)
-            }
+            } + swiftPMDependenciesMetadata?.let {
+                listOf(SwiftPMDependenciesMetadataNodeImpl(it, this@MavenDependencyNodeWithContext, templateContext))
+            }.orEmpty()
         },
         onValueRecalculated = { oldValue, newValue ->
             if (oldValue != null) {
@@ -733,6 +738,10 @@ class MavenDependencyImpl internal constructor(
         private set
 
     @Volatile
+    var swiftPMDependenciesMetadata: DependencyFileImpl? = null
+        private set
+
+    @Volatile
     internal var dependencyConstraints: List<MavenDependencyConstraintImpl> = emptyList()
         private set
 
@@ -1104,6 +1113,11 @@ class MavenDependencyImpl internal constructor(
                 // [KTC-4474] Supporting JVM dependencies in jvm+android fragments.
                 || context.settings.platforms == setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID))
             {
+                val swiftPMMetadata = moduleMetadata.variants.firstOrNull { it.getAttributeValue(Usage)?.value == "swiftPMDependenciesMetadata" }
+                if (swiftPMMetadata != null) {
+                    swiftPMDependenciesMetadata = getDependencyFile(this, swiftPMMetadata.files.single(), false)
+                }
+
                 val platform =
                     if (context.settings.platforms == setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID))
                         // Even if the KMP library has a commonMain sourceSet resolvable in the jvm+android context,

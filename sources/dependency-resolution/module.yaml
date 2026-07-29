@@ -21,6 +21,7 @@ dependencies:
   - //sources/libraries/system-info
   - //sources/libraries/telemetry: exported
   - //sources/libraries/incremental-cache: exported
+  - //sources/libraries/serialization-extended
   - $libs.xmlutil.serialization
   - $libs.maven.artifact
   - $libs.kotlinx.coroutines.core

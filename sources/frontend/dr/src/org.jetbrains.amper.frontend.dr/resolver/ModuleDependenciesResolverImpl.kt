@@ -15,13 +15,16 @@ import org.jetbrains.amper.dependency.resolution.MavenDependencyUnspecifiedVersi
 import org.jetbrains.amper.dependency.resolution.ResolutionConfigPlain
 import org.jetbrains.amper.dependency.resolution.SerializableDependencyNode
 import org.jetbrains.amper.dependency.resolution.SerializableDependencyNodeConverter
+import org.jetbrains.amper.frontend.dr.resolver.swiftpm.SerializableSwiftPMDependencyNodeFromAmperModule
+import org.jetbrains.amper.frontend.dr.resolver.swiftpm.SwiftPMDependencyNodeFromAmperModuleConverter
 import kotlin.reflect.KClass
 
 // todo (AB) : [AMPER-4905] Extract to separate serialization-specific file
 internal class AmperDrSerializableTypesProvider: GraphSerializableTypesProvider {
     override fun getSerializableConverters() =
         ModuleDependencyNodeWithModuleConverter.converters() +
-                DirectFragmentDependencyNodeConverter.converters()
+                DirectFragmentDependencyNodeConverter.converters() +
+                SwiftPMDependencyNodeFromAmperModuleConverter.converters()
 
     override fun SerializersModuleBuilder.registerPolymorphic() {
         moduleForDependencyNodePlainHierarchy()
@@ -37,6 +40,7 @@ internal class AmperDrSerializableTypesProvider: GraphSerializableTypesProvider 
     fun SerializersModuleBuilder.moduleForDependencyNodeHierarchy(kClass: KClass<in SerializableDependencyNode>) {
         polymorphic(kClass, SerializableModuleDependencyNodeWithModule::class, SerializableModuleDependencyNodeWithModule.serializer())
         polymorphic(kClass, SerializableDirectFragmentDependencyNodeHolder::class, SerializableDirectFragmentDependencyNodeHolder.serializer())
+        polymorphic(kClass, SerializableSwiftPMDependencyNodeFromAmperModule::class, SerializableSwiftPMDependencyNodeFromAmperModule.serializer())
     }
 }
 

@@ -9,6 +9,8 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.SerializersModuleBuilder
 import org.jetbrains.amper.dependency.resolution.DependencyGraph.Companion.toSerializableReference
 import org.jetbrains.amper.dependency.resolution.diagnostics.registerSerializableMessages
+import org.jetbrains.amper.dependency.resolution.swiftpm.SerializableSwiftPMDependenciesMetadataNode
+import org.jetbrains.amper.dependency.resolution.swiftpm.SwiftPMDependenciesMetadataNodeConverter
 import kotlin.reflect.KClass
 
 object GraphJson {
@@ -51,7 +53,8 @@ internal class DefaultSerializableTypesProvider: GraphSerializableTypesProvider 
     override fun getSerializableConverters(): List<SerializableDependencyNodeConverter<out DependencyNode, out SerializableDependencyNode>> =
         MavenDependencyNodeConverter.converters() +
             RootDependencyNodeConverter.converters() +
-            MavenDependencyConstraintNodeConverter.converters()
+            MavenDependencyConstraintNodeConverter.converters() +
+            SwiftPMDependenciesMetadataNodeConverter.converters()
 
     override fun SerializersModuleBuilder.registerPolymorphic() {
         moduleForSerializableDependencyNodeHierarchy()
@@ -69,6 +72,7 @@ internal class DefaultSerializableTypesProvider: GraphSerializableTypesProvider 
         polymorphic(kClass, SerializableMavenDependencyNode::class, SerializableMavenDependencyNode.serializer())
         polymorphic(kClass, SerializableRootDependencyNode::class, SerializableRootDependencyNode.serializer())
         polymorphic(kClass,SerializableMavenDependencyConstraintNode::class, SerializableMavenDependencyConstraintNode.serializer())
+        polymorphic(kClass, SerializableSwiftPMDependenciesMetadataNode::class, SerializableSwiftPMDependenciesMetadataNode.serializer())
     }
 
     fun SerializersModuleBuilder.moduleMessageHierarchy() =
