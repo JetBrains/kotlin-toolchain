@@ -36,7 +36,7 @@ internal class InitCommand : AmperSubcommand(name = "init") {
         "--target-dir",
         help = "The directory to create the project in (defaults to the current directory)",
     )
-        .path(canBeFile = false, mustExist = false, mustBeWritable = true)
+        .path(canBeFile = false, mustExist = false)
         .default(Path(System.getProperty("user.dir")))
 
     private val template by argument(help = "The name of a project template (leave blank to select interactively from a list)")

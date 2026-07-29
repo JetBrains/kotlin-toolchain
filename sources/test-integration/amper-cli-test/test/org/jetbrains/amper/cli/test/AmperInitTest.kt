@@ -11,6 +11,7 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.LocalAmperPublication
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createParentDirectories
+import kotlin.io.path.div
 import kotlin.io.path.isExecutable
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
@@ -26,6 +27,30 @@ class AmperInitTest : AmperCliTestBase() {
         runCli(newRoot, "init", "multiplatform-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
 
         newRoot.assertContainsRelativeFiles(
+            "jvm-cli/module.yaml",
+            "kotlin",
+            "kotlin.bat",
+            "linux-cli/module.yaml",
+            "macos-cli/module.yaml",
+            "project.yaml",
+            "shared/module.yaml",
+            "shared/src/World.kt",
+            "shared/src/main.kt",
+            "shared/src@jvm/World.kt",
+            "shared/src@linux/World.kt",
+            "shared/src@macos/World.kt",
+            "shared/src@mingw/World.kt",
+            "shared/test/test.kt",
+            "windows-cli/module.yaml",
+        )
+    }
+
+    @Test
+    fun `init generates a project into a new directory with --target-dir`() = runSlowTest {
+        val newRoot = newEmptyProjectDir()
+        runCli(newRoot, "init", "--target-dir=foo", "multiplatform-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
+
+        (newRoot / "foo").assertContainsRelativeFiles(
             "jvm-cli/module.yaml",
             "kotlin",
             "kotlin.bat",
