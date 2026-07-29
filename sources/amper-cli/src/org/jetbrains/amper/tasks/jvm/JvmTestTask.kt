@@ -132,7 +132,10 @@ class JvmTestTask(
                     add("--scan-class-path=${classesOutputRoot}")
                 }
             }
-            add("--details=summary") // disable default console tree output, just print the summary
+            when (runSettings.testResultsFormat) {
+                TestResultsFormat.Pretty -> add("--details=summary") // disable default console tree output, just print the summary
+                TestResultsFormat.TeamCity -> add("--details=none") // TeamCity UI is the way to get the summary
+            }
         }
 
         val jvmArgs = buildList {
