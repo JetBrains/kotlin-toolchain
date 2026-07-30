@@ -21,6 +21,7 @@ import org.jetbrains.amper.testevents.TestId
 import org.jetbrains.amper.testevents.TestLocationHint
 import org.jetbrains.amper.testevents.TestStderrEvent
 import org.jetbrains.amper.testevents.TestStdoutEvent
+import org.jetbrains.amper.util.TeamCityMessageProcessor
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.milliseconds
@@ -31,7 +32,7 @@ import org.jetbrains.amper.testevents.TestSuiteStarted as AmperTestSuiteStarted
 
 class StructuredNativeTestProcessOutputListenerTest {
     private val renderer = RecordingRenderer()
-    private val listener = StructuredNativeTestProcessOutputListener(renderer)
+    private val listener = StructuredNativeTestProcessOutputListener(TeamCityMessageProcessor(renderer))
 
     @Test
     fun `translates TeamCity test messages into Amper test events`() {

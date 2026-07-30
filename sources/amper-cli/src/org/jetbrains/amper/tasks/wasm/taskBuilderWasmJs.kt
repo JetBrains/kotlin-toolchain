@@ -45,9 +45,6 @@ fun ProjectTasksBuilder.setupWasmJsTasks() {
     allModules()
         .alsoPlatforms(Platform.WASM_JS)
         .alsoBuildTypes()
-        .filterNot {
-            it.isTest
-        }
         .filter { needsLinkedExecutable(it.module, isTest = false) }
         .withEach {
             val resolveDependenciesTaskName = CommonTaskType.Dependencies.getTaskName(module, platform, isTest)
@@ -86,6 +83,51 @@ fun ProjectTasksBuilder.setupWasmJsTasks() {
                 ),
                 dependsOn = [buildAppTaskName]
             )
+        }
+
+    allModules()
+        .alsoPlatforms(Platform.WASM_JS)
+        .alsoBuildTypes()
+        .withEach {
+            val resolveDependenciesTaskName =
+                CommonTaskType.Dependencies.getTaskName(module, platform, isTest = true)
+
+            val linkAppTaskName = LinkTaskType.getTaskName(module, platform, isTest = true, buildType)
+
+            val npmInstallTask = WebTaskType.NpmInstall.getTaskName(module, platform, isTest = true)
+
+            val buildAppTaskName = WasmJsTaskType.BuildWasmJsApp.getTaskName(module, platform, isTest = true, buildType)
+            tasks.registerTask(
+                task = WasmJsBuildTestTask(
+                    platform = platform,
+                    module = module,
+                    buildType = buildType,
+                    taskOutputPath = context.getTaskOutputPath(buildAppTaskName),
+                    taskName = buildAppTaskName,
+                    tempRoot = context.projectTempRoot,
+                    incrementalCache = context.incrementalCache,
+                    userCacheRoot = context.userCacheRoot,
+                ),
+                dependsOn = [
+                    linkAppTaskName,
+                    resolveDependenciesTaskName,
+                    npmInstallTask
+                ]
+            )
+
+            val testTaskName = CommonTaskType.Test.getTaskName(module, platform, isTest = false, buildType)
+            tasks.registerTask(
+                task = BrowserTestTask(
+                    taskName = testTaskName,
+                    platform = platform,
+                    buildType = buildType,
+                    module = module,
+                    runSettings = runSettings,
+                    userCacheRoot = context.userCacheRoot,
+                ),
+                dependsOn = [buildAppTaskName, npmInstallTask]
+            )
+
         }
 }
 

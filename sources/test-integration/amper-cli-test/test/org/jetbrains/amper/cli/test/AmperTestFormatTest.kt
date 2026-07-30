@@ -646,6 +646,79 @@ class AmperTestFormatTest : AmperCliTestBase() {
             assertServiceMessagesEqual(expectedMessages, serviceMessages, sanitizeStackTrace = true)
         }
     }
+
+    @Nested
+    @DisplayName("Wasm/JS tests")
+    inner class WasmJsTests {
+        @Test
+        fun `pretty CLI output format should be used by default`() = runSlowTest {
+            val r = runCli(
+                projectDir = testProject("wasm-js-app"),
+                "test",
+                assertEmptyStdErr = false,
+                expectedExitCode = 1,
+            )
+            val stdoutOfTest = r.stdout
+                .substringAfter("Started MyTest")
+                .substringBefore("Completed MyTest")
+                .trim()
+                .lines()
+                // Failure stack trace of the assertion error is heavily host-specific, so we're not checking it.
+                .filterNot { it.startsWith("               at ") }
+            assertEqualsWithDiff(
+                expected = """
+                    Started testHelloWorld
+                    running testHelloWorld
+                    Passed testHelloWorld
+                    Started MyNestedTest
+                    Started testFalsyHelloWorld
+                    running testFalsyHelloWorld
+                    Failed testFalsyHelloWorld
+                               => Exception: kotlin.AssertionError: Expected value to be true.
+                               AssertionError: Expected value to be true.
+                    Completed MyNestedTest
+                    Skipped testIgnoredHelloWorld
+                               => Reason: Test ignored
+                """.trimIndent().lines(),
+                actual = stdoutOfTest,
+            )
+        }
+
+        @Test
+        fun `test teamcity service messages`() = runSlowTest {
+            val r = runCli(
+                projectDir = testProject("wasm-js-app"),
+                "test",
+                "--format=teamcity",
+                assertEmptyStdErr = false,
+                expectedExitCode = 1,
+            )
+            val serviceMessages = parseTeamCityServiceMessages(r.stdout)
+            val expectedMessages = buildServiceMessages {
+                suiteWithFlow("") {
+                    suiteWithFlow("MyTest") {
+                        testWithFlow("testHelloWorld") {
+                            testStdOut("running testHelloWorld$NL")
+                        }
+                        suiteWithFlow("MyNestedTest") {
+                            testWithFlow("testFalsyHelloWorld") {
+                                testStdOut("running testFalsyHelloWorld$NL")
+                                testFailed(
+                                    "kotlin.AssertionError: Expected value to be true.",
+                                    serializedStackTrace = "SANITIZED"
+                                )
+                            }
+                        }
+                        testWithFlow("testIgnoredHelloWorld") {
+                            testIgnored("Test ignored")
+                        }
+                    }
+                }
+            }
+            // We sanitize the stack trace because it's heavily host-specific
+            assertServiceMessagesEqual(expectedMessages, serviceMessages, sanitizeStackTrace = true)
+        }
+    }
 }
 
 private fun parseTeamCityServiceMessages(text: String): List<ServiceMessage> = text.lines()

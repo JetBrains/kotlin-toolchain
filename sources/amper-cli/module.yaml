@@ -96,6 +96,7 @@ dependencies:
   - $libs.maven.reporting
   - $libs.maven.plugin.annotations
   - $libs.maven.site.plugin
+  - $libs.microsoft.playwright
   - com.google.code.findbugs:jsr305:3.0.2
   - //sources/libraries/maven-central-portal-publisher-client
 
@@ -151,3 +152,7 @@ settings:
       # causes an IncompatibleClassChangeError in org.eclipse.sisu.space.SpaceScanner (in MavenPluginsTest).
       # These obsolete coordinates are fully superseded by org.ow2.asm:asm, so we exclude them here.
       - asm:asm
+      # It contains Node.js distributions for all supported platforms.
+      # It adds near 200 MB to the final Kotlin Toolchain distribution.
+      # Kotlin Toolchain provision the corresponding Node.js distribution for the particular platform.
+      - com.microsoft.playwright:driver-bundle

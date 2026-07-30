@@ -265,4 +265,18 @@ class AmperTestBasicTest : AmperCliTestBase() {
         )
         result.assertStdoutContains("1 tests successful")
     }
+
+    @Test
+    fun `simple multiplatform cli lib test wasmJs module`() = runSlowTest {
+        val projectContext = testProject("simple-multiplatform-cli")
+        val result = runCli(
+            projectDir = projectContext,
+            "test",
+            "--include-module=shared",
+            "--platform=wasmJs",
+            assertEmptyStdErr = false,
+        )
+
+        result.assertStdoutContains("Passed doTest")
+    }
 }

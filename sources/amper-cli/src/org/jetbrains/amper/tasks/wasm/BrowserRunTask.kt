@@ -5,10 +5,7 @@
 package org.jetbrains.amper.tasks.wasm
 
 import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.http.content.*
-import io.ktor.server.netty.*
-import io.ktor.server.routing.*
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.amper.engine.RunTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
@@ -38,28 +35,30 @@ class BrowserRunTask(
     ): TaskResult {
         val port = runSettings.port ?: defaultWebBrowserRunPort
         val openBrowser = runSettings.openBrowser
-        val builtApp = dependenciesResult.requireSingleDependency<WasmJsBuildTask.Result>().appPath
-        val defaultHost = "127.0.0.1"
+        val builtApp = dependenciesResult.requireSingleDependency<WasmJsBuildTaskBase.Result>().appPath
+            ?: return EmptyTaskResult
 
-        embeddedServer(
-            Netty,
-            host = defaultHost,
-            port = port
-        ) {
-            if (openBrowser) {
-                monitor.subscribe(ApplicationStarted) {
-                    launch {
-                        val port = it.engine.resolvedConnectors().single().port
-                        openBrowser("http://$defaultHost:$port", logger::debug)
+        return coroutineScope {
+            val server = setupServer(
+                port = port,
+                appDirectory = builtApp,
+            ).also { server ->
+                if (openBrowser) {
+                    server.monitor.subscribe(ApplicationStarted) {
+                        launch {
+                            openBrowser(it.engine.getUrl(), logger::debug)
+                        }
                     }
                 }
             }
-            routing {
-                staticFiles("/", builtApp.toFile())
-            }
-        }.start(wait = true)
 
-        return EmptyTaskResult
+            try {
+                server.startSuspend(wait = true)
+                EmptyTaskResult
+            } finally {
+                server.stop()
+            }
+        }
     }
 
     private val logger = LoggerFactory.getLogger(javaClass)

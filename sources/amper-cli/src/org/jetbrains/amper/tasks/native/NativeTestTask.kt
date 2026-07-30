@@ -23,6 +23,7 @@ import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.util.BuildType
+import org.jetbrains.amper.util.TeamCityMessageProcessor
 import org.slf4j.LoggerFactory
 import kotlin.io.path.pathString
 
@@ -78,7 +79,7 @@ class NativeTestTask(
                     span = span,
                     environment = swiftPMSearchPaths,
                     outputMode = ProcessOutputMode.listen(StructuredNativeTestProcessOutputListener(
-                        eventSink = executionContext.eventSink,
+                        teamCityMessageProcessor = TeamCityMessageProcessor(executionContext.eventSink),
                     )),
                 )
                 if (result.exitCode != 0) {

@@ -1,0 +1,46 @@
+/*
+ * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package org.jetbrains.amper.tasks.wasm
+
+import org.jetbrains.amper.test.FilterMode
+import org.jetbrains.amper.test.TestFilter
+
+internal fun List<TestFilter>.toTestFilterArg(): String? {
+    if (isEmpty()) {
+        return null
+    }
+    val filters = map { it.toKotlinWasmJsTestFilter() }
+    val includeFilters = filters
+        .filter { it.mode == FilterMode.Include }
+        .joinToString(separator = " ", prefix = "--include ") { it.pattern }
+    val excludeFilters = filters
+        .filter { it.mode == FilterMode.Exclude }
+        .joinToString(separator = " ", prefix = "--exclude ") { it.pattern }
+
+    return when {
+        excludeFilters.isEmpty() -> {
+            includeFilters
+        }
+        else -> "$includeFilters $excludeFilters"
+    }
+}
+
+private data class WebBasedTestFilter(val pattern: String, val mode: FilterMode)
+
+private fun TestFilter.toKotlinWasmJsTestFilter(): WebBasedTestFilter = when (this) {
+    is TestFilter.SpecificTestInclude -> WebBasedTestFilter(
+        pattern = toKotlinWasmJsFormat(),
+        mode = FilterMode.Include,
+    )
+    is TestFilter.SuitePattern -> WebBasedTestFilter(
+        pattern = pattern.replace('/', '.'),
+        mode = mode,
+    )
+}
+
+private fun TestFilter.SpecificTestInclude.toKotlinWasmJsFormat(): String {
+    val nestedClassSuffix = if (nestedClassName != null) ".$nestedClassName" else ""
+    return "$suiteFqn$nestedClassSuffix.$testName"
+}
