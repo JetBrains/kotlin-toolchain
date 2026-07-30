@@ -1,0 +1,1 @@
+internal fun getWorld() = "Hello World!"

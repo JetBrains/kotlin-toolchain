@@ -212,8 +212,7 @@ internal class MetadataCompileTask(
     }
 
     private fun List<Result>.findMetadataResultForFragment(f: Fragment) =
-        // can't use identity check because some fragments are wrapped, and [equals] is not overridden
-        firstOrNull { it.module.userReadableName == f.module.userReadableName && it.fragment.name == f.name }
+        firstOrNull { it.fragment == f }
             ?: error("Metadata compilation result not found for dependency fragment ${f.module.userReadableName}:" +
                     "${f.name} of this fragment ${module.userReadableName}:${fragment.name}. Actual results: " +
                     map { "${it.module.userReadableName}:${it.fragment.name}" })

@@ -68,6 +68,15 @@ class AmperBuildTest : AmperCliTestBase() {
         }
     }
 
+    // KTC-5395
+    @Test
+    fun `internal declarations are accessible in native test source sets`() = runSlowTest {
+        runCli(
+            projectDir = testProject("ktc-5395"),
+            "build", "--platform=linuxX64",
+        )
+    }
+
     @Test
     fun `incremental jvm build`() = runSlowTest {
         val projectDir = testProject("incremental-compilation")

@@ -213,7 +213,8 @@ internal fun kotlinNativeCompilerArgs(
     compilationType: KotlinCompilationType,
     include: Path?,
     fragmentPlatforms: Set<Platform>,
-    refinesPaths: List<Path> = emptyList(),
+    friendPaths: List<Path> = [],
+    refinesPaths: List<Path> = [],
 ): List<String> = buildList {
     if (kotlinUserSettings.debug ?: (buildType == BuildType.Debug)) {
         add("-g")
@@ -234,6 +235,10 @@ internal fun kotlinNativeCompilerArgs(
 
     if (refinesPaths.isNotEmpty()) {
         add("-Xrefines-paths=${refinesPaths.joinToString(",")}")
+    }
+
+    if (friendPaths.isNotEmpty()) {
+        add("-friend-modules=${friendPaths.joinToString(File.pathSeparator)}")
     }
 
     // TODO full module path including entire hierarchy? -Xshort-module-name)

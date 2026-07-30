@@ -23,9 +23,12 @@ import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
+import org.jetbrains.amper.frontend.Fragment
+import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
+import org.jetbrains.amper.frontend.friends
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.incrementalcache.IncrementalCache
@@ -89,6 +92,7 @@ internal class NativeCompileKlibTask(
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+        val leafFragment = module.leafFragments.single { it.platform == platform && it.isTest == isTest }
         val fragments = module.fragments.filter {
             it.platforms.contains(platform) && it.isTest == isTest
         }
@@ -109,8 +113,13 @@ internal class NativeCompileKlibTask(
                 externalDependencies.sorted().joinToString("\n").prependIndent("  ")
         )
 
-        val compiledModuleDependencies = dependenciesResult
-            .filterIsInstance<Result>()
+        val compileResults = dependenciesResult.filterIsInstance<Result>()
+
+        val friendCompileResults = leafFragment.friends.map { friendFragment ->
+            compileResults.findResultForFragment(friendFragment)
+        }
+
+        val compiledModuleDependencies = compileResults
             .mapNotNull { it.compiledKlib }
             .toList()
 
@@ -166,6 +175,7 @@ internal class NativeCompileKlibTask(
                 entryPoint = null,
                 libraryPaths = libraryPaths,
                 exportedLibraryPaths = [],
+                friendPaths = friendCompileResults.mapNotNull { it.compiledKlib },
                 fragments = fragments,
                 fragmentPlatforms = setOf(platform),
                 sourceFiles = sourceFiles,
@@ -187,14 +197,20 @@ internal class NativeCompileKlibTask(
         return Result(
             compiledKlib = artifact,
             dependencyKlibs = libraryPaths,
+            fragment = leafFragment,
             taskId = taskName.id,
             platform = platform,
         )
     }
 
+    private fun List<Result>.findResultForFragment(f: Fragment) =
+        firstOrNull { it.fragment == f }
+            ?: error("Compilation result not found for dependency fragment ${f.module.userReadableName}/${f.name}")
+
     class Result(
         val compiledKlib: Path?,
         val dependencyKlibs: List<Path>,
+        val fragment: LeafFragment,
         val taskId: TaskId,
         val platform: Platform,
     ) : TaskResult
