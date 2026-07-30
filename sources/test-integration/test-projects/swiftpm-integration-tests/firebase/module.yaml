@@ -1,0 +1,11 @@
+product: ios/app
+
+dependencies:
+  - swiftPackage:
+      repository: "https://github.com/firebase/firebase-ios-sdk.git"
+      version: "12.14.0"
+      products: [ "FirebaseFirestore" ]
+
+settings:
+  kotlin:
+    version: "2.4.0"

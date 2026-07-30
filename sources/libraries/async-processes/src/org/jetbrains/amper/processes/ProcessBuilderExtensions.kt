@@ -37,7 +37,7 @@ import kotlin.contracts.contract
  *
  * @return the exit code of the process
  */
-internal suspend fun <R : ProcessResult> ProcessBuilder.run(
+suspend fun <R : ProcessResult> ProcessBuilder.run(
     outputMode: ProcessOutputMode<R>,
     input: ProcessInput,
     onStart: (pid: Long) -> Unit = {},

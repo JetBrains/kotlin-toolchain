@@ -49,6 +49,7 @@ fun ProjectTasksBuilder.setupIosTasks() {
                 task = ManageXCodeProjectTask(
                     taskName = ModuleTaskTypes.ManageXCodeProject.getTaskName(module),
                     module = module,
+                    terminal = context.terminal,
                 ),
             )
         }
@@ -80,6 +81,7 @@ fun ProjectTasksBuilder.setupIosTasks() {
             val preBuildTaskName = IosTaskType.PreBuildIosApp.getTaskName(module, platform, false, buildType)
             tasks.registerTask(
                 task = IosPreBuildTask(
+                    module = module,
                     taskName = preBuildTaskName,
                 ),
                 dependsOn = buildList {

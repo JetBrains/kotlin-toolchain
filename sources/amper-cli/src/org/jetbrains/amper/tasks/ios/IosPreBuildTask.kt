@@ -5,17 +5,23 @@
 package org.jetbrains.amper.tasks.ios
 
 import kotlinx.serialization.Serializable
-import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.engine.requireSingleDependency
+import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.serialization.paths.SerializablePath
 import org.jetbrains.amper.tasks.TaskResult
+import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.native.NativeLinkTask
+import org.jetbrains.amper.tasks.native.swiftpm.XcodeWiredSwiftPMImportPackage
+import org.jetbrains.amper.tasks.native.swiftpm.generatedPackage
 
 class IosPreBuildTask(
+    module: AmperModule,
     override val taskName: TaskName,
-) : Task {
+) : ArtifactTaskBase() {
+    private val generatedPackage by generatedPackage<XcodeWiredSwiftPMImportPackage>(module)
+
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
         val frameworkPath = checkNotNull(

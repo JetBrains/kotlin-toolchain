@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.tasks.ios
 
+import com.github.ajalt.mordant.terminal.Terminal
 import com.jetbrains.cidr.xcode.XcodeProjectId
 import com.jetbrains.cidr.xcode.frameworks.ApplePlatform
 import com.jetbrains.cidr.xcode.frameworks.AppleProductType
@@ -17,6 +18,7 @@ import com.jetbrains.cidr.xcode.model.PBXReference
 import com.jetbrains.cidr.xcode.model.PBXTarget
 import com.jetbrains.cidr.xcode.model.ProjectFilesChanges
 import com.jetbrains.cidr.xcode.model.addFileSystemSynchronizedRootGroup
+import com.jetbrains.cidr.xcode.model.saveProperly
 import com.jetbrains.cidr.xcode.pbxproj.ObjectReference
 import com.jetbrains.cidr.xcode.plist.Plist
 import com.jetbrains.cidr.xcode.plist.XMLPlistDriver
@@ -33,8 +35,14 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.singleSourceRoot
+import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.tasks.TaskResult
+import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.ios.IosConventions.SCHEME_NAME
+import org.jetbrains.amper.tasks.native.swiftpm.XcodeWiredSwiftPMImportPackage
+import org.jetbrains.amper.tasks.native.swiftpm.generatedPackage
+import org.jetbrains.amper.tasks.native.swiftpm.integrateSwiftPMPackageIfNeeded
+import org.jetbrains.amper.tasks.native.swiftpm.swiftPMDependenciesArtifact
 import org.jetbrains.amper.tasks.rootFragment
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -61,10 +69,14 @@ import kotlin.io.path.writeText
 class ManageXCodeProjectTask(
     override val taskName: TaskName,
     private val module: AmperModule,
-) : Task {
+    private val terminal: Terminal,
+) : ArtifactTaskBase() {
     init {
         require(module.type == ProductType.IOS_APP) { "Wrong module type: ${module.type}" }
     }
+
+    private val swiftPMDependenciesArtifact by swiftPMDependenciesArtifact(module)
+    private val generatedPackage by generatedPackage<XcodeWiredSwiftPMImportPackage>(module)
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
@@ -131,16 +143,19 @@ class ManageXCodeProjectTask(
             userReadableError("XCodeProject '$projectDir' must contain a single target with the Kotlin Toolchain integration")
         }
 
-        if (!isAmperPhaseValid(buildPhase = amperPhase)) {
-            logger.warn("Kotlin Toolchain Phase is invalid, updating")
+        val updatedAmperPhase = if (!isAmperPhaseValid(buildPhase = amperPhase)) {
             managedAmperPhaseAttributes().forEach { (key, value) ->
                 amperPhase[key] = value
             }
-            // Need to truncate the file before saving,
-            // as it doesn't overwrite the whole file and may leave some old text at the end of the file
-            pbxProjectFile.pbxProjFile.writeText("")
+            true
+        } else false
 
-            pbxProjectFile.save()
+        val integratedSwiftPMPackage = integrateSwiftPMPackageIfNeeded(swiftPMDependenciesArtifact, pbxProjectFile, terminal)
+
+        if (updatedAmperPhase || integratedSwiftPMPackage) {
+            logger.warn("Kotlin Toolchain Phase is invalid, updating")
+
+            pbxProjectFile.saveProperly()
             span.setAttribute(UpdatedAttribute, true)
         } else {
             logger.debug("Kotlin Toolchain Phase is valid")
@@ -174,7 +189,7 @@ class ManageXCodeProjectTask(
         scheme.createParentDirectories().writeText(contents)
     }
 
-    private fun generateDefaultProject(
+    private suspend fun generateDefaultProject(
         pbxProjectFilePath: Path,
         baseDir: Path,
     ): PBXTarget {
@@ -295,7 +310,9 @@ class ManageXCodeProjectTask(
             manipulator.addConfiguration(buildType.name, settings, pbxTarget)
         }
 
-        pbxProjectFile.save()
+        integrateSwiftPMPackageIfNeeded(swiftPMDependenciesArtifact, pbxProjectFile, terminal)
+
+        pbxProjectFile.saveProperly()
 
         return pbxTarget
     }

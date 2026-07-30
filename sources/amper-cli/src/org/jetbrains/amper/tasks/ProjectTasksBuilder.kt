@@ -26,6 +26,7 @@ import org.jetbrains.amper.tasks.jvm.setupJvmTasks
 import org.jetbrains.amper.tasks.ksp.setupKspTasks
 import org.jetbrains.amper.tasks.maven.setupMavenCompatibilityTasks
 import org.jetbrains.amper.tasks.native.setupNativeTasks
+import org.jetbrains.amper.tasks.native.swiftpm.setupSwiftPMTasks
 import org.jetbrains.amper.tasks.wasm.setupWasmJsTasks
 import org.jetbrains.amper.tasks.wasm.setupWasmWasiTasks
 import org.jetbrains.amper.util.BuildType
@@ -63,6 +64,7 @@ class ProjectTasksBuilder(
         setupMavenCompatibilityTasks()
         setupAndroidTasks()
         setupNativeTasks()
+        setupSwiftPMTasks()
         setupWasmJsTasks()
         setupWasmWasiTasks()
         setupJsTasks()

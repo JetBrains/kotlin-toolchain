@@ -4,12 +4,14 @@
 
 
 import iosUtils.IOSBaseTest
+import org.jetbrains.amper.processes.ProcessLeak
 import org.jetbrains.amper.test.Dirs
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import kotlin.io.path.div
 
-class RuniOSExamplesOnEmulatorsTestsStandalone : IOSBaseTest() {
+@ProcessLeak
+class RuniOSExamplesOnEmulatorsTestsStandalone : swiftpm.SwiftPMImportTests() {
 
     @Test
     @Disabled("Unignore after https://jetbrains.team/p/amper/reviews/3356/timeline is merged")

@@ -18,6 +18,8 @@ import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.NativeTestRunSettings
 import org.jetbrains.amper.tasks.TaskResult
+import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
+import org.jetbrains.amper.tasks.native.swiftpm.parsedLdCallArtifact
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -33,7 +35,13 @@ class NativeTestTask(
     override val buildType: BuildType,
     private val terminal: Terminal,
     private val processRunner: ProcessRunner,
-) : TestTask {
+) : ArtifactTaskBase(), TestTask {
+
+    // For macOS
+    private val swiftPMImportParsedLdCall by parsedLdCallArtifact(
+        module = module,
+        platform = platform,
+    )
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -62,10 +70,15 @@ class NativeTestTask(
 
                 val workingDir = module.source.moduleDir
 
+                val swiftPMSearchPaths = swiftPMImportParsedLdCall?.parsedLdCall?.dyldEnvSearchPaths(
+                    isSimctlCall = false
+                ) ?: emptyMap()
+
                 val result = processRunner.runProcess(
                     workingDir = workingDir,
                     command = command,
                     span = span,
+                    environment = swiftPMSearchPaths,
                     outputMode = ProcessOutputMode.listen(StructuredNativeTestProcessOutputListener(
                         eventSink = executionContext.eventSink,
                     )),

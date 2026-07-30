@@ -24,4 +24,9 @@ sealed interface Quantifier {
      * Exactly one artifact is expected
      */
     data object Single : Quantifier
+
+    /**
+     * Exactly one or no artifact is expected
+     */
+    data object SingleOrNone : Quantifier
 }

@@ -86,6 +86,7 @@ class TaskGraphBuilder {
             resolvedConsumes.forEach { [selector, resolved] ->
                 when(selector.quantifier) {
                     Quantifier.Single -> check(resolved.size == 1) { "Expected $selector, got ${resolved.size} artifacts" }
+                    Quantifier.SingleOrNone -> check(resolved.size == 1 || resolved.isEmpty()) { "Expected $selector, got ${resolved.size} artifacts" }
                     Quantifier.AtLeastOne -> check(resolved.isNotEmpty()) { "Expected $selector, got ${resolved.size} artifacts" }
                     Quantifier.AnyOrNone -> Unit // always okay
                 }

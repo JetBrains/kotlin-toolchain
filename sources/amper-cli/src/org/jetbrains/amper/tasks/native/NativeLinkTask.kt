@@ -35,10 +35,15 @@ import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.CinteropKlibsArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
+import org.jetbrains.amper.tasks.artifacts.api.Artifact
+import org.jetbrains.amper.tasks.artifacts.api.ArtifactSelector
+import org.jetbrains.amper.tasks.artifacts.api.ArtifactType
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.identificationPhrase
 import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.tasks.ios.productBundleIdentifier
+import org.jetbrains.amper.tasks.native.swiftpm.SwiftPMImportParsedLdCallArtifact
+import org.jetbrains.amper.tasks.native.swiftpm.parsedLdCallArtifact
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -84,6 +89,16 @@ internal class NativeLinkTask(
         incrementalCache = incrementalCache,
         quantifier = Quantifier.AnyOrNone,
     )
+
+    private val swiftPMImportParsedLdCall: SwiftPMImportParsedLdCallArtifact? by when (compilationType) {
+        KotlinCompilationType.BINARY -> parsedLdCallArtifact(
+            module = module,
+            platform = platform,
+        )
+        // FIXME: Test that this works
+        KotlinCompilationType.LIBRARY,
+        KotlinCompilationType.IOS_FRAMEWORK -> ArtifactSelector.never(Quantifier.SingleOrNone)
+    }
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): Result {
@@ -149,7 +164,7 @@ internal class NativeLinkTask(
             mapOf("bundleId" to frameworkBundleId)
         } else emptyMap()
 
-        val inputFiles = listOfNotNull(includeArtifact) + compiledKLibs
+        val inputFiles = listOfNotNull(includeArtifact, swiftPMImportParsedLdCall?.path) + compiledKLibs
         val artifact = incrementalCache.execute(
             key = taskName.id.value,
             inputValues = mapOf(
@@ -185,6 +200,8 @@ internal class NativeLinkTask(
                 plugins = kotlinUserSettings.compilerPlugins,
                 repositories = module.mavenResolveRepositories.map { it.toRepository() },
             )
+            val swiftPMLinkerOpts = swiftPMImportParsedLdCall?.parsedLdCall?.ldArgsForExecutable ?: emptyList()
+
             val args = kotlinNativeCompilerArgs(
                 buildType = buildType,
                 kotlinUserSettings = kotlinUserSettings,
@@ -201,6 +218,7 @@ internal class NativeLinkTask(
                 outputPath = artifactPath,
                 compilationType = compilationType,
                 include = includeArtifact,
+                otherLinkerOpts = swiftPMLinkerOpts,
             )
 
             nativeCompiler.compile(processRunner, args, tempRoot, module)

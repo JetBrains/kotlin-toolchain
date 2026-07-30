@@ -10,4 +10,5 @@ val swiftPMJson = Json {
     encodeDefaults = true
     explicitNulls = false
     ignoreUnknownKeys = true
+    allowStructuredMapKeys = true
 }

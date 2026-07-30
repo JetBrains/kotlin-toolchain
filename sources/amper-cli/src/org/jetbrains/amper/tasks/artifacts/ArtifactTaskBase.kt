@@ -76,6 +76,21 @@ abstract class ArtifactTaskBase : ArtifactTask {
     }
 
     /**
+     * Gets the single resolved artifact for the selector if it exists. Use only in [ArtifactTaskBase.run].
+     */
+    @JvmName("getValueSingleOrNone")
+    operator fun <T : Artifact> ArtifactSelector<T, Quantifier.SingleOrNone>.getValue(
+        thisRef: ArtifactTaskBase, @Suppress("unused") property: Any,
+    ): T? {
+        require(thisRef === this@ArtifactTaskBase)
+        // When None, the artifacts list will be empty
+        val artifacts = thisRef.rawInputs()[this]!!
+        // This is checked in TaskGraphBuilder, but check here just in case
+        require(artifacts.size == 1 || artifacts.isEmpty())
+        return artifacts.singleOrNull()?.let { type.clazz.cast(it) }
+    }
+
+    /**
      * Gets the list of resolved artifacts for the selector. Use only in [ArtifactTaskBase.run].
      */
     operator fun <T : Artifact> ArtifactSelector<T, Quantifier.Multiple>.getValue(
@@ -93,12 +108,26 @@ abstract class ArtifactTaskBase : ArtifactTask {
         thisRef.addProduces(this)
     }
 
+    operator fun <T : Artifact, L: Collection<T>> L.provideDelegate(thisRef: ArtifactTaskBase, @Suppress("unused") property: Any) = apply {
+        require(thisRef === this@ArtifactTaskBase)
+        forEach {
+            addProduces(it)
+        }
+    }
+
     /**
      * Compatibility for the [Artifact] to be used with `by` delegation.
      */
     operator fun <T : Artifact> T.getValue(
         @Suppress("unused") thisRef: ArtifactTaskBase, @Suppress("unused") property: Any
     ): T {
+        require(thisRef === this@ArtifactTaskBase)
+        return this
+    }
+
+    operator fun <T : Artifact, L: Collection<T>> L.getValue(
+        @Suppress("unused") thisRef: ArtifactTaskBase, @Suppress("unused") property: Any
+    ): L {
         require(thisRef === this@ArtifactTaskBase)
         return this
     }

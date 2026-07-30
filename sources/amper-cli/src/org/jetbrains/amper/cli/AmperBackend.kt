@@ -38,6 +38,7 @@ import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.CinteropGenSettings
 import org.jetbrains.amper.tasks.CommonTaskType
+import org.jetbrains.amper.tasks.ModuleTaskTypes
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.compose.GenerateResClassTask
@@ -612,6 +613,12 @@ class AmperBackend(
                     Please declare the required platform explicitly in the module's file.
                 """.trimIndent())
         }
+
+        runTask(
+            ModuleTaskTypes.IntegrateSwiftPMPackageIfNeeded.getTaskName(
+                module = module,
+            ).id
+        )
 
         val taskId = IosTaskType.PreBuildIosApp.getTaskName(
             module = module,

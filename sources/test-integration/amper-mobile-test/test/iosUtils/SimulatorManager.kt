@@ -5,8 +5,11 @@
 package iosUtils
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.processes.ProcessLeak
+import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.processes.startLongLivedProcess
 import org.jetbrains.amper.simctl.SimCtl
 import org.jetbrains.amper.simctl.model.ProductFamilies
@@ -22,7 +25,12 @@ import kotlin.time.Duration.Companion.seconds
  * Manages the iOS emulator lifecycle and provides helper methods
  */
 internal object SimulatorManager {
-    private val simulatorPath = Path("/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app")
+    private val simulatorPath by lazy {
+        runBlocking {
+            Path(runProcess(command = listOf("xcode-select", "-p"), outputMode = ProcessOutputMode.capture()).stdout.trim()).resolve("Applications/Simulator.app")
+        }
+    }
+
     /**
      * Launches the iOS Simulator with the specified device.
      */
@@ -34,6 +42,7 @@ internal object SimulatorManager {
 
         // The iOS Simulator that is launched must be the latest version available in the system because the Kotlin
         // Toolchain builds the app file targeting the highest available iOS version by default.
+
         val deviceId = getLatestIPhoneWithLatestIOS()
         SimCtl.bootSimulator(deviceId, failIfAlreadyBooted = false)
 

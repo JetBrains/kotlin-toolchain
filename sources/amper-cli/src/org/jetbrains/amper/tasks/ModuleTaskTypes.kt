@@ -35,9 +35,44 @@ sealed class ModuleTaskTypes(
         operationMoniker = "working with the Xcode project",
     )
 
+    data object ResolveTransitiveSwiftPMDependencies : ModuleTaskTypes(
+        internalName = "resolveTransitiveSwiftPMDependencies",
+        operationMoniker = "resolving SwiftPM dependencies",
+    )
+
     data object DumpSwiftPMDependencyResolution : ModuleTaskTypes(
         internalName = "dumpSwiftPMDependencyResolution",
-        operationMoniker = "SwiftPM dependency resolution debug dump",
+        operationMoniker = "dumping SwiftPM dependency resolution",
+    )
+
+    data object DumpKlib : ModuleTaskTypes(
+        internalName = "dumpKlib",
+        operationMoniker = "dumping klib signatures",
+    )
+
+    data object ImportSwiftPMDependenciesPackageGen : ModuleTaskTypes(
+        internalName = "internalSwiftPMImportPackageGen",
+        operationMoniker = "generating SwiftPM import package",
+    )
+
+    data object XcodeIntegrationSwiftPMDependenciesPackageGen : ModuleTaskTypes(
+        internalName = "xcodeIntegrationSwiftPMImportPackageGen",
+        operationMoniker = "generating SwiftPM import package for Xcode integration",
+    )
+
+    data object IntegrateSwiftPMPackageIfNeeded : ModuleTaskTypes(
+        internalName = "integrateLinkagePackage",
+        operationMoniker = "integrating Kotlin-managed SwiftPM project with Xcode",
+    )
+
+    data object FetchPackage : ModuleTaskTypes(
+        internalName = "fetchPackage",
+        operationMoniker = "fetching SwiftPM dependencies",
+    )
+
+    data object ComputeLocalPackageDependencies : ModuleTaskTypes(
+        internalName = "computeLocalPackageDependencies",
+        operationMoniker = "analyzing local SwiftPM dependencies",
     )
 
     // ***** Publish *****

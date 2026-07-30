@@ -19,8 +19,6 @@ import org.jetbrains.amper.tasks.TaskNameFactory
 import org.jetbrains.amper.tasks.getModuleDependencies
 import org.jetbrains.amper.tasks.getTaskName
 import org.jetbrains.amper.tasks.ios.IosTaskType
-import org.jetbrains.amper.tasks.native.swiftpm.DumpSwiftPMDependencyResolution
-import org.jetbrains.amper.tasks.native.swiftpm.transitiveSwiftPMDependenciesResolver
 import org.jetbrains.amper.util.BuildType
 
 private fun isIosApp(platform: Platform, module: AmperModule) =
@@ -76,18 +74,6 @@ fun ProjectTasksBuilder.setupNativeTasks() {
             dependsOn = [CommonizeNativeDistributionTask.TASK_NAME],
         )
     }
-
-    allModules()
-        .withEach {
-            val transitiveSwiftPMDependenciesResolver = transitiveSwiftPMDependenciesResolver()
-
-            tasks.registerTask(
-                task = DumpSwiftPMDependencyResolution(
-                    transitiveSwiftPMDependenciesResolver = transitiveSwiftPMDependenciesResolver,
-                    taskName = ModuleTaskTypes.DumpSwiftPMDependencyResolution.getTaskName(module),
-                )
-            )
-        }
 
     allModules()
         .alsoPlatforms(Platform.NATIVE)
@@ -262,4 +248,14 @@ enum class NativeTaskType(
 ) : TaskNameFactory.LeafPlatform {
     CompileKLib("compile", "compiling"),
     Cinterop("cinterop", "processing cinterop definitions"),
+}
+
+enum class XcodebuildTaskType(
+    override val internalName: String,
+    override val operationMoniker: String,
+) : TaskNameFactory.XcodebuildPlatform {
+    SwiftPMImport(
+        "swiftPMImport",
+        "Importing SwiftPM dependencies"
+    ),
 }

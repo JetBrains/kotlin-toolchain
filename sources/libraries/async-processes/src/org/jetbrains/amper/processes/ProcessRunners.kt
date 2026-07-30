@@ -32,7 +32,7 @@ import kotlin.contracts.contract
 suspend fun <R : ProcessResult> runProcess(
     workingDir: Path? = null,
     command: List<String>,
-    environment: Map<String, String> = emptyMap(),
+    configureEnvironment: (MutableMap<String, String>) -> (Unit),
     outputMode: ProcessOutputMode<R>,
     input: ProcessInput = ProcessInput.Inherit,
     onStart: (pid: Long) -> Unit = {},
@@ -40,8 +40,24 @@ suspend fun <R : ProcessResult> runProcess(
     contract {
         callsInPlace(onStart, InvocationKind.EXACTLY_ONCE)
     }
-    return process(workingDir, command, environment).run(outputMode, input, onStart)
+    return process(workingDir, command, configureEnvironment).run(outputMode, input, onStart)
 }
+
+suspend fun <R : ProcessResult> runProcess(
+    workingDir: Path? = null,
+    command: List<String>,
+    environment: Map<String, String> = emptyMap(),
+    outputMode: ProcessOutputMode<R>,
+    input: ProcessInput = ProcessInput.Inherit,
+    onStart: (pid: Long) -> Unit = {},
+): R = runProcess(
+    workingDir,
+    command,
+    { it.putAll(environment) },
+    outputMode,
+    input,
+    onStart
+)
 
 @RequiresOptIn("Using this API causes the child process to leak and outlive the execution of the current JVM. " +
         "Make sure you understand the consequences before opting in. " +
@@ -84,11 +100,21 @@ fun startLongLivedProcess(
 private fun process(
     workingDir: Path? = null,
     command: List<String>,
-    environment: Map<String, String> = emptyMap(),
+    environment: Map<String, String>,
+): ProcessBuilder = process(
+    workingDir = workingDir,
+    command = command,
+    configureEnvironment = { it.putAll(environment) }
+)
+
+private fun process(
+    workingDir: Path? = null,
+    command: List<String>,
+    configureEnvironment: (MutableMap<String, String>) -> (Unit) = {},
 ): ProcessBuilder {
     require(command.isNotEmpty()) { "Cannot start a process with an empty command line" }
 
     return ProcessBuilder(command)
         .directory(workingDir?.toFile())
-        .also { it.environment().putAll(environment) }
+        .also { configureEnvironment(it.environment()) }
 }

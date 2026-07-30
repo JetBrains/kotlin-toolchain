@@ -20,8 +20,10 @@ import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.NativeTestRunSettings
 import org.jetbrains.amper.tasks.TaskResult
+import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.native.NativeLinkTask
 import org.jetbrains.amper.tasks.native.StructuredNativeTestProcessOutputListener
+import org.jetbrains.amper.tasks.native.swiftpm.parsedLdCallArtifact
 import org.jetbrains.amper.tasks.native.toNativeTestExecutableArgs
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -38,7 +40,12 @@ class IosKotlinTestTask(
     override val platform: Platform,
     override val buildType: BuildType,
     private val processRunner: ProcessRunner,
-) : TestTask {
+) : ArtifactTaskBase(), TestTask {
+    private val swiftPMImportParsedLdCall by parsedLdCallArtifact(
+        module = module,
+        platform = platform,
+    )
+
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
         val compileTaskResult = dependenciesResult.requireSingleDependency<NativeLinkTask.Result>()
@@ -66,10 +73,15 @@ class IosKotlinTestTask(
                 .use { span ->
                     processRunner.bootAndWaitSimulator(chosenDevice)
 
+                    val swiftPMSearchPaths = swiftPMImportParsedLdCall?.parsedLdCall?.dyldEnvSearchPaths(
+                        isSimctlCall = true
+                    ) ?: emptyMap()
+
                     val result = processRunner.runProcess(
                         workingDir = workingDir,
                         command = spawnTestsCommand,
                         span = span,
+                        environment = swiftPMSearchPaths,
                         outputMode = ProcessOutputMode.listen(StructuredNativeTestProcessOutputListener(
                             eventSink = executionContext.eventSink,
                         )),

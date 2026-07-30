@@ -13,4 +13,9 @@ data class SwiftPMDependencies(
 ) {
     val hasDirectOrTransitiveSwiftPMDependencies
         get() = directSwiftPMDependencies.isNotEmpty() || transitiveSwiftPMDependencies.metadataByDependencyIdentifier.isNotEmpty()
+
+    val localPackageDependencies
+        get() = (directSwiftPMDependencies.filterIsInstance<SwiftPMDependency.Local>() + transitiveSwiftPMDependencies.metadataByDependencyIdentifier.values.flatMap {
+            it.dependencies.filterIsInstance<SwiftPMDependency.Local>()
+        }).associateBy { it.absolutePath }.values
 }

@@ -8,6 +8,8 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.doCapitalize
+import org.jetbrains.amper.tasks.native.swiftpm.XcodebuildPlatform
 import org.jetbrains.amper.util.BuildType
 
 /**
@@ -45,6 +47,13 @@ sealed interface TaskNameFactory {
      * Use [getTaskName] to create a task name.
      */
     interface Fragment : TaskNameFactory
+
+    /**
+     * A task name factory for xcodebuild destination scoped task names.
+     *
+     * Use [getTaskName] to create a task name.
+     */
+    interface XcodebuildPlatform : TaskNameFactory
 }
 
 /**
@@ -64,6 +73,14 @@ fun TaskNameFactory.LeafPlatform.getTaskName(
     buildType: BuildType? = null,
     suffix: String = "",
 ) = TaskName(module, platform, isTest, buildType, suffix, internalName, operationMoniker)
+
+/**
+ * Constructs an xcodebuild platform-scoped task name
+ */
+fun TaskNameFactory.XcodebuildPlatform.getTaskName(
+    module: AmperModule,
+    platform: XcodebuildPlatform,
+) = TaskName(module, platform, internalName, operationMoniker)
 
 /**
  * Constructs a fragment-scoped task name.

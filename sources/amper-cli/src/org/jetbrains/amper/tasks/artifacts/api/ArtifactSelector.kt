@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.tasks.artifacts.api
 
+import kotlin.reflect.KClass
 import kotlin.reflect.cast
 
 /**
@@ -24,9 +25,22 @@ data class ArtifactSelector<T : Artifact, out Q : Quantifier>(
     override fun toString(): String {
         val quantifierString = when (quantifier) {
             Quantifier.Single -> "single artifact"
+            Quantifier.SingleOrNone -> "single or no artifact"
             Quantifier.AnyOrNone -> "any/none artifacts"
             Quantifier.AtLeastOne -> "at least one artifact"
         }
         return "$quantifierString matching type $type, $description"
+    }
+
+    companion object {
+        inline fun <reified T : Artifact, Q : Quantifier> never(
+            quantifier: Q,
+            type: KClass<T> = T::class,
+        ): ArtifactSelector<T, Q> = ArtifactSelector(
+            type = ArtifactType(type),
+            predicate = { false },
+            description = "never selector",
+            quantifier = quantifier,
+        )
     }
 }

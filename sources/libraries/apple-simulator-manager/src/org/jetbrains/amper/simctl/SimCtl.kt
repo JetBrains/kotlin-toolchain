@@ -160,6 +160,14 @@ object SimCtl {
 
         return match.groups["pid"]?.value?.toInt() ?: error("Regex matched without 'pid' group")
     }
+
+    suspend fun launchAndWaitForAppToFinish(
+        appBundleId: String,
+        device: TargetDevice = TargetDevice.AnyBootedDevice
+    ) = runProcess(
+        command = ["xcrun", "simctl", "launch", "--console", device.cliName, appBundleId],
+        outputMode = ProcessOutputMode.capture(),
+    )
 }
 
 /**

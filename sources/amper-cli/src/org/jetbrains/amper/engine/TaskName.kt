@@ -11,6 +11,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.doCapitalize
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.testSuffix
+import org.jetbrains.amper.tasks.native.swiftpm.XcodebuildPlatform
 import org.jetbrains.amper.util.BuildType
 
 /**
@@ -73,6 +74,20 @@ fun TaskName(
         ),
     )
 }
+
+/**
+ * Constructs an xcodebuild platform-scoped task name.
+ */
+fun TaskName(
+    module: AmperModule,
+    xcodebuildPlatform: XcodebuildPlatform,
+    internalName: String,
+    operationMoniker: String,
+): TaskName = TaskName(
+    module = module,
+    internalName = "${internalName}${xcodebuildPlatform.sdk.doCapitalize()}",
+    operationMoniker = "$operationMoniker ${xcodebuildPlatform.destination}"
+)
 
 /**
  * Constructs a compilation-scoped task name. Given parameters describe a compilation.

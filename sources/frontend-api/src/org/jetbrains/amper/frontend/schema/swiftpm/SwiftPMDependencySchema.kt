@@ -5,7 +5,9 @@
 package org.jetbrains.amper.frontend.schema.swiftpm
 
 import org.jetbrains.amper.frontend.api.CanBeReferenced
+import org.jetbrains.amper.frontend.api.FromKeyAndTheRestIsNested
 import org.jetbrains.amper.frontend.api.SchemaNode
+import org.jetbrains.amper.frontend.api.Shorthand
 import org.jetbrains.amper.frontend.tree.PathNode
 import org.jetbrains.amper.frontend.tree.ReferenceNode
 import org.jetbrains.amper.frontend.tree.RefinedMappingNode
@@ -25,27 +27,35 @@ sealed class SwiftPMDependencySchema : SchemaNode() {
         }
 
         @CanBeReferenced
-        val repository: Repository.Url by value<Repository.Url>()
-        val version: Version.From by value<Version.From>()
+        val repository: Repository by value<Repository>()
+        val version: Version by value<Version>()
         override val products: List<String> by value<List<String>>()
         override val packageName: String by referenceValue<String>(::repository, "package name", RepoPathToPackageNameTransform())
         override val traits: List<String> by value<List<String>>(emptyList())
 
-        sealed class Version : SchemaNode() {
-            class From : Version() {
-                val value: String by value<String>()
+
+        class Version : SchemaNode() {
+            @Shorthand
+            val value: String by value()
+            val type: Type by value(Type.exact)
+
+            enum class Type {
+                from,
+                exact,
+                // Range,
+                branch,
+                revision
             }
-            // FIXME: Support al the other
-            data class Exact constructor(val value: String) : Version()
-            data class Range  constructor(val from: String, val through: String) : Version()
-            data class Branch  constructor(val value: String) : Version()
-            data class Revision  constructor(val value: String) : Version()
         }
 
-        sealed class Repository : SchemaNode() {
-            data class Id  constructor( val value: String) : Repository()
-            class Url : Repository() {
-                val value: String by value<String>()
+        class Repository : SchemaNode() {
+            @Shorthand
+            val value: String by value()
+            val type: Type by value(Type.url)
+
+            enum class Type {
+                url,
+                id
             }
         }
     }

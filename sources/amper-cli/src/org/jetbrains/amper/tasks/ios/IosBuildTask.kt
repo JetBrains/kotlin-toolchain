@@ -103,7 +103,7 @@ class IosBuildTask(
         }
 
         coroutineScope {
-            val executable = prepareLogParsingUtility()
+            val executable = prepareLogParsingUtility(userCacheRoot)
             val pipe = ProcessPipe(
                 includeStderr = true,
                 eavesDroppingListener = LoggingProcessOutputListener(
@@ -159,31 +159,33 @@ class IosBuildTask(
         )
     }
 
-    private suspend fun prepareLogParsingUtility(): Path {
-        val archString = when(Arch.current) {
-            Arch.X64 -> "x86_64"
-            Arch.Arm64 -> "arm64"
-        }
-        val version = XCBEAUTIFY_VERSION
-        val archive = Downloader.downloadFileToCacheLocation(
-            url = "https://github.com/cpisciotta/xcbeautify/releases/download/$version/xcbeautify-$version-$archString-apple-macosx.zip",
-            userCacheRoot = userCacheRoot,
-        )
-        val executable = extractFileToCacheLocation(archiveFile = archive, amperUserCacheRoot = userCacheRoot)
-            .resolve("xcbeautify")
-        if (!executable.isExecutable()) {
-            val permissions = executable.getPosixFilePermissions()
-            @Suppress("RETURN_VALUE_NOT_USED") // KT-86696
-            executable.setPosixFilePermissions(permissions + PosixFilePermission.OWNER_EXECUTE)
-        }
-        return executable
-    }
-
     class Result(
         val appPath: Path,
     ) : TaskResult
 
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    companion object {
+        suspend fun prepareLogParsingUtility(userCacheRoot: AmperUserCacheRoot): Path {
+            val archString = when(Arch.current) {
+                Arch.X64 -> "x86_64"
+                Arch.Arm64 -> "arm64"
+            }
+            val version = XCBEAUTIFY_VERSION
+            val archive = Downloader.downloadFileToCacheLocation(
+                url = "https://github.com/cpisciotta/xcbeautify/releases/download/$version/xcbeautify-$version-$archString-apple-macosx.zip",
+                userCacheRoot = userCacheRoot,
+            )
+            val executable = extractFileToCacheLocation(archiveFile = archive, amperUserCacheRoot = userCacheRoot)
+                .resolve("xcbeautify")
+            if (!executable.isExecutable()) {
+                val permissions = executable.getPosixFilePermissions()
+                @Suppress("RETURN_VALUE_NOT_USED") // KT-86696
+                executable.setPosixFilePermissions(permissions + PosixFilePermission.OWNER_EXECUTE)
+            }
+            return executable
+        }
+    }
 }
 
 const val XCBEAUTIFY_VERSION = "3.2.1"

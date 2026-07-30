@@ -239,6 +239,7 @@ internal fun kotlinNativeCompilerArgs(
     friendPaths: List<Path> = [],
     refinesPaths: List<Path> = [],
     metadataManifestFile: Path? = null,
+    otherLinkerOpts: List<String> = emptyList()
 ): List<String> = buildList {
     if (kotlinUserSettings.debug ?: (buildType == BuildType.Debug)) {
         add("-g")
@@ -246,7 +247,7 @@ internal fun kotlinNativeCompilerArgs(
     if (kotlinUserSettings.optimization ?: (buildType == BuildType.Release)) {
         add("-opt")
     }
-    kotlinUserSettings.linkerOptions.forEach { opt ->
+    (otherLinkerOpts + kotlinUserSettings.linkerOptions).forEach { opt ->
         add("-linker-option=$opt")
     }
 

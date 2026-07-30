@@ -50,15 +50,14 @@ fun SwiftPMDependencySchema.convertSchema(): SwiftPMDependency {
     }
 }
 
-fun SwiftPMDependencySchema.Remote.Repository.convertSchema(): SwiftPMDependency.Remote.Repository = when (this) {
-    is SwiftPMDependencySchema.Remote.Repository.Url -> SwiftPMDependency.Remote.Repository.Url(value)
-    is SwiftPMDependencySchema.Remote.Repository.Id -> SwiftPMDependency.Remote.Repository.Id(value)
+fun SwiftPMDependencySchema.Remote.Repository.convertSchema(): SwiftPMDependency.Remote.Repository = when (this.type) {
+    SwiftPMDependencySchema.Remote.Repository.Type.url -> SwiftPMDependency.Remote.Repository.Url(value)
+    SwiftPMDependencySchema.Remote.Repository.Type.id -> SwiftPMDependency.Remote.Repository.Id(value)
 }
 
-fun SwiftPMDependencySchema.Remote.Version.convertSchema(): SwiftPMDependency.Remote.Version = when (this) {
-    is SwiftPMDependencySchema.Remote.Version.From -> SwiftPMDependency.Remote.Version.From(value)
-    is SwiftPMDependencySchema.Remote.Version.Exact -> SwiftPMDependency.Remote.Version.Exact(value)
-    is SwiftPMDependencySchema.Remote.Version.Branch -> SwiftPMDependency.Remote.Version.Branch(value)
-    is SwiftPMDependencySchema.Remote.Version.Revision -> SwiftPMDependency.Remote.Version.Revision(value)
-    is SwiftPMDependencySchema.Remote.Version.Range -> TODO()
+fun SwiftPMDependencySchema.Remote.Version.convertSchema(): SwiftPMDependency.Remote.Version = when (this.type) {
+    SwiftPMDependencySchema.Remote.Version.Type.from -> SwiftPMDependency.Remote.Version.From(value)
+    SwiftPMDependencySchema.Remote.Version.Type.exact -> SwiftPMDependency.Remote.Version.Exact(value)
+    SwiftPMDependencySchema.Remote.Version.Type.branch -> SwiftPMDependency.Remote.Version.Branch(value)
+    SwiftPMDependencySchema.Remote.Version.Type.revision -> SwiftPMDependency.Remote.Version.Revision(value)
 }
