@@ -27,6 +27,7 @@ import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.runJava
 import org.jetbrains.amper.stdlib.io.path.cleanDirectoryExcept
+import org.jetbrains.amper.stdlib.io.path.listDirectoryEntriesIfExistsOrEmpty
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
@@ -43,7 +44,6 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
-import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 
 class CommonizeCInteropKlibsTask(
@@ -84,7 +84,7 @@ class CommonizeCInteropKlibsTask(
     ): TaskResult {
         // cinterop "name" -> all the corresponding klibs from all the leaf platforms.
         val allKlibsFlat = cinteropKlibs.flatMap { artifact ->
-            artifact.path.listDirectoryEntries().map {
+            artifact.path.listDirectoryEntriesIfExistsOrEmpty().map {
                 CinteropKlib(
                     name = it.name.substringBefore('.'),
                     klibPath = it.takeIf { it.extension == "klib" },
@@ -109,7 +109,6 @@ class CommonizeCInteropKlibsTask(
     private suspend fun commonize(
         klibs: List<CinteropKlib>,
     ): List<Path> {
-        check(klibs.isNotEmpty())
 
         val groupedByName: Map<String, List<CinteropKlib>> = klibs.groupBy(
             keySelector = { it.name },
@@ -153,8 +152,15 @@ class CommonizeCInteropKlibsTask(
             }.distinct()
             .joinToString(";") { it.absolutePathString() }
 
-        val inputLibrariesString = klibs
+        val inputLibraries = klibs
             .mapNotNull { it.klibPath }
+
+        if (inputLibraries.isEmpty()) {
+            // Can happen at this stage if every cinterop processing failed
+            return []
+        }
+
+        val inputLibrariesString = inputLibraries
             .joinToString(";") { it.absolutePathString() }
 
         return incrementalCache.executeForFiles(
@@ -167,6 +173,7 @@ class CommonizeCInteropKlibsTask(
             inputFiles = buildList {
                 add(compiler.konanDistribution.homeDir)
                 klibs.mapNotNullTo(this) { it.klibPath }
+                addAll(inputLibraries)
                 addAll(commonizerClasspath)
             }
         ) {

@@ -1,0 +1,29 @@
+package = com.example.native.custom
+---
+#include <stdlib.h>
+
+#if defined(__linux__)
+
+static inline const char* getGreetingLinux(size_t size) {
+  return "Hello From Linux";
+}
+
+#endif
+
+#if defined(__APPLE__)
+
+static inline const char* getGreetingApple(size_t size) {
+  return "Hello From Apple";
+}
+
+#endif
+
+#if defined(__MINGW64__)
+
+#error "Win is not supported!"
+
+#endif
+
+static inline const char* getGreeting(size_t size) {
+  return "Hello From Native";
+}

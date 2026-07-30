@@ -154,6 +154,51 @@ class CinteropTest : AmperCliTestBase() {
 
     @Test
     @MacOnly
+    fun `ide sync - multi module project with cinterop (sync + test)`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("cinterop/multi-module"),
+            "ide-integration", "generate-klibs",
+            assertEmptyStdErr = false,
+        )
+        assertCinteropModel(
+            result = result,
+            expectedRepresentation = """
+                module: linux-cli
+                 fragment: linuxArm64 | generated/linux-cli/linuxArm64/cinterop
+                  - libcurl.klib.failed
+                 fragment: linuxX64 | generated/linux-cli/linuxX64/cinterop
+                  - libcurl.klib.failed
+                module: macos-cli
+                 fragment: macosArm64 | generated/macos-cli/macosArm64/cinterop
+                  - libcurl.klib
+                module: shared
+                 commonized/shared/(linux_arm64, linux_x64, macos_arm64, macos_x64, mingw_x64)/
+                  - custom
+                 commonized/shared/(linux_arm64, linux_x64)/
+                  - custom
+                 commonized/shared/(macos_arm64, macos_x64)/
+                  - custom
+                 fragment: linuxArm64 | generated/shared/linuxArm64/cinterop
+                  - custom.klib
+                 fragment: linuxX64 | generated/shared/linuxX64/cinterop
+                  - custom.klib
+                 fragment: macosArm64 | generated/shared/macosArm64/cinterop
+                  - custom.klib
+                 fragment: macosX64 | generated/shared/macosX64/cinterop
+                  - custom.klib
+                 fragment: mingwX64 | generated/shared/mingwX64/cinterop
+                  - custom.klib.failed
+            """.trimIndent(),
+        )
+
+        runCli(
+            projectDir = result.projectDir,
+            "test", "-p", "macosArm64",
+        )
+    }
+
+    @Test
+    @MacOnly
     fun `build - errors are honored during cinterop klib gen`() = runSlowTest {
         val result = runCli(
             projectDir = testProject("cinterop/mac-and-win"),
