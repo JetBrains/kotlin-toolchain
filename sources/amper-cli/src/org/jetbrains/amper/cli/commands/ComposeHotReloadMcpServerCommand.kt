@@ -86,6 +86,9 @@ internal class ComposeHotReloadMcpServerCommand : AmperProjectAwareCommand(name 
         val exitCode = withJavaArgFile(cliContext.projectTempRoot, javaArgs) { argFile ->
             runProcessWithInheritedIO(
                 command = listOf(jdk.javaExecutable.pathString, "@${argFile.pathString}"),
+                onStart = { pid ->
+                    logger.info("Started MCP server with the pid: $pid")
+                }
             )
         }
         if (exitCode != 0) {

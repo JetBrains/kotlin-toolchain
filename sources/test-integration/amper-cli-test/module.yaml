@@ -20,6 +20,8 @@ test-dependencies:
   - $libs.kotlinx.coroutines.test
   - $libs.maven.artifact # just for ComparableVersion
   - $libs.teamcity.serviceMessages # to parse service messages in tests
+  - $libs.compose.hot.reload.orchestration
+  - $libs.compose.hot.reload.core
   - com.android.tools.apkparser:apkanalyzer:31.2.0
   - com.android.tools.apkparser:binary-resources:31.2.0
   - org.smali:dexlib2:2.5.2 # todo: use apkanalyzer API to get rid of this dependency

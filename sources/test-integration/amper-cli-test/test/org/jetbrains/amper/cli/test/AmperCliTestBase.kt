@@ -97,12 +97,11 @@ abstract class AmperCliTestBase : AmperCliWithWrapperTestBase() {
         configureAndroidHome: Boolean = false,
         environment: Map<String, String> = emptyMap(),
         wrapperMode: WrapperMode = WrapperMode.Local,
+        buildOutputRoot: Path = tempRoot.resolve("build"),
     ): AmperCliResult {
         println("Running Kotlin CLI with '${args.toList()}' on $projectDir")
 
         modifyProjectBeforeRun(projectDir)
-
-        val buildOutputRoot = tempRoot.resolve("build")
 
         val kotlinWrapperPath = if (wrapperMode.isGlobal) {
             tempWrappersDir / scriptNameForCurrentOs
