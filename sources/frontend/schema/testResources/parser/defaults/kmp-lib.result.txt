@@ -40,7 +40,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -235,7 +235,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -426,7 +426,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -620,7 +620,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -810,7 +810,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -1003,7 +1003,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -1194,7 +1194,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -1385,7 +1385,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -1579,7 +1579,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -1773,7 +1773,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -1964,7 +1964,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -2158,7 +2158,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -2349,7 +2349,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -2542,7 +2542,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -2733,7 +2733,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -2927,7 +2927,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -3118,7 +3118,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -3312,7 +3312,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -3503,7 +3503,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
@@ -3697,7 +3697,7 @@ Fragments:
         enabled: <default> false
         experimental: <default> {
           hotReload: <default> {
-            version: <default> 1.2.0-rc01
+            version: <default> 1.2.0
           }
         }
         resources: <default> {
