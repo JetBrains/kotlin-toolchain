@@ -18,6 +18,7 @@ import org.jetbrains.amper.cli.commands.AmperModelAwareCommand
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.filterByPluginId
 import org.jetbrains.amper.cli.options.ModuleFilter
+import org.jetbrains.amper.cli.options.moduleOption
 import org.jetbrains.amper.cli.options.selectModules
 import org.jetbrains.amper.frontend.Model
 
@@ -28,8 +29,7 @@ private enum class CustomCommandsListFormat(val cliName: String) {
 
 internal class ShowCustomCommandsCommand : AmperModelAwareCommand(name = "commands") {
 
-    private val modules by option(
-        "-m", "--module",
+    private val modules by moduleOption(
         help = """
             The module to show the custom commands of (run the `show modules` command to get the modules list).
             This option can be repeated to show custom commands for several modules.
@@ -101,8 +101,8 @@ internal class ShowCustomCommandsCommand : AmperModelAwareCommand(name = "comman
     }
 
     private fun printPlain(commands: List<QualifiedName>) {
-        for ((simpleName, pluginId) in commands) {
-            terminal.println(Markdown("`$pluginId`:`$simpleName`"))
+        commands.forEach {
+            terminal.println(it.qualifiedName)
         }
     }
 }

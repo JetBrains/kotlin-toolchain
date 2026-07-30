@@ -11,6 +11,8 @@ import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.unique
 import org.jetbrains.amper.cli.context.ProjectCliContext
+import org.jetbrains.amper.cli.options.ChecksCompletionCandidates
+import org.jetbrains.amper.cli.options.moduleOption
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withBackend
 import org.jetbrains.amper.engine.TaskExecutor
@@ -18,7 +20,7 @@ import org.jetbrains.amper.frontend.Model
 
 internal class CheckCommand : AmperModelAwareCommand(name = "check") {
 
-    private val modules by option("-m", "--module",
+    private val modules by moduleOption(
         help = "The specific module to run checks in (run the `show modules` command to get the modules list). " +
                 "This option can be repeated to run checks in several modules."
     ).multiple().unique()
@@ -30,7 +32,8 @@ internal class CheckCommand : AmperModelAwareCommand(name = "check") {
     private val checkNames by argument(
         name = "checks",
         help = "The names of the checks to run. Run the `show checks` command to get all the available checks. " +
-                "If not specified, all checks are run."
+                "If not specified, all checks are run.",
+        completionCandidates = ChecksCompletionCandidates,
     ).multiple()
 
     // TODO: arguments for tests, like buildType, filter, etc.

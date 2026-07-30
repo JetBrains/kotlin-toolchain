@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.cli.options
@@ -27,7 +27,6 @@ internal sealed class ModuleFilter {
     data object Unspecified : ModuleFilter()
 }
 
-internal const val ModuleOptionName = "--module"
 internal const val AllModulesOptionName = "--all-modules"
 
 /**
@@ -40,9 +39,9 @@ internal fun ParameterHolder.moduleFilter(
     moduleOptionHelp: String,
     allModulesOptionHelp: String,
 ): MutuallyExclusiveOptions<ModuleFilter, ModuleFilter> = mutuallyExclusiveOptions(
-    option("-m", "--module", help = moduleOptionHelp)
+    moduleOption(help = moduleOptionHelp)
         .transformAll { ModuleFilter.Names(it.toSet()) },
-    option("-a", "--all-modules", help = allModulesOptionHelp)
+    option("-a", AllModulesOptionName, help = allModulesOptionHelp)
         .flag(default = false)
         .convert { if (it) ModuleFilter.All else null },
 ).single().default(ModuleFilter.Unspecified)

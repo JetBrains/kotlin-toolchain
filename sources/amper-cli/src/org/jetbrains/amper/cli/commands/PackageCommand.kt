@@ -12,14 +12,14 @@ import com.github.ajalt.clikt.parameters.types.enum
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.options.buildTypeOption
 import org.jetbrains.amper.cli.options.leafPlatformOption
+import org.jetbrains.amper.cli.options.moduleOption
 import org.jetbrains.amper.cli.withBackend
 import org.jetbrains.amper.engine.PackageTask
 import org.jetbrains.amper.frontend.Model
 
 internal class PackageCommand : AmperModelAwareCommand(name = "package") {
 
-    private val modules by option(
-        "-m", "--module",
+    private val modules by moduleOption(
         help = "The specific module to package (run the `show modules` command to get the modules list). " +
                 "This option can be repeated to package several modules."
     ).multiple().unique()

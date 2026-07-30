@@ -19,6 +19,7 @@ import org.jetbrains.amper.cli.commands.AmperModelAwareCommand
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.filterByPluginId
 import org.jetbrains.amper.cli.options.ModuleFilter
+import org.jetbrains.amper.cli.options.moduleOption
 import org.jetbrains.amper.cli.options.selectModules
 import org.jetbrains.amper.frontend.Model
 
@@ -29,8 +30,7 @@ private enum class ChecksListFormat(val cliName: String) {
 
 internal class ShowChecksCommand : AmperModelAwareCommand(name = "checks") {
 
-    private val modules by option(
-        "-m", "--module",
+    private val modules by moduleOption(
         help = """
             The module to show the checks of (run the `show modules` command to get the modules list).
             This option can be repeated to show checks for several modules.
@@ -47,7 +47,7 @@ internal class ShowChecksCommand : AmperModelAwareCommand(name = "checks") {
         "--format",
         help = """
             The format of the output. Available formats:
-             - `plain`: plain list of *qualified* check names
+             - `plain`: plain, unformatted list of *qualified* check names
              - `table`: formatted table with multiple columns
         """.trimIndent(),
     ).enum<ChecksListFormat> { it.cliName }
@@ -99,13 +99,8 @@ internal class ShowChecksCommand : AmperModelAwareCommand(name = "checks") {
     }
 
     private fun printPlain(checks: List<QualifiedName>) {
-        for ((simpleName, pluginId) in checks) {
-            if (pluginId != null) {
-                terminal.println(Markdown("`$pluginId`:`$simpleName`"))
-            } else {
-                terminal.println(Markdown("`$simpleName`"))
-            }
+        checks.forEach {
+            terminal.println(it.qualifiedName)
         }
     }
-
 }
