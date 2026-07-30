@@ -1,4 +1,4 @@
-package org.jetbrains.kotlintoolchain.kmp.test.sample.fibonacci
+package org.jetbrains.kotlintoolchain.kmp.sample.fibonacci
 
 actual val firstElement: Int = 2
 actual val secondElement: Int = 3

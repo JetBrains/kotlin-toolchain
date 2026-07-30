@@ -1,7 +1,7 @@
 {
   "formatVersion": "1.1",
   "component": {
-    "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+    "group": "org.jetbrains.kotlintoolchain.kmp.sample",
     "module": "jvmPlusAndroid",
     "version": "1.0.0",
     "attributes": {
@@ -76,7 +76,7 @@
       },
       "available-at": {
         "url": "../../jvmPlusAndroid-android/1.0.0/jvmPlusAndroid-android-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "jvmPlusAndroid-android",
         "version": "1.0.0"
       }
@@ -92,7 +92,7 @@
       },
       "available-at": {
         "url": "../../jvmPlusAndroid-android/1.0.0/jvmPlusAndroid-android-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "jvmPlusAndroid-android",
         "version": "1.0.0"
       }
@@ -110,7 +110,7 @@
       },
       "available-at": {
         "url": "../../jvmPlusAndroid-android/1.0.0/jvmPlusAndroid-android-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "jvmPlusAndroid-android",
         "version": "1.0.0"
       }
@@ -126,7 +126,7 @@
       },
       "available-at": {
         "url": "../../jvmPlusAndroid-jvm/1.0.0/jvmPlusAndroid-jvm-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "jvmPlusAndroid-jvm",
         "version": "1.0.0"
       }
@@ -142,7 +142,7 @@
       },
       "available-at": {
         "url": "../../jvmPlusAndroid-jvm/1.0.0/jvmPlusAndroid-jvm-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "jvmPlusAndroid-jvm",
         "version": "1.0.0"
       }
@@ -160,7 +160,7 @@
       },
       "available-at": {
         "url": "../../jvmPlusAndroid-jvm/1.0.0/jvmPlusAndroid-jvm-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "jvmPlusAndroid-jvm",
         "version": "1.0.0"
       }

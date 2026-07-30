@@ -2,7 +2,7 @@
   "formatVersion": "1.1",
   "component": {
     "url": "../../libraryNested/1.0.0/libraryNested-1.0.0.module",
-    "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+    "group": "org.jetbrains.kotlintoolchain.kmp.sample",
     "module": "libraryNested",
     "version": "1.0.0",
     "attributes": {
@@ -41,7 +41,7 @@
           }
         },
         {
-          "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+          "group": "org.jetbrains.kotlintoolchain.kmp.sample",
           "module": "library",
           "version": {
             "requires": "1.0.0"

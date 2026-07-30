@@ -152,7 +152,7 @@ class KmpPublicationTest : AmperCliTestBase() {
             projectDir = testProject("multiplatform-library-consumer"),
             "test", "--format", "teamcity", "--include-module", "libraryConsumer", "--platform", "mingwX64",
             "--include-test",
-            "\"org.jetbrains.kotlintoolchain.kmp.test.sample.consumer.LibraryWindowsConsumerTest.test 3rd element()\" ",
+            "\"org.jetbrains.kotlintoolchain.kmp.sample.consumer.LibraryWindowsConsumerTest.test 3rd element()\" ",
             configureAndroidHome = true,
         )
     }
@@ -164,7 +164,7 @@ class KmpPublicationTest : AmperCliTestBase() {
             projectDir = testProject("multiplatform-library-consumer"),
             "test", "--format", "teamcity", "--include-module", "libraryConsumer", "--platform", "linuxX64",
             "--include-test",
-            "\"org.jetbrains.kotlintoolchain.kmp.test.sample.consumer.LibraryLinuxConsumerTest.test 3rd element()\" ",
+            "\"org.jetbrains.kotlintoolchain.kmp.sample.consumer.LibraryLinuxConsumerTest.test 3rd element()\" ",
             configureAndroidHome = true,
         )
     }
@@ -176,7 +176,7 @@ class KmpPublicationTest : AmperCliTestBase() {
             projectDir = testProject("multiplatform-library-consumer"),
             "test", "--format", "teamcity", "--include-module", "libraryConsumer", "--platform", "macosArm64",
             "--include-test",
-            "\"org.jetbrains.kotlintoolchain.kmp.test.sample.consumer.LibraryMacosConsumerTest.test 3rd element()\" ",
+            "\"org.jetbrains.kotlintoolchain.kmp.sample.consumer.LibraryMacosConsumerTest.test 3rd element()\" ",
             configureAndroidHome = true,
         )
     }

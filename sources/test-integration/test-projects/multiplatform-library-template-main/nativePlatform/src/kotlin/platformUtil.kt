@@ -1,4 +1,4 @@
-package org.jetbrains.kotlintoolchain.kmp.test.sample.platform
+package org.jetbrains.kotlintoolchain.kmp.sample.platform
 
 import platform.posix.PATH_MAX
 

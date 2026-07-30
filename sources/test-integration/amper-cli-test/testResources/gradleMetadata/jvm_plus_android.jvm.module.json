@@ -2,7 +2,7 @@
   "formatVersion": "1.1",
   "component": {
     "url": "../../jvmPlusAndroid/1.0.0/jvmPlusAndroid-1.0.0.module",
-    "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+    "group": "org.jetbrains.kotlintoolchain.kmp.sample",
     "module": "jvmPlusAndroid",
     "version": "1.0.0",
     "attributes": {

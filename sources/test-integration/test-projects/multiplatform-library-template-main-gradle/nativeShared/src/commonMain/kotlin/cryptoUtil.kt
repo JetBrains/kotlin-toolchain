@@ -1,4 +1,4 @@
-package org.jetbrains.kotlintoolchain.kmp.test.sample.ctypto
+package org.jetbrains.kotlintoolchain.kmp.sample.ctypto
 
 import org.kotlincrypto.random.RandomnessProcurementException
 

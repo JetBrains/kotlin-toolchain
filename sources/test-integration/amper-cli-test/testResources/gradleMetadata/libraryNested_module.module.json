@@ -1,7 +1,7 @@
 {
   "formatVersion": "1.1",
   "component": {
-    "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+    "group": "org.jetbrains.kotlintoolchain.kmp.sample",
     "module": "libraryNested",
     "version": "1.0.0",
     "attributes": {
@@ -31,7 +31,7 @@
           }
         },
         {
-          "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+          "group": "org.jetbrains.kotlintoolchain.kmp.sample",
           "module": "library",
           "version": {
             "requires": "1.0.0"
@@ -101,7 +101,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-android/1.0.0/libraryNested-android-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-android",
         "version": "1.0.0"
       }
@@ -117,7 +117,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-android/1.0.0/libraryNested-android-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-android",
         "version": "1.0.0"
       }
@@ -135,7 +135,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-android/1.0.0/libraryNested-android-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-android",
         "version": "1.0.0"
       }
@@ -151,7 +151,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-jvm/1.0.0/libraryNested-jvm-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-jvm",
         "version": "1.0.0"
       }
@@ -167,7 +167,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-jvm/1.0.0/libraryNested-jvm-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-jvm",
         "version": "1.0.0"
       }
@@ -185,7 +185,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-jvm/1.0.0/libraryNested-jvm-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-jvm",
         "version": "1.0.0"
       }
@@ -202,7 +202,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-linuxarm64/1.0.0/libraryNested-linuxarm64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-linuxarm64",
         "version": "1.0.0"
       }
@@ -220,7 +220,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-linuxarm64/1.0.0/libraryNested-linuxarm64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-linuxarm64",
         "version": "1.0.0"
       }
@@ -237,7 +237,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-linuxx64/1.0.0/libraryNested-linuxx64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-linuxx64",
         "version": "1.0.0"
       }
@@ -255,7 +255,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-linuxx64/1.0.0/libraryNested-linuxx64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-linuxx64",
         "version": "1.0.0"
       }
@@ -272,7 +272,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-macosarm64/1.0.0/libraryNested-macosarm64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-macosarm64",
         "version": "1.0.0"
       }
@@ -290,7 +290,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-macosarm64/1.0.0/libraryNested-macosarm64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-macosarm64",
         "version": "1.0.0"
       }
@@ -307,7 +307,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-macosx64/1.0.0/libraryNested-macosx64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-macosx64",
         "version": "1.0.0"
       }
@@ -325,7 +325,7 @@
       },
       "available-at": {
         "url": "../../libraryNested-macosx64/1.0.0/libraryNested-macosx64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-macosx64",
         "version": "1.0.0"
       }

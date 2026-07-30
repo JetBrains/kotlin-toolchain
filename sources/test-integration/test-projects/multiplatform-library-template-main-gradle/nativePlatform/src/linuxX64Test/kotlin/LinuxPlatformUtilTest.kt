@@ -1,4 +1,4 @@
-import org.jetbrains.kotlintoolchain.kmp.test.sample.platform.getPosixPathMax
+import org.jetbrains.kotlintoolchain.kmp.sample.platform.getPosixPathMax
 import kotlin.test.Test
 import kotlin.test.assertTrue
 

@@ -2,9 +2,9 @@
  * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package org.jetbrains.kotlintoolchain.kmp.test.sample.consumer
+package org.jetbrains.kotlintoolchain.kmp.sample.consumer
 
-import org.jetbrains.kotlintoolchain.kmp.test.sample.platformSpecificElement
+import org.jetbrains.kotlintoolchain.kmp.sample.platformSpecificElement
 
 fun main(args: Array<String>) {
     println(platformSpecificElement)

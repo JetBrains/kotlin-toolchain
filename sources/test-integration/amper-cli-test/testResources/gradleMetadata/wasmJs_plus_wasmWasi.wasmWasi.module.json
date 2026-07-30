@@ -2,7 +2,7 @@
   "formatVersion": "1.1",
   "component": {
     "url": "../../wasmJsPlusWasmWasi/1.0.0/wasmJsPlusWasmWasi-1.0.0.module",
-    "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+    "group": "org.jetbrains.kotlintoolchain.kmp.sample",
     "module": "wasmJsPlusWasmWasi",
     "version": "1.0.0",
     "attributes": {

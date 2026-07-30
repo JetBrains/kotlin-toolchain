@@ -2,7 +2,7 @@
   "formatVersion": "1.1",
   "component": {
     "url": "../../kmpSinglePlatform/1.0.0/kmpSinglePlatform-1.0.0.module",
-    "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+    "group": "org.jetbrains.kotlintoolchain.kmp.sample",
     "module": "kmpSinglePlatform",
     "version": "1.0.0",
     "attributes": {

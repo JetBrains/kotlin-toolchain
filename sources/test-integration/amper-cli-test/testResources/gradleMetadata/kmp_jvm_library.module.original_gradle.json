@@ -1,7 +1,7 @@
 {
   "formatVersion": "1.1",
   "component": {
-    "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+    "group": "org.jetbrains.kotlintoolchain.kmp.sample",
     "module": "kmpSinglePlatform",
     "version": "1.0.0",
     "attributes": {
@@ -76,7 +76,7 @@
       },
       "available-at": {
         "url": "../../kmpSinglePlatform-jvm/1.0.0/kmpSinglePlatform-jvm-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "kmpSinglePlatform-jvm",
         "version": "1.0.0"
       }
@@ -92,7 +92,7 @@
       },
       "available-at": {
         "url": "../../kmpSinglePlatform-jvm/1.0.0/kmpSinglePlatform-jvm-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "kmpSinglePlatform-jvm",
         "version": "1.0.0"
       }
@@ -110,7 +110,7 @@
       },
       "available-at": {
         "url": "../../kmpSinglePlatform-jvm/1.0.0/kmpSinglePlatform-jvm-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "kmpSinglePlatform-jvm",
         "version": "1.0.0"
       }

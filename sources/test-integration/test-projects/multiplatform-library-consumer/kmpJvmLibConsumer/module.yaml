@@ -6,4 +6,4 @@ apply:
   - ../common.module-template.yaml
 
 dependencies@jvm:
-  - org.jetbrains.kotlintoolchain.kmp.test.sample:kmpSinglePlatform:1.0.0
+  - org.jetbrains.kotlintoolchain.kmp.sample:kmpSinglePlatform:1.0.0

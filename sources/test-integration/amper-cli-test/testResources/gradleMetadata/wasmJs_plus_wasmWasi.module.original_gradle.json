@@ -1,7 +1,7 @@
 {
   "formatVersion": "1.1",
   "component": {
-    "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+    "group": "org.jetbrains.kotlintoolchain.kmp.sample",
     "module": "wasmJsPlusWasmWasi",
     "version": "1.0.0",
     "attributes": {
@@ -83,7 +83,7 @@
       },
       "available-at": {
         "url": "../../wasmJsPlusWasmWasi-wasm-js/1.0.0/wasmJsPlusWasmWasi-wasm-js-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "wasmJsPlusWasmWasi-wasm-js",
         "version": "1.0.0"
       }
@@ -99,7 +99,7 @@
       },
       "available-at": {
         "url": "../../wasmJsPlusWasmWasi-wasm-js/1.0.0/wasmJsPlusWasmWasi-wasm-js-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "wasmJsPlusWasmWasi-wasm-js",
         "version": "1.0.0"
       }
@@ -117,7 +117,7 @@
       },
       "available-at": {
         "url": "../../wasmJsPlusWasmWasi-wasm-js/1.0.0/wasmJsPlusWasmWasi-wasm-js-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "wasmJsPlusWasmWasi-wasm-js",
         "version": "1.0.0"
       }
@@ -133,7 +133,7 @@
       },
       "available-at": {
         "url": "../../wasmJsPlusWasmWasi-wasm-wasi/1.0.0/wasmJsPlusWasmWasi-wasm-wasi-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "wasmJsPlusWasmWasi-wasm-wasi",
         "version": "1.0.0"
       }
@@ -149,7 +149,7 @@
       },
       "available-at": {
         "url": "../../wasmJsPlusWasmWasi-wasm-wasi/1.0.0/wasmJsPlusWasmWasi-wasm-wasi-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "wasmJsPlusWasmWasi-wasm-wasi",
         "version": "1.0.0"
       }
@@ -167,7 +167,7 @@
       },
       "available-at": {
         "url": "../../wasmJsPlusWasmWasi-wasm-wasi/1.0.0/wasmJsPlusWasmWasi-wasm-wasi-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.test.sample",
+        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "wasmJsPlusWasmWasi-wasm-wasi",
         "version": "1.0.0"
       }

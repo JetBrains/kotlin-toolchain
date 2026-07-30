@@ -6,4 +6,4 @@ apply:
   - ../common.module-template.yaml
 
 dependencies:
-  - org.jetbrains.kotlintoolchain.kmp.test.sample:wasmJsPlusWasmWasi:1.0.0
+  - org.jetbrains.kotlintoolchain.kmp.sample:wasmJsPlusWasmWasi:1.0.0

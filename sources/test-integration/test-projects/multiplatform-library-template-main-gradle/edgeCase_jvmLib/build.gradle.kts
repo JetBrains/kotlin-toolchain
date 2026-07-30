@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.vanniktech.mavenPublish)
 }
 
-group = "org.jetbrains.kotlintoolchain.kmp.test.sample"
+group = "org.jetbrains.kotlintoolchain.kmp.sample"
 version = "1.0.0"
 
 dependencies {

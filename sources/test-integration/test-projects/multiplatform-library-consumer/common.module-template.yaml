@@ -5,7 +5,7 @@ repositories:
 
 settings:
   publishing:
-    group: org.jetbrains.kotlintoolchain.kmp.test.sample.consumer
+    group: org.jetbrains.kotlintoolchain.kmp.sample.consumer
     version: 1.0.0
     publishSources: true
   kotlin:
