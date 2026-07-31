@@ -73,7 +73,7 @@ class KmpPublicationTest : AmperCliTestBase() {
      */
     @Test
     fun `using published pure jvm library`() = runSlowTest {
-        val r = runCliWithCustomM2(
+        runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
             "build", "--module=jvmLibConsumer",
             configureAndroidHome = true,
@@ -86,7 +86,7 @@ class KmpPublicationTest : AmperCliTestBase() {
      */
     @Test
     fun `using published kmp jvm library`() = runSlowTest {
-        val r = runCliWithCustomM2(
+        runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
             "build", "--module=kmpJvmLibConsumer",
             configureAndroidHome = true,
@@ -98,7 +98,7 @@ class KmpPublicationTest : AmperCliTestBase() {
      */
     @Test
     fun `using published jvm plus android library`() = runSlowTest {
-        val r = runCliWithCustomM2(
+        runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
             "build", "--module=jvmPlusAndroidConsumer",
             configureAndroidHome = true,
@@ -110,7 +110,7 @@ class KmpPublicationTest : AmperCliTestBase() {
      */
     @Test
     fun `using published wasmJs plus wasmWasi library`() = runSlowTest {
-        val r = runCliWithCustomM2(
+        runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
             "build", "--module=wasmJsPlusWasmWasiConsumer",
         )

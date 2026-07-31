@@ -1600,7 +1600,7 @@ class BuildGraphTest : BaseDRTest() {
      */
     @Test
     fun `resolving unspecified versions of android dependencies from BOM`(testInfo: TestInfo) = runDrTest {
-        val root = doTestByFile(
+        doTestByFile(
             testInfo,
             dependency = listOf(
                 "bom: io.opentelemetry.android:opentelemetry-android-bom:1.4.0-alpha",

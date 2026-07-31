@@ -45,7 +45,7 @@ class CinteropTest : AmperCliTestBase() {
     @Test
     @MacOnly
     fun `tests can use cinterop declarations`() = runSlowTest {
-        val result = runCli(
+        runCli(
             projectDir = testProject("cinterop/test-cinterop"),
             "test", "--platform=macosArm64",
         )

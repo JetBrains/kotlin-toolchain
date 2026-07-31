@@ -46,8 +46,10 @@ settings:
       - -Xname-based-destructuring=complete
       - -Xrender-internal-diagnostic-names
       - -Xreturn-value-checker=check
+      - -Xwarning-level=OVERRIDE_DEPRECATION:error
       - -Xwarning-level=REDUNDANT_ELSE_IN_WHEN:error
       - -Xwarning-level=UNCHECKED_CAST:error # At least suppress + explain why it's safe (where the check happened)
+      - -Xwarning-level=UNUSED_VARIABLE:error
     optIns:
       - kotlin.contracts.ExperimentalContracts
       - kotlin.io.path.ExperimentalPathApi

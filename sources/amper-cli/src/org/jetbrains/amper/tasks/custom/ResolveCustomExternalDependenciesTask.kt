@@ -279,6 +279,7 @@ internal class ResolveCustomExternalDependenciesTask(
             override fun generatedClassDirs(buildOutputRoot: Path): List<Path> = emptyList()
             override fun preparedComposeResourcesConventionPath(buildOutputRoot: Path): Path = Path(".")
             override fun generatedCinteropKlibsDirPath(buildOutputRoot: Path): Path? = null
+            @Suppress("OVERRIDE_DEPRECATION")
             override fun generatedCinteropKlibPaths(buildOutputRoot: Path): List<Path> = []
         }
 

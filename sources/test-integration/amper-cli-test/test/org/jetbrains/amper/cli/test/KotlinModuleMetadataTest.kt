@@ -27,7 +27,7 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
      */
     @Test
     fun `run metadata compilation of mixed native and non-native common fragment`() = runSlowTest {
-        val r = runCli(projectDir = testProject("multiplatform-library-template-main"),
+        runCli(projectDir = testProject("multiplatform-library-template-main"),
             "task",
             ":library:compileMetadataCommon",
             assertEmptyStdErr = true)
@@ -44,7 +44,7 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
      */
     @Test
     fun `run metadata compilation of mixed native and non-native intermediate linux fragment`() = runSlowTest {
-        val r = runCli(projectDir = testProject("multiplatform-library-template-main"),
+        runCli(projectDir = testProject("multiplatform-library-template-main"),
             "task",
             ":library:compileMetadataLinux",
             assertEmptyStdErr = true)
@@ -58,7 +58,7 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
      */
     @Test
     fun `run metadata compilation of native only common fragment with dependencies`() = runSlowTest {
-        val r = runCli(projectDir = testProject("multiplatform-library-template-main"),
+        runCli(projectDir = testProject("multiplatform-library-template-main"),
             "task",
             ":nativeShared:compileMetadataCommon",
             assertEmptyStdErr = true)
@@ -77,7 +77,7 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
      */
     @Test
     fun `run metadata compilation of native only intermediate fragment with cinterop dependencies`() = runSlowTest {
-        val r = runCli(projectDir = testProject("multiplatform-library-template-main"),
+        runCli(projectDir = testProject("multiplatform-library-template-main"),
             "task",
             ":nativeShared:compileMetadataLinux",
             assertEmptyStdErr = true)
@@ -116,7 +116,7 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
      */
     @Test
     fun `run metadata compilation of linux intermediate fragment depending on another exported local module`() = runSlowTest {
-        val r = runCli(projectDir = testProject("multiplatform-library-template-main"),
+        runCli(projectDir = testProject("multiplatform-library-template-main"),
             "task",
             ":linuxWindowsShared:compileMetadataLinux",
             assertEmptyStdErr = true)

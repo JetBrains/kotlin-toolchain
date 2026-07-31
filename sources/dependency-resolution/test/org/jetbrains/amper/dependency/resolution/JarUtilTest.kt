@@ -17,7 +17,7 @@ class JarUtilTest : BaseDRTest() {
      */
     @Test
     fun testGetNestedDirectories(testInfo: TestInfo) = runDrTest {
-        val root = doTest(
+        doTest(
             testInfo,
             // multiplatform resolution
             platform = setOf(ResolutionPlatform.LINUX_X64, ResolutionPlatform.MACOS_X64),
