@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import org.jetbrains.amper.processes.runProcessAndCaptureOutput
@@ -70,7 +70,7 @@ open class TestBase : AmperCliWithWrapperTestBase() {
      * Clones the Git repository from the given [repoUrl] into the specified [cloneDestination].
      */
     private suspend fun gitClone(repoUrl: String, cloneDestination: Path) {
-        runProcessAndCaptureOutput(command = listOf("git", "clone", repoUrl, cloneDestination.absolutePathString()))
+        runProcessAndCaptureOutput(command = ["git", "clone", repoUrl, cloneDestination.absolutePathString()])
             .checkExitCodeIsZero()
         val gitFolder = cloneDestination.resolve(".git")
         if (!gitFolder.exists()) {
@@ -84,7 +84,7 @@ open class TestBase : AmperCliWithWrapperTestBase() {
      */
     private suspend fun gitCheckout(repoDir: Path, refLike: String) {
         runProcessAndCaptureOutput(
-            command = listOf("git", "checkout", refLike),
+            command = ["git", "checkout", refLike],
             workingDir = repoDir.toAbsolutePath(),
         ).checkExitCodeIsZero()
         println("Successfully checked out ref-like `$refLike`")

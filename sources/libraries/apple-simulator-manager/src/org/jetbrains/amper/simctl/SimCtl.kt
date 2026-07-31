@@ -82,7 +82,7 @@ object SimCtl {
      * @throws SimulatorBootException If the device wasn't already booted, but failed to boot.
      */
     suspend fun bootSimulator(deviceId: SimDeviceId, failIfAlreadyBooted: Boolean = true) {
-        val result = runProcessAndCaptureOutput(command = listOf("xcrun", "simctl", "boot", deviceId.value))
+        val result = runProcessAndCaptureOutput(command = ["xcrun", "simctl", "boot", deviceId.value])
         if ("Unable to boot device in current state: Booted" in result.stderr) {
             if (failIfAlreadyBooted) {
                 throw SimulatorAlreadyBootedException(deviceId)

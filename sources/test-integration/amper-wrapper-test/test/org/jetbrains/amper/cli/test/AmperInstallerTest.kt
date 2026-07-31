@@ -6,6 +6,7 @@ package org.jetbrains.amper.cli.test
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
+import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.processes.runProcessAndCaptureOutput
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
@@ -41,7 +42,7 @@ class AmperInstallerTest : AmperCliWithWrapperTestBase() {
             .copyTo(tempDirExtension.path / "installer.sh")
             .let { it.setPosixFilePermissions(it.getPosixFilePermissions() + PosixFilePermission.OWNER_EXECUTE) }
         val result = runProcessAndCaptureOutput(
-            command = listOf(installer.absolutePathString()),
+            command = [installer.absolutePathString()],
             environment = mapOf(
                 "HOME" to testHome.absolutePathString(),
                 "SHELL" to "/bin/bash",
@@ -99,7 +100,7 @@ class AmperInstallerTest : AmperCliWithWrapperTestBase() {
     ) {
         val testHome = tempDirExtension.path / "home"
         val result = runProcessAndCaptureOutput(
-            command = listOf(powershell, "-File", LocalAmperPublication.installerPs1.absolutePathString()),
+            command = [powershell, "-File", LocalAmperPublication.installerPs1.absolutePathString()],
             environment = mapOf(
                 "KOTLIN_CLI_NO_MODIFY_PATH" to "1",
                 "USERPROFILE" to testHome.absolutePathString(),
@@ -120,7 +121,7 @@ class AmperInstallerTest : AmperCliWithWrapperTestBase() {
     }
 
     private suspend fun hasNewPowershell(): Boolean = try {
-        runProcessAndCaptureOutput(command = listOf("pwsh", "--version")).exitCode == 0
+        runProcess(command = ["pwsh", "--version"]) == 0
     } catch (_: IOException) {
         false
     }

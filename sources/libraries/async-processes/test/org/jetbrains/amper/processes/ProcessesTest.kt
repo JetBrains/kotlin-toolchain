@@ -39,7 +39,7 @@ class ProcessesTest {
         )
         val result = runProcessAndCaptureOutput(command = command)
         assertZeroExitCode(result)
-        assertEquals(listOf("line1", "line2", "break"), result.stdout.trim().lines())
+        assertEquals(["line1", "line2", "break"], result.stdout.trim().lines())
         assertEquals("hello stderr", result.stderr.trim())
     }
 
@@ -219,9 +219,10 @@ private fun shell(shCommand: String, psCommand: String): List<String> = when {
     else -> binSh(shCommand)
 }
 
-private fun binSh(command: String): List<String> = listOf("/bin/sh", "-c", command)
+private fun binSh(command: String): List<String> = ["/bin/sh", "-c", command]
 
-private fun powershell(command: String) = listOf("powershell.exe", "-NonInteractive", "-NoProfile", "-NoLogo", "-Command", command)
+private fun powershell(command: String) =
+    ["powershell.exe", "-NonInteractive", "-NoProfile", "-NoLogo", "-Command", command]
 
 private fun String.toPowerShellStringLiteral(): String = "'${replace("'", "''")}'"
 

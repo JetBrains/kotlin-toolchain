@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.tasks.ios
@@ -41,10 +41,7 @@ suspend fun initializeXcodeComponentManager() = xCodeInitializationMutex.withLoc
 }
 
 private suspend fun detectXcodeInstallation(): String {
-    val result = runProcessAndCaptureOutput(
-        command = listOf("xcode-select", "--print-path"),
-        outputListener = ProcessOutputListener.NOOP,
-    )
+    val result = runProcessAndCaptureOutput(command = ["xcode-select", "--print-path"])
     if (result.exitCode != 0) userReadableError("Failed to detect Xcode. Make sure Xcode is installed.")
 
     return result.stdout.trim()

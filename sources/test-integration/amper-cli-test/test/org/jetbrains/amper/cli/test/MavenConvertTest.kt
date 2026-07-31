@@ -723,16 +723,16 @@ class MavenConvertTest : AmperCliTestBase() {
 
         // Initialize a git repo so the git-commit-id plugin can run
         val dir = buildResult.projectDir
-        runProcessAndCaptureOutput(workingDir = dir, command = listOf("git", "init")).checkExitCodeIsZero()
-        runProcessAndCaptureOutput(workingDir = dir, command = listOf("git", "add", ".")).checkExitCodeIsZero()
+        runProcessAndCaptureOutput(workingDir = dir, command = ["git", "init"]).checkExitCodeIsZero()
+        runProcessAndCaptureOutput(workingDir = dir, command = ["git", "add", "."]).checkExitCodeIsZero()
         runProcessAndCaptureOutput(
             workingDir = dir,
-            command = listOf("git", "-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "-m", "initial"),
+            command = ["git", "-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "-m", "initial"],
         ).checkExitCodeIsZero()
 
         val converted = testProject(buildResult.projectDir.pathString)
         runCli(
-            converted,
+            projectDir = converted,
             "test",
             // jgit cleanup message on JVM shutdown
             assertEmptyStdErr = false,

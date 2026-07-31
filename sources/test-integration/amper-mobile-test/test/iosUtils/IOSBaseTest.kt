@@ -93,8 +93,8 @@ open class IOSBaseTest : TestBase() {
         // Step 5: Verify the existence of app data container to ensure app is running
         println("Verifying app container existence in data directory")
         val containerDataOutput = runProcessAndCaptureOutput(
-            command = listOf("xcrun", "simctl", "get_app_container", "booted", appBundleId, "data"),
-            redirectErrorStream = true
+            command = ["xcrun", "simctl", "get_app_container", "booted", appBundleId, "data"],
+            redirectErrorStream = true,
         )
         // If data container is missing, the app might not be fully active
         if (containerDataOutput.stdout.length <= 1) {

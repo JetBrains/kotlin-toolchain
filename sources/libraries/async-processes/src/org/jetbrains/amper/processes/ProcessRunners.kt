@@ -63,7 +63,7 @@ suspend fun runProcess(
     command: List<String>,
     environment: Map<String, String> = emptyMap(),
     redirectErrorStream: Boolean = false,
-    outputListener: ProcessOutputListener,
+    outputListener: ProcessOutputListener = ProcessOutputListener.NOOP,
     input: ProcessInput = ProcessInput.Empty,
     onStart: (pid: Long) -> Unit = {},
 ): Int {
