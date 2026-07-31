@@ -15,6 +15,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.dr.resolver.flow.toPlatform
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.schema.kotlin.KotlinVersion
+import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.tasks.SourceRoot
 import org.jetbrains.amper.tasks.ios.IosConventions
 import org.jetbrains.amper.tasks.wasm.WasmTarget
@@ -197,6 +198,37 @@ enum class KotlinCompilationType(val argName: String) {
 internal fun AmperModule.kotlinModuleName(isTest: Boolean) =
     if (isTest) userReadableName + "_test" else userReadableName
 
+/**
+ * Chooses the value of the Kotlin/Native compiler's `-target` option for a compilation covering [fragmentPlatforms].
+ *
+ * Leaf compilations cover a single platform, so there is nothing to choose there. Shared native (metadata)
+ * compilations cover several platforms at once, yet konanc still insists on a single `-target`. That target doesn't
+ * end up in the resulting metadata klib (see the `-manifest` handling in [kotlinNativeCompilerArgs]), but it does
+ * decide which platform libraries konanc looks for, so it has to be one that this host can actually compile for.
+ *
+ * This mirrors what KGP does for `KotlinSharedNativeCompilation`:
+ * `konanTargets.find { it.enabledOnCurrentHostForKlibCompilation(...) } ?: konanTargets.first()`.
+ * Unlike KGP we can't rely on the declaration order of the targets, because [fragmentPlatforms] is an unordered set,
+ * so the fallback picks the first platform in [Platform] declaration order to stay deterministic across runs.
+ */
+internal fun selectKotlinNativeCompilerTarget(
+    fragmentPlatforms: Set<Platform>,
+    system: SystemInfo = SystemInfo.CurrentHost,
+): Platform {
+    val candidates = fragmentPlatforms.sorted()
+    return candidates.firstOrNull { it.supportsKlibCompilationFrom(system) } ?: candidates.first()
+}
+
+/**
+ * Whether klibs for this leaf [Platform] can be compiled from a host with the given [system].
+ *
+ * Apple targets need the toolchain that only ships with Xcode, so they require a macOS host. All other native targets
+ * can be cross-compiled from any supported host.
+ * This is the equivalent of the Kotlin/Native `HostManager.isEnabled` check for Kotlin Toolchain's [Platform]s.
+ */
+private fun Platform.supportsKlibCompilationFrom(system: SystemInfo): Boolean =
+    !isDescendantOf(Platform.APPLE) || system.family.isMac
+
 context(task: BuildTask)
 internal fun kotlinNativeCompilerArgs(
     buildType: BuildType,
@@ -215,6 +247,7 @@ internal fun kotlinNativeCompilerArgs(
     fragmentPlatforms: Set<Platform>,
     friendPaths: List<Path> = [],
     refinesPaths: List<Path> = [],
+    metadataManifestFile: Path? = null,
 ): List<String> = buildList {
     if (kotlinUserSettings.debug ?: (buildType == BuildType.Debug)) {
         add("-g")
@@ -231,7 +264,7 @@ internal fun kotlinNativeCompilerArgs(
 
     // todo (AB) : [AMPER-721] This is replicated from KGP logic, though it seems to be some outdated stuff
     //  https://jetbrains.team/p/kt/repositories/kotlin/revision/686d00ddf54aa082ed98ad87747befa04ed9168f?file=libraries%2Ftools%2Fkotlin-gradle-plugin%2Fsrc%2Fmain%2Fkotlin%2Forg%2Fjetbrains%2Fkotlin%2Fgradle%2Ftargets%2Fnative%2FKotlinNativeCompilation.kt&from-line=NEW%3A105
-    add("-target=${fragmentPlatforms.first().nameForCompiler}")
+    add("-target=${selectKotlinNativeCompilerTarget(fragmentPlatforms).nameForCompiler}")
 
     if (refinesPaths.isNotEmpty()) {
         add("-Xrefines-paths=${refinesPaths.joinToString(",")}")
@@ -249,6 +282,15 @@ internal fun kotlinNativeCompilerArgs(
         add("-Xshort-module-name=$moduleName")
 
         add("-Xmetadata-klib")
+
+        // The '-target' above is stamped by konanc into the 'native_targets' property of the produced klib manifest.
+        // That's wrong for a shared-native metadata klib: consumers whose target set differs reject it with
+        // "KLIB resolver: ... The target doesn't match. Expected 'X', found [Y]".
+        // Just like KGP, we overwrite 'native_targets' with an empty value via a manifest addend file.
+        // See KT-64525 "Clean-up target-related fields in manifest of klibs".
+        if (metadataManifestFile != null) {
+            add("-manifest=${metadataManifestFile.pathString}")
+        }
 
         // The following flags are ported from the KGP plugin.
         add("-no-default-libs")
@@ -309,7 +351,7 @@ internal fun kotlinNativeCompilerArgs(
         addAll(sourceFiles.map { it.pathString })
     }
 
-    // todo (AB) : [AMPER-721] Remove this logging after AMPER-721 is done
+    // todo (AB) : [AMPER-719] Remove this logging after AMPER-719 is done
     logger.debug("Native metadata compilation args: \n${joinToString(System.lineSeparator()) { it }}")
 }
 
@@ -509,7 +551,7 @@ internal fun kotlinMetadataCompilerArgs(
 
     addAll(sourceFiles.map { it.pathString })
 
-    // todo (AB) : [AMPER-721] Remove this logging after AMPER-721 is done
+    // todo (AB) : [AMPER-719] Remove this logging after AMPER-719 is done
     logger.debug("Common metadata compilation args: \n${joinToString(System.lineSeparator()) { it }}")
 }
 

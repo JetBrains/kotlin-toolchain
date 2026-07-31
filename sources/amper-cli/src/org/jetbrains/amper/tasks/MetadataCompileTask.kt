@@ -50,22 +50,27 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.stdlib.io.path.clean
 import org.jetbrains.amper.stdlib.io.path.isEmptyDirectory
+import org.jetbrains.amper.stdlib.io.path.listDirectoryEntriesIfExistsOrEmpty
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.KotlinJavaSourceDirArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.metadata.sourceSetName
+import org.jetbrains.amper.tasks.native.CommonizeCInteropKlibsTask
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
+import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.pathString
 import kotlin.io.path.walk
+import kotlin.io.path.writeText
 
 internal class MetadataCompileTask(
     override val taskName: TaskName,
@@ -209,7 +214,8 @@ internal class MetadataCompileTask(
     }
 
     private fun List<Result>.findMetadataResultForFragment(f: Fragment) =
-        firstOrNull { it.fragment == f }
+        // can't use identity check because some fragments are wrapped, and [equals] is not overridden
+        firstOrNull { it.module.userReadableName == f.module.userReadableName && it.fragment.name == f.name }
             ?: error("Metadata compilation result not found for dependency fragment ${f.module.userReadableName}:" +
                     "${f.name} of this fragment ${module.userReadableName}:${fragment.name}. Actual results: " +
                     map { "${it.module.userReadableName}:${it.fragment.name}" })
@@ -238,6 +244,12 @@ internal class MetadataCompileTask(
             repositories = module.mavenResolveRepositories.map { it.toRepository() },
         )
 
+        // This manifest file clears 'native_targets' in the resulting klib manifest (see kotlinNativeCompilerArgs).
+        // It must not live under taskOutputRoot: with '-nopack', that directory *is* the resulting klib.
+        val manifest = tempRoot.path.createDirectories()
+            .resolve("${module.userReadableName}-${fragment.name}-inputManifest")
+            .also { it.writeText("native_targets=\n") }
+
         val compilerArgs = kotlinNativeCompilerArgs(
             buildType = buildType,
             kotlinUserSettings = kotlinUserSettings,
@@ -254,6 +266,7 @@ internal class MetadataCompileTask(
             include = null,
             fragmentPlatforms = fragmentPlatforms.map { it.toPlatform() }.toSet(),
             refinesPaths = refinesPaths,
+            metadataManifestFile = manifest,
         )
 
         spanBuilder("kotlin-native-metadata-compilation")
@@ -328,7 +341,7 @@ internal class MetadataCompileTask(
             }
     }
 
-    // todo (AB) : [AMPER-721] Add commonized cinterop Klibs as an input of native metadata compilation.
+    // todo (AB) : [KTC-5585] Add commonized cinterop Klibs as an input of native metadata compilation.
     context(_: ProblemReporter)
     private suspend fun compileNativeMetadata(
         fragmentClasspath: List<Path>,
