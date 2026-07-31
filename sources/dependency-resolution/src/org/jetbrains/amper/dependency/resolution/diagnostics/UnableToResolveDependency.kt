@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nls
 @Serializable
 class UnableToResolveDependency(
     val coordinates: MavenCoordinates,
-    val repositories: List<Repository>,
+    val repositoryUrls: List<String>,
     private val resolutionLevel: ResolutionLevel,
     override val childMessages: List<Message>,
 ) : WithChildMessages {
@@ -33,6 +33,6 @@ class UnableToResolveDependency(
         get() = buildString {
             super.details?.let(::appendLine)
             appendLine(DependencyResolutionBundle.message("unable.to.resolve.dependency.repositories.header"))
-            append(repositories.joinToString(separator = "\n") { "  - $it" })
+            append(repositoryUrls.joinToString(separator = "\n") { "  - $it" })
         }
 }

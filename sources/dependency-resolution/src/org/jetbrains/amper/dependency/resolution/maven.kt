@@ -871,7 +871,7 @@ class MavenDependencyImpl internal constructor(
                             this,
                             extra = DependencyResolutionBundle.message(
                                 "extra.repositories",
-                                settings.repositories.joinToString()
+                                settings.repositoryUrls.joinToString()
                             ),
                         )
                     )
@@ -893,7 +893,7 @@ class MavenDependencyImpl internal constructor(
                                 this,
                                 extra = DependencyResolutionBundle.message(
                                     "extra.repositories",
-                                    settings.repositories.joinToString()
+                                    settings.repositoryUrls.joinToString()
                                 ),
                             )
                         )
@@ -910,7 +910,7 @@ class MavenDependencyImpl internal constructor(
             if (state < getTargetState(level, transitive)) {
                 metadataResolutionFailureMessage = UnableToResolveDependency(
                     coordinates = this.coordinates,
-                    repositories = context.settings.repositories,
+                    repositoryUrls = context.settings.repositoryUrls,
                     resolutionLevel = level,
                     childMessages = pom.diagnosticsReporter.getMessages() + moduleFile.diagnosticsReporter.getMessages(),
                 )
@@ -1455,7 +1455,7 @@ class MavenDependencyImpl internal constructor(
                     this,
                     extra = DependencyResolutionBundle.message(
                         "extra.repositories",
-                        context.settings.repositories.joinToString()
+                        context.settings.repositoryUrls.joinToString()
                     ),
                     overrideSeverity = Severity.WARNING.takeIf { level != ResolutionLevel.NETWORK },
                 )

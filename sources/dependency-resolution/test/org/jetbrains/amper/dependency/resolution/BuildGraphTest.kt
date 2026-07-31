@@ -19,7 +19,6 @@ import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.extension
 import kotlin.io.path.name
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -2074,8 +2073,8 @@ class BuildGraphTest : BaseDRTest() {
             "Metadata error should be of type UnableToDownloadChecksums, got ${metadataError::class} instead"
         )
         assertContentEquals(
-            repositories.sortedBy { it.url },
-            metadataError.repositories.sortedBy { it.url },
+            repositories.map { it.url }.sorted(),
+            metadataError.repositoryUrls.sorted(),
         )
         assertFiles(testInfo, root)
     }

@@ -221,7 +221,7 @@ data class Settings(
     val progress: Progress,
     override val scope: ResolutionScope,
     override val platforms: Set<ResolutionPlatform>,
-    override val repositories: List<Repository>,
+    val repositories: List<Repository>,
     val fileCache: FileCache,
     val openTelemetry: OpenTelemetry,
     val incrementalCache: IncrementalCache?,
@@ -229,15 +229,17 @@ data class Settings(
     val dependenciesBlocklist: Set<MavenGroupAndArtifact>,
     val verifyChecksumsLocally: Boolean,
     var jdkVersion: JavaVersion? = null,
-): ResolutionConfig
+): ResolutionConfig {
+    override val repositoryUrls = repositories.mapToUrls()
+}
 
 interface ResolutionConfig {
     val scope: ResolutionScope
     val platforms: Set<ResolutionPlatform>
-    val repositories: List<Repository>
+    val repositoryUrls: List<String>
 
     fun toSerializableReference(graphContext: DependencyGraphContext): ResolutionConfigReference {
-        val resolutionConfigPlain = ResolutionConfigPlain(scope, platforms, repositories)
+        val resolutionConfigPlain = ResolutionConfigPlain(scope, platforms, repositoryUrls)
         return graphContext.getResolutionConfigReference(resolutionConfigPlain)
             ?: graphContext.registerResolutionConfigPlain(resolutionConfigPlain, resolutionConfigPlain)
     }
@@ -265,9 +267,9 @@ data class MavenGroupAndArtifact(
 data class ResolutionConfigPlain(
     override val scope: ResolutionScope,
     override val platforms: Set<ResolutionPlatform>,
-    override val repositories: List<Repository>,
+    override val repositoryUrls: List<String>,
 ): ResolutionConfig {
-    constructor(other: ResolutionConfig) : this(other.scope, other.platforms, other.repositories)
+    constructor(other: ResolutionConfig) : this(other.scope, other.platforms, other.repositoryUrls)
 }
 
 
@@ -304,10 +306,8 @@ val Context.nodeParents: MutableSet<DependencyNode>
         CopyOnWriteArraySet()
     }
 
-@Serializable
 sealed interface Repository
 
-@Serializable
 data class MavenRepository(
     val url: String,
     val userName: String? = null,
@@ -323,12 +323,19 @@ data class MavenRepository(
     }
 }
 
-@Serializable
 data object MavenLocal : Repository{
     internal const val URL = "mavenLocal"
 
     override fun toString() = URL
 }
+
+fun Repository.mapToUrl() =
+    when (this) {
+        is MavenRepository -> url
+        is MavenLocal -> URL
+    }
+
+fun List<Repository>.mapToUrls() = map { it.mapToUrl() }
 
 typealias SpanBuilderSource = (String) -> SpanBuilder
 

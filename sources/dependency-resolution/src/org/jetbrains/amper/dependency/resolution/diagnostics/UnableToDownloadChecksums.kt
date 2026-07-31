@@ -7,14 +7,13 @@ package org.jetbrains.amper.dependency.resolution.diagnostics
 import kotlinx.serialization.Serializable
 import org.jetbrains.amper.dependency.resolution.DependencyResolutionBundle
 import org.jetbrains.amper.dependency.resolution.MavenCoordinates
-import org.jetbrains.amper.dependency.resolution.MavenRepository
 import org.jetbrains.annotations.Nls
 
 @Serializable
 data class UnableToDownloadChecksums(
     val fileName: String,
     val coordinates: MavenCoordinates,
-    val repositories: List<MavenRepository>,
+    val repositoryUrls: List<String>,
     val isAutoAddedDocumentation: Boolean = false,
     override val severity: Severity = if (isAutoAddedDocumentation) Severity.INFO else Severity.ERROR,
     override val childMessages: List<Message>,

@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nls
 data class UnableToDownloadFile(
     val fileName: String,
     val coordinates: MavenCoordinates,
-    val repositories: List<Repository>,
+    val repositoryUrls: List<String>,
     val isAutoAddedDocumentation: Boolean = false,
     override val severity: Severity = if (isAutoAddedDocumentation) Severity.INFO else Severity.ERROR,
     override val childMessages: List<Message>,

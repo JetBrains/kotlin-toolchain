@@ -662,7 +662,7 @@ open class DependencyFileImpl(
                         UnableToDownloadFile(
                             fileName = fileName,
                             coordinates = dependency.coordinates,
-                            repositories = repositories,
+                            repositoryUrls = repositories.mapToUrls(),
                             isAutoAddedDocumentation = isAutoAddedDocumentation,
                             childMessages = collectedMessages,
                         )
@@ -898,7 +898,7 @@ open class DependencyFileImpl(
             UnableToDownloadChecksums(
                 fileName,
                 coordinates = dependency.coordinates,
-                repositories,
+                repositoryUrls = repositories.map { it.url },
                 isAutoAddedDocumentation = isAutoAddedDocumentation,
                 childMessages = nestedDownloadReporter.getMessages(),
             )
