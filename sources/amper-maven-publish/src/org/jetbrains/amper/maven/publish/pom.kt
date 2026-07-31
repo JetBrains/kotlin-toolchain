@@ -145,6 +145,12 @@ private fun generatePomModel(
     model.licenses = publishSettings.pom.licenses.map { it.toMavenLicense() }
     model.developers = publishSettings.pom.developers.map { it.toMavenDeveloper() }
     model.scm = publishSettings.pom.scm.toMavenScmOrNull()
+    model.packaging = when (platform) {
+        Platform.COMMON -> "pom"
+        Platform.ANDROID -> "aar"
+        Platform.JVM -> "jar"
+        else -> "klib"
+    }
 
     return model
 }
