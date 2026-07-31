@@ -6,7 +6,8 @@ package org.jetbrains.amper.cli.test
 
 import io.opentelemetry.api.common.AttributeKey
 import org.jetbrains.amper.cli.test.utils.UpdatedAttribute
-import org.jetbrains.amper.cli.test.utils.iosKotlinTests
+import org.jetbrains.amper.cli.test.utils.assertStderrContains
+import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.konancSpans
 import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
@@ -27,7 +28,6 @@ import kotlin.io.path.copyToRecursively
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.pathString
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -169,25 +169,21 @@ class IosProjectsTest : AmperCliTestBase() {
             assertEmptyStdErr = false,
             expectedExitCode = 1,
         )
-        assertContains(
-            runResult.stderr, "Running an unsigned app on a physical device (iosArm64) is not possible. " +
+        runResult.assertStderrContains(
+            "Running an unsigned app on a physical device (iosArm64) is not possible. " +
                     "Please select a development team in the Xcode project editor (Signing & Capabilities) " +
                     "or use a simulator platform instead."
         )
     }
 
     @Test
-    @Ignore("until AMPER-4070 is fixed")
     fun `run kotlin tests in simulator`() = runSlowTest {
         val result = runCli(
             projectDir = testProject("ios/simpleTests"),
             "test",
             assertEmptyStdErr = false,
         )
-        result.withTelemetrySpans {
-            val testsStdOut = iosKotlinTests.assertZeroExitCode().getAttribute(AttributeKey.stringKey("stdout"))
-            assertTrue(testsStdOut.contains("##teamcity[testSuiteFinished name='SimpleTest']"))
-        }
+        result.assertStdoutContains("Completed SimpleTest")
     }
 
     @Test
@@ -205,11 +201,13 @@ class IosProjectsTest : AmperCliTestBase() {
             "-sdk", "iphonesimulator",
         )
         assertNotEquals(illegal = 0, actual = result.exitCode)
-        assertContains(result.stdout, """
+        assertContains(
+            result.stdout, """
             ERROR: Platform 'iosX64' is not found for iOS module 'non-intel'.
             The module has declared platforms: IOS_ARM64 IOS_SIMULATOR_ARM64.
             Please declare the required platform explicitly in the module's file.
-        """.trimIndent())
+        """.trimIndent()
+        )
     }
 
     @Test

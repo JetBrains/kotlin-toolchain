@@ -1,12 +1,11 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.tasks.native
 
 import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.NativeTestRunSettings
-import org.jetbrains.amper.tasks.TestResultsFormat
 import org.jetbrains.amper.test.FilterMode
 import org.jetbrains.amper.test.TestFilter
 
@@ -16,19 +15,15 @@ import org.jetbrains.amper.test.TestFilter
 // see CLI args by running the test executable help, or check there:
 // https://code.jetbrains.team/p/kt/repositories/kotlin/files/df027063420af0abd48c64ef598b1c5b0b5d7b1b/kotlin-native/runtime/src/main/kotlin/kotlin/native/internal/test/TestRunner.kt?tab=source&line=188&lines-count=34
 internal fun NativeTestRunSettings.toNativeTestExecutableArgs(): List<String> = buildList {
-    add("--ktest_logger=${testResultsFormat.ktestLoggerName}")
+    // The CLI translates TeamCity service messages into Amper test events, then renders those events in the requested
+    // output format. Keep the runner protocol independent of the user-facing format.
+    add("--ktest_logger=teamcity")
 
     val testFilterArg = testFilters.toTestFilterArg()
     if (testFilterArg != null) {
         add(testFilterArg)
     }
 }
-
-private val TestResultsFormat.ktestLoggerName: String
-    get() = when (this) {
-        TestResultsFormat.Pretty -> "gtest"
-        TestResultsFormat.TeamCity -> "teamcity"
-    }
 
 private fun List<TestFilter>.toTestFilterArg(): String? {
     if (isEmpty()) {

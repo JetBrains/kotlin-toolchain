@@ -14,14 +14,16 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.engine.TestTask
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.processes.PrintToTerminalProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.NativeTestRunSettings
 import org.jetbrains.amper.tasks.TaskResult
+import org.jetbrains.amper.tasks.TestResultsFormat
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
+import org.jetbrains.amper.test.PrettyRenderer
+import org.jetbrains.amper.test.TeamCityRenderer
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import kotlin.io.path.pathString
@@ -67,7 +69,12 @@ class NativeTestTask(
                     workingDir = workingDir,
                     command = command,
                     span = span,
-                    outputMode = ProcessOutputMode.listen(PrintToTerminalProcessOutputListener(terminal)),
+                    outputMode = ProcessOutputMode.listen(StructuredNativeTestProcessOutputListener(
+                        renderer = when (runSettings.testResultsFormat) {
+                            TestResultsFormat.Pretty -> PrettyRenderer(terminal)
+                            TestResultsFormat.TeamCity -> TeamCityRenderer(terminal)
+                        },
+                    )),
                 )
                 if (result.exitCode != 0) {
                     userReadableError("Kotlin/Native $platform tests failed for module '${module.userReadableName}' with exit code ${result.exitCode} (see errors above)")

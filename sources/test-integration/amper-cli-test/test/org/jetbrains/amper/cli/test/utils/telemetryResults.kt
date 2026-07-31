@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.cli.test.utils
@@ -24,9 +24,6 @@ internal fun AmperCliResult.withTelemetrySpans(block: SpansTestCollector.() -> U
 
 internal val SpansTestCollector.xcodebuildSpans: FilteredSpans
     get() = spansNamed("xcodebuild")
-
-internal val SpansTestCollector.iosKotlinTests: FilteredSpans
-    get() = spansNamed("ios-kotlin-test")
 
 internal val SpansTestCollector.konancSpans: FilteredSpans
     get() = spansNamed("konanc")

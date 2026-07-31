@@ -188,7 +188,7 @@ class KmpPublicationTest : AmperCliTestBase() {
         )
 
         // Asserts that test was actually run.
-        r.assertStdoutContains("[  PASSED  ] 1 tests")
+        r.assertStdoutContains("Passed test getPosixPathMax")
     }
 
     @Test
@@ -203,7 +203,7 @@ class KmpPublicationTest : AmperCliTestBase() {
         )
 
         // Asserts that test was actually run.
-        r.assertStdoutContains("[  PASSED  ] 1 tests.")
+        r.assertStdoutContains("Passed test 3rd element")
     }
 
     @Test
@@ -218,7 +218,7 @@ class KmpPublicationTest : AmperCliTestBase() {
         )
 
         // Asserts that test was actually run.
-        r.assertStdoutContains("[  PASSED  ] 1 tests")
+        r.assertStdoutContains("Passed test 3rd element")
     }
 
     @Test
@@ -233,7 +233,7 @@ class KmpPublicationTest : AmperCliTestBase() {
         )
 
         // Asserts that test was actually run.
-        r.assertStdoutContains("[  PASSED  ] 1 tests")
+        r.assertStdoutContains("Passed test 3rd element")
     }
 
     @Test

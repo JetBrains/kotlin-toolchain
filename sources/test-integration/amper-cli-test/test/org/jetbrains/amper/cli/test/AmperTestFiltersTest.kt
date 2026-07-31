@@ -52,7 +52,6 @@ class AmperTestFiltersTest : AmperCliTestBase() {
             "--include-test=com.example.shared.WorldTest.doTest",
         )
         r.assertJUnitTestCount(expected = 1)
-        r.assertNativeTestCount(expected = 1)
         r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2) // jvm + current platform
     }
 
@@ -66,7 +65,6 @@ class AmperTestFiltersTest : AmperCliTestBase() {
             "--include-test=com.example.shared.WorldTest.doTest()",
         )
         r.assertJUnitTestCount(expected = 1)
-        r.assertNativeTestCount(expected = 1)
         r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2) // jvm + current platform
     }
 
@@ -155,7 +153,6 @@ class AmperTestFiltersTest : AmperCliTestBase() {
             "--include-classes=com.example.shared.WorldTest",
         )
         r.assertJUnitTestCount(expected = 1)
-        r.assertNativeTestCount(expected = 1)
         r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2) // jvm + current platform
     }
 
@@ -223,7 +220,6 @@ class AmperTestFiltersTest : AmperCliTestBase() {
             "--include-classes=com.example.shared.World*",
         )
         r.assertJUnitTestCount(expected = 1)
-        r.assertNativeTestCount(expected = 1)
         r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2) // jvm + current platform
     }
 
@@ -277,7 +273,6 @@ class AmperTestFiltersTest : AmperCliTestBase() {
             "--exclude-classes=com.example.shared.SharedIntegrationTest",
         )
         r.assertJUnitTestCount(expected = 4)
-        r.assertNativeTestCount(expected = 4)
         r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2) // jvm + current platform
         r.assertStdoutContainsLine("running EnclosingClass.enclosingClassTest", nOccurrences = 2) // jvm + current platform
         r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 2) // jvm + current platform
@@ -312,7 +307,6 @@ class AmperTestFiltersTest : AmperCliTestBase() {
             assertEmptyStdErr = false, // some tests print to stderr
         )
         r.assertJUnitTestCount(expected = 1)
-        r.assertNativeTestCount(expected = 1)
         r.assertStdoutContainsLine("output line 1 in JvmIntegrationTest.integrationTest")
         r.assertStdoutContainsLine("output line 2 in JvmIntegrationTest.integrationTest")
         r.assertStdoutContainsLine("running SharedIntegrationTest.integrationTest", nOccurrences = 2)
@@ -332,7 +326,6 @@ class AmperTestFiltersTest : AmperCliTestBase() {
             "--include-classes=com.example.shared.EnclosingClass/NestedClass1",
         )
         r.assertJUnitTestCount(expected = 1)
-        r.assertNativeTestCount(expected = 1)
         r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 2) // jvm + current platform
     }
 
@@ -346,7 +339,6 @@ class AmperTestFiltersTest : AmperCliTestBase() {
             "--include-classes=com.example.shared.EnclosingClass/NestedClass*",
         )
         r.assertJUnitTestCount(expected = 2)
-        r.assertNativeTestCount(expected = 2)
         r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 2) // jvm + current platform
         r.assertStdoutContainsLine("running EnclosingClass.NestedClass2.myNestedTest", nOccurrences = 2) // jvm + current platform
     }
@@ -361,7 +353,6 @@ class AmperTestFiltersTest : AmperCliTestBase() {
             "--include-test=com.example.shared.EnclosingClass/NestedClass1.myNestedTest",
         )
         r.assertJUnitTestCount(expected = 1)
-        r.assertNativeTestCount(expected = 1)
         r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 2) // jvm + current platform
     }
 
@@ -390,13 +381,4 @@ class AmperTestFiltersTest : AmperCliTestBase() {
         assertEquals(expected, count, "Expected $expected 'found' JVM tests but got $count")
     }
 
-    private val nativeTestCountRegex = Regex("""\[==========] (?<count>\d+) tests from \d+ test cases ran.*""")
-
-    private fun AmperCliResult.assertNativeTestCount(expected: Int) {
-        val countMatch = stdout.lines().firstNotNullOfOrNull { nativeTestCountRegex.matchEntire(it.trim()) }
-            ?: fail("Native test count not present in stdout: $stdout")
-        val count = countMatch.groups["count"]?.value?.toIntOrNull()
-            ?: fail("Native test count could not be parsed: ${countMatch.groups}")
-        assertEquals(expected, count, "Expected $expected 'found' native tests but got $count")
-    }
 }

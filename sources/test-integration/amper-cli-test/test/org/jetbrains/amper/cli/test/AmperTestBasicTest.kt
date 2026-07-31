@@ -233,8 +233,7 @@ class AmperTestBasicTest : AmperCliTestBase() {
         val projectContext = testProject("simple-multiplatform-cli")
         val result = runCli(projectDir = projectContext, "test", "--include-module=shared", "--platform=mingwX64")
 
-        result.assertStdoutContains("[       OK ] WorldTest.doTest")
-        result.assertStdoutContains("[  PASSED  ] 1 tests")
+        result.assertStdoutContains("Passed doTest")
     }
 
     @Test
@@ -243,8 +242,7 @@ class AmperTestBasicTest : AmperCliTestBase() {
         val projectContext = testProject("simple-multiplatform-cli")
         val result = runCli(projectDir = projectContext, "test", "--include-module=shared", "--platform=macosArm64")
 
-        result.assertStdoutContains("[       OK ] WorldTest.doTest")
-        result.assertStdoutContains("[  PASSED  ] 1 tests")
+        result.assertStdoutContains("Passed doTest")
     }
 
     @Test
@@ -253,8 +251,7 @@ class AmperTestBasicTest : AmperCliTestBase() {
         val projectContext = testProject("simple-multiplatform-cli")
         val result = runCli(projectDir = projectContext, "test", "--include-module=macos-cli")
 
-        result.assertStdoutContains("[       OK ] WorldTestFromMacOsCli.doTest")
-        result.assertStdoutContains("[  PASSED  ] 1 tests")
+        result.assertStdoutContains("Passed doTest")
     }
 
     @Test
