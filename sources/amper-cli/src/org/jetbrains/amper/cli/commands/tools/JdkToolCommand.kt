@@ -50,9 +50,9 @@ private class JdkToolSubcommand(private val name: String) : AmperSubcommand(name
         }
 
         val cmd = listOf(toolPath.pathString) + toolArguments
-        val exitCode = runProcessWithInheritedIO(command = CommandLineUtils.quoteCommandLineForCurrentPlatform(cmd))
-        if (exitCode != 0) {
-            userReadableError("$name exited with exit code $exitCode")
+        val result = runProcessWithInheritedIO(command = CommandLineUtils.quoteCommandLineForCurrentPlatform(cmd))
+        if (result.exitCode != 0) {
+            userReadableError("$name exited with exit code ${result.exitCode}")
         }
     }
 }

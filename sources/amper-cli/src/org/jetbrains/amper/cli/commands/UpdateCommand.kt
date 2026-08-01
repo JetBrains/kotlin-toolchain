@@ -23,6 +23,7 @@ import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.downloader.amperHttpClient
 import org.jetbrains.amper.processes.ProcessLeak
+import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.runProcessWithInheritedIO
 import org.jetbrains.amper.processes.startLongLivedProcess
 import org.jetbrains.amper.system.info.OsFamily
@@ -128,10 +129,10 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
         }
 
         // Test the new script and download the Kotlin Toolchain distribution and JRE
-        val exitCode = spanBuilder("New version first run").use {
+        val result = spanBuilder("New version first run").use {
             runKotlinToolchainVersionFirstRun(newBatWrapperPath, newBashWrapperPath)
         }
-        if (exitCode != 0) {
+        if (result.exitCode != 0) {
             userReadableError("Couldn't run the new Kotlin Toolchain version. Please check the errors above.")
         }
 
@@ -241,7 +242,7 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
         userReadableError("Couldn't fetch Kotlin wrapper script version $version:\n$e")
     }
 
-    private suspend fun runKotlinToolchainVersionFirstRun(batWrapper: Path, bashWrapper: Path): Int {
+    private suspend fun runKotlinToolchainVersionFirstRun(batWrapper: Path, bashWrapper: Path): ProcessResult {
         val command = when (OsFamily.current) {
             OsFamily.Windows -> if (runningWrapper.extension == "bat") {
                 listOf(batWrapper.absolutePathString(), "--version")

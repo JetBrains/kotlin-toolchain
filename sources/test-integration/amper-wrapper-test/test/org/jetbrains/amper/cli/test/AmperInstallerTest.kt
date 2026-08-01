@@ -121,7 +121,7 @@ class AmperInstallerTest : AmperCliWithWrapperTestBase() {
     }
 
     private suspend fun hasNewPowershell(): Boolean = try {
-        runProcess(command = ["pwsh", "--version"]) == 0
+        runProcess(command = ["pwsh", "--version"]).exitCode == 0
     } catch (_: IOException) {
         false
     }

@@ -38,7 +38,7 @@ class ProcessesTest {
             psCommand = "Write-Output 'line1'; Write-Output 'line2'; Write-Output 'break'; [Console]::Error.Write('hello stderr')",
         )
         val result = runProcessAndCaptureOutput(command = command)
-        assertZeroExitCode(result)
+        result.assertZeroExitCode()
         assertEquals(["line1", "line2", "break"], result.stdout.trim().lines())
         assertEquals("hello stderr", result.stderr.trim())
     }
@@ -114,7 +114,7 @@ class ProcessesTest {
             command = echoEnv("MY_ENV"),
             environment = mapOf("MY_ENV" to "env_value"),
         )
-        assertZeroExitCode(result)
+        result.assertZeroExitCode()
         assertEquals("env_value", result.stdout.trim())
         assertEquals("", result.stderr)
     }
@@ -226,10 +226,18 @@ private fun powershell(command: String) =
 
 private fun String.toPowerShellStringLiteral(): String = "'${replace("'", "''")}'"
 
-private fun assertZeroExitCode(result: ProcessResult) {
-    assertEquals(0, result.exitCode,
-        "Process terminated with non-zero exit code ${result.exitCode}. Output:\n" +
-                "${result.stdout.prependIndent("stdout>")}\n" +
-                "${result.stderr.prependIndent("stderr>")}\n"
+private fun ProcessResult.assertZeroExitCode() {
+    assertEquals(0, exitCode,
+        buildString {
+            appendLine("Execution failed with exit code ${exitCode} for command: $command")
+            if (this@assertZeroExitCode is ProcessResult.WithOutputs) {
+                if (errorStreamRedirected) {
+                    appendLine(stdout.prependIndent("stdout+stderr>"))
+                } else {
+                    appendLine(stdout.prependIndent("stdout>"))
+                    appendLine(stderr.prependIndent("stderr>"))
+                }
+            }
+        }
     )
 }

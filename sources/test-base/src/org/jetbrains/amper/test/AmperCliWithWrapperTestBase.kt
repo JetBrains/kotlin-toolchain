@@ -254,7 +254,7 @@ abstract class AmperCliWithWrapperTestBase {
         testReporter.publishDirectory(logsDir)
     }
 
-    private fun ProcessResult.relevantOutput(expectedExitCode: Int): String {
+    private fun ProcessResult.WithOutputs.relevantOutput(expectedExitCode: Int): String {
         val stdout = stdout.prependIndentWithEmptyMark("[amper out] ")
         val stderr = stderr.prependIndentWithEmptyMark("[amper err] ")
         return if (expectedExitCode == 0) stderr else "$stdout\n$stderr"

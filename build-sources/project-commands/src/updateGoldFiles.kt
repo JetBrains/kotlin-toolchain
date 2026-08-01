@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.amper.plugins.ExecutionAvoidance
 import org.jetbrains.amper.plugins.Input
 import org.jetbrains.amper.plugins.TaskAction
+import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.runProcessWithInheritedIO
 import java.io.File
 import java.nio.file.Path
@@ -90,12 +91,12 @@ private class AmperGoldUpdater(
         }
     }
 
-    private inline fun updateGoldFilesUntilSuccess(sectionName: String, goldFilesRoots: List<Path>, runTests: () -> Int) {
+    private inline fun updateGoldFilesUntilSuccess(sectionName: String, goldFilesRoots: List<Path>, runTests: () -> ProcessResult) {
         println("=== Updating $sectionName gold files ===")
         repeat(maxAttempts) { attemptIndex ->
             val attemptNumber = attemptIndex + 1
             println("Attempt $attemptNumber/$maxAttempts: running tests...")
-            val exitCode = runTests()
+            val exitCode = runTests().exitCode
             if (exitCode == 0) {
                 println("Tests passed for $sectionName.")
                 println()
@@ -129,7 +130,7 @@ private class AmperGoldUpdater(
         return updatedFilesCount
     }
 
-    private suspend fun runAmperCli(amperRootDir: Path, vararg args: String): Int {
+    private suspend fun runAmperCli(amperRootDir: Path, vararg args: String): ProcessResult {
         val isWindows = System.getProperty("os.name").startsWith("Win", ignoreCase = true)
         val amperScript = amperRootDir.resolve(if (isWindows) "kotlin.bat" else "kotlin")
         return runProcessWithInheritedIO(command = listOf(amperScript.pathString) + args)

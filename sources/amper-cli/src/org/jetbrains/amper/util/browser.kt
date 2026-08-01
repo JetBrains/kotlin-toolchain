@@ -20,8 +20,8 @@ internal suspend fun openBrowser(
 
     log("Starting $cmd")
 
-    val exitCode = runProcessWithInheritedIO(command = cmd)
-    if (exitCode != 0) {
-        log("$cmd failed with exit code $exitCode")
+    val result = runProcessWithInheritedIO(command = cmd)
+    if (result.exitCode != 0) {
+        log("$cmd failed with exit code ${result.exitCode}")
     }
 }

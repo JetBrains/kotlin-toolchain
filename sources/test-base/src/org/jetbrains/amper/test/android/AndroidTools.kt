@@ -167,7 +167,7 @@ class AndroidTools(
         .lines()
         .filter { it.isNotBlank() }
 
-    private suspend fun avdmanager(vararg args: String, input: ProcessInput = ProcessInput.Empty): ProcessResult =
+    private suspend fun avdmanager(vararg args: String, input: ProcessInput = ProcessInput.Empty): ProcessResult.WithOutputs =
         runAndroidSdkProcess(
             executable = findCmdlineToolScript("avdmanager"),
             *args,
@@ -289,7 +289,7 @@ class AndroidTools(
     suspend fun adb(
         vararg command: String,
         outputListener: ProcessOutputListener = ProcessOutputListener.NOOP,
-    ): ProcessResult {
+    ): ProcessResult.WithOutputs {
         if (!shutdownHookRegistered && killAdbOnExit) {
             registerAdbShutdownOnExit()
         }
@@ -312,7 +312,7 @@ class AndroidTools(
         vararg args: String,
         input: ProcessInput = ProcessInput.Empty,
         outputListener: ProcessOutputListener,
-    ): ProcessResult = runProcessAndCaptureOutput(
+    ): ProcessResult.WithOutputs = runProcessAndCaptureOutput(
         command = listOf(executable.pathString) + args,
         environment = environment() + mapOf("JAVA_HOME" to javaHome.pathString),
         input = input,

@@ -12,42 +12,6 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 /**
- * The result of a completed process.
- */
-class ProcessResult(
-    /**
-     * The command line that was executed.
-     */
-    val command: List<String>,
-    /**
-     * The ID identifying this process when it was alive.
-     */
-    val pid: Long,
-    /**
-     * The exit code of the process.
-     */
-    val exitCode: Int,
-    /**
-     * If [errorStreamRedirected] is false, [stdout] contains the whole standard output of the process, decoded as
-     * UTF-8 text.
-     * If [errorStreamRedirected] is true, [stdout] contains both the merged stdout and stderr of the process,
-     * interlaced as they were written by the process.
-     */
-    val stdout: String,
-    /**
-     * The whole standard error stream of the process, decoded as UTF-8 text, or the empty string if
-     * [errorStreamRedirected] is true (in that case, the stderr content is in [stdout], interlaced with the standard
-     * output).
-     */
-    val stderr: String,
-    /**
-     * Whether the error stream was redirected to the standard output of the process.
-     * If true, [stderr] is empty and [stdout] contains both streams interlaced together.
-     */
-    val errorStreamRedirected: Boolean,
-)
-
-/**
  * Starts a new process based on this [ProcessBuilder], and awaits its completion.
  * While waiting, stdout and stderr are sent to the given [outputListener], but are also fully captured in memory, so
  * they can be returned as a [ProcessResult]. Make sure the process doesn't output too much data, otherwise prefer
@@ -77,29 +41,24 @@ class ProcessResult(
 internal suspend fun ProcessBuilder.runAndCaptureOutput(
     input: ProcessInput = ProcessInput.Empty,
     outputListener: ProcessOutputListener = ProcessOutputListener.NOOP,
-    redirectErrorStream: Boolean = false,
     onStart: (pid: Long) -> Unit = {},
-): ProcessResult {
+): ProcessResult.WithOutputs {
     contract {
         callsInPlace(onStart, InvocationKind.EXACTLY_ONCE)
     }
     val capture = ProcessOutputListener.InMemoryCapture()
-    val pid: Long
-    val exitCode = run(
+    val result = run(
         outputListener = outputListener + capture,
         input = input,
-        onStart = {
-            pid = it
-            onStart(it)
-        },
+        onStart = onStart,
     )
-    return ProcessResult(
-        command = command().toList(),
-        exitCode = exitCode,
-        pid = pid,
+    return ProcessResultWithCapturedOutputs(
+        command = result.command,
+        exitCode = result.exitCode,
+        pid = result.pid,
+        errorStreamRedirected = result.errorStreamRedirected,
         stdout = capture.stdout,
         stderr = capture.stderr,
-        errorStreamRedirected = redirectErrorStream,
     )
 }
 
@@ -132,7 +91,7 @@ internal suspend fun ProcessBuilder.run(
     outputListener: ProcessOutputListener,
     input: ProcessInput = ProcessInput.Empty,
     onStart: (pid: Long) -> Unit = {},
-): Int {
+): ProcessResult {
     contract {
         callsInPlace(onStart, InvocationKind.EXACTLY_ONCE)
     }
@@ -146,7 +105,13 @@ internal suspend fun ProcessBuilder.run(
                 // input writing is asynchronous
                 input.writeTo(process.outputStream)
             }
-            process.awaitListening(outputListener)
+            val exitCode = process.awaitListening(outputListener)
+            SimpleProcessResult(
+                command = command().toList(),
+                exitCode = exitCode,
+                pid = process.pid(),
+                errorStreamRedirected = redirectErrorStream(),
+            )
         }
     }
 }
@@ -180,7 +145,7 @@ private val ProcessInput.stdinRedirection: ProcessBuilder.Redirect
  *
  * @return the exit code of the process
  */
-internal suspend fun ProcessBuilder.runWithInheritedIO(onStart: (pid: Long) -> Unit = {}): Int {
+internal suspend fun ProcessBuilder.runWithInheritedIO(onStart: (pid: Long) -> Unit = {}): ProcessResult {
     contract {
         callsInPlace(onStart, InvocationKind.EXACTLY_ONCE)
     }
@@ -189,7 +154,13 @@ internal suspend fun ProcessBuilder.runWithInheritedIO(onStart: (pid: Long) -> U
             .start()
             .withGuaranteedTermination { process ->
                 onStart(process.pid())
-                process.onExit().await().exitValue()
+                val exitCode = process.onExit().await().exitValue()
+                SimpleProcessResult(
+                    command = command().toList(),
+                    exitCode = exitCode,
+                    pid = process.pid(),
+                    errorStreamRedirected = redirectErrorStream(),
+                )
             }
     }
 }

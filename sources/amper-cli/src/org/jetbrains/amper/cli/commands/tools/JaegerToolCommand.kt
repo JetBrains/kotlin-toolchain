@@ -108,12 +108,12 @@ internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
                 }
 
 
-                val exitCode = runProcess(
+                val result = runProcess(
                     command = CommandLineUtils.quoteCommandLineForCurrentPlatform(cmd),
                     outputListener = PrintToTerminalProcessOutputListener(terminal),
                 )
-                if (exitCode != 0) {
-                    userReadableError("${executable.name} exited with code $exitCode")
+                if (result.exitCode != 0) {
+                    userReadableError("${executable.name} exited with code ${result.exitCode}")
                 }
             }
         }

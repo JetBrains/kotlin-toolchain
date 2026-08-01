@@ -83,7 +83,7 @@ internal class ComposeHotReloadMcpServerCommand : AmperProjectAwareCommand(name 
             "-Dcompose.reload.pidFile=${pidFile.absolutePathString()}",
             "org.jetbrains.compose.reload.mcp.ComposeHotReloadMcp",
         ]
-        val exitCode = withJavaArgFile(cliContext.projectTempRoot, javaArgs) { argFile ->
+        val result = withJavaArgFile(cliContext.projectTempRoot, javaArgs) { argFile ->
             runProcessWithInheritedIO(
                 command = listOf(jdk.javaExecutable.pathString, "@${argFile.pathString}"),
                 onStart = { pid ->
@@ -91,8 +91,8 @@ internal class ComposeHotReloadMcpServerCommand : AmperProjectAwareCommand(name 
                 }
             )
         }
-        if (exitCode != 0) {
-            userReadableError("MCP server exited with code $exitCode", exitCode = exitCode)
+        if (result.exitCode != 0) {
+            userReadableError("MCP server exited with code ${result.exitCode}", exitCode = result.exitCode)
         }
     }
 }

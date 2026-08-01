@@ -154,18 +154,16 @@ abstract class AmperCliTestBase : AmperCliWithWrapperTestBase() {
     protected suspend fun runXcodebuild(
         vararg buildArgs: String,
         workingDir: Path = tempRoot,
-    ): ProcessResult {
-        return runProcessAndCaptureOutput(
-            workingDir = workingDir,
-            command = listOf(
-                "xcrun", "xcodebuild",
-                *buildArgs,
-                "build",
-            ),
-            environment = baseEnvironmentForWrapper(),
-            outputListener = TestReporterProcessOutputListener("xcodebuild", testReporter),
-        )
-    }
+    ): ProcessResult.WithOutputs = runProcessAndCaptureOutput(
+        workingDir = workingDir,
+        command = listOf(
+            "xcrun", "xcodebuild",
+            *buildArgs,
+            "build",
+        ),
+        environment = baseEnvironmentForWrapper(),
+        outputListener = TestReporterProcessOutputListener("xcodebuild", testReporter),
+    )
 
     protected enum class WrapperMode {
         /**

@@ -37,8 +37,8 @@ suspend fun runProcessAndCaptureOutput(
     input: ProcessInput = ProcessInput.Empty,
     outputListener: ProcessOutputListener = ProcessOutputListener.NOOP,
     onStart: (pid: Long) -> Unit = {},
-): ProcessResult = process(workingDir, command, environment, redirectErrorStream)
-    .runAndCaptureOutput(input, outputListener, redirectErrorStream, onStart)
+): ProcessResult.WithOutputs = process(workingDir, command, environment, redirectErrorStream)
+    .runAndCaptureOutput(input, outputListener, onStart)
 
 /**
  * Starts a new process with the given [command] in [workingDir], and awaits its completion.
@@ -66,7 +66,7 @@ suspend fun runProcess(
     outputListener: ProcessOutputListener = ProcessOutputListener.NOOP,
     input: ProcessInput = ProcessInput.Empty,
     onStart: (pid: Long) -> Unit = {},
-): Int {
+): ProcessResult {
     contract {
         callsInPlace(onStart, InvocationKind.EXACTLY_ONCE)
     }
@@ -93,7 +93,7 @@ suspend fun runProcessWithInheritedIO(
     environment: Map<String, String> = emptyMap(),
     redirectErrorStream: Boolean = false,
     onStart: (pid: Long) -> Unit = {},
-): Int {
+): ProcessResult {
     contract {
         callsInPlace(onStart, InvocationKind.EXACTLY_ONCE)
     }

@@ -100,7 +100,7 @@ class KotlinNativeCompiler(
 
     private fun processNativeCompilerCommandResult(
         span: Span,
-        result: ProcessResult,
+        result: ProcessResult.WithOutputs,
         moniker: String
     ) {
         // TODO this is redundant with the java span of the external process run. Ideally, we
@@ -121,7 +121,7 @@ class KotlinNativeCompiler(
         processRunner: ProcessRunner,
         programArgs: List<String>,
         argsMode: ArgsMode,
-    ): ProcessResult {
+    ): ProcessResult.WithOutputs {
         // We call konanc via java because the konanc command line doesn't support spaces in paths:
         // https://youtrack.jetbrains.com/issue/KT-66952
 

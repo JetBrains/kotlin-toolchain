@@ -59,7 +59,7 @@ class ProcessRunner(
         outputListener: ProcessOutputListener,
         redirectErrorStream: Boolean = false,
         input: ProcessInput = ProcessInput.Empty,
-    ): ProcessResult {
+    ): ProcessResult.WithOutputs {
         logger.debug("[cmd] ${ShellQuoting.quoteArgumentsPosixShellWay(command.toList())}")
 
         val result = withContext(Dispatchers.IO) {
