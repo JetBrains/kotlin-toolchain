@@ -23,6 +23,4 @@ fun SpanBuilder.setFragments(fragments: List<Fragment>) =
  */
 fun Span.setProcessResultAttributes(result: ProcessResult) {
     setAttribute("exit-code", result.exitCode.toLong())
-    setAttribute("stdout", result.stdout.filterAnsiCodes())
-    setAttribute("stderr", result.stderr.filterAnsiCodes())
 }
