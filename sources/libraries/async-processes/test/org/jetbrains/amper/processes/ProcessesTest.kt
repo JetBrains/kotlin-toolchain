@@ -17,6 +17,9 @@ import org.jetbrains.amper.processes.output.InMemoryCapture
 import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.createTempFile
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -35,7 +38,7 @@ class ProcessesTest {
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nibh odio, auctor non tincidunt eu, posuere vitae nisl. Sed lobortis gravida sapien, eget feugiat purus feugiat et. Fusce ullamcorper risus ac diam varius, ullamcorper molestie est aliquam. Ut dictum, tellus sit amet efficitur hendrerit, est dolor bibendum nunc, et lacinia sem erat nec lectus. Donec orci elit, feugiat in arcu vel, dictum ultricies diam. Nullam ut ultricies tortor. Sed a finibus tortor. Vestibulum et diam vitae orci hendrerit faucibus ac posuere leo. Nunc laoreet interdum euismod. Pellentesque ac porttitor enim. In malesuada pharetra orci in euismod. Quisque sit amet rutrum enim. Morbi ultrices blandit augue, non tincidunt sapien sagittis sit amet. Mauris id tempus tortor, vitae ullamcorper orci. Phasellus efficitur dolor mollis, mattis lacus quis, convallis elit. Phasellus dignissim, nibh a aliquam commodo, ipsum risus suscipit massa, et porta lacus eros nec felis. Nulla ante augue, elementum cras amet."
 
     @Test
-    fun `runProcessAndCaptureOutput should capture stdout and stderr`() = runBlocking(Dispatchers.IO) {
+    fun `runProcess should capture stdout and stderr in capture mode`() = runBlocking(Dispatchers.IO) {
         val command = shell(
             shCommand = "printf 'line1\n'; printf 'line2\nbreak'; printf 'hello stderr' 1>&2",
             psCommand = "Write-Output 'line1'; Write-Output 'line2'; Write-Output 'break'; [Console]::Error.Write('hello stderr')",
@@ -50,7 +53,7 @@ class ProcessesTest {
     }
 
     @Test
-    fun `runProcessAndCaptureOutput should capture stderr in case of wrong nested command`() = runBlocking(Dispatchers.IO) {
+    fun `runProcess should capture stderr in case of wrong nested command`() = runBlocking(Dispatchers.IO) {
         val command = shell(
             shCommand = "echo line1; not-a-command",
             psCommand = "Write-Output 'line1'; not-a-command",
@@ -119,7 +122,7 @@ class ProcessesTest {
     }
 
     @Test
-    fun `should transfer custom env`() = runBlocking(Dispatchers.IO) {
+    fun `runProcess should transfer custom env`() = runBlocking(Dispatchers.IO) {
         val result = runProcess(
             command = echoEnv("MY_ENV"),
             environment = mapOf("MY_ENV" to "env_value"),
@@ -128,6 +131,25 @@ class ProcessesTest {
         result.assertZeroExitCode()
         assertEquals("env_value", result.stdout.trim())
         assertEquals("", result.stderr)
+    }
+
+    @Test
+    fun `runProcess should read from file when given ProcessInput_File`() = runBlocking(Dispatchers.IO) {
+        val temp = createTempFile().also { it.toFile().deleteOnExit() }
+        try {
+            val text = "foo\nbar\nbaz"
+            temp.writeText(text)
+            val result = runProcess(
+                command = shell("cat", "\$text = [Console]::In.ReadToEnd(); [Console]::Out.Write(\$text)"),
+                input = ProcessInput.File(temp),
+                outputMode = ProcessOutputMode.capture(),
+            )
+            result.assertZeroExitCode()
+            assertEquals(text, result.stdout.trim())
+            assertEquals("", result.stderr)
+        } finally {
+            temp.deleteExisting()
+        }
     }
 
     @Test

@@ -86,5 +86,6 @@ private fun ProcessOutputMode<*>.asProcessBuilderRedirect(): ProcessBuilder.Redi
 
 private fun ProcessInput.asProcessBuilderRedirect(): ProcessBuilder.Redirect = when (this) {
     ProcessInput.Inherit -> ProcessBuilder.Redirect.INHERIT
+    is ProcessInput.File -> ProcessBuilder.Redirect.from(path.toFile())
     is ProcessInput.Stream -> ProcessBuilder.Redirect.PIPE
 }

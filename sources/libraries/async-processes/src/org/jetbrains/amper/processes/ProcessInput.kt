@@ -5,6 +5,7 @@
 package org.jetbrains.amper.processes
 
 import java.io.OutputStream
+import java.nio.file.Path
 
 sealed interface ProcessInput {
 
@@ -14,6 +15,11 @@ sealed interface ProcessInput {
      * Warning: `System.setIn()` doesn't change the input to be inherited.
      */
     data object Inherit : ProcessInput
+
+    /**
+     * The input will be read from the given file.
+     */
+    data class File(val path: Path) : ProcessInput
 
     /**
      * The input will be written to the stdin of the process via [writeTo].
