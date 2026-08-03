@@ -19,8 +19,8 @@ import com.jetbrains.cidr.xcode.xcspec.XcodeExtensionsManager
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.amper.cli.userReadableError
-import org.jetbrains.amper.processes.ProcessOutputListener
-import org.jetbrains.amper.processes.runProcessAndCaptureOutput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.system.info.OsFamily
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -41,7 +41,7 @@ suspend fun initializeXcodeComponentManager() = xCodeInitializationMutex.withLoc
 }
 
 private suspend fun detectXcodeInstallation(): String {
-    val result = runProcessAndCaptureOutput(command = ["xcode-select", "--print-path"])
+    val result = runProcess(command = ["xcode-select", "--print-path"], outputMode = ProcessOutputMode.capture())
     if (result.exitCode != 0) userReadableError("Failed to detect Xcode. Make sure Xcode is installed.")
 
     return result.stdout.trim()

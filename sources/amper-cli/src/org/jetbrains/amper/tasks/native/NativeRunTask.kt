@@ -15,6 +15,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.processes.PrintToTerminalProcessOutputListener
 import org.jetbrains.amper.processes.ProcessInput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.NativeDesktopRunSettings
 import org.jetbrains.amper.tasks.TaskResult
@@ -50,11 +51,12 @@ class NativeRunTask(
             .setAttribute("executable", executable.pathString)
             .setListAttribute("args", programArgs)
             .use { span ->
-                val result = processRunner.runProcessAndGetOutput(
+                val result = processRunner.runProcess(
                     workingDir = runSettings.workingDir,
                     command = listOf(executable.pathString) + programArgs,
                     span = span,
-                    outputListener = PrintToTerminalProcessOutputListener(terminal),
+                    // TODO change to ProcessOutputMode.Inherit to fix KTC-5596
+                    outputMode = ProcessOutputMode.listen(PrintToTerminalProcessOutputListener(terminal)),
                     input = ProcessInput.Inherit,
                 )
 

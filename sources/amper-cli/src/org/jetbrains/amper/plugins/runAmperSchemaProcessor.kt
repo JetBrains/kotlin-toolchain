@@ -18,7 +18,7 @@ import org.jetbrains.amper.plugins.schema.model.PluginDeclarationsRequest
 import org.jetbrains.amper.plugins.schema.model.diagnostics.KotlinSchemaBuildProblem
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.ProcessInput
-import org.jetbrains.amper.processes.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -39,7 +39,6 @@ suspend fun runAmperSchemaProcessor(
 ): List<PluginDataWithDiagnostics> {
     val toolClasspath = ExtraClasspath.PLUGINS_PROCESSOR.findJarsInDistribution()
     val apiClasspath = ExtraClasspath.EXTENSIBILITY_API.findJarsInDistribution()
-    val outputCaptor = ProcessOutputListener.InMemoryCapture()
     val request = PluginDeclarationsRequest(
         librariesPaths = apiClasspath,
         requests = plugins.map { [pluginRootPath, pluginInfo] ->
@@ -58,20 +57,20 @@ suspend fun runAmperSchemaProcessor(
         programArgs = emptyList(),
         argsMode = ArgsMode.CommandLine,
         classpath = toolClasspath,
-        outputListener = outputCaptor,
         // Input request is passed via STDIN
-        input = ProcessInput.Text(Json.encodeToString(request))
+        input = ProcessInput.Text(Json.encodeToString(request)),
+        outputMode = ProcessOutputMode.capture(),
     )
 
     if (result.exitCode != 0) {
-        logger.error(outputCaptor.stderr)
+        logger.error(result.stderr)
         error("Failed to process local plugin schema")
     }
     // Results are parsed from the process' STDOUT
     val response = try {
-        Json.decodeFromString<PluginDataResponse>(outputCaptor.stdout)
+        Json.decodeFromString<PluginDataResponse>(result.stdout)
     } catch (e: SerializationException) {
-        logger.error(outputCaptor.stderr)
+        logger.error(result.stderr)
         throw e
     }
 

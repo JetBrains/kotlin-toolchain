@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.ksp
@@ -11,6 +11,7 @@ import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.jdk.provisioning.majorVersion
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -67,7 +68,7 @@ internal class Ksp(
             classpath = kspImplJars,
             programArgs = args,
             argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
-            outputListener = LoggingProcessOutputListener(logger, prefix = "[ksp] "),
+            outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger, prefix = "[ksp] ")),
             jvmArgs = jvmArgs,
         )
         // Note: KSP fails automatically with exit code 1 if any error log is present

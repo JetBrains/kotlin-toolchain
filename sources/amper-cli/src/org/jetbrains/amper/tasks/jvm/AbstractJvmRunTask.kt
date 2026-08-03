@@ -25,6 +25,7 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.PrintToTerminalProcessOutputListener
 import org.jetbrains.amper.processes.ProcessInput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.JvmMainRunSettings
@@ -59,7 +60,8 @@ abstract class AbstractJvmRunTask(
             argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
             jvmArgs = getJvmArgs(dependenciesResult),
             environment = getEnvironment(dependenciesResult),
-            outputListener = PrintToTerminalProcessOutputListener(terminal),
+            // TODO change to ProcessOutputMode.Inherit to fix KTC-5596
+            outputMode = ProcessOutputMode.listen(PrintToTerminalProcessOutputListener(terminal)),
             input = ProcessInput.Inherit,
         )
 

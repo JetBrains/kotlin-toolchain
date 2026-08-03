@@ -5,7 +5,9 @@
 package org.jetbrains.amper.simctl
 
 import kotlinx.serialization.json.Json
-import org.jetbrains.amper.processes.runProcessAndCaptureOutput
+import org.jetbrains.amper.processes.ProcessInput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.simctl.model.SimDevice
 import org.jetbrains.amper.simctl.model.SimDeviceId
 import org.jetbrains.amper.simctl.model.SimDeviceType
@@ -30,13 +32,14 @@ object SimCtl {
      * Use [bootedOnly] to filter the result to show only devices that are currently booted.
      */
     suspend fun listDevices(bootedOnly: Boolean = false): Map<SimRuntimeId, List<SimDevice>> {
-        val result = runProcessAndCaptureOutput(
+        val result = runProcess(
             command = buildList {
                 addAll(["xcrun", "simctl", "list", "devices", "--json"])
                 if (bootedOnly) {
                     add("booted")
                 }
-            }
+            },
+            outputMode = ProcessOutputMode.capture(),
         )
         if (result.exitCode != 0) {
             throw SimCtlException("Failed to retrieve devices list: ${result.stderr}")
@@ -50,8 +53,9 @@ object SimCtl {
      * This is useful to get more information about a device using its [SimDevice.deviceTypeId].
      */
     suspend fun listDeviceTypes(): List<SimDeviceType> {
-        val result = runProcessAndCaptureOutput(
-            command = ["xcrun", "simctl", "list", "devicetypes", "--json"]
+        val result = runProcess(
+            command = ["xcrun", "simctl", "list", "devicetypes", "--json"],
+            outputMode = ProcessOutputMode.capture(),
         )
         if (result.exitCode != 0) {
             throw SimCtlException("Failed to retrieve device types list: ${result.stderr}")
@@ -63,8 +67,9 @@ object SimCtl {
      * Lists the simulator runtimes (iOS, watchOS, tvOS, etc.) installed on the current machine.
      */
     suspend fun listRuntimes(): List<SimRuntime> {
-        val result = runProcessAndCaptureOutput(
-            command = ["xcrun", "simctl", "list", "runtimes", "--json"]
+        val result = runProcess(
+            command = ["xcrun", "simctl", "list", "runtimes", "--json"],
+            outputMode = ProcessOutputMode.capture(),
         )
         if (result.exitCode != 0) {
             throw SimCtlException("Failed to retrieve runtimes list: ${result.stderr}")
@@ -82,7 +87,10 @@ object SimCtl {
      * @throws SimulatorBootException If the device wasn't already booted, but failed to boot.
      */
     suspend fun bootSimulator(deviceId: SimDeviceId, failIfAlreadyBooted: Boolean = true) {
-        val result = runProcessAndCaptureOutput(command = ["xcrun", "simctl", "boot", deviceId.value])
+        val result = runProcess(
+            command = ["xcrun", "simctl", "boot", deviceId.value],
+            outputMode = ProcessOutputMode.captureStderr(),
+        )
         if ("Unable to boot device in current state: Booted" in result.stderr) {
             if (failIfAlreadyBooted) {
                 throw SimulatorAlreadyBootedException(deviceId)
@@ -107,8 +115,9 @@ object SimCtl {
      * Installs the app from the given [appFile] onto the given [device].
      */
     suspend fun installApp(appFile: Path, device: TargetDevice = TargetDevice.AnyBootedDevice) {
-        val result = runProcessAndCaptureOutput(
+        val result = runProcess(
             command = ["xcrun", "simctl", "install", device.cliName, appFile.absolutePathString()],
+            outputMode = ProcessOutputMode.captureStderr(),
         )
         if (result.exitCode != 0) {
             throw AppInstallationException(appFile, device, result.stderr)
@@ -119,7 +128,10 @@ object SimCtl {
      * Uninstalls the app with the given [appBundleId] from the given [device].
      */
     suspend fun uninstallApp(appBundleId: String, device: TargetDevice = TargetDevice.AnyBootedDevice) {
-        val result = runProcessAndCaptureOutput(command = ["xcrun", "simctl", "uninstall", device.cliName, appBundleId])
+        val result = runProcess(
+            command = ["xcrun", "simctl", "uninstall", device.cliName, appBundleId],
+            outputMode = ProcessOutputMode.captureStderr(),
+        )
         if (result.exitCode != 0) {
             throw AppUninstallationException(appBundleId, device, result.stderr)
         }
@@ -131,20 +143,20 @@ object SimCtl {
      * @return the PID of the app's process on the device.
      */
     suspend fun launchApp(appBundleId: String, device: TargetDevice = TargetDevice.AnyBootedDevice): Int {
-        val launchOutput = runProcessAndCaptureOutput(
+        val launchOutput = runProcess(
             command = ["xcrun", "simctl", "launch", device.cliName, appBundleId],
-            redirectErrorStream = true,
+            outputMode = ProcessOutputMode.captureMergedStreams(),
         )
 
         // Check for errors in launch output based on specific error keywords
         val errorKeywords = ["error", "failed", "FBSOpenApplicationServiceErrorDomain"]
-        if (errorKeywords.any { launchOutput.stdout.contains(it, ignoreCase = true) }) {
-            throw AppLaunchException(appBundleId, device, launchOutput.stdout)
+        if (errorKeywords.any { launchOutput.stdoutAndStderr.contains(it, ignoreCase = true) }) {
+            throw AppLaunchException(appBundleId, device, launchOutput.stdoutAndStderr)
         }
 
         val appWithPidRegex = Regex("""${Regex.escape(appBundleId)}:\s*(?<pid>\d+)""")
-        val match = appWithPidRegex.find(launchOutput.stdout)
-            ?: error("Missing launch PID in output. Launch output:\n${launchOutput.stdout}")
+        val match = appWithPidRegex.find(launchOutput.stdoutAndStderr)
+            ?: error("Missing launch PID in output. Launch output:\n${launchOutput.stdoutAndStderr}")
 
         return match.groups["pid"]?.value?.toInt() ?: error("Regex matched without 'pid' group")
     }

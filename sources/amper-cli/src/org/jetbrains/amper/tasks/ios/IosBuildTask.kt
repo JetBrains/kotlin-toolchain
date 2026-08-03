@@ -24,7 +24,8 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.ProcessInput
-import org.jetbrains.amper.processes.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.tasks.TaskOutputRoot
@@ -95,7 +96,11 @@ class IosBuildTask(
 
         coroutineScope {
             val executable = prepareLogParsingUtility()
-            val pipe = ProcessInput.Pipe()
+            val fullXcodebuildLog = taskOutputPath.path / "xcodebuild.log"
+            val pipe = ProcessInput.Pipe(
+                includeStderr = true,
+                eavesDroppingListener = FileLoggingProcessOutputListener(fullXcodebuildLog),
+            )
 
             logger.info("Using xcbeautify ($XCBEAUTIFY_VERSION) to parse xcodebuild output.")
 
@@ -107,26 +112,23 @@ class IosBuildTask(
                         executable.pathString,
                         "--disable-logging", // disable big version banner - we do it ourselves
                     ),
-                    outputListener = LoggingProcessOutputListener(logger),
+                    outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
                     input = pipe,
                 )
             }
 
-            val fullXcodebuildLog = taskOutputPath.path / "xcodebuild.log"
-            val outputListener = pipe.pipeInListener + FileLoggingProcessOutputListener(fullXcodebuildLog)
             spanBuilder("xcodebuild")
                 .setAmperModule(module)
                 .setListAttribute("args", xcodebuildArgs)
                 .use { span ->
-                    val result = processRunner.runProcessAndGetOutput(
+                    val result = processRunner.runProcess(
                         workingDir = workingDir,
                         command = xcodebuildArgs,
                         span = span,
                         environment = mapOf(
                             IosPreBuildTask.Result.ENV_JSON_NAME to Json.encodeToString(prebuildResult),
                         ),
-                        redirectErrorStream = true,
-                        outputListener = outputListener,
+                        outputMode = pipe,
                     )
 
                     // Ensure the parser is done to avoid putting the final log entries into the middle of the log

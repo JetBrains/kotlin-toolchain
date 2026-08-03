@@ -24,6 +24,7 @@ import org.jetbrains.amper.kotlin.native.asCommonizerTarget
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.TaskResult
@@ -102,7 +103,7 @@ class CommonizeNativeDistributionTask(
                             classpath = commonizerClasspath,
                             programArgs = commonizerArgs,
                             argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
-                            outputListener = LoggingProcessOutputListener(logger),
+                            outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
                         )
                         if (result.exitCode != 0) {
                             userReadableError("Kotlin commonizer invocation failed (see errors above)")

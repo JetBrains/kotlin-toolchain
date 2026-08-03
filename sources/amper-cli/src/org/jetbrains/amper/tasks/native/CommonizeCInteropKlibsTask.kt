@@ -25,6 +25,7 @@ import org.jetbrains.amper.kotlin.native.dependencyLibrariesForCommonization
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.jetbrains.amper.stdlib.io.path.cleanDirectoryExcept
 import org.jetbrains.amper.stdlib.io.path.listDirectoryEntriesIfExistsOrEmpty
@@ -205,7 +206,7 @@ class CommonizeCInteropKlibsTask(
                 classpath = commonizerClasspath,
                 programArgs = commonizerArgs,
                 argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
-                outputListener = LoggingProcessOutputListener(logger = logger),
+                outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger = logger)),
             )
             if (result.exitCode != 0) {
                 userReadableError("cinterop commonization failed, see the errors above")

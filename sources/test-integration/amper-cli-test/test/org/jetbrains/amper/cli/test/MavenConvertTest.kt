@@ -7,7 +7,8 @@ package org.jetbrains.amper.cli.test
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
-import org.jetbrains.amper.processes.runProcessAndCaptureOutput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.test.assertEqualsIgnoreLineSeparator
 import org.jetbrains.amper.test.processes.checkExitCodeIsZero
 import kotlin.io.path.absolutePathString
@@ -723,11 +724,20 @@ class MavenConvertTest : AmperCliTestBase() {
 
         // Initialize a git repo so the git-commit-id plugin can run
         val dir = buildResult.projectDir
-        runProcessAndCaptureOutput(workingDir = dir, command = ["git", "init"]).checkExitCodeIsZero()
-        runProcessAndCaptureOutput(workingDir = dir, command = ["git", "add", "."]).checkExitCodeIsZero()
-        runProcessAndCaptureOutput(
+        runProcess(
+            workingDir = dir,
+            command = ["git", "init"],
+            outputMode = ProcessOutputMode.Discard,
+        ).checkExitCodeIsZero()
+        runProcess(
+            workingDir = dir,
+            command = ["git", "add", "."],
+            outputMode = ProcessOutputMode.Discard,
+        ).checkExitCodeIsZero()
+        runProcess(
             workingDir = dir,
             command = ["git", "-c", "user.name=test", "-c", "user.email=test@test.com", "commit", "-m", "initial"],
+            outputMode = ProcessOutputMode.Discard,
         ).checkExitCodeIsZero()
 
         val converted = testProject(buildResult.projectDir.pathString)

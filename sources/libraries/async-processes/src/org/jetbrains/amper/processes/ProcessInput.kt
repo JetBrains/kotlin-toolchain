@@ -1,10 +1,12 @@
 /*
- * Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.processes
 
 import kotlinx.coroutines.channels.Channel
+import org.jetbrains.amper.processes.output.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import java.io.IOException
 import java.io.OutputStream
 import java.io.PrintStream
@@ -40,18 +42,36 @@ sealed interface ProcessInput {
     }
 
     /**
-     * Provides an ability to pipe the output of one process (A) to the input of another (B).
-     * Use the [pipeInListener] as an output listener of the process (A), whose output we need as input.
+     * The standard input of the process receives data from the output of another process.
      *
-     * When the process (A) terminates, the stdin stream of the process (B) is closed.
+     * The [Pipe] instance must be used as `input` of the process receiving the data (the "Receiver"), and as
+     * [ProcessOutputMode] of the process producing the data (called the "Producer" below).
      *
-     * If the process (B) terminates earlier than the (A) one or if other input error occurs,
-     * the pipe is silently dropped.
+     * When the _Producer_ terminates, the stdin stream of the _Receiver_ is closed.
+     *
+     * If the _Receiver_ terminates earlier than the _Producer, or if other input error occurs, the remaining output of
+     * the _Producer_ is discarded.
      */
-    class Pipe : ProcessInput {
+    class Pipe(
+        /**
+         * Whether the standard error stream of the producer process should also be piped to standard input of the next
+         * process, so both stdout and stderr streams are merged together before piping them.
+         */
+        includeStderr: Boolean,
+        /**
+         * A listener that sees everything going through the pipe via the stdout-related callbacks.
+         *
+         * Nothing goes to the stderr-related callbacks, because either stderr is not piped at all
+         * (includeStderr `== false`), or it is piped via stdout (`includeStderr == true`).
+         */
+        eavesDroppingListener: ProcessOutputListener = ProcessOutputListener.NOOP,
+    ) : ProcessInput, ProcessOutputMode.Listen<ProcessResult> {
+
+        override val redirectStderrToStdout: Boolean = includeStderr
+
         private val outputLinesChannel = Channel<String>(capacity = Channel.UNLIMITED)
 
-        val pipeInListener = object : ProcessOutputListener {
+        override val listener = eavesDroppingListener + object : ProcessOutputListener {
             override fun onStdoutLine(line: String, pid: Long) {
                 outputLinesChannel.trySend(line)
             }
@@ -61,6 +81,8 @@ sealed interface ProcessInput {
                 outputLinesChannel.close()
             }
         }
+
+        override fun refineResult(baseResult: ProcessResult): ProcessResult = baseResult
 
         override suspend fun writeTo(processStdin: OutputStream) {
             try {
@@ -77,6 +99,8 @@ sealed interface ProcessInput {
     }
 
     /**
+     * Writes the input to the process's standard input stream (stdin).
+     *
      * IMPORTANT: The implementor is responsible for closing the stream in the end.
      */
     suspend fun writeTo(processStdin: OutputStream)

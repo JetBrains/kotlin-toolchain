@@ -10,9 +10,8 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.amper.cli.telemetry.setProcessResultAttributes
 import org.jetbrains.amper.intellij.CommandLineUtils
 import org.jetbrains.amper.processes.ProcessInput
-import org.jetbrains.amper.processes.ProcessOutputListener
 import org.jetbrains.amper.processes.ProcessResult
-import org.jetbrains.amper.processes.runProcessAndCaptureOutput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.telemetry.ChildProcessTelemetry
 import org.jetbrains.amper.telemetry.ChildProcessTelemetry.OTEL_FOLDER_ENV_VAR
 import org.jetbrains.amper.telemetry.ChildProcessTelemetry.OTEL_PARENT_CONTEXT_ENV_VAR
@@ -35,8 +34,9 @@ class ProcessRunner(
 
     /**
      * Starts a new process with the given [command] in [workingDir], and awaits the result.
-     * While waiting, stdout and stderr are printed to the console, but they are also entirely collected in memory as
-     * part of the returned [ProcessResult].
+     * While waiting, stdout and stderr are processed according to the given [outputMode].
+     *
+     * The given [input] is used to send data to the standard input of the started process.
      *
      * If a [span] is provided, extra attributes are added to it about the process result (exit code, stdout, stderr).
      *
@@ -49,17 +49,14 @@ class ProcessRunner(
      * This wait should be reasonably short anyway because the process is killed on cancellation, so no more output
      * should be written in that case.
      */
-    // TODO sometimes capturing the entire stdout/stderr in memory won't work
-    //  do we want to offload big (and probably only big outputs) to the disk?
-    suspend fun runProcessAndGetOutput(
+    suspend fun <R : ProcessResult> runProcess(
         workingDir: Path,
         command: List<String>,
         span: Span? = null,
         environment: Map<String, String> = emptyMap(),
-        outputListener: ProcessOutputListener,
-        redirectErrorStream: Boolean = false,
-        input: ProcessInput = ProcessInput.Empty,
-    ): ProcessResult.WithOutputs {
+        outputMode: ProcessOutputMode<R>,
+        input: ProcessInput = ProcessInput.Inherit,
+    ): R {
         logger.debug("[cmd] ${ShellQuoting.quoteArgumentsPosixShellWay(command.toList())}")
 
         val result = withContext(Dispatchers.IO) {
@@ -69,18 +66,17 @@ class ProcessRunner(
                 putAll(environment)
             }
 
-            // Why quoteCommandLineForCurrentPlatform:
-            // ProcessBuilder does not correctly escape its arguments on Windows
-            // generally, JDK developers do not think that executed command should receive the same arguments as passed to ProcessBuilder
-            // see, e.g., https://bugs.openjdk.org/browse/JDK-8131908
-            // this code is mostly tested by AmperBackendTest.simple multiplatform cli on jvm
-            runProcessAndCaptureOutput(
+            org.jetbrains.amper.processes.runProcess(
                 workingDir = workingDir,
+                // Why quoteCommandLineForCurrentPlatform:
+                // ProcessBuilder does not correctly escape its arguments on Windows
+                // generally, JDK developers do not think that executed command should receive the same arguments as passed to ProcessBuilder
+                // see, e.g., https://bugs.openjdk.org/browse/JDK-8131908
+                // this code is mostly tested by AmperBackendTest.simple multiplatform cli on jvm
                 command = CommandLineUtils.quoteCommandLineForCurrentPlatform(command),
                 environment = environmentWithTelemetry,
-                redirectErrorStream = redirectErrorStream,
                 input = input,
-                outputListener = outputListener,
+                outputMode = outputMode,
             )
         }
         span?.setProcessResultAttributes(result)

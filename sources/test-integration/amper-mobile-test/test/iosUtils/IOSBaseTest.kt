@@ -7,7 +7,8 @@ package iosUtils
 import TestBase
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.processes.ProcessLeak
-import org.jetbrains.amper.processes.runProcessAndCaptureOutput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.simctl.SimCtl
 import org.jetbrains.amper.test.MacOnly
 import java.nio.file.Path
@@ -92,12 +93,12 @@ open class IOSBaseTest : TestBase() {
 
         // Step 5: Verify the existence of app data container to ensure app is running
         println("Verifying app container existence in data directory")
-        val containerDataOutput = runProcessAndCaptureOutput(
+        val containerDataOutput = runProcess(
             command = ["xcrun", "simctl", "get_app_container", "booted", appBundleId, "data"],
-            redirectErrorStream = true,
+            outputMode = ProcessOutputMode.captureMergedStreams(),
         )
         // If data container is missing, the app might not be fully active
-        if (containerDataOutput.stdout.length <= 1) {
+        if (containerDataOutput.stdoutAndStderr.length <= 1) {
             error("App container not found in data directory. Container data check failed.")
         }
         println("App data container verified successfully.")

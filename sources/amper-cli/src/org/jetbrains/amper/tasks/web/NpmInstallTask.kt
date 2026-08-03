@@ -17,6 +17,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
@@ -92,7 +93,7 @@ class NpmInstallTask(
 
                 spanBuilder("pnpm install")
                     .use {
-                        val disableUpdateNotify = processRunner.runProcessAndGetOutput(
+                        val disableUpdateNotify = processRunner.runProcess(
                             workingDir = outputDir,
                             command = listOf(
                                 executable.pathString,
@@ -103,7 +104,9 @@ class NpmInstallTask(
                                 "false"
                             ),
                             span = it,
-                            outputListener = LoggingProcessOutputListener(logger),
+                            outputMode = ProcessOutputMode.listenAndCaptureStderr(
+                                listener = LoggingProcessOutputListener(logger),
+                            ),
                         )
 
                         if (disableUpdateNotify.exitCode != 0) {
@@ -113,11 +116,13 @@ class NpmInstallTask(
                             )
                         }
 
-                        val result = processRunner.runProcessAndGetOutput(
+                        val result = processRunner.runProcess(
                             workingDir = outputDir,
                             command = [executable.pathString, "install"],
                             span = it,
-                            outputListener = LoggingProcessOutputListener(logger),
+                            outputMode = ProcessOutputMode.listenAndCaptureStderr(
+                                listener = LoggingProcessOutputListener(logger),
+                            ),
                         )
                         if (result.exitCode != 0) {
                             error("pnpm install failed with exit code ${result.exitCode}:\n${result.stderr}")

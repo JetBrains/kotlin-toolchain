@@ -22,9 +22,11 @@ import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.downloader.amperHttpClient
+import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.processes.ProcessLeak
 import org.jetbrains.amper.processes.ProcessResult
-import org.jetbrains.amper.processes.runProcessWithInheritedIO
+import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.processes.startLongLivedProcess
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -106,7 +108,6 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
 
     private val runningWrapper by lazy { Path(System.getenv("KOTLIN_CLI_WRAPPER_PATH")).absolute() }
 
-    @OptIn(ProcessLeak::class)
     override suspend fun run() {
         val bashWrapperPath = targetDir.resolve("kotlin")
         val batWrapperPath = targetDir.resolve("kotlin.bat")
@@ -259,9 +260,11 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
             OsFamily.Solaris -> listOf(bashWrapper.absolutePathString(), "--version")
         }
         // This working dir is intentional to support a plain `./kotlin` in Windows Git bash (without paths shenanigans)
-        return runProcessWithInheritedIO(
+        return runProcess(
             workingDir = bashWrapper.absolute().parent,
             command = command,
+            outputMode = ProcessOutputMode.Inherit,
+            input = ProcessInput.Inherit,
         )
     }
 

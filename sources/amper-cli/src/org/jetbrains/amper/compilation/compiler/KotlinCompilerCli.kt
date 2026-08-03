@@ -10,7 +10,8 @@ import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.extract.ExtractOptions
 import org.jetbrains.amper.core.extract.extractFileToCacheLocation
 import org.jetbrains.amper.processes.ProcessInput
-import org.jetbrains.amper.processes.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -77,12 +78,12 @@ class KotlinCompilerCli(
         spanBuilder("Run Kotlin script")
             .setAttribute("script-path", scriptPath.pathString)
             .use {
-                processRunner.runProcessAndGetOutput(
+                processRunner.runProcess(
                     workingDir = workingDir,
                     command = [kotlinc.pathString, "-script", scriptPath.pathString] + args,
-                    outputListener = outputListener,
                     environment = mapOf("JAVA_HOME" to jdkHome.pathString),
                     input = ProcessInput.Inherit,
+                    outputMode = ProcessOutputMode.listen(outputListener),
                 )
             }
     }

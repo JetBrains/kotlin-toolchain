@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
-import org.jetbrains.amper.processes.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.test.processes.TestReporterProcessOutputListener
 import org.jetbrains.amper.test.runTestWithMdc
 import org.jetbrains.compose.reload.DelicateHotReloadApi

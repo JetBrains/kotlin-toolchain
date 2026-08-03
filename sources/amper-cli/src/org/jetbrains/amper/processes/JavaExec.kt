@@ -8,6 +8,8 @@ import com.intellij.execution.CommandLineWrapperUtil
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.jdk.provisioning.Jdk
+import org.jetbrains.amper.processes.output.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.setMapAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -45,7 +47,7 @@ sealed class ArgsMode {
 /**
  * Runs a Java program with the runtime of this [Jdk].
  */
-suspend fun ProcessRunner.runJava(
+suspend fun <R : ProcessResult> ProcessRunner.runJava(
     jdk: Jdk,
     workingDir: Path,
     mainClass: String,
@@ -54,9 +56,9 @@ suspend fun ProcessRunner.runJava(
     argsMode: ArgsMode,
     jvmArgs: List<String> = emptyList(),
     environment: Map<String, String> = emptyMap(),
-    outputListener: ProcessOutputListener,
-    input: ProcessInput = ProcessInput.Empty,
-): ProcessResult.WithOutputs {
+    outputMode: ProcessOutputMode<R>,
+    input: ProcessInput = ProcessInput.Inherit,
+): R {
     val classpathStr = classpath.joinToString(File.pathSeparator) { it.pathString }
     val args = buildList {
         if (classpath.isNotEmpty()) {
@@ -82,13 +84,13 @@ suspend fun ProcessRunner.runJava(
         .setAttribute("main-class", mainClass)
         .use { span ->
             argsMode.withEffectiveArgs(args) { effectiveArgs ->
-                runProcessAndGetOutput(
+                runProcess(
                     workingDir = workingDir,
                     command = listOf(jdk.javaExecutable.pathString) + effectiveArgs,
-                    environment = environment,
                     span = span,
-                    outputListener = outputListener,
+                    environment = environment,
                     input = input,
+                    outputMode = outputMode,
                 )
             }
         }

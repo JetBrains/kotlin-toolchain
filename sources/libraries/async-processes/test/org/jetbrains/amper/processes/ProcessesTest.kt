@@ -13,6 +13,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
+import org.jetbrains.amper.processes.output.InMemoryCapture
+import org.jetbrains.amper.processes.output.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -37,7 +40,10 @@ class ProcessesTest {
             shCommand = "printf 'line1\n'; printf 'line2\nbreak'; printf 'hello stderr' 1>&2",
             psCommand = "Write-Output 'line1'; Write-Output 'line2'; Write-Output 'break'; [Console]::Error.Write('hello stderr')",
         )
-        val result = runProcessAndCaptureOutput(command = command)
+        val result = runProcess(
+            command = command,
+            outputMode = ProcessOutputMode.capture(),
+        )
         result.assertZeroExitCode()
         assertEquals(["line1", "line2", "break"], result.stdout.trim().lines())
         assertEquals("hello stderr", result.stderr.trim())
@@ -49,7 +55,10 @@ class ProcessesTest {
             shCommand = "echo line1; not-a-command",
             psCommand = "Write-Output 'line1'; not-a-command",
         )
-        val result = runProcessAndCaptureOutput(command = command)
+        val result = runProcess(
+            command = command,
+            outputMode = ProcessOutputMode.capture(),
+        )
         assertEquals(unknownCommandExitCode, result.exitCode)
         assertEquals("line1", result.stdout.trim())
         assertContains(result.stderr, "not-a-command")
@@ -69,12 +78,13 @@ class ProcessesTest {
         val process = ProcessBuilder(echoLoop(n = 10_000_000, message = loremIpsum1000)).start()
 
         val firstOutputEvent = CompletableDeferred<Unit>()
-        val capture = ProcessOutputListener.InMemoryCapture()
+        val stdout = StringBuilder()
 
         val deferredExitCode = async {
             process.awaitListening(
-                outputListener = capture + object : ProcessOutputListener {
+                outputListener = object : ProcessOutputListener {
                     override fun onStdoutLine(line: String, pid: Long) {
+                        stdout.appendLine(line)
                         firstOutputEvent.complete(Unit)
                     }
 
@@ -104,15 +114,16 @@ class ProcessesTest {
         // We don't assert anything on stderr, because the way the process is killed may lead to unpredictable stderr.
         // For example, on Windows, there seems to be races between the cleanup of the standard streams pipes and the
         // death of the process, leading to errors like: "The process tried to write to a nonexistent pipe".
-        assertTrue(capture.stdout.startsWith(loremIpsum1000), "At least the first line of output should have been captured, but got: ${capture.stdout}")
+        assertTrue(stdout.startsWith(loremIpsum1000), "At least the first line of output should have been captured, but got: $stdout")
         assertEquals(cancelledExitCode, exitCode, "The exit code should be the cancellation exit code $cancelledExitCode")
     }
 
     @Test
     fun `should transfer custom env`() = runBlocking(Dispatchers.IO) {
-        val result = runProcessAndCaptureOutput(
+        val result = runProcess(
             command = echoEnv("MY_ENV"),
             environment = mapOf("MY_ENV" to "env_value"),
+            outputMode = ProcessOutputMode.capture(),
         )
         result.assertZeroExitCode()
         assertEquals("env_value", result.stdout.trim())
@@ -230,12 +241,16 @@ private fun ProcessResult.assertZeroExitCode() {
     assertEquals(0, exitCode,
         buildString {
             appendLine("Execution failed with exit code ${exitCode} for command: $command")
-            if (this@assertZeroExitCode is ProcessResult.WithOutputs) {
-                if (errorStreamRedirected) {
-                    appendLine(stdout.prependIndent("stdout+stderr>"))
-                } else {
+            when (this@assertZeroExitCode) {
+                is ProcessResult.WithOutputs -> {
                     appendLine(stdout.prependIndent("stdout>"))
                     appendLine(stderr.prependIndent("stderr>"))
+                }
+                is ProcessResult.WithStderr -> {
+                    appendLine(stderr.prependIndent("stderr>"))
+                }
+                is ProcessResult.WithMergedOutputs -> {
+                    appendLine(stdoutAndStderr.prependIndent("stdout+stderr>"))
                 }
             }
         }

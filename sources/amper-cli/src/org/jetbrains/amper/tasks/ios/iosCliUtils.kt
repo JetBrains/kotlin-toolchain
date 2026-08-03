@@ -10,7 +10,8 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
-import org.jetbrains.amper.processes.ProcessOutputListener
+import org.jetbrains.amper.processes.ProcessResult
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -62,10 +63,10 @@ suspend fun ProcessRunner.bootAndWaitSimulator(
     if (forceShowWindow) {
         // The `open` command works without any errors/warnings regardless of the simulator boot status.
         // It boots the simulator on demand and brings its window forward.
-        runProcessAndGetOutput(
+        runProcess(
             workingDir = Path("."),
             command = listOf("open", "-a", "Simulator"),
-            outputListener = LoggingProcessOutputListener(logger),
+            outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
         )
     }
 
@@ -73,10 +74,10 @@ suspend fun ProcessRunner.bootAndWaitSimulator(
         return
     }
 
-    runProcessAndGetOutput(
+    runProcess(
         workingDir = Path("."),
         command = listOf("xcrun", "simctl", "boot", device.deviceId),
-        outputListener = LoggingProcessOutputListener(logger),
+        outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
     )
     repeat(20) {
         val device = SimCtl.queryDevice(processRunner = this, device.deviceId) ?: userReadableError(
@@ -90,18 +91,21 @@ suspend fun ProcessRunner.bootAndWaitSimulator(
     userReadableError("Simulator boot timeout for `${device.deviceId}`.")
 }
 
-private suspend fun ProcessRunner.xcrun(
+private suspend fun ProcessRunner.xcrun(vararg args: String): ProcessResult =
+    xcrun(*args, outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)))
+
+private suspend fun <R : ProcessResult> ProcessRunner.xcrun(
     vararg args: String,
-    listener: ProcessOutputListener = LoggingProcessOutputListener(logger),
-) = runProcessAndGetOutput(
+    outputMode: ProcessOutputMode<R>,
+): R = runProcess(
     workingDir = Path("."),
     command = listOf(XCRUN_EXECUTABLE) + args,
-    outputListener = listener,
+    outputMode = outputMode,
 ).also {
     if (it.exitCode != 0) {
         userReadableError("xcrun `${args.contentToString()}` failed with exit code ${it.exitCode}")
     }
-}.stdout
+}
 
 private object SimCtl {
     private val SimCtlOutputFormat = Json {
@@ -126,8 +130,8 @@ private object SimCtl {
     suspend fun queryDevice(processRunner: ProcessRunner, deviceId: String): Device? {
         val simcltListOut = processRunner.xcrun(
             "simctl", "list", "-v", "devices", deviceId, "--json",
-            listener = ProcessOutputListener.NOOP,
-        )
+            outputMode = ProcessOutputMode.capture(),
+        ).stdout
 
         return SimCtlOutputFormat.decodeFromString<SimCtlListOutput>(simcltListOut)
             .devices.mapNotNull { it.value.singleOrNull()?.toDevice(runtimeId = it.key) }.singleOrNull()
@@ -136,8 +140,8 @@ private object SimCtl {
     suspend fun queryAvailableDevices(processRunner: ProcessRunner): List<Device> {
         val simcltListOut = processRunner.xcrun(
             "simctl", "list", "-v", "devices", "--json",
-            listener = ProcessOutputListener.NOOP,
-        )
+            outputMode = ProcessOutputMode.capture(),
+        ).stdout
 
         return SimCtlOutputFormat.decodeFromString<SimCtlListOutput>(simcltListOut).devices
             .filterKeys { runtimeId -> runtimeId.startsWith(SIM_RUNTIME_PREFIX_IOS) }

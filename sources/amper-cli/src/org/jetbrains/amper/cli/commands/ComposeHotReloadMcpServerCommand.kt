@@ -12,7 +12,9 @@ import org.jetbrains.amper.cli.project.preparePluginsAndReadModel
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.frontend.getComposeHotReloadVersion
 import org.jetbrains.amper.jvm.getDefaultJdk
-import org.jetbrains.amper.processes.runProcessWithInheritedIO
+import org.jetbrains.amper.processes.ProcessInput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.processes.withJavaArgFile
 import org.jetbrains.amper.run.ToolingArtifactsDownloader
 import org.jetbrains.amper.tasks.compose.isComposeEnabledFor
@@ -84,8 +86,10 @@ internal class ComposeHotReloadMcpServerCommand : AmperProjectAwareCommand(name 
             "org.jetbrains.compose.reload.mcp.ComposeHotReloadMcp",
         ]
         val result = withJavaArgFile(cliContext.projectTempRoot, javaArgs) { argFile ->
-            runProcessWithInheritedIO(
+            runProcess(
                 command = listOf(jdk.javaExecutable.pathString, "@${argFile.pathString}"),
+                outputMode = ProcessOutputMode.Inherit,
+                input = ProcessInput.Inherit,
                 onStart = { pid ->
                     logger.info("Started MCP server with the pid: $pid")
                 }

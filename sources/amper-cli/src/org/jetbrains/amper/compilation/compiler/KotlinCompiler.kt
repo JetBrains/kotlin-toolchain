@@ -11,6 +11,7 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.ProcessResult
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -47,7 +48,7 @@ internal class KotlinCompiler(
             classpath = compilerJars,
             programArgs = compilerArgs,
             argsMode = argsMode,
-            outputListener = LoggingProcessOutputListener(logger),
+            outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
         )
 
     context(processRunner: ProcessRunner)
@@ -59,6 +60,6 @@ internal class KotlinCompiler(
             classpath = compilerJars,
             programArgs = compilerArgs,
             argsMode = argsMode,
-            outputListener = LoggingProcessOutputListener(logger),
+            outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
         )
 }

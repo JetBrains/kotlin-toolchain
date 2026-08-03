@@ -11,9 +11,10 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.serialization.json.Json
 import org.jetbrains.amper.processes.ProcessInput
-import org.jetbrains.amper.processes.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.ProcessResult
-import org.jetbrains.amper.processes.runProcessAndCaptureOutput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.test.logs.readLogs
 import org.jetbrains.amper.test.otlp.serialization.decodeOtlpTraces
@@ -145,7 +146,7 @@ abstract class AmperCliWithWrapperTestBase {
         }
         val currentPlatformForIJ = if (isWindows) Platform.WINDOWS else Platform.UNIX
         val result = amperProcessSemaphore.withPermit {
-            runProcessAndCaptureOutput(
+            runProcess(
                 workingDir = workingDir,
                 // proper quotes/escaping, workaround for the time-old bug https://bugs.openjdk.org/browse/JDK-8131908
                 command = CommandLineUtil.toCommandLine(wrapper.absolutePathString(), args, currentPlatformForIJ),
@@ -175,7 +176,7 @@ abstract class AmperCliWithWrapperTestBase {
                     putAll(environment)
                 },
                 input = stdin,
-                outputListener = outputListener,
+                outputMode = ProcessOutputMode.listenAndCapture(listener = outputListener),
             )
         }
 

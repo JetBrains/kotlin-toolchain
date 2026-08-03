@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.tasks.ios
@@ -12,7 +12,8 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.processes.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.MobileRunSettings
 import org.jetbrains.amper.tasks.TaskOutputRoot
@@ -66,11 +67,9 @@ class IosRunTask(
         }
     }
 
-    private suspend fun checkAppIsSigned(appPath: Path): Boolean {
-        return processRunner.runProcessAndGetOutput(
-            workingDir = Path("."),
-            command = listOf("codesign", "-v", appPath.absolutePathString()),
-            outputListener = ProcessOutputListener.NOOP,
-        ).exitCode == 0
-    }
+    private suspend fun checkAppIsSigned(appPath: Path): Boolean = processRunner.runProcess(
+        workingDir = Path("."),
+        command = ["codesign", "-v", appPath.absolutePathString()],
+        outputMode = ProcessOutputMode.Discard,
+    ).exitCode == 0
 }

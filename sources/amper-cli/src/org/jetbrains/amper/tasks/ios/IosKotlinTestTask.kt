@@ -17,6 +17,7 @@ import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.processes.PrintToTerminalProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.NativeTestRunSettings
 import org.jetbrains.amper.tasks.TaskResult
@@ -65,11 +66,11 @@ class IosKotlinTestTask(
                 .use { span ->
                     processRunner.bootAndWaitSimulator(chosenDevice)
 
-                    val result = processRunner.runProcessAndGetOutput(
+                    val result = processRunner.runProcess(
                         workingDir = workingDir,
                         command = spawnTestsCommand,
                         span = span,
-                        outputListener = PrintToTerminalProcessOutputListener(terminal),
+                        outputMode = ProcessOutputMode.listen(PrintToTerminalProcessOutputListener(terminal)),
                     )
                     span.setProcessResultAttributes(result)
                     if (result.exitCode != 0) {

@@ -59,6 +59,7 @@ import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.problems.reporting.plus
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.withJavaArgFile
 import org.jetbrains.amper.tasks.ClasspathProvider
 import org.jetbrains.amper.tasks.CommonTaskUtils.userReadableList
@@ -703,11 +704,11 @@ internal class JvmCompileTask(
 
         val exitCode = withJavaArgFile(tempRoot, plainJavacArgs) { argsFile ->
             val result = javacSpanBuilder(plainJavacArgs, jdk, incremental = false).use { span ->
-                processRunner.runProcessAndGetOutput(
+                processRunner.runProcess(
                     workingDir = jdk.homeDir,
-                    command = listOf(jdk.javacExecutable.pathString, "@${argsFile.pathString}"),
+                    command = [jdk.javacExecutable.pathString, "@${argsFile.pathString}"],
                     span = span,
-                    outputListener = LoggingProcessOutputListener(logger),
+                    outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
                 )
             }
             result.exitCode

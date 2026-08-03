@@ -13,7 +13,8 @@ import org.jetbrains.amper.jic.JicCompilationRequest
 import org.jetbrains.amper.jps.JicOutputAutoFlushWorkaround.deserializeJpsCompilerOutput
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.ProcessInput
-import org.jetbrains.amper.processes.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.slf4j.Logger
 import java.lang.management.ManagementFactory
@@ -65,14 +66,15 @@ internal suspend fun compileJavaWithJic(
         argsMode = ArgsMode.CommandLine,
         jvmArgs = jvmArgs,
         classpath = ExtraClasspath.AMPER_JIC_RUNNER.findJarsInDistribution(),
-        outputListener = object: ProcessOutputListener {
+        outputMode = ProcessOutputMode.listen(object: ProcessOutputListener {
             override fun onStdoutLine(line: String, pid: Long) {
                 logger.info(deserializeJpsCompilerOutput(line))
             }
 
             override fun onStderrLine(line: String, pid: Long) {
                 logger.error(deserializeJpsCompilerOutput(line))
-            }},
+            }
+        }),
         // Input request is passed via STDIN
         input = ProcessInput.Text(Json.encodeToString(request))
     )

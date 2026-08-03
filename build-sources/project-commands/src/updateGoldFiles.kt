@@ -12,7 +12,9 @@ import org.jetbrains.amper.plugins.ExecutionAvoidance
 import org.jetbrains.amper.plugins.Input
 import org.jetbrains.amper.plugins.TaskAction
 import org.jetbrains.amper.processes.ProcessResult
-import org.jetbrains.amper.processes.runProcessWithInheritedIO
+import org.jetbrains.amper.processes.ProcessInput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.runProcess
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -133,7 +135,11 @@ private class AmperGoldUpdater(
     private suspend fun runAmperCli(amperRootDir: Path, vararg args: String): ProcessResult {
         val isWindows = System.getProperty("os.name").startsWith("Win", ignoreCase = true)
         val amperScript = amperRootDir.resolve(if (isWindows) "kotlin.bat" else "kotlin")
-        return runProcessWithInheritedIO(command = listOf(amperScript.pathString) + args)
+        return runProcess(
+            command = listOf(amperScript.pathString) + args,
+            outputMode = ProcessOutputMode.Inherit,
+            input = ProcessInput.Inherit,
+        )
     }
 
     private fun updateGoldFileFor(tmpResultFile: Path) {

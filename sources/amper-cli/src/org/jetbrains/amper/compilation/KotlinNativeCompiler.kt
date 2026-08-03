@@ -22,6 +22,7 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.ProcessResult
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -100,7 +101,7 @@ class KotlinNativeCompiler(
 
     private fun processNativeCompilerCommandResult(
         span: Span,
-        result: ProcessResult.WithOutputs,
+        result: ProcessResult.WithStderr,
         moniker: String
     ) {
         // TODO this is redundant with the java span of the external process run. Ideally, we
@@ -121,7 +122,7 @@ class KotlinNativeCompiler(
         processRunner: ProcessRunner,
         programArgs: List<String>,
         argsMode: ArgsMode,
-    ): ProcessResult.WithOutputs {
+    ): ProcessResult.WithStderr {
         // We call konanc via java because the konanc command line doesn't support spaces in paths:
         // https://youtrack.jetbrains.com/issue/KT-66952
 
@@ -144,7 +145,7 @@ class KotlinNativeCompiler(
                 "-Dfile.encoding=UTF-8",
                 "-Dkonan.home=${konanDistribution.homeDir.pathString}",
             ),
-            outputListener = LoggingProcessOutputListener(logger),
+            outputMode = ProcessOutputMode.listenAndCaptureStderr(LoggingProcessOutputListener(logger)),
         )
     }
 }

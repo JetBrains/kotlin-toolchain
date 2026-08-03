@@ -5,7 +5,7 @@
 package org.jetbrains.amper.test.processes
 
 import kotlinx.coroutines.CompletableDeferred
-import org.jetbrains.amper.processes.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputListener
 
 class LineAwaitingProcessOutputListener(
     private val outputLineToWaitFor: (String) -> Boolean

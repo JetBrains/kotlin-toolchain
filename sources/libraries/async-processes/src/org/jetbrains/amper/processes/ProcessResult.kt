@@ -20,28 +20,38 @@ interface ProcessResult {
      * The exit code of the process.
      */
     val exitCode: Int
-    /**
-     * Whether the error stream was redirected to the standard output of the process.
-     */
-    val errorStreamRedirected: Boolean
 
     /**
-     * The result of a completed process, with captured output.
+     * The result of a completed process, with the standard error stream captured as [stderr].
+     *
+     * @see WithOutputs
      */
-    interface WithOutputs : ProcessResult {
+    interface WithStderr : ProcessResult {
         /**
-         * If [errorStreamRedirected] is false, [stdout] contains the whole standard output of the process, decoded as
-         * UTF-8 text.
-         * If [errorStreamRedirected] is true, [stdout] contains both the merged stdout and stderr of the process,
-         * interlaced as they were written by the process.
-         */
-        val stdout: String
-        /**
-         * The whole standard error stream of the process, decoded as UTF-8 text, or the empty string if
-         * [errorStreamRedirected] is true (in that case, the stderr content is in [stdout], interlaced with the standard
-         * output).
+         * The whole standard error stream of the process, decoded as UTF-8 text.
          */
         val stderr: String
+    }
+
+    /**
+     * The result of a completed process, with both standard streams captured as [stdout] and [stderr].
+     */
+    interface WithOutputs : WithStderr {
+        /**
+         * The whole standard output of the process, decoded as UTF-8 text.
+         */
+        val stdout: String
+    }
+
+    /**
+     * The result of a completed process, with standard output and error streams merged together and captured as
+     * [stdoutAndStderr].
+     */
+    interface WithMergedOutputs : ProcessResult {
+        /**
+         * The merged stdout and stderr of the process, interlaced as they were written by the process.
+         */
+        val stdoutAndStderr: String
     }
 }
 
@@ -49,14 +59,4 @@ internal data class SimpleProcessResult(
     override val command: List<String>,
     override val pid: Long,
     override val exitCode: Int,
-    override val errorStreamRedirected: Boolean,
 ) : ProcessResult
-
-internal data class ProcessResultWithCapturedOutputs(
-    override val command: List<String>,
-    override val pid: Long,
-    override val exitCode: Int,
-    override val errorStreamRedirected: Boolean,
-    override val stdout: String,
-    override val stderr: String,
-) : ProcessResult.WithOutputs

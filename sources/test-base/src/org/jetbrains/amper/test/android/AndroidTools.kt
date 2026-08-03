@@ -9,10 +9,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.amper.processes.ProcessInput
-import org.jetbrains.amper.processes.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.runProcess
-import org.jetbrains.amper.processes.runProcessAndCaptureOutput
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.test.Dirs
@@ -124,7 +124,7 @@ class AndroidTools(
     ): ProcessResult = runAndroidSdkProcess(
         executable = findCmdlineToolScript("sdkmanager"),
         args = args,
-        outputListener = outputListener
+        outputListener = outputListener,
     )
 
     /**
@@ -252,7 +252,7 @@ class AndroidTools(
                 ),
             ),
             // we can't ignore stdout because some startup errors are printed there (e.g. absence of window)
-            outputListener = PrefixPrintOutputListener("emulator"),
+            outputMode = ProcessOutputMode.listen(PrefixPrintOutputListener("emulator")),
         )
     }
 
@@ -312,11 +312,11 @@ class AndroidTools(
         vararg args: String,
         input: ProcessInput = ProcessInput.Empty,
         outputListener: ProcessOutputListener,
-    ): ProcessResult.WithOutputs = runProcessAndCaptureOutput(
+    ): ProcessResult.WithOutputs = runProcess(
         command = listOf(executable.pathString) + args,
         environment = environment() + mapOf("JAVA_HOME" to javaHome.pathString),
         input = input,
-        outputListener = outputListener,
+        outputMode = ProcessOutputMode.listenAndCapture(listener = outputListener),
     )
 }
 

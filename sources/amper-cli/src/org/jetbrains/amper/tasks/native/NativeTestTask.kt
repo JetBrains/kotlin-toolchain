@@ -15,6 +15,7 @@ import org.jetbrains.amper.engine.TestTask
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.processes.PrintToTerminalProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.NativeTestRunSettings
 import org.jetbrains.amper.tasks.TaskResult
@@ -62,11 +63,11 @@ class NativeTestTask(
 
                 val workingDir = module.source.moduleDir
 
-                val result = processRunner.runProcessAndGetOutput(
+                val result = processRunner.runProcess(
                     workingDir = workingDir,
                     command = command,
                     span = span,
-                    outputListener = PrintToTerminalProcessOutputListener(terminal),
+                    outputMode = ProcessOutputMode.listen(PrintToTerminalProcessOutputListener(terminal)),
                 )
                 if (result.exitCode != 0) {
                     userReadableError("Kotlin/Native $platform tests failed for module '${module.userReadableName}' with exit code ${result.exitCode} (see errors above)")

@@ -23,6 +23,7 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.jvm.getJdkOrUserError
 import org.jetbrains.amper.processes.ArgsMode
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.jetbrains.amper.stdlib.io.path.clean
 import org.jetbrains.amper.tasks.EmptyTaskResult
@@ -202,12 +203,12 @@ class JvmTestTask(
                     argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
                     jvmArgs = finalJvmArgs,
                     environment = environment,
-                    outputListener = StructuredJUnitProcessOutputListener(
+                    outputMode = ProcessOutputMode.listen(StructuredJUnitProcessOutputListener(
                         renderer = when (runSettings.testResultsFormat) {
                             TestResultsFormat.Pretty -> PrettyRenderer(terminal)
                             TestResultsFormat.TeamCity -> TeamCityRenderer(terminal)
                         },
-                    ),
+                    )),
                 )
 
                 // TODO exit code from JUnit launcher should be carefully become some kind of exit code for entire Amper run

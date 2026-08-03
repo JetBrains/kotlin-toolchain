@@ -8,63 +8,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 /**
  * Starts a new process based on this [ProcessBuilder], and awaits its completion.
- * While waiting, stdout and stderr are sent to the given [outputListener], but are also fully captured in memory, so
- * they can be returned as a [ProcessResult]. Make sure the process doesn't output too much data, otherwise prefer
- * [run][ProcessBuilder.run].
- *
- * The given [input] is used to send data to the standard input of the started process (if non-empty).
- *
- * > Note: this function replaces any previous stream configuration made via
- * [redirectOutput][ProcessBuilder.redirectOutput], [redirectInput][ProcessBuilder.redirectInput],
- * [redirectError][ProcessBuilder.redirectError], but it respects
- * [redirectErrorStream][ProcessBuilder.redirectErrorStream].
- *
- * If the current coroutine is canceled before the process has terminated, the process is killed (first normally, then
- * forcibly), and the stream readers cleaned up. If the process is not killable and hangs, this function will also hang
- * instead of returning (otherwise the zombie process could leak).
- *
- * **Note:** since the blocking reads of standard streams are not cancellable, this function may have to wait for the
- * read of the current line to complete before returning (on cancellation). This is to ensure no coroutines are leaked.
- * This wait should be reasonably short anyway because the process is killed on cancellation, so no more output
- * should be written in that case.
- *
- * If the JVM is terminated gracefully (Ctrl+C / SIGINT), this function **requests the process destruction** but doesn't
- * wait for its completion (we mustn't block the JVM shutdown).
- *
- * @return a [ProcessResult] encapsulating information about the process, including its entire stdout and stderr.
- */
-internal suspend fun ProcessBuilder.runAndCaptureOutput(
-    input: ProcessInput = ProcessInput.Empty,
-    outputListener: ProcessOutputListener = ProcessOutputListener.NOOP,
-    onStart: (pid: Long) -> Unit = {},
-): ProcessResult.WithOutputs {
-    contract {
-        callsInPlace(onStart, InvocationKind.EXACTLY_ONCE)
-    }
-    val capture = ProcessOutputListener.InMemoryCapture()
-    val result = run(
-        outputListener = outputListener + capture,
-        input = input,
-        onStart = onStart,
-    )
-    return ProcessResultWithCapturedOutputs(
-        command = result.command,
-        exitCode = result.exitCode,
-        pid = result.pid,
-        errorStreamRedirected = result.errorStreamRedirected,
-        stdout = capture.stdout,
-        stderr = capture.stderr,
-    )
-}
-
-/**
- * Starts a new process based on this [ProcessBuilder], and awaits its completion.
- * While waiting, stdout and stderr are sent to the given [outputListener].
+ * While waiting, stdout and stderr are processed according to the given [outputMode] configuration.
  *
  * The given [input] is used to send data to the standard input of the started process (if non-empty).
  *
@@ -87,80 +37,52 @@ internal suspend fun ProcessBuilder.runAndCaptureOutput(
  *
  * @return the exit code of the process
  */
-internal suspend fun ProcessBuilder.run(
-    outputListener: ProcessOutputListener,
-    input: ProcessInput = ProcessInput.Empty,
+internal suspend fun <R : ProcessResult> ProcessBuilder.run(
+    outputMode: ProcessOutputMode<R>,
+    input: ProcessInput,
     onStart: (pid: Long) -> Unit = {},
-): ProcessResult {
+): R {
     contract {
         callsInPlace(onStart, InvocationKind.EXACTLY_ONCE)
     }
     return withContext(Dispatchers.IO) {
-        redirectOutput(ProcessBuilder.Redirect.PIPE)
-        redirectError(ProcessBuilder.Redirect.PIPE)
-        redirectInput(input.stdinRedirection)
+        redirectOutput(outputMode.asProcessBuilderRedirect())
+        redirectError(outputMode.asProcessBuilderRedirect())
+        redirectInput(input.asProcessBuilderRedirect())
+        if (outputMode is ProcessOutputMode.Listen) {
+            redirectErrorStream(outputMode.redirectStderrToStdout)
+        }
         start().withGuaranteedTermination { process ->
             onStart(process.pid())
             launch {
                 // input writing is asynchronous
                 input.writeTo(process.outputStream)
             }
-            val exitCode = process.awaitListening(outputListener)
-            SimpleProcessResult(
-                command = command().toList(),
-                exitCode = exitCode,
-                pid = process.pid(),
-                errorStreamRedirected = redirectErrorStream(),
+            val exitCode = if (outputMode is ProcessOutputMode.Listen) {
+                process.awaitListening(outputMode.listener)
+            } else {
+                process.onExit().await().exitValue()
+            }
+            outputMode.refineResult(
+                SimpleProcessResult(
+                    command = command().toList(),
+                    exitCode = exitCode,
+                    pid = process.pid(),
+                )
             )
         }
     }
 }
 
-private val ProcessInput.stdinRedirection: ProcessBuilder.Redirect
-    get() = when (this) {
-        ProcessInput.Inherit -> ProcessBuilder.Redirect.INHERIT
-        ProcessInput.Empty,
-        is ProcessInput.Text,
-        is ProcessInput.Pipe -> ProcessBuilder.Redirect.PIPE
-    }
+private fun ProcessOutputMode<*>.asProcessBuilderRedirect(): ProcessBuilder.Redirect = when (this) {
+    ProcessOutputMode.Inherit -> ProcessBuilder.Redirect.INHERIT
+    ProcessOutputMode.Discard -> ProcessBuilder.Redirect.DISCARD
+    is ProcessOutputMode.Listen<*> -> ProcessBuilder.Redirect.PIPE
+}
 
-/**
- * Starts a new process based on this [ProcessBuilder], and awaits its completion.
- *
- * While waiting, all standard streams of the child process are inherited from the current process.
- * This function is useful when starting interactive processes that may require user input, or when running processes
- * for which the output should just be printed normally to the console like the rest of the code.
- *
- * > Note: this function replaces any previous stream configuration made via
- * [redirectOutput][ProcessBuilder.redirectOutput], [redirectInput][ProcessBuilder.redirectInput],
- * [redirectError][ProcessBuilder.redirectError], but it respects
- * [redirectErrorStream][ProcessBuilder.redirectErrorStream].
- *
- * If the current coroutine is canceled before the process has terminated, the process is killed (first normally, then
- * forcibly). If the process is not killable and hangs, this function will also hang instead of returning (otherwise
- * the zombie process could leak).
- *
- * If the JVM is terminated gracefully (Ctrl+C / SIGINT), this function **requests the process destruction** but doesn't
- * wait for its completion (we mustn't block the JVM shutdown).
- *
- * @return the exit code of the process
- */
-internal suspend fun ProcessBuilder.runWithInheritedIO(onStart: (pid: Long) -> Unit = {}): ProcessResult {
-    contract {
-        callsInPlace(onStart, InvocationKind.EXACTLY_ONCE)
-    }
-    return withContext(Dispatchers.IO) {
-        inheritIO()
-            .start()
-            .withGuaranteedTermination { process ->
-                onStart(process.pid())
-                val exitCode = process.onExit().await().exitValue()
-                SimpleProcessResult(
-                    command = command().toList(),
-                    exitCode = exitCode,
-                    pid = process.pid(),
-                    errorStreamRedirected = redirectErrorStream(),
-                )
-            }
-    }
+private fun ProcessInput.asProcessBuilderRedirect(): ProcessBuilder.Redirect = when (this) {
+    ProcessInput.Inherit -> ProcessBuilder.Redirect.INHERIT
+    ProcessInput.Empty,
+    is ProcessInput.Text,
+    is ProcessInput.Pipe -> ProcessBuilder.Redirect.PIPE
 }

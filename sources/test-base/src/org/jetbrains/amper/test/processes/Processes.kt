@@ -16,10 +16,15 @@ fun <T : ProcessResult> T.checkExitCodeIsZero(): T {
     check(exitCode == 0) {
         buildString {
             append("Execution failed with exit code $exitCode for command: $command")
-            if (this@checkExitCodeIsZero is ProcessResult.WithOutputs) {
-                val outputMessage = if (errorStreamRedirected) "Process output (merged stdout+stderr):\n${stdout}" else "Process stderr:\n${stderr}"
-                appendLine()
-                append(outputMessage)
+            when (this@checkExitCodeIsZero) {
+                is ProcessResult.WithOutputs -> {
+                    appendLine()
+                    append("Process stderr:\n${stderr}")
+                }
+                is ProcessResult.WithMergedOutputs -> {
+                    appendLine()
+                    append("Process output (merged stdout+stderr):\n${stdoutAndStderr}")
+                }
             }
         }
     }

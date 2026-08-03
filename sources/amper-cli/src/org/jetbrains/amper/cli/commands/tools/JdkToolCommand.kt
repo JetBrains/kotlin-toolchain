@@ -12,7 +12,9 @@ import org.jetbrains.amper.cli.commands.AmperSubcommand
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.intellij.CommandLineUtils
 import org.jetbrains.amper.jvm.getDefaultJdk
-import org.jetbrains.amper.processes.runProcessWithInheritedIO
+import org.jetbrains.amper.processes.ProcessInput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.system.info.OsFamily
 import kotlin.io.path.isExecutable
 import kotlin.io.path.pathString
@@ -50,7 +52,11 @@ private class JdkToolSubcommand(private val name: String) : AmperSubcommand(name
         }
 
         val cmd = listOf(toolPath.pathString) + toolArguments
-        val result = runProcessWithInheritedIO(command = CommandLineUtils.quoteCommandLineForCurrentPlatform(cmd))
+        val result = runProcess(
+            command = CommandLineUtils.quoteCommandLineForCurrentPlatform(cmd),
+            outputMode = ProcessOutputMode.Inherit,
+            input = ProcessInput.Inherit,
+        )
         if (result.exitCode != 0) {
             userReadableError("$name exited with exit code ${result.exitCode}")
         }

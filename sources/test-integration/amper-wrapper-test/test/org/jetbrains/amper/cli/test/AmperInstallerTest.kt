@@ -6,8 +6,8 @@ package org.jetbrains.amper.cli.test
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
-import org.jetbrains.amper.processes.runProcessAndCaptureOutput
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.test.AmperCliWithWrapperTestBase
@@ -41,18 +41,17 @@ class AmperInstallerTest : AmperCliWithWrapperTestBase() {
         val installer = LocalAmperPublication.installerSh
             .copyTo(tempDirExtension.path / "installer.sh")
             .let { it.setPosixFilePermissions(it.getPosixFilePermissions() + PosixFilePermission.OWNER_EXECUTE) }
-        val result = runProcessAndCaptureOutput(
+        val result = runProcess(
             command = [installer.absolutePathString()],
             environment = mapOf(
                 "HOME" to testHome.absolutePathString(),
                 "SHELL" to "/bin/bash",
             ) + baseEnvironmentForWrapper(),
-            redirectErrorStream = true,
+            outputMode = ProcessOutputMode.captureMergedStreams(),
         )
 
-        println(result.stdout)
+        println(result.stdoutAndStderr)
 
-        assertEquals("", result.stderr.trim(), "Expected nothing in stderr")
         assertEquals(expected = 0, actual = result.exitCode, "Expected zero exit code")
 
         assertTrue(message = "Expected kotlin in .local/bin") {
@@ -69,7 +68,7 @@ class AmperInstallerTest : AmperCliWithWrapperTestBase() {
             actual = expectedProfileFile.readText().trim()
         )
 
-        assertContains(charSequence = result.stdout, other = "Kotlin Toolchain version 1.0-SNAPSHOT")
+        assertContains(charSequence = result.stdoutAndStderr, other = "Kotlin Toolchain version 1.0-SNAPSHOT")
     }
 
     @Test
@@ -99,29 +98,28 @@ class AmperInstallerTest : AmperCliWithWrapperTestBase() {
         extraEnv: Map<String, String> = emptyMap(),
     ) {
         val testHome = tempDirExtension.path / "home"
-        val result = runProcessAndCaptureOutput(
+        val result = runProcess(
             command = [powershell, "-File", LocalAmperPublication.installerPs1.absolutePathString()],
             environment = mapOf(
                 "KOTLIN_CLI_NO_MODIFY_PATH" to "1",
                 "USERPROFILE" to testHome.absolutePathString(),
             ) + baseEnvironmentForWrapper() + extraEnv,
-            redirectErrorStream = true,
+            outputMode = ProcessOutputMode.captureMergedStreams(),
         )
 
-        println(result.stdout)
+        println(result.stdoutAndStderr)
 
-        assertEquals("", result.stderr.trim(), "Expected nothing in stderr")
         assertEquals(expected = 0, actual = result.exitCode, "Expected zero exit code")
 
         assertTrue(message = "Expected kotlin.bat in .local/bin") {
             testHome.resolve(".local/bin/kotlin.bat").isRegularFile()
         }
 
-        assertContains(charSequence = result.stdout, other = "Kotlin Toolchain version 1.0-SNAPSHOT")
+        assertContains(charSequence = result.stdoutAndStderr, other = "Kotlin Toolchain version 1.0-SNAPSHOT")
     }
 
     private suspend fun hasNewPowershell(): Boolean = try {
-        runProcess(command = ["pwsh", "--version"]).exitCode == 0
+        runProcess(command = ["pwsh", "--version"], outputMode = ProcessOutputMode.Discard).exitCode == 0
     } catch (_: IOException) {
         false
     }

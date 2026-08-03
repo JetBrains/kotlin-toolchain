@@ -4,7 +4,9 @@
 
 package org.jetbrains.amper.util
 
-import org.jetbrains.amper.processes.runProcessWithInheritedIO
+import org.jetbrains.amper.processes.ProcessInput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.system.info.OsFamily
 
 internal suspend fun openBrowser(
@@ -20,7 +22,11 @@ internal suspend fun openBrowser(
 
     log("Starting $cmd")
 
-    val result = runProcessWithInheritedIO(command = cmd)
+    val result = runProcess(
+        command = cmd,
+        outputMode = ProcessOutputMode.Inherit,
+        input = ProcessInput.Inherit,
+    )
     if (result.exitCode != 0) {
         log("$cmd failed with exit code ${result.exitCode}")
     }

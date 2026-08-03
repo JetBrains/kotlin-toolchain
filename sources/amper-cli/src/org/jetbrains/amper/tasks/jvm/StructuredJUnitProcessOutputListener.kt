@@ -5,7 +5,7 @@
 package org.jetbrains.amper.tasks.jvm
 
 import org.jetbrains.amper.junit.event.JUnitEventProtocol
-import org.jetbrains.amper.processes.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.test.TestEventRenderer
 import org.jetbrains.amper.testevents.TestDescriptor
 import org.jetbrains.amper.testevents.TestEvent

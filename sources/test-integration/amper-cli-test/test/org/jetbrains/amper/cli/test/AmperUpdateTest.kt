@@ -11,7 +11,6 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.test.AmperCliResult
-import org.junit.jupiter.api.Disabled
 import java.nio.file.FileSystemException
 import java.nio.file.Path
 import kotlin.io.path.listDirectoryEntries
