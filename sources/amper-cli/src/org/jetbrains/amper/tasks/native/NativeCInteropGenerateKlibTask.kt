@@ -121,7 +121,7 @@ internal class NativeCInteropGenerateKlibTask(
                     ),
                     inputFiles = listOf(defFile) + listOfNotNull(includeDir),
                 ) {
-                    val outputKlib = outputKlibsDirectoryArtifact.path / "$cinteropName.klib"
+                    val outputKlib = outputKlibsDirectoryArtifact.path / module.cinteropKlibFileName(cinteropName)
                     outputKlib.createParentDirectories()
 
                     val nativeCompiler =
@@ -133,6 +133,10 @@ internal class NativeCInteropGenerateKlibTask(
                         add(platform.nameForCompiler)
                         add("-o")
                         add(outputKlib.pathString)
+                        // The klib name must be unique across the whole compilation classpath, and the bare cinterop
+                        // name is not (it comes from a .def file name, which any dependency may also use).
+                        add("-Xmodule-name")
+                        add(module.cinteropKlibModuleName(cinteropName))
                         includeDir?.let {
                             add("-compiler-option")
                             add("-I${it.absolutePathString()}")
@@ -149,7 +153,8 @@ internal class NativeCInteropGenerateKlibTask(
                     logger.warn(e.message)
                     CinteropResult(
                         // A marker for the commonizer to include the failed target anyway
-                        outputFile = (outputKlibsDirectoryArtifact.path / "$cinteropName.klib.failed")
+                        outputFile = (outputKlibsDirectoryArtifact.path /
+                                "${module.cinteropKlibFileName(cinteropName)}.failed")
                             .createRegularFileIfNotExists(),
                         isSuccess = false,
                     )

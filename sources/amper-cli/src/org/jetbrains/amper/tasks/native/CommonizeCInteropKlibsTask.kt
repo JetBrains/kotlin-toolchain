@@ -88,7 +88,7 @@ class CommonizeCInteropKlibsTask(
         val allKlibsFlat = cinteropKlibs.flatMap { artifact ->
             artifact.path.listDirectoryEntriesIfExistsOrEmpty().map {
                 CinteropKlib(
-                    name = it.name.substringBefore('.'),
+                    name = it.cinteropName(),
                     klibPath = it.takeIf { it.extension == "klib" },
                     leafPlatform = artifact.platform,
                 )
@@ -140,7 +140,8 @@ class CommonizeCInteropKlibsTask(
                 targets.addAll(commonizerTargets)
 
                 commonizerTargets.forEach {
-                    outputs.add(output.path / it.dirName / name)
+                    // The commonizer names its output directories after the klib 'unique_name' of the input libraries
+                    outputs.add(output.path / it.dirName / module.cinteropKlibBaseName(name))
                 }
             }
 

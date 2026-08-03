@@ -64,17 +64,17 @@ class CinteropTest : AmperCliTestBase() {
             expectedRepresentation = """
                 module: ios-cinterop
                  commonized/ios-cinterop/(ios_arm64, ios_simulator_arm64)/
-                  - foo
-                  - bar
-                  - custom
+                  - ios-cinterop-cinterop-bar
+                  - ios-cinterop-cinterop-custom
+                  - ios-cinterop-cinterop-foo
                  fragment: iosArm64 | generated/ios-cinterop/iosArm64/cinterop
-                  - foo.klib
-                  - bar.klib
-                  - custom.klib
+                  - ios-cinterop-cinterop-bar.klib
+                  - ios-cinterop-cinterop-custom.klib
+                  - ios-cinterop-cinterop-foo.klib
                  fragment: iosSimulatorArm64 | generated/ios-cinterop/iosSimulatorArm64/cinterop
-                  - foo.klib
-                  - bar.klib
-                  - custom.klib
+                  - ios-cinterop-cinterop-bar.klib
+                  - ios-cinterop-cinterop-custom.klib
+                  - ios-cinterop-cinterop-foo.klib
             """.trimIndent(),
         )
     }
@@ -91,20 +91,59 @@ class CinteropTest : AmperCliTestBase() {
             result = result,
             expectedRepresentation = """
                 module: non-intersecting-fragments
-                 commonized/non-intersecting-fragments/(linux_arm64, linux_x64)/
-                  - linux
                  commonized/non-intersecting-fragments/(ios_arm64, ios_simulator_arm64, ios_x64)/
-                  - ios
+                  - non-intersecting-fragments-cinterop-ios
+                 commonized/non-intersecting-fragments/(linux_arm64, linux_x64)/
+                  - non-intersecting-fragments-cinterop-linux
                  fragment: iosArm64 | generated/non-intersecting-fragments/iosArm64/cinterop
-                  - ios.klib
+                  - non-intersecting-fragments-cinterop-ios.klib
                  fragment: iosSimulatorArm64 | generated/non-intersecting-fragments/iosSimulatorArm64/cinterop
-                  - ios.klib
+                  - non-intersecting-fragments-cinterop-ios.klib
                  fragment: iosX64 | generated/non-intersecting-fragments/iosX64/cinterop
-                  - ios.klib
+                  - non-intersecting-fragments-cinterop-ios.klib
                  fragment: linuxArm64 | generated/non-intersecting-fragments/linuxArm64/cinterop
-                  - linux.klib
+                  - non-intersecting-fragments-cinterop-linux.klib
                  fragment: linuxX64 | generated/non-intersecting-fragments/linuxX64/cinterop
-                  - linux.klib
+                  - non-intersecting-fragments-cinterop-linux.klib
+            """.trimIndent(),
+        )
+    }
+
+    /**
+     * Two modules declare a cinterop with the same name ('custom.def'), and the consuming module uses both.
+     * The klibs must be told apart on the compilation classpath, which is why they are named after the module
+     * they belong to (see `cinteropKlibModuleName`) instead of after the bare `.def` file name.
+     */
+    @Test
+    @MacOnly
+    fun `cinterops with the same name in different modules`() = runSlowTest {
+        // The compilation classpath of 'app' holds the cinterop klibs of both modules, so this fails to compile
+        // unless the two klibs have distinct names.
+        val result = runCli(
+            projectDir = testProject("cinterop/duplicate-cinterop-names"),
+            "build", "--module=app",
+        )
+
+        // 'build' has no reason to commonize anything, so ask for the klibs the IDE needs to check those names too
+        runCli(projectDir = result.projectDir, "ide-integration", "generate-klibs")
+
+        assertCinteropModel(
+            result = result,
+            expectedRepresentation = """
+                module: app
+                 commonized/app/(macos_arm64, macos_x64)/
+                  - app-cinterop-custom
+                 fragment: macosArm64 | generated/app/macosArm64/cinterop
+                  - app-cinterop-custom.klib
+                 fragment: macosX64 | generated/app/macosX64/cinterop
+                  - app-cinterop-custom.klib
+                module: lib
+                 commonized/lib/(macos_arm64, macos_x64)/
+                  - lib-cinterop-custom
+                 fragment: macosArm64 | generated/lib/macosArm64/cinterop
+                  - lib-cinterop-custom.klib
+                 fragment: macosX64 | generated/lib/macosX64/cinterop
+                  - lib-cinterop-custom.klib
             """.trimIndent(),
         )
     }
@@ -122,7 +161,7 @@ class CinteropTest : AmperCliTestBase() {
             expectedRepresentation = """
                 module: single-platform
                  fragment: macosArm64 | generated/single-platform/macosArm64/cinterop
-                  - custom.klib
+                  - single-platform-cinterop-custom.klib
             """.trimIndent(),
         )
     }
@@ -143,11 +182,11 @@ class CinteropTest : AmperCliTestBase() {
             expectedRepresentation = """
                 module: mac-and-win
                  commonized/mac-and-win/(macos_arm64, mingw_x64)/
-                  - libcurl
+                  - mac-and-win-cinterop-libcurl
                  fragment: macosArm64 | generated/mac-and-win/macosArm64/cinterop
-                  - libcurl.klib
+                  - mac-and-win-cinterop-libcurl.klib
                  fragment: mingwX64 | generated/mac-and-win/mingwX64/cinterop
-                  - libcurl.klib.failed
+                  - mac-and-win-cinterop-libcurl.klib.failed
             """.trimIndent(),
         )
     }
@@ -165,29 +204,29 @@ class CinteropTest : AmperCliTestBase() {
             expectedRepresentation = """
                 module: linux-cli
                  fragment: linuxArm64 | generated/linux-cli/linuxArm64/cinterop
-                  - libcurl.klib.failed
+                  - linux-cli-cinterop-libcurl.klib.failed
                  fragment: linuxX64 | generated/linux-cli/linuxX64/cinterop
-                  - libcurl.klib.failed
+                  - linux-cli-cinterop-libcurl.klib.failed
                 module: macos-cli
                  fragment: macosArm64 | generated/macos-cli/macosArm64/cinterop
-                  - libcurl.klib
+                  - macos-cli-cinterop-libcurl.klib
                 module: shared
-                 commonized/shared/(linux_arm64, linux_x64, macos_arm64, macos_x64, mingw_x64)/
-                  - custom
                  commonized/shared/(linux_arm64, linux_x64)/
-                  - custom
+                  - shared-cinterop-custom
+                 commonized/shared/(linux_arm64, linux_x64, macos_arm64, macos_x64, mingw_x64)/
+                  - shared-cinterop-custom
                  commonized/shared/(macos_arm64, macos_x64)/
-                  - custom
+                  - shared-cinterop-custom
                  fragment: linuxArm64 | generated/shared/linuxArm64/cinterop
-                  - custom.klib
+                  - shared-cinterop-custom.klib
                  fragment: linuxX64 | generated/shared/linuxX64/cinterop
-                  - custom.klib
+                  - shared-cinterop-custom.klib
                  fragment: macosArm64 | generated/shared/macosArm64/cinterop
-                  - custom.klib
+                  - shared-cinterop-custom.klib
                  fragment: macosX64 | generated/shared/macosX64/cinterop
-                  - custom.klib
+                  - shared-cinterop-custom.klib
                  fragment: mingwX64 | generated/shared/mingwX64/cinterop
-                  - custom.klib.failed
+                  - shared-cinterop-custom.klib.failed
             """.trimIndent(),
         )
 
@@ -235,12 +274,14 @@ class CinteropTest : AmperCliTestBase() {
             val model = readProjectModel(result.projectDir)
             for (module in model.modules.sortedBy { it.userReadableName }) {
                 appendLine("module: ${module.userReadableName}")
+                // directory entries are listed in an unspecified order, sort them to keep this assertion stable
                 module.commonizedCinteropLibrariesRoot(result.buildDir)
                     .takeIf { it.isDirectory() }
                     ?.listDirectoryEntries()
+                    ?.sortedBy { it.name }
                     ?.forEach { targetDir ->
                         appendLine(" ${targetDir.relativeTo(result.buildDir)}/")
-                        targetDir.listDirectoryEntries().forEach {
+                        targetDir.listDirectoryEntries().sortedBy { it.name }.forEach {
                             appendLine("  - ${it.name}")
                         }
                     }
@@ -248,7 +289,7 @@ class CinteropTest : AmperCliTestBase() {
                     val dir = fragment.generatedCinteropKlibsDirPath(result.buildDir)
                         ?.takeIf { it.isDirectory() } ?: continue
                     appendLine(" fragment: ${fragment.name} | ${dir.relativeTo(result.buildDir)}")
-                    for (path in dir.listDirectoryEntries()) {
+                    for (path in dir.listDirectoryEntries().sortedBy { it.name }) {
                         appendLine("  - ${path.name}")
                     }
                 }

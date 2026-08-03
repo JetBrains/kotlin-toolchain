@@ -28,6 +28,7 @@ import org.jetbrains.amper.maven.publish.PublicationCoordinatesOverrides
 import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.amper.tasks.MavenPublishable
+import org.jetbrains.amper.tasks.native.cinteropName
 import org.jetbrains.amper.tasks.rootFragment
 import org.jetbrains.gradle.module.metadata.format.AvailableAt
 import org.jetbrains.gradle.module.metadata.format.Component
@@ -42,7 +43,6 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.extension
 import kotlin.io.path.fileSize
-import kotlin.io.path.nameWithoutExtension
 
 /**
  * Suffix is added to the Gradle Metadata variant name.
@@ -271,7 +271,7 @@ private fun Path.toGradleMetadataFile(
             // Regular KMP publication of a cinterop klib, follows the KGP naming convention:
             // name 'atomicfu-linuxX64Cinterop-interopMain-0.32.1.klib',
             // url  'atomicfu-linuxx64-0.32.1-cinterop-interop.klib'.
-            val interopName = platformSpecificArtifact.fileName.nameWithoutExtension
+            val interopName = platformSpecificArtifact.cinteropName()
             "${module.userReadableName}-${fragment.name}Cinterop-${interopName}Main-$version.$extension" to
                     "$artifactId-$version-${platformSpecificArtifact.cinteropClassifier()}.$extension"
         } else {
@@ -300,7 +300,7 @@ private const val CINTEROP_CLASSIFIER_PREFIX = "cinterop-"
  *
  * Follows the KGP convention, e.g. `atomicfu-linuxx64-0.32.1-cinterop-interop.klib`.
  */
-internal fun Path.cinteropClassifier() = "$CINTEROP_CLASSIFIER_PREFIX${fileName.nameWithoutExtension}"
+internal fun Path.cinteropClassifier() = "$CINTEROP_CLASSIFIER_PREFIX${cinteropName()}"
 
 /**
  * Whether these coordinates point at a cinterop klib published by [cinteropClassifier].

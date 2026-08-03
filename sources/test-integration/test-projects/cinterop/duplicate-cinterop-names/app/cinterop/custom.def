@@ -1,0 +1,5 @@
+package = com.example.app.custom
+---
+static inline const char* getAppGreeting() {
+  return "Hello from the app cinterop";
+}

@@ -1,0 +1,5 @@
+package = com.example.lib.custom
+---
+static inline const char* getLibGreeting() {
+  return "Hello from the lib cinterop";
+}

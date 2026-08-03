@@ -1,0 +1,6 @@
+product:
+  type: lib
+  platforms: [ macosArm64, macosX64 ]
+
+dependencies:
+  - ../lib
