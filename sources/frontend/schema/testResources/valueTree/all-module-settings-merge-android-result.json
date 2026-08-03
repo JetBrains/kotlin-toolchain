@@ -32,7 +32,6 @@
       "minSdk" : "VERSION_30",
       "applicationId" : "my-application",
       "namespace" : "com.example.namespace",
-      "maxSdk" : "VERSION_33",
       "targetSdk" : "VERSION_33"
     },
     "compose" : {

@@ -37,7 +37,6 @@ object AndroidTooOldVersionFactory : TreeDiagnosticFactory {
         root.visitEnumProperties<AndroidSettings, AndroidVersion?>(
             AndroidSettings::compileSdk,
             AndroidSettings::minSdk,
-            AndroidSettings::maxSdk,
             AndroidSettings::targetSdk,
         ) { prop, value ->
             val versionTraceElement = prop.value.trace.extractPsiElementOrNull() ?: return@visitEnumProperties

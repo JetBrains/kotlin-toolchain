@@ -5,4 +5,3 @@ settings:
     minSdk: 30
     compileSdk: <![Error] Version for `compileSdk` (29) should be at least `minSdk` version (30)!>29<!>
     targetSdk: 31
-    maxSdk: <![Error] Version for `maxSdk` (29) should be at least `minSdk` version (30)!>29<!>

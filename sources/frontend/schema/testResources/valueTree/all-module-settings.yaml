@@ -33,7 +33,6 @@ settings:
     minSdk: 30
     applicationId: my-application
     namespace: com.example.namespace
-    maxSdk: 33
     targetSdk: 33
   compose: enabled
   jvm:

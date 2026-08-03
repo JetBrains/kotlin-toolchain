@@ -49,12 +49,11 @@ object AndroidVersionShouldBeAtLeastMinSdkFactory : AomSingleModuleDiagnosticFac
             val settings = fragment.settings.android
             val usedVersions = listOf(
                 settings.compileSdkDelegate,
-                settings.maxSdkDelegate,
                 settings.targetSdkDelegate,
-            ).filter { it.value != null }
+            )
             val minSdkVersion = settings.minSdk
             for (versionProp in usedVersions) {
-                val version = versionProp.value ?: continue
+                val version = versionProp.value
                 if (version >= minSdkVersion) continue
                 if (!reportedPlaces.add(versionProp.trace)) continue
 

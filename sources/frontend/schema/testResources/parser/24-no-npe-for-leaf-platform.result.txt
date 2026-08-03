@@ -15,7 +15,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -64,7 +63,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -108,7 +106,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -155,7 +152,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -198,7 +194,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -244,7 +239,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -288,7 +282,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -332,7 +325,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -379,7 +371,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -426,7 +417,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -472,7 +462,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -516,7 +505,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -563,7 +551,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -611,7 +598,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -655,7 +641,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -702,7 +687,6 @@ Fragments:
       android: {
         applicationId: my-application
         compileSdk: 33
-        maxSdk: 33
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33

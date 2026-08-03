@@ -7,6 +7,7 @@ package org.jetbrains.amper.frontend.schema
 import org.jetbrains.amper.frontend.EnumMap
 import org.jetbrains.amper.frontend.SchemaEnum
 import org.jetbrains.amper.frontend.api.CanBeReferenced
+import org.jetbrains.amper.frontend.api.DeprecatedSchema
 import org.jetbrains.amper.frontend.api.EnumOrderSensitive
 import org.jetbrains.amper.frontend.api.Misnomers
 import org.jetbrains.amper.frontend.api.ProductTypeSpecific
@@ -112,6 +113,8 @@ class AndroidSettings : SchemaNode() {
     @Misnomers("maxApiLevel")
     @SchemaDoc("Maximum API level on which the application can run. " +
             "[Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html)")
+    @DeprecatedSchema("android.max.sdk.deprecated", isError = true)
+    @Deprecated("maxSdk isn't recommended to be used in the applications. See https://developer.android.com/guide/topics/manifest/uses-sdk-element.html#maxsdk.")
     val maxSdk by nullableValue<AndroidVersion>()
 
     @Misnomers("targetApiLevel")

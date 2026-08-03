@@ -14,7 +14,6 @@ Fragments:
       android: {
         applicationId: <default> org.example.namespace
         compileSdk: 32
-        maxSdk: 34
         targetSdk: <default> 32
       }
       compose: {
@@ -39,7 +38,6 @@ Fragments:
       android: {
         applicationId: <default> org.example.namespace
         compileSdk: 32
-        maxSdk: 34
         targetSdk: <default> 32
       }
       compose: {
