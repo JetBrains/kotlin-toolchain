@@ -23,9 +23,9 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
-import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
+import org.jetbrains.amper.processes.pipe.ProcessPipe
 import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.tasks.TaskOutputRoot
@@ -97,7 +97,7 @@ class IosBuildTask(
         coroutineScope {
             val executable = prepareLogParsingUtility()
             val fullXcodebuildLog = taskOutputPath.path / "xcodebuild.log"
-            val pipe = ProcessInput.Pipe(
+            val pipe = ProcessPipe(
                 includeStderr = true,
                 eavesDroppingListener = FileLoggingProcessOutputListener(fullXcodebuildLog),
             )

@@ -155,7 +155,7 @@ class AndroidTools(
         // Note: this modifies .knownPackages, which might be important for caching
         avdmanager(
             "create", "avd", "-n", name, "-k", "system-images;android-$apiLevel;$variant;$arch",
-            input = ProcessInput.Text("no\n"), // Do you wish to create a custom hardware profile? [no]
+            input = ProcessInput.text("no\n"), // Do you wish to create a custom hardware profile? [no]
         ).checkExitCodeIsZero()
     }
 

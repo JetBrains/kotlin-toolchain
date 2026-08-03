@@ -32,7 +32,7 @@ class AmperUpdateTest : AmperCliTestBase() {
     fun `update command without options creates wrappers with confirmation`() = runSlowTest {
         val projectDir = newEmptyProjectDir()
 
-        val result = runCli(projectDir, "update", stdin = ProcessInput.Text("y\n"), wrapperMode = WrapperMode.GlobalIntrinsicVersion)
+        val result = runCli(projectDir, "update", stdin = ProcessInput.text("y\n"), wrapperMode = WrapperMode.GlobalIntrinsicVersion)
 
         assertTrue(result.stdout.contains("Would you like to create"), "The Kotlin CLI should ask for confirmation")
         assertEquals(listOf("kotlin", "kotlin.bat"), projectDir.relativeChildren(), "kotlin CLI wrapper scripts should be created")

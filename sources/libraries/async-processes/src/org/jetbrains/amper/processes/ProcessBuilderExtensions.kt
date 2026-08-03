@@ -54,9 +54,13 @@ internal suspend fun <R : ProcessResult> ProcessBuilder.run(
         }
         start().withGuaranteedTermination { process ->
             onStart(process.pid())
-            launch {
-                // input writing is asynchronous
-                input.writeTo(process.outputStream)
+            if (input is ProcessInput.Stream) {
+                launch {
+                    // input writing is asynchronous
+                    process.outputStream.use {
+                        input.writeTo(it)
+                    }
+                }
             }
             val exitCode = if (outputMode is ProcessOutputMode.Listen) {
                 process.awaitListening(outputMode.listener)
@@ -82,7 +86,5 @@ private fun ProcessOutputMode<*>.asProcessBuilderRedirect(): ProcessBuilder.Redi
 
 private fun ProcessInput.asProcessBuilderRedirect(): ProcessBuilder.Redirect = when (this) {
     ProcessInput.Inherit -> ProcessBuilder.Redirect.INHERIT
-    ProcessInput.Empty,
-    is ProcessInput.Text,
-    is ProcessInput.Pipe -> ProcessBuilder.Redirect.PIPE
+    is ProcessInput.Stream -> ProcessBuilder.Redirect.PIPE
 }

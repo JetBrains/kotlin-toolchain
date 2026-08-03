@@ -160,7 +160,7 @@ ARG2: <${argumentsWithSpecialChars[2]}>"""
         val r = runCli(
             projectDir = testProject("multiplatform-input"),
             "run", "--module", "jvm-app",
-            stdin = ProcessInput.Text("Hello World!\nBye World."),
+            stdin = ProcessInput.text("Hello World!\nBye World."),
         )
 
         assertContains(r.stdout, "Input: 'Hello World!'")
@@ -172,7 +172,7 @@ ARG2: <${argumentsWithSpecialChars[2]}>"""
         val r = runCli(
             projectDir = testProject("multiplatform-input"),
             "run", "--module", "macos-app",
-            stdin = ProcessInput.Text("Hello World!\nBye World."),
+            stdin = ProcessInput.text("Hello World!\nBye World."),
         )
 
         assertContains(r.stdout, "Input: 'Hello World!'")

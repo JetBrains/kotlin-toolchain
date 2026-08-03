@@ -76,7 +76,7 @@ internal suspend fun compileJavaWithJic(
             }
         }),
         // Input request is passed via STDIN
-        input = ProcessInput.Text(Json.encodeToString(request))
+        input = ProcessInput.text(Json.encodeToString(request))
     )
     return result.exitCode == 0
 }

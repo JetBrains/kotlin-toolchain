@@ -58,7 +58,7 @@ suspend fun runAmperSchemaProcessor(
         argsMode = ArgsMode.CommandLine,
         classpath = toolClasspath,
         // Input request is passed via STDIN
-        input = ProcessInput.Text(Json.encodeToString(request)),
+        input = ProcessInput.text(Json.encodeToString(request)),
         outputMode = ProcessOutputMode.capture(),
     )
 
