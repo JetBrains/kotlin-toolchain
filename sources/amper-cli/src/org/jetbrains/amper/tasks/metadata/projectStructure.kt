@@ -110,8 +110,10 @@ private fun Fragment.toProjectStructureVariant(scope: ResolutionScope): KotlinPr
         name = "${name}${scope.toVariantSuffix()}Elements",
         sourceSet = allFragmentDependencies(dependencyType = FragmentDependencyType.REFINE)
             // in case of single platform kmp/lib there will be 'commonMain' fragment in the list
-            .map { it.sourceSetName() }
             .toList()
+            // Keeping the last entry in the list
+            .reversed().distinct().reversed()
+            .map { it.sourceSetName() }
     )
 }
 
