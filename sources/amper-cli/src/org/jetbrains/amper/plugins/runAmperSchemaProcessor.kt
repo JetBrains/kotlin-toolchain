@@ -4,9 +4,11 @@
 
 package org.jetbrains.amper.plugins
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToStream
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperProjectRoot
 import org.jetbrains.amper.cli.lazyload.ExtraClasspath
@@ -58,7 +60,10 @@ suspend fun runAmperSchemaProcessor(
         argsMode = ArgsMode.CommandLine,
         classpath = toolClasspath,
         // Input request is passed via STDIN
-        input = ProcessInput.text(Json.encodeToString(request)),
+        input = ProcessInput.Stream { stdin ->
+            @OptIn(ExperimentalSerializationApi::class)
+            Json.encodeToStream(request, stdin)
+        },
         outputMode = ProcessOutputMode.capture(),
     )
 
