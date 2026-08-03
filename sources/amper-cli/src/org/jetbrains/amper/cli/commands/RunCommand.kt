@@ -41,7 +41,8 @@ import org.jetbrains.amper.compose.reload.HotReloadLoop
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.frontend.schema.DiscouragedDirectDefaultVersionAccess
 import org.jetbrains.amper.jvm.getJdkOrUserError
-import org.jetbrains.amper.processes.PrintToTerminalProcessOutputListener
+import org.jetbrains.amper.processes.ProcessInput
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.ComposeHotReloadSettings
 import java.nio.file.Path
@@ -235,7 +236,8 @@ internal class RunCommand : AmperSubcommand(name = "run") {
             workingDir = workingDir,
             jdkHome = jdk.homeDir,
             args = args,
-            outputListener = PrintToTerminalProcessOutputListener(terminal),
+            input = ProcessInput.Inherit,
+            outputMode = ProcessOutputMode.Inherit,
         )
     }
 

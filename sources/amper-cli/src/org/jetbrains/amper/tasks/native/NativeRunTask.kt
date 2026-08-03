@@ -55,8 +55,7 @@ class NativeRunTask(
                     workingDir = runSettings.workingDir,
                     command = listOf(executable.pathString) + programArgs,
                     span = span,
-                    // TODO change to ProcessOutputMode.Inherit to fix KTC-5596
-                    outputMode = ProcessOutputMode.listen(PrintToTerminalProcessOutputListener(terminal)),
+                    outputMode = ProcessOutputMode.Inherit, // safe because the progress widget is hidden for run tasks
                     input = ProcessInput.Inherit,
                 )
 

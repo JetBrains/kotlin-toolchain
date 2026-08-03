@@ -10,7 +10,7 @@ import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.extract.ExtractOptions
 import org.jetbrains.amper.core.extract.extractFileToCacheLocation
 import org.jetbrains.amper.processes.ProcessInput
-import org.jetbrains.amper.processes.output.ProcessOutputListener
+import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -68,23 +68,22 @@ class KotlinCompilerCli(
         goto :eof
     """.trimIndent().replace("\n", "\r\n"))
 
-    suspend fun runKotlinScript(
+    suspend fun <R : ProcessResult> runKotlinScript(
         scriptPath: Path,
         workingDir: Path,
         jdkHome: Path,
         args: List<String>,
-        outputListener: ProcessOutputListener,
-    ) {
-        spanBuilder("Run Kotlin script")
-            .setAttribute("script-path", scriptPath.pathString)
-            .use {
-                processRunner.runProcess(
-                    workingDir = workingDir,
-                    command = [kotlinc.pathString, "-script", scriptPath.pathString] + args,
-                    environment = mapOf("JAVA_HOME" to jdkHome.pathString),
-                    input = ProcessInput.Inherit,
-                    outputMode = ProcessOutputMode.listen(outputListener),
-                )
-            }
-    }
+        input: ProcessInput,
+        outputMode: ProcessOutputMode<R>,
+    ): R = spanBuilder("Run Kotlin script")
+        .setAttribute("script-path", scriptPath.pathString)
+        .use {
+            processRunner.runProcess(
+                workingDir = workingDir,
+                command = [kotlinc.pathString, "-script", scriptPath.pathString] + args,
+                environment = mapOf("JAVA_HOME" to jdkHome.pathString),
+                input = input,
+                outputMode = outputMode,
+            )
+        }
 }
