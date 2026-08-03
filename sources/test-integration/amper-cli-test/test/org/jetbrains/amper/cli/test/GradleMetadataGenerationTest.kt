@@ -17,9 +17,6 @@ import java.nio.file.StandardOpenOption
 import kotlin.io.path.div
 import kotlin.test.Test
 
-// todo (AB) : [KTC-5585]
-//  - add cinterop (direct and in refined fragment) to check that
-//    commonized cinterop klibs are a part of KMP publication
 class GradleMetadataGenerationTest : AmperCliTestBase() {
 
     val testGoldenFilesRoot: Path = Dirs.amperSourcesRoot.resolve("test-integration/amper-cli-test/testResources/gradleMetadata")
@@ -33,23 +30,9 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
             configureAndroidHome = true,
         )
 
-        val sanitizedGradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_libraryNested_prepareMavenPublishables" / "libraryNested-1.0.0.module"
-        )
+        assertMetadataFilesEquals("libraryNested-1.0.0.module", "module.json", testInfo)
 
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.module.json"),
-            sanitizedGradleModuleMetadata
-        )
-
-        val sanitizedLinuxX64GradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_libraryNested_prepareMavenPublishables" / "libraryNested-linuxx64-1.0.0.module"
-        )
-
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.linuxX64.module.json"),
-            sanitizedLinuxX64GradleModuleMetadata
-        )
+        assertMetadataFilesEquals("libraryNested-linuxx64-1.0.0.module", "linuxX64.module.json", testInfo)
     }
 
     @Test
@@ -60,29 +43,11 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
             configureAndroidHome = true,
         )
 
-        val allMetadataGradleModuleMetadataSanitized = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_edgeCase_jvmPlusAndroid_prepareMavenPublishables" / "jvmPlusAndroid-1.0.0.module"
-        )
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.module.json"),
-            allMetadataGradleModuleMetadataSanitized
-        )
+        assertMetadataFilesEquals("jvmPlusAndroid-1.0.0.module", "module.json", testInfo, "edgeCase_jvmPlusAndroid")
 
-        val jvmGradleModuleMetadataSanitized = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_edgeCase_jvmPlusAndroid_prepareMavenPublishables" / "jvmPlusAndroid-jvm-1.0.0.module"
-        )
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.jvm.module.json"),
-            jvmGradleModuleMetadataSanitized
-        )
+        assertMetadataFilesEquals("jvmPlusAndroid-jvm-1.0.0.module", "jvm.module.json", testInfo, "edgeCase_jvmPlusAndroid")
 
-        val androidGradleModuleMetadataSanitized = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_edgeCase_jvmPlusAndroid_prepareMavenPublishables" / "jvmPlusAndroid-android-1.0.0.module"
-        )
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.android.module.json"),
-            androidGradleModuleMetadataSanitized
-        )
+        assertMetadataFilesEquals("jvmPlusAndroid-android-1.0.0.module", "android.module.json", testInfo, "edgeCase_jvmPlusAndroid")
     }
 
     @Test
@@ -94,32 +59,11 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
             configureAndroidHome = true,
         )
 
-        val sanitizedGradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_libraryCinterop_prepareMavenPublishables" / "libraryCinterop-1.0.0.module"
-        )
+        assertMetadataFilesEquals("libraryCinterop-1.0.0.module", "module.json", testInfo)
 
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.module.json"),
-            sanitizedGradleModuleMetadata
-        )
+        assertMetadataFilesEquals("libraryCinterop-linuxx64-1.0.0.module", "linuxX64-module.json", testInfo)
 
-        val sanitizedLinuxX64GradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_libraryCinterop_prepareMavenPublishables" / "libraryCinterop-linuxx64-1.0.0.module"
-        )
-
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.linuxX64-module.json"),
-            sanitizedLinuxX64GradleModuleMetadata
-        )
-
-        val sanitizedMacosX64GradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_libraryCinterop_prepareMavenPublishables" / "libraryCinterop-macosarm64-1.0.0.module"
-        )
-
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.macosArm64-module.json"),
-            sanitizedMacosX64GradleModuleMetadata
-        )
+        assertMetadataFilesEquals("libraryCinterop-macosarm64-1.0.0.module", "macosArm64-module.json", testInfo)
     }
 
     @Test
@@ -129,29 +73,11 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
             ":edgeCase_wasmJsPlusWasmWasi:prepareMavenPublishables",
         )
 
-        val allMetadataGradleModuleMetadataSanitized = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_edgeCase_wasmJsPlusWasmWasi_prepareMavenPublishables" / "wasmJsPlusWasmWasi-1.0.0.module"
-        )
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.module.json"),
-            allMetadataGradleModuleMetadataSanitized
-        )
+        assertMetadataFilesEquals("wasmJsPlusWasmWasi-1.0.0.module", "module.json", testInfo, "edgeCase_wasmJsPlusWasmWasi")
 
-        val wasmJsGradleModuleMetadataSanitized = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_edgeCase_wasmJsPlusWasmWasi_prepareMavenPublishables" / "wasmJsPlusWasmWasi-wasmjs-1.0.0.module"
-        )
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.wasmJs.module.json"),
-            wasmJsGradleModuleMetadataSanitized
-        )
+        assertMetadataFilesEquals("wasmJsPlusWasmWasi-wasmjs-1.0.0.module", "wasmJs.module.json", testInfo, "edgeCase_wasmJsPlusWasmWasi")
 
-        val wasmWasiGradleModuleMetadataSanitized = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_edgeCase_wasmJsPlusWasmWasi_prepareMavenPublishables" / "wasmJsPlusWasmWasi-wasmwasi-1.0.0.module"
-        )
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.wasmWasi.module.json"),
-            wasmWasiGradleModuleMetadataSanitized
-        )
+        assertMetadataFilesEquals("wasmJsPlusWasmWasi-wasmwasi-1.0.0.module", "wasmwasi.module.json", testInfo, "edgeCase_wasmJsPlusWasmWasi")
     }
 
     @Test
@@ -161,21 +87,9 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
             ":edgeCase_kmpSinglePlatform:prepareMavenPublishables",
         )
 
-        val allMetadataGradleModuleMetadataSanitized = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_edgeCase_kmpSinglePlatform_prepareMavenPublishables" / "kmpSinglePlatform-1.0.0.module"
-        )
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.module.json"),
-            allMetadataGradleModuleMetadataSanitized
-        )
+        assertMetadataFilesEquals("kmpSinglePlatform-1.0.0.module", "module.json", testInfo, "edgeCase_kmpSinglePlatform")
 
-        val jvmGradleModuleMetadataSanitized = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_edgeCase_kmpSinglePlatform_prepareMavenPublishables" / "kmpSinglePlatform-jvm-1.0.0.module"
-        )
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.jvm.module.json"),
-            jvmGradleModuleMetadataSanitized
-        )
+        assertMetadataFilesEquals("kmpSinglePlatform-jvm-1.0.0.module", "jvm.module.json", testInfo, "edgeCase_kmpSinglePlatform")
     }
 
     @Test
@@ -185,12 +99,22 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
             ":edgeCase_jvmLib:prepareMavenPublishables",
         )
 
-        val allMetadataGradleModuleMetadataSanitized = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_edgeCase_jvmLib_prepareMavenPublishables" / "jvmLib-1.0.0.module"
+        assertMetadataFilesEquals("jvmLib-1.0.0.module", "module.json", testInfo, "edgeCase_jvmLib")
+    }
+
+    private fun assertMetadataFilesEquals(
+        artifactName: String,
+        expectedArtifactFileName: String,
+        testInfo: TestInfo,
+        moduleName: String = artifactName.substringBefore("-"),
+    ) {
+        val sanitizedLinuxX64GradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
+            tempRoot / "build" / "tasks" / "_${moduleName}_prepareMavenPublishables" / artifactName
         )
+
         assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.module.json"),
-            allMetadataGradleModuleMetadataSanitized
+            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.$expectedArtifactFileName"),
+            sanitizedLinuxX64GradleModuleMetadata
         )
     }
 
