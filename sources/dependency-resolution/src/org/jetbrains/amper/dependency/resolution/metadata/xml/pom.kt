@@ -300,9 +300,9 @@ operator fun Dependencies?.plus(other: Dependencies?): Dependencies? {
 operator fun Dependencies.plus(other: Dependencies?): Dependencies {
     val allDependencies = this.dependencies + (other?.dependencies ?: emptyList())
     return Dependencies(
-        // Keep a single dependency constraint per artifact
+        // Keep a single declaration per [Dependency.managementKey]
         // (closest to the original pom => the first one in the list)
-        allDependencies.distinctBy { it.groupId to it.artifactId }
+        allDependencies.distinctBy { it.managementKey }
     )
 }
 
@@ -339,6 +339,14 @@ data class Dependency(
     @XmlElement(true)
     val exclusions: Exclusions? = null,
 )
+
+/**
+ * The key a dependency declaration is identified by while merging the `dependencies` sections of several poms.
+ * It matches the key used by Maven (see `org.apache.maven.model.Dependency.getManagementKey`),
+ * in particular, [Dependency.type] defaults to `jar` and [Dependency.classifier] is a part of the key.
+ */
+internal val Dependency.managementKey: String
+    get() = "$groupId:$artifactId:${type ?: "jar"}" + (classifier?.let { ":$it" } ?: "")
 
 @Serializable
 @XmlSerialName("exclusions", POM_XML_NAMESPACE_4_0_0)

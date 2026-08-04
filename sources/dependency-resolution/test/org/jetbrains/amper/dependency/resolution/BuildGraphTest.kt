@@ -2094,6 +2094,27 @@ class BuildGraphTest : BaseDRTest() {
     }
 
     /**
+     * This test checks that lwjgl3-awt:0.2.3 is successfully resolved on all OS.
+     *
+     * It involves Maven Activation Profiles support.
+     * Property 'lwjgl.natives' is declared in os-specific profile and had to be resolved
+     * from the profile to correctly calculate transitive dependencies coordinates.
+     *
+     * Another thing that is checked is that two dependencies on the library but with different classifiers
+     * are resolved separately and both are added to the dependency graph.
+     * In particular, on macOS the library 'lwjgl3-awt:0.2.3' depends on both
+     * 'org.lwjgl:lwjgl-vulcan' without a classifier
+     * and with classifier 'natives-macos-arm64' declared in a mac-specific profile.
+     */
+    @Test
+    fun `org_lwjglx lwjgl3-awt 0_2_3`(testInfo: TestInfo) = runDrTest {
+        doTestByFile(
+            testInfo,
+            scope = ResolutionScope.RUNTIME
+        )
+    }
+
+    /**
      * This test check that kotlin Gradle plugin and its dependency are successfully resolved to the single variants.
      */
     @Test

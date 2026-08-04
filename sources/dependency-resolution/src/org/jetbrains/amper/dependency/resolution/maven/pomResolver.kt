@@ -31,6 +31,7 @@ import org.jetbrains.amper.dependency.resolution.metadata.xml.ProfileActivation
 import org.jetbrains.amper.dependency.resolution.metadata.xml.Project
 import org.jetbrains.amper.dependency.resolution.metadata.xml.Properties
 import org.jetbrains.amper.dependency.resolution.metadata.xml.expandTemplates
+import org.jetbrains.amper.dependency.resolution.metadata.xml.managementKey
 import org.jetbrains.amper.dependency.resolution.metadata.xml.parsePom
 import org.jetbrains.amper.dependency.resolution.metadata.xml.plus
 import org.jetbrains.amper.dependency.resolution.resolveSingleVersion
@@ -190,6 +191,9 @@ private fun Project.getEffectiveDependencies(dependencyManagement: DependencyMan
         dep
     }
     ?.map { it.expandTemplates(this) }
+    // Maven interpolates the model before merging the pom sections; thus, declarations that differ by
+    // a property reference only (e.g. by a classifier that expands to an empty value) are a single dependency.
+    ?.distinctBy { it.managementKey }
 
 /**
  * Resolve an effective imported dependencyManagement.
