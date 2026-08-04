@@ -33,7 +33,7 @@ import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.assertEqualsWithDiff
-import org.jetbrains.amper.test.golden.goldenFileOsAware
+import org.jetbrains.amper.test.golden.goldenFileOsArchAware
 import org.jetbrains.amper.test.runTestRespectingDelays
 import org.junit.jupiter.api.TestInfo
 import org.opentest4j.AssertionFailedError
@@ -74,7 +74,7 @@ abstract class BaseModuleDrTest {
         filter: ModuleResolutionFilter = ModuleResolutionFilter(),
         messagesCheck: (DependencyNode) -> Unit = defaultMessagesCheck
     ): DependencyNode {
-        val goldenFile = goldenFileOsAware(
+        val goldenFile = goldenFileOsArchAware(
             "${goldenFileName.replace(" ", "_")}.tree.txt")
         val expected = getGoldenFileText(goldenFile, fileDescription = "Golden file for resolved tree")
         return doTest(
@@ -189,7 +189,7 @@ abstract class BaseModuleDrTest {
         checkAutoAddedDocumentation: Boolean = true,
         scope: ResolutionScope? = null,
     ) {
-        val goldenFile = goldenFileOsAware(
+        val goldenFile = goldenFileOsArchAware(
             "${testInfo.testMethod.get().name.replace(" ", "_")}.files.txt")
         val expected = getGoldenFileText(goldenFile, fileDescription = "Golden file for files")
         withActualDumpAndDelayedAssertion(goldenFile) {
@@ -244,8 +244,8 @@ abstract class BaseModuleDrTest {
             .trim()
     }
 
-    protected fun goldenFileOsAware(goldenFileBaseName: String) =
-        testGoldenFilesRoot.goldenFileOsAware(goldenFileBaseName)
+    protected fun goldenFileOsArchAware(goldenFileBaseName: String) =
+        testGoldenFilesRoot.goldenFileOsArchAware(goldenFileBaseName)
 
     companion object {
         /**

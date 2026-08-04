@@ -14,19 +14,19 @@ open class AbstractDependencyInsightsTest : BaseModuleDrTest() {
     protected suspend fun assertInsightByFile(group: String, module: String, graph: DependencyNode, testInfo: TestInfo) {
         val insightFilePrefix = "${testInfo.testMethod.get().name}.$module".replace(" ", "_")
 
-        val goldenFileResolvedInsights = goldenFileOsAware("$insightFilePrefix.insight.resolved.txt")
+        val goldenFileResolvedInsights = goldenFileOsArchAware("$insightFilePrefix.insight.resolved.txt")
         val expectedResolved = getGoldenFileText(goldenFileResolvedInsights, fileDescription = "Golden file with insight for resolved version only")
         withActualDumpAndDelayedAssertion(expectedResultPath = goldenFileResolvedInsights) {
             assertInsight(group, module, graph, expectedResolved, resolvedVersionOnly = true)
         }
 
-        val goldenFileFull = goldenFileOsAware("$insightFilePrefix.insight.full.txt")
+        val goldenFileFull = goldenFileOsArchAware("$insightFilePrefix.insight.full.txt")
         val expectedFull = getGoldenFileText(goldenFileFull, fileDescription = "Golden file with full insight")
         withActualDumpAndDelayedAssertion(expectedResultPath = goldenFileFull) {
             assertInsight(group, module, graph, expectedFull, resolvedVersionOnly = false)
         }
 
-        val goldenFileOriginalGraph = goldenFileOsAware("$insightFilePrefix.insight.originalGraph.txt")
+        val goldenFileOriginalGraph = goldenFileOsArchAware("$insightFilePrefix.insight.originalGraph.txt")
         val expectedGraph = getGoldenFileText(goldenFileOriginalGraph, fileDescription = "Golden file with full dependency graph")
         withActualDumpAndDelayedAssertion(expectedResultPath = goldenFileOriginalGraph) {
             assertModuleDepsEquals(expectedGraph, graph, null)
