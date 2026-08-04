@@ -7,7 +7,7 @@ group = "org.jetbrains.amper"
 version = "1.0"
 
 repositories {
-    mavenCentral()
+    maven("https://cache-redirector.jetbrains.com/repo.maven.apache.org/maven2")
 }
 
 dependencies {

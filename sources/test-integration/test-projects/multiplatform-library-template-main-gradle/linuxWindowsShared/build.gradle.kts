@@ -25,10 +25,6 @@ kotlin {
 
 
 mavenPublishing {
-//    publishToMavenCentral()
-
-//    signAllPublications()
-
     coordinates(group.toString(), "linuxWindowsShared", version.toString())
 
     pom {

@@ -26,10 +26,6 @@ kotlin {
 
 
 mavenPublishing {
-//    publishToMavenCentral()
-
-//    signAllPublications()
-
     coordinates(group.toString(), "nativePlatform", version.toString())
 
     pom {

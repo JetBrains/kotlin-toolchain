@@ -55,10 +55,6 @@ kotlin {
 }
 
 mavenPublishing {
-//    publishToMavenCentral()
-
-//    signAllPublications()
-
     coordinates(group.toString(), "library", version.toString())
 
     pom {
