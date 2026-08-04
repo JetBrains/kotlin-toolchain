@@ -2,7 +2,7 @@
  * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package org.jetbrains.amper.compilation
+package org.jetbrains.amper.compilation.bta
 
 import com.github.ajalt.mordant.rendering.TextStyle
 import com.github.ajalt.mordant.rendering.TextStyles
@@ -10,30 +10,26 @@ import com.github.ajalt.mordant.terminal.Terminal
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.cli.lazyload.ExtraClasspath
 import org.jetbrains.amper.cli.logging.withoutConsoleLogging
+import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.concurrency.AsyncConcurrentMap
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinLogger
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
-import org.jetbrains.kotlin.buildtools.api.SharedApiClassesClassLoader
 import org.slf4j.Logger
-import java.net.URL
-import java.net.URLClassLoader
 import javax.annotation.concurrent.ThreadSafe
-
-@OptIn(ExperimentalBuildToolsApi::class)
-private val sharedBTAClassLoader by lazy { SharedApiClassesClassLoader() }
 
 // TODO add a mechanism (like Gradle BuildService) that allows us to know when no more tasks will need these
 //  classloaders, so we know when to close them. At the moment they are closed when Amper exits.
 /**
- * A thread-safe cache for Kotlin Build Tools implementation class loaders. At the moment, these class loaders are
- * kept until the end of the Amper execution.
+ * A thread-safe cache for Kotlin Build Tools implementations.
+ * At the moment, these instances are kept until the end of the Kotlin Toolchain execution.
  */
 // There are usually very few different versions of Kotlin in the same project, but they collide easily with less
 // than 64 stripes (for example "1.8.20" and "1.9.21" hashes collide even with 32 stripes)
-private val KotlinBuildToolsClassLoaderCache = AsyncConcurrentMap<String, ClassLoader>(stripeCount = 64)
+@OptIn(ExperimentalBuildToolsApi::class)
+private val KotlinBuildToolsImplCache = AsyncConcurrentMap<String, KotlinToolchains>(stripeCount = 64)
 
 /**
  * Loads the [KotlinToolchains] implementation in the given [kotlinVersion], downloading it if necessary. This
@@ -44,19 +40,15 @@ context(_: ProblemReporter)
 internal suspend fun KotlinToolchains.Companion.loadMaybeCachedImpl(
     kotlinVersion: String,
     downloader: KotlinArtifactsDownloader,
-): KotlinToolchains {
-    val classLoader = KotlinBuildToolsClassLoaderCache.computeIfAbsent(kotlinVersion) {
-        val effectiveJars = buildList {
-            addAll(downloader.downloadKotlinBuildToolsImpl(kotlinVersion))
+): KotlinToolchains = KotlinBuildToolsImplCache.computeIfAbsent(kotlinVersion) {
+    val effectiveJars = buildList {
+        addAll(downloader.downloadKotlinBuildToolsImpl(kotlinVersion))
 
-            if (ComparableVersion(kotlinVersion) < ComparableVersion("2.3.0")) {
-                addAll(ExtraClasspath.KOTLIN_BUILD_TOOLS_COMPAT.findJarsInDistribution())
-            }
+        if (ComparableVersion(kotlinVersion) < ComparableVersion("2.3.0")) {
+            addAll(ExtraClasspath.KOTLIN_BUILD_TOOLS_COMPAT.findJarsInDistribution())
         }
-        val urls = effectiveJars.map { it.toUri().toURL() }.toTypedArray<URL>()
-        URLClassLoader("KotlinToolchainsClassLoader-$kotlinVersion", urls, sharedBTAClassLoader)
     }
-    return loadImplementation(classLoader)
+    loadImplementation(effectiveJars)
 }
 
 /**
@@ -129,7 +121,9 @@ class ErrorsCollectorKotlinLogger : KotlinLogger {
 /**
  * Logger that prints Kotlin messages to the CLI.
  *
- * For Kotlin >= 2.4.0-Beta2 use [ProblemReportingCompilerMessageRenderer] to have better structured output.
+ * For Kotlin >= 2.4.0, use
+ * [ProblemReportingCompilerMessageRenderer][org.jetbrains.amper.compilation.ProblemReportingCompilerMessageRenderer]
+ * to have better structured output.
  */
 internal class TerminalPrintingKotlinLogger(
     private val terminal: Terminal,
