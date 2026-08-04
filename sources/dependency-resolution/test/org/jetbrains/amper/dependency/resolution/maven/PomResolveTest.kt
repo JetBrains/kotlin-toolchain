@@ -12,6 +12,7 @@ import org.jetbrains.amper.dependency.resolution.SettingsBuilder
 import org.jetbrains.amper.dependency.resolution.diagnostics.CollectingDiagnosticReporter
 import org.jetbrains.amper.dependency.resolution.metadata.xml.Project
 import org.jetbrains.amper.dependency.resolution.nameToDependency
+import org.jetbrains.amper.system.info.OsFamily
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.assertNotNull
@@ -227,6 +228,42 @@ class PomResolveTest: BaseDRTest() {
             env.set("TRAVIS", "true")
             withResolvedPom(testInfo = testInfo, dependency = dependency) { project ->
                 assertEquals(project.isActivatedProfile("travis"), true)
+            }
+        }
+
+    /**
+     * This test checks that
+     * the Maven profile is activated if all activation conditions are satisfied.
+     *
+     * In particular,
+     * Maven Profile with id 'android' declared in the POM of 'io.netty:netty-codec-native-quic:4.2.7.Final'
+     * is activated only if two conditions below are met (could happen on Linux host only):
+     *
+     * <id>android</id>
+     * <activation>
+     *   <os>
+     *     <family>linux</family>
+     *   </os>
+     *   <property>
+     *     <name>android</name>
+     *   </property>
+     * </activation>
+     */
+    @Test
+    @ExtendWith(SystemStubsExtension::class)
+    fun `maven profile is active only if all activation conditions are met`(testInfo: TestInfo, systemProperties: SystemProperties) =
+        runDrTest {
+            val dependency = "io.netty:netty-codec-native-quic:4.2.7.Final"
+
+            // System property 'android' is not set => Maven Profile is NOT activated.
+            systemProperties.remove("android")
+            withResolvedPom(testInfo = testInfo, dependency = dependency) { project ->
+                assertEquals(false, project.isActivatedProfile("android"))
+            }
+            // System property 'android' is set => Maven Profile is activated on Linux only
+            systemProperties.set("android", "any_value")
+            withResolvedPom(testInfo = testInfo, dependency = dependency) { project ->
+                assertEquals(OsFamily.current.isLinux, project.isActivatedProfile("android"))
             }
         }
 

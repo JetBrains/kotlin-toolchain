@@ -317,13 +317,12 @@ private suspend fun List<ProfileActivation>.isActivated(settings: Settings, proj
 
 private suspend fun ProfileActivation.isActivated(settings: Settings, project: Project): Boolean {
     val dynamicInputs = getDynamicInputs()
-    return when {
-        jdk != null -> jdk.isActiveJdk(settings, dynamicInputs)
-        os != null -> os.isActive(dynamicInputs)
-        property != null -> property.isActive(dynamicInputs)
-        file != null -> file.isActive(project, dynamicInputs)
-        else -> false
-    }
+
+    return !(jdk == null && os == null && property == null && file == null)
+            && (jdk == null || jdk.isActiveJdk(settings, dynamicInputs))
+            && (os == null || os.isActive(dynamicInputs))
+            && (property == null || property.isActive(dynamicInputs))
+            && (file == null || file.isActive(project, dynamicInputs))
 }
 
 private fun getAndRegisterSystemProperty(name: String, dynamicInputs: DynamicInputs): String? =
