@@ -128,7 +128,7 @@ class AmperTestFormatTest : AmperCliTestBase() {
                     (it is TestStdOut || it is TestStdErr) && it.testName.isBlank()
                 }
 
-                assertServiceMessagesEqual(expectedMessages, actualMessagesWithoutSummary,)
+                assertServiceMessagesEqual(expectedMessages, actualMessagesWithoutSummary)
             }
         }
 
@@ -224,7 +224,7 @@ class AmperTestFormatTest : AmperCliTestBase() {
                         }
                     }
                 }
-                assertServiceMessagesEqual(expectedMessages, serviceMessages,)
+                assertServiceMessagesEqual(expectedMessages, serviceMessages)
             }
         }
 
@@ -279,7 +279,7 @@ class AmperTestFormatTest : AmperCliTestBase() {
                         }
                     }
                 }
-                assertServiceMessagesEqual(expectedMessages, serviceMessages,)
+                assertServiceMessagesEqual(expectedMessages, serviceMessages)
             }
         }
 
@@ -323,7 +323,7 @@ class AmperTestFormatTest : AmperCliTestBase() {
                         }
                     }
                 }
-                assertServiceMessagesEqual(expectedMessages, serviceMessages,)
+                assertServiceMessagesEqual(expectedMessages, serviceMessages)
             }
         }
 
@@ -356,7 +356,7 @@ class AmperTestFormatTest : AmperCliTestBase() {
                         }
                     }
                 }
-                assertServiceMessagesEqual(expectedMessages, serviceMessages,)
+                assertServiceMessagesEqual(expectedMessages, serviceMessages)
             }
         }
 
@@ -390,7 +390,7 @@ class AmperTestFormatTest : AmperCliTestBase() {
                         testSuiteIgnored("Ignoring the suite")
                     }
                 }
-                assertServiceMessagesEqual(expectedMessages, serviceMessages,)
+                assertServiceMessagesEqual(expectedMessages, serviceMessages)
             }
         }
     }
@@ -406,17 +406,25 @@ class AmperTestFormatTest : AmperCliTestBase() {
                 assertEmptyStdErr = false,
                 expectedExitCode = 1,
             )
-            val expectedFailureOutput = """
-                Started MyTest
-                Started testSucceed
-                Passed testSucceed
-                Started testFailure
-                Failed testFailure
-                           => Exception: kotlin.AssertionError: Expected <4>, actual <5>.
-            """.trimIndent()
-            r.assertStdoutContains(expectedFailureOutput)
-            // Failure stack trace of the assertion error is heavily host-specific, so we're not checking it.
-            r.assertStdoutContains("Completed MyTest")
+            val stdoutOfTest = r.stdout
+                .substringAfter("Started MyTest")
+                .substringBefore("Completed MyTest")
+                .trim()
+                .lines()
+                // Failure stack trace of the assertion error is heavily host-specific, so we're not checking it.
+                .filterNot { it.startsWith("               at ") }
+            assertEqualsWithDiff(
+                expected = """
+                    Started testSucceed
+                    Passed testSucceed
+                    Started testFailure
+                    Failed testFailure
+                               => Exception: kotlin.AssertionError: Expected <4>, actual <5>.
+                    Skipped testIgnored
+                               => Reason: Test ignored
+                """.trimIndent().lines(),
+                actual = stdoutOfTest,
+            )
         }
 
         @Test
@@ -433,7 +441,13 @@ class AmperTestFormatTest : AmperCliTestBase() {
                 suiteWithFlow("MyTest", locationHint = "java:suite://MyTest") {
                     testWithFlow("testSucceed", locationHint = "java:test://MyTest/testSucceed") {}
                     testWithFlow("testFailure", locationHint = "java:test://MyTest/testFailure") {
-                        testFailed("kotlin.AssertionError: Expected <4>, actual <5>.", serializedStackTrace = "SANITIZED")
+                        testFailed(
+                            "kotlin.AssertionError: Expected <4>, actual <5>.",
+                            serializedStackTrace = "SANITIZED"
+                        )
+                    }
+                    testWithFlow("testIgnored") {
+                        testIgnored("Test ignored")
                     }
                 }
             }
@@ -454,17 +468,25 @@ class AmperTestFormatTest : AmperCliTestBase() {
                 assertEmptyStdErr = false,
                 expectedExitCode = 1,
             )
-            val expectedFailureOutput = """
-                Started MyTest
-                Started testSucceed
-                Passed testSucceed
-                Started testFailure
-                Failed testFailure
-                           => Exception: kotlin.AssertionError: Expected <4>, actual <5>.
-            """.trimIndent()
-            r.assertStdoutContains(expectedFailureOutput)
-            // Failure stack trace of the assertion error is heavily host-specific, so we're not checking it.
-            r.assertStdoutContains("Completed MyTest")
+            val stdoutOfTest = r.stdout
+                .substringAfter("Started MyTest")
+                .substringBefore("Completed MyTest")
+                .trim()
+                .lines()
+                // Failure stack trace of the assertion error is heavily host-specific, so we're not checking it.
+                .filterNot { it.startsWith("               at ") }
+            assertEqualsWithDiff(
+                expected = """
+                    Started testSucceed
+                    Passed testSucceed
+                    Started testFailure
+                    Failed testFailure
+                               => Exception: kotlin.AssertionError: Expected <4>, actual <5>.
+                    Skipped testIgnored
+                               => Reason: Test ignored
+                """.trimIndent().lines(),
+                actual = stdoutOfTest,
+            )
         }
 
         @Test
@@ -481,7 +503,13 @@ class AmperTestFormatTest : AmperCliTestBase() {
                 suiteWithFlow("MyTest", locationHint = "java:suite://MyTest") {
                     testWithFlow("testSucceed", locationHint = "java:test://MyTest/testSucceed") {}
                     testWithFlow("testFailure", locationHint = "java:test://MyTest/testFailure") {
-                        testFailed("kotlin.AssertionError: Expected <4>, actual <5>.", serializedStackTrace = "SANITIZED")
+                        testFailed(
+                            "kotlin.AssertionError: Expected <4>, actual <5>.",
+                            serializedStackTrace = "SANITIZED"
+                        )
+                    }
+                    testWithFlow("testIgnored") {
+                        testIgnored("Test ignored")
                     }
                 }
             }
@@ -510,7 +538,10 @@ private fun assertServiceMessagesEqual(
 
 // The value of the flow IDs doesn't matter, what matters is that the links between different flows are preserved.
 // Therefore, we can replace all flow IDs in a reproducible way to normalize the messages.
-private fun ServiceMessage.normalized(normalizedFlowIds: MutableMap<String, Int>, sanitizeStackTrace: Boolean = false): String {
+private fun ServiceMessage.normalized(
+    normalizedFlowIds: MutableMap<String, Int>,
+    sanitizeStackTrace: Boolean = false,
+): String {
     val serializedMessage = asString()
 
     val flowIdRegex = Regex("flowId='([^']+)'")

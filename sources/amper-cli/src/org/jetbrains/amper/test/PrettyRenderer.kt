@@ -13,10 +13,13 @@ import org.jetbrains.amper.testevents.TestEvent
 import org.jetbrains.amper.testevents.TestFinished
 import org.jetbrains.amper.testevents.TestId
 import org.jetbrains.amper.testevents.TestReportEvent
+import org.jetbrains.amper.testevents.TestSkipped
 import org.jetbrains.amper.testevents.TestStarted
 import org.jetbrains.amper.testevents.TestStderrEvent
 import org.jetbrains.amper.testevents.TestStdoutEvent
+import org.jetbrains.amper.testevents.TestSuiteAborted
 import org.jetbrains.amper.testevents.TestSuiteFinished
+import org.jetbrains.amper.testevents.TestSuiteSkipped
 import org.jetbrains.amper.testevents.TestSuiteStarted
 
 /**
@@ -34,6 +37,14 @@ internal class PrettyRenderer(
                 print(PrettyTestEvent.ContainerStarted, event.descriptor.displayName)
             }
             is TestSuiteFinished -> descriptors[event.testId]?.let { print(PrettyTestEvent.ContainerFinished, it.displayName) }
+            is TestSuiteAborted -> descriptors[event.testId]?.let {
+                print(PrettyTestEvent.Aborted, it.displayName)
+                detail(PrettyTestEvent.Aborted.style, "Reason", event.abortMessage)
+            }
+            is TestSuiteSkipped -> {
+                print(PrettyTestEvent.Skipped, event.descriptor.displayName)
+                detail(PrettyTestEvent.Skipped.style, "Reason", event.reason)
+            }
             is TestStarted -> {
                 descriptors[event.descriptor.id] = event.descriptor
                 print(PrettyTestEvent.TestStarted, event.descriptor.displayName)
@@ -41,9 +52,13 @@ internal class PrettyRenderer(
             is TestStdoutEvent -> terminal.rawPrint(event.text)
             is TestStderrEvent -> terminal.rawPrint(event.text, stderr = true)
             is TestFinished.Succeeded -> descriptors[event.testId]?.let { print(PrettyTestEvent.Succeeded, it.displayName) }
-            is TestFinished.Skipped -> descriptors[event.testId]?.let {
-                print(PrettyTestEvent.Skipped, it.displayName)
-                detail(PrettyTestEvent.Skipped.style, "Reason", event.description)
+            is TestFinished.Aborted -> descriptors[event.testId]?.let {
+                print(PrettyTestEvent.Aborted, it.displayName)
+                detail(PrettyTestEvent.Aborted.style, "Reason", event.abortMessage)
+            }
+            is TestSkipped -> {
+                print(PrettyTestEvent.Skipped, event.descriptor.displayName)
+                detail(PrettyTestEvent.Skipped.style, "Reason", event.reason)
             }
             is TestFinished.Failed -> descriptors[event.testId]?.let {
                 print(PrettyTestEvent.Failed, it.displayName)
@@ -73,6 +88,7 @@ private enum class PrettyTestEvent(
     ContainerFinished("Completed", Theme.Default.info),
     TestStarted("Started"),
     Skipped("Skipped", Theme.Default.muted),
+    Aborted("Aborted", Theme.Default.muted),
     Failed("Failed", Theme.Default.danger),
     Succeeded("Passed", Theme.Default.success),
     Reported("Reported"),

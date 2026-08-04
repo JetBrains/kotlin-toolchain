@@ -77,12 +77,33 @@ data class TestDescriptor(
 data class TestSuiteStarted(val descriptor: TestDescriptor) : TestEvent
 
 /**
- * Signals that a test suite has finished, optionally because it was skipped.
+ * Signals that a test suite has been aborted.
+ */
+@Serializable
+data class TestSuiteAborted(
+    val testId: TestId,
+    val duration: Duration?,
+    val abortMessage: String,
+) : TestEvent
+
+/**
+ * Signals that a test suite has finished.
  */
 @Serializable
 data class TestSuiteFinished(
     val testId: TestId,
-    val skippedDescription: String? = null,
+    val duration: Duration? = null,
+) : TestEvent
+
+/**
+ * Signals that a test suite has been skipped.
+ *
+ * There is no [TestSuiteStarted] or [TestSuiteFinished] for this event—it's self-contained.
+ */
+@Serializable
+data class TestSuiteSkipped(
+    val descriptor: TestDescriptor,
+    val reason: String,
 ) : TestEvent
 
 /**
@@ -90,6 +111,14 @@ data class TestSuiteFinished(
  */
 @Serializable
 data class TestStarted(val descriptor: TestDescriptor) : TestEvent
+
+/**
+ * Signals that an individual test has been skipped.
+ *
+ * There is no [TestStarted] or [TestFinished] for this event—it's self-contained.
+ */
+@Serializable
+data class TestSkipped(val descriptor: TestDescriptor, val reason: String) : TestEvent
 
 /**
  * Signals that an individual test has finished.
@@ -121,13 +150,13 @@ sealed interface TestFinished : TestEvent {
     ) : TestFinished
 
     /**
-     * Signals that a test was skipped.
+     * Signals that a test was aborted.
      */
     @Serializable
-    data class Skipped(
+    data class Aborted(
         override val testId: TestId,
-        override val duration: Duration? = null,
-        val description: String,
+        override val duration: Duration?,
+        val abortMessage: String,
     ) : TestFinished
 }
 

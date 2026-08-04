@@ -79,6 +79,7 @@ class JUnitEventTestListener(
         val location = testIdentifier.location()
         val teamCityName = testIdentifier.teamCityName
         currentTest.set(testIdentifier)
+        markStart(testIdentifier)
 
         @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA") // TestIdentifier can't be constructed with the `null` `type`
         when (testIdentifier.type) {
@@ -94,7 +95,6 @@ class JUnitEventTestListener(
             TestDescriptor.Type.TEST,
             TestDescriptor.Type.CONTAINER_AND_TEST,
                 -> {
-                markStart(testIdentifier)
                 emit(
                     JUnitEventProtocol.Event.TestStarted(
                         id = id,
@@ -114,18 +114,35 @@ class JUnitEventTestListener(
 
     override fun executionSkipped(testIdentifier: TestIdentifier, reason: String) {
         if (shouldIgnore(testIdentifier)) return
-        // Skipped tests do not receive normal start/finish callbacks. Emit a start first so consumers receive their
-        // location and can display the ignored test or suite in the hierarchy.
-        executionStarted(testIdentifier)
+
+        val id = testIdentifier.uniqueId
+        val parentId = testIdentifier.parentId()
+        val displayName = testIdentifier.displayName
+        val location = testIdentifier.location()
+        val teamCityName = testIdentifier.teamCityName
+
         if (testIdentifier.type == TestDescriptor.Type.CONTAINER) {
             emit(
-                JUnitEventProtocol.Event.SuiteFinished(
-                    testIdentifier.uniqueId,
-                    reason
+                JUnitEventProtocol.Event.SuiteSkipped(
+                    id = id,
+                    parentId = parentId,
+                    displayName = displayName,
+                    location = location,
+                    teamCityName = teamCityName,
+                    reason = reason
                 )
             )
         } else {
-            emit(JUnitEventProtocol.Event.Skipped(testIdentifier.uniqueId, 0, reason))
+            emit(
+                JUnitEventProtocol.Event.TestSkipped(
+                    id = id,
+                    parentId = parentId,
+                    displayName = displayName,
+                    location = location,
+                    teamCityName = teamCityName,
+                    reason = reason
+                )
+            )
         }
     }
 
@@ -142,12 +159,21 @@ class JUnitEventTestListener(
         // Restore parent identifier as currentTest
         currentTest.set(parent)
 
-        if (testIdentifier.type == TestDescriptor.Type.CONTAINER) {
-            emit(JUnitEventProtocol.Event.SuiteFinished(testIdentifier.uniqueId, null))
-            return
-        }
         val duration = startTimes.remove(testIdentifier.uniqueIdObject)?.elapsedNow()?.inWholeMilliseconds
         val throwable = result.throwable.getOrNull()
+
+        if (testIdentifier.type == TestDescriptor.Type.CONTAINER) {
+            when (result.status) {
+                TestExecutionResult.Status.SUCCESSFUL ->
+                    emit(JUnitEventProtocol.Event.SuiteFinished(testIdentifier.uniqueId, duration))
+                TestExecutionResult.Status.ABORTED ->
+                    emit(JUnitEventProtocol.Event.SuiteAborted(testIdentifier.uniqueId, duration, throwable?.message ?: "Test was aborted"))
+                // TODO: Can it happen (if there is exception in the setup e.g.)?
+                TestExecutionResult.Status.FAILED -> {}
+            }
+            return
+        }
+
         when (result.status) {
             TestExecutionResult.Status.SUCCESSFUL -> emit(
                 JUnitEventProtocol.Event.Succeeded(
@@ -155,12 +181,11 @@ class JUnitEventTestListener(
                     duration
                 )
             )
-            // Neither IntelliJ nor TeamCity has an aborted-test state; model it as skipped.
             TestExecutionResult.Status.ABORTED -> emit(
-                JUnitEventProtocol.Event.Skipped(
+                JUnitEventProtocol.Event.TestAborted(
                     id = testIdentifier.uniqueId,
                     durationMillis = duration,
-                    description = throwable?.message ?: "Test was aborted"
+                    abortMessage = throwable?.message ?: "Test was aborted"
                 )
             )
             TestExecutionResult.Status.FAILED -> {

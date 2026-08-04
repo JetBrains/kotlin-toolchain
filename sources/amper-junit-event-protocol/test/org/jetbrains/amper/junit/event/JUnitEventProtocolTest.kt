@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.junit.event
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.assertThrows
 import kotlin.io.path.Path
 import kotlin.test.Test
@@ -32,9 +33,8 @@ internal class JUnitEventProtocolTest {
                 location = JUnitEventProtocol.Location.Method("pkg.Suite", "test", ["java.lang.String", "😀"]),
                 teamCityName = "pkg.Suite.test()",
             ),
-            JUnitEventProtocol.Event.SuiteFinished(id = "suite", description = "because | café"),
+            JUnitEventProtocol.Event.SuiteFinished(id = "suite", description = null),
             JUnitEventProtocol.Event.Succeeded(id = "test", durationMillis = 123),
-            JUnitEventProtocol.Event.Skipped(id = "test", durationMillis = 0, description = "not applicable"),
             JUnitEventProtocol.Event.Failed(
                 id = "test",
                 durationMillis = 42,
@@ -52,18 +52,45 @@ internal class JUnitEventProtocolTest {
                 mediaType = "text/plain; charset=utf-8",
                 timestampMillis = 1_234_567_890L,
             ),
+            JUnitEventProtocol.Event.TestStarted(
+                "test",
+                null,
+                "dynamic",
+                JUnitEventProtocol.Location.Uri("file:///tmp/café|😀"),
+            )
         ]
 
         events.forEach { event ->
             assertEquals(event, JUnitEventProtocol.decode(JUnitEventProtocol.encode(event)), event.toString())
         }
-        val uriLocation = JUnitEventProtocol.Event.TestStarted(
-            "test",
-            null,
-            "dynamic",
-            JUnitEventProtocol.Location.Uri("file:///tmp/café|😀"),
-        )
-        assertEquals(uriLocation, JUnitEventProtocol.decode(JUnitEventProtocol.encode(uriLocation)))
+    }
+
+    @Test
+    @Disabled("Kotlin CLI needs to bootstrap to launch this test correctly. Otherwise, the old version of amper-junit-event-protocol classes added on the runtime take precedence.")
+    fun `serialize-deserialize abort and skip events`() {
+        val events = [
+            JUnitEventProtocol.Event.TestAborted(id = "test", durationMillis = 0, abortMessage = "assumption failed"),
+            JUnitEventProtocol.Event.TestSkipped(
+                id = "test",
+                parentId = "suite",
+                displayName = "Skipped test",
+                location = JUnitEventProtocol.Location.Method("pkg.Suite", "skipped", []),
+                reason = "not applicable",
+            ),
+            JUnitEventProtocol.Event.SuiteFinished(id = "suite", durationMillis = 321),
+            JUnitEventProtocol.Event.SuiteAborted(id = "suite", durationMillis = 321, abortMessage = "because | café"),
+            JUnitEventProtocol.Event.SuiteSkipped(
+                id = "suite",
+                parentId = "parentSuite",
+                displayName = "Skipped suite",
+                location = JUnitEventProtocol.Location.Class("pkg.SkippedSuite"),
+                reason = "not applicable",
+            ),
+        ]
+
+        events.forEach { event ->
+            assertEquals(event, JUnitEventProtocol.decode(JUnitEventProtocol.encode(event)), event.toString())
+        }
     }
 
     @Test

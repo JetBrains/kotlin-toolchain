@@ -18,10 +18,13 @@ import org.jetbrains.amper.testevents.TestFinished
 import org.jetbrains.amper.testevents.TestId
 import org.jetbrains.amper.testevents.TestLocationHint
 import org.jetbrains.amper.testevents.TestReportEvent
+import org.jetbrains.amper.testevents.TestSkipped
 import org.jetbrains.amper.testevents.TestStarted
 import org.jetbrains.amper.testevents.TestStderrEvent
 import org.jetbrains.amper.testevents.TestStdoutEvent
+import org.jetbrains.amper.testevents.TestSuiteAborted
 import org.jetbrains.amper.testevents.TestSuiteFinished
+import org.jetbrains.amper.testevents.TestSuiteSkipped
 import org.jetbrains.amper.testevents.TestSuiteStarted
 import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.uuid.Uuid
@@ -66,15 +69,6 @@ internal class TeamCityRenderer(
                 )
             }
             is TestSuiteFinished -> {
-                event.skippedDescription?.let {
-                    emit(
-                        TestIgnored(name(event.testId), it).withPresentation(
-                            event.testId,
-                            null,
-                            displayName(event.testId)
-                        )
-                    )
-                }
                 emit(
                     TeamCitySuiteFinished(name(event.testId)).withPresentation(
                         event.testId,
@@ -84,18 +78,47 @@ internal class TeamCityRenderer(
                 )
                 emit(flowFinished(event.testId))
             }
+            is TestSuiteAborted -> finishIgnoredSuite(event.testId, event.abortMessage)
+            is TestSuiteSkipped -> {
+                // We have to emit test suite started message for TC
+                renderStarted(event.descriptor) { name, locationHint ->
+                    TeamCitySuiteStarted(name).withPresentation(
+                        event.descriptor.id,
+                        locationHint,
+                        event.descriptor.displayName,
+                    )
+                }
+                finishIgnoredSuite(event.descriptor.id, event.reason)
+            }
             is TestFinished.Succeeded -> finish(event.testId, event.duration?.inWholeMilliseconds?.toInt() ?: 0)
-            is TestFinished.Skipped -> {
-                // TeamCity also accepts ignored tests without start/finish, but emitting the full lifecycle preserves
-                // the location information sent in the start message.
+            is TestFinished.Aborted -> {
                 emit(
-                    TestIgnored(name(event.testId), event.description).withPresentation(
+                    TestIgnored(name(event.testId), event.abortMessage).withPresentation(
                         event.testId,
                         null,
-                        displayName(event.testId)
+                        displayName(event.testId),
                     )
                 )
                 finish(event.testId, event.duration?.inWholeMilliseconds?.toInt() ?: 0)
+            }
+            is TestSkipped -> {
+                // TeamCity also accepts ignored tests without start/finish, but emitting the full lifecycle preserves
+                // the location information sent in the start message.
+                renderStarted(event.descriptor) { name, locationHint ->
+                    TeamCityTestStarted(name, false, locationHint).withPresentation(
+                        event.descriptor.id,
+                        locationHint,
+                        event.descriptor.displayName,
+                    )
+                }
+                emit(
+                    TestIgnored(name(event.descriptor.id), event.reason).withPresentation(
+                        event.descriptor.id,
+                        null,
+                        event.descriptor.displayName,
+                    )
+                )
+                finish(event.descriptor.id, 0)
             }
             is TestFinished.Failed -> {
                 emit(
@@ -160,6 +183,19 @@ internal class TeamCityRenderer(
 
     private fun finish(testId: TestId, durationMillis: Int) {
         emit(TeamCityTestFinished(name(testId), durationMillis).withPresentation(testId, null, displayName(testId)))
+        emit(flowFinished(testId))
+        descriptors.remove(testId)
+    }
+
+    private fun finishIgnoredSuite(testId: TestId, reason: String) {
+        emit(
+            TestIgnored(name(testId), reason).withPresentation(
+                testId,
+                null,
+                displayName(testId),
+            )
+        )
+        emit(TeamCitySuiteFinished(name(testId)).withPresentation(testId, null, displayName(testId)))
         emit(flowFinished(testId))
         descriptors.remove(testId)
     }

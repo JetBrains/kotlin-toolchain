@@ -61,9 +61,42 @@ object JUnitEventProtocol {
             }
         }
 
-        data class SuiteFinished(val id: String, val description: String?) : Event {
+        data class SuiteAborted(
+            val id: String,
+            val durationMillis: Long?,
+            val abortMessage: String,
+        ) : Event {
+            companion object {
+                const val TYPE = "suiteAborted"
+            }
+        }
+
+        data class SuiteFinished(
+            val id: String,
+            val durationMillis: Long?,
+        ) : Event {
+            @Deprecated("Replace with another constructor after bootstrap")
+            constructor(id: String, description: String?): this(id, null as Long?)
+
             companion object {
                 const val TYPE = "suiteFinished"
+            }
+        }
+
+        data class SuiteSkipped(
+            val id: String,
+            val parentId: String?,
+            val displayName: String,
+            val location: Location?,
+            /**
+             * The TeamCity-formatted name, used solely as a workaround so TeamCity correctly categorizes tests.
+             * Defaults to [displayName] for consumers that do not need TeamCity-specific categorization.
+             */
+            val teamCityName: String = displayName,
+            val reason: String,
+        ) : Event {
+            companion object {
+                const val TYPE = "suiteSkipped"
             }
         }
 
@@ -73,9 +106,30 @@ object JUnitEventProtocol {
             }
         }
 
-        data class Skipped(val id: String, val durationMillis: Long?, val description: String) : Event {
+        data class TestAborted(
+            val id: String,
+            val durationMillis: Long?,
+            val abortMessage: String,
+        ) : Event {
             companion object {
-                const val TYPE = "skipped"
+                const val TYPE = "testAborted"
+            }
+        }
+
+        data class TestSkipped(
+            val id: String,
+            val parentId: String?,
+            val displayName: String,
+            val location: Location?,
+            /**
+             * The TeamCity-formatted name, used solely as a workaround so TeamCity correctly categorizes tests.
+             * Defaults to [displayName] for consumers that do not need TeamCity-specific categorization.
+             */
+            val teamCityName: String = displayName,
+            val reason: String,
+        ) : Event {
+            companion object {
+                const val TYPE = "testSkipped"
             }
         }
 
@@ -135,9 +189,9 @@ object JUnitEventProtocol {
     }
 
     private enum class Key(val wireName: String) {
-        Id("id"), ParentId("parentId"), DisplayName("displayName"), LocationType("locationType"), Name("name"),
+        Id("id"), ParentId("parentId"), DisplayName("displayName"), LocationType("locationType"), TeamCityName("teamCityName"),
         ClassName("className"), MethodName("methodName"), MethodParameterTypes("methodParameterTypes"), Uri("uri"),
-        Text("text"), Duration("duration"), Description("description"), Message("message"), StackTrace("stackTrace"),
+        Text("text"), Duration("duration"), Reason("reason"), Message("message"), StackTrace("stackTrace"),
         Expected("expected"), Actual("actual"), ExpectedFile("expectedFile"), ActualFile("actualFile"),
         Key("key"), Value("value"), MediaType("mediaType"), Timestamp("timestamp"),
     }
@@ -147,25 +201,52 @@ object JUnitEventProtocol {
             is Event.TestStdout -> Event.TestStdout.TYPE to fields(Key.Id to event.id, Key.Text to event.text)
             is Event.TestStderr -> Event.TestStderr.TYPE to fields(Key.Id to event.id, Key.Text to event.text)
             is Event.SuiteStarted -> Event.SuiteStarted.TYPE to fields(
-                Key.Id to event.id, Key.ParentId to event.parentId, Key.DisplayName to event.displayName,
-                Key.Name to event.teamCityName, *event.location.toFields().toTypedArray(),
+                Key.Id to event.id,
+                Key.ParentId to event.parentId,
+                Key.DisplayName to event.displayName,
+                Key.TeamCityName to event.teamCityName,
+                *event.location.toFields().toTypedArray(),
             )
             is Event.TestStarted -> Event.TestStarted.TYPE to fields(
-                Key.Id to event.id, Key.ParentId to event.parentId, Key.DisplayName to event.displayName,
-                Key.Name to event.teamCityName, *event.location.toFields().toTypedArray(),
+                Key.Id to event.id,
+                Key.ParentId to event.parentId,
+                Key.DisplayName to event.displayName,
+                Key.TeamCityName to event.teamCityName,
+                *event.location.toFields().toTypedArray(),
             )
             is Event.SuiteFinished -> Event.SuiteFinished.TYPE to fields(
                 Key.Id to event.id,
-                Key.Description to event.description
+                Key.Duration to event.durationMillis?.toString(),
+            )
+            is Event.SuiteAborted -> Event.SuiteAborted.TYPE to fields(
+                Key.Id to event.id,
+                Key.Duration to event.durationMillis?.toString(),
+                Key.Message to event.abortMessage,
+            )
+            is Event.SuiteSkipped -> Event.SuiteSkipped.TYPE to fields(
+                Key.Id to event.id,
+                Key.ParentId to event.parentId,
+                Key.DisplayName to event.displayName,
+                Key.TeamCityName to event.teamCityName,
+                Key.Reason to event.reason,
+                *event.location.toFields().toTypedArray(),
             )
             is Event.Succeeded -> Event.Succeeded.TYPE to fields(
                 Key.Id to event.id,
                 Key.Duration to event.durationMillis?.toString()
             )
-            is Event.Skipped -> Event.Skipped.TYPE to fields(
+            is Event.TestAborted -> Event.TestAborted.TYPE to fields(
                 Key.Id to event.id,
                 Key.Duration to event.durationMillis?.toString(),
-                Key.Description to event.description
+                Key.Message to event.abortMessage,
+            )
+            is Event.TestSkipped -> Event.TestSkipped.TYPE to fields(
+                Key.Id to event.id,
+                Key.ParentId to event.parentId,
+                Key.DisplayName to event.displayName,
+                Key.TeamCityName to event.teamCityName,
+                Key.Reason to event.reason,
+                *event.location.toFields().toTypedArray(),
             )
             is Event.Failed -> Event.Failed.TYPE to fields(
                 Key.Id to event.id,
@@ -238,27 +319,48 @@ object JUnitEventProtocol {
             parentId = fields[Key.ParentId],
             displayName = fields.required(Key.DisplayName),
             location = fields.location(),
-            teamCityName = fields.required(Key.Name),
+            teamCityName = fields.required(Key.TeamCityName),
         )
         Event.TestStarted.TYPE -> Event.TestStarted(
             id = fields.required(Key.Id),
             parentId = fields[Key.ParentId],
             displayName = fields.required(Key.DisplayName),
             location = fields.location(),
-            teamCityName = fields.required(Key.Name),
+            teamCityName = fields.required(Key.TeamCityName),
         )
         Event.SuiteFinished.TYPE -> Event.SuiteFinished(
             id = fields.required(Key.Id),
-            description = fields[Key.Description]
+            durationMillis = fields.long(Key.Duration),
+        )
+        Event.SuiteAborted.TYPE -> Event.SuiteAborted(
+            id = fields.required(Key.Id),
+            durationMillis = fields.long(Key.Duration),
+            abortMessage = fields.required(Key.Message),
+        )
+        Event.SuiteSkipped.TYPE -> Event.SuiteSkipped(
+            id = fields.required(Key.Id),
+            parentId = fields[Key.ParentId],
+            displayName = fields.required(Key.DisplayName),
+            location = fields.location(),
+            teamCityName = fields.required(Key.TeamCityName),
+            reason = fields.required(Key.Reason),
         )
         Event.Succeeded.TYPE -> Event.Succeeded(
             id = fields.required(Key.Id),
             durationMillis = fields.long(Key.Duration)
         )
-        Event.Skipped.TYPE -> Event.Skipped(
+        Event.TestAborted.TYPE -> Event.TestAborted(
             id = fields.required(Key.Id),
             durationMillis = fields.long(Key.Duration),
-            description = fields.required(Key.Description)
+            abortMessage = fields.required(Key.Message),
+        )
+        Event.TestSkipped.TYPE -> Event.TestSkipped(
+            id = fields.required(Key.Id),
+            parentId = fields[Key.ParentId],
+            displayName = fields.required(Key.DisplayName),
+            location = fields.location(),
+            teamCityName = fields.required(Key.TeamCityName),
+            reason = fields.required(Key.Reason)
         )
         Event.Failed.TYPE -> Event.Failed(
             id = fields.required(Key.Id),

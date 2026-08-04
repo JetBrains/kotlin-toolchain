@@ -13,10 +13,13 @@ import org.jetbrains.amper.testevents.TestFinished
 import org.jetbrains.amper.testevents.TestId
 import org.jetbrains.amper.testevents.TestLocationHint
 import org.jetbrains.amper.testevents.TestReportEvent
+import org.jetbrains.amper.testevents.TestSkipped
 import org.jetbrains.amper.testevents.TestStarted
 import org.jetbrains.amper.testevents.TestStderrEvent
 import org.jetbrains.amper.testevents.TestStdoutEvent
+import org.jetbrains.amper.testevents.TestSuiteAborted
 import org.jetbrains.amper.testevents.TestSuiteFinished
+import org.jetbrains.amper.testevents.TestSuiteSkipped
 import org.jetbrains.amper.testevents.TestSuiteStarted
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
@@ -57,12 +60,31 @@ internal class StructuredJUnitProcessOutputListener(
                 teamCityName
             ),
         )
-        is JUnitEventProtocol.Event.SuiteFinished -> TestSuiteFinished(TestId(id), description)
+        is JUnitEventProtocol.Event.SuiteFinished -> TestSuiteFinished(TestId(id), durationMillis?.milliseconds)
+        is JUnitEventProtocol.Event.SuiteAborted -> TestSuiteAborted(TestId(id), durationMillis?.milliseconds, abortMessage)
+        is JUnitEventProtocol.Event.SuiteSkipped -> TestSuiteSkipped(
+            TestDescriptor(
+                TestId(id),
+                parentId?.let(::TestId),
+                displayName,
+                location?.toTestLocationHint(),
+                teamCityName,
+            ),
+            reason,
+        )
         is JUnitEventProtocol.Event.Succeeded -> TestFinished.Succeeded(TestId(id), durationMillis?.milliseconds)
-        is JUnitEventProtocol.Event.Skipped -> TestFinished.Skipped(
-            TestId(id),
-            durationMillis?.milliseconds,
-            description
+        is JUnitEventProtocol.Event.TestAborted -> TestFinished.Aborted(
+            TestId(id), durationMillis?.milliseconds, abortMessage,
+        )
+        is JUnitEventProtocol.Event.TestSkipped -> TestSkipped(
+            TestDescriptor(
+                TestId(id),
+                parentId?.let(::TestId),
+                displayName,
+                location?.toTestLocationHint(),
+                teamCityName,
+            ),
+            reason,
         )
         is JUnitEventProtocol.Event.Failed -> TestFinished.Failed(
             testId = TestId(id), duration = durationMillis?.milliseconds, failureMessage = failureMessage,

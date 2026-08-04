@@ -25,6 +25,7 @@ import org.jetbrains.amper.testevents.TestDescriptor
 import org.jetbrains.amper.testevents.TestEvent
 import org.jetbrains.amper.testevents.TestId
 import org.jetbrains.amper.testevents.TestLocationHint
+import org.jetbrains.amper.testevents.TestSkipped
 import org.jetbrains.amper.testevents.TestStderrEvent
 import org.jetbrains.amper.testevents.TestStdoutEvent
 import org.slf4j.LoggerFactory
@@ -175,11 +176,6 @@ internal class StructuredNativeTestProcessOutputListener(
                     expected = state.failure.expected,
                     actual = state.failure.actual,
                 )
-                state.ignore != null -> AmperTestFinished.Skipped(
-                    testId = state.id,
-                    duration = duration,
-                    description = state.ignore.description ?: "Test ignored"
-                )
                 else -> AmperTestFinished.Succeeded(testId = state.id, duration = duration)
             }
             if (message.flowId == null) {
@@ -214,22 +210,17 @@ internal class StructuredNativeTestProcessOutputListener(
             val parentId = message.parentId()
             val id = message.findTestIdOrAddToNonFlowStack { it.testName }
             if (nonFlowIdStack.lastOrNull() == id) {
+                // Immediately remove the test from the non-flow ID stack if it was added there
                 nonFlowIdStack.removeLast()
             }
-            // TODO: Don't require emitting test started event for skipped
             emit(
-                AmperTestStarted(
-                    TestDescriptor(
+                TestSkipped(
+                    descriptor = TestDescriptor(
                         id = id,
                         parentId = parentId,
                         displayName = message.testName,
-                    )
-                )
-            )
-            emit(
-                AmperTestFinished.Skipped(
-                    testId = id,
-                    description = message.ignoreComment ?: "Test ignored",
+                    ),
+                    reason = message.ignoreComment ?: "Test ignored"
                 )
             )
         }
@@ -365,7 +356,6 @@ internal class StructuredNativeTestProcessOutputListener(
     private data class TestState(
         val id: TestId,
         val failure: Failure? = null,
-        val ignore: Ignore? = null,
     )
 
     private data class Failure(
@@ -373,9 +363,5 @@ internal class StructuredNativeTestProcessOutputListener(
         val stackTrace: String?,
         val expected: String?,
         val actual: String?,
-    )
-
-    private data class Ignore(
-        val description: String? = null,
     )
 }
