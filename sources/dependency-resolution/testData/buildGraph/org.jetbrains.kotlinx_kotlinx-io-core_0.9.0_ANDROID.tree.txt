@@ -1,0 +1,7 @@
+root
+╰─── org.jetbrains.kotlinx:kotlinx-io-core:0.9.0
+     ╰─── org.jetbrains.kotlinx:kotlinx-io-core-androidnativearm64:0.9.0
+          ├─── org.jetbrains.kotlinx:kotlinx-io-bytestring:0.9.0
+          │    ╰─── org.jetbrains.kotlinx:kotlinx-io-bytestring-androidnativearm64:0.9.0
+          │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.3.0
+          ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.3.0

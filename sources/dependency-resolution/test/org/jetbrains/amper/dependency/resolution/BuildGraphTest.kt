@@ -2689,6 +2689,23 @@ class BuildGraphTest : BaseDRTest() {
         )
     }
 
+    /**
+     * This test checks that dependencies are correctly resolved for a native android platform
+     */
+    @Test
+    fun `org_jetbrains_kotlinx kotlinx-io-core 0_9_0 ANDROID`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            dependency = ["org.jetbrains.kotlinx:kotlinx-io-core:0.9.0"],
+            platform = setOf(
+                ResolutionPlatform.ANDROID_ARM64,
+            ),
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL),
+        )
+
+        downloadAndAssertFiles(testInfo, root)
+    }
+
     @Test
     fun `resolving multiplatform library for unsupported set of platforms`(testInfo: TestInfo) = runDrTest {
         val root = doTest(
@@ -2698,7 +2715,7 @@ class BuildGraphTest : BaseDRTest() {
             platform = setOf(
                 ResolutionPlatform.ANDROID,
                 ResolutionPlatform.IOS_ARM64,
-                ResolutionPlatform.ANDROID_NATIVE_ARM64,
+                ResolutionPlatform.ANDROID_ARM64,
                 ResolutionPlatform.WATCHOS_ARM64,
             ),
             repositories = listOf(REDIRECTOR_MAVEN_CENTRAL),
@@ -2711,7 +2728,7 @@ class BuildGraphTest : BaseDRTest() {
         val message = assertTheOnlyNonInfoMessage<PlatformsAreNotSupported>(root, Severity.ERROR)
         assertEquals(
             setOf(
-                ResolutionPlatform.ANDROID_NATIVE_ARM64,
+                ResolutionPlatform.ANDROID_ARM64,
                 ResolutionPlatform.WATCHOS_ARM64,
             ),
             message.unsupportedPlatforms

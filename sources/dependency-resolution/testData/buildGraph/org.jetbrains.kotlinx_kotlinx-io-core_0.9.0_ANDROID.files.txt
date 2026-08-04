@@ -1,0 +1,2 @@
+kotlinx-io-bytestring-androidnativearm64-0.9.0.klib
+kotlinx-io-core-androidnativearm64-0.9.0.klib

@@ -28,10 +28,10 @@ fun Platform.toResolutionPlatform() : ResolutionPlatform? = when(this) {
     Platform.WATCHOS_DEVICE_ARM64 -> ResolutionPlatform.WATCHOS_DEVICE_ARM64
     Platform.WATCHOS_SIMULATOR_ARM64 -> ResolutionPlatform.WATCHOS_SIMULATOR_ARM64
     Platform.MINGW_X64 -> ResolutionPlatform.MINGW_X64
-    Platform.ANDROID_NATIVE_ARM32 -> ResolutionPlatform.ANDROID_NATIVE_ARM32
-    Platform.ANDROID_NATIVE_ARM64 -> ResolutionPlatform.ANDROID_NATIVE_ARM64
-    Platform.ANDROID_NATIVE_X64 -> ResolutionPlatform.ANDROID_NATIVE_X64
-    Platform.ANDROID_NATIVE_X86 -> ResolutionPlatform.ANDROID_NATIVE_X86
+    Platform.ANDROID_NATIVE_ARM32 -> ResolutionPlatform.ANDROID_ARM32
+    Platform.ANDROID_NATIVE_ARM64 -> ResolutionPlatform.ANDROID_ARM64
+    Platform.ANDROID_NATIVE_X64 -> ResolutionPlatform.ANDROID_X64
+    Platform.ANDROID_NATIVE_X86 -> ResolutionPlatform.ANDROID_X86
 
     // DR cannot be run for non-leaf platforms
     Platform.COMMON,
@@ -68,10 +68,10 @@ fun ResolutionPlatform.toPlatform() : Platform = when(this) {
     ResolutionPlatform.WATCHOS_DEVICE_ARM64 -> Platform.WATCHOS_DEVICE_ARM64
     ResolutionPlatform.WATCHOS_SIMULATOR_ARM64 -> Platform.WATCHOS_SIMULATOR_ARM64
     ResolutionPlatform.MINGW_X64 -> Platform.MINGW_X64
-    ResolutionPlatform.ANDROID_NATIVE_ARM32 -> Platform.ANDROID_NATIVE_ARM32
-    ResolutionPlatform.ANDROID_NATIVE_ARM64 -> Platform.ANDROID_NATIVE_ARM64
-    ResolutionPlatform.ANDROID_NATIVE_X64 -> Platform.ANDROID_NATIVE_X64
-    ResolutionPlatform.ANDROID_NATIVE_X86 -> Platform.ANDROID_NATIVE_X86
+    ResolutionPlatform.ANDROID_ARM32 -> Platform.ANDROID_NATIVE_ARM32
+    ResolutionPlatform.ANDROID_ARM64 -> Platform.ANDROID_NATIVE_ARM64
+    ResolutionPlatform.ANDROID_X64 -> Platform.ANDROID_NATIVE_X64
+    ResolutionPlatform.ANDROID_X86 -> Platform.ANDROID_NATIVE_X86
 
     ResolutionPlatform.COMMON -> Platform.COMMON
 }

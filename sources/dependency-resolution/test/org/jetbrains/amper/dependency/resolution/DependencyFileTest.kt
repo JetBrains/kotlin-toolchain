@@ -534,6 +534,10 @@ class DependencyFileTest: BaseDRTest() {
 
             // check source set platforms
             val commonPlatforms = setOf(
+                ResolutionPlatform.ANDROID_ARM32,
+                ResolutionPlatform.ANDROID_ARM64,
+                ResolutionPlatform.ANDROID_X64,
+                ResolutionPlatform.ANDROID_X86,
                 ResolutionPlatform.IOS_ARM64,
                 ResolutionPlatform.IOS_SIMULATOR_ARM64,
                 ResolutionPlatform.IOS_X64,
