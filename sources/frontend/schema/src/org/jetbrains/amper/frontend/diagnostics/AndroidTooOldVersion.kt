@@ -7,11 +7,12 @@ package org.jetbrains.amper.frontend.diagnostics
 import com.intellij.psi.PsiElement
 import org.jetbrains.amper.frontend.SchemaBundle
 import org.jetbrains.amper.frontend.contexts.MinimalModule
-import org.jetbrains.amper.frontend.diagnostics.helpers.visitEnumProperties
+import org.jetbrains.amper.frontend.diagnostics.helpers.visitProperties
 import org.jetbrains.amper.frontend.messages.PsiBuildProblem
 import org.jetbrains.amper.frontend.messages.extractPsiElementOrNull
 import org.jetbrains.amper.frontend.schema.AndroidSettings
 import org.jetbrains.amper.frontend.schema.AndroidVersion
+import org.jetbrains.amper.frontend.tree.IntNode
 import org.jetbrains.amper.frontend.tree.TreeNode
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
@@ -25,26 +26,27 @@ class AndroidTooOldVersion(
 ) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
 
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AndroidVersionTooOld
-    override val message = SchemaBundle.message("too.old.android.version", used.versionNumber, minVersion.versionNumber)
+    override val message = SchemaBundle.message("too.old.android.version", used, minVersion)
 }
 
 object AndroidTooOldVersionFactory : TreeDiagnosticFactory {
 
-    private val MINIMAL_ANDROID_VERSION = AndroidVersion.VERSION_21
+    private val MINIMAL_ANDROID_VERSION = AndroidVersion(21)
 
     override fun analyze(root: TreeNode, minimalModule: MinimalModule, problemReporter: ProblemReporter) {
         val reportedPlaces = mutableSetOf<PsiElement>() // somehow the computed properties lead to duplicate reports
-        root.visitEnumProperties<AndroidSettings, AndroidVersion?>(
+        root.visitProperties<AndroidSettings, IntNode>(
             AndroidSettings::compileSdk,
             AndroidSettings::minSdk,
             AndroidSettings::targetSdk,
-        ) { prop, value ->
-            val versionTraceElement = prop.value.trace.extractPsiElementOrNull() ?: return@visitEnumProperties
-            if (value < MINIMAL_ANDROID_VERSION && reportedPlaces.add(versionTraceElement)) {
+        ) { keyValue, node ->
+            val version = AndroidVersion(node.value)
+            val versionTraceElement = keyValue.value.trace.extractPsiElementOrNull() ?: return@visitProperties
+            if (version < MINIMAL_ANDROID_VERSION && reportedPlaces.add(versionTraceElement)) {
                 problemReporter.reportMessage(
                     AndroidTooOldVersion(
                         element = versionTraceElement,
-                        used = value,
+                        used = version,
                         minVersion = MINIMAL_ANDROID_VERSION,
                     )
                 )

@@ -4,11 +4,9 @@
 
 package org.jetbrains.amper.frontend.schema
 
-import org.jetbrains.amper.frontend.EnumMap
-import org.jetbrains.amper.frontend.SchemaEnum
 import org.jetbrains.amper.frontend.api.CanBeReferenced
 import org.jetbrains.amper.frontend.api.DeprecatedSchema
-import org.jetbrains.amper.frontend.api.EnumOrderSensitive
+import org.jetbrains.amper.frontend.api.KnownIntValues
 import org.jetbrains.amper.frontend.api.Misnomers
 import org.jetbrains.amper.frontend.api.ProductTypeSpecific
 import org.jetbrains.amper.frontend.api.SchemaDoc
@@ -18,97 +16,19 @@ import org.jetbrains.amper.frontend.api.TraceableString
 import java.util.*
 import kotlin.io.path.Path
 
-@EnumOrderSensitive(reverse = true)
-enum class AndroidVersion(
-    val versionNumber: Int,
-    override val outdated: Boolean = false
-) : SchemaEnum {
-    @SchemaDoc("Android 1.0")
-    VERSION_1(1, outdated = true),
-    @SchemaDoc("Android 1.1")
-    VERSION_2(2, outdated = true),
-    @SchemaDoc("Android 1.5, Cupcake")
-    VERSION_3(3, outdated = true),
-    @SchemaDoc("Android 1.6, Donut")
-    VERSION_4(4, outdated = true),
-    @SchemaDoc("Android 2.0, Eclair")
-    VERSION_5(5, outdated = true),
-    @SchemaDoc("Android 2.0.1, Eclair")
-    VERSION_6(6, outdated = true),
-    @SchemaDoc("Android 2.1, Eclair")
-    VERSION_7(7, outdated = true),
-    @SchemaDoc("Android 2.2, Froyo")
-    VERSION_8(8, outdated = true),
-    @SchemaDoc("Android 2.3-2.3.2, Gingerbread")
-    VERSION_9(9, outdated = true),
-    @SchemaDoc("Android 2.3.3-2.3.7, Gingerbread")
-    VERSION_10(10, outdated = true),
-    @SchemaDoc("Android 3.0, Honeycomb")
-    VERSION_11(11, outdated = true),
-    @SchemaDoc("Android 3.1, Honeycomb")
-    VERSION_12(12, outdated = true),
-    @SchemaDoc("Android 3.2, Honeycomb")
-    VERSION_13(13, outdated = true),
-    @SchemaDoc("Android 4.0.1-4.0.2, Ice Cream Sandwich")
-    VERSION_14(14, outdated = true),
-    @SchemaDoc("Android 4.0.3-4.0.4, Ice Cream Sandwich")
-    VERSION_15(15, outdated = true),
-    @SchemaDoc("Android 4.1, Jelly Bean")
-    VERSION_16(16, outdated = true),
-    @SchemaDoc("Android 4.2, Jelly Bean")
-    VERSION_17(17, outdated = true),
-    @SchemaDoc("Android 4.3, Jelly Bean")
-    VERSION_18(18, outdated = true),
-    @SchemaDoc("Android 4.4, KitKat")
-    VERSION_19(19, outdated = true),
-    @SchemaDoc("Android 5.0, Lollipop")
-    VERSION_20(20, outdated = true),
-    @SchemaDoc("Android 5.0, Lollipop")
-    VERSION_21(21),
-    @SchemaDoc("Android 5.1, Lollipop")
-    VERSION_22(22),
-    @SchemaDoc("Android 6.0, Marshmallow")
-    VERSION_23(23),
-    @SchemaDoc("Android 7.0, Nougat")
-    VERSION_24(24),
-    @SchemaDoc("Android 7.1, Nougat")
-    VERSION_25(25),
-    @SchemaDoc("Android 8.0, Oreo")
-    VERSION_26(26),
-    @SchemaDoc("Android 8.1, Oreo")
-    VERSION_27(27),
-    @SchemaDoc("Android 9, Pie")
-    VERSION_28(28),
-    @SchemaDoc("Android 10, Q")
-    VERSION_29(29),
-    @SchemaDoc("Android 11, R")
-    VERSION_30(30),
-    @SchemaDoc("Android 12, S")
-    VERSION_31(31),
-    @SchemaDoc("Android 12L, S")
-    VERSION_32(32),
-    @SchemaDoc("Android 13, Tiramisu")
-    VERSION_33(33),
-    @SchemaDoc("Android 14, Upside Down Cake")
-    VERSION_34(34),
-    @SchemaDoc("Android 15, Vanilla Ice Cream")
-    VERSION_35(35),
-    @SchemaDoc("Android 16, Baklava")
-    VERSION_36(36),
-    @SchemaDoc("Android 17, Cinnamon Bun")
-    VERSION_37(37),
-    ;
+@JvmInline
+value class AndroidVersion(val versionNumber: Int): Comparable<AndroidVersion> {
+    override fun compareTo(other: AndroidVersion): Int = versionNumber.compareTo(other.versionNumber)
 
-    override val schemaValue = versionNumber.toString()
-
-    companion object Index : EnumMap<AndroidVersion, String>(AndroidVersion::values, AndroidVersion::schemaValue)
+    override fun toString(): String = versionNumber.toString()
 }
 
 class AndroidSettings : SchemaNode() {
     @Misnomers("minApiLevel")
     @SchemaDoc("Minimum API level needed to run the application. " +
             "[Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html)")
-    val minSdk by value(AndroidVersion.VERSION_24)
+    @KnownIntValues(37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21)
+    val minSdk by value(AndroidVersion(24))
 
     @Misnomers("maxApiLevel")
     @SchemaDoc("Maximum API level on which the application can run. " +
@@ -120,13 +40,15 @@ class AndroidSettings : SchemaNode() {
     @Misnomers("targetApiLevel")
     @SchemaDoc("The target API level for the application. " +
             "[Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html)")
+    @KnownIntValues(37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21)
     val targetSdk by referenceValue(::compileSdk)
 
     @CanBeReferenced // by targetSdk
     @Misnomers("compileApiLevel")
     @SchemaDoc("The API level to compile the code. The code can use only the Android APIs up to that API level. " +
             "[Read more](https://developer.android.com/reference/tools/gradle-api/com/android/build/api/dsl/CommonExtension#compileSdk())")
-    val compileSdk by value(AndroidVersion.VERSION_37)
+    @KnownIntValues(37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21)
+    val compileSdk by value(AndroidVersion(37))
 
     @CanBeReferenced // by applicationId
     @Misnomers("packageName")

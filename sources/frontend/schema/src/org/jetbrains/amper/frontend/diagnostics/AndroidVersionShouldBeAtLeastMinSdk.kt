@@ -36,8 +36,8 @@ class AndroidVersionShouldBeAtLeastMinSdk(
         get() = SchemaBundle.message(
             messageKey = "android.version.should.be.at.least.min.sdk",
             versionProp.name,
-            versionProp.value?.versionNumber,
-            minSdkVersion.versionNumber
+            versionProp.value,
+            minSdkVersion,
         )
 }
 

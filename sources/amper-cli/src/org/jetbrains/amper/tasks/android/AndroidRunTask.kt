@@ -32,7 +32,6 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.schema.AndroidVersion.VERSION_23
 import org.jetbrains.amper.frontend.singleSourceRoot
 import org.jetbrains.amper.processes.ProcessLeak
 import org.jetbrains.amper.processes.startLongLivedProcess
@@ -47,6 +46,7 @@ import kotlin.io.path.pathString
 import kotlin.io.path.readText
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import org.jetbrains.amper.frontend.schema.AndroidVersion as AmperAndroidVersion
 
 const val headlessEmulatorModePropertyName = "org.jetbrains.amper.android.emulator.headless"
 
@@ -89,7 +89,7 @@ class AndroidRunTask(
             .singleOrNull()?.artifacts?.firstOrNull() ?: error("Apk not found")
 
         // https://developer.android.com/about/versions/14/behavior-changes-all
-        val unsupportedMinSdk = androidFragment.settings.android.minSdk.versionNumber <= VERSION_23.versionNumber
+        val unsupportedMinSdk = androidFragment.settings.android.minSdk <= AmperAndroidVersion(23)
         val modernAndroidVersion = device.version >= AndroidVersion(UPSIDE_DOWN_CAKE, null)
         val extraArgs = if (unsupportedMinSdk && modernAndroidVersion) {
             arrayOf("--bypass-low-target-sdk-block")
