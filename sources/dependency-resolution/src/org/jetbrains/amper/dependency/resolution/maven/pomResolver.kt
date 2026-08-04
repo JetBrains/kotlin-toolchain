@@ -363,17 +363,39 @@ private enum class OsActivationParameter(
      * The value of parameter calculated based on the current system environment.
      */
     val value: String,
-    val systemProperty: String?,
+    /**
+     * The system properties the actual [value] is derived from.
+     *
+     * They are registered as dynamic inputs whenever this parameter takes part in an activation condition, so that a
+     * cached resolution is invalidated when the environment it was resolved in changes. Note that the architecture
+     * alone doesn't identify a host: without registering these, a resolution cached on Linux x64 would be reused on
+     * Windows x64, where different profiles are active.
+     */
+    val systemProperties: List<String>,
 ) {
-    OS_NAME(value = Os.OS_NAME, systemProperty = "os.name"),
-    OS_FAMILY(value = Os.OS_FAMILY, systemProperty = null),
-    OS_ARCH(value = Os.OS_ARCH, systemProperty = "os.arch"),
-    OS_VERSION(value = Os.OS_VERSION, systemProperty = "os.version") {
+    OS_NAME(value = Os.OS_NAME, systemProperties = ["os.name"]),
+
+    /**
+     * A host belongs to several OS families at once: macOS is both `mac` and `unix`, for instance.
+     *
+     * [Os.OS_FAMILY] is merely the first family of the host in an unspecified iteration order, so the expected family
+     * must be tested with [Os.isFamily] rather than compared to it. Comparing to [Os.OS_FAMILY] fails to activate
+     * `<family>unix</family>` profiles on macOS (where that first family is `mac`), while Maven activates them, see
+     * `org.apache.maven.model.profile.activation.OperatingSystemProfileActivator`.
+     */
+    // Plexus derives the family from 'os.name', and additionally uses 'path.separator' to tell 'unix' and 'dos' apart
+    OS_FAMILY(value = Os.OS_FAMILY, systemProperties = ["os.name", "path.separator"]) {
+        override fun matchesActualValue(expectedValue: String): Boolean = Os.isFamily(expectedValue)
+    },
+
+    OS_ARCH(value = Os.OS_ARCH, systemProperties = ["os.arch"]),
+
+    OS_VERSION(value = Os.OS_VERSION, systemProperties = ["os.version"]) {
         override fun matches(expectedRawValue: String?, dynamicInputs: DynamicInputs): Boolean {
             // If the expected value is not defined, => this condition matches without checking the actual value.
             if (expectedRawValue == null) return true
 
-            systemProperty?.let { getAndRegisterSystemProperty(it, dynamicInputs) }
+            registerSystemProperties(dynamicInputs)
 
             val actualVersion = value.lowercase()
             return if (expectedRawValue.startsWith("regex:")) {
@@ -388,13 +410,13 @@ private enum class OsActivationParameter(
         // If the expected value is not defined, => this condition matches without checking the actual value.
         if (expectedRawValue == null) return true
 
-        // Register system property used for calculation the actual value of activation parameters as proceed
-        systemProperty?.let { getAndRegisterSystemProperty(it, dynamicInputs) }
+        // Register system properties used for calculation the actual value of activation parameters as proceed
+        registerSystemProperties(dynamicInputs)
 
         val expectedValueNegative = expectedRawValue.startsWith("!")
         val expectedValue = if (expectedValueNegative) expectedRawValue.substring(startIndex = 1) else expectedRawValue
 
-        val valuesMatch = value.equals(expectedValue, ignoreCase = true)
+        val valuesMatch = matchesActualValue(expectedValue)
 
         // XOR?
         return if (expectedValueNegative) {
@@ -404,6 +426,19 @@ private enum class OsActivationParameter(
             // condition is met if the property value is defined and match
             valuesMatch
         }
+    }
+
+    /**
+     * Whether the current system environment matches the [expectedValue] declared in the activation condition
+     * (with the leading `!` of a negated condition already stripped).
+     */
+    open fun matchesActualValue(expectedValue: String): Boolean = value.equals(expectedValue, ignoreCase = true)
+
+    /**
+     * Registers the [systemProperties] this parameter is derived from as dynamic inputs of the resolution.
+     */
+    fun registerSystemProperties(dynamicInputs: DynamicInputs) {
+        systemProperties.forEach { getAndRegisterSystemProperty(it, dynamicInputs) }
     }
 }
 
