@@ -1,0 +1,8 @@
+root
+╰─── org.lwjglx:lwjgl3-awt:0.2.3
+     ├─── org.lwjgl:lwjgl-vulkan:3.3.5:natives-macos
+     │    ╰─── org.lwjgl:lwjgl:3.3.5
+     ├─── org.lwjgl:lwjgl:3.3.5
+     ├─── org.lwjgl:lwjgl-jawt:3.3.5
+     │    ╰─── org.lwjgl:lwjgl:3.3.5
+     ╰─── org.lwjgl:lwjgl:3.3.5:natives-macos
