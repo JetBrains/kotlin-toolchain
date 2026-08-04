@@ -35,7 +35,7 @@ class SerializationSettings : SchemaNode() {
             "automatically added to dependencies. When null, no format dependency is automatically added. " +
             "Prefer using the built-in catalog dependencies for this, as it gives control over the 'scope' and " +
             "'exported' properties.")
-    @KnownStringValues("json", "json-okio", "hocon", "protobuf", "cbor", "properties", "none")
+    @KnownStringValues("json", "json-io", "json-okio", "hocon", "protobuf", "cbor", "properties", "none")
     val format by nullableValue<String>(default = null)
 
     @SchemaDoc("The version of the kotlinx.serialization core and format libraries to use.")
