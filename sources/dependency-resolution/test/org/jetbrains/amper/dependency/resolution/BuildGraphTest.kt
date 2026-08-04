@@ -438,6 +438,52 @@ class BuildGraphTest : BaseDRTest() {
     }
 
     /**
+     * This test checks that the file path string used in the maven activation profile condition
+     * is correctly interpolated.
+     *
+     * In particular, the library 'org.nd4j:nd4j-cuda-10_2:1_0_0-beta6' declares dependency on
+     * 'org.bytedeco:cuda'
+     * <dependency>
+     *     <groupId>org.bytedeco</groupId>
+     *     <artifactId>cuda</artifactId>
+     *     <version>${cuda.version}-${cudnn.version}-${javacpp-presets.cuda.version}</version>
+     *     <classifier>${dependency.platform}</classifier>
+     * </dependency>
+     *
+     * The default value of the property 'dependency.platform' is an empty string.
+     * It is defined in the parent POM 'org.nd4j:nd4j-backend-impls'.
+     * But additionally, it is overridden in the parent POM
+     * in the auto-activated profile:
+     * <profile>
+     *     <id>javacpp-platform-default</id>
+     *     <activation>
+     *         <file>
+     *             <exists>${user.dir}</exists>
+     *         </file>
+     *     </activation>
+     *     <properties>
+     *         <dependency.platform>${javacpp.platform}</dependency.platform>
+     *         <dependency.platform2>${javacpp.platform}</dependency.platform2>
+     *     </properties>
+     * </profile>
+     *
+     * Profile is activated if the path '${user.dir}' exists.
+     * Before the fix, the property '${user.dir}' was not substituted by system property,
+     * profile was not activated, and in turn dependency ended up with an empty default classifier,
+     * effectively ignoring os-specific dependency:
+     * org.bytedeco:cuda:10.2-7.6-1.5.2:windows-x86_64
+     *
+     * The resulting classifier is the value of '${javacpp.platform}', i.e. '${os.name}-${os.arch}' as redefined by the
+     * os-specific profiles of the root POM 'org.deeplearning4j:deeplearning4j'.
+     * It thus depends on the host the test runs on, hence the os-specific golden files.
+     */
+    @Test
+    fun `org_nd4j nd4j-cuda-10_2 1_0_0-beta6`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(testInfo, verifyMessages = false)
+        assertFiles(testInfo, root)
+    }
+
+    /**
      * This test checks that the property 'project.artifactId' in pom.xml is correctly substituted
      */
     @Test

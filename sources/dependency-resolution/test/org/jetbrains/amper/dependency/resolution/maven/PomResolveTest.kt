@@ -299,5 +299,5 @@ class PomResolveTest: BaseDRTest() {
     }
 
     private suspend fun Project.isActivatedProfile(profileName: String) =
-        profiles?.profiles?.single { it.id == profileName }?.isActivated(SettingsBuilder().settings)
+        profiles?.profiles?.single { it.id == profileName }?.isActivated(SettingsBuilder().settings, this)
 }

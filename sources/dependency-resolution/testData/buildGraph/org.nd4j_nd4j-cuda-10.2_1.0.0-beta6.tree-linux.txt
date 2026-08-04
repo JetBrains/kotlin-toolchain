@@ -3,7 +3,7 @@ root
      ├─── org.bytedeco:javacpp:1.5.2
      ├─── org.bytedeco:cuda:10.2-7.6-1.5.2
      │    ╰─── org.bytedeco:javacpp:1.5.2
-     ├─── org.bytedeco:cuda:10.2-7.6-1.5.2:windows-x86_64
+     ├─── org.bytedeco:cuda:10.2-7.6-1.5.2:linux-x86_64
      │    ╰─── org.bytedeco:javacpp:1.5.2
      ├─── org.nd4j:nd4j-api:1.0.0-beta6
      │    ├─── com.jakewharton.byteunits:byteunits:0.9.1

@@ -30,6 +30,7 @@ import org.jetbrains.amper.dependency.resolution.metadata.xml.Profile
 import org.jetbrains.amper.dependency.resolution.metadata.xml.ProfileActivation
 import org.jetbrains.amper.dependency.resolution.metadata.xml.Project
 import org.jetbrains.amper.dependency.resolution.metadata.xml.Properties
+import org.jetbrains.amper.dependency.resolution.metadata.xml.expandTemplate
 import org.jetbrains.amper.dependency.resolution.metadata.xml.expandTemplates
 import org.jetbrains.amper.dependency.resolution.metadata.xml.managementKey
 import org.jetbrains.amper.dependency.resolution.metadata.xml.parsePom
@@ -112,7 +113,7 @@ private suspend fun Project.resolve(
             properties = withoutProfilesProperties + activeProfiles.properties(),
         ).let {
             val importedDependencyManagement =
-                it.resolveImportedDependencyManagement(context, resolutionLevel, diagnosticsReporter, depth)
+                it.resolveImportedDependencyManagement(context, resolutionLevel, diagnosticsReporter, depth, dynamicInputs)
             it.copy(
                 // Dependencies declared directly in pom.xml dependencyManagement section take precedence over directly imported dependencies,
                 // both in turn take precedence over parent dependencyManagement
@@ -122,7 +123,7 @@ private suspend fun Project.resolve(
         }
     } else if (parent != null && (groupId == null || artifactId == null || version == null)) {
         val importedDependencyManagement =
-            resolveImportedDependencyManagement(context, resolutionLevel, diagnosticsReporter, depth)
+            resolveImportedDependencyManagement(context, resolutionLevel, diagnosticsReporter, depth, dynamicInputs)
         copy(
             groupId = groupId ?: parent.groupId,
             artifactId = artifactId ?: parent.artifactId,
@@ -133,7 +134,7 @@ private suspend fun Project.resolve(
         )
     } else {
         val importedDependencyManagement =
-            resolveImportedDependencyManagement(context, resolutionLevel, diagnosticsReporter, depth)
+            resolveImportedDependencyManagement(context, resolutionLevel, diagnosticsReporter, depth, dynamicInputs)
         copy(
             dependencies = activeProfiles.dependencies() + dependencies,
             dependencyManagement = activeProfiles.dependencyManagement() + dependencyManagement + importedDependencyManagement,
@@ -219,8 +220,8 @@ private suspend fun Project.resolveImportedDependencyManagement(
     resolutionLevel: ResolutionLevel,
     diagnosticsReporter: DiagnosticReporter,
     depth: Int,
+    dynamicInputs: DynamicInputs,
 ): DependencyManagement? {
-    val dynamicInputs = getDynamicInputs()
     return dependencyManagement
         ?.dependencies
         ?.dependencies
@@ -292,28 +293,35 @@ private fun List<Profile>.dependencyManagement(): DependencyManagement? {
 
 private suspend fun Project.activeProfiles(settings: Settings, withoutProfileProperties: Properties?): List<Profile> {
     val profiles = this.profiles?.profiles ?: return emptyList()
+    // properties defined by the profiles themselves are not known yet,
+    // the inherited ones are all that can be used for the interpolation of an activation file path
+    val projectWithoutProfileProperties = copy(properties = withoutProfileProperties)
 
     val activatedProfiles =
-        profiles.filter { it.isActivated(settings) }.takeIf { it.isNotEmpty() }
+        profiles.filter { it.isActivated(settings, projectWithoutProfileProperties) }.takeIf { it.isNotEmpty() }
             ?: profiles.filter { it.isActiveByDefault() }
 
     return activatedProfiles
 }
 
-internal suspend fun Profile.isActivated(settings: Settings): Boolean {
-    return activation != null && activation.isActivated(settings)
+/**
+ * @param project the pom the profile belongs to, with the properties inherited from its parents;
+ * its properties take part in the interpolation of an activation file path.
+ */
+internal suspend fun Profile.isActivated(settings: Settings, project: Project): Boolean {
+    return activation != null && activation.isActivated(settings, project)
 }
 
-private suspend fun List<ProfileActivation>.isActivated(settings: Settings) =
-    isNotEmpty() && this.all { it.isActivated(settings) }
+private suspend fun List<ProfileActivation>.isActivated(settings: Settings, project: Project) =
+    isNotEmpty() && this.all { it.isActivated(settings, project) }
 
-private suspend fun ProfileActivation.isActivated(settings: Settings): Boolean {
+private suspend fun ProfileActivation.isActivated(settings: Settings, project: Project): Boolean {
     val dynamicInputs = getDynamicInputs()
     return when {
         jdk != null -> jdk.isActiveJdk(settings, dynamicInputs)
         os != null -> os.isActive(dynamicInputs)
         property != null -> property.isActive(dynamicInputs)
-        file != null -> file.isActive(dynamicInputs)
+        file != null -> file.isActive(project, dynamicInputs)
         else -> false
     }
 }
@@ -401,20 +409,30 @@ private enum class OsActivationParameter(
 
 private const val REGEX_PREFIX: String = "regex:"
 
-private fun ActivationFile.isActive(dynamicInputs: DynamicInputs): Boolean {
-    // todo (AB) : Support interpolation
-    // todo (AB) : See https://github.com/apache/maven/blob/f1cada5c1248dc0cd6252e737c292d018bfcfa80/compat/maven-model-builder/src/main/java/org/apache/maven/model/profile/activation/FileProfileActivator.java#L90
-    val [actualPath, existing] = if (!exists.isNullOrBlank()) {
-        exists.toPath()  to true
+/**
+ * Checks the `<file>` profile activation condition the same way Maven does, see
+ * `org.apache.maven.model.profile.activation.FileProfileActivator`.
+ */
+private fun ActivationFile.isActive(project: Project, dynamicInputs: DynamicInputs): Boolean {
+    val [declaredPath, existing] = if (!exists.isNullOrBlank()) {
+        exists to true
     } else if (!missing.isNullOrBlank()) {
-        missing.toPath()  to false
+        missing to false
     } else {
         // both conditions are omitted, there is no path to check => condition is not met
         return false
     }
 
-    // Path is presented but can't be parsed
-    actualPath ?: return false
+    val actualPath = declaredPath
+        // Maven declines interpolation of the path referencing the project directory if the latter is unknown,
+        // and the pom of an external library has no project directory
+        .takeIf { !it.contains($$"${basedir}") }
+        ?.expandTemplate(project, dynamicInputs)
+        // the path is presented but can't be parsed
+        ?.toPath()
+        // a relative path could only be resolved against the project directory, and an external library pom has none
+        ?.takeIf { it.isAbsolute }
+        ?: return false
 
     // Register path used in profile activation condition as proceed
     val actualPathExists = dynamicInputs.checkPathExistence(actualPath)

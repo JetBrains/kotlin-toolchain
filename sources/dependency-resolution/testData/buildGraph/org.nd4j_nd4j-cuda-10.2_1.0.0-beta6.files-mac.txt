@@ -5,7 +5,7 @@ commons-io-2.5.jar
 commons-lang3-3.6.jar
 commons-math3-3.5.jar
 commons-net-3.1.jar
-cuda-10.2-7.6-1.5.2-windows-x86_64.jar
+cuda-10.2-7.6-1.5.2-macosx-aarch64.jar
 cuda-10.2-7.6-1.5.2.jar
 flatbuffers-java-1.10.0.jar
 guava-1.0.0-beta6.jar
