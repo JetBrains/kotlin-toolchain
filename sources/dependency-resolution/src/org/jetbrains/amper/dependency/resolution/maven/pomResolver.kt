@@ -34,10 +34,10 @@ import org.jetbrains.amper.dependency.resolution.metadata.xml.expandTemplates
 import org.jetbrains.amper.dependency.resolution.metadata.xml.managementKey
 import org.jetbrains.amper.dependency.resolution.metadata.xml.parsePom
 import org.jetbrains.amper.dependency.resolution.metadata.xml.plus
+import org.jetbrains.amper.dependency.resolution.metadata.xml.systemPropertyOrEnvironmentVariable
 import org.jetbrains.amper.dependency.resolution.resolveSingleVersion
 import org.jetbrains.amper.incrementalcache.DynamicInputs
 import org.jetbrains.amper.incrementalcache.getDynamicInputs
-import org.jetbrains.amper.system.info.OsFamily
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CancellationException
 import java.util.regex.Pattern
@@ -91,22 +91,25 @@ private suspend fun Project.resolve(
         diagnosticsReporter.addMessage(ProjectHasMoreThanTenAncestors.asMessage(origin))
         return this
     }
-    val parentNode = parent?.let { context.createOrReuseDependency(it.coordinates, isBom = false) }
+    val parentProject = parent
+        ?.let { context.createOrReuseDependency(it.coordinates, isBom = false) }
+        ?.takeIf { it.pom.isDownloadedOrDownload(resolutionLevel, context, diagnosticsReporter) }
+        ?.let {
+            val text = it.pom.readText()
+            it.parsePom(text).resolve(context, resolutionLevel, diagnosticsReporter, depth + 1, origin)
+        }
+    val dynamicInputs = getDynamicInputs()
 
-    val activeProfiles = this.activeProfiles(context.settings)
+    val withoutProfilesProperties: Properties? = parentProject?.properties + properties
+    val activeProfiles = this.activeProfiles(context.settings, withoutProfilesProperties)
 
-    val project = if (parentNode != null
-        && parentNode.pom.isDownloadedOrDownload(resolutionLevel, context, diagnosticsReporter)
-    ) {
-        val text = parentNode.pom.readText()
-        val parentProject =
-            parentNode.parsePom(text).resolve(context, resolutionLevel, diagnosticsReporter, depth + 1, origin)
+    val project = if (parentProject != null) {
         copy(
             groupId = groupId ?: parentProject.groupId,
             artifactId = artifactId ?: parentProject.artifactId,
             version = version ?: parentProject.version,
             dependencies = activeProfiles.dependencies() + dependencies + parentProject.dependencies,
-            properties = parentProject.properties + properties + activeProfiles.properties(),
+            properties = withoutProfilesProperties + activeProfiles.properties(),
         ).let {
             val importedDependencyManagement =
                 it.resolveImportedDependencyManagement(context, resolutionLevel, diagnosticsReporter, depth)
@@ -126,7 +129,7 @@ private suspend fun Project.resolve(
             version = version ?: parent.version,
             dependencies = activeProfiles.dependencies() + dependencies,
             dependencyManagement = activeProfiles.dependencyManagement() + dependencyManagement + importedDependencyManagement,
-            properties = properties + activeProfiles.properties(),
+            properties = withoutProfilesProperties + activeProfiles.properties(),
         )
     } else {
         val importedDependencyManagement =
@@ -134,20 +137,21 @@ private suspend fun Project.resolve(
         copy(
             dependencies = activeProfiles.dependencies() + dependencies,
             dependencyManagement = activeProfiles.dependencyManagement() + dependencyManagement + importedDependencyManagement,
-            properties = properties + activeProfiles.properties(),
+            properties = withoutProfilesProperties + activeProfiles.properties(),
         )
     }
 
     val dependencyManagement = project.dependencyManagement?.copy(
         dependencies = project.dependencyManagement.dependencies?.copy(
-            dependencies = project.dependencyManagement.dependencies.dependencies.map { it.expandTemplates(project) }
+            dependencies = project.dependencyManagement.dependencies.dependencies
+                .map { it.expandTemplates(project, dynamicInputs) }
         )
     )
 
-    val dependencies = project.getEffectiveDependencies(dependencyManagement)
+    val dependencies = project.getEffectiveDependencies(dependencyManagement, dynamicInputs)
 
     return project
-        .expandTemplates()
+        .expandTemplates(dynamicInputs)
         .copy(
             dependencies = dependencies?.let { Dependencies(it) },
             dependencyManagement = dependencyManagement
@@ -157,12 +161,15 @@ private suspend fun Project.resolve(
 /**
  * @return raw project dependencies with resolved declarations.
  * Unspecified versions are resolved from the dependencyManagement section (if any),
- * Project properties used in the dependencies declaration are substituted with actual values.
+ * Project properties used in the dependency declaration are substituted with actual values.
  */
-private fun Project.getEffectiveDependencies(dependencyManagement: DependencyManagement?): List<Dependency>? =
+private fun Project.getEffectiveDependencies(
+    dependencyManagement: DependencyManagement?,
+    dynamicInputs: DynamicInputs,
+): List<Dependency>? =
     dependencies
     ?.dependencies
-    ?.map { it.expandTemplates(this) } // expanding properties used in groupId/artifactId
+    ?.map { it.expandTemplates(this, dynamicInputs) } // expanding properties used in groupId/artifactId
     ?.map { dep ->
         // Version and scope are set in the dependency itself
         if (dep.version != null && dep.scope != null) {
@@ -190,9 +197,9 @@ private fun Project.getEffectiveDependencies(dependencyManagement: DependencyMan
         // Return the dependency as is if no source for version and scope is found
         dep
     }
-    ?.map { it.expandTemplates(this) }
+    ?.map { it.expandTemplates(this, dynamicInputs) }
     // Maven interpolates the model before merging the pom sections; thus, declarations that differ by
-    // a property reference only (e.g. by a classifier that expands to an empty value) are a single dependency.
+    // a property reference only (e.g., by a classifier that expands to an empty value) are a single dependency.
     ?.distinctBy { it.managementKey }
 
 /**
@@ -212,27 +219,30 @@ private suspend fun Project.resolveImportedDependencyManagement(
     resolutionLevel: ResolutionLevel,
     diagnosticsReporter: DiagnosticReporter,
     depth: Int,
-): DependencyManagement? = dependencyManagement
-    ?.dependencies
-    ?.dependencies
-    ?.map { it.expandTemplates(this) }
-    ?.mapNotNull {
-        if (it.scope == "import" && it.version != null) {
-            val dependency = context.createOrReuseDependency(it.coordinates, isBom = true)
-            if (dependency.pom.isDownloadedOrDownload(resolutionLevel, context, diagnosticsReporter)) {
-                val text = dependency.pom.readText()
-                val dependencyProject =
-                    dependency.parsePom(text).resolve(context, resolutionLevel, diagnosticsReporter, depth + 1)
-                dependencyProject.dependencyManagement
+): DependencyManagement? {
+    val dynamicInputs = getDynamicInputs()
+    return dependencyManagement
+        ?.dependencies
+        ?.dependencies
+        ?.map { it.expandTemplates(this, dynamicInputs) }
+        ?.mapNotNull {
+            if (it.scope == "import" && it.version != null) {
+                val dependency = context.createOrReuseDependency(it.coordinates, isBom = true)
+                if (dependency.pom.isDownloadedOrDownload(resolutionLevel, context, diagnosticsReporter)) {
+                    val text = dependency.pom.readText()
+                    val dependencyProject =
+                        dependency.parsePom(text).resolve(context, resolutionLevel, diagnosticsReporter, depth + 1)
+                    dependencyProject.dependencyManagement
+                } else {
+                    null
+                }
             } else {
                 null
             }
-        } else {
-            null
         }
-    }
-    ?.takeIf { it.isNotEmpty() }
-    ?.reduce(DependencyManagement::plus)
+        ?.takeIf { it.isNotEmpty() }
+        ?.reduce(DependencyManagement::plus)
+}
 
 
 private fun MavenDependency.parsePom(text: String): Project =
@@ -243,7 +253,7 @@ private fun sanitizePom(pomText: String, coordinates: MavenCoordinates): String 
         || coordinates.artifactId == "plexus-root")
         pomText.replace("&oslash;", "ø")
     else if (coordinates.artifactId == "hadoop-project")
-        // Removing Xlint: prefix (that is recognized as an unknown namespace by XML parser making entire XML invalid)
+        // Removing Xlint: prefix (that is recognized as an unknown namespace by XML parser, making entire XML invalid)
         pomText
             .replace("<Xlint:-", "<")
             .replace("<Xlint:", "<")
@@ -280,7 +290,7 @@ private fun List<Profile>.dependencyManagement(): DependencyManagement? {
     return dependencyManagement.takeIf { it?.dependencies?.dependencies?.isNotEmpty() == true }
 }
 
-private suspend fun Project.activeProfiles(settings: Settings): List<Profile> {
+private suspend fun Project.activeProfiles(settings: Settings, withoutProfileProperties: Properties?): List<Profile> {
     val profiles = this.profiles?.profiles ?: return emptyList()
 
     val activatedProfiles =
@@ -310,9 +320,6 @@ private suspend fun ProfileActivation.isActivated(settings: Settings): Boolean {
 
 private fun getAndRegisterSystemProperty(name: String, dynamicInputs: DynamicInputs): String? =
     dynamicInputs.readSystemProperty(name)
-
-private fun getAndRegisterEnvironmentVariable(name: String, dynamicInputs: DynamicInputs): String? =
-    dynamicInputs.readEnv(name)
 
 private fun String.isActiveJdk(settings: Settings, dynamicInputs: DynamicInputs): Boolean {
     val actualVersion = settings.jdkVersion?.value
@@ -345,7 +352,7 @@ private fun ActivationOS.isActive(dynamicInputs: DynamicInputs): Boolean {
 
 private enum class OsActivationParameter(
     /**
-     * Value of parameter calculated based on the current system environment.
+     * The value of parameter calculated based on the current system environment.
      */
     val value: String,
     val systemProperty: String?,
@@ -423,14 +430,8 @@ private fun ActivationProperty.isActive(dynamicInputs: DynamicInputs): Boolean {
     val propertyNameNegative = name.startsWith("!")
     val propertyName = if (propertyNameNegative) name.substring(startIndex = 1) else name
 
-    val actualPropertyValue = if (propertyName.startsWith("env.")) {
-        propertyName.substringAfter("env.")
-            .let { if (OsFamily.current.isWindows) it.uppercase() else it }
-            .let { getAndRegisterEnvironmentVariable(it, dynamicInputs) }
-    } else {
-        // todo (AB) : Support special property 'packaging' that should be taken from the POM file of a children of this parent POM.
-        getAndRegisterSystemProperty(propertyName, dynamicInputs)
-    }
+    // todo (AB) : Support special property 'packaging' that should be taken from the POM file of a children of this parent POM.
+    val actualPropertyValue = dynamicInputs.systemPropertyOrEnvironmentVariable(propertyName)
 
     return if (propertyNameNegative) {
         // condition is met if the property is not defined

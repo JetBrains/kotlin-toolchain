@@ -25,6 +25,8 @@ import nl.adaptivity.xmlutil.serialization.XmlChildrenName
 import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import org.jetbrains.amper.dependency.resolution.resolveSingleVersion
+import org.jetbrains.amper.incrementalcache.DynamicInputs
+import org.jetbrains.amper.system.info.OsFamily
 
 internal val xml = XML {
     defaultPolicy {
@@ -433,31 +435,37 @@ data class ActivationOS(
     val version: String? = null,
 )
 
-internal fun Dependency.expandTemplates(project: Project): Dependency = copy(
-    groupId = groupId.expandTemplate(project),
-    artifactId = artifactId.expandTemplate(project),
-    version = version?.expandTemplate(project)?.takeIf{ it.isNotBlank() }?.resolveSingleVersion(),
-    type = type?.expandTemplate(project)?.takeIf{ it.isNotBlank() },
-    classifier = classifier?.expandTemplate(project)?.takeIf{ it.isNotBlank() },
-    scope = scope?.expandTemplate(project)?.takeIf{ it.isNotBlank() },
+internal fun Dependency.expandTemplates(project: Project, dynamicInputs: DynamicInputs): Dependency = copy(
+    groupId = groupId.expandTemplate(project, dynamicInputs),
+    artifactId = artifactId.expandTemplate(project, dynamicInputs),
+    version = version?.expandTemplate(project, dynamicInputs)?.takeIf{ it.isNotBlank() }?.resolveSingleVersion(),
+    type = type?.expandTemplate(project, dynamicInputs)?.takeIf{ it.isNotBlank() },
+    classifier = classifier?.expandTemplate(project, dynamicInputs)?.takeIf{ it.isNotBlank() },
+    scope = scope?.expandTemplate(project, dynamicInputs)?.takeIf{ it.isNotBlank() },
 )
 
-internal fun Project.expandTemplates(): Project = copy(
-    packaging = packaging?.expandTemplate(this),
-    artifactId = artifactId?.expandTemplate(this),
-    groupId = groupId?.expandTemplate(this),
-    version = version?.expandTemplate(this),
+internal fun Project.expandTemplates(dynamicInputs: DynamicInputs): Project = copy(
+    packaging = packaging?.expandTemplate(this, dynamicInputs),
+    artifactId = artifactId?.expandTemplate(this, dynamicInputs),
+    groupId = groupId?.expandTemplate(this, dynamicInputs),
+    version = version?.expandTemplate(this, dynamicInputs),
 )
 
-internal fun String.expandTemplate(project: Project): String {
-    if (!contains("\${") || !contains("}")) {
+/**
+ * Substitutes references to the properties used in this string with their actual values the way Maven does
+ * (see `org.apache.maven.model.interpolation.AbstractStringBasedModelInterpolator.createValueSources`):
+ * built-in properties of the project, and the properties declared in its pom take precedence
+ * over system properties and environment variables.
+ */
+internal fun String.expandTemplate(project: Project, dynamicInputs: DynamicInputs): String {
+    if (!contains($$"${") || !contains("}")) {
         return this
     }
 
-    val keyStarts = indexOf("\${")
+    val keyStarts = indexOf($$"${")
     val keyEnds = indexOf("}")
 
-    val key = substring(keyStarts + "\${".length, keyEnds)
+    val key = substring(keyStarts + $$"${".length, keyEnds)
 
     // Maven resolves built-in properties prefixed with 'pom.'
     // the same way it resolves built-in properties prefixed with 'project.'
@@ -477,15 +485,34 @@ internal fun String.expandTemplate(project: Project): String {
         }
     } else null
 
-    val value = if (builtInPropertyValue != null) {
-        builtInPropertyValue
-    } else {
-        if (project.properties?.properties?.containsKey(key) != true) return this
-        project.properties.properties.get(key) ?: "" // null value works as well
-    }
+    val value = builtInPropertyValue
+        ?: project.properties?.properties?.let { properties ->
+            if (properties.containsKey(key)) properties[key] ?: "" else null // null value works as well
+        }
+        ?: dynamicInputs.systemPropertyOrEnvironmentVariable(key)
+        // Maven keeps the references it failed to resolve as is
+        ?: return this
 
-    val expandedValue = substring(0, keyStarts) + value.expandTemplate(project) + substring(keyEnds + 1, this.length)
+    val expandedValue = substring(0, keyStarts) +
+            value.expandTemplate(project, dynamicInputs) +
+            substring(keyEnds + 1, this.length)
 
     // recursively replace all later properties in the given string
-    return expandedValue.expandTemplate(project)
+    return expandedValue.expandTemplate(project, dynamicInputs)
 }
+
+/**
+ * Resolves the value of the property [name] as Maven does: names prefixed with `env.` refer to environment variables,
+ * the rest refer to system properties.
+ *
+ * The access is registered as a dynamic input so that the cached resolution result is invalidated
+ * once the value changes.
+ */
+internal fun DynamicInputs.systemPropertyOrEnvironmentVariable(name: String): String? =
+    if (name.startsWith("env.")) {
+        name.substringAfter("env.")
+            .let { if (OsFamily.current.isWindows) it.uppercase() else it }
+            .let { readEnv(it) }
+    } else {
+        readSystemProperty(name)
+    }
