@@ -185,6 +185,40 @@ class AmperTestFormatTest : AmperCliTestBase() {
         }
 
         @Test
+        fun `suite abortion should print in pretty output`() = runSlowTest {
+            val r = runCli(
+                projectDir = testProject("jvm-suite-aborted-tests"),
+                "test",
+                assertEmptyStdErr = false,
+            )
+
+            val expectedAbortionOutput = """
+                Started SuiteAbortedTest
+                Aborted SuiteAbortedTest
+                           => Reason: Assumption failed: Suite setup was aborted
+            """.trimIndent()
+            r.assertStdoutContains(expectedAbortionOutput)
+        }
+
+        @Test
+        fun `suite abortion should print an ignored suite in teamcity service messages`() = runSlowTest {
+            val r = runCli(
+                projectDir = testProject("jvm-suite-aborted-tests"),
+                "test",
+                "--format=teamcity",
+                assertEmptyStdErr = false,
+            )
+
+            val serviceMessages = parseTeamCityServiceMessages(r.stdout)
+            val expectedMessages = buildServiceMessages {
+                suiteWithFlow("SuiteAbortedTest", locationHint = "java:suite://SuiteAbortedTest") {
+                    testSuiteIgnored("Assumption failed: Suite setup was aborted")
+                }
+            }
+            assertServiceMessagesEqual(expectedMessages, serviceMessages)
+        }
+
+        @Test
         fun `junit 4 tests should print teamcity service messages`() {
             runSlowTest {
                 val r = runCli(
@@ -377,6 +411,29 @@ class AmperTestFormatTest : AmperCliTestBase() {
                 }
                 assertServiceMessagesEqual(expectedMessages, serviceMessages)
             }
+        }
+
+        @Test
+        fun `junit 5 assumptions should print in pretty output`() = runSlowTest {
+            val r = runCli(
+                projectDir = testProject("jvm-aborted-tests"),
+                "test",
+                assertEmptyStdErr = false,
+            )
+
+            val expectedAbortionOutput = """
+                Started AbortedTest
+                Started assumeWithoutMessage()
+                running assume without message
+                Aborted assumeWithoutMessage()
+                           => Reason: Assumption failed: assumption is not true
+                Started assumeWithMessage()
+                running assume with message
+                Aborted assumeWithMessage()
+                           => Reason: Assumption failed: 1 is not equal to 2 in this universe
+                Completed AbortedTest
+            """.trimIndent()
+            r.assertStdoutContains(expectedAbortionOutput)
         }
 
         @Test
