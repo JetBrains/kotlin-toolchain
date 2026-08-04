@@ -149,6 +149,7 @@ private class BuiltInCatalog(
             put("compose.runtime", library("org.jetbrains.compose.runtime:runtime", composeVersion))
             put("compose.runtimeSaveable", library("org.jetbrains.compose.runtime:runtime-saveable", composeVersion))
             put("compose.ui", library("org.jetbrains.compose.ui:ui", composeVersion))
+            put("compose.uiBackHandler", library("org.jetbrains.compose.ui:ui-backhandler", composeVersion))
             put("compose.uiTest", library("org.jetbrains.compose.ui:ui-test", composeVersion))
             put("compose.uiTooling", library("org.jetbrains.compose.ui:ui-tooling", composeVersion))
 
