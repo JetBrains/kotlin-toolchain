@@ -161,39 +161,27 @@ class JUnitEventTestListener(
 
         val duration = startTimes.remove(testIdentifier.uniqueIdObject)?.elapsedNow()?.inWholeMilliseconds
         val throwable = result.throwable.getOrNull()
+        val assertion = throwable as? AssertionFailedError
+        val expected = assertion?.expected?.value
+        val actual = assertion?.actual?.value
 
         if (testIdentifier.type == TestDescriptor.Type.CONTAINER) {
             when (result.status) {
-                TestExecutionResult.Status.SUCCESSFUL ->
-                    emit(JUnitEventProtocol.Event.SuiteFinished(testIdentifier.uniqueId, duration))
-                TestExecutionResult.Status.ABORTED ->
-                    emit(JUnitEventProtocol.Event.SuiteAborted(testIdentifier.uniqueId, duration, throwable?.message ?: "Test was aborted"))
-                // TODO: Can it happen (if there is exception in the setup e.g.)?
-                TestExecutionResult.Status.FAILED -> {}
-            }
-            return
-        }
-
-        when (result.status) {
-            TestExecutionResult.Status.SUCCESSFUL -> emit(
-                JUnitEventProtocol.Event.Succeeded(
-                    testIdentifier.uniqueId,
-                    duration
+                TestExecutionResult.Status.SUCCESSFUL -> emit(
+                    JUnitEventProtocol.Event.SuiteFinished(
+                        testIdentifier.uniqueId,
+                        duration,
+                    )
                 )
-            )
-            TestExecutionResult.Status.ABORTED -> emit(
-                JUnitEventProtocol.Event.TestAborted(
-                    id = testIdentifier.uniqueId,
-                    durationMillis = duration,
-                    abortMessage = throwable?.message ?: "Test was aborted"
+                TestExecutionResult.Status.ABORTED -> emit(
+                    JUnitEventProtocol.Event.SuiteAborted(
+                        testIdentifier.uniqueId,
+                        duration,
+                        throwable?.message ?: "Test was aborted",
+                    )
                 )
-            )
-            TestExecutionResult.Status.FAILED -> {
-                val assertion = throwable as? AssertionFailedError
-                val expected = assertion?.expected?.value
-                val actual = assertion?.actual?.value
-                emit(
-                    JUnitEventProtocol.Event.Failed(
+                TestExecutionResult.Status.FAILED -> emit(
+                    JUnitEventProtocol.Event.SuiteFailed(
                         id = testIdentifier.uniqueId,
                         durationMillis = duration,
                         failureMessage = throwable?.message ?: "Test failed without exception",
@@ -205,6 +193,35 @@ class JUnitEventTestListener(
                     )
                 )
             }
+            return
+        }
+
+        when (result.status) {
+            TestExecutionResult.Status.SUCCESSFUL -> emit(
+                JUnitEventProtocol.Event.Succeeded(
+                    testIdentifier.uniqueId,
+                    duration,
+                )
+            )
+            TestExecutionResult.Status.ABORTED -> emit(
+                JUnitEventProtocol.Event.TestAborted(
+                    id = testIdentifier.uniqueId,
+                    durationMillis = duration,
+                    abortMessage = throwable?.message ?: "Test was aborted",
+                )
+            )
+            TestExecutionResult.Status.FAILED -> emit(
+                JUnitEventProtocol.Event.Failed(
+                    id = testIdentifier.uniqueId,
+                    durationMillis = duration,
+                    failureMessage = throwable?.message ?: "Test failed without exception",
+                    stackTrace = throwable?.stackTraceToString(),
+                    expected = if (expected is FileInfo) String(expected.contents) else assertion?.expected?.stringRepresentation,
+                    actual = if (actual is FileInfo) String(actual.contents) else assertion?.actual?.stringRepresentation,
+                    expectedFilePath = (expected as? FileInfo)?.path?.let(Path::of),
+                    actualFilePath = (actual as? FileInfo)?.path?.let(Path::of),
+                )
+            )
         }
     }
 

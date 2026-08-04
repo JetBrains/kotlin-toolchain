@@ -23,6 +23,7 @@ import org.jetbrains.amper.testevents.TestStarted
 import org.jetbrains.amper.testevents.TestStderrEvent
 import org.jetbrains.amper.testevents.TestStdoutEvent
 import org.jetbrains.amper.testevents.TestSuiteAborted
+import org.jetbrains.amper.testevents.TestSuiteFailed
 import org.jetbrains.amper.testevents.TestSuiteFinished
 import org.jetbrains.amper.testevents.TestSuiteSkipped
 import org.jetbrains.amper.testevents.TestSuiteStarted
@@ -79,6 +80,28 @@ internal class TeamCityRenderer(
                 emit(flowFinished(event.testId))
             }
             is TestSuiteAborted -> finishIgnoredSuite(event.testId, event.abortMessage)
+            is TestSuiteFailed -> {
+                val syntheticTest = TestDescriptor(
+                    id = TestId("${event.testId.value}/<suite>"),
+                    parentId = event.testId,
+                    displayName = "<suite>",
+                    teamCityName = "${name(event.testId)}: <suite>",
+                )
+                render(TestStarted(syntheticTest))
+                render(
+                    TestFinished.Failed(
+                        testId = syntheticTest.id,
+                        duration = event.duration,
+                        failureMessage = event.failureMessage,
+                        stackTrace = event.stackTrace,
+                        expected = event.expected,
+                        actual = event.actual,
+                        expectedFilePath = event.expectedFilePath,
+                        actualFilePath = event.actualFilePath,
+                    )
+                )
+                render(TestSuiteFinished(event.testId, event.duration))
+            }
             is TestSuiteSkipped -> {
                 // We have to emit test suite started message for TC
                 renderStarted(event.descriptor) { name, locationHint ->

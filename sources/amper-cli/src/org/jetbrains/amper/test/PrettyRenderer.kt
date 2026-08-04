@@ -18,6 +18,7 @@ import org.jetbrains.amper.testevents.TestStarted
 import org.jetbrains.amper.testevents.TestStderrEvent
 import org.jetbrains.amper.testevents.TestStdoutEvent
 import org.jetbrains.amper.testevents.TestSuiteAborted
+import org.jetbrains.amper.testevents.TestSuiteFailed
 import org.jetbrains.amper.testevents.TestSuiteFinished
 import org.jetbrains.amper.testevents.TestSuiteSkipped
 import org.jetbrains.amper.testevents.TestSuiteStarted
@@ -40,6 +41,10 @@ internal class PrettyRenderer(
             is TestSuiteAborted -> descriptors[event.testId]?.let {
                 print(PrettyTestEvent.Aborted, it.displayName)
                 detail(PrettyTestEvent.Aborted.style, "Reason", event.abortMessage)
+            }
+            is TestSuiteFailed -> descriptors[event.testId]?.let {
+                print(PrettyTestEvent.Failed, it.displayName)
+                detail(PrettyTestEvent.Failed.style, "Exception", event.stackTrace ?: event.failureMessage)
             }
             is TestSuiteSkipped -> {
                 print(PrettyTestEvent.Skipped, event.descriptor.displayName)

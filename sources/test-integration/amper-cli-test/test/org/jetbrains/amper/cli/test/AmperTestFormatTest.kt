@@ -133,6 +133,58 @@ class AmperTestFormatTest : AmperCliTestBase() {
         }
 
         @Test
+        fun `suite failure in pretty output`() = runSlowTest {
+            val r = runCli(
+                projectDir = testProject("jvm-suite-failure"),
+                "test",
+                assertEmptyStdErr = false,
+                expectedExitCode = 1,
+            )
+
+            val expectedFailureOutput = """
+                Started SuiteFailureTest
+                Failed SuiteFailureTest
+                           => Exception: java.lang.IllegalStateException: Suite setup failed
+                                at SuiteFailureTest.setUp(tests.kt:13)
+            """.trimIndent()
+            r.assertStdoutContains(expectedFailureOutput)
+        }
+
+        @Test
+        fun `suite failure should print a synthetic failing test in teamcity service messages`() = runSlowTest {
+            val r = runCli(
+                projectDir = testProject("jvm-suite-failure"),
+                "test",
+                "--format=teamcity",
+                assertEmptyStdErr = false,
+                expectedExitCode = 1,
+            )
+
+            val serviceMessages = parseTeamCityServiceMessages(r.stdout)
+            val expectedMessages = buildServiceMessages {
+                suiteWithFlow("SuiteFailureTest", locationHint = "java:suite://SuiteFailureTest") {
+                    testWithFlow(
+                        name = "SuiteFailureTest: <suite>",
+                        displayName = "<suite>",
+                    ) {
+                        testFailed(
+                            message = "java.lang.IllegalStateException: Suite setup failed",
+                            serializedStackTrace = "java.lang.IllegalStateException: Suite setup failed$ENL\tat SuiteFailureTest.setUp(tests.kt:13)$ENL",
+                        )
+                    }
+                }
+            }
+
+            // TODO: JUnit Launcher has no way to disable summary in case of failures.
+            //  Thus, we simply ignore unattributed messages for the sake of this test. Later, when we have our own
+            //  launcher this filtering can be removed.
+            val actualMessagesWithoutSummary = serviceMessages.filterNot {
+                (it is TestStdOut || it is TestStdErr) && it.testName.isBlank()
+            }
+            assertServiceMessagesEqual(expectedMessages, actualMessagesWithoutSummary)
+        }
+
+        @Test
         fun `junit 4 tests should print teamcity service messages`() {
             runSlowTest {
                 val r = runCli(

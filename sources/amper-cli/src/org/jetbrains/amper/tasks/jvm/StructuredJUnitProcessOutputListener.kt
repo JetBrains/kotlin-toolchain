@@ -18,6 +18,7 @@ import org.jetbrains.amper.testevents.TestStarted
 import org.jetbrains.amper.testevents.TestStderrEvent
 import org.jetbrains.amper.testevents.TestStdoutEvent
 import org.jetbrains.amper.testevents.TestSuiteAborted
+import org.jetbrains.amper.testevents.TestSuiteFailed
 import org.jetbrains.amper.testevents.TestSuiteFinished
 import org.jetbrains.amper.testevents.TestSuiteSkipped
 import org.jetbrains.amper.testevents.TestSuiteStarted
@@ -62,6 +63,16 @@ internal class StructuredJUnitProcessOutputListener(
         )
         is JUnitEventProtocol.Event.SuiteFinished -> TestSuiteFinished(TestId(id), durationMillis?.milliseconds)
         is JUnitEventProtocol.Event.SuiteAborted -> TestSuiteAborted(TestId(id), durationMillis?.milliseconds, abortMessage)
+        is JUnitEventProtocol.Event.SuiteFailed -> TestSuiteFailed(
+            testId = TestId(id),
+            duration = durationMillis?.milliseconds,
+            failureMessage = failureMessage,
+            stackTrace = stackTrace,
+            expected = expected,
+            actual = actual,
+            expectedFilePath = expectedFilePath,
+            actualFilePath = actualFilePath,
+        )
         is JUnitEventProtocol.Event.SuiteSkipped -> TestSuiteSkipped(
             TestDescriptor(
                 TestId(id),

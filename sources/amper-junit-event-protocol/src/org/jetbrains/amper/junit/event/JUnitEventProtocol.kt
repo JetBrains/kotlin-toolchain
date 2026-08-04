@@ -71,6 +71,21 @@ object JUnitEventProtocol {
             }
         }
 
+        data class SuiteFailed(
+            val id: String,
+            val durationMillis: Long?,
+            val failureMessage: String,
+            val stackTrace: String?,
+            val expected: String?,
+            val actual: String?,
+            val expectedFilePath: Path?,
+            val actualFilePath: Path?,
+        ) : Event {
+            companion object {
+                const val TYPE = "suiteFailed"
+            }
+        }
+
         data class SuiteFinished(
             val id: String,
             val durationMillis: Long?,
@@ -223,6 +238,16 @@ object JUnitEventProtocol {
                 Key.Duration to event.durationMillis?.toString(),
                 Key.Message to event.abortMessage,
             )
+            is Event.SuiteFailed -> Event.SuiteFailed.TYPE to fields(
+                Key.Id to event.id,
+                Key.Duration to event.durationMillis?.toString(),
+                Key.Message to event.failureMessage,
+                Key.StackTrace to event.stackTrace,
+                Key.Expected to event.expected,
+                Key.Actual to event.actual,
+                Key.ExpectedFile to event.expectedFilePath?.pathString,
+                Key.ActualFile to event.actualFilePath?.pathString,
+            )
             is Event.SuiteSkipped -> Event.SuiteSkipped.TYPE to fields(
                 Key.Id to event.id,
                 Key.ParentId to event.parentId,
@@ -336,6 +361,16 @@ object JUnitEventProtocol {
             id = fields.required(Key.Id),
             durationMillis = fields.long(Key.Duration),
             abortMessage = fields.required(Key.Message),
+        )
+        Event.SuiteFailed.TYPE -> Event.SuiteFailed(
+            id = fields.required(Key.Id),
+            durationMillis = fields.long(Key.Duration),
+            failureMessage = fields.required(Key.Message),
+            stackTrace = fields[Key.StackTrace],
+            expected = fields[Key.Expected],
+            actual = fields[Key.Actual],
+            expectedFilePath = fields[Key.ExpectedFile]?.let(Path::of),
+            actualFilePath = fields[Key.ActualFile]?.let(Path::of),
         )
         Event.SuiteSkipped.TYPE -> Event.SuiteSkipped(
             id = fields.required(Key.Id),

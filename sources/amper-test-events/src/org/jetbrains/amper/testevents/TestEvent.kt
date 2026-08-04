@@ -87,6 +87,21 @@ data class TestSuiteAborted(
 ) : TestEvent
 
 /**
+ * Signals that a test suite failed.
+ */
+@Serializable
+data class TestSuiteFailed(
+    val testId: TestId,
+    val duration: Duration?,
+    val failureMessage: String,
+    val stackTrace: String? = null,
+    val expected: String? = null,
+    val actual: String? = null,
+    val expectedFilePath: SerializablePath? = null,
+    val actualFilePath: SerializablePath? = null,
+) : TestEvent
+
+/**
  * Signals that a test suite has finished.
  */
 @Serializable
