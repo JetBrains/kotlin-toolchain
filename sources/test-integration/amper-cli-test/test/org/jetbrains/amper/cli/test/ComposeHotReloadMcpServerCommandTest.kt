@@ -35,7 +35,7 @@ class ComposeHotReloadMcpServerCommandTest : AmperCliTestBase() {
         timeout = 300.seconds,
     ) {
         val buildDir = tempRoot / "build"
-        val liveLogs = Channel<String>()
+        val liveLogs = Channel<String>(capacity = Channel.UNLIMITED)
         val mcpServer = launch {
             try {
                 runCli(
