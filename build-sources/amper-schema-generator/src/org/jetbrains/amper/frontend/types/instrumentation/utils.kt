@@ -8,6 +8,7 @@ import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.asTypeName
+import org.jetbrains.amper.frontend.api.DefaultTrace
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.SchemaValueDelegate
 import org.jetbrains.amper.frontend.api.TraceableValue
@@ -18,6 +19,7 @@ import kotlin.contracts.contract
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
 internal fun FileSpec.Builder.addGeneratedComment() = addFileComment(
@@ -59,7 +61,9 @@ internal fun defaultToCode(default: Any?): CodeBlock = when (default) {
     is Boolean, is Int -> CodeBlock.of("%L", default)
     is String -> CodeBlock.of("%S", default)
     is Path, is File -> CodeBlock.of("%M(%S)", PathConstructor, default.toString())
-    is TraceableValue<*> -> defaultToCode(default.value)
+    is TraceableValue<*> -> CodeBlock.of("%T(%L, %T)", TraceableValue::class, defaultToCode(default.value), DefaultTrace::class).also {
+        check(default.trace === DefaultTrace) { "The default should have a default trace" }
+    }
     is Enum<*> -> CodeBlock.of("%T.%N", default::class, default.name)
     is List<*> -> CodeBlock.builder().apply {
         if (default.isEmpty()) {
@@ -73,7 +77,14 @@ internal fun defaultToCode(default: Any?): CodeBlock = when (default) {
     is Map<*, *> -> CodeBlock.of("emptyMap<Nothing, Nothing>()").also {
         check(default.isEmpty()) { "Only empty map is supported as a default value" }
     }
-    else -> error("Unexpected default value: $default")
+    else -> {
+        val clazz = default::class
+        if (clazz.isValue) {
+            val value = clazz.memberProperties.single().call(default)
+            return CodeBlock.of("%T(%L)", clazz, defaultToCode(value))
+        }
+        error("Unexpected default value: $default")
+    }
 }
 
 context(generator: Generator)
@@ -129,25 +140,43 @@ private fun WrappingInfoDescriptor.toWrapValueCodeBlock(): CodeBlock = if (isTra
     } ?: CodeBlock.of("null")
 }
 
+private fun WrappingInfoDescriptor.toUnwrapValueCodeBlock(): CodeBlock = if (isTraceableWrapped) {
+    valueClassWrapper?.let {
+        CodeBlock.of(
+            "{ v -> (v as %T<*>).value?.let { (it as %T).%N } }",
+            TraceableValue::class,
+            it.wrapperClass,
+            it.valuePropertyName,
+        )
+    } ?: CodeBlock.of("{ v -> (v as %T<*>).value }", TraceableValue::class)
+} else {
+    valueClassWrapper?.let {
+        CodeBlock.of("{ v -> v?.let { (it as %T).%N } }", it.wrapperClass, it.valuePropertyName)
+    } ?: CodeBlock.of("null")
+}
+
 internal fun WrappingInfoDescriptor?.toCodeBlock(): CodeBlock = when (this) {
     null -> CodeBlock.of("null")
     is WrappingInfoDescriptor.List -> CodeBlock.of(
-        "%T(elementInfo = %L, wrapValue = %L)",
+        "%T(elementInfo = %L, wrapValue = %L, unwrapValue = %L)",
         SchemaValueWrappingInfo.List::class,
         elementInfo.toCodeBlock(),
         toWrapValueCodeBlock(),
+        toUnwrapValueCodeBlock(),
     )
     is WrappingInfoDescriptor.Map -> CodeBlock.of(
-        "%T(keyInfo = %L, valueInfo = %L, wrapValue = %L)",
+        "%T(keyInfo = %L, valueInfo = %L, wrapValue = %L, unwrapValue = %L)",
         SchemaValueWrappingInfo.Map::class,
         keyInfo.toCodeBlock(),
         valueInfo.toCodeBlock(),
         toWrapValueCodeBlock(),
+        toUnwrapValueCodeBlock(),
     )
     is WrappingInfoDescriptor.Plain -> CodeBlock.of(
-        "%T(wrapValue = %L)",
+        "%T(wrapValue = %L, unwrapValue = %L)",
         SchemaValueWrappingInfo.Plain::class,
         toWrapValueCodeBlock(),
+        toUnwrapValueCodeBlock(),
     )
 }
 

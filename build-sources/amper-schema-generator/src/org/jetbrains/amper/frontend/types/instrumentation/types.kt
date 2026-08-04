@@ -111,6 +111,7 @@ internal sealed interface WrappingInfoDescriptor {
 data class ValueClassWrapperInfo(
     val wrapperClass: KClass<*>,
     val valueType: KType,
+    val valuePropertyName: String,
 )
 
 /**
@@ -318,7 +319,8 @@ internal fun schemaTypeExpression(
             }
         }
         classifier.isValue -> {
-            val underlyingType = checkNotNull(classifier.primaryConstructor).parameters.single().type
+            val primaryConstructor = checkNotNull(classifier.primaryConstructor)
+            val underlyingType = primaryConstructor.parameters.single().type
             check(underlyingType.classifier != TraceableValue::class) {
                 "$annotated: `value class Foo(val value: TraceableValue<Bar>); Foo` is not supported, " +
                         "use `value class Foo(val value: Bar); TraceableValue<Foo>` instead"
@@ -331,10 +333,13 @@ internal fun schemaTypeExpression(
                 type = underlyingType
                     // Pass the correct nullability
                     .withNullability(nullable = type.isMarkedNullable),
+                // Pass annotated element further
+                annotated = annotated,
             ).let {
                 val valueClassWrapperInfo = ValueClassWrapperInfo(
                     wrapperClass = classifier,
                     valueType = underlyingType,
+                    valuePropertyName = checkNotNull(primaryConstructor.parameters.single().name),
                 )
                 it.copy(
                     instantiationInfo = it.instantiationInfo?.copy(

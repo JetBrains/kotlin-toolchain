@@ -12,6 +12,7 @@ import org.jetbrains.amper.frontend.api.TraceableValue
 import org.jetbrains.amper.frontend.contexts.DefaultContext
 import org.jetbrains.amper.frontend.types.SchemaObjectDeclaration
 import org.jetbrains.amper.frontend.types.SchemaType
+import org.jetbrains.amper.frontend.types.SchemaValueWrappingInfo
 import org.jetbrains.amper.stdlib.collections.associateByNotNull
 import java.nio.file.Path
 
@@ -20,7 +21,7 @@ import java.nio.file.Path
  */
 internal fun createDefault(property: SchemaObjectDeclaration.Property): RefinedKeyValue? {
     val default = property.default ?: return null
-    val value = default.toTreeValue(property.type, DefaultTrace)
+    val value = default.toTreeValue(property.type, DefaultTrace, property.wrappingInfo)
     return RefinedKeyValue(DefaultTrace, value, property, DefaultTrace)
 }
 
@@ -30,8 +31,12 @@ private fun createDefaultProperties(declaration: SchemaObjectDeclaration): Map<S
         valueTransform = ::createDefault,
     )
 
-internal fun Default.toTreeValue(type: SchemaType, trace: Trace): RefinedTreeNode = when (this) {
-    is Default.Static -> toTreeValue(type, trace)
+internal fun Default.toTreeValue(
+    type: SchemaType,
+    trace: Trace,
+    wrappingInfo: SchemaValueWrappingInfo? = null,
+): RefinedTreeNode = when (this) {
+    is Default.Static -> toTreeValue(type, trace, wrappingInfo)
     is Default.NestedObject -> {
         check(type is SchemaType.ObjectType)
         check(type.declaration.properties.all { it.default != null }) {
@@ -44,12 +49,17 @@ internal fun Default.toTreeValue(type: SchemaType, trace: Trace): RefinedTreeNod
     )
 }
 
-fun Default.Static.toTreeValue(type: SchemaType, trace: Trace): RefinedTreeNode {
+fun Default.Static.toTreeValue(
+    type: SchemaType,
+    trace: Trace,
+    wrappingInfo: SchemaValueWrappingInfo? = null,
+): RefinedTreeNode {
     // TODO: Clean the `when` up here, because not all the values are possible now that the schema is generated.
     //  or even better - get rid of the untyped `Any` in the `Static.value` at all.
 
-    // TODO: Remove this `unwrapTraceable` call when defaults are reworked
-    val value = value.unwrapTraceable()
+    // TODO: Remove this unwrapping madness when defaults are reworked
+    //  Unwrap traceable is still needed because reference resolution creates static defaults
+    val value = wrappingInfo?.unwrapValue?.invoke(value) ?: value.unwrapTraceable()
     return if (value == null) {
         check(type.isMarkedNullable) {
             "Null default is specified for non-nullable $type"
@@ -80,7 +90,13 @@ fun Default.Static.toTreeValue(type: SchemaType, trace: Trace): RefinedTreeNode 
             check(value.isEmpty() || type.elementType is SchemaType.ScalarType) {
                 "Non-empty lists as defaults are allowed only for lists with scalar element types"
             }
-            val children = value.map { Default.Static(it).toTreeValue(type.elementType, trace) }
+            val children = value.map {
+                Default.Static(it).toTreeValue(
+                    type.elementType,
+                    trace,
+                    (wrappingInfo as? SchemaValueWrappingInfo.List)?.elementInfo,
+                )
+            }
             RefinedListNode(children, trace, TypeLevelDefaultContexts)
         }
         is SchemaType.MapType -> {
