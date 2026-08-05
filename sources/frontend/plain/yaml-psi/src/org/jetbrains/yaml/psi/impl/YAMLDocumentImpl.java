@@ -1,6 +1,7 @@
 // Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.yaml.psi.impl;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.psi.PsiElementVisitor;
@@ -12,7 +13,7 @@ import org.jetbrains.yaml.psi.YAMLDocument;
 import org.jetbrains.yaml.psi.YAMLValue;
 import org.jetbrains.yaml.psi.YamlPsiElementVisitor;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 public class YAMLDocumentImpl extends YAMLPsiElementImpl implements YAMLDocument {
   public YAMLDocumentImpl(final @NotNull ASTNode node) {
@@ -53,8 +54,8 @@ public class YAMLDocumentImpl extends YAMLPsiElementImpl implements YAMLDocument
       }
 
       @Override
-      public @Nullable Icon getIcon(boolean unused) {
-        return null;
+      public @NotNull Icon getIcon(boolean unused) {
+        return AllIcons.Json.Object;
       }
     };
   }

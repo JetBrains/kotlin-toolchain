@@ -5,20 +5,47 @@
 
 package org.toml.lang.psi.impl
 
-//import com.intellij.ide.projectView.PresentationData
+import com.intellij.ide.projectView.PresentationData
 import com.intellij.lang.ASTFactory
 import com.intellij.navigation.ItemPresentation
-import com.intellij.psi.*
+import com.intellij.psi.LiteralTextEscaper
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.PsiLanguageInjectionHost
+import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry
 import com.intellij.psi.impl.source.tree.CompositeElement
 import com.intellij.psi.impl.source.tree.CompositePsiElement
 import com.intellij.psi.impl.source.tree.LeafElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
-import org.toml.lang.psi.*
-import org.toml.lang.psi.TomlElementTypes.*
+import org.toml.lang.psi.TOML_BASIC_STRINGS
+import org.toml.lang.psi.TOML_SINGLE_LINE_STRINGS
+import org.toml.lang.psi.TOML_STRING_LITERALS
+import org.toml.lang.psi.TomlArray
+import org.toml.lang.psi.TomlArrayTable
+import org.toml.lang.psi.TomlElement
+import org.toml.lang.psi.TomlElementTypes.ARRAY
+import org.toml.lang.psi.TomlElementTypes.ARRAY_TABLE
+import org.toml.lang.psi.TomlElementTypes.INLINE_TABLE
+import org.toml.lang.psi.TomlElementTypes.KEY
+import org.toml.lang.psi.TomlElementTypes.KEY_SEGMENT
+import org.toml.lang.psi.TomlElementTypes.KEY_VALUE
+import org.toml.lang.psi.TomlElementTypes.LITERAL
+import org.toml.lang.psi.TomlElementTypes.TABLE
+import org.toml.lang.psi.TomlElementTypes.TABLE_HEADER
+import org.toml.lang.psi.TomlInlineTable
+import org.toml.lang.psi.TomlKey
+import org.toml.lang.psi.TomlKeySegment
+import org.toml.lang.psi.TomlKeyValue
+import org.toml.lang.psi.TomlLiteral
+import org.toml.lang.psi.TomlLiteralTextEscaper
+import org.toml.lang.psi.TomlPsiFactory
+import org.toml.lang.psi.TomlTable
+import org.toml.lang.psi.TomlTableHeader
+import org.toml.lang.psi.TomlValue
+import org.toml.lang.psi.TomlVisitor
 import org.toml.lang.psi.ext.TomlLiteralKind
-import javax.swing.Icon
 
 
 class TomlKeyValueImpl(type: IElementType) : CompositePsiElement(type), TomlKeyValue {
@@ -46,15 +73,7 @@ class TomlKeySegmentImpl(type: IElementType) : CompositePsiElement(type), TomlKe
         return replace(TomlPsiFactory(project).createKeySegment(name))
     }
 
-    override fun getPresentation(): ItemPresentation = object: ItemPresentation {
-        override fun getPresentableText(): String? {
-            return name
-        }
-
-        override fun getIcon(unused: Boolean): Icon? {
-            return null
-        }
-    }
+    override fun getPresentation(): ItemPresentation = PresentationData(name, null, null, null)
 
     override fun toString(): String = "TomlKeySegment"
     override fun getReferences(): Array<PsiReference> = ReferenceProvidersRegistry.getReferencesFromProviders(this)

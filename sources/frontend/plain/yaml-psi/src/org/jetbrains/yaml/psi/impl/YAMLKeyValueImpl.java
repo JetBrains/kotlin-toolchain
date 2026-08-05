@@ -14,6 +14,7 @@ import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ObjectUtils;
+import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,12 +22,18 @@ import org.jetbrains.yaml.YAMLElementGenerator;
 import org.jetbrains.yaml.YAMLElementTypes;
 import org.jetbrains.yaml.YAMLTokenTypes;
 import org.jetbrains.yaml.YAMLUtil;
-import org.jetbrains.yaml.psi.*;
+import org.jetbrains.yaml.psi.YAMLCompoundValue;
+import org.jetbrains.yaml.psi.YAMLFile;
+import org.jetbrains.yaml.psi.YAMLKeyValue;
+import org.jetbrains.yaml.psi.YAMLMapping;
+import org.jetbrains.yaml.psi.YAMLScalar;
+import org.jetbrains.yaml.psi.YAMLValue;
+import org.jetbrains.yaml.psi.YamlPsiElementVisitor;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 public class YAMLKeyValueImpl extends YAMLPsiElementImpl implements YAMLKeyValue, PsiDeclaredTarget {
-  public static final Icon YAML_KEY_ICON = null;
+  public static final Icon YAML_KEY_ICON = PlatformIcons.PROPERTY_ICON;
 
   public YAMLKeyValueImpl(final @NotNull ASTNode node) {
     super(node);
@@ -151,7 +158,7 @@ public class YAMLKeyValueImpl extends YAMLPsiElementImpl implements YAMLKeyValue
   }
 
   @Override
-  protected @Nullable Icon getElementIcon(@IconFlags int flags) {
+  protected @NotNull Icon getElementIcon(@IconFlags int flags) {
     return YAML_KEY_ICON;
   }
 

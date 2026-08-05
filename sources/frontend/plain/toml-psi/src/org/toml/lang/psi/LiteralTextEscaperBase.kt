@@ -1,8 +1,4 @@
 /*
- * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
- */
-
-/*
  * Use of this source code is governed by the MIT license that can be
  * found in the LICENSE file.
  */
@@ -20,7 +16,7 @@ abstract class LiteralTextEscaperBase<T : PsiLanguageInjectionHost>(host: T) : L
 
     override fun decode(rangeInsideHost: TextRange, outChars: StringBuilder): Boolean {
         val subText = rangeInsideHost.substring(myHost.text)
-        val [offsets, result] = parseStringCharacters(subText, outChars)
+        val (offsets, result) = parseStringCharacters(subText, outChars)
         outSourceOffsets = offsets
         return result
     }

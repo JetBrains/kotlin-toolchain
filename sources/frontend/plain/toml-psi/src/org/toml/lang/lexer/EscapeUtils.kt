@@ -6,7 +6,9 @@
 package org.toml.lang.lexer
 
 import com.intellij.lexer.Lexer
-import com.intellij.psi.StringEscapesTokenTypes.*
+import com.intellij.psi.StringEscapesTokenTypes.INVALID_CHARACTER_ESCAPE_TOKEN
+import com.intellij.psi.StringEscapesTokenTypes.INVALID_UNICODE_ESCAPE_TOKEN
+import com.intellij.psi.StringEscapesTokenTypes.VALID_STRING_ESCAPE_TOKEN
 import com.intellij.psi.tree.IElementType
 
 fun esc(test: Boolean): IElementType = if (test) VALID_STRING_ESCAPE_TOKEN else INVALID_CHARACTER_ESCAPE_TOKEN
@@ -29,7 +31,7 @@ inline fun parseStringCharacters(
 ): Boolean {
     val outOffset = outChars.length
     var index = 0
-    for ([type, text] in chars.tokenize(lexer)) {
+    for ((type, text) in chars.tokenize(lexer)) {
         // Set offset for the decoded character to the beginning of the escape sequence.
         sourceOffsets[outChars.length - outOffset] = index
         sourceOffsets[outChars.length - outOffset + 1] = index + 1

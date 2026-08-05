@@ -6,11 +6,17 @@
 package org.toml.lang.psi.ext
 
 import com.intellij.lang.ASTNode
-import org.toml.lang.psi.LiteralOffsets
 import org.toml.lang.lexer.unescapeToml
+import org.toml.lang.psi.LiteralOffsets
 import org.toml.lang.psi.TOML_LITERALS
 import org.toml.lang.psi.TOML_STRING_LITERALS
-import org.toml.lang.psi.TomlElementTypes.*
+import org.toml.lang.psi.TomlElementTypes.BASIC_STRING
+import org.toml.lang.psi.TomlElementTypes.BOOLEAN
+import org.toml.lang.psi.TomlElementTypes.DATE_TIME
+import org.toml.lang.psi.TomlElementTypes.LITERAL_STRING
+import org.toml.lang.psi.TomlElementTypes.MULTILINE_BASIC_STRING
+import org.toml.lang.psi.TomlElementTypes.MULTILINE_LITERAL_STRING
+import org.toml.lang.psi.TomlElementTypes.NUMBER
 import org.toml.lang.psi.TomlLiteral
 
 val TomlLiteral.kind: TomlLiteralKind?
@@ -46,7 +52,7 @@ sealed class TomlLiteralKind(val node: ASTNode) {
 }
 
 fun offsetsForTomlText(node: ASTNode): LiteralOffsets {
-    val [quote, needEscape] = when (node.elementType) {
+    val (quote, needEscape) = when (node.elementType) {
         BASIC_STRING -> "\"" to true
         MULTILINE_BASIC_STRING -> "\"\"\""  to true
         LITERAL_STRING -> "'"  to false
@@ -57,11 +63,11 @@ fun offsetsForTomlText(node: ASTNode): LiteralOffsets {
     val openDelimEnd = doLocate(node, 0) { if (it.startsWith(quote)) quote.length else 0 }
     val valueEnd = doLocate(node, openDelimEnd) { text ->
         var escape = false
-        for ((val index, val ch = value) in text.withIndex()) {
+        for ((i, ch) in text.withIndex()) {
             when {
                 escape -> escape = false
                 needEscape && ch == '\\' -> escape = true
-                text.startsWith(quote, index) -> return@doLocate index
+                text.startsWith(quote, i) -> return@doLocate i
             }
         }
         text.length
