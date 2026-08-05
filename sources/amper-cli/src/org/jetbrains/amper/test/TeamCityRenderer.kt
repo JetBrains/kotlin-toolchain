@@ -122,9 +122,6 @@ internal class TeamCityRenderer(
                 finish(event.testId, event.duration?.inWholeMilliseconds?.toInt() ?: 0)
             }
             is TestStdoutEvent -> {
-                // TeamCity treats each stdout/stderr message as a new line, so new lines captured are introducing
-                // extra redundant newlines.
-                if (event.text == System.lineSeparator()) return
                 val testId = event.testId
                 if (testId == null) {
                     // TODO: Attribute output without a test ID to the root flow of its test session.
@@ -137,9 +134,6 @@ internal class TeamCityRenderer(
                 }
             }
             is TestStderrEvent -> {
-                // TeamCity treats each stdout/stderr message as a new line, so new lines captured are introducing
-                // extra redundant newlines.
-                if (event.text == System.lineSeparator()) return
                 val testId = event.testId
                 if (testId == null) {
                     // TODO: Attribute output without a test ID to the root flow of its test session.

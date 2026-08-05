@@ -38,20 +38,8 @@ internal class PrettyRenderer(
                 descriptors[event.descriptor.id] = event.descriptor
                 print(PrettyTestEvent.TestStarted, event.descriptor.displayName)
             }
-            is TestStdoutEvent -> {
-                // TODO: There is an issue with the animation widget that always appends new line to every print
-                //  request. For this reason, we ignore \n events in interactive terminal because they produce
-                //  extra blank lines between test messages.
-                if (event.text == System.lineSeparator() && terminal.terminalInfo.interactive) return
-                terminal.rawPrint(event.text)
-            }
-            is TestStderrEvent -> {
-                // TODO: There is an issue with the animation widget that always appends new line to every print
-                //  request. For this reason, we ignore \n events in interactive terminal because they produce
-                //  extra blank lines between test messages.
-                if (event.text == System.lineSeparator() && terminal.terminalInfo.interactive) return
-                terminal.rawPrint(event.text, stderr = true)
-            }
+            is TestStdoutEvent -> terminal.rawPrint(event.text)
+            is TestStderrEvent -> terminal.rawPrint(event.text, stderr = true)
             is TestFinished.Succeeded -> descriptors[event.testId]?.let { print(PrettyTestEvent.Succeeded, it.displayName) }
             is TestFinished.Skipped -> descriptors[event.testId]?.let {
                 print(PrettyTestEvent.Skipped, it.displayName)

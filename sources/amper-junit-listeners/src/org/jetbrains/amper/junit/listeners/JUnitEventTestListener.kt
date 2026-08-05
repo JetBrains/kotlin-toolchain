@@ -48,11 +48,11 @@ class JUnitEventTestListener(
      */
     private val startTimes = ConcurrentHashMap<UniqueId, TimeMark>()
 
-    private val stdout = watchedStream(System.out) { test, text ->
+    private val stdout = threadAwarePrintStream(threadLocalKey = currentTest) { test, text ->
         emit(JUnitEventProtocol.Event.TestStdout(test?.uniqueId, text))
     }
 
-    private val stderr = watchedStream(System.err) { test, text ->
+    private val stderr = threadAwarePrintStream(threadLocalKey = currentTest) { test, text ->
         emit(JUnitEventProtocol.Event.TestStderr(test?.uniqueId, text))
     }
 
@@ -132,8 +132,8 @@ class JUnitEventTestListener(
     override fun executionFinished(testIdentifier: TestIdentifier, result: TestExecutionResult) {
         if (shouldIgnore(testIdentifier)) return
         // make sure partial output at the end of the tests is reported
-        stdout.forceFlush()
-        stderr.forceFlush()
+        stdout.flush()
+        stderr.flush()
 
         val parent = currentTestPlan.get()
             ?.getParent(testIdentifier)
@@ -298,22 +298,4 @@ class JUnitEventTestListener(
             is MethodSource -> "${source.className}."
             else -> ""
         }
-
-    /**
-     * Wraps the given [original] stream in a [ThreadAwareEavesdroppingPrintStream] that associate output to tests using the
-     * given [currentTest] thread local.
-     *
-     * **Note:** this is not a 100% reliable solution, as it only associate the output with the test if it is printed from
-     * the test's original thread, or a child of that thread.
-     */
-    private fun watchedStream(
-        original: PrintStream,
-        handler: (TestIdentifier?, String) -> Unit,
-    ): ThreadAwareEavesdroppingPrintStream<TestIdentifier?> =
-        ThreadAwareEavesdroppingPrintStream(
-            original = original,
-            threadLocalKey = currentTest,
-            forwardToOriginalStream = false,
-            allowPartialLineFlush = true,
-        ) { test, text -> handler(test, text) }
 }

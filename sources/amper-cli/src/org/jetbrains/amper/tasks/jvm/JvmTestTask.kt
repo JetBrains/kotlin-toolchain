@@ -149,6 +149,11 @@ class JvmTestTask(
             if (ComparableVersion(jvmTestSettings.junitPlatformVersion) >= FirstJUnitPlatformVersionWithDeprecatedVintageEngine) {
                 add("-Djunit.vintage.discovery.issue.reporting.enabled=false")
             }
+            // TODO: Can be removed when the minimal JDK version is raised to 18+ where it became the default.
+            //  We have to set encoding to UTF-8 because ProcessOutputListener gets lines from bytes interpreted as UTF-8.
+            add("-Dfile.encoding=UTF-8")
+            add("-Dstdout.encoding=UTF-8")
+            add("-Dstderr.encoding=UTF-8")
 
             addAll(jvmTestSettings.systemProperties.map { [k, v] -> "-D${k.value}=${v.value}" })
             addAll(jvmTestSettings.freeJvmArgs)
