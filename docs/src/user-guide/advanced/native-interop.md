@@ -30,6 +30,15 @@ for the `cinterop` directory to limit interop definitions to specific platforms 
     instead of having separate platform-specific files under, e.g., `cinterop@linux` and `cinterop@macos`.
     Both approaches are currently valid - use the one you prefer.
 
+## Bundled C headers (`include` directory)
+
+If your interop needs C header files that are not available on the system (for example, headers vendored 
+alongside your module), you can place them in an `include` directory next to your `.def` files.
+
+The Kotlin Toolchain will automatically detect this directory and pass it to the `cinterop` tool as an 
+additional header search path (equivalent to passing `-I<path-to-include>` as a compiler option). 
+No configuration in your `module.yaml` is required.
+
 ## Advanced usage
 
 If you need the `.def` file generated or provisioned (for example, to implement custom library location or provisioning logic),
