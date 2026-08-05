@@ -59,6 +59,7 @@ fun renderMessage(problem: BuildProblem): @Nls String = when (problem) {
 private fun renderComposeMaterial3UnknownVersionMapping(problem: ComposeMaterial3UnknownVersionMappingProblem) = buildString {
     appendLine(problem.message)
     append(SchemaBundle.message("compose.material3.unknown.mapping.compose.version", problem.composeVersion))
+    append(" ")
     appendFileSource(PsiBuildProblemSource(problem.composeVersionTrace.extractPsiElement()))
 }
 
