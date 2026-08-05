@@ -1,0 +1,11 @@
+# Consumes the 'noSources' library, which has no sources at all, and thus no klib for its native platforms.
+# The dependencies re-exported by that library must still be available here.
+product:
+  type: kmp/lib
+  platforms: [jvm, linuxX64]
+
+apply:
+  - ../common.module-template.yaml
+
+dependencies:
+  - org.jetbrains.kotlintoolchain.kmp.sample:noSources:1.0.0

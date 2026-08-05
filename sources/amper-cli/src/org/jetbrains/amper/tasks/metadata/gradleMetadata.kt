@@ -213,12 +213,19 @@ private fun LeafFragment.toGradleMetadataAvailableAtVariant(
     )
 }
 
+/**
+ * Generates the Gradle module metadata file for the given leaf [platform] of the given [module].
+ *
+ * [platformSpecificArtifact] is the main artifact published for this platform (a jar, a klib, etc.), or null if the
+ * module doesn't produce any (which is the case for modules without sources). In the latter case, the variants of
+ * this platform simply have no main file.
+ */
 suspend fun generateGradleMetadataForLeafPlatform(
     module: AmperModule,
     platform: Platform,
     outputDir: Path,
     checksums: Map<String, List<MavenPublishable>>,
-    platformSpecificArtifact: Path,
+    platformSpecificArtifact: Path?,
     platformSpecificCinteropArtifacts: List<Path>,
     platformSpecificSourcesJar: Path? = null,
     overrides: PublicationCoordinatesOverrides,
@@ -230,9 +237,9 @@ suspend fun generateGradleMetadataForLeafPlatform(
     val variants: List<GradleVariant> = buildList {
         val scopes = getApplicableVariantScopes(leafFragment)
         scopes.forEach { scope ->
-            val mainArtifact = platformSpecificArtifact.toGradleMetadataFile(leafFragment, checksums = checksums)
+            val mainArtifact = platformSpecificArtifact?.toGradleMetadataFile(leafFragment, checksums = checksums)
             val cinteropArtifacts = platformSpecificCinteropArtifacts.map { it.toGradleMetadataFile(leafFragment, checksums = checksums, isCinterop = true) }
-            add(leafFragment.toGradleVariant(scope, isSources = false, [ mainArtifact ] + cinteropArtifacts, overrides))
+            add(leafFragment.toGradleVariant(scope, isSources = false, listOfNotNull(mainArtifact) + cinteropArtifacts, overrides))
         }
 
         if (module.publishingSettings.publishSources && platformSpecificSourcesJar != null) {

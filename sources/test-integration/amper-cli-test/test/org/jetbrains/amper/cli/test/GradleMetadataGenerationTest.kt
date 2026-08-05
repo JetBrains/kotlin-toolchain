@@ -102,6 +102,32 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
         assertMetadataFilesEquals("jvmLib-1.0.0.module", "module.json", testInfo, "edgeCase_jvmLib")
     }
 
+    /**
+     * A module without any sources is a valid module (only `module.yaml` is required, all sources are optional),
+     * and it must be publishable. Such a module produces no main artifact for some platforms (no klib for native
+     * platforms, in particular), which used to crash the publication with an internal error (see KTC-5652).
+     * The variants of such platforms are published without any main file.
+     *
+     * Note about the `*.original_gradle.json` reference files: KGP cannot publish this module at all, its
+     * `generateMetadataFileForLinuxX64Publication` task fails with a `FileNotFoundException` for the klib that was
+     * never compiled. Only the root and JVM publications can be generated with Gradle, and they match ours (up to
+     * the usual differences with KGP: `createdBy`, file sizes/checksums, the `name` of the JVM jar, and the
+     * `kotlin-stdlib` dependency that KGP also adds to API variants).
+     */
+    @Test
+    fun `kmp library without sources`(testInfo: TestInfo) = runSlowTest {
+        runCli(projectDir = testProject("multiplatform-library-template-main"),
+            "task",
+            ":edgeCase_noSources:prepareMavenPublishables",
+        )
+
+        assertMetadataFilesEquals("noSources-1.0.0.module", "module.json", testInfo, "edgeCase_noSources")
+
+        assertMetadataFilesEquals("noSources-jvm-1.0.0.module", "jvm.module.json", testInfo, "edgeCase_noSources")
+
+        assertMetadataFilesEquals("noSources-linuxx64-1.0.0.module", "linuxX64.module.json", testInfo, "edgeCase_noSources")
+    }
+
     private fun assertMetadataFilesEquals(
         artifactName: String,
         expectedArtifactFileName: String,

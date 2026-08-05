@@ -21,7 +21,6 @@ import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -42,6 +41,7 @@ class KmpPublicationTest : AmperCliTestBase() {
                         add("edgeCase_jvmLib")
                         add("edgeCase_jvmPlusAndroid")
                         add("edgeCase_kmpSinglePlatform")
+                        add("edgeCase_noSources")
                         add("edgeCase_wasmJsPlusWasmWasi")
                         add("library")
                         add("linuxWindowsShared")
@@ -138,6 +138,21 @@ class KmpPublicationTest : AmperCliTestBase() {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
             "build", "--module=nativePlatformConsumer",
+        )
+    }
+
+    /**
+     * This test checks that a published source-less library is consumable from another KMP project.
+     *
+     * Such a library has no artifact for its native platforms (there is nothing to compile, hence no klib), so the
+     * corresponding Gradle metadata variants have no file. The consumer must still be able to resolve the
+     * publication and to use the dependencies exported by the library (see KTC-5652).
+     */
+    @Test
+    fun `using published source-less library`() = runSlowTest {
+        runCliWithCustomM2(
+            projectDir = testProject("multiplatform-library-consumer"),
+            "build", "--module=noSourcesConsumer",
         )
     }
 

@@ -2,6 +2,7 @@ modules:
   - edgeCase_jvmLib
   - edgeCase_jvmPlusAndroid
   - edgeCase_kmpSinglePlatform
+  - edgeCase_noSources
   - edgeCase_wasmJsPlusWasmWasi
   - library
   - libraryCinterop

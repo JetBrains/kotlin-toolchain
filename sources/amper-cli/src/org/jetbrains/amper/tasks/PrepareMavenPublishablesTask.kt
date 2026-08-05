@@ -164,7 +164,9 @@ class PrepareMavenPublishablesTask(
         coordsPerPlatform.filterNot { it.key == Platform.COMMON }
             .entries
             .mapConcurrently { [platform, coords] ->
-                val platformSpecificArtifact = modulePublishablesFromOtherTasks.single { it.coordinates == coords }
+                // Modules without sources don't produce any main artifact for the platform (no klib, for instance),
+                // and that's OK: the publication then only contains the POM, the metadata, and the sources jar.
+                val platformSpecificArtifact = modulePublishablesFromOtherTasks.singleWithCoordinatesOrNull(coords)
                 val platformSpecificCinteropArtifacts = modulePublishablesFromOtherTasks.filter {
                     it.coordinates.isCinteropClassifier && it.coordinates.copy(classifier = null) == coords
                 }
@@ -175,7 +177,7 @@ class PrepareMavenPublishablesTask(
                     platform,
                     taskOutputRoot.path,
                     checksumPublishables,
-                    platformSpecificArtifact.path,
+                    platformSpecificArtifact?.path,
                     platformSpecificCinteropArtifacts.map { it.path },
                     sourcesJar?.path,
                     overrides
@@ -191,12 +193,12 @@ class PrepareMavenPublishablesTask(
 
         val commonCoordinates = module.publicationCoordinates(Platform.COMMON)
 
-        val allMetadataArtifact = modulePublishablesFromOtherTasks.single { it.coordinates == commonCoordinates }
+        val allMetadataArtifact = modulePublishablesFromOtherTasks.singleWithCoordinatesOrNull(commonCoordinates)
         val allMetadataSourcesArtifact = findSourcesArtifactFor(commonCoordinates, modulePublishablesFromOtherTasks)
 
         val allMetadataGradleModuleFile = generateCommonGradleModuleMetadata(
             module, taskOutputRoot.path,
-            allMetadataJarPath = allMetadataArtifact.path,
+            allMetadataJarPath = allMetadataArtifact?.path,
             allMetadataSourcesJarPath = allMetadataSourcesArtifact?.path,
             checksumPublishables
         )
@@ -210,7 +212,7 @@ class PrepareMavenPublishablesTask(
         modulePublishablesFromOtherTasks: List<MavenPublishable>,
     ): MavenPublishable? = if (module.publishingSettings.publishSources) {
         val sourceCoordinates = coords.copy(classifier = "sources")
-        modulePublishablesFromOtherTasks.single { it.coordinates == sourceCoordinates }
+        modulePublishablesFromOtherTasks.singleWithCoordinatesOrNull(sourceCoordinates)
     } else null
 
     private fun assertNoDirectories(publishables: List<MavenPublishable>) {
@@ -319,6 +321,21 @@ data class MavenPublishable(
 }
 
 private val Checksum.mavenArtifactExtensionSuffix get() = algorithmName.lowercase().replace("-", "")
+
+/**
+ * Returns the publishable with the given [coordinates], or null if no task produced such an artifact.
+ *
+ * A missing artifact is not an error: modules without sources are valid (only the `module.yaml` file is required),
+ * and they don't produce any artifact for some platforms (a klib for native platforms, for instance).
+ */
+private fun List<MavenPublishable>.singleWithCoordinatesOrNull(coordinates: MavenCoordinates): MavenPublishable? {
+    val matches = filter { it.coordinates == coordinates }
+    if (matches.size > 1) {
+        error("Multiple publishable artifacts with the same coordinates $coordinates:\n" +
+                matches.joinToString("\n") { " - ${it.path}" })
+    }
+    return matches.singleOrNull()
+}
 
 private fun TaskResult.toMavenPublishables(coordsPerPlatform: Map<Platform, MavenCoordinates>) = when (this) {
     is JvmClassesJarTask.Result -> listOf(toMavenPublishable(coordsPerPlatform))
