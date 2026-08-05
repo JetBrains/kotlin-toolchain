@@ -195,7 +195,7 @@ private fun Notation.toPomDependency(
     platform: Platform,
     publicationCoordsOverrides: PublicationCoordinatesOverrides,
 ): Dependency = when (this) {
-    is MavenDependencyBase -> toPomDependency(publicationCoordsOverrides)
+    is MavenDependencyBase -> toPomDependency(platform, publicationCoordsOverrides)
     is LocalModuleDependency -> toPomDependency(platform)
     is DefaultScopedNotation -> error("Dependency type ${this::class.simpleName} is not supported for pom.xml publication")
 }
@@ -217,8 +217,13 @@ private fun AmperModule.singleProductionFragmentOrNull(platform: Platform) = if 
     leafFragments.singleOrNull { !it.isTest && it.platforms == setOf(platform) }
 }
 
-private fun MavenDependencyBase.toPomDependency(publicationCoordsOverrides: PublicationCoordinatesOverrides): Dependency {
-    val effectiveCoordinates = publicationCoordsOverrides.actualCoordinatesFor(toDrMavenCoordinates())
+private fun MavenDependencyBase.toPomDependency(
+    platform: Platform,
+    publicationCoordsOverrides: PublicationCoordinatesOverrides,
+): Dependency {
+    // Each platform POM must declare the variant of the dependency that this very platform resolves to,
+    // because consumers of a platform POM don't have Gradle metadata to select a variant themselves.
+    val effectiveCoordinates = publicationCoordsOverrides.actualCoordinatesFor(toDrMavenCoordinates(), platform)
 
     val dependency = Dependency()
     dependency.groupId = effectiveCoordinates.groupId

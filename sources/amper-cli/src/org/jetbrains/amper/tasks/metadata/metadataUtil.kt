@@ -100,7 +100,7 @@ internal fun Notation.toVariantDependency(
     platform: Platform,
     overrides: PublicationCoordinatesOverrides? = null,
 ): Dependency = when (this) {
-    is MavenDependencyBase -> toVariantDependency(overrides)
+    is MavenDependencyBase -> toVariantDependency(platform, overrides)
     is LocalModuleDependency -> toVariantDependency(platform)
     is DefaultScopedNotation -> error("Dependency type ${this::class.simpleName} is not supported for .module publication")
 }
@@ -116,11 +116,14 @@ private fun LocalModuleDependency.toVariantDependency(platform: Platform): Depen
     return dependency
 }
 
-private fun MavenDependencyBase.toVariantDependency(overrides: PublicationCoordinatesOverrides?): Dependency {
+private fun MavenDependencyBase.toVariantDependency(
+    platform: Platform,
+    overrides: PublicationCoordinatesOverrides?,
+): Dependency {
     val isBom = this@toVariantDependency is BomDependency
 
     val effectiveCoordinates = toDrMavenCoordinates().let {
-        overrides?.actualCoordinatesFor(it) ?: it
+        overrides?.actualCoordinatesFor(it, platform) ?: it
     }
 
     val dependency = Dependency(

@@ -538,6 +538,13 @@ class AmperPublishTest : AmperCliTestBase() {
             "main-lib/maven-metadata-local.xml",
         )
 
+        // Each platform POM must declare the variant of the multiplatform dependency that this very platform
+        // resolves to, because consumers of a platform POM cannot select a variant themselves (see KTC-5650).
+        assertPomDeclaresCoroutinesVariant("kmp-lib-jvm/1.2.3/kmp-lib-jvm-1.2.3.pom", "kotlinx-coroutines-core-jvm", groupDir)
+        assertPomDeclaresCoroutinesVariant("kmp-lib-js/1.2.3/kmp-lib-js-1.2.3.pom", "kotlinx-coroutines-core-js", groupDir)
+        assertPomDeclaresCoroutinesVariant("kmp-lib-linuxx64/1.2.3/kmp-lib-linuxx64-1.2.3.pom", "kotlinx-coroutines-core-linuxx64", groupDir)
+        assertPomDeclaresCoroutinesVariant("kmp-lib-iosarm64/1.2.3/kmp-lib-iosarm64-1.2.3.pom", "kotlinx-coroutines-core-iosarm64", groupDir)
+
         val pom = groupDir / "main-lib/1.2.3/main-lib-1.2.3.pom"
         assertEquals(expected = """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -935,5 +942,18 @@ class AmperPublishTest : AmperCliTestBase() {
                 .replace(Regex("<updated>\\d+</updated>"), "<updated>TIMESTAMP</updated>")
                 .replace(Regex("<timestamp>[\\d.]+</timestamp>"), "<timestamp>TIMESTAMP</timestamp>"),
         )
+    }
+
+    /**
+     * Asserts that the POM at [pomRelativePath] declares exactly one dependency on kotlinx-coroutines-core, using
+     * the given [expectedArtifactId] (the artifact ID of the variant that matches this POM's platform).
+     */
+    private fun assertPomDeclaresCoroutinesVariant(pomRelativePath: String, expectedArtifactId: String, groupDir: Path) {
+        val pom = (groupDir / pomRelativePath).readText()
+        val declaredArtifactIds = Regex("<artifactId>(kotlinx-coroutines-core[^<]*)</artifactId>")
+            .findAll(pom)
+            .map { it.groupValues[1] }
+            .toList()
+        assertEquals(listOf(expectedArtifactId), declaredArtifactIds, "Unexpected dependency in $pomRelativePath:\n$pom")
     }
 }

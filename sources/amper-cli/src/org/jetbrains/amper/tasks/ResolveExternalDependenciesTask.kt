@@ -230,6 +230,7 @@ class ResolveExternalDependenciesTask(
                             val runtimeClasspath = runtimeDependenciesRootNode?.dependencyPaths() ?: emptyList()
 
                             val publicationCoordsOverrides = getPublicationCoordinatesOverrides(
+                                platform = resolutionPlatform.toPlatform(),
                                 compileDependenciesRootNode = compileDependenciesRootNode,
                                 runtimeDependenciesRootNode = runtimeDependenciesRootNode,
                             )
@@ -295,18 +296,20 @@ class ResolveExternalDependenciesTask(
         }
 
         private fun getPublicationCoordinatesOverrides(
+            platform: Platform,
             compileDependenciesRootNode: DependencyNode,
             runtimeDependenciesRootNode: DependencyNode?,
         ): PublicationCoordinatesOverrides {
-            val compileOverrides = compileDependenciesRootNode.children.getOverridesForDirectDeps()
+            val compileOverrides = compileDependenciesRootNode.children.getOverridesForDirectDeps(platform)
             val runtimeOverrides = runtimeDependenciesRootNode
                 ?.children
-                ?.getOverridesForDirectDeps(directDependencyCondition = { (notation as? DefaultScopedNotation)?.compile == false })
+                ?.getOverridesForDirectDeps(platform, directDependencyCondition = { (notation as? DefaultScopedNotation)?.compile == false })
                 ?: emptyList()
             return PublicationCoordinatesOverrides(compileOverrides + runtimeOverrides)
         }
 
         private fun List<DependencyNode>.getOverridesForDirectDeps(
+            platform: Platform,
             directDependencyCondition: DirectFragmentDependencyNode.() -> Boolean = { true },
         ): List<PublicationCoordinatesOverride> = this
             .filterIsInstance<DirectFragmentDependencyNode>()
@@ -317,6 +320,7 @@ class ResolveExternalDependenciesTask(
                 val coordinatesForPublishing = node.getMavenCoordinatesForPublishing()
                 if (coordinatesOriginal != coordinatesForPublishing) {
                     PublicationCoordinatesOverride(
+                        platform = platform,
                         originalCoordinates = coordinatesOriginal,
                         variantCoordinates = coordinatesForPublishing,
                     )
