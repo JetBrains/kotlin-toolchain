@@ -1,0 +1,30 @@
+product:
+  type: kmp/lib
+  platforms: [ jvm, android ]
+
+# The Room runtime is only needed by the tests here. Its Android variant is packaged as an AAR.
+test-dependencies:
+  - androidx.room:room-runtime:2.8.4
+
+settings:
+  kotlin:
+    freeCompilerArgs:
+      - -Xexpect-actual-classes
+
+test-settings:
+  kotlin:
+    ksp:
+      processors:
+        - androidx.room:room-compiler:2.8.4
+
+# we want separate schema locations for each platform, otherwise there might be concurrency issues
+test-settings@jvm:
+  kotlin:
+    ksp:
+      processorOptions:
+        room.schemaLocation: ./generated-db-schema/jvm
+test-settings@android:
+  kotlin:
+    ksp:
+      processorOptions:
+        room.schemaLocation: ./generated-db-schema/android

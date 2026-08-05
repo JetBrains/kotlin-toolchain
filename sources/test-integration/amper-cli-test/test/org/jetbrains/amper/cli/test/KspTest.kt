@@ -10,11 +10,9 @@ import org.jetbrains.amper.cli.test.utils.assertSomeStdoutLineContains
 import org.jetbrains.amper.cli.test.utils.assertStderrDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
-import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.test.AmperCliResult
-import org.junit.jupiter.api.Disabled
 import java.nio.file.Path
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
@@ -256,6 +254,33 @@ class KspTest: AmperCliTestBase() {
         )
         generatedSchemaPath.assertContainsRelativeFiles(
             "com.jetbrains.sample.app.AppDatabase/1.json",
+        )
+    }
+
+    @Test
+    fun `ksp android test-scope aar dependency`() = runSlowTest {
+        val projectRoot = testProject("ksp-android-test-aar-dependency")
+        val generatedSchemaPath = projectRoot / "generated-db-schema"
+        generatedSchemaPath.deleteRecursively()
+
+        val buildResult = runCli(projectRoot, "build", configureAndroidHome = true)
+
+        val module = "ksp-android-test-aar-dependency"
+        buildResult.generatedFilesDir(module = module, fragment = "jvmTest").assertContainsRelativeFiles(
+            "src/ksp/kotlin/TestDatabaseConstructor.kt",
+            "src/ksp/kotlin/TestDatabase_Impl.kt",
+            "src/ksp/kotlin/TodoDao_Impl.kt",
+        )
+        // The Android variant of the Room runtime is an AAR, and it is only in the test dependencies, so the
+        // extracted classes must come from the test-scope AAR transform task (see KTC-5649).
+        buildResult.generatedFilesDir(module = module, fragment = "androidTest").assertContainsRelativeFiles(
+            "src/ksp/kotlin/TestDatabaseConstructor.kt",
+            "src/ksp/kotlin/TestDatabase_Impl.kt",
+            "src/ksp/kotlin/TodoDao_Impl.kt",
+        )
+        generatedSchemaPath.assertContainsRelativeFiles(
+            "android/TestDatabase/1.json",
+            "jvm/TestDatabase/1.json",
         )
     }
 

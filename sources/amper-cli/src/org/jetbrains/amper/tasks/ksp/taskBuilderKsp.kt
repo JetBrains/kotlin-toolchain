@@ -88,7 +88,7 @@ fun ProjectTasksBuilder.setupKspTasks() {
                     // TODO create a general compileClasspath task for reuse?
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (platform.isDescendantOf(Platform.ANDROID)) {
-                        add(CommonTaskType.TransformDependencies.getTaskName(module, platform))
+                        add(CommonTaskType.TransformDependencies.getTaskName(module, platform, isTest))
                     }
                     if (isTest) {
                         // test compilation depends on main classes
