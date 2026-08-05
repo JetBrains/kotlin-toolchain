@@ -443,20 +443,16 @@ private class ConflictResolver(
     private val unspecifiedVersionHelper = unspecifiedVersionResolver?.let { UnspecifiedMavenDependencyVersionHelper(it) }
 
     /**
-     * Registers this node and all its children transitively for potential conflict resolution
-     * if the node has not been seen yet.
+     * Registers this node and all its children transitively for potential conflict resolution.
      * Can be called concurrently with any node, including those sharing the same key.
      */
     suspend fun registerAndDetectConflictsWithChildren(node: DependencyNodeWithContext) {
-        conflictDetectionMutexByKey.withLock(node.key.hashCode()) {
-            val similarNodes = similarNodesByKey.computeIfAbsent(node.key) { mutableSetOf() }
-
-            if (similarNodes.contains(node)) {
-                return
-            }
-        }
-
-        // Node is not known to conflict resolver, register it together with all children transitively
+        // Note: a registered node does not imply a registered subtree, so we can't skip the walk when this node is
+        // already known. Registration happens per node, while children come and go as conflicts get resolved
+        // (the winner's subtree replaces the loser's), and [unregisterOrphanNodes] drops individual nodes from within
+        // a subtree. Skipping the walk used to leave reachable nodes unknown to conflict resolution: their key never
+        // reached two candidates, so no conflict was ever detected for it, and they kept their losing version and put
+        // a second copy of the same library on the resolved classpath.
         node.distinctBfsSequence()
             .filterIsInstance<DependencyNodeWithContext>()
             .forEach {
