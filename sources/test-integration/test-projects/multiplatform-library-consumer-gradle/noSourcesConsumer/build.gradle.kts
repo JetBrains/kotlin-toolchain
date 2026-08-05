@@ -13,13 +13,11 @@ version = "1.0.0"
 // Consumes the 'noSources' library, which has no sources at all, and thus no klib for its native platforms.
 // The dependencies re-exported by that library must still be available here.
 //
-// Note: building this module against the library published to ~/.m2 fails with
-// "Could not find org.jetbrains.kotlintoolchain.kmp.sample:noSources-linuxx64:1.0.0".
-// This is a limitation of Gradle's `mavenLocal()` repository, not of the publication: maven-local considers a module
-// missing when the artifact declared by the POM packaging (`klib` here) is absent from the local repository, and the
-// source-less module has no klib to publish. Consuming the very same publication from a regular Maven repository
-// (`maven { url = ... }`) works: all compilations, including `compileKotlinLinuxX64`, succeed with the artifact-less
-// linuxX64 variant.
+// Note on the POM packaging: from a regular Maven repository (remote or file-based), Gradle resolves this library
+// through its Gradle module metadata, and the artifact-less linuxX64 variant is consumable whatever the POM says.
+// It is `mavenLocal()` that is picky: it considers a module missing when the file implied by the POM packaging is
+// absent from ~/.m2. The klib-less publication therefore declares `<packaging>pom</packaging>`, which is also what
+// keeps it resolvable for plain Maven consumers, since those don't read Gradle module metadata.
 kotlin {
     jvm()
     linuxX64()

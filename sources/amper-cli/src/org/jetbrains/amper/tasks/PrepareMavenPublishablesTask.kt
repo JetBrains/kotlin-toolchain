@@ -99,7 +99,12 @@ class PrepareMavenPublishablesTask(
             assertNoDirectories(modulePublishablesFromOtherTasks)
 
             val poms = coordsPerPlatform.map { [platform, coords] ->
-                generatePomFile(module, platform, depsCoordinatesOverrides).toMavenPublishable(coords)
+                generatePomFile(
+                    module = module,
+                    platform = platform,
+                    overrides = depsCoordinatesOverrides,
+                    hasMainArtifact = modulePublishablesFromOtherTasks.singleWithCoordinatesOrNull(coords) != null,
+                ).toMavenPublishable(coords)
             }
             val meaningfulPublishables = mutableListOf<MavenPublishable>()
             meaningfulPublishables.addAll(poms)
@@ -227,10 +232,11 @@ class PrepareMavenPublishablesTask(
         module: AmperModule,
         platform: Platform,
         overrides: PublicationCoordinatesOverrides,
+        hasMainArtifact: Boolean,
     ): Path {
         val artifactId = module.publishingSettings.artifactId ?: module.userReadableName
         val tempPath = taskOutputRoot.path.resolve("$artifactId-${platform.pretty}.pom")
-        tempPath.writePomFor(module, platform, overrides, gradleMetadataComment = true)
+        tempPath.writePomFor(module, platform, overrides, gradleMetadataComment = true, hasMainArtifact = hasMainArtifact)
         return tempPath
     }
 

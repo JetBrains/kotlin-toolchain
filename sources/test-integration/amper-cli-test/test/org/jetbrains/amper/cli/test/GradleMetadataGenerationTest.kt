@@ -15,7 +15,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.div
+import kotlin.io.path.readText
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class GradleMetadataGenerationTest : AmperCliTestBase() {
 
@@ -126,6 +128,13 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
         assertMetadataFilesEquals("noSources-jvm-1.0.0.module", "jvm.module.json", testInfo, "edgeCase_noSources")
 
         assertMetadataFilesEquals("noSources-linuxx64-1.0.0.module", "linuxX64.module.json", testInfo, "edgeCase_noSources")
+
+        // Maven-based consumers locate the main artifact using the packaging type of the POM, and consider the whole
+        // module missing when the corresponding file is absent (this is what Gradle's mavenLocal() does).
+        // The linuxX64 publication has no klib, so it must be published as a POM-only publication.
+        assertPomPackagingEquals("pom", "noSources-linuxX64.pom", "edgeCase_noSources")
+        // The JVM publication has an (empty) jar, so its packaging is the default one, which Maven omits from the POM.
+        assertPomPackagingEquals(null, "noSources-jvm.pom", "edgeCase_noSources")
     }
 
     private fun assertMetadataFilesEquals(
@@ -142,6 +151,18 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
             testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.$expectedArtifactFileName"),
             sanitizedLinuxX64GradleModuleMetadata
         )
+    }
+
+    /**
+     * Asserts that the POM at [pomFileName] declares the given [expectedPackaging].
+     *
+     * A null [expectedPackaging] means that the POM must not contain any `<packaging>` element, which is how Maven
+     * represents the default packaging (`jar`).
+     */
+    private fun assertPomPackagingEquals(expectedPackaging: String?, pomFileName: String, moduleName: String) {
+        val pom = (tempRoot / "build" / "tasks" / "_${moduleName}_prepareMavenPublishables" / pomFileName).readText()
+        val actualPackaging = Regex("<packaging>(.*)</packaging>").find(pom)?.groupValues?.get(1)
+        assertEquals(expectedPackaging, actualPackaging, "Unexpected packaging in $pomFileName:\n$pom")
     }
 
     private fun getSanitizedGradleMetadataProducedByCli(

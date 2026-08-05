@@ -30,14 +30,19 @@ import kotlin.io.path.writeText
 
 /**
  * Generates a POM for the given [module] at this [Path].
+ *
+ * [hasMainArtifact] tells whether this publication contains a main artifact (a jar, a klib, etc.). It must be false
+ * for modules that don't produce any (modules without sources, for instance), so that the POM is marked as a
+ * POM-only publication instead of pointing at a file that doesn't exist.
  */
 fun Path.writePomFor(
     module: AmperModule,
     platform: Platform,
     publicationCoordsOverrides: PublicationCoordinatesOverrides,
     gradleMetadataComment: Boolean,
+    hasMainArtifact: Boolean,
 ) {
-    val model = generatePomModel(module, platform, publicationCoordsOverrides)
+    val model = generatePomModel(module, platform, publicationCoordsOverrides, hasMainArtifact)
     writePom(model)
 
     if (gradleMetadataComment) {
@@ -114,6 +119,7 @@ private fun generatePomModel(
     module: AmperModule,
     platform: Platform,
     publicationCoordsOverrides: PublicationCoordinatesOverrides,
+    hasMainArtifact: Boolean,
 ): Model {
     val coords = module.publicationCoordinates(platform)
     val fragment = module.singleProductionFragmentOrNull(platform)
@@ -145,10 +151,14 @@ private fun generatePomModel(
     model.licenses = publishSettings.pom.licenses.map { it.toMavenLicense() }
     model.developers = publishSettings.pom.developers.map { it.toMavenDeveloper() }
     model.scm = publishSettings.pom.scm.toMavenScmOrNull()
-    model.packaging = when (platform) {
-        Platform.COMMON -> "pom"
-        Platform.ANDROID -> "aar"
-        Platform.JVM -> "jar"
+    model.packaging = when {
+        // Maven-based consumers locate the main artifact using the packaging type and consider the whole module
+        // missing when the corresponding file is absent (this is what Gradle's mavenLocal() does, for instance).
+        // Without a main artifact, this publication only provides dependencies, just like a POM-only publication.
+        !hasMainArtifact -> "pom"
+        platform == Platform.COMMON -> "pom"
+        platform == Platform.ANDROID -> "aar"
+        platform == Platform.JVM -> "jar"
         else -> "klib"
     }
 
