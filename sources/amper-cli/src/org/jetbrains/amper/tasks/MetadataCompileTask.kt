@@ -237,6 +237,9 @@ internal class MetadataCompileTask(
         fragmentPlatforms: Set<ResolutionPlatform>,
         jdk: Jdk,
     ) {
+        // In Kotlin >= 2.2, we need to list all source files (not just dirs), and konanc only accepts *.kt entries.
+        // Any other file lying around in the source directories (.DS_Store, .gitkeep, notes...) would be rejected
+        // with "source entry is not a Kotlin file", so we must filter them out.
         val kotlinSourceFiles = sourceDirectories.flatMap { it.walk() }.filter { it.extension == "kt" }.toList()
         if (kotlinSourceFiles.isEmpty()) {
             return
@@ -264,7 +267,7 @@ internal class MetadataCompileTask(
             libraryPaths = commonizedKlibs + classpath,
             exportedLibraryPaths = [],
             fragments = [fragment],
-            sourceFiles = sourceDirectories.flatMap { it.walk() }.toList(),
+            sourceFiles = kotlinSourceFiles,
             additionalSourceRoots = additionalSourceRoots,
             binaryOptions = emptyMap(),
             outputPath = taskOutputRoot.path,
@@ -301,6 +304,9 @@ internal class MetadataCompileTask(
         refinesPaths: List<Path>,
         fragmentPlatforms: Set<ResolutionPlatform>,
     ) {
+        // In Kotlin >= 2.2, we need to list all source files (not just dirs), and the metadata compiler only accepts
+        // *.kt entries. Any other file lying around in the source directories (.DS_Store, .gitkeep, notes...) would be
+        // rejected with "source entry is not a Kotlin file", so we must filter them out.
         val kotlinSourceFiles = sourceDirectories.flatMap { it.walk() }.filter { it.extension == "kt" }.toList()
         if (kotlinSourceFiles.isEmpty()) {
             return
@@ -323,8 +329,7 @@ internal class MetadataCompileTask(
             friendPaths = friendPaths,
             refinesPaths = refinesPaths,
             fragments = listOf(fragment),
-            // in Kotlin >= 2.2, we need to list all source files (not just dirs)
-            sourceFiles = sourceDirectories.flatMap { it.walk() }.toList(),
+            sourceFiles = kotlinSourceFiles,
             additionalSourceRoots = additionalSourceRoots,
             fragmentPlatforms = fragmentPlatforms,
         )
