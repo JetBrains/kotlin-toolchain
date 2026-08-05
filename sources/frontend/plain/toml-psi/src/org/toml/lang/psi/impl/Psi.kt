@@ -5,7 +5,6 @@
 
 package org.toml.lang.psi.impl
 
-import com.intellij.ide.projectView.PresentationData
 import com.intellij.lang.ASTFactory
 import com.intellij.navigation.ItemPresentation
 import com.intellij.psi.LiteralTextEscaper
@@ -46,6 +45,7 @@ import org.toml.lang.psi.TomlTableHeader
 import org.toml.lang.psi.TomlValue
 import org.toml.lang.psi.TomlVisitor
 import org.toml.lang.psi.ext.TomlLiteralKind
+import javax.swing.Icon
 
 
 class TomlKeyValueImpl(type: IElementType) : CompositePsiElement(type), TomlKeyValue {
@@ -73,7 +73,15 @@ class TomlKeySegmentImpl(type: IElementType) : CompositePsiElement(type), TomlKe
         return replace(TomlPsiFactory(project).createKeySegment(name))
     }
 
-    override fun getPresentation(): ItemPresentation = PresentationData(name, null, null, null)
+    override fun getPresentation(): ItemPresentation = object: ItemPresentation {
+        override fun getPresentableText(): String? {
+            return name
+        }
+
+        override fun getIcon(unused: Boolean): Icon? {
+            return null
+        }
+    }
 
     override fun toString(): String = "TomlKeySegment"
     override fun getReferences(): Array<PsiReference> = ReferenceProvidersRegistry.getReferencesFromProviders(this)
