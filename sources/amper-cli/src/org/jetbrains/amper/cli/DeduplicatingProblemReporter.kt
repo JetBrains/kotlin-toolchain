@@ -5,6 +5,7 @@
 package org.jetbrains.amper.cli
 
 import org.jetbrains.amper.frontend.dr.resolver.diagnostics.reporters.DependencyBuildProblem
+import org.jetbrains.amper.frontend.dr.resolver.diagnostics.reporters.ModuleDependencyWithOverriddenVersion
 import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemImpl
 import org.jetbrains.amper.problems.reporting.BuildProblemSource
@@ -28,6 +29,7 @@ class DeduplicatingProblemReporter(
             // List of problem types that need to be deduplicated
             is BuildProblemImpl,
             is DependencyBuildProblem,
+            is ModuleDependencyWithOverriddenVersion
                 -> {
                 if (!alreadyReported.add(message.toId())) {
                     return
