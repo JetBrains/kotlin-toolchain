@@ -10,6 +10,6 @@ apply:
   - //sources/used-in-jic.module-template.yaml
 
 dependencies:
-  - io.netty:netty-buffer:4.2.10.Final
+  - io.netty:netty-buffer:4.2.0.RC2
   - $libs.intellij.deps.fastutil
-  - com.dynatrace.hash4j:hash4j:0.26.0
+  - com.dynatrace.hash4j:hash4j:0.29.0
