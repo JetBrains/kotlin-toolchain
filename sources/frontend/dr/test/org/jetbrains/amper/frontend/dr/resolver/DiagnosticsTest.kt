@@ -406,7 +406,7 @@ class DiagnosticsTest : AbstractDependencyInsightsTest() {
         assertNull(buildProblem.dependencyNode.originalVersion, "Original version should be left unspecified")
         assertEquals(buildProblem.dependencyNode.versionFromBom, "3.0.2", "Incorrect version resolved from BOM")
         assertEquals(buildProblem.message,
-            "Version 3.0.2 of dependency io.ktor:ktor-client-cio-jvm taken from BOM is overridden, the actual version is 3.1.2.",
+            "Version `3.0.2` of dependency `io.ktor:ktor-client-cio-jvm` taken from BOM is overridden, the actual version is `3.1.2`.",
             "Unexpected diagnostic message"
         )
     }
@@ -533,7 +533,7 @@ class DiagnosticsTest : AbstractDependencyInsightsTest() {
             if (versionLineNumber != null) {
                 assertContains(
                     buildProblem.message,
-                    "The version ${mavenDependency.version} is defined at $filePath:$versionLineNumber:$versionColumn"
+                    "The version `${mavenDependency.version}` is defined at `$filePath:$versionLineNumber:$versionColumn`"
                 )
             } else {
                 assertFalse(buildProblem.message.contains("The version ${mavenDependency.version} is defined at"))
