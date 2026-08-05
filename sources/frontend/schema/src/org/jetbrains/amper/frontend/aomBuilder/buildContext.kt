@@ -52,7 +52,8 @@ internal class ModuleBuildCtx(
                 source = AmperModuleFileSource(moduleFile.toNioPath()),
                 usedCatalog = catalog,
                 usedTemplates = moduleCtxModule.apply?.mapNotNull { readTemplateFromPath(it) }.orEmpty(),
-                parts = moduleCtxModule.convertModuleParts(),
+                parts = @Suppress("DEPRECATION") moduleCtxModule.convertModuleParts(),
+                mavenRepositories = moduleCtxModule.readRepositories(),
                 commonModuleNode = moduleCtxModule,
             )
         }

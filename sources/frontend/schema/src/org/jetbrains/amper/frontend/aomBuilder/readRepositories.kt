@@ -9,8 +9,10 @@ import org.jetbrains.amper.frontend.api.SchemaValueDelegate
 import org.jetbrains.amper.frontend.asBuildProblemSource
 import org.jetbrains.amper.frontend.diagnostics.FrontendDiagnosticId
 import org.jetbrains.amper.frontend.reportBundleError
+import org.jetbrains.amper.frontend.schema.Module
 import org.jetbrains.amper.frontend.schema.Repository
 import org.jetbrains.amper.frontend.types.generated.*
+import org.jetbrains.amper.mavencentral.MavenCentralDefaultConfiguration
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.stdlib.properties.readProperties
@@ -59,3 +61,50 @@ fun Repository.Credentials.readCredentials(): RepositoryModel.Credentials? {
         password = password ?: return null,
     )
 }
+
+context(_: ProblemReporter)
+internal fun Module.readRepositories(): List<RepositoryModel> {
+    val customRepositories = repositories.orEmpty().mapNotNull { repository ->
+        if (repository.resolve) {
+            val credentials = repository.credentials?.readCredentials()
+            if (repository.publish) {
+                RepositoryModel.ResolveAndPublish(
+                    id = repository.id,
+                    url = repository.url,
+                    credentials = credentials,
+                )
+            } else {
+                RepositoryModel.ResolveOnly(
+                    id = repository.id,
+                    url = repository.url,
+                    credentials = credentials,
+                )
+            }
+        } else if (repository.publish) {
+            RepositoryModel.PublishOnly(
+                id = repository.id,
+                url = repository.url,
+                credentialsSource = repository.credentials,
+            )
+        } else {
+            // TODO: Report a warning about a no-op repository
+            null
+        }
+    }
+    return (defaultMavenRepositories + customRepositories)
+        // deduplicating repository list by repository ID, taking the last entry corresponding to the id only.
+        .asReversed()
+        .distinctBy { it.id }
+        .asReversed()
+}
+
+private val defaultMavenRepositories = listOf(
+    RepositoryModel.ResolveOnly(
+        id = "mavenCentral",
+        url = MavenCentralDefaultConfiguration.url,
+    ),
+    RepositoryModel.ResolveOnly(
+        id = "mavenGoogle",
+        url = "https://maven.google.com",
+    ),
+)

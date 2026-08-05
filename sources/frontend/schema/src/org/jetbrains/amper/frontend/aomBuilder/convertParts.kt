@@ -7,70 +7,17 @@ package org.jetbrains.amper.frontend.aomBuilder
 import org.jetbrains.amper.frontend.ClassBasedSet
 import org.jetbrains.amper.frontend.ModulePart
 import org.jetbrains.amper.frontend.ModuleTasksPart
-import org.jetbrains.amper.frontend.RepositoriesModulePart
-import org.jetbrains.amper.frontend.RepositoryModel
 import org.jetbrains.amper.frontend.classBasedSet
 import org.jetbrains.amper.frontend.schema.Module
-import org.jetbrains.amper.mavencentral.MavenCentralDefaultConfiguration
-import org.jetbrains.amper.problems.reporting.ProblemReporter
 
 // These converters are needed only to prevent major code changes in the [gradle-integration].
 // Parts should be replaced with schema model nodes in the future.
 
-private val defaultMavenRepositories = listOf(
-    RepositoryModel.ResolveOnly(
-        id = "mavenCentral",
-        url = MavenCentralDefaultConfiguration.url,
-    ),
-    RepositoryModel.ResolveOnly(
-        id = "mavenGoogle",
-        url = "https://maven.google.com",
-    ),
-)
-
 // FIXME Need to get rid of this `ModulePart` convention and
 //  replace it by direct settings reading.
-context(problemReporter: ProblemReporter)
+@Deprecated("Old mechanism. Use normal Kotlin API to expose things in the model")
 fun Module.convertModuleParts(): ClassBasedSet<ModulePart<*>> {
     val parts = classBasedSet<ModulePart<*>>()
-
-    parts += RepositoriesModulePart(
-        mavenRepositories = run {
-            val customRepositories = repositories.orEmpty().mapNotNull { repository ->
-                if (repository.resolve) {
-                    val credentials = repository.credentials?.readCredentials()
-                    if (repository.publish) {
-                        RepositoryModel.ResolveAndPublish(
-                            id = repository.id,
-                            url = repository.url,
-                            credentials = credentials,
-                        )
-                    } else {
-                        RepositoryModel.ResolveOnly(
-                            id = repository.id,
-                            url = repository.url,
-                            credentials = credentials,
-                        )
-                    }
-                } else if (repository.publish) {
-                    RepositoryModel.PublishOnly(
-                        id = repository.id,
-                        url = repository.url,
-                        credentialsSource = repository.credentials,
-                    )
-                } else {
-                    // TODO: Report a warning about a no-op repository
-                    null
-                }
-            }
-            (defaultMavenRepositories + customRepositories)
-                // deduplicating repository list by repository ID, taking the last entry corresponding to the id only.
-                .asReversed()
-                .distinctBy { it.id }
-                .asReversed()
-        }
-    )
-
     parts += ModuleTasksPart(
         settings = tasks
             ?.mapValues { [_, settings] -> ModuleTasksPart.TaskSettings(dependsOn = settings.dependsOn?.map { it.value } ?: emptyList()) }

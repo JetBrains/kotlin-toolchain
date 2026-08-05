@@ -6,7 +6,6 @@ package org.jetbrains.amper.frontend.helpers
 
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.ModuleTasksPart
-import org.jetbrains.amper.frontend.RepositoriesModulePart
 import org.jetbrains.amper.frontend.api.DerivedValueTrace
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.isDefault
@@ -75,8 +74,8 @@ internal fun AmperModule.prettyPrintForGoldFile(printDefaults: Boolean = false):
         }
     }
 
-    val repositories = parts[RepositoriesModulePart::class.java]?.mavenRepositories
-    if (!repositories.isNullOrEmpty()) {
+    val repositories = mavenRepositories
+    if (repositories.isNotEmpty()) {
         appendLine("Repositories:")
         repositories.forEach {
             appendLine("  - id: ${it.id}")
@@ -95,6 +94,7 @@ internal fun AmperModule.prettyPrintForGoldFile(printDefaults: Boolean = false):
         }
     }
 
+    @Suppress("DEPRECATION")
     val taskSettingsMap = parts[ModuleTasksPart::class.java]?.settings ?: emptyMap()
     if (taskSettingsMap.isNotEmpty()) {
         appendLine("Task:")

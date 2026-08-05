@@ -11,10 +11,9 @@ import org.jetbrains.amper.frontend.LocalModuleDependency
 import org.jetbrains.amper.frontend.MavenDependency
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Notation
-import org.jetbrains.amper.frontend.RepositoriesModulePart
 import org.jetbrains.amper.frontend.aomBuilder.readProjectModel
+import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.frontend.project.AmperProjectContext
-import org.jetbrains.amper.frontend.resolve
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.schema.Repository.Companion.SpecialMavenLocalUrl
 import org.jetbrains.amper.problems.reporting.NoopProblemReporter
@@ -300,11 +299,8 @@ class AmperProjectStructureTest {
                 .modules
                 // plugins declare mavenLocal when the version is SNAPSHOT to resolve amper-extensibility-api.
                 .filterNot { it.type == ProductType.JVM_AMPER_PLUGIN }
-                .flatMap { it.parts }
-                .filterIsInstance<RepositoriesModulePart>()
-                .flatMap { it.mavenRepositories }
-                .filter { it.url == SpecialMavenLocalUrl }
-                .none { it.resolve }
+                .flatMap { it.mavenResolveRepositories }
+                .none { it.url == SpecialMavenLocalUrl }
         }
     }
 

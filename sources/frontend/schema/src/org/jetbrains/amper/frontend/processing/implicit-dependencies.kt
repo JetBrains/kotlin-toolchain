@@ -10,9 +10,7 @@ import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.MavenCoordinates
 import org.jetbrains.amper.frontend.MavenDependency
 import org.jetbrains.amper.frontend.MavenDependencyBase
-import org.jetbrains.amper.frontend.ModulePart
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.RepositoriesModulePart
 import org.jetbrains.amper.frontend.RepositoryModel
 import org.jetbrains.amper.frontend.ancestralPath
 import org.jetbrains.amper.frontend.aomBuilder.DefaultFragment
@@ -27,7 +25,6 @@ import org.jetbrains.amper.frontend.schema.JUnitVersion
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.schema.Repository.Companion.SpecialMavenLocalUrl
 import org.jetbrains.amper.frontend.schema.kotlin.plugins.legacySerializationFormatNone
-import org.jetbrains.amper.frontend.toClassBasedSet
 import org.jetbrains.amper.frontend.types.generated.*
 
 private fun kotlinDependencyOf(artifactId: String, version: TraceableString, dependencyTrace: Trace) = MavenDependency(
@@ -110,13 +107,10 @@ internal fun DefaultModule.addImplicitDependencies() {
         it.allExternalMavenDependencies().mapTo(hashSetOf()) { it.coordinates.groupAndArtifact }
     }.forEach { [fragment, deps] -> fragment.addImplicitDependencies(deps) }
 
-    parts = parts.map {
-        if (it is RepositoriesModulePart) {
-            it.withImplicitMavenRepositories(productType = this.type, fragments)
-        } else {
-            it
-        }
-    }.toClassBasedSet()
+    mavenRepositories = mavenRepositories + implicitMavenRepositories(
+        productType = type,
+        fragments = fragments,
+    )
 }
 
 private fun Fragment.addImplicitDependencies(
@@ -339,9 +333,11 @@ private fun Platform.supportsJvmTestFrameworks() = this == Platform.JVM || this 
 private val MavenCoordinates.groupAndArtifact: String
     get() = "${groupId}:${artifactId}"
 
-private fun RepositoriesModulePart.withImplicitMavenRepositories(productType: ProductType, fragments: List<Fragment>): ModulePart<*> {
-    val repositories = buildList {
-        addAll(mavenRepositories)
+private fun implicitMavenRepositories(
+    productType: ProductType,
+    fragments: List<Fragment>,
+): List<RepositoryModel> {
+    return buildList {
         val isHotReloadRuntimeApiPresent = fragments
             .flatMap { it.externalDependencies }
             .filterIsInstance<MavenDependency>()
@@ -367,7 +363,4 @@ private fun RepositoriesModulePart.withImplicitMavenRepositories(productType: Pr
             }
         }
     }
-    return RepositoriesModulePart(
-        mavenRepositories = repositories,
-    )
 }

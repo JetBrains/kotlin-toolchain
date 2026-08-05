@@ -14,9 +14,6 @@ val AmperModule.mavenResolveRepositories: List<RepositoryModel.Resolve>
 val AmperModule.mavenPublishRepositories: List<RepositoryModel.Publish>
     get() = mavenRepositories.filterIsInstance<RepositoryModel.Publish>()
 
-private val AmperModule.mavenRepositories: List<RepositoryModel>
-    get() = parts.find<RepositoriesModulePart>()?.mavenRepositories ?: emptyList()
-
 fun getComposeHotReloadVersion(module: AmperModule): String? {
     val jvmFragment = module.leafFragments
         .firstOrNull { it.platform == Platform.JVM && !it.isTest }

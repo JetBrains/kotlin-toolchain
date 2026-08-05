@@ -239,6 +239,8 @@ internal class ResolveCustomExternalDependenciesTask(
             override val aliases: Map<String, Set<Platform>> = emptyMap()
             override val fragments: MutableList<Fragment> = mutableListOf()
             override val artifacts: List<Artifact> = emptyList()
+            @Suppress("DEPRECATION")
+            @Deprecated("Old mechanism. Use normal Kotlin API to expose things in the model")
             override val parts: ClassBasedSet<ModulePart<*>> = hostModule.parts
             override val usedCatalog: VersionCatalog = hostModule.usedCatalog
             override val usedTemplates: List<VirtualFile> = emptyList()

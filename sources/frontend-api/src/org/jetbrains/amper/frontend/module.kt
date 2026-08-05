@@ -30,10 +30,6 @@ data class AmperModuleFileSource(val buildFile: Path) {
 
 sealed interface ModulePart<SelfT>
 
-data class RepositoriesModulePart(
-    val mavenRepositories: List<RepositoryModel>,
-) : ModulePart<RepositoriesModulePart>
-
 data class ModuleTasksPart(
     val settings: Map<String, TaskSettings>,
 ) : ModulePart<ModuleTasksPart> {
@@ -106,6 +102,7 @@ interface AmperModule {
 
     val artifacts: List<Artifact>
 
+    @Deprecated("Old mechanism. Use normal Kotlin API to expose things in the model")
     val parts: ClassBasedSet<ModulePart<*>>
 
     @UsedInIdePlugin
@@ -113,6 +110,8 @@ interface AmperModule {
 
     @UsedInIdePlugin
     val usedTemplates: List<VirtualFile>
+
+    val mavenRepositories: List<RepositoryModel>
 
     val leafFragments get() = fragments.filterIsInstance<LeafFragment>()
 

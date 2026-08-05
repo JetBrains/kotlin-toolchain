@@ -41,7 +41,6 @@ import org.jetbrains.amper.frontend.BomDependency
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.RepositoriesModulePart
 import org.jetbrains.amper.frontend.RepositoryModel
 import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.resolveProjectDependencies
@@ -49,11 +48,11 @@ import org.jetbrains.amper.frontend.dr.resolver.flow.Classpath
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.frontend.fragmentsToDependOnFromOtherModuleFragmentWith
 import org.jetbrains.amper.frontend.isDescendantOf
+import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.frontend.schema.Repository.Companion.SpecialMavenLocalUrl
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.ResultWithSerializable
 import org.jetbrains.amper.incrementalcache.execute
-import org.jetbrains.amper.mavencentral.MavenCentralDefaultConfiguration
 import org.jetbrains.amper.telemetry.use
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -300,12 +299,6 @@ class ModuleDependencies private constructor(
     }
 
     companion object {
-
-        private val defaultRepositories = listOf(
-            MavenCentralDefaultConfiguration.url,
-            "https://maven.google.com/",
-        )
-
         // todo (AB): [AMPER-4905] it's not very good to have long-running statics in IDE plugin
         //  (it might be moved to Context resolution cache instead)
         private val alreadyReportedHttpRepositories = ConcurrentHashMap<String, Boolean>()
@@ -798,14 +791,7 @@ class ModuleDependencies private constructor(
             return acceptedRepositories
         }
 
-        private fun AmperModule.resolvableRepositories(): List<Repository> =
-            parts
-                .filterIsInstance<RepositoriesModulePart>()
-                .firstOrNull()
-                ?.mavenRepositories
-                ?.filterIsInstance<RepositoryModel.Resolve>()
-                ?.map { it.toRepository() }
-                ?: defaultRepositories.map { it.toRepository() }
+        private fun AmperModule.resolvableRepositories() = mavenResolveRepositories.map { it.toRepository() }
 
         fun RepositoryModel.Resolve.toRepository() = when {
             this.url == SpecialMavenLocalUrl -> MavenLocal
