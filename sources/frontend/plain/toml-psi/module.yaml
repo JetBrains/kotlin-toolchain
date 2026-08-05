@@ -14,3 +14,6 @@ settings:
   jvm:
     # Used in Android Gradle builds (max 17) and IDEA (max 21), so we pick 17
     release: 17
+  kotlin:
+    freeCompilerArgs:
+      - -Xname-based-destructuring=only-syntax # to keep syntax in sync with the IntelliJ monorepo
