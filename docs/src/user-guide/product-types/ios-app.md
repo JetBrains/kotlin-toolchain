@@ -59,9 +59,9 @@ If you want to migrate an existing Xcode project so it has Kotlin Toolchain supp
 2. it has a single iOS application target
 3. the target has `Debug` & `Release` build configurations, each containing `KOTLIN_CLI_WRAPPER_PATH = <relative path to Kotlin wrapper script>`.
    The path is relative to the Kotlin module root.
-4. the target has a script build phase called `Build Kotlin with Amper` with the code:
+4. the target has a script build phase called `Build Kotlin` with the code:
    ```bash
-    # !AMPER KMP INTEGRATION STEP!
+    # !KOTLIN INTEGRATION STEP!
     # This script is managed by the Kotlin Toolchain, do not edit manually!
     "${KOTLIN_CLI_WRAPPER_PATH}" tool xcode-integration
    ```

@@ -109,8 +109,10 @@ class ManageXCodeProjectTask(
         val manipulator = pbxProjectFile.manipulator
         val [target, amperPhase] = manipulator.allTargets.mapNotNull { target ->
             target.buildPhases.find { phase ->
-                phase.type == PBXBuildPhase.Type.SHELL_SCRIPT &&
-                        AMPER_PHASE_MAGIC in (phase["shellScript"] as? String).orEmpty()
+                phase.scriptText()?.let { scriptText ->
+                    AMPER_PHASE_MAGIC_OLD in scriptText ||
+                            AMPER_PHASE_MAGIC in scriptText
+                } ?: false
             }?.let { amperPhase -> target to amperPhase }
         }.singleOrNull() ?: run {
             // TODO: Provide a way for the user to "fix" the corrupted project?
@@ -324,6 +326,10 @@ class ManageXCodeProjectTask(
     ).joinToString(".")
 
     private fun isAmperPhaseValid(buildPhase: PBXBuildPhase): Boolean {
+        val text = buildPhase.scriptText()
+        if (text == null || AMPER_PHASE_MAGIC !in text) {
+            return false
+        }
         return managedAmperPhaseAttributes()
             .all { (key, value) ->
                 val actualValue = buildPhase[key]
@@ -336,12 +342,12 @@ class ManageXCodeProjectTask(
 
     private fun managedAmperPhaseAttributes(): Map<String?, Any> {
         return mapOf(
-            "name" to "Build Kotlin with Amper",
+            "name" to "Build Kotlin",
             "shellPath" to "/bin/sh",
-            "shellScript" to """
-                |# $AMPER_PHASE_MAGIC
+            "shellScript" to $$"""
+                |# $$AMPER_PHASE_MAGIC
                 |# This script is managed by the Kotlin Toolchain, do not edit manually!
-                |"${'$'}{$KOTLIN_CLI_WRAPPER_PATH_CONF}" tool xcode-integration
+                |"${$$KOTLIN_CLI_WRAPPER_PATH_CONF}" tool xcode-integration
                 |
             """.trimMargin(),
             "alwaysOutOfDate" to "1", // TODO: Maybe track inputs/outputs properly if that's possible
@@ -378,7 +384,8 @@ class ManageXCodeProjectTask(
 
         private const val KOTLIN_CLI_WRAPPER_PATH_CONF = "KOTLIN_CLI_WRAPPER_PATH"
 
-        private const val AMPER_PHASE_MAGIC = "!AMPER KMP INTEGRATION STEP!"
+        private const val AMPER_PHASE_MAGIC_OLD = "!AMPER KMP INTEGRATION STEP!"
+        private const val AMPER_PHASE_MAGIC = "!KOTLIN INTEGRATION STEP!"
 
         private val UpdatedAttribute = AttributeKey.booleanKey("updated")
     }

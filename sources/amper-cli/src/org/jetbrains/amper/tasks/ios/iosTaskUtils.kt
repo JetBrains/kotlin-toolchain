@@ -7,6 +7,7 @@ package org.jetbrains.amper.tasks.ios
 import com.jetbrains.apple.sdk.ArchitectureValue
 import com.jetbrains.cidr.xcode.frameworks.AppleSdk
 import com.jetbrains.cidr.xcode.frameworks.buildSystem.BuildSettingsResolver
+import com.jetbrains.cidr.xcode.model.PBXBuildPhase
 import com.jetbrains.cidr.xcode.model.PBXProjectFile
 import com.jetbrains.cidr.xcode.model.PBXTarget
 import com.jetbrains.cidr.xcode.model.XCBuildConfiguration
@@ -42,6 +43,13 @@ internal fun Map<String, *>.toPlist(): Plist = Plist().also { plist ->
             else -> v
         }
     }
+}
+
+internal fun PBXBuildPhase.scriptText(): String? {
+    if (type != PBXBuildPhase.Type.SHELL_SCRIPT) {
+        return null
+    }
+    return (this["shellScript"] as? String).orEmpty()
 }
 
 internal class ConfigurationSettingsResolver(
