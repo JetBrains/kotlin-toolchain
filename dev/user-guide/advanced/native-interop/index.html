@@ -2048,6 +2048,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#bundled-c-headers-include-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bundled C headers (include directory)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#advanced-usage" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2494,6 +2505,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#bundled-c-headers-include-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bundled C headers (include directory)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#advanced-usage" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2551,6 +2573,12 @@ for the <code>cinterop</code> directory to limit interop definitions to specific
 instead of having separate platform-specific files under, e.g., <code>cinterop@linux</code> and <code>cinterop@macos</code>.
 Both approaches are currently valid - use the one you prefer.</p>
 </div>
+<h2 id="bundled-c-headers-include-directory">Bundled C headers (<code>include</code> directory)<a class="headerlink" href="#bundled-c-headers-include-directory" title="Permanent link">&para;</a></h2>
+<p>If your interop needs C header files that are not available on the system (for example, headers vendored 
+alongside your module), you can place them in an <code>include</code> directory next to your <code>.def</code> files.</p>
+<p>The Kotlin Toolchain will automatically detect this directory and pass it to the <code>cinterop</code> tool as an 
+additional header search path (equivalent to passing <code>-I&lt;path-to-include&gt;</code> as a compiler option). 
+No configuration in your <code>module.yaml</code> is required.</p>
 <h2 id="advanced-usage">Advanced usage<a class="headerlink" href="#advanced-usage" title="Permanent link">&para;</a></h2>
 <p>If you need the <code>.def</code> file generated or provisioned (for example, to implement custom library location or provisioning logic),
 you can write a <a href="../../plugins/overview/">plugin</a> for this.
@@ -2575,7 +2603,7 @@ See the <a href="../../plugins/topics/tasks/#contributing-back-to-the-build">rel
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 29, 2026 13:59:39 UTC">May 29, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 5, 2026 08:44:58 UTC">August 5, 2026</span>
   </span>
 
     
