@@ -58,6 +58,8 @@ fun ProjectTasksBuilder.setupNativeTasks() {
         if (!module.canHaveCinterop()) {
             return@withEach
         }
+
+        val taskName = ModuleTaskTypes.CommonizeCinterop.getTaskName(module)
         tasks.registerTask(
             CommonizeCInteropKlibsTask(
                 buildOutputRoot = context.buildOutputRoot,
@@ -67,7 +69,7 @@ fun ProjectTasksBuilder.setupNativeTasks() {
                 processRunner = context.processRunner,
                 tempRoot = context.projectTempRoot,
                 module = module,
-                taskName = ModuleTaskTypes.CommonizeCinterop.getTaskName(module),
+                taskName = taskName,
             ),
             dependsOn = [CommonizeNativeDistributionTask.TASK_NAME],
         )

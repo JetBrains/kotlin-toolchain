@@ -16,6 +16,7 @@ import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.commonizedCinteropLibrariesRoot
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
@@ -29,10 +30,8 @@ import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.jetbrains.amper.stdlib.io.path.cleanDirectoryExcept
 import org.jetbrains.amper.stdlib.io.path.listDirectoryEntriesIfExistsOrEmpty
-import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
-import org.jetbrains.amper.tasks.artifacts.CinteropCommonizedKlibArtifact
 import org.jetbrains.amper.tasks.artifacts.CinteropKlibsArtifact
 import org.jetbrains.amper.tasks.artifacts.api.ArtifactSelector
 import org.jetbrains.amper.tasks.artifacts.api.ArtifactType
@@ -43,11 +42,28 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
-import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
-import kotlin.io.path.name
 
+/**
+ * Commonizes all the cinterop libraries of the [module].
+ *
+ * The output has to be placed at [org.jetbrains.amper.frontend.commonizedCinteropLibrariesRoot], because the IDE
+ * looks the commonized klibs up there to analyze the code of the intermediate fragments using them.
+ *
+ * The layout inside is dictated by the commonizer tool:
+ * ```
+ * "dir"/
+ *   - "(platform1; platform2)"
+ *     - "foo"/ **
+ *     - "bar"/ **
+ *   - "(platform1; platform2; platform3)"
+ *     - "foo"/ **
+ *   - "(platform4; platform5)"
+ *     - "baz"/ **
+ * ```
+ * Use [org.jetbrains.amper.kotlin.native.asCommonizerTarget] to get subdirectory names for the platform sets.
+ */
 class CommonizeCInteropKlibsTask(
     buildOutputRoot: AmperBuildOutputRoot,
     private val userCacheRoot: AmperUserCacheRoot,
@@ -58,6 +74,14 @@ class CommonizeCInteropKlibsTask(
     override val taskName: TaskName,
     val module: AmperModule,
 ) : ArtifactTaskBase(), GenerateKlibsForIdeTask {
+
+    /**
+     * Not the usual per-task output directory:
+     * the IDE looks up the commonized klibs at this well-known
+     * location to analyze the code of the intermediate fragments that use them.
+     */
+    private val taskOutputRoot = module.commonizedCinteropLibrariesRoot(buildOutputRoot.path)
+
     private val kotlinDownloader = KotlinArtifactsDownloader(userCacheRoot, incrementalCache)
     private val kotlinVersion = module.fragments.first().settings.kotlin.version
 
@@ -66,11 +90,6 @@ class CommonizeCInteropKlibsTask(
         predicate = { it.module == module },
         description = "All cinterop klibs from ${module.userReadableName}",
         quantifier = Quantifier.AnyOrNone,
-    )
-
-    val output by CinteropCommonizedKlibArtifact(
-        buildOutputRoot = buildOutputRoot,
-        module = module,
     )
 
     private data class CinteropKlib(
@@ -102,9 +121,9 @@ class CommonizeCInteropKlibsTask(
         //  and there might be a benefit of incremental granularity.
         val relevantOutputs = allKlibsFlat.takeIf { it.isNotEmpty() }?.let { commonize(it) }.orEmpty()
 
-        cleanDirectoryExcept(output.path, keepPaths = relevantOutputs)
+        cleanDirectoryExcept(taskOutputRoot, keepPaths = relevantOutputs)
 
-        return Result(output.path)
+        return Result(taskOutputRoot)
     }
 
     data class Result(val path: Path): TaskResult
@@ -141,7 +160,7 @@ class CommonizeCInteropKlibsTask(
 
                 commonizerTargets.forEach {
                     // The commonizer names its output directories after the klib 'unique_name' of the input libraries
-                    outputs.add(output.path / it.dirName / module.cinteropKlibBaseName(name))
+                    outputs.add(taskOutputRoot / it.dirName / module.cinteropKlibBaseName(name))
                 }
             }
 
@@ -182,7 +201,7 @@ class CommonizeCInteropKlibsTask(
                 addAll(commonizerClasspath)
             }
         ) {
-            output.path.createDirectories()
+            taskOutputRoot.createDirectories()
 
             logger.debug("Commonizing from ${klibs.size} klibs...")
             // NOTE: commonizer takes care of grouping the relevant klibs itself
@@ -191,7 +210,7 @@ class CommonizeCInteropKlibsTask(
                 "-distribution-path",
                 compiler.konanDistribution.homeDir.absolutePathString(),
                 "-output-path",
-                output.path.absolutePathString(),
+                taskOutputRoot.absolutePathString(),
                 "-input-libraries",
                 inputLibrariesString,
                 "-output-targets",

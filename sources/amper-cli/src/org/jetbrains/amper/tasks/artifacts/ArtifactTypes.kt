@@ -8,7 +8,6 @@ import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.commonizedCinteropLibrariesRoot
 import org.jetbrains.amper.stdlib.io.path.listDirectoryEntriesIfExistsOrEmpty
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.testSuffix
 import org.jetbrains.amper.tasks.artifacts.api.Artifact
@@ -111,28 +110,6 @@ open class CinteropDefFileArtifact(
     fragment: Fragment,
     override val conventionPath: Path? = null,
 ) : FragmentScopedArtifact(buildOutputRoot, fragment)
-
-/**
- * All the commonized cinterop libraries for the [module].
- * The layout is dictated by the commonizer tool:
- * ```
- * "dir"/
- *   - "(platform1; platform2)"
- *     - "foo"/ **
- *     - "bar"/ **
- *   - "(platform1; platform2; platform3)"
- *     - "foo"/ **
- *   - "(platform4; platform5)"
- *     - "baz"/ **
- * ```
- * Use [org.jetbrains.amper.kotlin.native.asCommonizerTarget] to get subdirectory names for the platform sets.
- */
-open class CinteropCommonizedKlibArtifact(
-    buildOutputRoot: AmperBuildOutputRoot,
-    module: AmperModule,
-) : ModuleScopedArtifact(buildOutputRoot, module) {
-    override val path: Path = module.commonizedCinteropLibrariesRoot(buildOutputRoot.path)
-}
 
 /**
  * A directory that contains compiled cinterop `.klib` files.
