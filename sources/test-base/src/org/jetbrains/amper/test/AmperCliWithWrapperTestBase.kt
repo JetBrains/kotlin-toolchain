@@ -124,9 +124,7 @@ abstract class AmperCliWithWrapperTestBase {
 
         val isWindows = OsFamily.current.isWindows
         val wrapper = customAmperScriptPath
-            ?: workingDir.resolve(if (isWindows) "kotlin.bat" else "kotlin").takeIf { it.exists() }
-            // TODO AMPER-5342 remove when external projects have migrated
-            ?: workingDir.resolve(if (isWindows) "amper.bat" else "amper")
+            ?: workingDir.resolve(if (isWindows) "kotlin.bat" else "kotlin")
         check(wrapper.exists()) {
             "Kotlin wrapper script not found at $wrapper\n" +
                     "You can use LocalAmperPublication.setupWrappersIn(dir) to copy wrappers into the test project dir."
