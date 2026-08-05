@@ -19,13 +19,16 @@ import org.jetbrains.amper.engine.PublishTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
-import org.jetbrains.amper.frontend.RepositoriesModulePart
+import org.jetbrains.amper.frontend.RepositoryModel
+import org.jetbrains.amper.frontend.aomBuilder.readCredentials
+import org.jetbrains.amper.frontend.isMavenLocal
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.schema.Checksum
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.maven.publish.createPlexusContainer
 import org.jetbrains.amper.maven.publish.deployToRemoteRepo
 import org.jetbrains.amper.maven.publish.installToMavenLocal
+import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.tasks.MavenPublishable
 import org.jetbrains.amper.tasks.PrepareMavenPublishablesTask
 import org.jetbrains.amper.tasks.TaskResult
@@ -56,7 +59,7 @@ private val artifactComparator = compareBy<Artifact>(
 class MavenPublishTask(
     override val taskName: TaskName,
     override val module: AmperModule,
-    val targetRepository: RepositoriesModulePart.Repository,
+    val targetRepository: RepositoryModel.Publish,
     private val incrementalCache: IncrementalCache,
     private val terminal: Terminal,
 ) : PublishTask {
@@ -66,14 +69,6 @@ class MavenPublishTask(
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
-
-        if (!targetRepository.publish) {
-            userReadableError(
-                "Cannot publish to repository '${targetRepository.id}' because it's not marked as publishable. " +
-                        "Please check your configuration and make sure that `publish: true` is set for this repository."
-            )
-        }
-
         val localRepositoryPath = mavenLocalRepository.repository
         val artifacts = dependenciesResult.filterIsInstance<PrepareMavenPublishablesTask.Result>()
             .flatMap { it.publishables }
@@ -131,7 +126,7 @@ class MavenPublishTask(
         }
     }
 
-    context(plexusContainer: PlexusContainer)
+    context(plexusContainer: PlexusContainer, _: ProblemReporter)
     private fun publishToRemoteRepo(
         artifacts: List<Artifact>,
         localRepositoryPath: Path,
@@ -165,12 +160,20 @@ class MavenPublishTask(
         coordinates.version,
     ).setFile(path.toFile())
 
-    private fun RepositoriesModulePart.Repository.toMavenRemoteRepository(): RemoteRepository {
+    context(_: ProblemReporter)
+    private fun RepositoryModel.Publish.toMavenRemoteRepository(): RemoteRepository {
         val builder = RemoteRepository.Builder(id, "default", url)
-        if (userName != null && password != null) {
+        val credentials = when (this) {
+            is RepositoryModel.ResolveAndPublish -> credentials  // Resolved eagerly
+            is RepositoryModel.PublishOnly -> credentialsSource?.let {
+                it.readCredentials() ?: userReadableError("Unable to get credentials for publishing, see errors above")
+            }
+        }
+
+        if (credentials != null) {
             val authBuilder = AuthenticationBuilder()
-            authBuilder.addUsername(userName)
-            authBuilder.addPassword(password)
+            authBuilder.addUsername(credentials.userName)
+            authBuilder.addPassword(credentials.password)
             builder.setAuthentication(authBuilder.build())
         }
         return builder.build()

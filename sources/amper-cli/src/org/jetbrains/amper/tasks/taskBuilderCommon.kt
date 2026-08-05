@@ -10,7 +10,7 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LocalModuleDependency
 import org.jetbrains.amper.frontend.ModuleTasksPart
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.RepositoriesModulePart
+import org.jetbrains.amper.frontend.RepositoryModel
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
@@ -299,7 +299,7 @@ private fun ModuleSequenceCtx.tasksWithPlatformSpecificPublishablesFor(platform:
     }
 }
 
-internal fun publishTaskNameFor(module: AmperModule, repository: RepositoriesModulePart.Repository): TaskName =
+internal fun publishTaskNameFor(module: AmperModule, repository: RepositoryModel.Publish): TaskName =
     ModuleTaskTypes.Publish(repository.id).getTaskName(module)
 
 // TODO: Still in use. Redesign/remove

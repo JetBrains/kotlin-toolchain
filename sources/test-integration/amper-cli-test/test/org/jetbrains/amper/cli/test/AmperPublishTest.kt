@@ -8,8 +8,10 @@ import com.sun.net.httpserver.BasicAuthenticator
 import org.bouncycastle.openpgp.api.OpenPGPCertificate
 import org.bouncycastle.openpgp.api.bc.BcOpenPGPApi
 import org.jetbrains.amper.cli.test.utils.assertContainsRelativeFiles
+import org.jetbrains.amper.cli.test.utils.assertErrors
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
+import org.jetbrains.amper.cli.test.utils.assertWarnings
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.core.extract.extractZip
@@ -923,6 +925,63 @@ class AmperPublishTest : AmperCliTestBase() {
             projectDir = projectDir,
             "publish", "repoId",
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(createTempMavenLocalDir()))
+        )
+    }
+
+    @Test
+    fun `broken publish credentials are not diagnosed when reading the project model`() = runSlowTest {
+        val projectDir = testProject("jvm-publish-broken-credentials")
+
+        // Reading the project model must not fail nor report anything about the broken publishing-only credentials,
+        // because they are only needed when actually publishing to the corresponding repositories.
+        runCli(projectDir = projectDir, "show", "settings", "--all-modules").apply {
+            assertErrors(/*no errors*/)
+            assertWarnings(/*no warnings*/)
+        }
+    }
+
+    @Test
+    fun `publish fails with missing credentials file`() = runSlowTest {
+        val projectDir = testProject("jvm-publish-broken-credentials")
+
+        val result = runCli(
+            projectDir = projectDir,
+            "publish", "repoWithMissingCredentialsFile",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        // The credentials of the other (not requested) repository must not be diagnosed.
+        result.assertErrors(
+            "${projectDir / "module.yaml"}:9:13: " +
+                    "Credentials file `${projectDir / "missing.properties"}` does not exist.",
+            "Task ':jvm-publish-broken-credentials:publishToRepoWithMissingCredentialsFile' failed: " +
+                    "Unable to get credentials for publishing, see errors above",
+        )
+    }
+
+    @Test
+    fun `publish fails with missing credentials keys`() = runSlowTest {
+        val projectDir = testProject("jvm-publish-broken-credentials")
+
+        val result = runCli(
+            projectDir = projectDir,
+            "publish", "repoWithMissingCredentialsKeys",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        val moduleYaml = projectDir / "module.yaml"
+        val credentialsFile = projectDir / "p.properties"
+        val availableKeys = "[`some.other.password`, `some.other.username`]"
+        // The credentials of the other (not requested) repository must not be diagnosed.
+        result.assertErrors(
+            "$moduleYaml:18:20: Credentials file `$credentialsFile` does not have the key `scratch.username`. " +
+                    "Available keys are: $availableKeys",
+            "$moduleYaml:19:20: Credentials file `$credentialsFile` does not have the key `scratch.password`. " +
+                    "Available keys are: $availableKeys",
+            "Task ':jvm-publish-broken-credentials:publishToRepoWithMissingCredentialsKeys' failed: " +
+                    "Unable to get credentials for publishing, see errors above",
         )
     }
 

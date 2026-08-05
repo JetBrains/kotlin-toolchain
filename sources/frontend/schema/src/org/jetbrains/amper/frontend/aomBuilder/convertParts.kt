@@ -8,38 +8,27 @@ import org.jetbrains.amper.frontend.ClassBasedSet
 import org.jetbrains.amper.frontend.ModulePart
 import org.jetbrains.amper.frontend.ModuleTasksPart
 import org.jetbrains.amper.frontend.RepositoriesModulePart
-import org.jetbrains.amper.frontend.api.SchemaValueDelegate
-import org.jetbrains.amper.frontend.asBuildProblemSource
+import org.jetbrains.amper.frontend.RepositoryModel
 import org.jetbrains.amper.frontend.classBasedSet
-import org.jetbrains.amper.frontend.diagnostics.FrontendDiagnosticId
-import org.jetbrains.amper.frontend.reportBundleError
 import org.jetbrains.amper.frontend.schema.Module
-import org.jetbrains.amper.frontend.types.generated.*
 import org.jetbrains.amper.mavencentral.MavenCentralDefaultConfiguration
-import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.ProblemReporter
-import org.jetbrains.amper.stdlib.properties.readProperties
-import kotlin.io.path.exists
 
 // These converters are needed only to prevent major code changes in the [gradle-integration].
 // Parts should be replaced with schema model nodes in the future.
 
 private val defaultMavenRepositories = listOf(
-    RepositoriesModulePart.Repository(
+    RepositoryModel.ResolveOnly(
         id = "mavenCentral",
         url = MavenCentralDefaultConfiguration.url,
-        publish = false,
-        resolve = true,
     ),
-    RepositoriesModulePart.Repository(
+    RepositoryModel.ResolveOnly(
         id = "mavenGoogle",
         url = "https://maven.google.com",
-        publish = false,
-        resolve = true,
     ),
 )
 
-// FIXME Need to get rid of this `ModulePart` convention and 
+// FIXME Need to get rid of this `ModulePart` convention and
 //  replace it by direct settings reading.
 context(problemReporter: ProblemReporter)
 fun Module.convertModuleParts(): ClassBasedSet<ModulePart<*>> {
@@ -47,49 +36,33 @@ fun Module.convertModuleParts(): ClassBasedSet<ModulePart<*>> {
 
     parts += RepositoriesModulePart(
         mavenRepositories = run {
-            val customRepositories = repositories?.map { repository ->
-                // FIXME Access to the file in a more safe way.
-                val credPair = repository.credentials?.let { credentials ->
-                    if (!credentials.file.exists()) {
-                        problemReporter.reportBundleError(
-                            source = credentials.fileDelegate.asBuildProblemSource(),
-                            diagnosticId = FrontendDiagnosticId.CredentialsFileDoesNotExist,
-                            messageKey = "credentials.file.does.not.exist",
-                            credentials.file.normalize(),
-                            problemType = BuildProblemType.UnresolvedReference,
+            val customRepositories = repositories.orEmpty().mapNotNull { repository ->
+                if (repository.resolve) {
+                    val credentials = repository.credentials?.readCredentials()
+                    if (repository.publish) {
+                        RepositoryModel.ResolveAndPublish(
+                            id = repository.id,
+                            url = repository.url,
+                            credentials = credentials,
                         )
-                        return@let null
                     } else {
-                        val credentialProperties = credentials.file.readProperties()
-
-                        fun getCredProperty(keyProperty: SchemaValueDelegate<String>): String? {
-                            val property = credentialProperties.getProperty(keyProperty.value)
-                            if (property == null) {
-                                problemReporter.reportBundleError(
-                                    source = keyProperty.asBuildProblemSource(),
-                                    diagnosticId = FrontendDiagnosticId.CredentialsFileDoesNotHaveKey,
-                                    messageKey = "credentials.file.does.not.have.key",
-                                    credentials.file.normalize(),
-                                    keyProperty.value,
-                                    credentialProperties.keys.map { "`$it`" },
-                                    problemType = BuildProblemType.UnresolvedReference,
-                                )
-                            }
-                            return property
-                        }
-
-                        getCredProperty(credentials.usernameKeyDelegate) to getCredProperty(credentials.passwordKeyDelegate)
+                        RepositoryModel.ResolveOnly(
+                            id = repository.id,
+                            url = repository.url,
+                            credentials = credentials,
+                        )
                     }
+                } else if (repository.publish) {
+                    RepositoryModel.PublishOnly(
+                        id = repository.id,
+                        url = repository.url,
+                        credentialsSource = repository.credentials,
+                    )
+                } else {
+                    // TODO: Report a warning about a no-op repository
+                    null
                 }
-                RepositoriesModulePart.Repository(
-                    id = repository.id,
-                    url = repository.url,
-                    publish = repository.publish,
-                    resolve = repository.resolve,
-                    userName = credPair?.first,
-                    password = credPair?.second,
-                )
-            } ?: emptyList()
+            }
             (defaultMavenRepositories + customRepositories)
                 // deduplicating repository list by repository ID, taking the last entry corresponding to the id only.
                 .asReversed()

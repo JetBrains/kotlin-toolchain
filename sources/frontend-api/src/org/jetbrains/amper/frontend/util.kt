@@ -8,13 +8,13 @@ import org.jetbrains.amper.buildinfo.AmperBuild
 
 fun String.doCapitalize() = replaceFirstChar { it.titlecase() }
 
-val AmperModule.mavenResolveRepositories: List<RepositoriesModulePart.Repository>
-    get() = mavenRepositories.filter { it.resolve }
+val AmperModule.mavenResolveRepositories: List<RepositoryModel.Resolve>
+    get() = mavenRepositories.filterIsInstance<RepositoryModel.Resolve>()
 
-val AmperModule.mavenPublishRepositories: List<RepositoriesModulePart.Repository>
-    get() = mavenRepositories.filter { it.publish }
+val AmperModule.mavenPublishRepositories: List<RepositoryModel.Publish>
+    get() = mavenRepositories.filterIsInstance<RepositoryModel.Publish>()
 
-private val AmperModule.mavenRepositories: List<RepositoriesModulePart.Repository>
+private val AmperModule.mavenRepositories: List<RepositoryModel>
     get() = parts.find<RepositoriesModulePart>()?.mavenRepositories ?: emptyList()
 
 fun getComposeHotReloadVersion(module: AmperModule): String? {

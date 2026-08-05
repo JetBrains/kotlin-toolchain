@@ -10,6 +10,8 @@ import org.jetbrains.amper.frontend.RepositoriesModulePart
 import org.jetbrains.amper.frontend.api.DerivedValueTrace
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.isDefault
+import org.jetbrains.amper.frontend.publish
+import org.jetbrains.amper.frontend.resolve
 import org.jetbrains.amper.frontend.tree.BooleanNode
 import org.jetbrains.amper.frontend.tree.CompleteListNode
 import org.jetbrains.amper.frontend.tree.CompleteMapNode
@@ -81,8 +83,15 @@ internal fun AmperModule.prettyPrintForGoldFile(printDefaults: Boolean = false):
             appendLine("    url: ${it.url}")
             appendLine("    publish: ${it.publish}")
             appendLine("    resolve: ${it.resolve}")
-            appendLine("    username: ${it.userName}")
-            appendLine("    password: ${it.password}")
+            if (it.resolve) {
+                appendLine("    username: ${it.credentials?.userName}")
+                appendLine("    password: ${it.credentials?.password}")
+            } else {
+                appendLine("    credentialsSource:")
+                appendLine("      file: ${it.credentialsSource?.file}")
+                appendLine("      userNameKey: ${it.credentialsSource?.usernameKey}")
+                appendLine("      passwordKey: ${it.credentialsSource?.passwordKey}")
+            }
         }
     }
 

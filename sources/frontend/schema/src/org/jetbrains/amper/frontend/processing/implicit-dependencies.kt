@@ -13,6 +13,7 @@ import org.jetbrains.amper.frontend.MavenDependencyBase
 import org.jetbrains.amper.frontend.ModulePart
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.RepositoriesModulePart
+import org.jetbrains.amper.frontend.RepositoryModel
 import org.jetbrains.amper.frontend.ancestralPath
 import org.jetbrains.amper.frontend.aomBuilder.DefaultFragment
 import org.jetbrains.amper.frontend.aomBuilder.DefaultModule
@@ -346,7 +347,7 @@ private fun RepositoriesModulePart.withImplicitMavenRepositories(productType: Pr
             .filterIsInstance<MavenDependency>()
             .any { it.coordinates.groupAndArtifact == "org.jetbrains.compose.hot-reload:hot-reload-runtime-api" }
         if (isHotReloadRuntimeApiPresent) {
-            add(RepositoriesModulePart.Repository(
+            add(RepositoryModel.ResolveOnly(
                 id = "amper-hot-reload-dev",
                 url = "https://packages.jetbrains.team/maven/p/amper/compose-hot-reload",
             ))
@@ -354,12 +355,12 @@ private fun RepositoriesModulePart.withImplicitMavenRepositories(productType: Pr
 
         if (productType == ProductType.JVM_AMPER_PLUGIN) {
             if (AmperBuild.isSNAPSHOT) {
-                add(RepositoriesModulePart.Repository(
+                add(RepositoryModel.ResolveOnly(
                     id = "maven-local-resolve",
                     url = SpecialMavenLocalUrl,
                 ))
             } else {
-                add(RepositoriesModulePart.Repository(
+                add(RepositoryModel.ResolveOnly(
                     id = "amper-maven",
                     url = "https://packages.jetbrains.team/maven/p/amper/amper",
                 ))

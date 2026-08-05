@@ -14,6 +14,7 @@ import org.jetbrains.amper.frontend.Notation
 import org.jetbrains.amper.frontend.RepositoriesModulePart
 import org.jetbrains.amper.frontend.aomBuilder.readProjectModel
 import org.jetbrains.amper.frontend.project.AmperProjectContext
+import org.jetbrains.amper.frontend.resolve
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.schema.Repository.Companion.SpecialMavenLocalUrl
 import org.jetbrains.amper.problems.reporting.NoopProblemReporter

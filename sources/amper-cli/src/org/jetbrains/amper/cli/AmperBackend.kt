@@ -30,6 +30,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.mavenPublishRepositories
+import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.frontend.plugins.CustomCommandFromPlugin
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.incrementalcache.IncrementalCache
@@ -240,7 +241,16 @@ class AmperBackend(
             for (moduleName in modules) {
                 val module = model.getModuleByName(moduleName)
                 if (module.mavenPublishRepositories.none { it.id == repositoryId }) {
-                    userReadableError("Module '$moduleName' does not have repository with id '$repositoryId' having flag 'publish=true'")
+                    if (module.mavenResolveRepositories.any { it.id == repositoryId }) {
+                        // TODO: Include trace info here?
+                        userReadableError(
+                            "Cannot publish to repository '${repositoryId}' because it's not marked as publishable. " +
+                                    "Please check your configuration and make sure that `publish: true` " +
+                                    "is set for this repository."
+                        )
+                    } else {
+                        userReadableError("Module '$moduleName' does not have repository with id '$repositoryId'")
+                    }
                 }
             }
         }

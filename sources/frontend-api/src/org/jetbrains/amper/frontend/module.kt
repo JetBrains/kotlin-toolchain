@@ -17,7 +17,6 @@ import org.jetbrains.amper.frontend.schema.MavenPluginSettings
 import org.jetbrains.amper.frontend.schema.Module
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.schema.PublishingSettings
-import org.jetbrains.amper.frontend.schema.Repository.Companion.SpecialMavenLocalUrl
 import java.nio.file.Path
 import kotlin.io.path.div
 
@@ -32,19 +31,8 @@ data class AmperModuleFileSource(val buildFile: Path) {
 sealed interface ModulePart<SelfT>
 
 data class RepositoriesModulePart(
-    val mavenRepositories: List<Repository>,
-) : ModulePart<RepositoriesModulePart> {
-    data class Repository(
-        val id: String,
-        val url: String,
-        val publish: Boolean = false,
-        val resolve: Boolean = true,
-        val userName: String? = null,
-        val password: String? = null,
-    ) {
-        val isMavenLocal = url == SpecialMavenLocalUrl
-    }
-}
+    val mavenRepositories: List<RepositoryModel>,
+) : ModulePart<RepositoriesModulePart>
 
 data class ModuleTasksPart(
     val settings: Map<String, TaskSettings>,

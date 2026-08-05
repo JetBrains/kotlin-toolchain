@@ -41,6 +41,7 @@ import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
+import org.jetbrains.amper.frontend.isMavenLocal
 import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.frontend.plugins.AmperMavenPluginMojo
 import org.jetbrains.amper.maven.publish.createMavenExecutionRequest
@@ -92,9 +93,11 @@ class ExecuteMavenMojoTask(
                         id = it.id
                         url = it.url
 
-                        if (it.userName != null && it.password != null) addServer {
-                            username = it.userName
-                            password = it.password
+                        it.credentials?.let { (password, userName) ->
+                            addServer {
+                                this.username = userName
+                                this.password = password
+                            }
                         }
                     }
                 }

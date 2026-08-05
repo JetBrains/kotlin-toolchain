@@ -42,6 +42,7 @@ import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.RepositoriesModulePart
+import org.jetbrains.amper.frontend.RepositoryModel
 import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.resolveProjectDependencies
 import org.jetbrains.amper.frontend.dr.resolver.flow.Classpath
@@ -802,16 +803,16 @@ class ModuleDependencies private constructor(
                 .filterIsInstance<RepositoriesModulePart>()
                 .firstOrNull()
                 ?.mavenRepositories
-                ?.filter { it.resolve }
+                ?.filterIsInstance<RepositoryModel.Resolve>()
                 ?.map { it.toRepository() }
                 ?: defaultRepositories.map { it.toRepository() }
 
-        fun RepositoriesModulePart.Repository.toRepository() = when {
+        fun RepositoryModel.Resolve.toRepository() = when {
             this.url == SpecialMavenLocalUrl -> MavenLocal
-            else -> MavenRepository(url, userName, password)
+            else -> MavenRepository(url = url, userName = credentials?.userName, password = credentials?.password)
         }
 
-        internal fun String.toRepository() = RepositoriesModulePart.Repository(this, this).toRepository()
+        internal fun String.toRepository() = RepositoryModel.ResolveOnly(this, this).toRepository()
     }
 }
 

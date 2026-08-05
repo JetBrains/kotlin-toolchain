@@ -1,0 +1,26 @@
+product: jvm/lib
+
+repositories:
+  - id: repoWithMissingCredentialsFile
+    url: https://example.com/repo-missing-file
+    resolve: false
+    publish: true
+    credentials:
+      file: missing.properties
+      usernameKey: scratch.username
+      passwordKey: scratch.password
+  - id: repoWithMissingCredentialsKeys
+    url: https://example.com/repo-missing-keys
+    resolve: false
+    publish: true
+    credentials:
+      file: p.properties
+      usernameKey: scratch.username
+      passwordKey: scratch.password
+
+settings:
+  publishing:
+    enabled: true
+    group: "amper.test.jvm-publish-broken-credentials"
+    version: "1.0"
+    artifactId: artifactName
