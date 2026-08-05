@@ -203,8 +203,7 @@ class KmpPublicationTest : AmperCliTestBase() {
         )
 
         // Asserts that test was actually run.
-        r.assertStdoutContains("[         1 tests successful      ]")
-        r.assertStdoutContains("[         0 tests failed          ]")
+        r.assertStdoutContains("[  PASSED  ] 1 tests")
     }
 
     @Test

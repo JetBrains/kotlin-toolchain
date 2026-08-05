@@ -77,7 +77,7 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
 
         assertMetadataFilesEquals("wasmJsPlusWasmWasi-wasmjs-1.0.0.module", "wasmJs.module.json", testInfo, "edgeCase_wasmJsPlusWasmWasi")
 
-        assertMetadataFilesEquals("wasmJsPlusWasmWasi-wasmwasi-1.0.0.module", "wasmwasi.module.json", testInfo, "edgeCase_wasmJsPlusWasmWasi")
+        assertMetadataFilesEquals("wasmJsPlusWasmWasi-wasmwasi-1.0.0.module", "wasmWasi.module.json", testInfo, "edgeCase_wasmJsPlusWasmWasi")
     }
 
     @Test
