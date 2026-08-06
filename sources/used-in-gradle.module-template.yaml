@@ -1,9 +1,12 @@
+# This template is used in all modules that are directly or transitively used
+# in our synthetic Gradle builds for Android modules.
+
 apply:
   - //sources/common.module-template.yaml
 
 settings:
   jvm:
-    # We use Gradle 8.14 right now, and it can run on all JDKs from 8 to 24.
-    # Therefore, users could technically use JDK 8 and we should in theory respect that.
-    # However, because Gradle 9 now raised the minimum to JDK 17, let's be proactive and limit already.
+    # We use Gradle 9 now, and it can run only run on JDKs 17 and above, so the user can use a JDK as low as 17, and
+    # we need to make sure our modules can run on it.
+    # https://docs.gradle.org/current/userguide/compatibility.html
     release: 17
