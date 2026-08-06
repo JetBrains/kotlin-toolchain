@@ -12,7 +12,7 @@ Our plugin should be able to parse a `.properties` file and generate Kotlin prop
 Later we may implement additional features.
 We will name our plugin `build-config`.
 
-The sources of the plugin are available in the [amper-plugins-tutorial](https://github.com/JetBrains/amper-plugins-tutorial)
+The sources of the plugin are available in the [kotlin-toolchain-plugins-tutorial](https://github.com/JetBrains/kotlin-toolchain-plugins-tutorial)
 repository on GitHub. You can clone it, checkout the initial revision, and follow the Git log to see the changes made step by step.
 
 ### Basic example
