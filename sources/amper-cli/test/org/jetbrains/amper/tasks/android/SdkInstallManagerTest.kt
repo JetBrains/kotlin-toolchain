@@ -6,7 +6,9 @@ package org.jetbrains.amper.tasks.android
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class SdkInstallManagerTest {
 
@@ -52,6 +54,32 @@ class SdkInstallManagerTest {
         assertEquals(
             "platforms;android-37.2",
             selectBestMatchingPackagePath("platforms;android-37", available),
+        )
+    }
+
+    @Test
+    fun latestMinorVersionIsChosenOverAnExactMatch() {
+        val available = listOf(
+            "platforms;android-37",
+            "platforms;android-37.0",
+            "platforms;android-37.1",
+        )
+        assertEquals(
+            "platforms;android-37.1",
+            selectLatestMinorVersionPackagePath("platforms;android-37", available),
+        )
+    }
+
+    @Test
+    fun latestMinorVersionIsChosenBeforeAnExtensionSuffix() {
+        val available = listOf(
+            "platforms;android-37-ext2",
+            "platforms;android-37.0-ext2",
+            "platforms;android-37.1-ext2",
+        )
+        assertEquals(
+            "platforms;android-37.1-ext2",
+            selectLatestMinorVersionPackagePath("platforms;android-37-ext2", available),
         )
     }
 
@@ -130,5 +158,16 @@ class SdkInstallManagerTest {
             "platforms;android-35-ext14",
             androidPlatformPackageName(apiLevel = 35, minorVersion = 0, sdkExtension = 14),
         )
+    }
+
+    @Test
+    fun `latest minor is checked only when the minor version is unspecified for API 37 and later`() {
+        assertTrue(shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel = 37, minorVersion = null))
+        assertTrue(shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel = 36, minorVersion = null))
+        assertTrue(shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel = 42, minorVersion = null))
+
+        assertFalse(shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel = 37, minorVersion = 0))
+        assertFalse(shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel = 36, minorVersion = 0))
+        assertFalse(shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel = 35, minorVersion = null))
     }
 }

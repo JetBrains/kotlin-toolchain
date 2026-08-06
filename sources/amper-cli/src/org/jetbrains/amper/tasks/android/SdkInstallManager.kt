@@ -60,20 +60,33 @@ class SdkInstallManager(private val userCacheRoot: AmperUserCacheRoot, private v
         androidSdkPath.createDirectories()
     }
 
-    suspend fun install(packagePath: String): RepoPackage {
+    suspend fun install(packagePath: String, checkForLatestMinorVersion: Boolean = false): RepoPackage {
         return if (packagePath.contains("system-images")) {
             installSystemImage(packagePath)
         } else {
-            installPackage(packagePath)
+            installPackage(packagePath, checkForLatestMinorVersion)
         }
     }
 
-    suspend fun installPackage(packagePath: String): RepoPackage =
+    suspend fun installPackage(packagePath: String, checkForLatestMinorVersion: Boolean): RepoPackage =
         FileMutexGroup.Default.withDoubleLock(androidSdkPath / "$packagePath.lock") {
             // An already-installed package may be stored under the exact requested path, or under a
             // minor-versioned variant of it (see [selectBestMatchingPackagePath]).
-            findInstalledPackage(packagePath) ?: installPackageFromRemote(packagePath)
+            if (checkForLatestMinorVersion) {
+                installLatestMinorVersionFromRemote(packagePath)
+            } else {
+                findInstalledPackage(packagePath) ?: installPackageFromRemote(packagePath)
+            }
         }
+
+    private suspend fun installLatestMinorVersionFromRemote(packagePath: String): RepoPackage {
+        // TODO: Introduce caching
+        val remotePackages = packages().remotePackage
+        val resolvedPackagePath = selectLatestMinorVersionPackagePath(packagePath, remotePackages.map { it.path })
+            ?: error("Package $packagePath not found")
+        return findInstalledPackage(resolvedPackagePath)
+            ?: installPackageFromRemote(resolvedPackagePath, remotePackages)
+    }
 
     private fun findInstalledPackage(packagePath: String): RepoPackage? {
         val installedPackagePath = resolveInstalledPackagePath(packagePath) ?: return null
@@ -99,11 +112,14 @@ class SdkInstallManager(private val userCacheRoot: AmperUserCacheRoot, private v
         return selectBestMatchingPackagePath(packagePath, installedPackagePaths)
     }
 
-    private suspend fun installPackageFromRemote(packagePath: String): RepoPackage {
-        val remotePackages = packages().remotePackage
-        val resolvedPackagePath = selectBestMatchingPackagePath(packagePath, remotePackages.map { it.path })
+    private suspend fun installPackageFromRemote(
+        packagePath: String,
+        remotePackages: List<RemotePackage>? = null,
+    ): RepoPackage {
+        val availableRemotePackages = remotePackages ?: packages().remotePackage
+        val resolvedPackagePath = selectBestMatchingPackagePath(packagePath, availableRemotePackages.map { it.path })
             ?: error("Package $packagePath not found")
-        val pkg = remotePackages.first { it.path == resolvedPackagePath }
+        val pkg = availableRemotePackages.first { it.path == resolvedPackagePath }
         val localPackagePath = resolvedPackagePath.toLocalPath()
         val url = androidRepositoryUrlBuilder.appendPathSegments(pkg.archive.complete.url).build()
         val path = Downloader.downloadFileToCacheLocation(url.toString(), userCacheRoot)
@@ -239,4 +255,22 @@ internal fun selectBestMatchingPackagePath(requested: String, available: Collect
         }
         .maxByOrNull { it.second }
         ?.first
+}
+
+/**
+ * Selects the newest minor-versioned variant of [requested], falling back to an exact match when
+ * the repository has no minor-versioned variants.
+ */
+internal fun selectLatestMinorVersionPackagePath(requested: String, available: Collection<String>): String? {
+    val extensionIndex = requested.lastIndexOf("-ext")
+    val packageName = requested.substring(0, extensionIndex.takeIf { it >= 0 } ?: requested.length)
+    val extensionSuffix = requested.substring(extensionIndex.takeIf { it >= 0 } ?: requested.length)
+    val minorVersionRegex = Regex("${Regex.escape(packageName)}\\.(\\d+)${Regex.escape(extensionSuffix)}")
+    return available
+        .mapNotNull { candidate ->
+            minorVersionRegex.matchEntire(candidate)?.let { match -> candidate to match.groupValues[1].toInt() }
+        }
+        .maxByOrNull { it.second }
+        ?.first
+        ?: requested.takeIf { it in available }
 }
