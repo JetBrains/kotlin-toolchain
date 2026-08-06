@@ -23,5 +23,5 @@ dependencies:
   - $libs.slf4j.api
   - $libs.slf4j.simple
   - $libs.intellij.jps.build.dependency.graph
-  - org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0
+  - org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0
   - $libs.opentelemetry.sdk.common
