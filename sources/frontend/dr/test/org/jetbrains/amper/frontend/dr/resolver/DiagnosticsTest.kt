@@ -225,7 +225,7 @@ class DiagnosticsTest : AbstractDependencyInsightsTest() {
              */
             assertEquals(20, buildProblems.size)
 
-            val overriddenDependencyProblems = buildProblems.mapNotNull { it as? ModuleDependencyWithOverriddenVersion }
+            val overriddenDependencyProblems = buildProblems.filterIsInstance<ModuleDependencyWithOverriddenVersion>()
             assertEquals(buildProblems.size, overriddenDependencyProblems.size)
 
             val problematicDependencies = overriddenDependencyProblems.map { it.dependencyNode.key }.distinct()
@@ -291,7 +291,7 @@ class DiagnosticsTest : AbstractDependencyInsightsTest() {
              */
             assertEquals(189, buildProblems.size)
 
-            val overriddenDependencyProblems = buildProblems.mapNotNull { it as? ModuleDependencyWithOverriddenVersion }
+            val overriddenDependencyProblems = buildProblems.filterIsInstance<ModuleDependencyWithOverriddenVersion>()
             assertEquals(buildProblems.size, overriddenDependencyProblems.size)
 
             val problematicDependencies = overriddenDependencyProblems.map { it.dependencyNode.key }.distinct()
@@ -399,14 +399,16 @@ class DiagnosticsTest : AbstractDependencyInsightsTest() {
 
         buildProblem as ModuleDependencyWithOverriddenVersion
 
-        assertEquals(buildProblem.dependencyNode.key.name, "io.ktor:ktor-client-cio-jvm",
+        assertEquals(
+            "io.ktor:ktor-client-cio-jvm", buildProblem.dependencyNode.key.name,
             "Build problem is reported for unexpected dependency")
-        assertEquals(buildProblem.level, Level.Warning, "Unexpected build problem level")
+        assertEquals(Level.Warning, buildProblem.level, "Unexpected build problem level")
 
         assertNull(buildProblem.dependencyNode.originalVersion, "Original version should be left unspecified")
-        assertEquals(buildProblem.dependencyNode.versionFromBom, "3.0.2", "Incorrect version resolved from BOM")
-        assertEquals(buildProblem.message,
+        assertEquals("3.0.2", buildProblem.dependencyNode.versionFromBom, "Incorrect version resolved from BOM")
+        assertEquals(
             "Version `3.0.2` of dependency `io.ktor:ktor-client-cio-jvm` taken from BOM is overridden, the actual version is `3.1.2`.",
+            buildProblem.message,
             "Unexpected diagnostic message"
         )
     }
