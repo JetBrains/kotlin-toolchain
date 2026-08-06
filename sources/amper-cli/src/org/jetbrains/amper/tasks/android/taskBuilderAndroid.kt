@@ -413,11 +413,15 @@ private fun TaskGraphBuilder.setupAndroidPlatformTask(
     isTest: Boolean,
 ) {
     val androidFragment = getAndroidFragment(module, isTest)
-    val compileSdk = androidFragment?.settings?.android?.compileSdk?.versionNumber ?: return
+    val compileSdk = androidFragment?.settings?.android?.compileSdk ?: return
     registerTask(
         task = GetAndroidPlatformJarTask(
             getAndroidPlatformFileFromPackageTask = GetAndroidPlatformFileFromPackageTask(
-                packageName = "platforms;android-$compileSdk",
+                packageName = androidPlatformPackageName(
+                    apiLevel = compileSdk.apiLevel.versionNumber,
+                    minorVersion = compileSdk.minorVersion,
+                    sdkExtension = compileSdk.sdkExtension,
+                ),
                 androidSdkPath = androidSdkPath,
                 userCacheRoot = userCacheRoot,
                 taskName = AndroidTaskType.InstallPlatform.getTaskName(module, Platform.ANDROID, isTest)
@@ -427,6 +431,24 @@ private fun TaskGraphBuilder.setupAndroidPlatformTask(
     )
 }
 
+internal fun androidPlatformPackageName(
+    apiLevel: Int,
+    minorVersion: Int?,
+    sdkExtension: Int?,
+): String = buildString {
+    append("platforms;android-")
+    append(apiLevel)
+    if (apiLevel >= 37 || minorVersion != 0) {
+        // Minor version not equals to 0 started being appended to platform only since API level 37
+        // - versions 1..35 don't have minor versions at all
+        // - 36 has 36 and 36.1
+        // - 37 has 37.0 and 37.1
+        // Future is unclear but, hopefully, Google uses the same versioning schema since 37 now.
+        minorVersion?.let { append(".$it") }
+    }
+    sdkExtension?.let { append("-ext$it") }
+}
+
 private fun TaskGraphBuilder.setupDownloadBuildToolsTask(
     module: AmperModule,
     androidSdkPath: Path,
@@ -434,9 +456,11 @@ private fun TaskGraphBuilder.setupDownloadBuildToolsTask(
     isTest: Boolean,
 ) {
     val androidFragment = getAndroidFragment(module, isTest)
+    val compileSdk = androidFragment?.settings?.android?.compileSdk ?: return
     registerTask(
         task = GetAndroidPlatformFileFromPackageTask(
-            packageName = "build-tools;${androidFragment?.settings?.android?.compileSdk?.versionNumber}.0.0",
+            // build-tools versioning doesn't seem to use minor version
+            packageName = "build-tools;${compileSdk.apiLevel.versionNumber}.0.0",
             androidSdkPath = androidSdkPath,
             userCacheRoot = userCacheRoot,
             taskName = AndroidTaskType.InstallBuildTools.getTaskName(module, Platform.ANDROID, isTest)

@@ -14,7 +14,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -62,7 +64,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -105,7 +109,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -151,7 +157,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -193,7 +201,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -238,7 +248,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -281,7 +293,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -324,7 +338,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -370,7 +386,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -416,7 +434,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -461,7 +481,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -504,7 +526,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -550,7 +574,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -597,7 +623,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -640,7 +668,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33
@@ -686,7 +716,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: my-application
-        compileSdk: 33
+        compileSdk: {
+          apiLevel: 33
+        }
         minSdk: 30
         namespace: com.example.namespace
         targetSdk: 33

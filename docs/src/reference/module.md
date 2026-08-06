@@ -54,13 +54,13 @@ Read more in the [Testing](../user-guide/testing.md) section.
 
 Supported dependency types:
 
-| Notation                                                 | Description                                                                                                                |
-|----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
-| `- //<project path>`                             | Dependency on [another module](../user-guide/dependencies.md#module-dependencies) in the codebase.                         |
-| `- <group ID>:<artifact ID>:<version>`           | Dependency on [a Kotlin or Java library](../user-guide/dependencies.md#external-maven-dependencies) in a Maven repository. |
-| `- $<catalog.key>`                               | Dependency from [a dependency catalog](../user-guide/dependencies.md#library-catalogs).                                    |
-| `- bom: <group ID>:<artifact ID>:<version>`      | Dependency on [a BOM](../user-guide/dependencies.md#using-a-maven-bom).                                                    |
-| `- bom: $<catalog.key>`                          | Dependency on [a BOM from a dependency catalog](../user-guide/dependencies.md#library-catalogs).                           |
+| Notation                                    | Description                                                                                                                |
+|---------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| `- //<project path>`                        | Dependency on [another module](../user-guide/dependencies.md#module-dependencies) in the codebase.                         |
+| `- <group ID>:<artifact ID>:<version>`      | Dependency on [a Kotlin or Java library](../user-guide/dependencies.md#external-maven-dependencies) in a Maven repository. |
+| `- $<catalog.key>`                          | Dependency from [a dependency catalog](../user-guide/dependencies.md#library-catalogs).                                    |
+| `- bom: <group ID>:<artifact ID>:<version>` | Dependency on [a BOM](../user-guide/dependencies.md#using-a-maven-bom).                                                    |
+| `- bom: $<catalog.key>`                     | Dependency on [a BOM from a dependency catalog](../user-guide/dependencies.md#library-catalogs).                           |
 
 Each dependency (except BOM) has the following attributes:
 
@@ -269,30 +269,55 @@ Read more in the [Testing](../user-guide/testing.md) section.
 
 `settings.android` configures the Android toolchain and platform.
 
-| Attribute                     | Default                 | Description                                                                                                                                                                                                                   |
-|-------------------------------|-------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `applicationId: string`       | (set from `namespace`)  | The ID for the application on a device and in the Google Play Store. [Read more](https://developer.android.com/build/configure-app-module#set-namespace).                                                                     |
-| `namespace: string`           | `org.example.namespace` | A Kotlin or Java package name for the generated `R` and `BuildConfig` classes. [Read more](https://developer.android.com/build/configure-app-module#set-namespace).                                                           |
-| `compileSdk: int`             | 37                      | The API level to compile the code. The code can use only the Android APIs up to that API level. [Read more](https://developer.android.com/reference/tools/gradle-api/com/android/build/api/dsl/CommonExtension#compileSdk()). |
-| `targetSdk: int`              | (set from `compileSdk`) | The target API level for the application. [Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html).                                                                                             |
-| `minSdk: int`                 | 21                      | Minimum API level needed to run the application. [Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html).                                                                                      |
-| `maxSdk: int?`                | `null`                  | Maximum API level on which the application can run. [Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html).                                                                                   |
-| `signing: object`             |                         | Android signing settings. [Read more](https://developer.android.com/studio/publish/app-signing).                                                                                                                              |
-| `versionCode: int`            | 1                       | Version code. [Read more](https://developer.android.com/studio/publish/versioning).                                                                                                                                           |
-| `versionName: string`         | `unspecified`           | Version name. [Read more](https://developer.android.com/studio/publish/versioning).                                                                                                                                           |
-| `resourcePackaging: object`   | (empty)                 | Configure how duplicate Java resources from dependencies are packaged in an Android app. See [Resolving duplicate Java resources](../user-guide/product-types/android-app.md#resolving-duplicate-java-resources).                                                                            |
-| `parcelize: object \| string` | (disabled)              | Configure [Parcelize](https://developer.android.com/kotlin/parcelize).                                                                                                                                                        |
+| Attribute                     | Default                 | Description                                                                                                                                                                                                                                     |
+|-------------------------------|-------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `applicationId: string`       | (set from `namespace`)  | The ID for the application on a device and in the Google Play Store. [Read more](https://developer.android.com/build/configure-app-module#set-namespace).                                                                                       |
+| `namespace: string`           | `org.example.namespace` | A Kotlin or Java package name for the generated `R` and `BuildConfig` classes. [Read more](https://developer.android.com/build/configure-app-module#set-namespace).                                                                             |
+| `compileSdk: object \| int`   | 37                      | The Android SDK version to compile the code against. The code can use only the Android APIs up to that API level. [Read more](https://developer.android.com/reference/tools/gradle-api/com/android/build/api/dsl/CommonExtension#compileSdk()). |
+| `targetSdk: int`              | (set from `compileSdk`) | The target API level for the application. [Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html).                                                                                                               |
+| `minSdk: int`                 | 21                      | Minimum API level needed to run the application. [Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html).                                                                                                        |
+| `maxSdk: int?`                | `null`                  | Maximum API level on which the application can run. [Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html).                                                                                                     |
+| `signing: object`             |                         | Android signing settings. [Read more](https://developer.android.com/studio/publish/app-signing).                                                                                                                                                |
+| `versionCode: int`            | 1                       | Version code. [Read more](https://developer.android.com/studio/publish/versioning).                                                                                                                                                             |
+| `versionName: string`         | `unspecified`           | Version name. [Read more](https://developer.android.com/studio/publish/versioning).                                                                                                                                                             |
+| `resourcePackaging: object`   | (empty)                 | Configure how duplicate Java resources from dependencies are packaged in an Android app. See [Resolving duplicate Java resources](../user-guide/product-types/android-app.md#resolving-duplicate-java-resources).                               |
+| `parcelize: object \| string` | (disabled)              | Configure [Parcelize](https://developer.android.com/kotlin/parcelize).                                                                                                                                                                          |
+
+#### `settings.android.compileSdk`
+
+`settings.android.compileSdk` configures the Android SDK version used to compile the module. Use an API level directly as a shorthand, or use an object to configure the API level, minor version, and SDK extension level.
+
+| Attribute            | Default | Description                                                                                                                          |
+|----------------------|---------|--------------------------------------------------------------------------------------------------------------------------------------|
+| `apiLevel: int`      | 37      | The Android API level to compile the project against.                                                                                |
+| `minorVersion: int?` | `null`  | Minor version of the Android API. When omitted, the Kotlin Toolchain checks for and uses a newer Android SDK version when available. |
+| `sdkExtension: int?` | `null`  | Android SDK extension level to compile the project against. [Read more](https://developer.android.com/guide/sdk-extensions)          |
+
+```yaml title="Shorthand"
+settings:
+  android:
+    compileSdk: 37
+```
+
+```yaml title="Full form"
+settings:
+  android:
+    compileSdk:
+      apiLevel: 37
+      minorVersion: 1
+      sdkExtension: 2
+```
 
 #### `settings.android.resourcePackaging`
 
 `settings.android.resourcePackaging` configures how Java resources from dependencies are packaged in an Android app.
 Use it to resolve duplicate-resource failures from `MergeJavaResWorkAction`.
 
-| Attribute                 | Default | Description                                                                                      |
-|---------------------------|---------|--------------------------------------------------------------------------------------------------|
-| `excludes: string list`   | `[]`    | Glob patterns matching Java resources that should not be packaged in the APK.                    |
-| `merges: string list`     | `[]`    | Glob patterns matching Java resources whose contents should be concatenated into one APK entry. |
-| `pickFirsts: string list` | `[]`    | Glob patterns matching Java resources for which only the first occurrence should be packaged.   |
+| Attribute                 | Default | Description                                                                                       |
+|---------------------------|---------|---------------------------------------------------------------------------------------------------|
+| `excludes: string list`   | `[]`    | Glob patterns matching Java resources that should not be packaged in the APK.                     |
+| `merges: string list`     | `[]`    | Glob patterns matching Java resources whose contents should be concatenated into one APK entry.   |
+| `pickFirsts: string list` | `[]`    | Glob patterns matching Java resources for which only the first occurrence should be packaged.     |
 
 ```yaml title="Excluding a duplicated Java resource"
 settings:
@@ -352,10 +377,10 @@ framework. Read more about [Compose configuration](../user-guide/builtin-tech/co
 
 `settings.compose.resources` configures Compose Resources settings.
 
-| Attribute                   | Default | Description                                                                                                                                                                                     |
-|-----------------------------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `packageName: string`       | `""`    | A unique identifier for the resources in the current module. Used as package for the generated Res class and for isolating resources in the final artifact.                                     |
-| `exposedAccessors: boolean` | `false` | Whether the generated resources accessors should be exposed to other modules (public) or internal.                                                                                              |
+| Attribute                   | Default | Description                                                                                                                                                                            |
+|-----------------------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `packageName: string`       | `""`    | A unique identifier for the resources in the current module. Used as package for the generated Res class and for isolating resources in the final artifact.                            |
+| `exposedAccessors: boolean` | `false` | Whether the generated resources accessors should be exposed to other modules (public) or internal.                                                                                     |
 | `nameOfResClass: string`    | `"Res"` | The name of the Kotlin object on which all the resource accessors are generated. `Res` by default. Can be customized to avoid name clashes when using resources from multiple modules. |
 
 `settings.compose.experimental` configures experimental Compose features.

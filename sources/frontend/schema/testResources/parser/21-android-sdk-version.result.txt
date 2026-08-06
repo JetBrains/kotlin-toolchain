@@ -13,7 +13,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: <default> org.example.namespace
-        compileSdk: 32
+        compileSdk: {
+          apiLevel: 32
+        }
         targetSdk: <default> 32
       }
       compose: {
@@ -37,7 +39,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: <default> org.example.namespace
-        compileSdk: 32
+        compileSdk: {
+          apiLevel: 32
+        }
         targetSdk: <default> 32
       }
       compose: {

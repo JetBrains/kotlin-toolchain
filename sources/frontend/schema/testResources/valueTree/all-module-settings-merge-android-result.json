@@ -28,7 +28,9 @@
   ],
   "settings" : {
     "android" : {
-      "compileSdk" : "33",
+      "compileSdk" : {
+        "apiLevel" : "33"
+      },
       "minSdk" : "30",
       "applicationId" : "my-application",
       "namespace" : "com.example.namespace",

@@ -46,6 +46,7 @@ abstract class SchemaObjectDeclarationBase : SchemaObjectDeclaration {
                 when (shorthand.type) {
                     is SchemaType.BooleanType -> booleanShorthands += shorthand
                     is SchemaType.EnumType,
+                    is SchemaType.IntType,
                     is SchemaType.PathType,
                     is SchemaType.StringType,
                     is SchemaType.ListType,

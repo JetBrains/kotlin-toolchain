@@ -41,14 +41,13 @@ class AndroidSettings : SchemaNode() {
     @SchemaDoc("The target API level for the application. " +
             "[Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html)")
     @KnownIntValues(37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21)
-    val targetSdk by referenceValue(::compileSdk)
+    val targetSdk by referenceValue(::compileSdk, AndroidCompileSdkVersion::apiLevel)
 
     @CanBeReferenced // by targetSdk
     @Misnomers("compileApiLevel")
     @SchemaDoc("The API level to compile the code. The code can use only the Android APIs up to that API level. " +
             "[Read more](https://developer.android.com/reference/tools/gradle-api/com/android/build/api/dsl/CommonExtension#compileSdk())")
-    @KnownIntValues(37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21)
-    val compileSdk by value(AndroidVersion(37))
+    val compileSdk: AndroidCompileSdkVersion by nested()
 
     @CanBeReferenced // by applicationId
     @Misnomers("packageName")
@@ -84,6 +83,21 @@ class AndroidSettings : SchemaNode() {
     @SchemaDoc("Configure [Kotlin Parcelize](https://developer.android.com/kotlin/parcelize) to automatically " +
             "implement the `Parcelable` interface for classes annotated with `@Parcelize`.")
     val parcelize: ParcelizeSettings by nested()
+}
+
+class AndroidCompileSdkVersion : SchemaNode() {
+    @Shorthand
+    @SchemaDoc("The Android API level to compile the project against.")
+    @KnownIntValues(37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21)
+    val apiLevel by value(AndroidVersion(37))
+
+    @SchemaDoc("Minor version of the Android API. If `null` (default), the Kotlin Toolchain will always check if there " +
+            "is a newer version of the Android SDK and use it.")
+    val minorVersion by nullableValue<Int>()
+
+    @SchemaDoc("The Android SDK extension level to compile the project against. " +
+            "[Read more](https://developer.android.com/guide/sdk-extensions)")
+    val sdkExtension by nullableValue<Int>()
 }
 
 class AndroidSigningSettings : SchemaNode() {

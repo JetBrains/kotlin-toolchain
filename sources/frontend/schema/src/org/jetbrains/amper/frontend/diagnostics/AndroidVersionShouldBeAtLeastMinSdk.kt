@@ -24,7 +24,8 @@ class AndroidVersionShouldBeAtLeastMinSdk(
     @UsedInIdePlugin
     val versionProp: SchemaValueDelegate<out AndroidVersion?>,
     @UsedInIdePlugin
-    val minSdkVersion: AndroidVersion
+    val minSdkVersion: AndroidVersion,
+    private val versionName: String = versionProp.name,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.InconsistentConfiguration) {
 
     override val element: PsiElement
@@ -35,7 +36,7 @@ class AndroidVersionShouldBeAtLeastMinSdk(
     override val message: @Nls String
         get() = SchemaBundle.message(
             messageKey = "android.version.should.be.at.least.min.sdk",
-            versionProp.name,
+            versionName,
             versionProp.value,
             minSdkVersion,
         )
@@ -45,25 +46,29 @@ object AndroidVersionShouldBeAtLeastMinSdkFactory : AomSingleModuleDiagnosticFac
 
     override fun analyze(module: AmperModule, problemReporter: ProblemReporter) {
         val reportedPlaces = mutableSetOf<Trace?>()
+
+        fun reportIfTooLow(
+            minSdkVersion: AndroidVersion,
+            versionProp: SchemaValueDelegate<AndroidVersion>,
+            versionName: String,
+        ) {
+            val version = versionProp.value
+            if (version >= minSdkVersion) return
+            if (!reportedPlaces.add(versionProp.trace)) return
+
+            problemReporter.reportMessage(
+                AndroidVersionShouldBeAtLeastMinSdk(
+                    versionProp,
+                    minSdkVersion = minSdkVersion,
+                    versionName = versionName,
+                )
+            )
+        }
+
         module.fragments.forEach { fragment ->
             val settings = fragment.settings.android
-            val usedVersions = listOf(
-                settings.compileSdkDelegate,
-                settings.targetSdkDelegate,
-            )
-            val minSdkVersion = settings.minSdk
-            for (versionProp in usedVersions) {
-                val version = versionProp.value
-                if (version >= minSdkVersion) continue
-                if (!reportedPlaces.add(versionProp.trace)) continue
-
-                problemReporter.reportMessage(
-                    AndroidVersionShouldBeAtLeastMinSdk(
-                        versionProp,
-                        minSdkVersion = minSdkVersion,
-                    )
-                )
-            }
+            reportIfTooLow(settings.minSdk, settings.compileSdk.apiLevelDelegate, settings.compileSdkDelegate.name)
+            reportIfTooLow(settings.minSdk, settings.targetSdkDelegate, settings.targetSdkDelegate.name)
         }
     }
 }

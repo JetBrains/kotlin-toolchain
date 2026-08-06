@@ -10,7 +10,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: <default> org.example.namespace
-        compileSdk: 27
+        compileSdk: {
+          apiLevel: 27
+        }
         minSdk: 30
         targetSdk: <default> 27
       }
@@ -29,7 +31,9 @@ Fragments:
     Settings: {
       android: {
         applicationId: <default> org.example.namespace
-        compileSdk: 27
+        compileSdk: {
+          apiLevel: 27
+        }
         minSdk: 30
         targetSdk: <default> 27
       }

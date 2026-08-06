@@ -10,9 +10,11 @@ import org.jetbrains.amper.frontend.contexts.MinimalModule
 import org.jetbrains.amper.frontend.diagnostics.helpers.visitProperties
 import org.jetbrains.amper.frontend.messages.PsiBuildProblem
 import org.jetbrains.amper.frontend.messages.extractPsiElementOrNull
+import org.jetbrains.amper.frontend.schema.AndroidCompileSdkVersion
 import org.jetbrains.amper.frontend.schema.AndroidSettings
 import org.jetbrains.amper.frontend.schema.AndroidVersion
 import org.jetbrains.amper.frontend.tree.IntNode
+import org.jetbrains.amper.frontend.tree.KeyValue
 import org.jetbrains.amper.frontend.tree.TreeNode
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
@@ -35,13 +37,10 @@ object AndroidTooOldVersionFactory : TreeDiagnosticFactory {
 
     override fun analyze(root: TreeNode, minimalModule: MinimalModule, problemReporter: ProblemReporter) {
         val reportedPlaces = mutableSetOf<PsiElement>() // somehow the computed properties lead to duplicate reports
-        root.visitProperties<AndroidSettings, IntNode>(
-            AndroidSettings::compileSdk,
-            AndroidSettings::minSdk,
-            AndroidSettings::targetSdk,
-        ) { keyValue, node ->
+
+        fun reportTooOldVersion(keyValue: KeyValue, node: IntNode) {
             val version = AndroidVersion(node.value)
-            val versionTraceElement = keyValue.value.trace.extractPsiElementOrNull() ?: return@visitProperties
+            val versionTraceElement = keyValue.value.trace.extractPsiElementOrNull() ?: return
             if (version < MINIMAL_ANDROID_VERSION && reportedPlaces.add(versionTraceElement)) {
                 problemReporter.reportMessage(
                     AndroidTooOldVersion(
@@ -52,5 +51,15 @@ object AndroidTooOldVersionFactory : TreeDiagnosticFactory {
                 )
             }
         }
+
+        root.visitProperties<AndroidCompileSdkVersion, IntNode>(
+            AndroidCompileSdkVersion::apiLevel,
+            visitSelected = ::reportTooOldVersion,
+        )
+        root.visitProperties<AndroidSettings, IntNode>(
+            AndroidSettings::minSdk,
+            AndroidSettings::targetSdk,
+            visitSelected = ::reportTooOldVersion,
+        )
     }
 }

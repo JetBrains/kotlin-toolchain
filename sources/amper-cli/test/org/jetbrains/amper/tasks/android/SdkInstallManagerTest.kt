@@ -25,7 +25,7 @@ class SdkInstallManagerTest {
     )
 
     @Test
-    fun exactMatchIsPreferred() {
+    fun `exact match is preferred`() {
         // android-36 exists as a plain package, so it must win over android-36.1
         assertEquals(
             "platforms;android-36",
@@ -34,7 +34,7 @@ class SdkInstallManagerTest {
     }
 
     @Test
-    fun minorVersionedVariantIsResolvedWhenPlainIsAbsent() {
+    fun `minor versioned variant is resolved when plain is absent`() {
         // android-37 has no plain package, only android-37.0
         assertEquals(
             "platforms;android-37.0",
@@ -43,7 +43,7 @@ class SdkInstallManagerTest {
     }
 
     @Test
-    fun highestMinorVersionIsChosen() {
+    fun `highest minor version is chosen`() {
         val available = listOf(
             "platforms;android-37.0",
             "platforms;android-37.1",
@@ -56,7 +56,7 @@ class SdkInstallManagerTest {
     }
 
     @Test
-    fun extensionLevelsAndCodenamesAreNeverMatched() {
+    fun `extension levels and codenames are never matched if not requested`() {
         val available = listOf(
             "platforms;android-37-ext19",
             "platforms;android-CinnamonBun",
@@ -66,14 +66,22 @@ class SdkInstallManagerTest {
     }
 
     @Test
-    fun prefixOfAnApiLevelIsNotMatched() {
+    fun `match extension level when requested`() {
+        assertEquals(
+            "platforms;android-36-ext19",
+            selectBestMatchingPackagePath("platforms;android-36-ext19", availablePlatforms),
+        )
+    }
+
+    @Test
+    fun `prefix of an api level is not matched`() {
         // "android-3" must not match "android-37"/"android-37.0" (and "android-370" has no minor dot)
         val available = listOf("platforms;android-37", "platforms;android-37.0", "platforms;android-370")
         assertNull(selectBestMatchingPackagePath("platforms;android-3", available))
     }
 
     @Test
-    fun buildToolsExactMatchIsResolved() {
+    fun `build tools exact match is resolved`() {
         val available = listOf("build-tools;36.0.0", "build-tools;36.1.0", "build-tools;37.0.0")
         assertEquals(
             "build-tools;37.0.0",
@@ -82,7 +90,45 @@ class SdkInstallManagerTest {
     }
 
     @Test
-    fun returnsNullWhenNothingMatches() {
+    fun `returns null when nothing matches`() {
         assertNull(selectBestMatchingPackagePath("platforms;android-99", availablePlatforms))
+    }
+
+    @Test
+    fun `platform package name includes the configured minor and extension`() {
+        assertEquals(
+            "platforms;android-37.1-ext2",
+            androidPlatformPackageName(apiLevel = 37, minorVersion = 1, sdkExtension = 2),
+        )
+    }
+
+    // See comment in the androidPlatformPackageName
+    @Test
+    fun `platform package name handles minor version boundaries`() {
+        data class Case(val apiLevel: Int, val minorVersion: Int?, val expected: String)
+
+        val cases = [
+            Case(35, null, "platforms;android-35"),
+            Case(35, 0, "platforms;android-35"),
+            Case(36, 0, "platforms;android-36"),
+            Case(36, 1, "platforms;android-36.1"),
+            Case(37, null, "platforms;android-37"),
+            Case(37, 0, "platforms;android-37.0"),
+        ]
+
+        cases.forEach { case ->
+            assertEquals(
+                case.expected,
+                androidPlatformPackageName(case.apiLevel, case.minorVersion, sdkExtension = null),
+            )
+        }
+    }
+
+    @Test
+    fun `platform package name appends extension without minor version`() {
+        assertEquals(
+            "platforms;android-35-ext14",
+            androidPlatformPackageName(apiLevel = 35, minorVersion = 0, sdkExtension = 14),
+        )
     }
 }

@@ -147,7 +147,12 @@ class AmperAndroidIntegrationProjectPlugin @Inject constructor(private val probl
             .firstOrNull { it.platforms.contains(Platform.ANDROID) } ?: return
 
         val androidSettings = androidFragment.settings.android
-        androidExtension.compileSdk = androidSettings.compileSdk.versionNumber
+        androidExtension.compileSdk {
+            version = release(androidSettings.compileSdk.apiLevel.versionNumber) {
+                minorApiLevel = androidSettings.compileSdk.minorVersion
+                sdkExtension = androidSettings.compileSdk.sdkExtension
+            }
+        }
 
         val signing = androidSettings.signing
 

@@ -3,7 +3,10 @@ Module: android-app
 settings@android:
   android:
     applicationId: org.example.namespace  # default, from ${namespace}
-    compileSdk: 37  # default
+    compileSdk:
+      apiLevel: 37  # default
+      minorVersion: null  # default
+      sdkExtension: null  # default
     maxSdk: null  # default
     minSdk: 24  # default
     namespace: org.example.namespace  # default
@@ -17,7 +20,7 @@ settings@android:
     signing:
       enabled: false  # default
       propertiesFile: keystore.properties  # default
-    targetSdk: 37  # default, from ${compileSdk}
+    targetSdk: 37  # default, from ${compileSdk.apiLevel}
     versionCode: 1  # default
     versionName: unspecified  # default
   compose:
@@ -340,14 +343,17 @@ settings@iosArm64+iosSimulatorArm64:
 
 settings@jvm+android+iosArm64+iosSimulatorArm64:
   android:
-    compileSdk: 37  # default
+    compileSdk:
+      apiLevel: 37  # default
+      minorVersion: null  # default
+      sdkExtension: null  # default
     maxSdk: null  # default
     minSdk: 24  # default
     namespace: org.example.namespace  # default
     parcelize:
       additionalAnnotations: []  # default
       enabled: false  # default
-    targetSdk: 37  # default, from ${compileSdk}
+    targetSdk: 37  # default, from ${compileSdk.apiLevel}
   compose:
     enabled: true  # module.yaml
     experimental:
@@ -580,14 +586,17 @@ settings@jvm:
 
 settings@android:
   android:
-    compileSdk: 37  # default
+    compileSdk:
+      apiLevel: 37  # default
+      minorVersion: null  # default
+      sdkExtension: null  # default
     maxSdk: null  # default
     minSdk: 24  # default
     namespace: org.example.namespace  # default
     parcelize:
       additionalAnnotations: []  # default
       enabled: false  # default
-    targetSdk: 37  # default, from ${compileSdk}
+    targetSdk: 37  # default, from ${compileSdk.apiLevel}
   compose:
     enabled: true  # module.yaml
     experimental: {}  # default
