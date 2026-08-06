@@ -22,7 +22,8 @@ dependencies:
   - $libs.intellij.jps.build.javac.rt
   - org.jetbrains.jps:jps-javac-extension:10
 
-  #  helper libraries
+  # Helper libraries.
+  # Change only when updating IntelliJ Platform dependency: these should be in sync with the library versions in the monorepo
   - com.h2database:h2-mvstore:2.3.232  # in monorepo it comes as a transitive dependency, check the version e.g. in the 'util-ex' module
   - org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.20-RC2
   - com.github.ben-manes.caffeine:caffeine:3.2.3
