@@ -6,14 +6,19 @@ import kotlin.test.*
 
 class MyTest {
     @Test
-    fun testSucceed() {}
+    fun testSucceed() {
+        println("running testSucceed")
+    }
 
     @Test
     fun testFailure() {
+        println("running testFailure")
         assertEquals(2 + 2, 5)
     }
 
     @Ignore
     @Test
-    fun testIgnored() {}
+    fun testIgnored() {
+        println("shouldn't run testIgnored")
+    }
 }

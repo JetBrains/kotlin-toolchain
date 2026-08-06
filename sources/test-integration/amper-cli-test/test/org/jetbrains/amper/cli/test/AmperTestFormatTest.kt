@@ -525,8 +525,10 @@ class AmperTestFormatTest : AmperCliTestBase() {
             assertEqualsWithDiff(
                 expected = """
                     Started testSucceed
+                    running testSucceed
                     Passed testSucceed
                     Started testFailure
+                    running testFailure
                     Failed testFailure
                                => Exception: kotlin.AssertionError: Expected <4>, actual <5>.
                     Skipped testIgnored
@@ -548,8 +550,11 @@ class AmperTestFormatTest : AmperCliTestBase() {
             val serviceMessages = parseTeamCityServiceMessages(r.stdout)
             val expectedMessages = buildServiceMessages {
                 suiteWithFlow("MyTest", locationHint = "java:suite://MyTest") {
-                    testWithFlow("testSucceed", locationHint = "java:test://MyTest/testSucceed") {}
+                    testWithFlow("testSucceed", locationHint = "java:test://MyTest/testSucceed") {
+                        testStdOut("running testSucceed$NL")
+                    }
                     testWithFlow("testFailure", locationHint = "java:test://MyTest/testFailure") {
+                        testStdOut("running testFailure$NL")
                         testFailed(
                             "kotlin.AssertionError: Expected <4>, actual <5>.",
                             serializedStackTrace = "SANITIZED"
@@ -587,8 +592,10 @@ class AmperTestFormatTest : AmperCliTestBase() {
             assertEqualsWithDiff(
                 expected = """
                     Started testSucceed
+                    running testSucceed
                     Passed testSucceed
                     Started testFailure
+                    running testFailure
                     Failed testFailure
                                => Exception: kotlin.AssertionError: Expected <4>, actual <5>.
                     Skipped testIgnored
@@ -610,8 +617,11 @@ class AmperTestFormatTest : AmperCliTestBase() {
             val serviceMessages = parseTeamCityServiceMessages(r.stdout)
             val expectedMessages = buildServiceMessages {
                 suiteWithFlow("MyTest", locationHint = "java:suite://MyTest") {
-                    testWithFlow("testSucceed", locationHint = "java:test://MyTest/testSucceed") {}
+                    testWithFlow("testSucceed", locationHint = "java:test://MyTest/testSucceed") {
+                        testStdOut("running testSucceed$NL")
+                    }
                     testWithFlow("testFailure", locationHint = "java:test://MyTest/testFailure") {
+                        testStdOut("running testFailure$NL")
                         testFailed(
                             "kotlin.AssertionError: Expected <4>, actual <5>.",
                             serializedStackTrace = "SANITIZED"
