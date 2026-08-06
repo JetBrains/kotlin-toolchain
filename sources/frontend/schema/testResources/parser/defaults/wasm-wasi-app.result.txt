@@ -776,16 +776,8 @@ Artifacts:
   [wasmWasi]
     Fragments:
       wasmWasiTest
-Repositories:
+Repositories for resolution:
   - id: mavenCentral
     url: https://cache-redirector.jetbrains.com/kotlin/repo1.maven.org/maven2
-    publish: false
-    resolve: true
-    username: null
-    password: null
   - id: mavenGoogle
     url: https://maven.google.com
-    publish: false
-    resolve: true
-    username: null
-    password: null

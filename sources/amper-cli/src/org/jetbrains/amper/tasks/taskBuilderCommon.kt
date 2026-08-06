@@ -10,12 +10,11 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LocalModuleDependency
 import org.jetbrains.amper.frontend.ModuleTasksPart
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.RepositoryModel
+import org.jetbrains.amper.frontend.PublicationRepository
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.isPublishingEnabled
-import org.jetbrains.amper.frontend.mavenPublishRepositories
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.shouldPublishSourcesJars
 import org.jetbrains.amper.maven.publish.isMultiplatformPublication
@@ -299,7 +298,7 @@ private fun ModuleSequenceCtx.tasksWithPlatformSpecificPublishablesFor(platform:
     }
 }
 
-internal fun publishTaskNameFor(module: AmperModule, repository: RepositoryModel.Publish): TaskName =
+internal fun publishTaskNameFor(module: AmperModule, repository: PublicationRepository): TaskName =
     ModuleTaskTypes.Publish(repository.id).getTaskName(module)
 
 @Suppress("DEPRECATION") // TODO: Still in use. Redesign/remove

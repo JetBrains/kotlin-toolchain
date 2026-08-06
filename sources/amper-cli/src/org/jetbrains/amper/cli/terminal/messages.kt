@@ -9,7 +9,7 @@ import com.github.ajalt.mordant.terminal.Terminal
 import org.jetbrains.amper.cli.logging.withoutConsoleLogging
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.RepositoryModel
+import org.jetbrains.amper.frontend.PublicationRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
@@ -41,7 +41,7 @@ internal fun Terminal.printSuccessfulPublicationToMavenLocal(module: AmperModule
  */
 internal fun Terminal.printSuccessfulPublicationToRemoteMaven(
     module: AmperModule,
-    repository: RepositoryModel.Publish,
+    repository: PublicationRepository,
 ) {
     val themedModuleName = formatModuleName(module)
     val repositoryId = theme.success(repository.id)

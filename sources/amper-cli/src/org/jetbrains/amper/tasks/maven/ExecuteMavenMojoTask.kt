@@ -42,7 +42,6 @@ import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.isMavenLocal
-import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.frontend.plugins.AmperMavenPluginMojo
 import org.jetbrains.amper.maven.publish.createMavenExecutionRequest
 import org.jetbrains.amper.maven.publish.createRepositorySession

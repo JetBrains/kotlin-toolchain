@@ -38,7 +38,6 @@ import org.jetbrains.amper.frontend.dr.resolver.ModuleResolutionFilter
 import org.jetbrains.amper.frontend.dr.resolver.ResolutionType
 import org.jetbrains.amper.frontend.dr.resolver.getExternalDependencies
 import org.jetbrains.amper.frontend.dr.resolver.toDrMavenCoordinates
-import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.frontend.plugins.AmperMavenPluginDescription
 import org.jetbrains.amper.frontend.plugins.TaskFromPluginDescription
 import org.jetbrains.amper.frontend.schema.ProductType

@@ -111,7 +111,9 @@ interface AmperModule {
     @UsedInIdePlugin
     val usedTemplates: List<VirtualFile>
 
-    val mavenRepositories: List<RepositoryModel>
+    val mavenResolveRepositories: List<ResolutionRepository>
+
+    val mavenPublishRepositories: List<PublicationRepository>
 
     val leafFragments get() = fragments.filterIsInstance<LeafFragment>()
 

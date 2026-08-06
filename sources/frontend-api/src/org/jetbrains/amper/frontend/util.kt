@@ -8,12 +8,6 @@ import org.jetbrains.amper.buildinfo.AmperBuild
 
 fun String.doCapitalize() = replaceFirstChar { it.titlecase() }
 
-val AmperModule.mavenResolveRepositories: List<RepositoryModel.Resolve>
-    get() = mavenRepositories.filterIsInstance<RepositoryModel.Resolve>()
-
-val AmperModule.mavenPublishRepositories: List<RepositoryModel.Publish>
-    get() = mavenRepositories.filterIsInstance<RepositoryModel.Publish>()
-
 fun getComposeHotReloadVersion(module: AmperModule): String? {
     val jvmFragment = module.leafFragments
         .firstOrNull { it.platform == Platform.JVM && !it.isTest }

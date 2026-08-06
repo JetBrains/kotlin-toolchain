@@ -392,22 +392,10 @@ Artifacts:
   [jvm]
     Fragments:
       test
-Repositories:
+Repositories for resolution:
   - id: mavenCentral
     url: https://cache-redirector.jetbrains.com/kotlin/repo1.maven.org/maven2
-    publish: false
-    resolve: true
-    username: null
-    password: null
   - id: mavenGoogle
     url: https://maven.google.com
-    publish: false
-    resolve: true
-    username: null
-    password: null
   - id: maven-local-resolve
     url: mavenLocal
-    publish: false
-    resolve: true
-    username: null
-    password: null

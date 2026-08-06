@@ -19,7 +19,7 @@ import org.jetbrains.amper.engine.PublishTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
-import org.jetbrains.amper.frontend.RepositoryModel
+import org.jetbrains.amper.frontend.PublicationRepository
 import org.jetbrains.amper.frontend.aomBuilder.readCredentials
 import org.jetbrains.amper.frontend.isMavenLocal
 import org.jetbrains.amper.frontend.publishingSettings
@@ -59,7 +59,7 @@ private val artifactComparator = compareBy<Artifact>(
 class MavenPublishTask(
     override val taskName: TaskName,
     override val module: AmperModule,
-    val targetRepository: RepositoryModel.Publish,
+    val targetRepository: PublicationRepository,
     private val incrementalCache: IncrementalCache,
     private val terminal: Terminal,
 ) : PublishTask {
@@ -161,13 +161,10 @@ class MavenPublishTask(
     ).setFile(path.toFile())
 
     context(_: ProblemReporter)
-    private fun RepositoryModel.Publish.toMavenRemoteRepository(): RemoteRepository {
+    private fun PublicationRepository.toMavenRemoteRepository(): RemoteRepository {
         val builder = RemoteRepository.Builder(id, "default", url)
-        val credentials = when (this) {
-            is RepositoryModel.ResolveAndPublish -> credentials  // Resolved eagerly
-            is RepositoryModel.PublishOnly -> credentialsSource?.let {
-                it.readCredentials() ?: userReadableError("Unable to get credentials for publishing, see errors above")
-            }
+        val credentials = credentialsSource?.let {
+            it.readCredentials() ?: userReadableError("Unable to get credentials for publishing, see errors above")
         }
 
         if (credentials != null) {

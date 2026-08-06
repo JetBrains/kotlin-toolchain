@@ -19,7 +19,8 @@ import org.jetbrains.amper.frontend.LocalModuleDependency
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.ModulePart
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.RepositoryModel
+import org.jetbrains.amper.frontend.PublicationRepository
+import org.jetbrains.amper.frontend.ResolutionRepository
 import org.jetbrains.amper.frontend.VersionCatalog
 import org.jetbrains.amper.frontend.api.Trace
 import org.jetbrains.amper.frontend.classBasedSet
@@ -52,7 +53,8 @@ internal open class DefaultModule(
     override val aliases: Map<@NlsSafe String, Set<Platform>>,
     override val usedCatalog: VersionCatalog,
     override val usedTemplates: List<VirtualFile>,
-    override var mavenRepositories: List<RepositoryModel>,
+    override var mavenResolveRepositories: List<ResolutionRepository>,
+    override val mavenPublishRepositories: List<PublicationRepository>,
     @Deprecated("Old mechanism. Use normal Kotlin API to expose things in the model")
     override val parts: ClassBasedSet<ModulePart<*>> = classBasedSet(),
     override val commonModuleNode: Module,

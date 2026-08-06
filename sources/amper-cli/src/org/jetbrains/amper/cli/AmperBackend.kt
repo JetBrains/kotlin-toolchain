@@ -29,8 +29,6 @@ import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.isDescendantOf
-import org.jetbrains.amper.frontend.mavenPublishRepositories
-import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.frontend.plugins.CustomCommandFromPlugin
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.incrementalcache.IncrementalCache

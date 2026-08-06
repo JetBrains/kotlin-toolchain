@@ -4,7 +4,9 @@
 
 package org.jetbrains.amper.frontend.aomBuilder
 
-import org.jetbrains.amper.frontend.RepositoryModel
+import org.jetbrains.amper.frontend.PublicationRepository
+import org.jetbrains.amper.frontend.RepositoryCredentials
+import org.jetbrains.amper.frontend.ResolutionRepository
 import org.jetbrains.amper.frontend.api.SchemaValueDelegate
 import org.jetbrains.amper.frontend.asBuildProblemSource
 import org.jetbrains.amper.frontend.diagnostics.FrontendDiagnosticId
@@ -19,12 +21,12 @@ import org.jetbrains.amper.stdlib.properties.readProperties
 import kotlin.io.path.exists
 
 /**
- * Reads the [RepositoryModel.Credentials] from the file specified by the schema spec.
+ * Reads the [RepositoryCredentials] from the file specified by the schema spec.
  *
  * If something goes wrong, diagnostics are reported via [problemReporter] and `null` is returned.
  */
 context(problemReporter: ProblemReporter)
-fun Repository.Credentials.readCredentials(): RepositoryModel.Credentials? {
+fun Repository.Credentials.readCredentials(): RepositoryCredentials? {
     if (!file.exists()) {
         problemReporter.reportBundleError(
             source = fileDelegate.asBuildProblemSource(),
@@ -56,40 +58,20 @@ fun Repository.Credentials.readCredentials(): RepositoryModel.Credentials? {
 
     val userName = getCredProperty(usernameKeyDelegate)
     val password = getCredProperty(passwordKeyDelegate)
-    return RepositoryModel.Credentials(
+    return RepositoryCredentials(
         userName = userName ?: return null,
         password = password ?: return null,
     )
 }
 
 context(_: ProblemReporter)
-internal fun Module.readRepositories(): List<RepositoryModel> {
-    val customRepositories = repositories.orEmpty().mapNotNull { repository ->
-        if (repository.resolve) {
-            val credentials = repository.credentials?.readCredentials()
-            if (repository.publish) {
-                RepositoryModel.ResolveAndPublish(
-                    id = repository.id,
-                    url = repository.url,
-                    credentials = credentials,
-                )
-            } else {
-                RepositoryModel.ResolveOnly(
-                    id = repository.id,
-                    url = repository.url,
-                    credentials = credentials,
-                )
-            }
-        } else if (repository.publish) {
-            RepositoryModel.PublishOnly(
-                id = repository.id,
-                url = repository.url,
-                credentialsSource = repository.credentials,
-            )
-        } else {
-            // TODO: Report a warning about a no-op repository
-            null
-        }
+internal fun Module.readResolveRepositories(): List<ResolutionRepository> {
+    val customRepositories = repositories.orEmpty().filter { it.resolve }.map { repository ->
+        ResolutionRepository(
+            id = repository.id,
+            url = repository.url,
+            credentials = repository.credentials?.readCredentials(),
+        )
     }
     return (defaultMavenRepositories + customRepositories)
         // deduplicating repository list by repository ID, taking the last entry corresponding to the id only.
@@ -98,13 +80,22 @@ internal fun Module.readRepositories(): List<RepositoryModel> {
         .asReversed()
 }
 
-private val defaultMavenRepositories = listOf(
-    RepositoryModel.ResolveOnly(
+internal fun Module.readPublishRepositories(): List<PublicationRepository> =
+    repositories.orEmpty().filter { it.publish }.map { repository ->
+        PublicationRepository(
+            id = repository.id,
+            url = repository.url,
+            credentialsSource = repository.credentials,
+        )
+    }.distinctBy { it.id }
+
+private val defaultMavenRepositories = [
+    ResolutionRepository(
         id = "mavenCentral",
         url = MavenCentralDefaultConfiguration.url,
     ),
-    RepositoryModel.ResolveOnly(
+    ResolutionRepository(
         id = "mavenGoogle",
         url = "https://maven.google.com",
     ),
-)
+]

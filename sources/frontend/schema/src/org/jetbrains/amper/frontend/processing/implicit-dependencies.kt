@@ -11,7 +11,7 @@ import org.jetbrains.amper.frontend.MavenCoordinates
 import org.jetbrains.amper.frontend.MavenDependency
 import org.jetbrains.amper.frontend.MavenDependencyBase
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.RepositoryModel
+import org.jetbrains.amper.frontend.ResolutionRepository
 import org.jetbrains.amper.frontend.ancestralPath
 import org.jetbrains.amper.frontend.aomBuilder.DefaultFragment
 import org.jetbrains.amper.frontend.aomBuilder.DefaultModule
@@ -107,7 +107,7 @@ internal fun DefaultModule.addImplicitDependencies() {
         it.allExternalMavenDependencies().mapTo(hashSetOf()) { it.coordinates.groupAndArtifact }
     }.forEach { [fragment, deps] -> fragment.addImplicitDependencies(deps) }
 
-    mavenRepositories = mavenRepositories + implicitMavenRepositories(
+    mavenResolveRepositories = mavenResolveRepositories + implicitMavenRepositories(
         productType = type,
         fragments = fragments,
     )
@@ -336,30 +336,36 @@ private val MavenCoordinates.groupAndArtifact: String
 private fun implicitMavenRepositories(
     productType: ProductType,
     fragments: List<Fragment>,
-): List<RepositoryModel> {
+): List<ResolutionRepository> {
     return buildList {
         val isHotReloadRuntimeApiPresent = fragments
             .flatMap { it.externalDependencies }
             .filterIsInstance<MavenDependency>()
             .any { it.coordinates.groupAndArtifact == "org.jetbrains.compose.hot-reload:hot-reload-runtime-api" }
         if (isHotReloadRuntimeApiPresent) {
-            add(RepositoryModel.ResolveOnly(
-                id = "amper-hot-reload-dev",
-                url = "https://packages.jetbrains.team/maven/p/amper/compose-hot-reload",
-            ))
+            add(
+                ResolutionRepository(
+                    id = "amper-hot-reload-dev",
+                    url = "https://packages.jetbrains.team/maven/p/amper/compose-hot-reload",
+                )
+            )
         }
 
         if (productType == ProductType.JVM_AMPER_PLUGIN) {
             if (AmperBuild.isSNAPSHOT) {
-                add(RepositoryModel.ResolveOnly(
-                    id = "maven-local-resolve",
-                    url = SpecialMavenLocalUrl,
-                ))
+                add(
+                    ResolutionRepository(
+                        id = "maven-local-resolve",
+                        url = SpecialMavenLocalUrl,
+                    )
+                )
             } else {
-                add(RepositoryModel.ResolveOnly(
-                    id = "amper-maven",
-                    url = "https://packages.jetbrains.team/maven/p/amper/amper",
-                ))
+                add(
+                    ResolutionRepository(
+                        id = "amper-maven",
+                        url = "https://packages.jetbrains.team/maven/p/amper/amper",
+                    )
+                )
             }
         }
     }

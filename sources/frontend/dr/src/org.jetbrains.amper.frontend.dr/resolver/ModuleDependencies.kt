@@ -41,14 +41,13 @@ import org.jetbrains.amper.frontend.BomDependency
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.RepositoryModel
+import org.jetbrains.amper.frontend.ResolutionRepository
 import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.resolveProjectDependencies
 import org.jetbrains.amper.frontend.dr.resolver.flow.Classpath
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.frontend.fragmentsToDependOnFromOtherModuleFragmentWith
 import org.jetbrains.amper.frontend.isDescendantOf
-import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.frontend.schema.Repository.Companion.SpecialMavenLocalUrl
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.ResultWithSerializable
@@ -793,12 +792,12 @@ class ModuleDependencies private constructor(
 
         private fun AmperModule.resolvableRepositories() = mavenResolveRepositories.map { it.toRepository() }
 
-        fun RepositoryModel.Resolve.toRepository() = when {
+        fun ResolutionRepository.toRepository() = when {
             this.url == SpecialMavenLocalUrl -> MavenLocal
             else -> MavenRepository(url = url, userName = credentials?.userName, password = credentials?.password)
         }
 
-        internal fun String.toRepository() = RepositoryModel.ResolveOnly(this, this).toRepository()
+        internal fun String.toRepository() = ResolutionRepository(this, this).toRepository()
     }
 }
 

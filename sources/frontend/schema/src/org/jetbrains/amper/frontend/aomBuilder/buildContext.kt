@@ -53,7 +53,8 @@ internal class ModuleBuildCtx(
                 usedCatalog = catalog,
                 usedTemplates = moduleCtxModule.apply?.mapNotNull { readTemplateFromPath(it) }.orEmpty(),
                 parts = @Suppress("DEPRECATION") moduleCtxModule.convertModuleParts(),
-                mavenRepositories = moduleCtxModule.readRepositories(),
+                mavenResolveRepositories = moduleCtxModule.readResolveRepositories(),
+                mavenPublishRepositories = moduleCtxModule.readPublishRepositories(),
                 commonModuleNode = moduleCtxModule,
             )
         }

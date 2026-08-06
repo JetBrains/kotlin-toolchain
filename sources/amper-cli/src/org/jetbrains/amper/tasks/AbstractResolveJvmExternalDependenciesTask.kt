@@ -18,7 +18,6 @@ import org.jetbrains.amper.frontend.dr.resolver.MavenCoordinatesExt
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.frontend.dr.resolver.toDrMavenCoordinates
 import org.jetbrains.amper.frontend.jdkSettings
-import org.jetbrains.amper.frontend.mavenResolveRepositories
 import org.jetbrains.amper.frontend.schema.UnscopedBomDependency
 import org.jetbrains.amper.frontend.schema.UnscopedDependency
 import org.jetbrains.amper.frontend.schema.UnscopedExternalMavenDependency

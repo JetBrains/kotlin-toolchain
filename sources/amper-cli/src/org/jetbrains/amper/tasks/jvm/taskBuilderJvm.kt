@@ -8,7 +8,6 @@ import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.doCapitalize
 import org.jetbrains.amper.frontend.isPublishingEnabled
-import org.jetbrains.amper.frontend.mavenPublishRepositories
 import org.jetbrains.amper.frontend.schema.DependencyMode
 import org.jetbrains.amper.frontend.schema.enabled
 import org.jetbrains.amper.tasks.CommonTaskType

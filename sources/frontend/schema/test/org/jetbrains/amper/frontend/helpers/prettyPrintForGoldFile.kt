@@ -9,8 +9,6 @@ import org.jetbrains.amper.frontend.ModuleTasksPart
 import org.jetbrains.amper.frontend.api.DerivedValueTrace
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.isDefault
-import org.jetbrains.amper.frontend.publish
-import org.jetbrains.amper.frontend.resolve
 import org.jetbrains.amper.frontend.tree.BooleanNode
 import org.jetbrains.amper.frontend.tree.CompleteListNode
 import org.jetbrains.amper.frontend.tree.CompleteMapNode
@@ -74,22 +72,27 @@ internal fun AmperModule.prettyPrintForGoldFile(printDefaults: Boolean = false):
         }
     }
 
-    val repositories = mavenRepositories
-    if (repositories.isNotEmpty()) {
-        appendLine("Repositories:")
-        repositories.forEach {
+    if (mavenResolveRepositories.isNotEmpty()) {
+        appendLine("Repositories for resolution:")
+        mavenResolveRepositories.forEach {
             appendLine("  - id: ${it.id}")
             appendLine("    url: ${it.url}")
-            appendLine("    publish: ${it.publish}")
-            appendLine("    resolve: ${it.resolve}")
-            if (it.resolve) {
-                appendLine("    username: ${it.credentials?.userName}")
-                appendLine("    password: ${it.credentials?.password}")
-            } else {
+            it.credentials?.let { (password, userName) ->
+                appendLine("    username: $userName")
+                appendLine("    password: $password")
+            }
+        }
+    }
+    if (mavenPublishRepositories.isNotEmpty()) {
+        appendLine("Repositories for publication:")
+        mavenPublishRepositories.forEach {
+            appendLine("  - id: ${it.id}")
+            appendLine("    url: ${it.url}")
+            it.credentialsSource?.let { credentialsSource ->
                 appendLine("    credentialsSource:")
-                appendLine("      file: ${it.credentialsSource?.file}")
-                appendLine("      userNameKey: ${it.credentialsSource?.usernameKey}")
-                appendLine("      passwordKey: ${it.credentialsSource?.passwordKey}")
+                appendLine("      file: ${credentialsSource.file}")
+                appendLine("      userNameKey: ${credentialsSource.usernameKey}")
+                appendLine("      passwordKey: ${credentialsSource.passwordKey}")
             }
         }
     }
