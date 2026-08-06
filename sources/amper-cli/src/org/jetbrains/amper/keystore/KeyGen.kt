@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.keystore
@@ -29,7 +29,9 @@ import javax.security.auth.x500.X500Principal
 import kotlin.io.path.Path
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
+import kotlin.io.path.exists
 import kotlin.io.path.notExists
+import kotlin.io.path.outputStream
 
 private const val asymmetricAlgorithm = "RSA"
 private const val signatureAlgorithm = "SHA1withRSA"
@@ -73,15 +75,15 @@ object KeystoreGenerator {
         logger.info("Generating new keystore at $storeFile")
         logger.info("Key alias: $keyAlias")
         logger.info("Distinguished name: $dn")
-        if (storeFile.toFile().exists()) {
+        if (storeFile.exists()) {
             keystoreGenerationError("Keystore already exists: $storeFile")
         }
         val ks = KeyStore.getInstance(KeyStore.getDefaultType())
         ks.load(null, null)
         val generated = generateKeyAndCertificate(dn)
-        ks.setKeyEntry(keyAlias, generated.first, keyPassword.toCharArray(), arrayOf(generated.second))
+        ks.setKeyEntry(keyAlias, generated.first, keyPassword.toCharArray(), [generated.second])
         storeFile.createParentDirectories()
-        FileOutputStream(storeFile.toFile()).use { fos ->
+        storeFile.outputStream().buffered().use { fos ->
             ks.store(fos, storePassword.toCharArray())
         }
         logger.info("Keystore generated successfully")
