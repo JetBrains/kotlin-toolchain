@@ -117,7 +117,6 @@ private val Component.creationConfig: ComponentCreationConfig?
 @Suppress("UnstableApiUsage")
 class AmperAndroidIntegrationProjectPlugin @Inject constructor(private val problems: Problems) : Plugin<Project> {
     override fun apply(project: Project) {
-        val log = project.logger
         val rootProjectBuildDir = project.rootProject.layout.buildDirectory.asFile.get().toPath()
         val buildDir = rootProjectBuildDir / project.path.replace(":", "_")
         project.layout.buildDirectory.set(buildDir.toFile())
@@ -170,15 +169,18 @@ class AmperAndroidIntegrationProjectPlugin @Inject constructor(private val probl
                     signingConfig.keyPassword = keyPassword
                 }
             } else {
-                problems.reporter.reporting { problem ->
-                    problem
-                        .id("signing-properties-file-not-found", "Signing properties file not found")
-                        .contextualLabel("Signing properties file not found")
-                        .details("Signing properties file $path not found. Signing will not be configured")
-                        .severity(Severity.WARNING)
-                        .solution("Put signing properties file to $path")
-                }
-                log.warn("Properties file $path not found. Signing will not be configured")
+                // FIXME All APIs from org.gradle.api.problems.ProblemReporter that are present in our 8.11 library were
+                //   actually removed in Gradle 9, and lead to NoSuchMethodError (see KTC-5662).
+                //   As long as we don't use the correct Gradle API library, we can't use this.
+//                problems.reporter.reporting { problem ->
+//                    problem
+//                        .id("signing-properties-file-not-found", "Signing properties file not found")
+//                        .contextualLabel("Signing properties file not found")
+//                        .details("Signing properties file $path not found. Signing will not be configured")
+//                        .severity(Severity.WARNING)
+//                        .solution("Put signing properties file to $path")
+//                }
+                project.logger.warn("Signing properties file $path not found. Signing will not be configured")
             }
         }
 
