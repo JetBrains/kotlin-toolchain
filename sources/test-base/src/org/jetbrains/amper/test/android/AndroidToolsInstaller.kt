@@ -56,6 +56,7 @@ internal object AndroidToolsInstaller {
         "platforms;android-35",
         "platforms;android-36",
         "platforms;android-37.0",
+        "platforms;android-37.1",
         "build-tools;33.0.0",
         "build-tools;33.0.1",
         "build-tools;34.0.0",
