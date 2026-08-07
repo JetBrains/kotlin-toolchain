@@ -1,0 +1,26 @@
+product:
+  type: kmp/lib
+  platforms: [ jvm, linuxX64 ]
+
+# Both platforms sit inside androidx.sqlite's "nonWeb" target group, so the visible
+# source sets of the dependency are 'commonMain' and 'nonWebMain', and both of their
+# metadata klibs end up on the compileMetadataCommon classpath:
+#   commonMain: `expect interface SQLiteDriver` that declares no `open` at all
+#   nonWebMain: `interface SQLiteDriver` with the synchronous `fun open(fileName)`
+# The compiler binds `SQLiteDriver` to the first klib on the classpath, so the klibs
+# (corresponding to commonMain and nonWebMain)
+# must be ordered from the most specific one to the most general one.
+# Otherwise, MyDriver.open resolves against the 'commonMain' expect and fails to compile with
+# "'open' overrides nothing".
+#
+# The PSM of the dependency lists 'commonMain' before 'nonWebMain' in both the jvm
+# and the linuxX64 variants, which is what makes an unordered intersection reproduce
+# the bug for this platform set. A web platform set (js + wasmJs) would not reproduce
+# it, but only by luck: there `open` is a suspend function declared in 'webMain', and
+# the PSM happens to list 'webMain' before 'commonMain' already.
+#
+# Only compileMetadataCommon is affected: the per-platform compilations consume the
+# platform artifacts (sqlite-jvm.jar / sqlite-linuxx64.klib) instead of these klibs,
+# so a plain `./kotlin build` succeeds either way.
+dependencies:
+  - androidx.sqlite:sqlite:2.7.0

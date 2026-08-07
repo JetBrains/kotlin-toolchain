@@ -59,18 +59,19 @@ import org.jetbrains.amper.dependency.resolution.diagnostics.asMessage
 import org.jetbrains.amper.dependency.resolution.diagnostics.hasErrors
 import org.jetbrains.amper.dependency.resolution.files.produceFileWithDoubleLockAndHash
 import org.jetbrains.amper.dependency.resolution.maven.resolvePom
-import org.jetbrains.gradle.module.metadata.format.AvailableAt
-import org.jetbrains.gradle.module.metadata.format.Capability
-import org.jetbrains.gradle.module.metadata.format.Dependency
-import org.jetbrains.gradle.module.metadata.format.Variant
-import org.jetbrains.gradle.module.metadata.format.Module
-import org.jetbrains.gradle.module.metadata.format.Version
-import org.jetbrains.gradle.module.metadata.format.parseMetadata
 import org.jetbrains.amper.dependency.resolution.metadata.xml.Project
 import org.jetbrains.amper.dependency.resolution.metadata.xml.localRepository
 import org.jetbrains.amper.dependency.resolution.metadata.xml.parseSettings
 import org.jetbrains.amper.telemetry.use
+import org.jetbrains.gradle.module.metadata.format.AvailableAt
+import org.jetbrains.gradle.module.metadata.format.Capability
+import org.jetbrains.gradle.module.metadata.format.Dependency
+import org.jetbrains.gradle.module.metadata.format.Module
+import org.jetbrains.gradle.module.metadata.format.Variant
+import org.jetbrains.gradle.module.metadata.format.Version
+import org.jetbrains.gradle.module.metadata.format.parseMetadata
 import org.jetbrains.kotlin.metadata.format.projectStructure.KotlinProjectStructureMetadata
+import org.jetbrains.kotlin.metadata.format.projectStructure.SourceSet
 import org.jetbrains.kotlin.metadata.format.projectStructure.parseKmpLibraryMetadata
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -1567,7 +1568,7 @@ class MavenDependencyImpl internal constructor(
                 }.flatMap { it.sourceSet }.toSet()
         }
 
-        val allSourceSetNames = kotlinProjectStructureMetadata.projectStructure.sourceSets.map { it.name }
+        val allSourceSets = kotlinProjectStructureMetadata.projectStructure.sourceSets.associateBy { it.name }
 
         // Selecting source sets visible for all target platforms (intersection).
         val sourceSetsIntersection = resolvedPlatformSourceSets.values
@@ -1575,11 +1576,16 @@ class MavenDependencyImpl internal constructor(
             .let {
                 if (it.isEmpty()) emptySet() else it.reduce { l1, l2 -> l1.intersect(l2) }
             }
-            .filter { it in allSourceSetNames }.toSet()
+            .filter { it in allSourceSets }.toSet()
 
-        val allMatchingSourceSetNames = sourceSetsIntersection.toMutableSet()
-        resolveCinteropSourceSet(sourceSetsIntersection, kotlinProjectStructureMetadata)?.let {
-            allMatchingSourceSetNames.add(it)
+
+        val allMatchingSourceSetNames = buildList {
+            addAll(sourceSetsIntersection.sortFromMostSpecificSourceSet(allSourceSets))
+            resolveCinteropSourceSet(sourceSetsIntersection, kotlinProjectStructureMetadata)?.let {
+                // The cinterop metadata directory is not a source set and thus has no place in the 'dependsOn' hierarchy,
+                // it is kept at the end of the list.
+                add(it)
+            }
         }
 
         // Transforming it right here, since it doesn't require network access in most cases.
@@ -1632,6 +1638,32 @@ class MavenDependencyImpl internal constructor(
                 }
             // todo (AB) : take kotlinMetadataVariant.dependencyConstraints into account as well? What subset on constraints should be taken into account?
         }
+    }
+
+    /**
+     * Orders the given sourceSet names from the most specific source sets to the most general ones,
+     * so that the root source set (`commonMain` normally) comes last.
+     *
+     * Specificity is defined by the position of a source set in the `dependsOn` hierarchy: the longer the chain of
+     * `dependsOn` edges leading from a source set to a root one, the more specific this source set is.
+     * Source sets that are equally specific are ordered by name so that the result is deterministic.
+     */
+    private fun Collection<String>.sortFromMostSpecificSourceSet(
+        psmSourceSets: Map<String, SourceSet>,
+    ): List<String> {
+        if (size < 2) return toList()
+
+        val depths = mutableMapOf<String, Int>()
+
+        fun depth(sourceSetName: String): Int = depths[sourceSetName] ?: run {
+            // the temporary 0 guards against infinite recursion in case of a cycle in a malformed metadata
+            depths[sourceSetName] = 0
+            // source sets missing in the metadata are treated as root ones
+            (psmSourceSets[sourceSetName]?.dependsOn?.maxOfOrNull { depth(it) + 1 } ?: 0)
+                .also { depths[sourceSetName] = it }
+        }
+
+        return sortedWith(compareByDescending<String> { depth(it) }.thenBy { it })
     }
 
     /**
