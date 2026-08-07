@@ -11,7 +11,7 @@ Fragments:
         applicationId: <default> org.example.namespace
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorVersion: <default> null
+          minorApiLevel: <default> null
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -209,7 +209,7 @@ Fragments:
         applicationId: <default> org.example.namespace
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorVersion: <default> null
+          minorApiLevel: <default> null
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -403,7 +403,7 @@ Fragments:
         applicationId: <default> org.example.namespace
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorVersion: <default> null
+          minorApiLevel: <default> null
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -600,7 +600,7 @@ Fragments:
         applicationId: <default> org.example.namespace
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorVersion: <default> null
+          minorApiLevel: <default> null
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -795,7 +795,7 @@ Fragments:
         applicationId: <default> org.example.namespace
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorVersion: <default> null
+          minorApiLevel: <default> null
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -990,7 +990,7 @@ Fragments:
         applicationId: <default> org.example.namespace
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorVersion: <default> null
+          minorApiLevel: <default> null
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -1188,7 +1188,7 @@ Fragments:
         applicationId: <default> org.example.namespace
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorVersion: <default> null
+          minorApiLevel: <default> null
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -1383,7 +1383,7 @@ Fragments:
         applicationId: <default> org.example.namespace
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorVersion: <default> null
+          minorApiLevel: <default> null
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -1581,7 +1581,7 @@ Fragments:
         applicationId: <default> org.example.namespace
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorVersion: <default> null
+          minorApiLevel: <default> null
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -1779,7 +1779,7 @@ Fragments:
         applicationId: <default> org.example.namespace
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorVersion: <default> null
+          minorApiLevel: <default> null
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -1974,7 +1974,7 @@ Fragments:
         applicationId: <default> org.example.namespace
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorVersion: <default> null
+          minorApiLevel: <default> null
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -2172,7 +2172,7 @@ Fragments:
         applicationId: <default> org.example.namespace
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorVersion: <default> null
+          minorApiLevel: <default> null
           sdkExtension: <default> null
         }
         maxSdk: <default> null

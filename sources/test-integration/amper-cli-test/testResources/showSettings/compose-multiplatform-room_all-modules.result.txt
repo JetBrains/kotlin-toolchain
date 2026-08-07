@@ -5,7 +5,7 @@ settings@android:
     applicationId: org.example.namespace  # default, from ${namespace}
     compileSdk:
       apiLevel: 37  # default
-      minorVersion: null  # default
+      minorApiLevel: null  # default
       sdkExtension: null  # default
     maxSdk: null  # default
     minSdk: 24  # default
@@ -345,7 +345,7 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
   android:
     compileSdk:
       apiLevel: 37  # default
-      minorVersion: null  # default
+      minorApiLevel: null  # default
       sdkExtension: null  # default
     maxSdk: null  # default
     minSdk: 24  # default
@@ -588,7 +588,7 @@ settings@android:
   android:
     compileSdk:
       apiLevel: 37  # default
-      minorVersion: null  # default
+      minorApiLevel: null  # default
       sdkExtension: null  # default
     maxSdk: null  # default
     minSdk: 24  # default

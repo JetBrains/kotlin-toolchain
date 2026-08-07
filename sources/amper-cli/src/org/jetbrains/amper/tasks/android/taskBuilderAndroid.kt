@@ -419,12 +419,12 @@ private fun TaskGraphBuilder.setupAndroidPlatformTask(
             getAndroidPlatformFileFromPackageTask = GetAndroidPlatformFileFromPackageTask(
                 packageName = androidPlatformPackageName(
                     apiLevel = compileSdk.apiLevel.versionNumber,
-                    minorVersion = compileSdk.minorVersion,
+                    minorApiLevel = compileSdk.minorApiLevel,
                     sdkExtension = compileSdk.sdkExtension,
                 ),
-                checkForLatestMinorVersion = shouldCheckForNewerAndroidPlatformMinorVersion(
+                checkForLatestMinorApiLevel = shouldCheckForNewerAndroidPlatformMinorApiLevel(
                     apiLevel = compileSdk.apiLevel.versionNumber,
-                    minorVersion = compileSdk.minorVersion,
+                    minorApiLevel = compileSdk.minorApiLevel,
                 ),
                 androidSdkPath = androidSdkPath,
                 userCacheRoot = userCacheRoot,
@@ -437,25 +437,25 @@ private fun TaskGraphBuilder.setupAndroidPlatformTask(
 
 internal fun androidPlatformPackageName(
     apiLevel: Int,
-    minorVersion: Int?,
+    minorApiLevel: Int?,
     sdkExtension: Int?,
 ): String = buildString {
     append("platforms;android-")
     append(apiLevel)
-    if (apiLevel >= 37 || minorVersion != 0) {
-        // Minor version not equals to 0 started being appended to platform only since API level 37
-        // - versions 1..35 don't have minor versions at all
+    if (apiLevel >= 37 || minorApiLevel != 0) {
+        // Minor API level equal to 0 started being appended to platform only since API level 37
+        // - versions 1..35 don't have minor API levels at all
         // - 36 has 36 and 36.1
         // - 37 has 37.0 and 37.1
         // Future is unclear but, hopefully, Google uses the same versioning schema since 37 now.
-        minorVersion?.let { append(".$it") }
+        minorApiLevel?.let { append(".$it") }
     }
     sdkExtension?.let { append("-ext$it") }
 }
 
-internal fun shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel: Int, minorVersion: Int?): Boolean =
-    // Google releases minor versions of platform starting with Android 36
-    apiLevel >= 36 && minorVersion == null
+internal fun shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel: Int, minorApiLevel: Int?): Boolean =
+    // Google releases minor API levels of platform starting with Android 36
+    apiLevel >= 36 && minorApiLevel == null
 
 private fun TaskGraphBuilder.setupDownloadBuildToolsTask(
     module: AmperModule,
@@ -467,7 +467,7 @@ private fun TaskGraphBuilder.setupDownloadBuildToolsTask(
     val compileSdk = androidFragment?.settings?.android?.compileSdk ?: return
     registerTask(
         task = GetAndroidPlatformFileFromPackageTask(
-            // build-tools versioning doesn't seem to use minor version
+            // build-tools versioning doesn't seem to use minor API levels
             packageName = "build-tools;${compileSdk.apiLevel.versionNumber}.0.0",
             androidSdkPath = androidSdkPath,
             userCacheRoot = userCacheRoot,

@@ -16,12 +16,12 @@ class GetAndroidPlatformFileFromPackageTask(
     private val androidSdkPath: Path,
     private val userCacheRoot: AmperUserCacheRoot,
     override val taskName: TaskName,
-    private val checkForLatestMinorVersion: Boolean = false,
+    private val checkForLatestMinorApiLevel: Boolean = false,
 ) : Task {
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): Result {
         val packagePath = SdkInstallManager(userCacheRoot, androidSdkPath)
-            .install(packageName, checkForLatestMinorVersion)
+            .install(packageName, checkForLatestMinorApiLevel)
             .path
         val localFileSystemPackagePath = packagePath
             .split(";")

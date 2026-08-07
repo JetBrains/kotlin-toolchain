@@ -60,29 +60,29 @@ class SdkInstallManager(private val userCacheRoot: AmperUserCacheRoot, private v
         androidSdkPath.createDirectories()
     }
 
-    suspend fun install(packagePath: String, checkForLatestMinorVersion: Boolean = false): RepoPackage {
+    suspend fun install(packagePath: String, checkForLatestMinorApiLevel: Boolean = false): RepoPackage {
         return if (packagePath.contains("system-images")) {
             installSystemImage(packagePath)
         } else {
-            installPackage(packagePath, checkForLatestMinorVersion)
+            installPackage(packagePath, checkForLatestMinorApiLevel)
         }
     }
 
-    suspend fun installPackage(packagePath: String, checkForLatestMinorVersion: Boolean): RepoPackage =
+    suspend fun installPackage(packagePath: String, checkForLatestMinorApiLevel: Boolean): RepoPackage =
         FileMutexGroup.Default.withDoubleLock(androidSdkPath / "$packagePath.lock") {
             // An already-installed package may be stored under the exact requested path, or under a
-            // minor-versioned variant of it (see [selectBestMatchingPackagePath]).
-            if (checkForLatestMinorVersion) {
-                installLatestMinorVersionFromRemote(packagePath)
+            // minor-API-level variant of it (see [selectBestMatchingPackagePath]).
+            if (checkForLatestMinorApiLevel) {
+                installLatestMinorApiLevelFromRemote(packagePath)
             } else {
                 findInstalledPackage(packagePath) ?: installPackageFromRemote(packagePath)
             }
         }
 
-    private suspend fun installLatestMinorVersionFromRemote(packagePath: String): RepoPackage {
+    private suspend fun installLatestMinorApiLevelFromRemote(packagePath: String): RepoPackage {
         // TODO: Introduce caching
         val remotePackages = packages().remotePackage
-        val resolvedPackagePath = selectLatestMinorVersionPackagePath(packagePath, remotePackages.map { it.path })
+        val resolvedPackagePath = selectLatestMinorApiLevelPackagePath(packagePath, remotePackages.map { it.path })
             ?: error("Package $packagePath not found")
         return findInstalledPackage(resolvedPackagePath)
             ?: installPackageFromRemote(resolvedPackagePath, remotePackages)
@@ -100,7 +100,7 @@ class SdkInstallManager(private val userCacheRoot: AmperUserCacheRoot, private v
 
     /**
      * Returns the package path of an already-installed package matching [packagePath] (exactly or as
-     * a minor-versioned variant), or null if no matching package is installed.
+     * a minor-API-level variant), or null if no matching package is installed.
      */
     private fun resolveInstalledPackagePath(packagePath: String): String? {
         val parentPrefix = packagePath.split(";").dropLast(1)
@@ -239,36 +239,36 @@ class SdkInstallManager(private val userCacheRoot: AmperUserCacheRoot, private v
 /**
  * Selects from [available] the package path that best matches [requested].
  *
- * An exact match is preferred. Otherwise, a minor-versioned variant of [requested] is accepted
+ * An exact match is preferred. Otherwise, a minor-API-level variant of [requested] is accepted
  * (e.g. `platforms;android-37.0` for the requested `platforms;android-37`), picking the highest
- * available minor version. This is required because recent Android platforms are published only
- * under a minor-versioned name - there is no plain `platforms;android-37` in the SDK repository.
+ * available minor API level. This is required because recent Android platforms are published only
+ * under a minor-API-level name - there is no plain `platforms;android-37` in the SDK repository.
  *
  * Unrelated variants such as extension levels (e.g. `...-ext19`) or codenames are never matched.
  */
 internal fun selectBestMatchingPackagePath(requested: String, available: Collection<String>): String? {
     if (requested in available) return requested
-    val minorVersionRegex = Regex("${Regex.escape(requested)}\\.(\\d+)")
+    val minorApiLevelRegex = Regex("${Regex.escape(requested)}\\.(\\d+)")
     return available
         .mapNotNull { candidate ->
-            minorVersionRegex.matchEntire(candidate)?.let { match -> candidate to match.groupValues[1].toInt() }
+            minorApiLevelRegex.matchEntire(candidate)?.let { match -> candidate to match.groupValues[1].toInt() }
         }
         .maxByOrNull { it.second }
         ?.first
 }
 
 /**
- * Selects the newest minor-versioned variant of [requested], falling back to an exact match when
- * the repository has no minor-versioned variants.
+ * Selects the newest minor-API-level variant of [requested], falling back to an exact match when
+ * the repository has no minor-API-level variants.
  */
-internal fun selectLatestMinorVersionPackagePath(requested: String, available: Collection<String>): String? {
+internal fun selectLatestMinorApiLevelPackagePath(requested: String, available: Collection<String>): String? {
     val extensionIndex = requested.lastIndexOf("-ext")
     val packageName = requested.substring(0, extensionIndex.takeIf { it >= 0 } ?: requested.length)
     val extensionSuffix = requested.substring(extensionIndex.takeIf { it >= 0 } ?: requested.length)
-    val minorVersionRegex = Regex("${Regex.escape(packageName)}\\.(\\d+)${Regex.escape(extensionSuffix)}")
+    val minorApiLevelRegex = Regex("${Regex.escape(packageName)}\\.(\\d+)${Regex.escape(extensionSuffix)}")
     return available
         .mapNotNull { candidate ->
-            minorVersionRegex.matchEntire(candidate)?.let { match -> candidate to match.groupValues[1].toInt() }
+            minorApiLevelRegex.matchEntire(candidate)?.let { match -> candidate to match.groupValues[1].toInt() }
         }
         .maxByOrNull { it.second }
         ?.first

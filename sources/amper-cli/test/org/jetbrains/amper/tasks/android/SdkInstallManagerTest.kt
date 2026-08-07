@@ -36,7 +36,7 @@ class SdkInstallManagerTest {
     }
 
     @Test
-    fun `minor versioned variant is resolved when plain is absent`() {
+    fun `minor API level variant is resolved when plain is absent`() {
         // android-37 has no plain package, only android-37.0
         assertEquals(
             "platforms;android-37.0",
@@ -45,7 +45,7 @@ class SdkInstallManagerTest {
     }
 
     @Test
-    fun `highest minor version is chosen`() {
+    fun `highest minor API level is chosen`() {
         val available = listOf(
             "platforms;android-37.0",
             "platforms;android-37.1",
@@ -58,7 +58,7 @@ class SdkInstallManagerTest {
     }
 
     @Test
-    fun latestMinorVersionIsChosenOverAnExactMatch() {
+    fun `latest minor api level is chosen over an exact match`() {
         val available = listOf(
             "platforms;android-37",
             "platforms;android-37.0",
@@ -66,12 +66,12 @@ class SdkInstallManagerTest {
         )
         assertEquals(
             "platforms;android-37.1",
-            selectLatestMinorVersionPackagePath("platforms;android-37", available),
+            selectLatestMinorApiLevelPackagePath("platforms;android-37", available),
         )
     }
 
     @Test
-    fun latestMinorVersionIsChosenBeforeAnExtensionSuffix() {
+    fun `latest minor api level is chosen before an extension suffix`() {
         val available = listOf(
             "platforms;android-37-ext2",
             "platforms;android-37.0-ext2",
@@ -79,7 +79,7 @@ class SdkInstallManagerTest {
         )
         assertEquals(
             "platforms;android-37.1-ext2",
-            selectLatestMinorVersionPackagePath("platforms;android-37-ext2", available),
+            selectLatestMinorApiLevelPackagePath("platforms;android-37-ext2", available),
         )
     }
 
@@ -103,7 +103,7 @@ class SdkInstallManagerTest {
 
     @Test
     fun `prefix of an api level is not matched`() {
-        // "android-3" must not match "android-37"/"android-37.0" (and "android-370" has no minor dot)
+        // "android-3" must not match "android-37"/"android-37.0" (and "android-370" has no minor API level dot)
         val available = listOf("platforms;android-37", "platforms;android-37.0", "platforms;android-370")
         assertNull(selectBestMatchingPackagePath("platforms;android-3", available))
     }
@@ -123,17 +123,17 @@ class SdkInstallManagerTest {
     }
 
     @Test
-    fun `platform package name includes the configured minor and extension`() {
+    fun `platform package name includes the configured minor API level and extension`() {
         assertEquals(
             "platforms;android-37.1-ext2",
-            androidPlatformPackageName(apiLevel = 37, minorVersion = 1, sdkExtension = 2),
+            androidPlatformPackageName(apiLevel = 37, minorApiLevel = 1, sdkExtension = 2),
         )
     }
 
     // See comment in the androidPlatformPackageName
     @Test
-    fun `platform package name handles minor version boundaries`() {
-        data class Case(val apiLevel: Int, val minorVersion: Int?, val expected: String)
+    fun `platform package name handles minor API level boundaries`() {
+        data class Case(val apiLevel: Int, val minorApiLevel: Int?, val expected: String)
 
         val cases = [
             Case(35, null, "platforms;android-35"),
@@ -147,27 +147,27 @@ class SdkInstallManagerTest {
         cases.forEach { case ->
             assertEquals(
                 case.expected,
-                androidPlatformPackageName(case.apiLevel, case.minorVersion, sdkExtension = null),
+                androidPlatformPackageName(case.apiLevel, case.minorApiLevel, sdkExtension = null),
             )
         }
     }
 
     @Test
-    fun `platform package name appends extension without minor version`() {
+    fun `platform package name appends extension without minor API level`() {
         assertEquals(
             "platforms;android-35-ext14",
-            androidPlatformPackageName(apiLevel = 35, minorVersion = 0, sdkExtension = 14),
+            androidPlatformPackageName(apiLevel = 35, minorApiLevel = 0, sdkExtension = 14),
         )
     }
 
     @Test
-    fun `latest minor is checked only when the minor version is unspecified for API 37 and later`() {
-        assertTrue(shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel = 37, minorVersion = null))
-        assertTrue(shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel = 36, minorVersion = null))
-        assertTrue(shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel = 42, minorVersion = null))
+    fun `latest minor API level is checked only when it is unspecified for API 37 and later`() {
+        assertTrue(shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel = 37, minorApiLevel = null))
+        assertTrue(shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel = 36, minorApiLevel = null))
+        assertTrue(shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel = 42, minorApiLevel = null))
 
-        assertFalse(shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel = 37, minorVersion = 0))
-        assertFalse(shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel = 36, minorVersion = 0))
-        assertFalse(shouldCheckForNewerAndroidPlatformMinorVersion(apiLevel = 35, minorVersion = null))
+        assertFalse(shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel = 37, minorApiLevel = 0))
+        assertFalse(shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel = 36, minorApiLevel = 0))
+        assertFalse(shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel = 35, minorApiLevel = null))
     }
 }

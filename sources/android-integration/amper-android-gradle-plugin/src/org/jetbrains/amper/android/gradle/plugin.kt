@@ -149,7 +149,7 @@ class AmperAndroidIntegrationProjectPlugin @Inject constructor(private val probl
         val androidSettings = androidFragment.settings.android
         androidExtension.compileSdk {
             version = release(androidSettings.compileSdk.apiLevel.versionNumber) {
-                minorApiLevel = androidSettings.compileSdk.minorVersion
+                minorApiLevel = androidSettings.compileSdk.minorApiLevel
                 sdkExtension = androidSettings.compileSdk.sdkExtension
             }
         }
