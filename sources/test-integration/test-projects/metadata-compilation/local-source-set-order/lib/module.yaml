@@ -1,0 +1,14 @@
+product:
+  type: kmp/lib
+  platforms: [ jvm, linuxX64, js ]
+
+# 'nonWeb' is an alias rather than a natural hierarchy platform, and aliases are the last entries of the fragment
+# list of a module. This is what makes the metadata klib of 'nonWeb' come after the one of 'common' in the compile
+# classpath of a consumer unless the fragments are explicitly ordered from the most specific one to the most general
+# one. See the 'consumer' module for what breaks then.
+aliases:
+  nonWeb: [ jvm, linuxX64 ]
+
+settings:
+  kotlin:
+    freeCompilerArgs: [ -Xexpect-actual-classes ]

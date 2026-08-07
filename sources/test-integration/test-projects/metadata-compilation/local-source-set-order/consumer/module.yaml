@@ -1,0 +1,14 @@
+product:
+  type: kmp/lib
+  platforms: [ jvm, linuxX64 ]
+
+# Both platforms sit inside the 'nonWeb' fragment of the dependency, so the metadata klibs of both 'common' and
+# 'nonWeb' end up on the compileMetadataCommon classpath of this module. They must be ordered from the most specific
+# one to the most general one, otherwise 'Driver' resolves to the memberless 'expect' from 'common' and MyDriver
+# fails to compile with "'open' overrides nothing".
+dependencies:
+  - ../lib
+
+settings:
+  kotlin:
+    freeCompilerArgs: [ -Xexpect-actual-classes ]

@@ -131,9 +131,16 @@ internal class MetadataCompileTask(
         val localDependencies = dependenciesResult.filterIsInstance<Result>()
 
         // includes this module's fragment dependencies and other source fragment deps from other local modules
-        val localClasspath = localDependencies.mapNotNull {
-            it.metadataOutputRoot.takeIf { !it.isEmptyDirectory() }
-        }
+        val localClasspath = localDependencies
+            // The fragments of this module go first, so that its own declarations take precedence over the ones of
+            // its dependencies, and the fragments of every dependency module stay grouped together in the order the
+            // modules come from the dependency graph. Only fragments of the same module are related to each other,
+            // and those are the ones that must be ordered from the most specific one to the most general one.
+            .groupBy { it.module }
+            .entries
+            .sortedByDescending { it.key == module }
+            .flatMap { entry -> entry.value.sortedFromMostSpecificFragment { it.fragment } }
+            .mapNotNull { it.metadataOutputRoot.takeIf { !it.isEmptyDirectory() } }
 
         val cinteropDependencies = dependenciesResult.filterIsInstance<CommonizeCInteropKlibsTask.Result>()
             .mapNotNull {
@@ -147,8 +154,11 @@ internal class MetadataCompileTask(
 
         val refinesPaths = fragment
             .allFragmentDependencies(dependencyType = FragmentDependencyType.REFINE)
+            // a fragment refined via several paths at once (a diamond in the hierarchy) is reported once per path
+            .distinct()
+            .asIterable()
+            .sortedFromMostSpecificFragment { it }
             .map { localDependencies.findMetadataResultForFragment(it).metadataOutputRoot }
-            .toList()
 
         // todo (AB) : [AMPER-721] This is a closed party, friends are not invited I am afraid.
         //  Test fragments are also not invited, neither are single-platform fragments (check if friends parameter is needed here)
@@ -417,4 +427,34 @@ internal class MetadataCompileTask(
     ) : TaskResult
 
     private val logger = LoggerFactory.getLogger(javaClass)
+}
+
+/**
+ * Returns these elements ordered from the most specific fragment to the most general one, so that a root fragment
+ * (`common`) comes last. The fragment of each element is taken with [fragmentOf].
+ *
+ * This is only meaningful for fragments of a single module: fragments of different modules never refine each other,
+ * so there is nothing to order between them.
+ *
+ * Specificity is defined by the position of a fragment in the refinement hierarchy: the more fragments a fragment
+ * refines (transitively), the more specific it is. Since a fragment always refines strictly more fragments than any
+ * fragment it refines, this puts every fragment before the ones it refines, even when the hierarchy is not a plain
+ * chain. That's what makes the compiler pick an `actual` declaration from a refining fragment over the `expect` one
+ * it actualizes, instead of the other way around.
+ *
+ * Equally specific fragments are unrelated, they are ordered by name so that the result is deterministic.
+ *
+ * See a similar function for sorting sourceSets of external dependencies
+ * [MavenDependencyImpl.sortFromMostSpecificSourceSet]
+ */
+private fun <T> Iterable<T>.sortedFromMostSpecificFragment(fragmentOf: (T) -> Fragment): List<T> {
+    val refinedFragmentsCounts = mutableMapOf<Fragment, Int>()
+    // the refinement hierarchy of a fragment is walked once, and not on every comparison
+    fun refinedFragmentsCount(fragment: Fragment) = refinedFragmentsCounts.getOrPut(fragment) {
+        fragment.allFragmentDependencies(dependencyType = FragmentDependencyType.REFINE).count()
+    }
+    return sortedWith(
+        compareByDescending<T> { refinedFragmentsCount(fragmentOf(it)) }
+            .thenBy { fragmentOf(it).name }
+    )
 }

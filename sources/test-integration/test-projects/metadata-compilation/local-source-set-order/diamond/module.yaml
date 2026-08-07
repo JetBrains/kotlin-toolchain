@@ -1,0 +1,17 @@
+product:
+  type: kmp/lib
+  platforms: [ jvm, linuxX64, linuxArm64, js ]
+
+# These two overlapping aliases make the 'native' fragment refine two fragments at once ('nonWeb' and 'nonJvm'),
+# which turns the refinement hierarchy of this module into a diamond. Walking such a hierarchy depth-first yields
+# 'common' in the middle (it is reached through the alias that is visited first), before the other alias, and
+# reports 'common' twice. The fragments of a diamond must thus be deduplicated and explicitly ordered from the most
+# specific one to the most general one. Both aliases add a method of their own, so this reproduces regardless of
+# which of the two the depth-first walk happens to visit first.
+aliases:
+  nonJvm: [ linuxX64, linuxArm64, js ]
+  nonWeb: [ jvm, linuxX64, linuxArm64 ]
+
+settings:
+  kotlin:
+    freeCompilerArgs: [ -Xexpect-actual-classes ]
