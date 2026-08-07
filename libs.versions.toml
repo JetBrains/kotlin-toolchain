@@ -1,18 +1,18 @@
 [versions]
 # The version of AGP used in Amper to delegate Android builds to Gradle.
 # Kept in sync with android-tools below (sdklib/repository version = AGP version + 23): AGP 9.2.1 <-> tools 32.2.1.
-agp = "9.2.1"
+agp = "9.3.1"
 # Must include the repository2 schema version that the installed cmdline-tools write into package.xml
 # (e.g. repository2/04 needs sdklib >= 32.x, which ships sdk-repository-04.xsd). An older sdklib makes
 # SchemaModuleUtil warn "only understands SDK XML versions up to N but ... version N+1 was encountered".
-android-tools = "32.2.1"
+android-tools = "32.3.1"
 apache-commons = "1.27.1"
 bouncycastle = "1.84"
 clikt = "5.1.0"
 compose-hot-reload-version = "1.2.0" # AUTO-UPDATED by 'do syncVersions' - DO NOT RENAME NOR UPDATE HERE
 eclipse-jgit = "7.2.1.202505142326-r"
 google-services = "4.4.3"
-gradle-toolingApi = "9.4.1"
+gradle-toolingApi = "9.5.0"
 gradleplugins-gradle-api = "8.11.1" # Limited by https://mvnrepository.com/artifact/dev.gradleplugins/gradle-api
 intellij-async-profiler = "4.1-0"
 intellij-fastutil = "8.5.18-jb1" # aligned with IntelliJ platform - see https://code.jetbrains.team/p/ij/repositories/ultimate/files/261.26222/community/.idea/libraries/fastutil_min.xml
