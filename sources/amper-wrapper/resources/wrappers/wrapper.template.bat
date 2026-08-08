@@ -253,5 +253,12 @@ if "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
 rem We use busybox here because it doesn't reinterpret the user-passed command-line arguments (that we pass via %*).
 rem Also this way we can use the unified launcher script (.sh)
 set KOTLIN_CLI_WRAPPER_PATH=%~f0
-"%busybox_exe%" sh "%kotlin_cli_target_dir%\bin\launcher.sh" %*
-exit /B %ERRORLEVEL%
+
+rem The '& call' after the app run is to avoid the "Terminate batch job (Y/N)?" prompt
+"%busybox_exe%" sh "%kotlin_cli_target_dir%\bin\launcher.sh" %* & call :exitWithErrorLevel
+
+:exitWithErrorLevel
+@rem We use "%COMSPEC%" /d /c exit so that and/or operators work properly when calling kotlin.bat directly from a script
+@rem without the `call` command. With a plain `exit /B %ERRORLEVEL%`, using `kotlin.bat && echo success` would print
+@rem 'success' even in case of failure. Consumers would have to use `call kotlin.bat && echo success` for it to work.`
+"%COMSPEC%" /d /c exit %ERRORLEVEL%

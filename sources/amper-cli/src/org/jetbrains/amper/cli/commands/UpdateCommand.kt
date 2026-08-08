@@ -149,15 +149,13 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
         // this code completes, it will resume in the new wrapper code. If the new script is shorter, cmd.exe will just
         // stop and the command completes normally. If the new script is longer, then cmd.exe will likely resume in the
         // middle of a command in the middle of the script, which will fail miserably.
-        // Even with atomic moves, the new file is reloaded, so in this case we have to spawn a process that will
-        // replace the old wrapper after the update command (and the current wrapper) finished executing.
-
-        // The offset of the exit command is where the script would normally resume (given the characters we use in our
-        // scripts, the UTF-8 byte offset should correspond to the character offset).
-        val runningWrapperResumeOffset = runningWrapper.readText().lastIndexOf("exit /B %ERRORLEVEL%")
-        val batUpdateInPlaceWouldBreak = batWrapperPath.exists()
-                && batWrapperPath.isSameFileAs(runningWrapper)
-                && newBatWrapperPath.fileSize() > runningWrapperResumeOffset
+        // Worse now: since the addition of 'call :exitWithErrorLevel' after the launch command, the running script will
+        // always try to go to this label in the replaced file, so no matter the length, it will scan for this label. If
+        // it doesn't find it, it will crash. If it does find it, it will run some new code that we don't want.
+        // Because of this, we can never replace the running .bat script in place anymore. Even with atomic moves, the
+        // new file is reloaded, so we have to spawn a process that will replace the old wrapper after the update
+        // command (and the current wrapper) finished executing.
+        val batUpdateInPlaceWouldBreak = batWrapperPath.exists() && batWrapperPath.isSameFileAs(runningWrapper)
         spanBuilder("Replace 'kotlin.bat' script").use { span ->
             if (batUpdateInPlaceWouldBreak) {
                 copyAndReplaceLaterWindows(source = newBatWrapperPath, target = batWrapperPath)
