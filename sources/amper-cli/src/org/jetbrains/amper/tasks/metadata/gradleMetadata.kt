@@ -28,6 +28,7 @@ import org.jetbrains.amper.maven.publish.PublicationCoordinatesOverrides
 import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.amper.tasks.MavenPublishable
+import org.jetbrains.amper.tasks.mavenFileName
 import org.jetbrains.amper.tasks.native.cinteropName
 import org.jetbrains.amper.tasks.rootFragment
 import org.jetbrains.gradle.module.metadata.format.AvailableAt
@@ -225,9 +226,9 @@ suspend fun generateGradleMetadataForLeafPlatform(
     platform: Platform,
     outputDir: Path,
     checksums: Map<String, List<MavenPublishable>>,
-    platformSpecificArtifact: Path?,
-    platformSpecificCinteropArtifacts: List<Path>,
-    platformSpecificSourcesJar: Path? = null,
+    platformSpecificArtifact: MavenPublishable?,
+    platformSpecificCinteropArtifacts: List<MavenPublishable>,
+    platformSpecificSourcesJar: MavenPublishable? = null,
     overrides: PublicationCoordinatesOverrides,
 ): Path {
     val leafFragment: LeafFragment = module.leafFragments
@@ -238,14 +239,14 @@ suspend fun generateGradleMetadataForLeafPlatform(
         val scopes = getApplicableVariantScopes(leafFragment)
         scopes.forEach { scope ->
             val mainArtifact = platformSpecificArtifact?.toGradleMetadataFile(leafFragment, checksums = checksums)
-            val cinteropArtifacts = platformSpecificCinteropArtifacts.map { it.toGradleMetadataFile(leafFragment, checksums = checksums, isCinterop = true) }
+            val cinteropArtifacts = platformSpecificCinteropArtifacts.map { it.toGradleMetadataFile(leafFragment, checksums = checksums) }
             add(leafFragment.toGradleVariant(scope, isSources = false, listOfNotNull(mainArtifact) + cinteropArtifacts, overrides))
         }
 
         if (module.publishingSettings.publishSources && platformSpecificSourcesJar != null) {
-            // The sources JAR itself must be described here, not the main artifact:
+            // The sources-JAR itself must be described here, not the main artifact:
             // both the file extension and the checksums/size are taken from the described file.
-            val sourcesFile = platformSpecificSourcesJar.toGradleMetadataFile(leafFragment, isSources = true, checksums = checksums)
+            val sourcesFile = platformSpecificSourcesJar.toGradleMetadataFile(leafFragment, checksums = checksums)
             add(leafFragment.toGradleVariant(ResolutionScope.RUNTIME, isSources = true, [ sourcesFile ], overrides))
         }
     }
@@ -253,41 +254,40 @@ suspend fun generateGradleMetadataForLeafPlatform(
     return generateGradleModuleFile(variants, platform, module, outputDir)
 }
 
-private fun Path.toGradleMetadataFile(
+private fun MavenPublishable.toGradleMetadataFile(
     fragment: LeafFragment,
     checksums: Map<String, List<MavenPublishable>>,
-    isSources: Boolean = false,
-    isCinterop: Boolean = false,
 ): File {
-    val platformSpecificArtifact = this
+    val platformSpecificArtifact = this.path
+    val platformSpecificCoordinates = this.coordinates
+    val isCinterop = platformSpecificCoordinates.isCinteropClassifier
     val module = fragment.module
 
-    val platformSpecificCoordinates = module.publicationCoordinates(fragment.platform)
     val artifactId = platformSpecificCoordinates.artifactId
     val version = platformSpecificCoordinates.version
         ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
+    val classifierSuffix = platformSpecificCoordinates.classifier?.let { "-$it" } ?: ""
+    val extension = platformSpecificArtifact.extension
 
-    val [name, url] = if (fragment.platform == Platform.JVM && !module.isMultiplatformPublication()) {
+    val name = if (fragment.platform == Platform.JVM && !module.isMultiplatformPublication()) {
         // JVM-only publication
-        val sourcesSuffix = if (isSources) "-sources" else ""
-        val artifactFileName = "$artifactId-$version$sourcesSuffix.jar"
-        artifactFileName to artifactFileName
+        "$artifactId-$version$classifierSuffix.$extension"
     } else {
-        val extension = platformSpecificArtifact.extension
         if (isCinterop) {
             // Regular KMP publication of a cinterop klib, follows the KGP naming convention:
             // name 'atomicfu-linuxX64Cinterop-interopMain-0.32.1.klib',
-            // url  'atomicfu-linuxx64-0.32.1-cinterop-interop.klib'.
+            // url 'atomicfu-linuxx64-0.32.1-cinterop-interop.klib'.
             val interopName = platformSpecificArtifact.cinteropName()
-            "${module.userReadableName}-${fragment.name}Cinterop-${interopName}Main-$version.$extension" to
-                    "$artifactId-$version-${platformSpecificArtifact.cinteropClassifier()}.$extension"
+            "${module.userReadableName}-${fragment.name}Cinterop-${interopName}Main-$version.$extension"
         } else {
             // Regular KMP publication
-            val sourcesSuffix = if (isSources) "-sources" else ""
-            "${module.userReadableName}-${fragment.sourceSetName()}-$version$sourcesSuffix.$extension" to
-                    "$artifactId-$version$sourcesSuffix.$extension"
+            "${module.userReadableName}-${fragment.sourceSetName()}-$version$classifierSuffix.$extension"
         }
     }
+
+    // The URL is the artifact's file name in the Maven repository layout, so it must match the name used for the
+    // published file itself, as well as for its checksums and signature.
+    val url = platformSpecificCoordinates.mavenFileName(extension)
 
     return File(
         name = name,

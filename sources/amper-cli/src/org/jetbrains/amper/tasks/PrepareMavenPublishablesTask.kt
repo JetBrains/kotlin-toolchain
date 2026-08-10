@@ -182,9 +182,9 @@ class PrepareMavenPublishablesTask(
                     platform,
                     taskOutputRoot.path,
                     checksumPublishables,
-                    platformSpecificArtifact?.path,
-                    platformSpecificCinteropArtifacts.map { it.path },
-                    sourcesJar?.path,
+                    platformSpecificArtifact,
+                    platformSpecificCinteropArtifacts,
+                    sourcesJar,
                     overrides
                 ).toMavenPublishable(coords)
             }
@@ -258,7 +258,8 @@ class PrepareMavenPublishablesTask(
     }
 
     private suspend fun PgpSigner.signArtifact(artifact: MavenPublishable): MavenPublishable {
-        val signatureFilePath = taskOutputRoot.path.resolve(artifact.path.name + ".asc")
+        val signatureFileName = artifact.coordinates.mavenFileName(artifact.mavenArtifactExtension) + ".asc"
+        val signatureFilePath = taskOutputRoot.path.resolve("signatures/$signatureFileName").createParentDirectories()
         try {
             // TODO add some fine-grained progress reporting instead (see AMPER-5487)
             logger.info("Signing artifact '${artifact.path.name}'…")
@@ -290,7 +291,8 @@ class PrepareMavenPublishablesTask(
         withContext(Dispatchers.IO) {
             val algorithmExtension = algorithm.mavenArtifactExtensionSuffix
             val checksum = publishable.path.readBytes().hash(algorithm.algorithmName).toHexString()
-            val checksumFile = taskOutputRoot.path.resolve("checksums/${publishable.path.fileName}.$algorithmExtension")
+            val checksumFileName = publishable.coordinates.mavenFileName(publishable.mavenArtifactExtension)
+            val checksumFile = taskOutputRoot.path.resolve("checksums/$checksumFileName.$algorithmExtension")
             checksumFile.createParentDirectories().writeText(checksum)
             publishable.copy(
                 mavenArtifactExtension = "${publishable.mavenArtifactExtension}.$algorithmExtension",
@@ -327,6 +329,20 @@ data class MavenPublishable(
 }
 
 private val Checksum.mavenArtifactExtensionSuffix get() = algorithmName.lowercase().replace("-", "")
+
+/**
+ * The name this artifact must have in the Maven repository layout: `<artifactId>-<version>[-<classifier>].<extension>`.
+ *
+ * Files derived from an artifact (checksums, signatures) must be named after this, and *not* after the name of the
+ * file they are derived from: the same file name can be produced for several platforms (all klibs are named
+ * `<moduleName>.klib`, for instance), so deriving from it makes the outputs of different platforms overwrite each
+ * other, and each artifact then gets published with some other platform's checksum or signature.
+ */
+internal fun MavenCoordinates.mavenFileName(extension: String): String {
+    val nonNullVersion = version ?: error("Missing 'version' in Maven coordinates: ${toPrettyString()}")
+    val classifierSuffix = classifier?.let { "-$it" } ?: ""
+    return "$artifactId-$nonNullVersion$classifierSuffix.$extension"
+}
 
 /**
  * Returns the publishable with the given [coordinates], or null if no task produced such an artifact.

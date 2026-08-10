@@ -23,16 +23,21 @@ import org.jetbrains.amper.test.server.RequestHistory
 import org.jetbrains.amper.test.server.withFileServer
 import org.junit.jupiter.api.TestReporter
 import java.nio.file.Path
+import java.security.MessageDigest
 import java.util.*
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.copyToRecursively
 import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
+import kotlin.io.path.exists
+import kotlin.io.path.extension
 import kotlin.io.path.inputStream
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
+import kotlin.io.path.readBytes
 import kotlin.io.path.readText
+import kotlin.io.path.walk
 import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -367,19 +372,118 @@ class AmperPublishTest : AmperCliTestBase() {
         )
     }
 
+    @Test
+    fun `publish to maven local (multiplatform with signing)`() = runSlowTest {
+        val mavenLocalForTest = createTempMavenLocalDir()
+        val groupDir = mavenLocalForTest.resolve("amper/test/kmp-publish-with-signing")
+
+        val openPgpApi = BcOpenPGPApi()
+        val testPgpKey = openPgpApi.generateKey().signOnlyKey().build()
+
+        runCli(
+            projectDir = testProject("kmp-publish-with-signing"),
+            "publish", "mavenLocal",
+            amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
+            environment = mapOf("KOTLIN_TOOLCHAIN_SIGNING_KEY" to testPgpKey.toAsciiArmoredString()),
+        )
+
+        // Checksums are not published to a plain Maven repository (Aether regenerates them), but signatures are.
+        // Every signature must match the contents of the artifact it sits next to: several platforms produce files
+        // with the same name (all klibs are named <module>.klib), so a mix-up only shows up on a KMP publication.
+        val signatures = groupDir.walk().filter { it.extension == "asc" }.sorted().toList()
+        assertTrue(signatures.isNotEmpty(), "No signature files found in $groupDir")
+        assertTrue(
+            signatures.any { it.name.endsWith(".klib.asc") },
+            "Expected signed klibs among the published artifacts, but found none in:\n" +
+                    signatures.joinToString("\n") { " - ${it.name}" },
+        )
+
+        val invalidSignatures = signatures.filterNot { signature ->
+            val signedFile = signature.resolveSibling(signature.name.removeSuffix(".asc"))
+            signedFile.exists() && isSignatureValid(signedFile, signature, testPgpKey)
+        }
+        assertTrue(
+            invalidSignatures.isEmpty(),
+            "Invalid signatures:\n${invalidSignatures.joinToString("\n") { " - ${it.name}" }}",
+        )
+    }
+
+    @Test
+    fun `prepare maven central bundle (multiplatform)`() = runSlowTest {
+        val openPgpApi = BcOpenPGPApi()
+        val testPgpKey = openPgpApi.generateKey().signOnlyKey().build()
+
+        val result = runCli(
+            projectDir = testProject("kmp-publish-with-signing"),
+            "package", "--format=maven-central-bundle",
+            environment = mapOf("KOTLIN_TOOLCHAIN_SIGNING_KEY" to testPgpKey.toAsciiArmoredString()),
+        )
+
+        val zipBundle = result
+            .getTaskOutputPath(":kmp-publish-with-signing:prepareMavenCentralBundle")
+            .resolve("kmp-publish-with-signing-central-bundle.zip")
+
+        val bundleDir = tempRoot.resolve("kmp-publish-with-signing-central-bundle").also { it.createDirectories() }
+        extractZip(zipBundle, bundleDir, stripRoot = false)
+
+        val groupDir = bundleDir.resolve("amper/test/kmp-publish-with-signing")
+
+        // Maven Central validates the checksums and the signature of every published artifact, so we do the same here
+        // for all of them, instead of hand-picking a few files.
+        val artifacts = groupDir.walk()
+            .filter { it.extension !in setOf("asc", "md5", "sha1") }
+            .sorted()
+            .toList()
+        assertTrue(artifacts.isNotEmpty(), "No artifacts found in the bundle at $groupDir")
+
+        val failures = artifacts.flatMap { artifact ->
+            buildList {
+                Checksum.entries.forEach { checksum ->
+                    val extension = checksum.name.lowercase().replace("-", "")
+                    val checksumFile = artifact.resolveSibling("${artifact.name}.$extension")
+                    if (checksumFile.exists()) {
+                        val expected = MessageDigest.getInstance(checksum.algorithmName)
+                            .digest(artifact.readBytes())
+                            .toHexString()
+                        if (checksumFile.readText().trim() != expected) {
+                            add("Invalid $extension checksum for file: ${artifact.name}")
+                        }
+                    }
+                }
+                val signatureFile = artifact.resolveSibling("${artifact.name}.asc")
+                if (signatureFile.exists() && !isSignatureValid(artifact, signatureFile, testPgpKey)) {
+                    add("Invalid signature for file: ${artifact.name}.asc")
+                }
+            }
+        }
+        assertTrue(failures.isEmpty(), "Maven Central would reject this bundle:\n${failures.joinToString("\n") { " - $it" }}")
+    }
+
+    /**
+     * Non-throwing variant of [assertSignatureIsValid], to check many signatures and report all the invalid ones at
+     * once instead of failing on the first one.
+     */
+    private fun isSignatureValid(dataFile: Path, signatureFile: Path, verificationCertificate: OpenPGPCertificate): Boolean =
+        verifySignature(dataFile, signatureFile, verificationCertificate).singleOrNull()?.isValid == true
+
     private fun assertSignatureIsValid(dataFile: Path, signatureFile: Path, verificationCertificate: OpenPGPCertificate) {
-        val signatureVerifier = signatureFile.inputStream().use { signatureStream ->
-            BcOpenPGPApi().verifyDetachedSignature()
-                .addSignatures(signatureStream)
-                .addVerificationCertificate(verificationCertificate)
-        }
-        val processedSignatures = dataFile.inputStream().use { jarStream ->
-            signatureVerifier.process(jarStream)
-        }
+        val processedSignatures = verifySignature(dataFile, signatureFile, verificationCertificate)
         if (processedSignatures.isEmpty()) {
             fail("Malformed signature for ${dataFile.name}, no processed signature returned")
         }
         assertTrue(processedSignatures.single().isValid, "Signature invalid for ${dataFile.name}")
+    }
+
+    private fun verifySignature(
+        dataFile: Path,
+        signatureFile: Path,
+        verificationCertificate: OpenPGPCertificate,
+    ) = signatureFile.inputStream().use { signatureStream ->
+        BcOpenPGPApi().verifyDetachedSignature()
+            .addSignatures(signatureStream)
+            .addVerificationCertificate(verificationCertificate)
+    }.let { signatureVerifier ->
+        dataFile.inputStream().use { dataStream -> signatureVerifier.process(dataStream) }
     }
 
     @Test

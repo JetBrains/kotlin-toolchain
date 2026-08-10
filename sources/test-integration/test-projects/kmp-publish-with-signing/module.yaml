@@ -1,0 +1,32 @@
+product:
+  type: lib
+  # Several of these platforms produce a klib, and all klibs are produced by tasks with names <module>.klib,
+  # so they only differ by their directory.
+  # This is what makes this project catch mix-ups between per-platform published files.
+  platforms: [jvm, js, wasmJs, linuxX64, mingwX64]
+
+description: A test multiplatform library
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: false
+    publish: true
+
+settings:
+  publishing:
+    enabled: true
+    group: "amper.test.kmp-publish-with-signing"
+    version: "2.2"
+    artifactId: artifactName
+    signArtifacts: true
+    publishSources: true
+    mavenCentral: enabled
+    pom:
+      url: https://example.org
+      scm: https://git.example.org
+      licenses:
+        - name: MIT
+          url: https://opensource.org/licenses/MIT
+      developers:
+        - John Doe

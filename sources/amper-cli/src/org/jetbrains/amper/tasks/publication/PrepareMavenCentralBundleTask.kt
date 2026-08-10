@@ -19,6 +19,7 @@ import org.jetbrains.amper.jar.ZipInput
 import org.jetbrains.amper.jar.writeZip
 import org.jetbrains.amper.tasks.MavenPublishable
 import org.jetbrains.amper.tasks.PrepareMavenPublishablesTask
+import org.jetbrains.amper.tasks.mavenFileName
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.util.BuildType
@@ -68,24 +69,11 @@ private fun MavenPublishable.toZipInput(): ZipInput = ZipInput(
 )
 
 private fun MavenCoordinates.toMavenCentralZipPath(extension: String): Path {
-    val artifactFilename = buildString {
-        append(artifactId)
-        append('-')
-
-        val nonNullVersion = version ?: error("Missing 'version' in MavenPublishable coordinates: $this")
-        if ("SNAPSHOT" in nonNullVersion) {
-            userReadableError("SNAPSHOT versions are not supported on Maven Central. Cannot publish $this")
-        }
-        // No need for SNAPSHOT transformation here (<version>-<timestamp>-<build>) because Maven Central does not
-        // support SNAPSHOT versions anyway.
-        append(nonNullVersion)
-
-        if (classifier != null) {
-            append('-')
-            append(classifier)
-        }
-        append('.')
-        append(extension)
+    val nonNullVersion = version ?: error("Missing 'version' in MavenPublishable coordinates: $this")
+    if ("SNAPSHOT" in nonNullVersion) {
+        userReadableError("SNAPSHOT versions are not supported on Maven Central. Cannot publish $this")
     }
-    return Path("${groupId.replace('.', '/')}/$artifactId/$version/$artifactFilename")
+    // No need for SNAPSHOT transformation here (<version>-<timestamp>-<build>) because Maven Central does not
+    // support SNAPSHOT versions anyway.
+    return Path("${groupId.replace('.', '/')}/$artifactId/$nonNullVersion/${mavenFileName(extension)}")
 }
