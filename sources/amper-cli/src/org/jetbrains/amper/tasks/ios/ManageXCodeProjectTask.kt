@@ -44,6 +44,7 @@ import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
 import kotlin.io.path.relativeTo
+import kotlin.io.path.writeText
 
 /**
  * Manages xcodeproj.
@@ -124,6 +125,10 @@ class ManageXCodeProjectTask(
             managedAmperPhaseAttributes().forEach { (key, value) ->
                 amperPhase[key] = value
             }
+            // Need to truncate the file before saving,
+            // as it doesn't overwrite the whole file and may leave some old text at the end of the file
+            pbxProjectFile.pbxProjFile.writeText("")
+
             pbxProjectFile.save()
             span.setAttribute(UpdatedAttribute, true)
         } else {
