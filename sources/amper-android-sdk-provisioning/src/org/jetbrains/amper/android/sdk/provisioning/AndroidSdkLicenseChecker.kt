@@ -2,7 +2,7 @@
  * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package org.jetbrains.amper.tasks.android
+package org.jetbrains.amper.android.sdk.provisioning
 
 import com.android.repository.api.License
 import org.jetbrains.amper.incrementalcache.IncrementalCache

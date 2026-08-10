@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.tasks.android
 
+import org.jetbrains.amper.android.sdk.provisioning.SdkInstallManager
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext

@@ -11,6 +11,7 @@ repositories:
     url: https://repo.gradle.org/gradle/libs-releases
 
 dependencies:
+  - //sources/amper-android-sdk-provisioning
   - //sources/amper-build-info
   - //sources/amper-cli-widgets
   - //sources/amper-compose-hot-reload

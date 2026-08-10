@@ -7,6 +7,7 @@ package org.jetbrains.amper.tasks.android
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG
 import com.android.sdklib.devices.Abi
+import org.jetbrains.amper.android.sdk.provisioning.androidPlatformPackageName
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.engine.TaskGraphBuilder
@@ -433,24 +434,6 @@ private fun TaskGraphBuilder.setupAndroidPlatformTask(
         ),
         dependsOn = AndroidTaskType.CheckAndroidSdkLicense.getTaskName(module, Platform.ANDROID)
     )
-}
-
-internal fun androidPlatformPackageName(
-    apiLevel: Int,
-    minorApiLevel: Int?,
-    sdkExtension: Int?,
-): String = buildString {
-    append("platforms;android-")
-    append(apiLevel)
-    if (apiLevel >= 37 || minorApiLevel != 0) {
-        // Minor API level equal to 0 started being appended to platform only since API level 37
-        // - versions 1..35 don't have minor API levels at all
-        // - 36 has 36 and 36.1
-        // - 37 has 37.0 and 37.1
-        // Future is unclear but, hopefully, Google uses the same versioning schema since 37 now.
-        minorApiLevel?.let { append(".$it") }
-    }
-    sdkExtension?.let { append("-ext$it") }
 }
 
 private fun TaskGraphBuilder.setupDownloadBuildToolsTask(

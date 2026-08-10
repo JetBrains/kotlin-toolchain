@@ -10,6 +10,7 @@ modules:
   - build-sources/protobuf
   - plugin-samples/grpc-hello-world
   - repository-restrictions
+  - sources/amper-android-sdk-provisioning
   - sources/amper-build-info
   - sources/amper-cli
   - sources/amper-cli-widgets

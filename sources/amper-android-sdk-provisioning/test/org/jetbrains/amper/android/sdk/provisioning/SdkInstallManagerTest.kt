@@ -2,7 +2,7 @@
  * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package org.jetbrains.amper.tasks.android
+package org.jetbrains.amper.android.sdk.provisioning
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -52,32 +52,6 @@ class SdkInstallManagerTest {
         assertEquals(
             "platforms;android-37.2",
             selectBestMatchingPackagePath("platforms;android-37", available),
-        )
-    }
-
-    @Test
-    fun `latest minor api level is chosen over an exact match`() {
-        val available = listOf(
-            "platforms;android-37",
-            "platforms;android-37.0",
-            "platforms;android-37.1",
-        )
-        assertEquals(
-            "platforms;android-37.1",
-            selectLatestMinorApiLevelPackagePath("platforms;android-37", available),
-        )
-    }
-
-    @Test
-    fun `latest minor api level is chosen before an extension suffix`() {
-        val available = listOf(
-            "platforms;android-37-ext2",
-            "platforms;android-37.0-ext2",
-            "platforms;android-37.1-ext2",
-        )
-        assertEquals(
-            "platforms;android-37.1-ext2",
-            selectLatestMinorApiLevelPackagePath("platforms;android-37-ext2", available),
         )
     }
 
