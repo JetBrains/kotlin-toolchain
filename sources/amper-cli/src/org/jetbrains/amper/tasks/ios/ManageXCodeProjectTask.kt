@@ -68,7 +68,7 @@ class ManageXCodeProjectTask(
         val pbxProjectFilePath = projectDir / PBXProjectFile.PROJECT_FILE
 
         return if (pbxProjectFilePath.exists()) {
-            logger.info("XCode project exists: $projectDir")
+            logger.debug("Xcode project exists: {}", projectDir)
 
             spanBuilder("xcode project management")
                 .setAmperModule(module)
@@ -81,7 +81,7 @@ class ManageXCodeProjectTask(
                 }
 
         } else {
-            logger.info("No XCode project detected in '$projectDir', generating the buildable default")
+            logger.info("No Xcode project detected in '$projectDir', generating the buildable default")
 
             spanBuilder("xcode project generation")
                 .setAmperModule(module)
@@ -127,7 +127,7 @@ class ManageXCodeProjectTask(
             pbxProjectFile.save()
             span.setAttribute(UpdatedAttribute, true)
         } else {
-            logger.info("Kotlin Toolchain Phase is valid")
+            logger.debug("Kotlin Toolchain Phase is valid")
             span.setAttribute(UpdatedAttribute, false)
         }
 
