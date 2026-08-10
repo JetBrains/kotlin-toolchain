@@ -111,6 +111,7 @@ class IosBuildTask(
                     command = listOf(
                         executable.pathString,
                         "--disable-logging", // disable big version banner - we do it ourselves
+                        "--quiet",
                     ),
                     outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
                     input = pipe,
@@ -184,4 +185,4 @@ class IosBuildTask(
     private val logger = LoggerFactory.getLogger(javaClass)
 }
 
-const val XCBEAUTIFY_VERSION = "2.28.0"
+const val XCBEAUTIFY_VERSION = "3.2.1"
