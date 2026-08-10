@@ -4,6 +4,8 @@
 
 package org.jetbrains.amper.tasks.ios
 
+import com.github.ajalt.mordant.terminal.Terminal
+import com.github.ajalt.mordant.terminal.muted
 import com.jetbrains.cidr.xcode.frameworks.buildSystem.BuildSettingNames
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -23,6 +25,7 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
+import org.jetbrains.amper.processes.PrintToTerminalProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.pipe.ProcessPipe
@@ -35,6 +38,7 @@ import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
+import org.slf4j.event.Level
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.absolutePathString
@@ -54,6 +58,7 @@ class IosBuildTask(
     override val taskName: TaskName,
     private val userCacheRoot: AmperUserCacheRoot,
     private val processRunner: ProcessRunner,
+    private val terminal: Terminal,
 ) : BuildTask {
     init {
         require(platform.isDescendantOf(Platform.IOS)) { "Invalid iOS platform: $platform" }
@@ -96,13 +101,18 @@ class IosBuildTask(
 
         coroutineScope {
             val executable = prepareLogParsingUtility()
-            val fullXcodebuildLog = taskOutputPath.path / "xcodebuild.log"
             val pipe = ProcessPipe(
                 includeStderr = true,
-                eavesDroppingListener = FileLoggingProcessOutputListener(fullXcodebuildLog),
+                eavesDroppingListener = LoggingProcessOutputListener(
+                    logger = logger,
+                    prefix = "xcodebuild/out",
+                    stdErrPrefix = "xcodebuild/err",
+                    stdoutLoggingLevel = Level.DEBUG,
+                    stderrLoggingLevel = Level.DEBUG,
+                ),
             )
 
-            logger.info("Using xcbeautify ($XCBEAUTIFY_VERSION) to parse xcodebuild output.")
+            terminal.muted("Running xcodebuild with xcbeautify $XCBEAUTIFY_VERSION")
 
             // Need to launch log parser in parallel
             val parserProcessJob = launch {
@@ -113,7 +123,7 @@ class IosBuildTask(
                         "--disable-logging", // disable big version banner - we do it ourselves
                         "--quiet",
                     ),
-                    outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
+                    outputMode = ProcessOutputMode.listen(PrintToTerminalProcessOutputListener(terminal)),
                     input = pipe,
                 )
             }
@@ -135,7 +145,6 @@ class IosBuildTask(
                     // Ensure the parser is done to avoid putting the final log entries into the middle of the log
                     parserProcessJob.join()
 
-                    logger.info("Full xcodebuild log can be found at file://${fullXcodebuildLog.absolutePathString()}")
                     if (result.exitCode != 0) {
                         userReadableError("xcodebuild invocation failed, check the log above.")
                     }

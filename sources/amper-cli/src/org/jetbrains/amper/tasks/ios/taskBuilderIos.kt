@@ -100,6 +100,7 @@ fun ProjectTasksBuilder.setupIosTasks() {
                     taskOutputPath = context.getTaskOutputPath(buildTaskName),
                     taskName = buildTaskName,
                     processRunner = context.processRunner,
+                    terminal = context.terminal,
                 ),
                 dependsOn = listOf(
                     preBuildTaskName,
