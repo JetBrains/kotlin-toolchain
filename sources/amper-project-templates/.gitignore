@@ -1,0 +1,5 @@
+# Ignore Kotlin Toolchain files in templates, so we can test these projects manually without having dirty changes
+.idea
+build
+kotlin
+kotlin.bat
