@@ -65,7 +65,12 @@ suspend fun ProcessRunner.bootAndWaitSimulator(
         // It boots the simulator on demand and brings its window forward.
         runProcess(
             workingDir = Path("."),
-            command = listOf("open", "-a", "Simulator"),
+            command = [
+                "open", "-a", "Simulator",
+                // We specify the simulator ID to open a window for
+                "--args", "-CurrentDeviceUDID",
+                device.deviceId,
+            ],
             outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
         )
     }
