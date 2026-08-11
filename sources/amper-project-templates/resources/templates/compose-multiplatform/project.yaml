@@ -3,3 +3,4 @@ modules:
   - ios-app
   - jvm-app
   - shared
+  - wasm-app
