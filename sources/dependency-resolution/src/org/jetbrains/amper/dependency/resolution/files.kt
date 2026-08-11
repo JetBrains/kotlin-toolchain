@@ -1232,7 +1232,7 @@ open class DependencyFileImpl(
             const val CONTENT_LENGTH: String = "Content-Length"
             const val USER_AGENT = "User-Agent"
             const val USER_AGENT_VALUE =
-                "KotlinToolchain/${DependencyResolutionBuild.majorAndMinorVersion} (mailto:alexey.barsov@jetbrains.com)"
+                "KotlinToolchain/${DependencyResolutionBuild.majorAndMinorVersion} (mailto:kotlin-toolchain-team@jetbrains.com)"
         }
 
         /**
