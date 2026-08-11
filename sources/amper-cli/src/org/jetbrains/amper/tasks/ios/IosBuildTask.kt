@@ -26,7 +26,6 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.PrintToTerminalProcessOutputListener
-import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.pipe.ProcessPipe
 import org.jetbrains.amper.processes.runProcess
@@ -42,7 +41,6 @@ import org.slf4j.event.Level
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.bufferedWriter
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.getPosixFilePermissions
@@ -82,14 +80,17 @@ class IosBuildTask(
             this += "xcrun"
             this += "xcodebuild"
             this += "-project"; this += projectInitialInfo.projectDir.pathString
-            this += "-scheme"; this += projectInitialInfo.targetName
+            this += "-scheme"; this += projectInitialInfo.targetName  // FIXME: Select proper scheme
+            this += "-destination"; this += "generic/platform=${platform.toXcodePlatformTitle()}"
             this += "-configuration"; this += buildType.name
-            this += "-arch"; this += platform.architecture
             this += "-derivedDataPath"; this += derivedDataPath.pathString
-            this += "-sdk"; this += platform.sdk
             this += "${BuildSettingNames.OBJROOT}=${objRootPath.pathString}"
             this += "${BuildSettingNames.SYMROOT}=${symRootPath.pathString}"
             this += "KOTLIN_CLI_WRAPPER_PATH=${ProjectCliContext.wrapperScriptPath.absolutePathString()}"
+            if (platform.isIosSimulator) {
+                // Constrain built architectures to avoid universal simulator build
+                this +="${BuildSettingNames.ARCHS}=${platform.architecture}"
+            }
             if (!platform.isIosSimulator && !xcodeSettings.hasTeamId && !xcodeSettings.isSigningDisabled) {
                 logger.warn("`DEVELOPMENT_TEAM` build setting is not detected in the Xcode project. " +
                         "Adding `CODE_SIGNING_ALLOWED=NO` to disable signing. " +
@@ -175,15 +176,6 @@ class IosBuildTask(
             executable.setPosixFilePermissions(permissions + PosixFilePermission.OWNER_EXECUTE)
         }
         return executable
-    }
-
-    private class FileLoggingProcessOutputListener(
-        logFile: Path,
-    ) : ProcessOutputListener {
-        private val stream = logFile.bufferedWriter()
-        override fun onStdoutLine(line: String, pid: Long) = stream.write("out: $line\n")
-        override fun onStderrLine(line: String, pid: Long) = stream.write("err: $line\n")
-        override fun onProcessTerminated(exitCode: Int, pid: Long) = stream.close()
     }
 
     class Result(
