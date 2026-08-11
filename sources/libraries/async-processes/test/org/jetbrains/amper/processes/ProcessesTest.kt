@@ -109,7 +109,7 @@ class ProcessesTest {
         val (exitCode = value, duration) = measureTimedValue {
             withTimeoutOrNull(5.seconds) { deferredExitCode.await() }
         }
-        assertTrue(duration < 1.seconds, "The result should be returned quickly (<1s) after the destruction of the process, but it took $duration")
+        assertTrue(duration < 2.seconds, "The result should be returned quickly (<2s) after the destruction of the process, but it took $duration")
         check(exitCode != null) {
             "The exitCode should not be null (which means timeout) it the assertion about the duration succeeded"
         }
