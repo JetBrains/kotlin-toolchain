@@ -17,9 +17,9 @@
 setlocal
 
 @rem The version of the Kotlin Toolchain distribution to provision and use
-set kotlin_cli_version=0.12.0-dev-4231
+set kotlin_cli_version=0.12.0-dev-4239
 @rem Establish chain of trust from here by specifying the exact checksum of the Kotlin Toolchain distribution to be run
-set kotlin_cli_sha256=c9e46f5e25a3c8ddf867eed85169056229ba7df0e3fea25c6db88aee1cab7b7e
+set kotlin_cli_sha256=6dafe2953eb1fc779c5464eb81ea88288fc03249ff58dbbb478584cfe063e5c3
 
 if not defined KOTLIN_CLI_DOWNLOAD_ROOT set KOTLIN_CLI_DOWNLOAD_ROOT=https://packages.jetbrains.team/maven/p/amper/amper
 if not defined KOTLIN_CLI_BOOTSTRAP_CACHE_DIR set KOTLIN_CLI_BOOTSTRAP_CACHE_DIR=%LOCALAPPDATA%\JetBrains\Kotlin\cli
@@ -253,5 +253,12 @@ if "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
 rem We use busybox here because it doesn't reinterpret the user-passed command-line arguments (that we pass via %*).
 rem Also this way we can use the unified launcher script (.sh)
 set KOTLIN_CLI_WRAPPER_PATH=%~f0
-"%busybox_exe%" sh "%kotlin_cli_target_dir%\bin\launcher.sh" %*
-exit /B %ERRORLEVEL%
+
+rem The '& call' after the app run is to avoid the "Terminate batch job (Y/N)?" prompt
+"%busybox_exe%" sh "%kotlin_cli_target_dir%\bin\launcher.sh" %* & call :exitWithErrorLevel
+
+:exitWithErrorLevel
+@rem We use "%COMSPEC%" /d /c exit so that and/or operators work properly when calling kotlin.bat directly from a script
+@rem without the `call` command. With a plain `exit /B %ERRORLEVEL%`, using `kotlin.bat && echo success` would print
+@rem 'success' even in case of failure. Consumers would have to use `call kotlin.bat && echo success` for it to work.`
+"%COMSPEC%" /d /c exit %ERRORLEVEL%
