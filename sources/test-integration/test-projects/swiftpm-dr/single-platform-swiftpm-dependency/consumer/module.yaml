@@ -1,0 +1,15 @@
+product:
+  type: kmp/lib
+  platforms: [ iosSimulatorArm64 ]
+
+dependencies:
+  - //producer
+  - swiftPackage:
+      repository:
+        value: "https://foo/bar/consumer.git"
+      version:
+        value: "1.0.0"
+      products: ["product"]
+
+repositories:
+  - mavenLocal

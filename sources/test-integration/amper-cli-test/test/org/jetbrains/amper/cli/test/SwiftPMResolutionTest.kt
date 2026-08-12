@@ -132,6 +132,46 @@ class SwiftPMResolutionTest : AmperCliTestBase() {
     }
 
     @Test
+    fun `single platform swiftpm dependency`() = runTestWithMdc {
+        val resolved = resolveSwiftPMDependencies(
+            "swiftpm-dr/single-platform-swiftpm-dependency",
+            "consumer",
+            prepareMavenLocal = { projectPath ->
+                val repo = projectPath.resolve("repo")
+                val component = repo.resolve("foo/kgp_swiftpm_publication/1.0")
+                component.createDirectories()
+                component.resolve("kgp_swiftpm_publication-1.0.pom").writeText("do_not_remove: published-with-gradle-metadata")
+                component.resolve("kgp_swiftpm_publication-1.0.module").writeText(gradleMetadataWithSwiftPMMetadataVariant)
+                component.resolve("kgp_swiftpm_publication-1.0-swiftpm-metadata.json").writeText(swiftPMMetadata)
+                ZipOutputStream(component.resolve("kgp_swiftpm_publication-1.0.jar").outputStream()).use {
+                    it.putNextEntry(ZipEntry("META-INF/kotlin-project-structure-metadata.json"))
+                    it.write(psmStub.toByteArray())
+                }
+                repo
+            }
+        )
+        assertEquals(
+            listOf(
+                "https://foo/bar/consumer.git",
+            ),
+            resolved.directSwiftPMDependencies.map {
+                it.simplifiedView()
+            },
+        )
+        assertEquals(
+            mapOf(
+                "producer" to listOf(
+                    "https://foo/bar/producer.git",
+                ),
+                "foo_kgp_swiftpm_publication_1_0" to listOf(
+                    "https://foo/bar/baz.git"
+                ),
+            ),
+            resolved.transitiveSwiftPMDependencies.simplifiedView(),
+        )
+    }
+
+    @Test
     fun `gradle dependency`() = runTestWithMdc {
         val resolved = resolveSwiftPMDependencies(
             "swiftpm-dr/gradle-dependency",
