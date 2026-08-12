@@ -1,9 +1,10 @@
 [versions]
 
-ktor = "3.4.0"
-metro = "0.10.4"
-okhttp = "5.3.2"
-okio = "3.16.4"
+ktor = "3.5.2"
+# Metro 1.4.1 fails with "generateContributionHintsInFir cannot be disabled when generateContributionHints is enabled on Kotlin 2.3.21"
+metro = "1.4.0"
+okhttp = "5.4.0"
+okio = "3.18.1"
 
 [libraries]
 
@@ -20,4 +21,4 @@ mockwebserver = { module = "com.squareup.okhttp3:mockwebserver3", version.ref = 
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 picnic = "com.jakewharton.picnic:picnic:0.7.0"
-slf4jNop = "org.slf4j:slf4j-nop:2.0.17"
+slf4jNop = "org.slf4j:slf4j-nop:2.0.18"

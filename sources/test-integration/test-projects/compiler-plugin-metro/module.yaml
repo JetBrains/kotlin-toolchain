@@ -15,8 +15,15 @@ dependencies:
   - $libs.slf4jNop
 
 settings:
+  jvm:
+    jdk:
+      version: 21
   kotlin:
-    serialization: enabled
+    version: 2.3.21
+    compileIncrementally: false
+    serialization:
+      enabled: true
+      version: 1.11.0
     # Note: if Compose was used, we would also need to order this plugin before Compose with this freeCompilerArg:
     # -Xcompiler-plugin-order=dev.zacsweers.metro.compiler>androidx.compose.compiler.plugins.kotlin
     # See
