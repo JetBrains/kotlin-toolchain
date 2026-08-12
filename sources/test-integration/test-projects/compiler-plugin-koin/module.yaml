@@ -1,22 +1,28 @@
 product: jvm/app
 
 dependencies:
-  - io.insert-koin:koin-core:4.2.1
+  - io.insert-koin:koin-core:4.2.2
 
 test-dependencies:
-  - io.insert-koin:koin-test:4.2.1
-  - io.insert-koin:koin-test-junit4:4.2.1
+  - io.insert-koin:koin-test:4.2.2
+  - io.insert-koin:koin-test-junit4:4.2.2
   - org.mockito:mockito-inline:4.8.0
 
 settings:
   jvm:
     mainClass: org.koin.sample.UserApplicationKt
+    # Tests with Koin use a version of ByteBuddy that limits to 19, so we use the latest LTS here.
+    # The only reason we use JDK 21 + release 17 instead of just JDK 17 is to limit the number of JDKs we download in
+    # our tests.
     release: 17
+    jdk:
+      version: 21
   kotlin:
+    # Check version compatibility: https://insert-koin.io/docs/setup/#version-compatibility
     version: 2.3.21
     compilerPlugins:
       # The compiler plugin ID is found in the CommandLineInterface implementation of the compiler plugin, but this is
       # actually coming from the build file in this case:
       # https://github.com/InsertKoinIO/koin-compiler-plugin/blob/75d838fd3ddfabfe34170418573a08fb8766cab8/koin-compiler-plugin/build.gradle.kts#L55
       - id: io.insert-koin.compiler.plugin
-        dependency: io.insert-koin:koin-compiler-plugin:1.0.0-RC2
+        dependency: io.insert-koin:koin-compiler-plugin:1.1.0

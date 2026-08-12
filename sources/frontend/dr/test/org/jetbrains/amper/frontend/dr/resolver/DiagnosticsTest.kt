@@ -481,8 +481,8 @@ class DiagnosticsTest : AbstractDependencyInsightsTest() {
         assertInstanceOf<FileWithRangesBuildProblemSource>(source)
         assertEquals(
             expected = LineAndColumnRange(
-                LineAndColumn(7, 14),
-                LineAndColumn(7, 20),
+                LineAndColumn(11, 14),
+                LineAndColumn(11, 19),
             ),
             actual = source.computeRange(),
             message = "Unexpected source range for build problem. The Kotlin version value should be highlighted."
