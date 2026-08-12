@@ -69,4 +69,4 @@ For more information on these features, see the KDocs on these built‑in config
 - Alternatives to YAML as the configuration language
 
 !!! question "Your requests and reports are welcome!"
-    File us a plugins-related issue [here](https://youtrack.jetbrains.com/newIssue?project=AMPER&c=Type+Bug&c=tag+amper-plugins-report).
+    File us a plugins-related issue [here](https://youtrack.jetbrains.com/newIssue?project=KTC&c=Type+Bug&c=tag+amper-plugins-report).

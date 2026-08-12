@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Report issue
-    url: https://youtrack.jetbrains.com/newIssue?project=AMPER
+    url: https://youtrack.jetbrains.com/newIssue?project=KTC
     about: Create a new issue on YouTrack
   - name: Browse issues
-    url: https://youtrack.jetbrains.com/issues/AMPER
+    url: https://youtrack.jetbrains.com/issues/KTC
     about: View existing issues on YouTrack
   - name: Discuss
-    url: https://slack-chats.kotlinlang.org/c/amper
-    about: "Join the #amper channel on the Kotlinlang Slack"
+    url: https://kotlinlang.slack.com/archives/C062WG3A7T8
+    about: "Join the #kotlin-toolchain channel on the Kotlinlang Slack"

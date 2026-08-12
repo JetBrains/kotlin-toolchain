@@ -15,7 +15,7 @@ These applications can be run in browsers or Node.js.
     types, and needs some manual work (see the [Running your application](#running-your-application)).
 
     We're eager to hear more about your use cases and how we can improve this experience!
-    Please let us know in a [:jetbrains-youtrack: YouTrack](https://youtrack.jetbrains.com/issues/AMPER) issue, or in
+    Please let us know in a [:jetbrains-youtrack: YouTrack](https://youtrack.jetbrains.com/issues/KTC) issue, or in
     our [:material-slack: Slack channel](https://kotlinlang.slack.com/archives/C062WG3A7T8).
 
 !!! tip "Using IntelliJ IDEA?"

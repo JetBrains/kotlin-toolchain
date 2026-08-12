@@ -5,8 +5,8 @@ body:
     attributes:
       value: |
         Thank you for taking the time to file a bug report.
-        The Amper project works with issues in YouTrack, so please report issues over there:
-        https://youtrack.jetbrains.com/newIssue?project=AMPER
+        The Kotlin Toolchain project works with issues in YouTrack, so please report issues over there:
+        https://youtrack.jetbrains.com/newIssue?project=KTC
 
         We had to create this issue template as a workaround for this GitHub bug:
         https://github.com/orgs/community/discussions/153714

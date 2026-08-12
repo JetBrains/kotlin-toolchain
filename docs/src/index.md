@@ -156,7 +156,7 @@ Install the [Kotlin Toolchain plugin](https://plugins.jetbrains.com/plugin/31850
 
 The Kotlin Toolchain is [Alpha](https://kotlinlang.org/docs/components-stability.html#stability-levels-explained). We'd love your feedback!
 
-[:jetbrains-youtrack: Report an issue](https://youtrack.jetbrains.com/newIssue?project=AMPER){ .md-button }
+[:jetbrains-youtrack: Report an issue](https://youtrack.jetbrains.com/newIssue?project=KTC){ .md-button }
 [:material-slack: Join Slack](https://kotlinlang.slack.com/archives/C062WG3A7T8){ .md-button }
 
 </div>

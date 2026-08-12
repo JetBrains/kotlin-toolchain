@@ -62,7 +62,7 @@ still in the experimental phase, and we cannot guarantee that all scenarios can 
 
 ### How do I report a bug?
 
-Please report problems to our [:jetbrains-youtrack: YouTrack issue tracker](https://youtrack.jetbrains.com/issues/AMPER).
+Please report problems to our [:jetbrains-youtrack: YouTrack issue tracker](https://youtrack.jetbrains.com/issues/KTC).
 Since this project is in the experimental phase, we would also greatly appreciate feedback and suggestions regarding 
 the configuration experience – join our 
 [:material-slack: Slack channel](https://kotlinlang.slack.com/archives/C062WG3A7T8) for discussion.
@@ -128,7 +128,7 @@ Not currently, but it's certainly something we’re looking into.
 Please let us know about it! We're eager to hear what you're trying to do, because we plan to expand the list of
 supported use cases based on demand.
 Please submit your requests and suggestions in the
-[:jetbrains-youtrack: YouTrack issue tracker](https://youtrack.jetbrains.com/issues/AMPER) or join the
+[:jetbrains-youtrack: YouTrack issue tracker](https://youtrack.jetbrains.com/issues/KTC) or join the
 [:material-slack: Slack channel](https://kotlinlang.slack.com/archives/C062WG3A7T8) for discussions.
 
 ### Can I write a custom task or use a plugin?

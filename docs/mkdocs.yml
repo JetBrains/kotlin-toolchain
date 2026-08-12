@@ -1,7 +1,7 @@
 site_name: The Kotlin Toolchain
 site_description: "A unified entry point into Kotlin, with a focus on UX and tooling."
 site_url: https://kotlin-toolchain.org
-site_author: JetBrains Amper team
+site_author: JetBrains Kotlin Toolchain team
 
 repo_name: JetBrains/kotlin-toolchain
 repo_url: https://github.com/JetBrains/kotlin-toolchain
