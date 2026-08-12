@@ -1,0 +1,48 @@
+root
+╰─── dev.gitlive:firebase-app-android:2.1.0
+     ├─── com.google.firebase:firebase-common-ktx:21.0.0@aar
+     │    ├─── com.google.firebase:firebase-common:21.0.0@aar
+     │    │    ├─── org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4
+     │    │    │    ├─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
+     │    │    │    │    ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4
+     │    │    │    │         ├─── org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.4
+     │    │    │    │         ├─── org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21 -> 1.8.22
+     │    │    │    │         │    ├─── org.jetbrains.kotlin:kotlin-stdlib:1.8.22 -> 2.0.20
+     │    │    │    │         │    │    ├─── org.jetbrains:annotations:13.0
+     │    │    │    │         │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib-common:2.0.20 (c)
+     │    │    │    │         │    ╰─── org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22
+     │    │    │    │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.8.22 -> 2.0.20 (*)
+     │    │    │    │         ╰─── org.jetbrains.kotlin:kotlin-stdlib-common:1.6.21 -> 2.0.20
+     │    │    │    │              ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.0.20 (*)
+     │    │    │    ├─── org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.4
+     │    │    │    ├─── com.google.android.gms:play-services-tasks:16.0.1@aar
+     │    │    │    │    ╰─── com.google.android.gms:play-services-basement:16.0.1@aar
+     │    │    │    │         ╰─── com.android.support:support-v4:26.1.0@aar
+     │    │    │    │              ├─── com.android.support:support-compat:26.1.0@aar
+     │    │    │    │              │    ├─── com.android.support:support-annotations:26.1.0
+     │    │    │    │              │    ╰─── android.arch.lifecycle:runtime:1.0.0@aar
+     │    │    │    │              │         ├─── android.arch.lifecycle:common:1.0.0
+     │    │    │    │              │         │    ╰─── com.android.support:support-annotations:26.1.0
+     │    │    │    │              │         ├─── android.arch.core:common:1.0.0
+     │    │    │    │              │         │    ╰─── com.android.support:support-annotations:26.1.0
+     │    │    │    │              │         ╰─── com.android.support:support-annotations:26.1.0
+     │    │    │    │              ├─── com.android.support:support-media-compat:26.1.0@aar
+     │    │    │    │              │    ├─── com.android.support:support-annotations:26.1.0
+     │    │    │    │              │    ╰─── com.android.support:support-compat:26.1.0@aar (*)
+     │    │    │    │              ├─── com.android.support:support-core-utils:26.1.0@aar
+     │    │    │    │              │    ├─── com.android.support:support-annotations:26.1.0
+     │    │    │    │              │    ╰─── com.android.support:support-compat:26.1.0@aar (*)
+     │    │    │    │              ├─── com.android.support:support-core-ui:26.1.0@aar
+     │    │    │    │              │    ├─── com.android.support:support-annotations:26.1.0
+     │    │    │    │              │    ╰─── com.android.support:support-compat:26.1.0@aar (*)
+     │    │    │    │              ╰─── com.android.support:support-fragment:26.1.0@aar
+     │    │    │    │                   ├─── com.android.support:support-compat:26.1.0@aar (*)
+     │    │    │    │                   ├─── com.android.support:support-core-ui:26.1.0@aar (*)
+     │    │    │    │                   ╰─── com.android.support:support-core-utils:26.1.0@aar (*)
+     │    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21 -> 1.8.22 (*)
+     │    │    ├─── com.google.firebase:firebase-components:18.0.0@aar
+     │    │    │    ╰─── com.google.firebase:firebase-annotations:16.2.0
+     │    │    │         ╰─── javax.inject:javax.inject:1
+     │    │    ╰─── com.google.firebase:firebase-annotations:16.2.0 (*)
+     │    ╰─── org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22 (*)
+     ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.0.20 (*)

@@ -14,8 +14,8 @@ data class UnableToDownloadChecksums(
     val fileName: String,
     val coordinates: MavenCoordinates,
     val repositoryUrls: List<String>,
-    val isAutoAddedDocumentation: Boolean = false,
-    override val severity: Severity = if (isAutoAddedDocumentation) Severity.INFO else Severity.ERROR,
+    val isOptional: Boolean = false,
+    override val severity: Severity = if (isOptional) Severity.INFO else Severity.ERROR,
     override val childMessages: List<Message>,
 ) : WithChildMessages {
     companion object {

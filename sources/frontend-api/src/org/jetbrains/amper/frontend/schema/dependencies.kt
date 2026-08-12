@@ -65,6 +65,7 @@ sealed class UnscopedDependency : SchemaNode()
 /**
  * Helper interface to force implementors to have maven coordinates matching fields.
  */
+// todo (AB) : Support packaing type
 interface SchemaMavenCoordinates : Traceable {
     companion object {
         // Order matters!

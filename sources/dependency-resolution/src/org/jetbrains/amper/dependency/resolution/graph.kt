@@ -78,7 +78,7 @@ interface DependencyNode {
      * Using [childrenPredicate] is, therefore, different from filtering the resulting sequence after the fact.
      *
      * Flag [includeDuplicates] specifies whether to include nodes that appear several times in the graph in the resulting sequence
-     * or limit itself including the first occurence only (which is by default).
+     * or limit itself including the first occurrence only (which is by default).
      *
      * The nodes are distinct in terms of referential identity, which is enough to eliminate duplicate "requested"
      * dependency triplets. This does NOT eliminate nodes that requested the same dependency in different versions,
@@ -130,7 +130,7 @@ interface DependencyNode {
         // key doesn't include a version on purpose,
         // but different nodes referencing the same MavenDependency result in the same dependencies
         // => add no need to distinguish those while pretty printing
-        val seen = !visited.add(key to ((thisUnwrapped as? MavenDependencyNode)?.dependency ?: (thisUnwrapped as? MavenDependencyConstraintNode)?.dependencyConstraint))
+        val seen = !visited.add(key to ((thisUnwrapped as? MavenDependencyNode)?.uniqueResolutionKey() ?: (thisUnwrapped as? MavenDependencyConstraintNode)?.dependencyConstraint))
         if (seen && children.any { it.shouldBePrinted(allMavenDepsKeys, forMavenNode) }) {
             builder.append(" (*)")
         } else if (thisUnwrapped is MavenDependencyConstraintNode) {
@@ -205,7 +205,7 @@ interface DependencyNode {
      * @return paths of all artifacts belonging to dependency graph nodes.
      */
     fun dependencyPaths(
-        fileCondition: DependencyFile.() -> Boolean= { true },
+        fileCondition: DependencyFile.() -> Boolean = { true },
         nodeBlock: (DependencyNode) -> Unit = {}
     ): List<Path> {
         val files = mutableSetOf<Path>()
@@ -214,12 +214,12 @@ interface DependencyNode {
                 node.dependency
                     .files()
                     .filter { it.fileCondition() }
-                    .mapNotNull { it.path }
                     .forEach { file ->
-                        check(file.exists()) {
+                        val path = file.path ?: return@forEach
+                        check(path.exists() || file.isOptional || file.isAutoAddedDocumentation) {
                             "File '$file' was returned from dependency resolution, but is missing on disk"
                         }
-                        files.add(file)
+                        files.add(path)
                     }
             }
             nodeBlock(node)
@@ -297,7 +297,7 @@ class DependencyGraph(
         }
 
         /**
-         * This method creates serializable representation of the node
+         * This method creates a serializable representation of the node
          * (which is presented by the type implementing [SerializableDependencyNode] and annotated with [Serializable]),
          * and register it in the given context, getting [DependencyNodeReference] as a result of the registration.
          *
@@ -306,8 +306,8 @@ class DependencyGraph(
          *
          * To prevent loops during serialization, the creation of the serializable object representing the node
          * is split into two steps:
-         * 1. First, a plain data object is created with help of [SerializableDependencyNodeConverter.toEmptyNodePlain] with all references on other nodes left empty,
-         * but all other plain data get filled.
+         * 1. First, a plain data object is created with the help of [SerializableDependencyNodeConverter.toEmptyNodePlain]
+         * with all references on other nodes left empty, but all other plain data get filled.
          * This plain object is immediately registered in the given context,
          * getting [DependencyNodeReference] as a result of the registration.
          * 2. Before the method returns the resulting reference,
@@ -567,7 +567,7 @@ class DependencyGraphContext(
     fun rebuildDependencyNodesParentRefs() {
         allDependencyNodesList.forEachIndexed { index, node ->
             val parentRef = DependencyNodeReference(index)
-            for (childRef in node.childrenRefs) {
+            node.childrenRefs.forEach { childRef ->
                 allDependencyNodesList.getOrNull(childRef.index)?.parentsRefs?.add(parentRef)
             }
         }

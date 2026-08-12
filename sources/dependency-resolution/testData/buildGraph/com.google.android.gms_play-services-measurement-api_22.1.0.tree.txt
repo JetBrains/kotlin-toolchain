@@ -1,63 +1,63 @@
 root
-╰─── com.google.android.gms:play-services-measurement-api:22.1.0
-     ├─── com.google.android.gms:play-services-ads-identifier:18.0.0
-     │    ╰─── com.google.android.gms:play-services-basement:18.0.0 -> 18.4.0
+╰─── com.google.android.gms:play-services-measurement-api:22.1.0@aar
+     ├─── com.google.android.gms:play-services-ads-identifier:18.0.0@aar
+     │    ╰─── com.google.android.gms:play-services-basement:18.0.0 -> 18.4.0@aar
      │         ├─── androidx.collection:collection:1.0.0 -> 1.1.0
      │         │    ╰─── androidx.annotation:annotation:1.1.0
-     │         ├─── androidx.core:core:1.2.0
+     │         ├─── androidx.core:core:1.2.0@aar
      │         │    ├─── androidx.annotation:annotation:1.1.0
-     │         │    ├─── androidx.lifecycle:lifecycle-runtime:2.0.0 -> 2.1.0
+     │         │    ├─── androidx.lifecycle:lifecycle-runtime:2.0.0 -> 2.1.0@aar
      │         │    │    ├─── androidx.lifecycle:lifecycle-common:2.1.0
      │         │    │    │    ╰─── androidx.annotation:annotation:1.1.0
      │         │    │    ├─── androidx.arch.core:core-common:2.1.0
      │         │    │    │    ╰─── androidx.annotation:annotation:1.1.0
      │         │    │    ╰─── androidx.annotation:annotation:1.1.0
-     │         │    ╰─── androidx.versionedparcelable:versionedparcelable:1.1.0
+     │         │    ╰─── androidx.versionedparcelable:versionedparcelable:1.1.0@aar
      │         │         ├─── androidx.annotation:annotation:1.1.0
      │         │         ╰─── androidx.collection:collection:1.0.0 -> 1.1.0 (*)
-     │         ╰─── androidx.fragment:fragment:1.1.0
+     │         ╰─── androidx.fragment:fragment:1.1.0@aar
      │              ├─── androidx.annotation:annotation:1.1.0
-     │              ├─── androidx.core:core:1.1.0 -> 1.2.0 (*)
+     │              ├─── androidx.core:core:1.1.0 -> 1.2.0@aar (*)
      │              ├─── androidx.collection:collection:1.1.0 (*)
-     │              ├─── androidx.viewpager:viewpager:1.0.0
+     │              ├─── androidx.viewpager:viewpager:1.0.0@aar
      │              │    ├─── androidx.annotation:annotation:1.0.0 -> 1.1.0
-     │              │    ├─── androidx.core:core:1.0.0 -> 1.2.0 (*)
-     │              │    ╰─── androidx.customview:customview:1.0.0
+     │              │    ├─── androidx.core:core:1.0.0 -> 1.2.0@aar (*)
+     │              │    ╰─── androidx.customview:customview:1.0.0@aar
      │              │         ├─── androidx.annotation:annotation:1.0.0 -> 1.1.0
-     │              │         ╰─── androidx.core:core:1.0.0 -> 1.2.0 (*)
-     │              ├─── androidx.loader:loader:1.0.0
+     │              │         ╰─── androidx.core:core:1.0.0 -> 1.2.0@aar (*)
+     │              ├─── androidx.loader:loader:1.0.0@aar
      │              │    ├─── androidx.annotation:annotation:1.0.0 -> 1.1.0
-     │              │    ├─── androidx.core:core:1.0.0 -> 1.2.0 (*)
-     │              │    ├─── androidx.lifecycle:lifecycle-livedata:2.0.0
-     │              │    │    ├─── androidx.arch.core:core-runtime:2.0.0
+     │              │    ├─── androidx.core:core:1.0.0 -> 1.2.0@aar (*)
+     │              │    ├─── androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+     │              │    │    ├─── androidx.arch.core:core-runtime:2.0.0@aar
      │              │    │    │    ├─── androidx.annotation:annotation:1.0.0 -> 1.1.0
      │              │    │    │    ╰─── androidx.arch.core:core-common:2.0.0 -> 2.1.0 (*)
-     │              │    │    ├─── androidx.lifecycle:lifecycle-livedata-core:2.0.0
+     │              │    │    ├─── androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
      │              │    │    │    ├─── androidx.lifecycle:lifecycle-common:2.0.0 -> 2.1.0 (*)
      │              │    │    │    ├─── androidx.arch.core:core-common:2.0.0 -> 2.1.0 (*)
-     │              │    │    │    ╰─── androidx.arch.core:core-runtime:2.0.0 (*)
+     │              │    │    │    ╰─── androidx.arch.core:core-runtime:2.0.0@aar (*)
      │              │    │    ╰─── androidx.arch.core:core-common:2.0.0 -> 2.1.0 (*)
-     │              │    ╰─── androidx.lifecycle:lifecycle-viewmodel:2.0.0 -> 2.1.0
+     │              │    ╰─── androidx.lifecycle:lifecycle-viewmodel:2.0.0 -> 2.1.0@aar
      │              │         ╰─── androidx.annotation:annotation:1.1.0
-     │              ├─── androidx.activity:activity:1.0.0
+     │              ├─── androidx.activity:activity:1.0.0@aar
      │              │    ├─── androidx.annotation:annotation:1.1.0
-     │              │    ├─── androidx.core:core:1.1.0 -> 1.2.0 (*)
-     │              │    ├─── androidx.lifecycle:lifecycle-runtime:2.1.0 (*)
-     │              │    ├─── androidx.lifecycle:lifecycle-viewmodel:2.1.0 (*)
-     │              │    ╰─── androidx.savedstate:savedstate:1.0.0
+     │              │    ├─── androidx.core:core:1.1.0 -> 1.2.0@aar (*)
+     │              │    ├─── androidx.lifecycle:lifecycle-runtime:2.1.0@aar (*)
+     │              │    ├─── androidx.lifecycle:lifecycle-viewmodel:2.1.0@aar (*)
+     │              │    ╰─── androidx.savedstate:savedstate:1.0.0@aar
      │              │         ├─── androidx.annotation:annotation:1.1.0
      │              │         ├─── androidx.arch.core:core-common:2.0.1 -> 2.1.0 (*)
      │              │         ╰─── androidx.lifecycle:lifecycle-common:2.0.0 -> 2.1.0 (*)
-     │              ╰─── androidx.lifecycle:lifecycle-viewmodel:2.0.0 -> 2.1.0 (*)
-     ├─── com.google.android.gms:play-services-basement:18.4.0 (*)
-     ├─── com.google.android.gms:play-services-measurement-base:22.1.0
-     │    ╰─── com.google.android.gms:play-services-basement:18.4.0 (*)
-     ├─── com.google.android.gms:play-services-measurement-sdk-api:22.1.0
-     │    ├─── com.google.android.gms:play-services-basement:18.4.0 (*)
-     │    ╰─── com.google.android.gms:play-services-measurement-base:22.1.0 (*)
-     ├─── com.google.android.gms:play-services-tasks:18.2.0
-     │    ╰─── com.google.android.gms:play-services-basement:18.4.0 (*)
-     ├─── com.google.firebase:firebase-common:21.0.0
+     │              ╰─── androidx.lifecycle:lifecycle-viewmodel:2.0.0 -> 2.1.0@aar (*)
+     ├─── com.google.android.gms:play-services-basement:18.4.0@aar (*)
+     ├─── com.google.android.gms:play-services-measurement-base:22.1.0@aar
+     │    ╰─── com.google.android.gms:play-services-basement:18.4.0@aar (*)
+     ├─── com.google.android.gms:play-services-measurement-sdk-api:22.1.0@aar
+     │    ├─── com.google.android.gms:play-services-basement:18.4.0@aar (*)
+     │    ╰─── com.google.android.gms:play-services-measurement-base:22.1.0@aar (*)
+     ├─── com.google.android.gms:play-services-tasks:18.2.0@aar
+     │    ╰─── com.google.android.gms:play-services-basement:18.4.0@aar (*)
+     ├─── com.google.firebase:firebase-common:21.0.0@aar
      │    ├─── org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4
      │    │    ├─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4
      │    │    │    ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4
@@ -70,26 +70,26 @@ root
      │    │    │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.8.22 (*)
      │    │    │         ╰─── org.jetbrains.kotlin:kotlin-stdlib-common:1.6.21 -> 1.8.22
      │    │    ├─── org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.4
-     │    │    ├─── com.google.android.gms:play-services-tasks:16.0.1 -> 18.2.0 (*)
+     │    │    ├─── com.google.android.gms:play-services-tasks:16.0.1 -> 18.2.0@aar (*)
      │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21 -> 1.8.22 (*)
-     │    ├─── com.google.firebase:firebase-components:18.0.0
+     │    ├─── com.google.firebase:firebase-components:18.0.0@aar
      │    │    ╰─── com.google.firebase:firebase-annotations:16.2.0
      │    │         ╰─── javax.inject:javax.inject:1
      │    ╰─── com.google.firebase:firebase-annotations:16.2.0 (*)
-     ├─── com.google.firebase:firebase-common-ktx:21.0.0
-     │    ├─── com.google.firebase:firebase-common:21.0.0 (*)
+     ├─── com.google.firebase:firebase-common-ktx:21.0.0@aar
+     │    ├─── com.google.firebase:firebase-common:21.0.0@aar (*)
      │    ╰─── org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22 (*)
-     ├─── com.google.firebase:firebase-components:18.0.0 (*)
-     ├─── com.google.firebase:firebase-installations:17.0.1
-     │    ├─── com.google.android.gms:play-services-tasks:18.0.1 -> 18.2.0 (*)
-     │    ├─── com.google.firebase:firebase-common:20.1.0 -> 21.0.0 (*)
-     │    ├─── com.google.firebase:firebase-components:17.0.0 -> 18.0.0 (*)
-     │    ╰─── com.google.firebase:firebase-installations-interop:17.0.1
-     │         ├─── com.google.android.gms:play-services-tasks:18.0.1 -> 18.2.0 (*)
+     ├─── com.google.firebase:firebase-components:18.0.0@aar (*)
+     ├─── com.google.firebase:firebase-installations:17.0.1@aar
+     │    ├─── com.google.android.gms:play-services-tasks:18.0.1 -> 18.2.0@aar (*)
+     │    ├─── com.google.firebase:firebase-common:20.1.0 -> 21.0.0@aar (*)
+     │    ├─── com.google.firebase:firebase-components:17.0.0 -> 18.0.0@aar (*)
+     │    ╰─── com.google.firebase:firebase-installations-interop:17.0.1@aar
+     │         ├─── com.google.android.gms:play-services-tasks:18.0.1 -> 18.2.0@aar (*)
      │         ╰─── com.google.firebase:firebase-annotations:16.0.0 -> 16.2.0 (*)
-     ├─── com.google.firebase:firebase-installations-interop:17.0.0 -> 17.0.1 (*)
-     ├─── com.google.firebase:firebase-measurement-connector:19.0.0
-     │    ├─── com.google.android.gms:play-services-basement:17.0.0 -> 18.4.0 (*)
+     ├─── com.google.firebase:firebase-installations-interop:17.0.0 -> 17.0.1@aar (*)
+     ├─── com.google.firebase:firebase-measurement-connector:19.0.0@aar
+     │    ├─── com.google.android.gms:play-services-basement:17.0.0 -> 18.4.0@aar (*)
      │    ╰─── com.google.firebase:firebase-annotations:16.0.0 -> 16.2.0 (*)
      ├─── com.google.guava:guava:31.1-android
      │    ├─── com.google.guava:failureaccess:1.0.1

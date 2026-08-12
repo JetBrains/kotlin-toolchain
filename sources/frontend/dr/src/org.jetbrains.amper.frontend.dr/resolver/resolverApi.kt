@@ -173,6 +173,9 @@ interface DirectFragmentDependencyNode: DependencyNodeHolder {
     val notation: MavenDependencyBase
     val isTransitive: Boolean
 
+    /**
+     * Original not-resolved state of a direct dependency declaration
+     */
     override val graphEntryName: String get() =
         "$moduleName:$fragmentName:${dependencyNode.getOriginalMavenCoordinates().toPrettyString()}$traceInfo"
 }

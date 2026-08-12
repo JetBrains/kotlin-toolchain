@@ -109,9 +109,16 @@ interface MavenDependencyNode : DependencyNode {
 
     override val graphEntryName: String
         get() = if (dependency.version == originalVersion) {
-            dependency.toString()
+            dependency.coordinates.toPrettyString(
+                effectivePackagingType = dependency.mavenPackaging,
+                hidePomPackagingType = true,
+            )
         } else {
-            getOriginalMavenCoordinates().toPrettyString(overridingVersion = dependency.version)
+            getOriginalMavenCoordinates().toPrettyString(
+                overridingVersion = dependency.version,
+                effectivePackagingType = dependency.mavenPackaging,
+                hidePomPackagingType = true,
+            )
         }
 
     fun getOriginalMavenCoordinates(): MavenCoordinates = dependency.coordinates.copy(version = originalVersion)
@@ -119,7 +126,41 @@ interface MavenDependencyNode : DependencyNode {
     fun getMavenCoordinatesForPublishing(): MavenCoordinates
 
     fun getParentKmpLibraryCoordinates(): MavenCoordinates?
+
+    /**
+     * This key is the same as used for the resolving unique [MavenDependencyNode]
+     * from the module cache during resolution with one difference:
+     * It contains an effective maven packaging type instead of a declared one.
+     *
+     * This helps to group similar nodes not by declarations but by the actual resolution results.
+     *
+     * Graph could contain two [MavenDependencyNode] referencing different [MavenDependency] that are almost the same
+     * but declare different [MavenDependency.mavenPackaging] ("aar" and "null", for instance).
+     * Resolution results of those nodes might be the same in spite of the initially declared difference.
+     * It will happen in the following cases:
+     * - If a dependency was published with Gradle metadata. In this case [MavenDependency.mavenPackaging] is ignored,
+     *   resolution is performed based on Gradle metadata descriptor only.
+     * - If a dependency was published without Gradle metadata, and packaging type resolved from pom.xml and used for
+     *   maven coordinates with unset field [MavenDependency.mavenPackaging] is the same as the one explicitly specified
+     *   for another dependency.
+     */
+    fun uniqueResolutionKey() =
+        dependency.coordinates
+            .uniqueResolutionKey(
+                resolutionConfig = dependency.resolutionConfig,
+                isBom = isBom,
+                overridingPackagingType = dependency.mavenPackaging
+            )
 }
+
+internal fun MavenCoordinates.uniqueResolutionKey(
+    resolutionConfig: ResolutionConfig,
+    isBom: Boolean,
+    overridingPackagingType: String? = null
+) =
+    toPrettyString(effectivePackagingType = overridingPackagingType) +
+            ":$isBom" +
+            "${resolutionConfig.scope}:${resolutionConfig.platforms.joinToString { it.pretty }}"
 
 internal fun MavenDependencyNode.getKey(): Key<MavenDependency> = Key<MavenDependency>("$group:$module")
 
@@ -273,11 +314,7 @@ class MavenDependencyNodeWithContext internal constructor(
                 dependency.downloadDependencies(context, downloadSources)
             }
 
-    override fun toString(): String = if (dependency.version == originalVersion) {
-        dependency.toString()
-    } else {
-        getOriginalMavenCoordinates().toPrettyString(overridingVersion = dependency.version)
-    }
+    override fun toString(): String = graphEntryName
 
     override val cacheEntryKey: CacheEntryKey
         get() = CacheEntryKey.CompositeCacheEntryKey(listOf(
@@ -380,6 +417,10 @@ class MavenDependencyNodeWithContext internal constructor(
                 .mapNotNull { it.`available-at`?.toCoordinates() }
                 .singleOrNull { it in childrenOriginalCoordinates }
 
+            // todo (AB) : Take corresponding entry from childrenOriginalCoordinates and check its _single_ file extension.
+            //  If it is AAR then add it as a packaging type to the return coordinates for publishing.
+            //  (maybe not only AAR? maybe KLib as well?)
+            //  Ensure, that specified packaging type is actually used on publication for filling dependency.type.
             if (singlePlatformCoordinates != null) return singlePlatformCoordinates
         }
 
@@ -539,9 +580,7 @@ fun Context.createOrReuseDependency(
     isBom: Boolean = false
 ): MavenDependencyImpl =
     this.resolutionCache.computeIfAbsent(Key<MavenDependencyImpl>(
-        "${coordinates.groupId}:${coordinates.artifactId}:${coordinates.version.orUnspecified()}" +
-                "${coordinates.classifier?.let{":$it"} ?: ""}:$isBom" +
-                "${settings.scope}:${settings.platforms.joinToString { it.pretty }}"
+        coordinates.uniqueResolutionKey(settings, isBom)
     )) {
         MavenDependencyImpl(this.settings, coordinates, isBom)
     }
@@ -612,7 +651,7 @@ val KmpPlatforms = Key<Set<ResolutionPlatform>>("KmpPlatforms")
 
 interface MavenDependency {
     val coordinates: MavenCoordinates
-    val packaging: String?
+    val mavenPackaging: String?
     val resolutionConfig: ResolutionConfig
     val messages: List<Message>
     val state: ResolutionState
@@ -626,7 +665,7 @@ interface MavenDependency {
                 // 1. register plain
                 val mavenDependencyPlain = MavenDependencyPlain(
                     coordinates,
-                    packaging,
+                    mavenPackaging,
                     messages,
                     files(true).map { DependencyFilePlain(it) },
                     pomPath?.absolutePathString(),
@@ -654,7 +693,7 @@ val MavenDependency.classifier
 @SerialName("MD")
 class MavenDependencyPlain internal constructor (
     override val coordinates: MavenCoordinates,
-    override val packaging: String? = null,
+    override val mavenPackaging: String? = null,
     override val messages: List<Message> = emptyList(),
     val files: List<DependencyFilePlain>,
     private val pomPathAsString: String? = null,
@@ -673,7 +712,7 @@ class MavenDependencyPlain internal constructor (
         return if (withSources) files else files.filterNot { it.isDocumentation }
     }
 
-    override fun toString() = coordinates.toPrettyString()
+    override fun toString() = coordinates.toPrettyString(effectivePackagingType = mavenPackaging)
 }
 
 @Serializable(with = MavenDependencyReference.Serializer::class)
@@ -729,9 +768,24 @@ class MavenDependencyImpl internal constructor(
     internal var sourceSetsFiles: List<DependencyFileImpl> = emptyList()
         private set
 
+    /**
+     * It is resolved from pom.xml (and left null if resolution is done via Gradle metadata).
+     */
     @Volatile
-    override var packaging: String? = null
-        private set
+    private var pomPackagingType: PomPackagingType? = null
+
+    /**
+     * If resolution is performed using pom.xml,
+     * this field contains the actual packaging type used for resolving dependency.
+     *
+     * It contains either dependency type taken from a dependency declaration if it is explicitly specified,
+     * or is taken from the value of the packaging element of the pom.xml.
+     * If both are unspecified, the default value 'jar' is used.
+     */
+    override val mavenPackaging: String? get() = pomPackagingType?.let {
+        coordinates.packagingType
+            ?: it.value
+    }
 
     @Volatile
     var children: List<MavenDependencyImpl> = emptyList()
@@ -790,12 +844,12 @@ class MavenDependencyImpl internal constructor(
         PropertyWithDependencyGeneric(
             dependencyProviders = listOf(
                 { thisRef: MavenDependencyImpl -> thisRef.variants },
-                { thisRef: MavenDependencyImpl -> thisRef.packaging },
+                { thisRef: MavenDependencyImpl -> thisRef.pomPackagingType },
                 { thisRef: MavenDependencyImpl -> thisRef.sourceSetsFiles }
             ),
             valueProvider = { dependencies ->
                 val variants = dependencies[0] as List<*>
-                val packaging = dependencies[1] as String?
+                val pomPackagingType = dependencies[1] as PomPackagingType?
                 val sourceSetsFiles = dependencies[2] as List<*>
                 val dependency = this@MavenDependencyImpl
                 buildList {
@@ -814,16 +868,36 @@ class MavenDependencyImpl internal constructor(
                                 }
                             }
                         }
-                    packaging?.takeIf { it != "pom" && !isBom }?.let { packagingTypeFromPom ->
+
+                    pomPackagingType?.let {
+                        if (coordinates.packagingType == "pom" || isBom) {
+                            // skip resolving any artifact if dependency type is explicitly set to 'pom'.
+                            return@let
+                        }
+
+                        val actualPackagingType = coordinates.packagingType
+                            // Preferring packaging type resolved from pom.xml (Gradle like) to the default
+                            // dependency type 'jar'.
+                            // Falling back to 'jar' if pom.xml declares packaging type 'pom'.
+                            ?: pomPackagingType.value.takeIf { it != "pom" }
+                            ?: "jar"
+
+                        // todo (AB) : Packaging type might also imply classifier (if it as not specified explicitly yet)
+                        //  It might affect [getNameWithoutExtension] implementation
+                        //  See https://maven.apache.org/repositories/dependencies.html
                         val nameWithoutExtension = getNameWithoutExtension(dependency)
 
-                        val extension = resolveArtifactExtension(packagingTypeFromPom)
+                        val extension = resolveArtifactExtension(actualPackagingType)
 
-                        add(getDependencyFile(dependency, nameWithoutExtension, extension))
+                        // Library published with packaging type equal to 'pom' may or may mot contains actual artifacts.
+                        // We try to resolve the default artifact, but it is OK if it doesn't exist.
+                        val isOptional = coordinates.packagingType == null && pomPackagingType.value == "pom"
+                        add(getDependencyFile(dependency, nameWithoutExtension, extension, isOptional = isOptional))
                         if (extension == "jar" && withSources) {
                             add(getAutoAddedSourcesDependencyFile())
                         }
                     }
+
                     addAll(sourceSetsFiles.map { it as DependencyFileImpl })
                 }
             }
@@ -843,7 +917,7 @@ class MavenDependencyImpl internal constructor(
             }
         }
 
-    override fun toString(): String = coordinates.toPrettyString()
+    override fun toString(): String = coordinates.toPrettyString(effectivePackagingType = mavenPackaging)
 
     suspend fun resolveChildren(
         context: Context,
@@ -2159,10 +2233,15 @@ class MavenDependencyImpl internal constructor(
             }
         }
 
-        packaging = project.packaging ?: "jar"
+        // packaging type resolved from pom.xml
+        pomPackagingType = project.packaging
+            ?.let { PomPackagingType.FromPom(it) }
+            ?: PomPackagingType.Unspecified
+
         state = getTargetState(level, transitive)
 
-        if (packaging == "jar" && !isSpecialKmpLibrary()) {
+        if (mavenPackaging == "jar" && !isSpecialKmpLibrary()) {
+            // effective packaging type is 'jar'
             val nonJvmPlatforms =
                 context.settings.platforms.filter { it != ResolutionPlatform.JVM && it != ResolutionPlatform.ANDROID }
             // JAR-packed dependencies without metadata shouldn't be used for non-JVM platforms
@@ -2308,47 +2387,48 @@ class MavenDependencyImpl internal constructor(
     private fun DependencyFileImpl.isSourcesDependencyFile(): Boolean =
         !files(withSources = false).map { it.fileName }.contains(this.fileName)
 
-    private fun resolveArtifactExtension(packagingTypeFromPom: String): String {
-        val packagingType = when {
+    private fun resolveArtifactExtension(packagingType: String): String {
+        val actualPackagingType = when {
             // a not-substituted packaging type might be a result of referencing property
             // declared in the not yes supported active Maven profiles
-            packagingTypeFromPom.contains("$") -> "jar".also {
-                logger.warn("Packaging type of dependency $this is not resolved: $packagingTypeFromPom, falls back to $it")
+            packagingType.contains("$") -> "jar".also {
+                logger.warn("Packaging type of dependency $this is not resolved: $packagingType, falls back to $it")
                 pom.diagnosticsReporter.addMessage(
-                    UnresolvedMavenDependencyPackagingType.asMessage(this, packagingTypeFromPom, it)
+                    UnresolvedMavenDependencyPackagingType.asMessage(this, packagingType, it)
                 )
             }
 
-            // Dependency packaging type (and further extension) is resolved from the corresponding pom.xml
-            else -> packagingTypeFromPom // by default get packaging type from pom (Maven uses "jar" by default)
+            // Dependency packaging type (and further extension) is either specified explicitly
+            // or resolved from the corresponding pom.xml
+            else -> packagingType // by default get packaging type from pom (Maven uses "jar" by default)
         }
-        val extension = if (packagingType == "jar" || packagingType in packageTypeWithJavaExtension || packagingType.endsWith("-plugin"))
-            "jar"
-        else
-            packagingType
-
-        return extension
+        return MavenCoordinates.resolveArtifactExtension(actualPackagingType)
     }
 
     companion object {
-        /**
-         * The list includes well-known Maven packaging types that are represented with the artifact with jar extension
-         * See default package types mapping https://maven.apache.org/ref/3.9.11/maven-core/artifact-handlers.html
-         * Additionally, "bundle" is added here
-         */
-        private val packageTypeWithJavaExtension =
-            setOf("test-jar", "ejb", "ejb-client", "maven-plugin", "bundle")
-
         /**
          * Suffix is added to the Gradle Metadata variant name.
          * It is an implementation detail and is a subject to change,
          * see https://docs.google.com/document/d/18MsmrX2iYuoKS3HvY-_xnk_SMenLQzSPArj4yuy1Hfw/edit?tab=t.0
          */
         private const val PUBLISHED_SUFFIX = "-published"
+
+        sealed class PomPackagingType {
+            object Unspecified : PomPackagingType() {
+                const val DEFAULT: String = "jar"
+            }
+            data class FromPom(val value: String) : PomPackagingType()
+        }
+
+        val PomPackagingType.value: String
+            get() = when(this) {
+                PomPackagingType.Unspecified -> PomPackagingType.Unspecified.DEFAULT
+                is PomPackagingType.FromPom -> value
+            }
     }
 }
 
-fun mavenCoordinatesTrimmed(groupId: String, artifactId: String,version: String?, classifier: String? = null, packagingType: String? = null,) =
+fun mavenCoordinatesTrimmed(groupId: String, artifactId: String,version: String?, classifier: String? = null, packagingType: String? = null) =
         MavenCoordinates(
             groupId = groupId.trim(),
             artifactId = artifactId.trim(),
@@ -2366,20 +2446,59 @@ data class MavenCoordinates(
     val artifactId: String,
     val version: String?,
     /*
-     * Represents maven packaging type (https://maven.apache.org/pom.html#packaging).
+     * Represents maven dependency packaging type (https://maven.apache.org/repositories/dependencies.html#dependency-types).
      * It might be explicitly defined as a part of a dependency declaration.
+     *
+     * Note: It is used for resolving maven dependency via its pom.xml descriptor only,
+     * the value is ignored by DR if resolution is done via Gradle metadata (i.e.,
+     * it is used only in case maven dependency is published without Gradle metadata).
      */
     val packagingType: String? = null,
     val classifier: String? = null,
 ) {
-    override fun toString(): String = toPrettyString(withPackagingType = true)
+    override fun toString(): String = toPrettyString()
 
-    fun toPrettyString(withPackagingType: Boolean = false, overridingVersion:String? = null): String {
+    fun toPrettyString(
+        overridingVersion: String? = null,
+        effectivePackagingType: String? = packagingType,
+        hidePomPackagingType: Boolean = false,
+    ): String {
         return "$groupId:$artifactId" +
                 ":${version.orUnspecified()}" +
                 (overridingVersion?.let { " -> $it" } ?: "") +
                 (if (classifier != null) ":$classifier" else "") +
-                (if (withPackagingType && packagingType != null) "@$packagingType" else "")
+                (effectivePackagingType
+                    ?.takeIf { resolveArtifactExtension(it) != "jar" } // No need to print default packaging type value
+                    ?.takeIf { !hidePomPackagingType || it != "pom" } // Hiding pom packaging type from output
+                    ?.let { "@$it" }
+                    ?: "")
+    }
+
+    companion object {
+        /**
+         * The list includes well-known Maven packaging types that are represented with the artifact with jar extension
+         * See default package types mapping https://maven.apache.org/ref/3.9.11/maven-core/artifact-handlers.html
+         * Additionally, "bundle" is added here
+         */
+        private val packageTypeWithJavaExtension =
+            setOf(
+                "test-jar", "ejb", "ejb-client", "maven-plugin", "bundle",
+                // since maven 4.1.0
+                "classpath-jar", "module-jar", "processor", "classpath-processor", "modular-processor"
+            )
+
+        internal fun resolveArtifactExtension(packagingType: String): String {
+            val extension =
+                if (packagingType == "jar"
+                    || packagingType in packageTypeWithJavaExtension
+                    || packagingType.endsWith("-plugin")
+                )
+                    "jar"
+                else
+                    packagingType
+
+            return extension
+        }
     }
 }
 

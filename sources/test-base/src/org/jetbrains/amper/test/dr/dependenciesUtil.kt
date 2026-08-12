@@ -16,11 +16,15 @@ fun String.toMavenNode(context: Context): MavenDependencyNodeWithContext {
 
 fun String.toMavenCoordinates(): MavenCoordinates {
     val parts = split(":")
-    val group = parts[0]
-    val module = parts[1]
-    val version = if (parts.size > 2) parts[2] else null
-    val classifier = if (parts.size > 3) parts[3] else null
-    return MavenCoordinates(group, module, version, classifier = classifier)
+    val packagingType = parts.last().substringAfter("@", "").takeIf { it.isNotEmpty() && parts.size > 1 }
+    val partsWithoutPackagingType = parts.mapIndexed { index, part ->
+        if (index == parts.lastIndex && packagingType != null) part.substringBefore("@") else part
+    }
+    val group = partsWithoutPackagingType[0]
+    val module = partsWithoutPackagingType[1]
+    val version = if (partsWithoutPackagingType.size > 2) partsWithoutPackagingType[2] else null
+    val classifier = if (partsWithoutPackagingType.size > 3) partsWithoutPackagingType[3] else null
+    return MavenCoordinates(group, module, version, classifier = classifier, packagingType = packagingType)
 }
 
 fun MavenCoordinates.toMavenNode(context: Context, isBom: Boolean = false): MavenDependencyNodeWithContext {

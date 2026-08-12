@@ -67,7 +67,6 @@ class BuildGraphTest : BaseDRTest() {
     /**
      * This test checks that project built-in properties are resolvable through alias pom.
      *
-     *
      * In particular, pom.xml of library 'org.apache.maven.wagon:wagon-http-lightweight:1.0-beta-2'
      * declares the following dependency:
      *
@@ -202,6 +201,33 @@ class BuildGraphTest : BaseDRTest() {
         val root = doTestByFile(
             testInfo,
             dependency = listOf("io.netty:netty-transport-native-epoll:4.2.13.Final:linux-x86_64")
+        )
+        downloadAndAssertFiles(testInfo, root)
+    }
+
+    /**
+     * This test checks that no artifact is resolved in case the packaging type of the library
+     * declared in its pom.xml is pom, and there is no jar artifact is published.
+     */
+    @Test
+    fun `io_grpc protoc-gen-grpc-java 1_80_0 packaging type is pom default jar artifact is absent`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            dependency = listOf("io.grpc:protoc-gen-grpc-java:1.80.0")
+        )
+        downloadAndAssertFiles(testInfo, root)
+    }
+
+    /**
+     * This test checks that the exe artifact is successfully resolved and downloaded
+     * if dependency specifies exe as a packaging type explicitly and
+     * the packaging type declared in a pom.xml file of the library is equal to 'pom'.
+     */
+    @Test
+    fun `io_grpc protoc-gen-grpc-java 1_80_0 with classifier and packaging type exe`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            dependency = listOf("io.grpc:protoc-gen-grpc-java:1.80.0:linux-x86_32@exe")
         )
         downloadAndAssertFiles(testInfo, root)
     }
@@ -384,7 +410,7 @@ class BuildGraphTest : BaseDRTest() {
     @Test
     fun `org_summerboot jexpress 2_6_0`(testInfo: TestInfo) = runDrTest {
         val root = doTestByFile(testInfo)
-        assertFiles(testInfo, root)
+        downloadAndAssertFiles(testInfo, root)
     }
 
     /**
@@ -393,12 +419,12 @@ class BuildGraphTest : BaseDRTest() {
      *
      * Particularly, pom.xml of 'myfaces:myfaces-parent:1.1.0' declares dependency
      * on 'commons-fileupload:commons-fileupload:1.0' with a leading space in artifactId:
-     *   <artifactId> commons-fileupload</artifactId>
+     *   <artifactId>commons-fileupload</artifactId>
      */
     @Test
     fun `myfaces myfaces-parent 1_1_0`(testInfo: TestInfo) = runDrTest {
         val root = doTestByFile(testInfo)
-        assertFiles(testInfo, root)
+        downloadAndAssertFiles(testInfo, root)
     }
 
     /**
@@ -408,7 +434,7 @@ class BuildGraphTest : BaseDRTest() {
      * The following declaration is invalid because `Xlint:` got recognized as a namespace prefix by vanilla XML parser,
      * which is unexpected by library authors.
      * Maven parser relaxes restriction here on the consumer side and allows such tag names.
-     * So does Amper. Although it is not a generic behavior, but a case-by-case support (rare/unique examples).
+     * So does Amper. Although it is not a generic behavior, but rather a case-by-case support (rare/unique examples).
      * See [org.jetbrains.amper.dependency.resolution.maven.sanitizePom] for more details.
      *
      * ```
@@ -925,7 +951,6 @@ class BuildGraphTest : BaseDRTest() {
         )
         downloadAndAssertFiles(
             listOf(
-                "listenablefuture-9999.0-empty-to-avoid-conflict-with-guava-sources.jar",
                 "listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
             ),
             root,
@@ -992,6 +1017,22 @@ class BuildGraphTest : BaseDRTest() {
      */
     @Test
     fun `dev_gitlive firebase-analytics 2_1_0`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            platform = setOf(
+                ResolutionPlatform.ANDROID,
+            ),
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_MAVEN_GOOGLE),
+        )
+        downloadAndAssertFiles(testInfo, root = root)
+    }
+
+    /**
+     * Test that pure Maven dependencies declared with type "aar" are resolved correctly and represented
+     * in the printer dependency graph with '@aar' suffix.
+     */
+    @Test
+    fun `dev_gitlive firebase-app-android 2_1_0`(testInfo: TestInfo) = runDrTest {
         val root = doTestByFile(
             testInfo,
             platform = setOf(
@@ -1247,7 +1288,7 @@ class BuildGraphTest : BaseDRTest() {
             .flatMap { it.dependency.files() }
             .mapNotNull { it.path }
             .forEach {
-                assertEquals(it.extension, "jar", "Only jar files are expected, got ${it.name}")
+                assertEquals("jar", it.extension, "Only jar files are expected, got ${it.name}")
             }
     }
 
@@ -1284,6 +1325,41 @@ class BuildGraphTest : BaseDRTest() {
             platform = setOf(ResolutionPlatform.ANDROID),
             repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_MAVEN_GOOGLE),
         )
+    }
+
+    /**
+     * This test checks that in spite of different packaging types presented on two nodes (in [MavenDependency]),
+     * the effective packaging type used for resolution is the same and nodes in the printed graph are not
+     * repeated but reused.
+     *
+     * In this test the library "androidx.core:core" is referenced from several places in the graph.
+     * First, it is referenced from the pure Maven dependency "androidx.core:core-ktx:1.2.0"
+     * resolved via pom.xml.
+     * Dependency on "androidx.core:core:1.2.0" is declared with the explicit type "aar".
+     * This way [MavenDependencyNode] (and more precisely, underlying [MavenDependency])
+     * carries coordinates containing [MavenCoordinates.packagingType] equal to "aar".
+     * Resolver actually uses this packaging type
+     * because "androidx.core:core:1.2.0" is published without Gradle metadata.
+     *
+     * The second reference on "androidx.core:core:1.8.0" is from "androidx.activity:activity:1.7.2".
+     * "androidx.core:core:1.8.0" is published with Gradle metadata, and thus resolution is done without parsing
+     * pom.xml, maven packaging type is not involved.
+     *
+     * Conflict resolution aligns versions of [MavenDependencyNode] nodes corresponding to
+     * versions "1.2.0" and "1.8.0", dependency packaging type "aar" declared in [MavenCoordinates.packagingType]
+     * of version "1.2.0" stays the same.
+     * But, as soon as the version becomes 1.8.0, it is used no longer and both [MavenDependency]s are resolved the same way.
+     */
+    @Test
+    fun `androidx_core core ANDROID`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            dependency = ["androidx.core:core-ktx:1.2.0", "androidx.activity:activity:1.7.2"],
+            platform = setOf(ResolutionPlatform.ANDROID),
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_MAVEN_GOOGLE),
+        )
+
+        downloadAndAssertFiles(testInfo, root)
     }
 
     @Test
@@ -1350,7 +1426,7 @@ class BuildGraphTest : BaseDRTest() {
      *
      * The issue was caused by the fact that pom.xml of published asm-bom lacks packagingType, and
      * thus is treated as jar by default.
-     * This is a publiation mistake (sine BOM should be published with pachagingType=pom).
+     * This is a publication mistake (sine BOM should be published with packagingType=pom).
      * However, DR should not add a jar to the node corresponding to a BOM anyway
      * even if such a jar is presented in the remote repository (which would have been a publication mistake as well).
      */
@@ -1522,7 +1598,7 @@ class BuildGraphTest : BaseDRTest() {
 
     /**
      * This test checks that the built-in property 'project.prerequisites.maven'
-     * is resolved and used in properties substitution.
+     * is resolved and used in property substitution.
      *
      * <prerequisites>
      *   <maven>3.0</maven>
@@ -1628,8 +1704,8 @@ class BuildGraphTest : BaseDRTest() {
      * This test checks that a transitive BOM dependency (declared as a dependency of directly specified BOM) is
      * taken into account while resolving the graph.
      *
-     * In particular, it is met in the following typical configuration of android project with open telemetry.
-     * dependencies:
+     * In particular, it is met in the following typical configuration of an android project with open telemetry.
+     * Dependencies:
      *   - bom: io.opentelemetry.android:opentelemetry-android-bom:1.4.0-alpha
      *   - io.opentelemetry.android:android-agent:1.4.0
      *
@@ -1637,12 +1713,12 @@ class BuildGraphTest : BaseDRTest() {
      * but leaves its version unspecified.
      *
      * The version of 'io.opentelemetry:opentelemetry-sdk' is provided by BOM 'io.opentelemetry:opentelemetry-bom:1.62.0'.
-     * But the BOM itself is not directly added as a project dependency usually,
+     * But usually, the BOM itself is not directly added as a project dependency.
      * Instead, android-specific aggregating BOM 'io.opentelemetry.android:opentelemetry-android-bom:1.4.0-alpha' is
      * added to the project. And it in turn depends on the BOM 'io.opentelemetry:opentelemetry-bom:1.62.0'.
      *
      * This way, the BOM ('io.opentelemetry:opentelemetry-bom:1.62.0') resolved as a transitive dependency of directly declared BOM
-     * is used for resolving version of the transitive dependency on 'io.opentelemetry:opentelemetry-sdk'.
+     * is used for a resolving version of the transitive dependency on 'io.opentelemetry:opentelemetry-sdk'.
      */
     @Test
     fun `resolving unspecified versions of android dependencies from BOM`(testInfo: TestInfo) = runDrTest {
@@ -1721,7 +1797,7 @@ class BuildGraphTest : BaseDRTest() {
             """.trimIndent()
         )
 
-        assertFiles(emptyList(), root)
+        downloadAndAssertFiles(emptyList(), root)
 
         val constraintsNumber = root
             .distinctBfsSequence()
@@ -2548,7 +2624,7 @@ class BuildGraphTest : BaseDRTest() {
             dependency = listOf("org.jetbrains.compose.desktop:desktop-jvm-windows-x64:1.5.10"),
             scope = ResolutionScope.RUNTIME,
         )
-        assertFiles(testInfo, root, true)
+        downloadAndAssertFiles(testInfo, root, withSources = true, checkAutoAddedDocumentation = false)
     }
 
     @Test
@@ -2598,7 +2674,7 @@ class BuildGraphTest : BaseDRTest() {
                         androidx.appcompat:appcompat-resources:1.6.1
                         androidx.arch.core:core-common:2.1.0
                         androidx.arch.core:core-common:2.0.0 -> 2.1.0
-                        androidx.arch.core:core-runtime:2.0.0
+                        androidx.arch.core:core-runtime:2.0.0@aar
                         androidx.collection:collection:1.1.0
                         androidx.collection:collection:1.0.0 -> 1.1.0
                         androidx.core:core:1.9.0
@@ -2607,14 +2683,14 @@ class BuildGraphTest : BaseDRTest() {
                         androidx.core:core:1.0.0 -> 1.9.0
                         androidx.core:core:1.2.0 -> 1.9.0
                         androidx.core:core:1.1.0 -> 1.9.0
-                        androidx.core:core-ktx:1.2.0
-                        androidx.cursoradapter:cursoradapter:1.0.0
-                        androidx.customview:customview:1.0.0
-                        androidx.drawerlayout:drawerlayout:1.0.0
+                        androidx.core:core-ktx:1.2.0@aar
+                        androidx.cursoradapter:cursoradapter:1.0.0@aar
+                        androidx.customview:customview:1.0.0@aar
+                        androidx.drawerlayout:drawerlayout:1.0.0@aar
                         androidx.fragment:fragment:1.3.6
-                        androidx.interpolator:interpolator:1.0.0
+                        androidx.interpolator:interpolator:1.0.0@aar
                         androidx.lifecycle:lifecycle-common:2.5.1
-                        androidx.lifecycle:lifecycle-livedata:2.0.0
+                        androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                         androidx.lifecycle:lifecycle-livedata-core:2.3.1 -> 2.5.1
                         androidx.lifecycle:lifecycle-livedata-core:2.5.1
                         androidx.lifecycle:lifecycle-livedata-core:2.0.0 -> 2.5.1
@@ -2625,13 +2701,13 @@ class BuildGraphTest : BaseDRTest() {
                         androidx.lifecycle:lifecycle-viewmodel:2.0.0 -> 2.5.1
                         androidx.lifecycle:lifecycle-viewmodel-savedstate:2.5.1
                         androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1 -> 2.5.1
-                        androidx.loader:loader:1.0.0
+                        androidx.loader:loader:1.0.0@aar
                         androidx.savedstate:savedstate:1.2.0
                         androidx.savedstate:savedstate:1.1.0 -> 1.2.0
-                        androidx.vectordrawable:vectordrawable:1.1.0
-                        androidx.vectordrawable:vectordrawable-animated:1.1.0
-                        androidx.versionedparcelable:versionedparcelable:1.1.1
-                        androidx.viewpager:viewpager:1.0.0
+                        androidx.vectordrawable:vectordrawable:1.1.0@aar
+                        androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+                        androidx.versionedparcelable:versionedparcelable:1.1.1@aar
+                        androidx.viewpager:viewpager:1.0.0@aar
                         org.jetbrains.kotlin:kotlin-stdlib:1.7.10
                         org.jetbrains.kotlin:kotlin-stdlib:1.6.20 -> 1.7.10
                         org.jetbrains.kotlin:kotlin-stdlib:1.6.21 -> 1.7.10

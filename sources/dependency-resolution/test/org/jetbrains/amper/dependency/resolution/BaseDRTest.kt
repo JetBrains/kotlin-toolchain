@@ -256,7 +256,8 @@ abstract class BaseDRTest {
         files: List<String>, root: DependencyNode,
         withSources: Boolean = false,
         checkExistence: Boolean = false,// could be set to true only in case dependency files were downloaded by caller already
-        checkAutoAddedDocumentation: Boolean = true // auto-added documentation files are skipped from check if this flag is false.
+        checkAutoAddedDocumentation: Boolean = true, // auto-added documentation files are skipped from check if this flag is false.
+        checkOptional: Boolean = false // optional files are skipped from check if this flag is false.
     ) {
         root.distinctBfsSequence()
             .filterIsInstance<MavenDependencyNode>()
@@ -266,12 +267,15 @@ abstract class BaseDRTest {
             .distinctBy { it.second }
             .toSet()
             .let {
-                assertEqualsWithDiff(files, it.map { file -> file.second.name })
-                if (checkExistence) {
-                    it.forEach {
+                val resolvedFiles = if (!checkExistence) {
+                    it
+                } else {
+                    it.filter {
                         val file = it.first
                         val filePath = it.second
-                        check(filePath.exists()
+                        val exists = filePath.exists()
+                        check(exists
+                                || !checkOptional && file.isOptional
                                 || !checkAutoAddedDocumentation && file.isAutoAddedDocumentation) {
                             SimpleMessage(
                                 text = "File '$filePath' was returned from dependency resolution, but is missing on disk",
@@ -281,8 +285,10 @@ abstract class BaseDRTest {
                                 childMessages = (file as? DependencyFileImpl)?.diagnosticsReporter?.getMessages().orEmpty(),
                             ).detailedMessage
                         }
+                        exists
                     }
                 }
+                assertEqualsWithDiff(files, resolvedFiles.map { file -> file.second.name })
             }
     }
 
@@ -292,12 +298,13 @@ abstract class BaseDRTest {
         withSources: Boolean = false,
         checkExistence: Boolean = false,
         checkAutoAddedDocumentation: Boolean = true,
+        checkOptional: Boolean = false,
     ) {
         val fileList = goldenFileOsArchAware("${testInfo.nameToGoldenFile()}.files.txt")
         if (!fileList.exists()) { fileList.createFile() }
         val expected = fileList.readText().trim().lines()
         withActualDump(fileList) {
-            assertFiles(expected, root, withSources, checkExistence, checkAutoAddedDocumentation)
+            assertFiles(expected, root, withSources, checkExistence, checkAutoAddedDocumentation, checkOptional = checkOptional)
         }
     }
 
@@ -306,6 +313,7 @@ abstract class BaseDRTest {
         root: DependencyNodeHolderWithContext,
         withSources: Boolean = false,
         checkAutoAddedDocumentation: Boolean = true,
+        checkOptional: Boolean = false,
         verifyMessages: Boolean = false,
         filterMessages: List<Message>.() -> List<Message> = { defaultFilterMessages() }
     ) {
@@ -315,13 +323,17 @@ abstract class BaseDRTest {
             root,
             withSources,
             checkExistence = true,
+            checkOptional = checkOptional,
             checkAutoAddedDocumentation = checkAutoAddedDocumentation
         )
     }
 
     protected suspend fun downloadAndAssertFiles(
-        files: List<String>, root: DependencyNodeHolderWithContext, withSources: Boolean = false, checkAutoAddedDocumentation: Boolean = true,
-        verifyMessages: Boolean = false, filterMessages: List<Message>.() -> List<Message> = { defaultFilterMessages() }
+        files: List<String>, root: DependencyNodeHolderWithContext, withSources: Boolean = false,
+        checkAutoAddedDocumentation: Boolean = true,
+        checkOptional: Boolean = false,
+        verifyMessages: Boolean = false,
+        filterMessages: List<Message>.() -> List<Message> = { defaultFilterMessages() }
     ) {
         downloadDependencies(root, withSources, verifyMessages, filterMessages)
         assertFiles(
@@ -329,6 +341,7 @@ abstract class BaseDRTest {
             root,
             withSources,
             checkExistence = true,
+            checkOptional = checkOptional,
             checkAutoAddedDocumentation = checkAutoAddedDocumentation
         )
     }

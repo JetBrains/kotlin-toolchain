@@ -58,7 +58,6 @@ netty-handler-4.1.105.Final-sources.jar
 netty-handler-4.1.105.Final.jar
 netty-resolver-4.1.105.Final-sources.jar
 netty-resolver-4.1.105.Final.jar
-netty-tcnative-boringssl-static-2.0.61.Final-sources.jar
 netty-tcnative-boringssl-static-2.0.61.Final.jar
 netty-tcnative-classes-2.0.61.Final-sources.jar
 netty-tcnative-classes-2.0.61.Final.jar

@@ -213,6 +213,7 @@ abstract class BaseModuleDrTest {
             .mapValues {
                 it.value.flatMap { (it.unwrap() as MavenDependencyNode).dependency.files(withSources) }
                     .filterNot { !checkAutoAddedDocumentation && it.isAutoAddedDocumentation }
+                    .filter { !it.isOptional || it.path?.exists() == true }
                     .mapNotNull { it.path }
                     .sortedBy { it.name }
                     .toSet()

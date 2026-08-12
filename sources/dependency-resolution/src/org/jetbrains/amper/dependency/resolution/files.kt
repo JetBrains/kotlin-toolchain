@@ -247,6 +247,7 @@ fun getDependencyFile(
     extension: String,
     isDocumentation: Boolean = false,
     isAutoAddedDocumentation: Boolean = false,
+    isOptional: Boolean = false,
 ) =
     // todo (AB) : What if version is not specified, but later we will find out that it ends with "-SNAPSHOT",
     // todo (AB) : such a dependency file should be converted to SnapshotDependency
@@ -257,16 +258,19 @@ fun getDependencyFile(
             extension,
             isDocumentation = isDocumentation,
             isAutoAddedDocumentation = isAutoAddedDocumentation,
+            isOptional = isOptional,
         )
     } else {
         DependencyFileImpl(dependency, nameWithoutExtension, extension,
-            isDocumentation = isDocumentation, isAutoAddedDocumentation = isAutoAddedDocumentation)
+            isDocumentation = isDocumentation, isAutoAddedDocumentation = isAutoAddedDocumentation,
+            isOptional = isOptional)
     }
 
 @Serializable
 data class DependencyFilePlain private constructor(
     override val isAutoAddedDocumentation: Boolean = false,
     override val isDocumentation: Boolean = false,
+    override val isOptional: Boolean = false,
     override val extension: String = "jar",
     private val pathAsString: String? = null,
     override val kmpSourceSet: String? = null,
@@ -276,6 +280,7 @@ data class DependencyFilePlain private constructor(
     constructor(dependencyFile: DependencyFile) : this(
         dependencyFile.isAutoAddedDocumentation,
         dependencyFile.isDocumentation,
+        dependencyFile.isOptional,
         dependencyFile.extension,
         dependencyFile.path?.absolutePathString(),
         dependencyFile.kmpSourceSet,
@@ -288,6 +293,7 @@ data class DependencyFilePlain private constructor(
 sealed interface DependencyFile {
     val isAutoAddedDocumentation: Boolean
     val isDocumentation: Boolean
+    val isOptional: Boolean
     val extension: String
     val path: Path?
     val kmpSourceSet: String?
@@ -300,6 +306,7 @@ open class DependencyFileImpl(
     override val extension: String,
     override val isDocumentation: Boolean = false,
     override val isAutoAddedDocumentation: Boolean = false,
+    override val isOptional: Boolean = false,
     private val fileCache: FileCache = dependency.settings.fileCache,
 ): DependencyFile {
     val settings = TypedKeyMap()
@@ -663,7 +670,7 @@ open class DependencyFileImpl(
                             fileName = fileName,
                             coordinates = dependency.coordinates,
                             repositoryUrls = repositories.mapToUrls(),
-                            isAutoAddedDocumentation = isAutoAddedDocumentation,
+                            isOptional = isAutoAddedDocumentation || isOptional,
                             childMessages = collectedMessages,
                         )
                     )
@@ -859,7 +866,7 @@ open class DependencyFileImpl(
                 UnableToResolveChecksums.asMessage(
                     fileName,
                     dependency,
-                    overrideSeverity = Severity.INFO.takeIf { isAutoAddedDocumentation },
+                    overrideSeverity = Severity.INFO.takeIf { isAutoAddedDocumentation || isOptional },
                 )
             )
         }
@@ -899,7 +906,7 @@ open class DependencyFileImpl(
                 fileName,
                 coordinates = dependency.coordinates,
                 repositoryUrls = repositories.map { it.url },
-                isAutoAddedDocumentation = isAutoAddedDocumentation,
+                isOptional = isAutoAddedDocumentation || isOptional,
                 childMessages = nestedDownloadReporter.getMessages(),
             )
         )
@@ -1283,6 +1290,7 @@ class SnapshotDependencyFileImpl(
     fileCache: FileCache = dependency.settings.fileCache,
     isDocumentation: Boolean = false,
     isAutoAddedDocumentation: Boolean = false,
+    isOptional: Boolean = false,
 ) : DependencyFileImpl(
     dependency,
     name,
@@ -1290,6 +1298,7 @@ class SnapshotDependencyFileImpl(
     fileCache = fileCache,
     isDocumentation = isDocumentation,
     isAutoAddedDocumentation = isAutoAddedDocumentation,
+    isOptional = isOptional,
 ) {
 
     private val mavenMetadata by lazy {
