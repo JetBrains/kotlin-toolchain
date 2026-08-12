@@ -101,6 +101,7 @@ fun ProjectTasksBuilder.setupIosTasks() {
                     taskName = buildTaskName,
                     processRunner = context.processRunner,
                     terminal = context.terminal,
+                    buildSettingsResolution = xcodeBuildSettingsResolution,
                 ),
                 dependsOn = listOf(
                     preBuildTaskName,
@@ -120,8 +121,9 @@ fun ProjectTasksBuilder.setupIosTasks() {
                     runSettings = runSettings,
                     taskOutputPath = context.getTaskOutputPath(runTaskName),
                     processRunner = context.processRunner,
+                    buildSettingsResolution = xcodeBuildSettingsResolution,
                 ),
-                dependsOn = listOf(buildTaskName)
+                dependsOn = listOfNotNull(buildTaskName, xcodeBuildSettingsResolution.taskDependency(module))
             )
         }
 }

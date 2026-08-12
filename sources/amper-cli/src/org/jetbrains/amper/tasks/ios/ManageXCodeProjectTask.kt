@@ -13,6 +13,7 @@ import com.jetbrains.cidr.xcode.model.PBXBuildPhase
 import com.jetbrains.cidr.xcode.model.PBXProjectFile
 import com.jetbrains.cidr.xcode.model.PBXProjectFileManipulator
 import com.jetbrains.cidr.xcode.model.PBXReference
+import com.jetbrains.cidr.xcode.model.PBXTarget
 import com.jetbrains.cidr.xcode.model.ProjectFilesChanges
 import com.jetbrains.cidr.xcode.model.addFileSystemSynchronizedRootGroup
 import com.jetbrains.cidr.xcode.plist.Plist
@@ -64,11 +65,11 @@ class ManageXCodeProjectTask(
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
         initializeXcodeComponentManager()
-        val baseDir = module.source.moduleDir
-        val projectDir = baseDir / XCODE_PROJECT_DIR_NAME
+        val projectDir = module.xcodeProjectPath
+        val baseDir = projectDir.parent
         val pbxProjectFilePath = projectDir / PBXProjectFile.PROJECT_FILE
 
-        return if (pbxProjectFilePath.exists()) {
+        val target = if (pbxProjectFilePath.exists()) {
             logger.debug("Xcode project exists: {}", projectDir)
 
             spanBuilder("xcode project management")
@@ -88,19 +89,23 @@ class ManageXCodeProjectTask(
                 .setAmperModule(module)
                 .use {
                     generateDefaultProject(
-                        projectDir = projectDir,
                         pbxProjectFilePath = pbxProjectFilePath,
                         baseDir = baseDir,
                     )
                 }
         }
+
+        return Result(
+            debugSettingsResolver = XcodeBuildSettingsResolution.FromModel.Resolver(target, BuildType.Debug),
+            releaseSettingsResolver = XcodeBuildSettingsResolution.FromModel.Resolver(target, BuildType.Release),
+        )
     }
 
     private fun validateAndUpdateProject(
         projectDir: Path,
         pbxProjectFilePath: Path,
         span: Span,
-    ): Result {
+    ): PBXTarget {
         val pbxProjectFile: PBXProjectFile = PBXProjectFile(XcodeProjectHandle(), projectDir, pbxProjectFilePath)
             .apply {
                 load(ProjectFilesChanges())
@@ -136,47 +141,14 @@ class ManageXCodeProjectTask(
             span.setAttribute(UpdatedAttribute, false)
         }
 
-        fun resolveRequiredSettings(buildType: BuildType): ResolvedXcodeSettings {
-            val configuration = target.buildConfigurations.find { it.name == buildType.name } ?: run {
-                // TODO: Assist user in creating this configuration back?
-                userReadableError("Missing ${buildType.name} configuration in Xcode project.")
-            }
-
-            val settingsResolver = ConfigurationSettingsResolver(
-                buildConfiguration = configuration,
-                target = target,
-            )
-
-            fun resolveRequiredString(setting: String, friendlyName: String): String {
-                return settingsResolver.getBuildSetting(setting).string
-                    ?: userReadableError("Unable to resolve $friendlyName in the Xcode project. " +
-                            "Please make sure the `$setting` configuration option " +
-                            "is properly set for configuration ${buildType.name}")
-            }
-
-            return ResolvedXcodeSettings(
-                bundleId = resolveRequiredString(BuildSettingNames.PRODUCT_BUNDLE_IDENTIFIER, "bundleId"),
-                productName = resolveRequiredString(BuildSettingNames.PRODUCT_NAME, "Product Name"),
-                hasTeamId = !settingsResolver.getBuildSetting("DEVELOPMENT_TEAM").string.isNullOrBlank(),
-                isSigningDisabled = settingsResolver.getBuildSetting("CODE_SIGNING_ALLOWED").string == "NO",
-            )
-        }
-
-        return Result(
-            targetName = target.name,
-            projectDir = projectDir,
-            debugResolvedXcodeSettings = resolveRequiredSettings(BuildType.Debug),
-            releaseResolvedXcodeSettings = resolveRequiredSettings(BuildType.Release),
-        )
+        return target
     }
 
     private fun generateDefaultProject(
         pbxProjectFilePath: Path,
         baseDir: Path,
-        projectDir: Path,
-    ): Result {
-        pbxProjectFilePath.createParentDirectories()
-        pbxProjectFilePath.createFile()
+    ): PBXTarget {
+        pbxProjectFilePath.createParentDirectories().createFile()
 
         val pbxProjectFile: PBXProjectFile = PBXProjectFileManipulator.createNewProject(
             project = XcodeProjectHandle(),
@@ -295,16 +267,7 @@ class ManageXCodeProjectTask(
 
         pbxProjectFile.save()
 
-        val defaultSettings = ResolvedXcodeSettings(
-            bundleId = defaultAppBundleId,
-            productName = defaultProductName,
-        )
-        return Result(
-            targetName = DEFAULT_TARGET_NAME,
-            projectDir = projectDir,
-            debugResolvedXcodeSettings = defaultSettings,
-            releaseResolvedXcodeSettings = defaultSettings,
-        )
+        return pbxTarget
     }
 
     private fun createDefaultPlist() = Plist().apply {
@@ -359,24 +322,10 @@ class ManageXCodeProjectTask(
         )
     }
 
-    class ResolvedXcodeSettings(
-        val bundleId: String,
-        val hasTeamId: Boolean = false,
-        val isSigningDisabled: Boolean = false,
-        val productName: String,
-    )
-
     class Result(
-        val targetName: String,
-        val projectDir: Path,
-        val debugResolvedXcodeSettings: ResolvedXcodeSettings,
-        val releaseResolvedXcodeSettings: ResolvedXcodeSettings,
-    ) : TaskResult {
-        fun getResolvedXcodeSettings(buildType: BuildType) = when(buildType) {
-            BuildType.Debug -> debugResolvedXcodeSettings
-            BuildType.Release -> releaseResolvedXcodeSettings
-        }
-    }
+        val debugSettingsResolver: XcodeBuildSettingsResolution.FromModel.Resolver,
+        val releaseSettingsResolver: XcodeBuildSettingsResolution.FromModel.Resolver,
+    ) : TaskResult
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -385,7 +334,6 @@ class ManageXCodeProjectTask(
     companion object {
         private const val DEFAULT_TARGET_NAME = "app"
         private const val PRODUCT_MODULE_NAME = DEFAULT_TARGET_NAME
-        private const val XCODE_PROJECT_DIR_NAME = "module.xcodeproj"
 
         private const val KOTLIN_CLI_WRAPPER_PATH_CONF = "KOTLIN_CLI_WRAPPER_PATH"
 

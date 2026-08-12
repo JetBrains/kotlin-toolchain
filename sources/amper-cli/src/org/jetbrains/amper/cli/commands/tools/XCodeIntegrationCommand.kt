@@ -11,9 +11,13 @@ import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.project.preparePluginsAndReadModel
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withBackend
+import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.ios.IosConventions
 import org.jetbrains.amper.tasks.ios.IosPreBuildTask
+import org.jetbrains.amper.tasks.ios.ManageXCodeProjectTask
+import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.util.BuildType
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -39,7 +43,12 @@ internal class XCodeIntegrationCommand : AmperProjectAwareCommand(name = "xcode-
 
         val prebuildResult = readyPrebuildResult ?: run {
             // Running from xcode only - need to run iOS prebuild task ourselves
-            withBackend(cliContext, model = cliContext.preparePluginsAndReadModel()) { backend ->
+            withBackend(
+                cliContext = cliContext,
+                model = cliContext.preparePluginsAndReadModel(),
+                // Resolve Xcode build settings from the environment instead of reading the model
+                xcodeBuildSettingsResolution = EnvironmentXcodeBuildSettingsResolution(),
+            ) { backend ->
                 backend.prebuildForXcode(
                     moduleDir = Path(requireXcodeVar("PROJECT_DIR")),
                     buildType = inferBuildTypeFromEnv(),
@@ -59,8 +68,8 @@ internal class XCodeIntegrationCommand : AmperProjectAwareCommand(name = "xcode-
     private fun validateGeneralXcodeEnvironment() {
         if (env["ENABLE_USER_SCRIPT_SANDBOXING"] == "YES") {
             userReadableError(
-                "XCode option 'ENABLE_USER_SCRIPT_SANDBOXING' is enabled, which is unsupported. " +
-                        "Please disable `User Script Sandboxing` option explicitly in XCode."
+                "Xcode option 'ENABLE_USER_SCRIPT_SANDBOXING' is enabled, which is unsupported. " +
+                        "Please disable `User Script Sandboxing` option explicitly in Xcode."
             )
         }
     }
@@ -119,6 +128,29 @@ internal class XCodeIntegrationCommand : AmperProjectAwareCommand(name = "xcode-
         return env[name] ?: userReadableError(
             "Invalid environment: missing xcode variable `$name`"
         )
+    }
+
+    private inner class EnvironmentXcodeBuildSettingsResolution
+        : XcodeBuildSettingsResolution, XcodeBuildSettingsResolution.Resolver {
+        override fun taskDependency(module: AmperModule): Nothing? = null
+        override fun getRequiredSetting(key: String) = requireXcodeVar(key)
+        override fun getSetting(key: String) = env[key]
+
+        override fun getResolver(
+            buildType: BuildType,
+            dependencyResult: List<TaskResult>,
+        ): XcodeBuildSettingsResolution.Resolver {
+            check(dependencyResult.filterIsInstance<ManageXCodeProjectTask.Result>().isEmpty()) {
+                "Dependency on `ManageXCodeProjectTask` is detected, but not permitted: " +
+                        "we are already running under Xcode."
+            }
+            val activeBuildType = inferBuildTypeFromEnv()
+            check(activeBuildType == buildType) {
+                "Xcode launched us to build $activeBuildType, settings for $buildType are not available"
+            }
+            // We only support resolution for the active build type.
+            return this
+        }
     }
 }
 

@@ -18,6 +18,7 @@ import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.tasks.android.setupAndroidTasks
 import org.jetbrains.amper.tasks.compose.setupComposeTasks
 import org.jetbrains.amper.tasks.custom.setupTasksFromPlugins
+import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.tasks.ios.setupIosTasks
 import org.jetbrains.amper.tasks.java.setupJavaAnnotationProcessingTasks
 import org.jetbrains.amper.tasks.js.setupJsTasks
@@ -52,6 +53,7 @@ class ProjectTasksBuilder(
     val runSettings: AllRunSettings,
     val cinteropGenSettings: CinteropGenSettings,
     val includePluginTasks: Boolean,
+    val xcodeBuildSettingsResolution: XcodeBuildSettingsResolution,
 ) {
     val tasks = TaskGraphBuilder()
 

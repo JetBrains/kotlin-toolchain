@@ -4,6 +4,11 @@
 
 package org.jetbrains.amper.tasks.ios
 
+import org.jetbrains.amper.frontend.AmperModule
+import org.jetbrains.amper.frontend.schema.ProductType
+import java.nio.file.Path
+import kotlin.io.path.div
+
 object IosConventions {
     /**
      * the single default Kotlin iOS framework name that is built per ios/app.
@@ -23,3 +28,15 @@ object IosConventions {
      */
     const val FRAMEWORKS_DIR_NAME = "AmperFrameworks"
 }
+
+/**
+ * Path to the Xcode project for an `ios/app` module.
+ */
+val AmperModule.xcodeProjectPath: Path
+    get() {
+        require(type == ProductType.IOS_APP) {
+            "Expected ${ProductType.IOS_APP}, got $type"
+        }
+
+        return source.moduleDir / "module.xcodeproj"
+    }

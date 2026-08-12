@@ -15,6 +15,7 @@ import org.jetbrains.amper.engine.TaskExecutor
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.CinteropGenSettings
+import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import kotlin.contracts.InvocationKind
@@ -26,6 +27,7 @@ internal suspend fun <T> withBackend(
     runSettings: AllRunSettings = AllRunSettings(),
     cinteropGenSettings: CinteropGenSettings = CinteropGenSettings(),
     includePluginTasks: Boolean = true,
+    xcodeBuildSettingsResolution: XcodeBuildSettingsResolution = XcodeBuildSettingsResolution,
     taskExecutionMode: TaskExecutor.Mode = TaskExecutor.Mode.FAIL_FAST,
     block: suspend (AmperBackend) -> T,
 ): T {
@@ -47,6 +49,7 @@ internal suspend fun <T> withBackend(
             runSettings = runSettings,
             cinteropGenSettings = cinteropGenSettings,
             includePluginTasks = includePluginTasks,
+            xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
             taskExecutionMode = taskExecutionMode,
             backgroundScope = backgroundScope,
         )

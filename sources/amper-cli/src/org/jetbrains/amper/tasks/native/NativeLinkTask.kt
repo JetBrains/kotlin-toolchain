@@ -20,7 +20,6 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
-import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
@@ -38,7 +37,8 @@ import org.jetbrains.amper.tasks.artifacts.CinteropKlibsArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.identificationPhrase
-import org.jetbrains.amper.tasks.ios.ManageXCodeProjectTask
+import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
+import org.jetbrains.amper.tasks.ios.productBundleIdentifier
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -67,6 +67,7 @@ internal class NativeLinkTask(
         KotlinArtifactsDownloader(userCacheRoot, incrementalCache),
     private val jdkProvider: JdkProvider,
     private val processRunner: ProcessRunner,
+    private val xcodeBuildSettingsResolution: XcodeBuildSettingsResolution,
 ): ArtifactTaskBase(), BuildTask {
     init {
         require(platform.isLeaf)
@@ -140,8 +141,8 @@ internal class NativeLinkTask(
         val entryPoint = entryPoints.singleOrNull()
 
         val binaryOptions = if (compilationType == KotlinCompilationType.IOS_FRAMEWORK) {
-            val appBundleId = dependenciesResult.requireSingleDependency<ManageXCodeProjectTask.Result>()
-                .debugResolvedXcodeSettings.bundleId
+            val appBundleId = xcodeBuildSettingsResolution
+                .getResolver(buildType, dependenciesResult).productBundleIdentifier
             // Format framework's bundleId based on app's bundleId
             val frameworkBundleId = "$appBundleId.kotlin.framework"
             logger.debug("Using framework bundleId: `$frameworkBundleId`")

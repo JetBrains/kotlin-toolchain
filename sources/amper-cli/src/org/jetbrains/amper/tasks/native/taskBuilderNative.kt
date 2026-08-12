@@ -149,6 +149,7 @@ fun ProjectTasksBuilder.setupNativeTasks() {
                         },
                         jdkProvider = context.jdkProvider,
                         processRunner = context.processRunner,
+                        xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
                     ),
                     dependsOn = buildList {
                         add(compileKLibTaskName)
@@ -158,7 +159,7 @@ fun ProjectTasksBuilder.setupNativeTasks() {
                         }
                         if (compilationType == KotlinCompilationType.IOS_FRAMEWORK) {
                             // Needed for bundleId inference
-                            add(ModuleTaskTypes.ManageXCodeProject.getTaskName(module))
+                            xcodeBuildSettingsResolution.taskDependency(module)?.let(::add)
                         }
                     }
                 )

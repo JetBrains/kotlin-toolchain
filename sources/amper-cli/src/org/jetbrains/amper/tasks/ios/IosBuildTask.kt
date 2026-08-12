@@ -57,6 +57,7 @@ class IosBuildTask(
     private val userCacheRoot: AmperUserCacheRoot,
     private val processRunner: ProcessRunner,
     private val terminal: Terminal,
+    private val buildSettingsResolution: XcodeBuildSettingsResolution,
 ) : BuildTask {
     init {
         require(platform.isDescendantOf(Platform.IOS)) { "Invalid iOS platform: $platform" }
@@ -67,9 +68,8 @@ class IosBuildTask(
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
-        val projectInitialInfo = dependenciesResult.requireSingleDependency<ManageXCodeProjectTask.Result>()
         val prebuildResult = dependenciesResult.requireSingleDependency<IosPreBuildTask.Result>()
-        val xcodeSettings = projectInitialInfo.getResolvedXcodeSettings(buildType)
+        val settings = buildSettingsResolution.getResolver(buildType, dependenciesResult)
 
         val workingDir = taskOutputPath.path.createDirectories()
         val derivedDataPath = workingDir / "derivedData"
@@ -79,8 +79,9 @@ class IosBuildTask(
         val xcodebuildArgs = buildList {
             this += "xcrun"
             this += "xcodebuild"
-            this += "-project"; this += projectInitialInfo.projectDir.pathString
-            this += "-scheme"; this += projectInitialInfo.targetName  // FIXME: Select proper scheme
+            this += "-project"; this += module.xcodeProjectPath.absolutePathString()
+            // FIXME: Select/manage proper scheme instead of relying on the target name (KTC-5687).
+            this += "-scheme"; this += settings.targetName
             this += "-destination"; this += "generic/platform=${platform.toXcodePlatformTitle()}"
             this += "-configuration"; this += buildType.name
             this += "-derivedDataPath"; this += derivedDataPath.pathString
@@ -91,7 +92,9 @@ class IosBuildTask(
                 // Constrain built architectures to avoid universal simulator build
                 this +="${BuildSettingNames.ARCHS}=${platform.architecture}"
             }
-            if (!platform.isIosSimulator && !xcodeSettings.hasTeamId && !xcodeSettings.isSigningDisabled) {
+            val hasTeamId = !settings.developmentTeam.isNullOrBlank()
+            val isSigningDisabled = settings.codeSigningAllowed == "NO"
+            if (!platform.isIosSimulator && !hasTeamId && !isSigningDisabled) {
                 logger.warn("`DEVELOPMENT_TEAM` build setting is not detected in the Xcode project. " +
                         "Adding `CODE_SIGNING_ALLOWED=NO` to disable signing. " +
                         "You can still sign the app manually later.")
@@ -153,8 +156,7 @@ class IosBuildTask(
         }
 
         return Result(
-            bundleId = xcodeSettings.bundleId,
-            appPath = symRootPath / "${buildType.name}-${platform.sdk}" / "${xcodeSettings.productName}.app",
+            appPath = symRootPath / "${buildType.name}-${platform.sdk}" / "${settings.productName}.app",
         )
     }
 
@@ -179,7 +181,6 @@ class IosBuildTask(
     }
 
     class Result(
-        val bundleId: String,
         val appPath: Path,
     ) : TaskResult
 

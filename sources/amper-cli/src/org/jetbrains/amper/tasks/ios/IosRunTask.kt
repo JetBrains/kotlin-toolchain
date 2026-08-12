@@ -12,7 +12,6 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.MobileRunSettings
@@ -32,16 +31,18 @@ class IosRunTask(
     private val runSettings: MobileRunSettings,
     private val taskOutputPath: TaskOutputRoot,
     private val processRunner: ProcessRunner,
+    private val buildSettingsResolution: XcodeBuildSettingsResolution,
 ) : RunTask {
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+        val bundleId = buildSettingsResolution.getResolver(buildType, dependenciesResult).productBundleIdentifier
         taskOutputPath.path.createDirectories()
         val builtApp = dependenciesResult.requireSingleDependency<IosBuildTask.Result>()
         if (platform.isIosSimulator) {
             val simulatorDevice = selectSimulatorDevice()
             processRunner.bootAndWaitSimulator(simulatorDevice, forceShowWindow = true)
             processRunner.installAppOnDevice(simulatorDevice.deviceId, builtApp.appPath)
-            processRunner.launchAppOnDevice(simulatorDevice.deviceId, builtApp.bundleId)
+            processRunner.launchAppOnDevice(simulatorDevice.deviceId, bundleId)
         } else {
             // Physical device
             if (!checkAppIsSigned(builtApp.appPath)) {
@@ -53,7 +54,7 @@ class IosRunTask(
                 ?: userReadableError("To run on a physical iOS device, the -d/--device-id argument must be specified.\n" +
                         "Use `xcrun devicectl list devices` command to see what devices are available.")
             processRunner.installAppOnPhysicalDevice(deviceId, builtApp.appPath)
-            processRunner.launchAppOnPhysicalDevice(deviceId, builtApp.bundleId)
+            processRunner.launchAppOnPhysicalDevice(deviceId, bundleId)
         }
         return EmptyTaskResult
     }

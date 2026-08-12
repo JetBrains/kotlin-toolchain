@@ -48,6 +48,7 @@ import org.jetbrains.amper.tasks.getModuleDependencies
 import org.jetbrains.amper.tasks.getTaskName
 import org.jetbrains.amper.tasks.ios.IosPreBuildTask
 import org.jetbrains.amper.tasks.ios.IosTaskType
+import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.tasks.jvm.JvmCompileTask
 import org.jetbrains.amper.tasks.jvm.JvmHotRunTask
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -78,6 +79,10 @@ class AmperBackend(
      */
     val includePluginTasks: Boolean = true,
     /**
+     * See [XcodeBuildSettingsResolution].
+     */
+    val xcodeBuildSettingsResolution: XcodeBuildSettingsResolution = XcodeBuildSettingsResolution,
+    /**
      * Defines how other tasks are executed if a task fails.
      */
     val taskExecutionMode: TaskExecutor.Mode = TaskExecutor.Mode.FAIL_FAST,
@@ -94,6 +99,7 @@ class AmperBackend(
                 runSettings = runSettings,
                 cinteropGenSettings = cinteropGenSettings,
                 includePluginTasks = includePluginTasks,
+                xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
             ).build()
         }
     }
