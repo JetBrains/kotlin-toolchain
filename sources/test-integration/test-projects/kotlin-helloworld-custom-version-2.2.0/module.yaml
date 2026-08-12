@@ -3,3 +3,7 @@ product: jvm/app
 settings:
   kotlin:
     version: 2.2.0
+  jvm:
+    jdk:
+      # Kotlin 2.2.0 supports only up to JDK 24, so we pin to the max LTS that fits
+      version: 21
