@@ -1,0 +1,14 @@
+product:
+  type: kmp/lib
+  platforms: [ wasmJs ]
+
+settings:
+  compose:
+    enabled: true
+    resources:
+      packageName: com.example.shared.gen
+      exposedAccessors: true
+
+dependencies:
+  - $compose.foundation
+  - $compose.material3

@@ -66,6 +66,7 @@ fun ProjectTasksBuilder.setupWasmJsTasks() {
                     taskName = buildAppTaskName,
                     tempRoot = context.projectTempRoot,
                     incrementalCache = context.incrementalCache,
+                    userCacheRoot = context.userCacheRoot,
                 ),
                 dependsOn = [
                     linkAppTaskName,

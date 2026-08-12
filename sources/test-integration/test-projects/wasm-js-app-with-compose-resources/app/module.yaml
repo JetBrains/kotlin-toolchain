@@ -1,0 +1,13 @@
+product: wasm-js/app
+
+settings:
+  compose:
+    enabled: true
+    resources:
+      packageName: com.example.app.gen
+      exposedAccessors: true
+
+dependencies:
+  - ../shared
+  - $compose.foundation
+  - $compose.material3

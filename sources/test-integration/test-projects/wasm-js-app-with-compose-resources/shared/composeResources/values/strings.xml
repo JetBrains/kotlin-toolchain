@@ -1,0 +1,3 @@
+<resources>
+    <string name="shared_hello">Hello from the shared module!</string>
+</resources>

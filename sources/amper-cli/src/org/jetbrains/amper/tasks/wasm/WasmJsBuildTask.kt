@@ -8,6 +8,7 @@ import org.jetbrains.amper.BuildPrimitives
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.compilation.kotlinModuleName
+import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.extract.extractZip
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
@@ -22,6 +23,10 @@ import org.jetbrains.amper.stdlib.io.path.clean
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
+import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
+import org.jetbrains.amper.tasks.artifacts.Selectors
+import org.jetbrains.amper.tasks.artifacts.api.Quantifier
+import org.jetbrains.amper.tasks.compose.MergedPreparedComposeResourcesDirArtifact
 import org.jetbrains.amper.tasks.web.NpmInstallTask
 import org.jetbrains.amper.tasks.web.NpmInstallTask.Companion.json
 import org.jetbrains.amper.tasks.web.VENDORS
@@ -34,6 +39,7 @@ import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.invariantSeparatorsPathString
+import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.io.path.nameWithoutExtension
@@ -49,7 +55,8 @@ class WasmJsBuildTask(
     override val taskName: TaskName,
     private val tempRoot: AmperProjectTempRoot,
     private val incrementalCache: IncrementalCache,
-) : BuildTask {
+    userCacheRoot: AmperUserCacheRoot,
+) : ArtifactTaskBase(), BuildTask {
     init {
         require(platform.isLeaf)
         require(platform.isDescendantOf(Platform.WASM_JS))
@@ -57,6 +64,21 @@ class WasmJsBuildTask(
 
     override val isTest: Boolean
         get() = false
+
+    /**
+     * Compose resources of this module and of all its module dependencies, already laid out under their
+     * `composeResources/<package>/` packaging dirs. They have to be served next to `index.html`, because this is
+     * where the generated accessors expect to find them at runtime.
+     */
+    private val composeResources by Selectors.fromModuleWithDependencies(
+        type = MergedPreparedComposeResourcesDirArtifact::class,
+        module = module,
+        platform = platform,
+        isTest = false,
+        userCacheRoot = userCacheRoot,
+        incrementalCache = incrementalCache,
+        quantifier = Quantifier.AnyOrNone,
+    )
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(
@@ -77,6 +99,8 @@ class WasmJsBuildTask(
             .map { it.resourcesPath }
             .filter { it.exists() }
 
+        val composeResourcesPaths = composeResources.map { it.path }.filter { it.isDirectory() }
+
         val skikoWasmRuntime: Path? = dependenciesResult
             .filterIsInstance<ResolveExternalDependenciesTask.Result>()
             .flatMap { it.runtimeClasspath }
@@ -87,7 +111,7 @@ class WasmJsBuildTask(
         incrementalCache.executeForFiles(
             taskName.id.value,
             inputValues = importMap.mapValues { it.value.invariantSeparatorsPathString },
-            inputFiles = listOfNotNull(linkedDir, skikoWasmRuntime) + resourcesPaths,
+            inputFiles = listOfNotNull(linkedDir, skikoWasmRuntime) + resourcesPaths + composeResourcesPaths,
         ) {
             taskOutputPath.path.clean()
 
@@ -96,6 +120,15 @@ class WasmJsBuildTask(
                 to = taskOutputPath.path,
                 overwrite = true,
             )
+
+            composeResourcesPaths
+                .forEach { composeResourcesDir ->
+                    BuildPrimitives.copy(
+                        from = composeResourcesDir,
+                        to = taskOutputPath.path,
+                        overwrite = true,
+                    )
+                }
 
             resourcesPaths
                 .forEach { resource ->

@@ -122,6 +122,26 @@ class WasmJsProjectsTest : AmperCliTestBase() {
         result.checkComposeApplication()
     }
 
+    @Test
+    fun `wasm js app compose resources are packaged into the app output`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("wasm-js-app-with-compose-resources"),
+            "build",
+        )
+
+        val appOutput = result.getTaskOutputPath(":app:buildWasmJsAppWasmJsDebug")
+
+        // Resources of the app module itself
+        val ownResources = appOutput / "composeResources" / "com.example.app.gen"
+        assertFileExists(ownResources / "files" / "app-text.txt")
+
+        // Resources coming from the `shared` module dependency
+        val sharedResources = appOutput / "composeResources" / "com.example.shared.gen"
+        assertFileExists(sharedResources / "files" / "shared-text.txt")
+        assertFileExists(sharedResources / "drawable" / "shared_icon.xml")
+        assertFileExists(sharedResources / "values" / "strings.common.cvr")
+    }
+
     private fun AmperCliResult.checkComposeApplication() {
 
         val buildWasmJs = getTaskOutputPath(":wasm-js-app-with-compose:buildWasmJsAppWasmJsDebug")
