@@ -5,8 +5,8 @@
 package org.jetbrains.amper.cli.test
 
 import org.jetbrains.amper.processes.ProcessInput
-import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.ProcessResult
+import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.test.AmperCliResult
@@ -155,12 +155,13 @@ abstract class AmperCliTestBase : AmperCliWithWrapperTestBase() {
     protected suspend fun runXcodebuild(
         vararg buildArgs: String,
         workingDir: Path = tempRoot,
+        action: String = "build",
     ): ProcessResult.WithOutputs = runProcess(
         workingDir = workingDir,
         command = listOf(
             "xcrun", "xcodebuild",
             *buildArgs,
-            "build",
+            action,
         ),
         environment = baseEnvironmentForWrapper(),
         outputMode = ProcessOutputMode.listenAndCapture(TestReporterProcessOutputListener("xcodebuild", testReporter)),

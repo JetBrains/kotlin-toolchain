@@ -65,7 +65,6 @@ If you want to migrate an existing Xcode project so it has Kotlin Toolchain supp
     # This script is managed by the Kotlin Toolchain, do not edit manually!
     "${KOTLIN_CLI_WRAPPER_PATH}" tool xcode-integration
    ```
-5. The _Framework Search Paths_ (`FRAMEWORK_SEARCH_PATHS`) option contains the `$(TARGET_BUILD_DIR)/AmperFrameworks` value
 
 Changes to the Xcode project that do not break these requirements are allowed.
 

@@ -27,7 +27,10 @@ import java.util.*
 import kotlin.io.path.copyToRecursively
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
 import kotlin.io.path.pathString
+import kotlin.io.path.readText
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -207,6 +210,40 @@ class IosProjectsTest : AmperCliTestBase() {
             The module has declared platforms: IOS_ARM64 IOS_SIMULATOR_ARM64.
             Please declare the required platform explicitly in the module's file.
         """.trimIndent()
+        )
+    }
+
+    // KTC-5234
+    @Test
+    fun `archive of a generated Xcode project only installs the app bundle`() = runSlowTest {
+        val projectDir = testProject("ios/compose")
+        // Generate the default Xcode project for the module
+        runCli(projectDir, "ide-integration", "manage-xcode", assertEmptyStdErr = false)
+
+        val archivePath = tempRoot / "compose.xcarchive"
+        val result = runXcodebuild(
+            "-project", (projectDir / "module.xcodeproj").pathString,
+            "-scheme", "app",
+            "-configuration", "Release",
+            "-destination", "generic/platform=iOS",
+            "-archivePath", archivePath.pathString,
+            "-derivedDataPath", (tempRoot / "xcode").pathString,
+            "CODE_SIGNING_ALLOWED=NO",  // To archive for the real device arch
+            action = "archive",
+        )
+        expect(0) { result.exitCode }
+
+        // Nothing except the app bundle itself must be installed into the archive,
+        // otherwise Xcode doesn't recognize the archive as an iOS app archive, and it can't be distributed.
+        assertEquals(
+            expected = ["compose.app"],
+            actual = (archivePath / "Products" / "Applications").listDirectoryEntries().map { it.name }.sorted(),
+        )
+        // `ApplicationProperties` are only written by Xcode for archives that contain a single installed app,
+        // and their absence is what breaks the App Store distribution flow.
+        assertContains(
+            charSequence = (archivePath / "Info.plist").readText(),
+            other = "ApplicationProperties",
         )
     }
 

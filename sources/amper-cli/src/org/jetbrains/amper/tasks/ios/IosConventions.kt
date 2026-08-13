@@ -23,12 +23,6 @@ object IosConventions {
     const val COMPOSE_RESOURCES_CONTENT_DIR_NAME = "compose-resources"
 
     /**
-     * Framework directory name that the Xcode project has to know about.
-     * This is used in Xcode project generation for linker search paths.
-     */
-    const val FRAMEWORKS_DIR_NAME = "AmperFrameworks"
-
-    /**
      * Shared scheme name that is used to build the iOS app.
      */
     const val SCHEME_NAME = "app"

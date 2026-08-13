@@ -57,12 +57,10 @@ internal class XCodeIntegrationCommand : AmperProjectAwareCommand(name = "xcode-
             }
         }
 
-        val xcodeTargetBuildDir = Path(requireXcodeVar("TARGET_BUILD_DIR"))
-
         // Symlink the built framework, so the xcodebuild finds it during linking.
-        linkFrameworkToConventionSearchLocation(prebuildResult, xcodeTargetBuildDir)
+        linkFrameworkToConventionSearchLocation(prebuildResult, Path(requireXcodeVar("BUILT_PRODUCTS_DIR")))
 
-        embedComposeResources(prebuildResult, xcodeTargetBuildDir)
+        embedComposeResources(prebuildResult, Path(requireXcodeVar("TARGET_BUILD_DIR")))
     }
 
     private fun validateGeneralXcodeEnvironment() {
@@ -74,12 +72,15 @@ internal class XCodeIntegrationCommand : AmperProjectAwareCommand(name = "xcode-
         }
     }
 
+    /**
+     * Symlinks the built framework into [xcodeBuiltProductsDir], which Xcode uses as an implicit framework search path,
+     * so no `FRAMEWORK_SEARCH_PATHS` customization is needed in the Xcode project.
+     */
     private fun linkFrameworkToConventionSearchLocation(
         prebuildResult: IosPreBuildTask.Result,
-        xcodeTargetBuildDir: Path,
+        xcodeBuiltProductsDir: Path,
     ) {
-        val targetPath = xcodeTargetBuildDir / IosConventions.FRAMEWORKS_DIR_NAME /
-                prebuildResult.appFrameworkPath.fileName
+        val targetPath = xcodeBuiltProductsDir / prebuildResult.appFrameworkPath.fileName
         targetPath.createParentDirectories()
         targetPath.deleteIfExists()
         targetPath.createSymbolicLinkPointingTo(prebuildResult.appFrameworkPath)

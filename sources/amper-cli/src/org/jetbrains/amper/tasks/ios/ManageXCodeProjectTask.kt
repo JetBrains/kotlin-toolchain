@@ -228,9 +228,9 @@ class ManageXCodeProjectTask(
             // Will not work if set to YES, validate at XCodeIntegrationCommand
             // Unless we set all inputs/outputs correctly (directories are not permitted), which is impossible.
             this["ENABLE_USER_SCRIPT_SANDBOXING"] = "NO"
-            // Validate at XCodeIntegrationCommand
-            this[BuildSettingNames.FRAMEWORK_SEARCH_PATHS] =
-                "$(inherited) $(TARGET_BUILD_DIR)/${IosConventions.FRAMEWORKS_DIR_NAME}"
+            // NOTE: We deliberately do not customize `FRAMEWORK_SEARCH_PATHS` here:
+            // the Kotlin framework is symlinked into `BUILT_PRODUCTS_DIR`, which Xcode already uses
+            // as an implicit framework search path.
             // TODO: Move to the XConfig. For now generated a single time and is not managed anymore.
             this[KOTLIN_CLI_WRAPPER_PATH_CONF] = ProjectCliContext.wrapperScriptPath.relativeTo(baseDir).let {
                 if (it.parent == null) Path(".") / it else it
