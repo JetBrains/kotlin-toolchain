@@ -1,0 +1,10 @@
+product:
+  type: jvm/app
+
+settings:
+  jvm:
+    mainClass: apkg.Main
+    jdk:
+      version: 21 # lowest supported JDK with Java incremental compilation
+  java:
+    compileIncrementally: true

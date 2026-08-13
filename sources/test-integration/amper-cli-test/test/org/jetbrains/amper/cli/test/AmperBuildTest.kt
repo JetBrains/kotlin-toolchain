@@ -136,6 +136,11 @@ class AmperBuildTest : AmperCliTestBase() {
         writeText(readText().replace(oldValue, newValue))
     }
 
+    @Test
+    fun `build Java incrementally works with lowest supported JDK`() = runSlowTest {
+        runCli(projectDir = testProject("java-ic-lowest-jdk"), "build")
+    }
+
     @RunWithAndWithoutJic
     fun `build jar with main class`(useJavaIncrementalCompilation: Boolean) = runSlowTest {
         val result = runCliWithOrWithoutJps(
@@ -370,6 +375,18 @@ class AmperBuildTest : AmperCliTestBase() {
             val wasmFile = result.getTaskOutputPath(":wasm-js-app:buildWasmJsAppWasmJsDebug") / "wasm-js-app.wasm"
             wasmFile.exists()
         }
+    }
+
+    @Test
+    fun `multiplatform lib with highest known JDK`() = runSlowTest {
+        val projectContext = testProject("multiplatform-highest-jdk")
+        runCli(projectDir = projectContext, "build", configureAndroidHome = true)
+    }
+
+    @Test
+    fun `multiplatform lib with lowest supported JDK`() = runSlowTest {
+        val projectContext = testProject("multiplatform-lowest-jdk")
+        runCli(projectDir = projectContext, "build", configureAndroidHome = true)
     }
 
     // AMPER-5259

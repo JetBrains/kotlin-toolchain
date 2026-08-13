@@ -1,0 +1,37 @@
+product:
+  type: lib
+  platforms:
+    - android
+    - androidNativeArm32
+    - androidNativeArm64
+    - androidNativeX64
+    - androidNativeX86
+    - iosArm64
+    - iosSimulatorArm64
+    - iosX64
+    - js
+    - jvm
+    - linuxArm64
+    - linuxX64
+    - macosArm64
+    - mingwX64
+    - tvosArm64
+    - tvosSimulatorArm64
+    - wasmJs
+    - wasmWasi
+    - watchosArm64
+    - watchosArm32
+    - watchosDeviceArm64
+    - watchosSimulatorArm64
+
+settings:
+  jvm:
+    jdk:
+      # FIXME update to JDK 26 when there are no more blockers
+      #   1. JDK>24 triggers a warning because of the Kotlin/Native compiler unsafe usages
+      #   https://youtrack.jetbrains.com/issue/KTC-5233/Warning-from-Kotlin-native-compiler-about-using-Unsafe-API
+      #   2. JDK>25 requires Kotlin 2.4+, but we can't bump yet because of
+      #   https://youtrack.jetbrains.com/issue/KTC-5707/Kotlin-WASM-compiler-warning-with-Kotlin-2.4
+      version: 23 # should be bumped to the highest known JDK at the time
+  kotlin:
+    version: 2.3.21

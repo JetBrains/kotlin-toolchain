@@ -1,0 +1,8 @@
+product: jvm/app
+
+settings:
+  kotlin:
+    version: 2.4.10
+  jvm:
+    jdk:
+      version: 26 # should be bumped to the highest known JDK at the time

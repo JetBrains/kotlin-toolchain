@@ -63,8 +63,14 @@ class AmperRunTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `jvm hello world with custom JDK 26`() = runSlowTest {
-        val result = runCli(projectDir = testProject("jvm-custom-jdk"), "run")
+    fun `jvm hello world with lowest supported JDK`() = runSlowTest {
+        val result = runCli(projectDir = testProject("jvm-custom-jdk-lowest"), "run")
+        result.assertStdoutContains("Hello")
+    }
+
+    @Test
+    fun `jvm hello world with highest supported JDK`() = runSlowTest {
+        val result = runCli(projectDir = testProject("jvm-custom-jdk-highest"), "run")
         result.assertStdoutContains("Hello")
     }
 
