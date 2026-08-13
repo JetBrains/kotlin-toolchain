@@ -7,16 +7,28 @@ description: |
 
 !!! info "The publishing feature is in preview, and is likely to change. Don't hesitate to share your feedback!"
 
-!!! warning "Multiplatform library publication is not supported yet"
-
-    At the moment, only JVM libraries can be published.
-    While the `publish` command for KMP libraries will not complain, the KMP publications are for now incomplete and
-    not consumable by other projects.
-
 Library modules inside your project are useful for modularization, but you can take it one step further by publishing
 your libraries so they can be used by other projects.
 
 With a little bit of configuration, you'll be able to publish using the `kotlin publish` command.
+
+## Multiplatform libraries included
+
+Publishing a multiplatform library takes exactly the same configuration as publishing a JVM one — the Kotlin Toolchain
+takes care of the rest. It publishes everything your users need to depend on your library from any of its targets: the
+common API, one artifact per platform, the sources, and the descriptors that let build tools pick the right pieces
+automatically.
+
+Libraries that bind to native C libraries are covered as well: the `cinterop` bindings are published both in their
+commonized form, for use from common code, and per platform, so your users get the same C API you compiled against
+without setting up interop themselves.
+
+The result is consumable from Gradle projects like any other multiplatform library, including single-target
+libraries and mixed target sets such as `jvm` + `android` or `wasmJs` + `wasmWasi`.
+
+!!! note "Compose Multiplatform resources"
+
+    Resources of Compose Multiplatform libraries are not part of the publication yet (see [KTC-5698](https://youtrack.jetbrains.com/issue/KTC-5698/Support-publication-of-composeResources-as-a-part-of-KMP-library-publication)).
 
 ## Publishing to a regular Maven repository
 
