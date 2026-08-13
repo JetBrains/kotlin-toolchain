@@ -43,7 +43,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.2.20"
+            "requires": "2.3.21"
           }
         }
       ],
@@ -87,7 +87,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.2.20"
+            "requires": "2.3.21"
           }
         }
       ],
