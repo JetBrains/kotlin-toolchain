@@ -5,6 +5,7 @@
 package org.jetbrains.amper.cli.test
 
 import org.jetbrains.amper.cli.test.utils.UpdatedAttribute
+import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertWarnings
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.cli.test.utils.xcodeProjectManagementSpans
@@ -77,8 +78,9 @@ class ProjectTemplatesTest : AmperCliTestBase() {
     @Test
     fun `compose-multiplatform`(testInfo: TestInfo) = runSlowTest {
         runInitForTemplateFromTestName(testInfo)
-        /*val result = */runCli(tempRoot, "build", configureAndroidHome = true, assertEmptyStdErr = false)
+        val result = runCli(tempRoot, "build", configureAndroidHome = true, assertEmptyStdErr = false)
         if (OsFamily.current.isMac) {
+            result.assertStdoutDoesNotContain("No shared scheme `app` is found")
             // FIXME(KTC-5651) after templates are updated
             // result.readTelemetrySpans().assertXcodeProjectIsValid()
         }
@@ -145,6 +147,7 @@ class ProjectTemplatesTest : AmperCliTestBase() {
         // that are treated like errors.
         val result = runCli(tempRoot, "build", assertEmptyStdErr = false)
         if (OsFamily.current.isMac) {
+            result.assertStdoutDoesNotContain("No shared scheme `app` is found")
             // FIXME(KTC-5651) after templates are updated
             // result.readTelemetrySpans().assertXcodeProjectIsValid()
         } else {
