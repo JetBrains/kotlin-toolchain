@@ -2482,6 +2482,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#settingsandroidcompilesdk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings.android.compileSdk
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#settingsandroidresourcepackaging" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2936,6 +2947,17 @@
   
     <nav class="md-nav" aria-label="settings.android">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#settingsandroidcompilesdk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings.android.compileSdk
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#settingsandroidresourcepackaging" class="md-nav__link">
@@ -3615,9 +3637,9 @@ Read more in the <a href="../../user-guide/testing/">Testing</a> section.</p>
 <td>A Kotlin or Java package name for the generated <code>R</code> and <code>BuildConfig</code> classes. <a href="https://developer.android.com/build/configure-app-module#set-namespace">Read more</a>.</td>
 </tr>
 <tr>
-<td><code>compileSdk: int</code></td>
+<td><code>compileSdk: object \| int</code></td>
 <td>37</td>
-<td>The API level to compile the code. The code can use only the Android APIs up to that API level. <a href="https://developer.android.com/reference/tools/gradle-api/com/android/build/api/dsl/CommonExtension#compileSdk()">Read more</a>.</td>
+<td>The Android SDK version to compile the code against. The code can use only the Android APIs up to that API level. <a href="https://developer.android.com/reference/tools/gradle-api/com/android/build/api/dsl/CommonExtension#compileSdk()">Read more</a>.</td>
 </tr>
 <tr>
 <td><code>targetSdk: int</code></td>
@@ -3661,6 +3683,45 @@ Read more in the <a href="../../user-guide/testing/">Testing</a> section.</p>
 </tr>
 </tbody>
 </table>
+<h4 id="settingsandroidcompilesdk"><code>settings.android.compileSdk</code><a class="headerlink" href="#settingsandroidcompilesdk" title="Permanent link">&para;</a></h4>
+<p><code>settings.android.compileSdk</code> configures the Android SDK version used to compile the module. Use an API level directly as a shorthand, or use an object to configure the API level, minor API level, and SDK extension level.</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>apiLevel: int</code></td>
+<td>37</td>
+<td>The Android API level to compile the project against.</td>
+</tr>
+<tr>
+<td><code>minorApiLevel: int?</code></td>
+<td><code>null</code></td>
+<td>Minor API level of the Android API. When omitted, the Kotlin Toolchain checks for and uses a newer Android SDK version when available.</td>
+</tr>
+<tr>
+<td><code>sdkExtension: int?</code></td>
+<td><code>null</code></td>
+<td>Android SDK extension level to compile the project against. <a href="https://developer.android.com/guide/sdk-extensions">Read more</a></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><span class="filename">Shorthand</span><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">android</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">compileSdk</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">37</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Full form</span><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">android</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">compileSdk</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">apiLevel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">37</span>
+<span class="w">      </span><span class="nt">minorApiLevel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">      </span><span class="nt">sdkExtension</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</code></pre></div>
 <h4 id="settingsandroidresourcepackaging"><code>settings.android.resourcePackaging</code><a class="headerlink" href="#settingsandroidresourcepackaging" title="Permanent link">&para;</a></h4>
 <p><code>settings.android.resourcePackaging</code> configures how Java resources from dependencies are packaged in an Android app.
 Use it to resolve duplicate-resource failures from <code>MergeJavaResWorkAction</code>.</p>
@@ -4566,7 +4627,7 @@ which allows processing Kotlin source code with custom processors (usually to ge
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 25, 2026 11:38:56 UTC">June 25, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 7, 2026 10:28:24 UTC">August 7, 2026</span>
   </span>
 
     
