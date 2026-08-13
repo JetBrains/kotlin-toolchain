@@ -85,7 +85,9 @@ private fun parseMavenCoordinates(
     keyValueTrace: Trace,
 ): List<KeyValue>? {
     if (!validateAndReportMavenCoordinates(key.psi, key.textValue)) return null
-    val coordinatesParts = key.textValue.split(":")
+    val coordsAndPackaging = key.textValue.split("@")
+    val coordinatesParts = coordsAndPackaging.first().split(":")
+    val packagingType = coordsAndPackaging.getOrNull(1)
     val groupId = coordinatesParts[0]
     val artifactId = coordinatesParts[1]
     val version = coordinatesParts.getOrNull(2)
@@ -95,6 +97,7 @@ private fun parseMavenCoordinates(
         artifactId to SchemaMavenCoordinates::artifactId.name,
         version to SchemaMavenCoordinates::version.name,
         classifier to SchemaMavenCoordinates::classifier.name,
+        packagingType to SchemaMavenCoordinates::packagingType.name,
     ).mapNotNull { [keyValue, keyName] ->
         KeyValue(
             key = keyName,

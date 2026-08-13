@@ -1,0 +1,5 @@
+product:
+  type: jvm/lib
+
+dependencies:
+  - io.grpc:protoc-gen-grpc-java:1.80.0:linux-x86_32@exe

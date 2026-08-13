@@ -28,6 +28,9 @@ class MavenPlugin : SchemaNode(), SchemaMavenCoordinates {
 
     @IgnoreForSchema
     override val classifier = "jar"
+
+    @SchemaDoc("Maven plugin packaging type")
+    override val packagingType by nullableValue<String>()
 }
 
 @CustomSchemaDeclaration(MavenMojoSettings::class)

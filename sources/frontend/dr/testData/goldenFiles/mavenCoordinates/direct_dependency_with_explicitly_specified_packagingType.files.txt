@@ -1,0 +1,4 @@
+COMPILE
+annotations-13.0.jar
+kotlin-stdlib-#kotlinVersion.jar
+protoc-gen-grpc-java-1.80.0-linux-x86_32.exe

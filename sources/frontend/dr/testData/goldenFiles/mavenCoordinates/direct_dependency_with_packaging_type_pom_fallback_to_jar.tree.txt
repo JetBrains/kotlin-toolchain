@@ -1,0 +1,9 @@
+Module jvm-lib-1
+│ - main
+│ - scope = COMPILE
+│ - platforms = [jvm]
+├─── jvm-lib-1:main:io.grpc:protoc-gen-grpc-kotlin:1.5.0:jdk8
+│    ╰─── io.grpc:protoc-gen-grpc-kotlin:1.5.0:jdk8
+╰─── jvm-lib-1:main:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
+     ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
+          ╰─── org.jetbrains:annotations:13.0

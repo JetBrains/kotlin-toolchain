@@ -2,4 +2,6 @@ modules:
   - android-app
   - ios-app
   - jvm-app
+  - jvm-lib-1
+  - jvm-lib-2
   - shared

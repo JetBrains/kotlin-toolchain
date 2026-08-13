@@ -37,7 +37,7 @@ open class BuildAomTestRun(
             ).modules.firstOrNull()
         }
 
-        // Check errors absence.
+        // Check errors' absence.
         checkForExpectedErrors()
 
         // Return module's textual representation.

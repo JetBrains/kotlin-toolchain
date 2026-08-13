@@ -286,6 +286,7 @@ settings@iosArm64+iosSimulatorArm64:
         - artifactId: room-compiler  # module.yaml
           classifier: null  # default
           groupId: androidx.room  # module.yaml
+          packagingType: null  # default
           version: 2.8.4  # module.yaml
       version: 2.3.9  # default
     languageFeatures: null  # default
@@ -407,6 +408,7 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
         - artifactId: room-compiler  # module.yaml
           classifier: null  # default
           groupId: androidx.room  # module.yaml
+          packagingType: null  # default
           version: 2.8.4  # module.yaml
       version: 2.3.9  # default
     languageFeatures: null  # default
@@ -523,6 +525,7 @@ settings@jvm:
         - artifactId: room-compiler  # module.yaml
           classifier: null  # default
           groupId: androidx.room  # module.yaml
+          packagingType: null  # default
           version: 2.8.4  # module.yaml
       version: 2.3.9  # default
     languageFeatures: null  # default
@@ -650,6 +653,7 @@ settings@android:
         - artifactId: room-compiler  # module.yaml
           classifier: null  # default
           groupId: androidx.room  # module.yaml
+          packagingType: null  # default
           version: 2.8.4  # module.yaml
       version: 2.3.9  # default
     languageFeatures: null  # default
@@ -753,6 +757,7 @@ settings@iosArm64:
         - artifactId: room-compiler  # module.yaml
           classifier: null  # default
           groupId: androidx.room  # module.yaml
+          packagingType: null  # default
           version: 2.8.4  # module.yaml
       version: 2.3.9  # default
     languageFeatures: null  # default
@@ -853,6 +858,7 @@ settings@iosSimulatorArm64:
         - artifactId: room-compiler  # module.yaml
           classifier: null  # default
           groupId: androidx.room  # module.yaml
+          packagingType: null  # default
           version: 2.8.4  # module.yaml
       version: 2.3.9  # default
     languageFeatures: null  # default

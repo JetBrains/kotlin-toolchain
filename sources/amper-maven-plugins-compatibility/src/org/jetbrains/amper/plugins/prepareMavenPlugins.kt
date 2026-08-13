@@ -38,7 +38,7 @@ suspend fun prepareMavenPlugins(
                 groupId = mavenPlugin.groupId,
                 artifactId = mavenPlugin.artifactId,
                 version = mavenPlugin.version,
-                packagingType = null,
+                packagingType = mavenPlugin.packagingType,
                 classifier = null,
             )
             val pluginJarFile = mavenResolver.downloadSingleArtifactJar(pluginCoordinates) ?: return@async null
@@ -46,8 +46,7 @@ suspend fun prepareMavenPlugins(
                 try {
                     parseMavenPluginXml(it)
                 } catch (e: Exception) {
-                    val coordinatesString = "${mavenPlugin.groupId}:${mavenPlugin.artifactId}:${mavenPlugin.version}"
-                    logger.warn("Failed to parse plugin.xml for $coordinatesString", e)
+                    logger.warn("Failed to parse plugin.xml for $pluginCoordinates", e)
                     null
                 }
             }

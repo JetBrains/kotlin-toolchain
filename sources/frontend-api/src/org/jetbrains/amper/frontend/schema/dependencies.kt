@@ -65,7 +65,6 @@ sealed class UnscopedDependency : SchemaNode()
 /**
  * Helper interface to force implementors to have maven coordinates matching fields.
  */
-// todo (AB) : Support packaing type
 interface SchemaMavenCoordinates : Traceable {
     companion object {
         // Order matters!
@@ -74,6 +73,7 @@ interface SchemaMavenCoordinates : Traceable {
             SchemaMavenCoordinates::artifactId.name,
             SchemaMavenCoordinates::version.name,
             SchemaMavenCoordinates::classifier.name,
+            SchemaMavenCoordinates::packagingType.name,
         )
     }
     
@@ -81,9 +81,12 @@ interface SchemaMavenCoordinates : Traceable {
     val artifactId: String
     val version: String?
     val classifier: String?
+    val packagingType: String?
 }
 
-val SchemaMavenCoordinates.coordinates get() = "$groupId:$artifactId:$version"
+val SchemaMavenCoordinates.coordinates get() = "$groupId:$artifactId:$version" +
+        (classifier?.let { ":$it" } ?: "") +
+        (packagingType?.let { "@$it" } ?: "")
 
 @ExternalDependencyNotation
 class ExternalMavenDependency : ScopedDependency(), SchemaMavenCoordinates {
@@ -94,6 +97,7 @@ class ExternalMavenDependency : ScopedDependency(), SchemaMavenCoordinates {
     override val artifactId by value<String>()
     override val version by nullableValue<String>()
     override val classifier by nullableValue<String>()
+    override val packagingType by nullableValue<String>()
 }
 
 class InternalDependency : ScopedDependency() {
@@ -126,6 +130,7 @@ class UnscopedExternalMavenDependency : UnscopedExternalDependency(), SchemaMave
     override val artifactId by value<String>()
     override val version by nullableValue<String>()
     override val classifier by nullableValue<String>()
+    override val packagingType by nullableValue<String>()
 }
 
 class UnscopedCatalogDependency : UnscopedExternalDependency() {
@@ -163,7 +168,7 @@ fun SchemaMavenCoordinates.toMavenCoordinates() = MavenCoordinates(
         )
     },
     classifier = classifier,
-    packagingType = null,
+    packagingType = packagingType,
     trace = trace,
 )
 

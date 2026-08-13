@@ -12,6 +12,7 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.annotations.Nls
 import java.nio.file.InvalidPathException
 import kotlin.io.path.Path
+import kotlin.text.split
 
 context(reporter: ProblemReporter)
 internal fun validateAndReportMavenCoordinates(
@@ -33,7 +34,9 @@ internal fun validateAndReportMavenCoordinates(
         return false
     }
 
-    val parts = coordinates.trim().split(":")
+    val coordsAndPackaging = coordinates.trim().split("@")
+    val parts = coordsAndPackaging.first().split(":")
+    val packagingType = coordsAndPackaging.getOrNull(1)
 
     if (parts.size < 2) {
         reporter.reportMessage(MavenCoordinatesHaveTooFewParts(origin, coordinates, parts.size))
@@ -46,7 +49,7 @@ internal fun validateAndReportMavenCoordinates(
         return false
     }
 
-    parts.forEach { part ->
+    (parts + listOfNotNull(packagingType)).forEach { part ->
         try {
             // It throws InvalidPathException in case coordinates contain some restricted symbols.
             @Suppress("RETURN_VALUE_NOT_USED_COERCION")

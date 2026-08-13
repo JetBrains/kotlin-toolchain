@@ -1,0 +1,4 @@
+COMPILE
+annotations-13.0.jar
+kotlin-stdlib-#kotlinVersion.jar
+protoc-gen-grpc-kotlin-1.5.0-jdk8.jar

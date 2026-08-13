@@ -34,4 +34,14 @@ internal class DependenciesTest : FrontendTestCaseBase(Path("testResources") / "
     fun `bom dependency`() {
         aomTest("bom-dependency")
     }
+
+    @Test
+    fun `dependency with classifier`() {
+        aomTest("dependency-with-classifier")
+    }
+
+    @Test
+    fun `dependency with packagingType`() {
+        aomTest("dependency-with-packagingType")
+    }
 }
