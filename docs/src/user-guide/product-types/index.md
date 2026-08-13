@@ -22,6 +22,6 @@ Here is the list of supported product types:
 | [`android/app`](android-app.md)                      | An Android application                                                                                              |
 | [`ios/app`](ios-app.md)                              | An iOS application                                                                                                  |
 | [`js/app`](js-app.md)                                | A JavaScript application using the Kotlin/JS technology                                                             |
-| [`wasmJs/app`](wasm-app.md)                          | A WebAssembly application with browser APIs                                                                         |
-| [`wasmWasi/app`](wasm-app.md)                        | A WebAssembly application with WASI APIs                                                                            |
+| [`wasm-js/app`](wasm-js-app.md)                      | A WebAssembly application with browser APIs                                                                         |
+| [`wasm-wasi/app`](wasm-wasi-app.md)                  | A WebAssembly application with WASI APIs                                                                            |
 | [`jvm/amper-plugin`](../plugins/topics/structure.md) | A [Kotlin Toolchain plugin](../plugins/overview.md), to extend the Kotlin Toolchain build with custom functionality |
