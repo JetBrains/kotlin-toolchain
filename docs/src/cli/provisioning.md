@@ -28,6 +28,27 @@ immediately delegate to it.
 The provisioning mechanism and all relevant behaviors in the Kotlin Toolchain are designed to be safe to use concurrently.
 This means you can run as many Kotlin CLI commands as you want in parallel, and they won't disturb each other.
 
+## Loading environment files
+
+Use the `--env-file` root option to load environment variables before the Kotlin CLI initializes the project or executes
+build tasks. The path is relative to the current working directory and can use any name, such as `.env.dev` or `.env.prod`:
+
+```shell
+./kotlin --env-file .env.dev run -m server
+./kotlin --env-file .env.prod package -m server
+```
+
+The option can be repeated to layer environment-specific values over shared defaults:
+
+```shell
+./kotlin --env-file .env --env-file .env.dev run -m server
+```
+
+Variables already present in the process environment take precedence over files. When multiple files are supplied, an
+environment file supplied later takes precedence over earlier files. Environment files support blank lines, whole-line comments, and
+`NAME=value` entries with optional single or double quotes around values. They are parsed as data: shell commands and
+variable interpolation are not evaluated.
+
 ## Bootstrap cache location
 
 By default, when downloading the Kotlin Toolchain distribution, the wrapper script places it in a cache directory that is suitable

@@ -17,6 +17,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.defaultLazy
 import com.github.ajalt.clikt.parameters.options.eagerOption
 import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.versionOption
 import com.github.ajalt.clikt.parameters.types.path
@@ -114,9 +115,19 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
         // Detecting this path eagerly allows showing the default value in the help.
         .default(AmperUserCacheRoot.fromCurrentUserResult().unwrap())
 
+    private val environmentFiles by option(
+        "--env-file",
+        help = "Load environment variables from a file. May be repeated; existing variables and later files win.",
+    ).path(
+        mustExist = true,
+        canBeFile = true,
+        canBeDir = false,
+    ).multiple()
+
     private val debuggingOptions by DebuggingOptions()
 
     override suspend fun run() {
+        check(environmentFiles.isEmpty()) { "Environment file arguments must be handled before CLI parsing" }
 
         // Ensure we're writing traces to the configured user cache (we start with the default in early telemetry).
         // For commands that have a project context, the traces will eventually be moved to the project build logs dir.

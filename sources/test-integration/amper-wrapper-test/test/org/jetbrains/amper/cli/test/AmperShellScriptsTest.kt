@@ -134,6 +134,46 @@ class AmperShellScriptsTest : AmperCliWithWrapperTestBase() {
         }
     }
 
+    @Test
+    fun `shell script loads project environment file without overriding process environment`() = runBlocking {
+        val templatePath = shellScriptExampleProject
+        assertTrue { templatePath.isDirectory() }
+        templatePath.copyToRecursively(tempDir, followLinks = false, overwrite = false)
+        tempDir.resolve(".env.dev").writeText(
+            """
+            KOTLIN_TOOLCHAIN_ENV_FILE_TEST=from-env-dev
+            KOTLIN_TOOLCHAIN_ENV_LAYER_TEST=from-env-dev
+            KOTLIN_TOOLCHAIN_ENV_OVERRIDE_TEST=from-env-dev
+            """.trimIndent()
+        )
+        tempDir.resolve(".env").writeText(
+            """
+            KOTLIN_TOOLCHAIN_ENV_SHARED_TEST=from-shared-env
+            KOTLIN_TOOLCHAIN_ENV_LAYER_TEST=from-shared-env
+            """.trimIndent()
+        )
+
+        val result = runAmper(
+            workingDir = tempDir,
+            args = listOf("--env-file", ".env", "--env-file=.env.dev", "run"),
+            environment = mapOf("KOTLIN_TOOLCHAIN_ENV_OVERRIDE_TEST" to "from-process-environment"),
+            amperJavaHomeMode = JavaHomeMode.Custom(jreHomePath = provisionZulu25()),
+        )
+
+        assertTrue("Project environment file value must be available to the application. Output:\n${result.stdout}") {
+            result.stdout.contains("Environment from project file: from-env-dev")
+        }
+        assertTrue("Variables from later environment files must be available to the application. Output:\n${result.stdout}") {
+            result.stdout.contains("Environment from shared file: from-shared-env")
+        }
+        assertTrue("Later environment files must take precedence over earlier files. Output:\n${result.stdout}") {
+            result.stdout.contains("Environment layer: from-env-dev")
+        }
+        assertTrue("Process environment must take precedence over the project environment file. Output:\n${result.stdout}") {
+            result.stdout.contains("Environment override: from-process-environment")
+        }
+    }
+
     /**
      * It's expected on the start that wrappers and cli dist are published to maven local
      */

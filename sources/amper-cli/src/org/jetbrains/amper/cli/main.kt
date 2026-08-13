@@ -25,6 +25,11 @@ private val logger = LoggerFactory.getLogger("main")
 
 suspend fun main(args: Array<String>) {
     try {
+        val restartExitCode = restartWithEnvironmentFilesIfRequested(args)
+        if (restartExitCode != null) {
+            exitProcess(restartExitCode)
+        }
+
         // We don't use RuntimeMXBean.startTime because it might give incorrect results if the system time changes.
         // The uptime value used to have a bug because of this, but now uses a more precise OS-provided value.
         // See https://bugs.openjdk.org/browse/JDK-6523160
