@@ -17,7 +17,6 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.BasePluginExtension
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.problems.Problems
-import org.gradle.api.problems.Severity
 import org.gradle.api.provider.Property
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.jetbrains.amper.android.AndroidBuildRequest
@@ -147,6 +146,7 @@ class AmperAndroidIntegrationProjectPlugin @Inject constructor(private val probl
             .firstOrNull { it.platforms.contains(Platform.ANDROID) } ?: return
 
         val androidSettings = androidFragment.settings.android
+        androidExtension.buildToolsVersion = androidSettings.buildToolsVersion
         androidExtension.compileSdk {
             version = release(androidSettings.compileSdk.apiLevel.versionNumber) {
                 minorApiLevel = androidSettings.compileSdk.minorApiLevel

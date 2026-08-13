@@ -3,6 +3,7 @@ Module: android-app
 settings@android:
   android:
     applicationId: org.example.namespace  # default, from ${namespace}
+    buildToolsVersion: 37.0.0  # default
     compileSdk:
       apiLevel: 37  # default
       minorApiLevel: null  # default
@@ -343,6 +344,7 @@ settings@iosArm64+iosSimulatorArm64:
 
 settings@jvm+android+iosArm64+iosSimulatorArm64:
   android:
+    buildToolsVersion: 37.0.0  # default
     compileSdk:
       apiLevel: 37  # default
       minorApiLevel: null  # default
@@ -586,6 +588,7 @@ settings@jvm:
 
 settings@android:
   android:
+    buildToolsVersion: 37.0.0  # default
     compileSdk:
       apiLevel: 37  # default
       minorApiLevel: null  # default

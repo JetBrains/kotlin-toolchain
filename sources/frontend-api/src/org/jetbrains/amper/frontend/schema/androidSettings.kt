@@ -83,6 +83,11 @@ class AndroidSettings : SchemaNode() {
     @SchemaDoc("Configure [Kotlin Parcelize](https://developer.android.com/kotlin/parcelize) to automatically " +
             "implement the `Parcelable` interface for classes annotated with `@Parcelize`.")
     val parcelize: ParcelizeSettings by nested()
+
+    // The default should be at least as high as the minimal version supported by the AGP we use:
+    // https://developer.android.com/build/releases/gradle-plugin (see SDK Build Tools Minimum version field)
+    @SchemaDoc("Version of [SDK Build Tools](https://developer.android.com/tools/releases/build-tools) to use.")
+    val buildToolsVersion by value("37.0.0")
 }
 
 class AndroidCompileSdkVersion : SchemaNode() {

@@ -9,6 +9,7 @@ Fragments:
     Settings: {
       android: <default> {
         applicationId: <default> org.example.namespace
+        buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
           minorApiLevel: <default> null
@@ -207,6 +208,7 @@ Fragments:
     Settings: {
       android: <default> {
         applicationId: <default> org.example.namespace
+        buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
           minorApiLevel: <default> null
@@ -401,6 +403,7 @@ Fragments:
     Settings: {
       android: <default> {
         applicationId: <default> org.example.namespace
+        buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
           minorApiLevel: <default> null
@@ -598,6 +601,7 @@ Fragments:
     Settings: {
       android: <default> {
         applicationId: <default> org.example.namespace
+        buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
           minorApiLevel: <default> null
@@ -793,6 +797,7 @@ Fragments:
     Settings: {
       android: <default> {
         applicationId: <default> org.example.namespace
+        buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
           minorApiLevel: <default> null
@@ -988,6 +993,7 @@ Fragments:
     Settings: {
       android: <default> {
         applicationId: <default> org.example.namespace
+        buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
           minorApiLevel: <default> null
@@ -1186,6 +1192,7 @@ Fragments:
     Settings: {
       android: <default> {
         applicationId: <default> org.example.namespace
+        buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
           minorApiLevel: <default> null
@@ -1384,6 +1391,7 @@ Fragments:
     Settings: {
       android: <default> {
         applicationId: <default> org.example.namespace
+        buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
           minorApiLevel: <default> null
@@ -1579,6 +1587,7 @@ Fragments:
     Settings: {
       android: <default> {
         applicationId: <default> org.example.namespace
+        buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
           minorApiLevel: <default> null
@@ -1777,6 +1786,7 @@ Fragments:
     Settings: {
       android: <default> {
         applicationId: <default> org.example.namespace
+        buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
           minorApiLevel: <default> null

@@ -282,6 +282,7 @@ Read more in the [Testing](../user-guide/testing.md) section.
 | `versionName: string`         | `unspecified`           | Version name. [Read more](https://developer.android.com/studio/publish/versioning).                                                                                                                                                             |
 | `resourcePackaging: object`   | (empty)                 | Configure how duplicate Java resources from dependencies are packaged in an Android app. See [Resolving duplicate Java resources](../user-guide/product-types/android-app.md#resolving-duplicate-java-resources).                               |
 | `parcelize: object \| string` | (disabled)              | Configure [Parcelize](https://developer.android.com/kotlin/parcelize).                                                                                                                                                                          |
+| `buildToolsVersion: string`   | 37.0.0                  | Version of [SDK Build Tools](https://developer.android.com/tools/releases/build-tools) to use.                                                                                                                                                  |
 
 #### `settings.android.compileSdk`
 

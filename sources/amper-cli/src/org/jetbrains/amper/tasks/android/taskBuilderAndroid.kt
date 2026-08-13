@@ -464,11 +464,10 @@ private fun TaskGraphBuilder.setupDownloadBuildToolsTask(
     isTest: Boolean,
 ) {
     val androidFragment = getAndroidFragment(module, isTest)
-    val compileSdk = androidFragment?.settings?.android?.compileSdk ?: return
+    val buildToolsVersion = androidFragment?.settings?.android?.buildToolsVersion ?: return
     registerTask(
         task = GetAndroidPlatformFileFromPackageTask(
-            // build-tools versioning doesn't seem to use minor API levels
-            packageName = "build-tools;${compileSdk.apiLevel.versionNumber}.0.0",
+            packageName = "build-tools;$buildToolsVersion",
             androidSdkPath = androidSdkPath,
             userCacheRoot = userCacheRoot,
             taskName = AndroidTaskType.InstallBuildTools.getTaskName(module, Platform.ANDROID, isTest)
