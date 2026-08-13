@@ -10,12 +10,14 @@ import com.jetbrains.cidr.xcode.frameworks.AppleProductType
 import com.jetbrains.cidr.xcode.frameworks.AppleSdkManager
 import com.jetbrains.cidr.xcode.frameworks.buildSystem.BuildSettingNames
 import com.jetbrains.cidr.xcode.model.PBXBuildPhase
+import com.jetbrains.cidr.xcode.model.PBXFileReference
 import com.jetbrains.cidr.xcode.model.PBXProjectFile
 import com.jetbrains.cidr.xcode.model.PBXProjectFileManipulator
 import com.jetbrains.cidr.xcode.model.PBXReference
 import com.jetbrains.cidr.xcode.model.PBXTarget
 import com.jetbrains.cidr.xcode.model.ProjectFilesChanges
 import com.jetbrains.cidr.xcode.model.addFileSystemSynchronizedRootGroup
+import com.jetbrains.cidr.xcode.pbxproj.ObjectReference
 import com.jetbrains.cidr.xcode.plist.Plist
 import com.jetbrains.cidr.xcode.plist.XMLPlistDriver
 import com.jetbrains.cidr.xcode.util.XcodeUserDataHolder
@@ -32,6 +34,7 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.singleSourceRoot
 import org.jetbrains.amper.tasks.TaskResult
+import org.jetbrains.amper.tasks.ios.IosConventions.SCHEME_NAME
 import org.jetbrains.amper.tasks.rootFragment
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -43,6 +46,7 @@ import kotlin.io.path.createFile
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
 import kotlin.io.path.exists
+import kotlin.io.path.isRegularFile
 import kotlin.io.path.pathString
 import kotlin.io.path.relativeTo
 import kotlin.io.path.writeText
@@ -83,7 +87,7 @@ class ManageXCodeProjectTask(
                 }
 
         } else {
-            logger.info("No Xcode project detected in '$projectDir', generating the buildable default")
+            logger.info("No Xcode project detected in '$projectDir', generating a buildable default")
 
             spanBuilder("xcode project generation")
                 .setAmperModule(module)
@@ -94,6 +98,8 @@ class ManageXCodeProjectTask(
                     )
                 }
         }
+
+        ensureRequiredSchemePresent(projectDir, target)
 
         return Result(
             debugSettingsResolver = XcodeBuildSettingsResolution.FromModel.Resolver(target, BuildType.Debug),
@@ -144,6 +150,30 @@ class ManageXCodeProjectTask(
         return target
     }
 
+    private fun ensureRequiredSchemePresent(
+        projectDir: Path,
+        target: PBXTarget,
+    ) {
+        val scheme = projectDir / "xcshareddata/xcschemes/$SCHEME_NAME.xcscheme"
+        if (scheme.isRegularFile()) {
+            // For now we only check that the scheme exists with the required name.
+            // TODO: Validate/adjust the scheme?
+            logger.debug("Scheme is present at {}", scheme)
+            return
+        }
+        logger.info("No shared scheme `$SCHEME_NAME` is found, generating a default one")
+
+        val contents = generateDefaultBuildableSchemeContents(
+            blueprintIdentifier = target.id.asString(),
+            buildableName = (target.getAttribute("productReference", ObjectReference::class.java)
+                ?.resolveObject() as PBXFileReference)
+                .getNotNullString("path"),
+            blueprintName = target.name,
+            referencedContainer = IosConventions.XCODE_PROJECT_DIRECTORY_NAME,
+        )
+        scheme.createParentDirectories().writeText(contents)
+    }
+
     private fun generateDefaultProject(
         pbxProjectFilePath: Path,
         baseDir: Path,
@@ -174,7 +204,7 @@ class ManageXCodeProjectTask(
 
         manipulator.addFile(
             path = infoPlistFile.pathString,
-            targets = emptyArray(),
+            targets = [],
             parentGroup = checkNotNull(pbxProjectFile.projectObject.mainGroup),
             isGroup = false,
         )
@@ -192,7 +222,7 @@ class ManageXCodeProjectTask(
             this[BuildSettingNames.SDKROOT] = iosPlatform.type.platformName  // iphoneos
             this[BuildSettingNames.PRODUCT_NAME] = defaultProductName
             this[BuildSettingNames.PRODUCT_MODULE_NAME] = PRODUCT_MODULE_NAME
-            this[BuildSettingNames.TARGETED_DEVICE_FAMILY] = listOf("1", "2")
+            this[BuildSettingNames.TARGETED_DEVICE_FAMILY] = ["1", "2"]
             this[BuildSettingNames.ASSETCATALOG_COMPILER_APPICON_NAME] = "AppIcon"
 
             // Will not work if set to YES, validate at XCodeIntegrationCommand
@@ -228,11 +258,11 @@ class ManageXCodeProjectTask(
             sourceTree = PBXReference.SOURCE_TREE_SOURCE_ROOT,
             name = "src",
             path = src.relativeTo(baseDir).pathString,
-            addToTargets = listOf(pbxTarget),
-            membershipExceptions = listOf(
+            addToTargets = [pbxTarget],
+            membershipExceptions = [
                 // Exclude Info.plist so it doesn't interfere with the build
                 infoPlistFile.relativeTo(src).pathString
-            ),
+            ],
         )
 
         manipulator.addBuildPhase(
@@ -290,7 +320,7 @@ class ManageXCodeProjectTask(
 
     private fun inferDefaultAppBundleId(): String = listOfNotNull(
         module.rootFragment.settings.publishing.group?.takeIf { it.isNotBlank() },
-        module.userReadableName.takeIf { it.isNotBlank() }
+        module.userReadableName.takeIf { it.isNotBlank() },
     ).joinToString(".")
 
     private fun isAmperPhaseValid(buildPhase: PBXBuildPhase): Boolean {

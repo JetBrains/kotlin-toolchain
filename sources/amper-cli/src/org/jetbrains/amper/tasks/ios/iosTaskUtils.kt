@@ -66,3 +66,91 @@ internal class ConfigurationSettingsResolver(
     override val sdk: AppleSdk? get() = null
     override fun areSdkAndArchitectureOverridden() = true
 }
+
+internal fun generateDefaultBuildableSchemeContents(
+    blueprintIdentifier: String,
+    buildableName: String,
+    blueprintName: String,
+    referencedContainer: String,
+): String = """
+    |<?xml version="1.0" encoding="UTF-8"?>
+    |<Scheme
+    |   LastUpgradeVersion = "1640"
+    |   version = "1.7">
+    |   <BuildAction
+    |      parallelizeBuildables = "YES"
+    |      buildImplicitDependencies = "YES"
+    |      buildArchitectures = "Automatic">
+    |      <BuildActionEntries>
+    |         <BuildActionEntry
+    |            buildForTesting = "YES"
+    |            buildForRunning = "YES"
+    |            buildForProfiling = "YES"
+    |            buildForArchiving = "YES"
+    |            buildForAnalyzing = "YES">
+    |            <BuildableReference
+    |               BuildableIdentifier = "primary"
+    |               BlueprintIdentifier = "$blueprintIdentifier"
+    |               BuildableName = "$buildableName"
+    |               BlueprintName = "$blueprintName"
+    |               ReferencedContainer = "container:$referencedContainer">
+    |            </BuildableReference>
+    |         </BuildActionEntry>
+    |      </BuildActionEntries>
+    |   </BuildAction>
+    |   <TestAction
+    |      buildConfiguration = "Debug"
+    |      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+    |      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+    |      shouldUseLaunchSchemeArgsEnv = "YES"
+    |      shouldAutocreateTestPlan = "YES">
+    |      <Testables>
+    |      </Testables>
+    |   </TestAction>
+    |   <LaunchAction
+    |      buildConfiguration = "Debug"
+    |      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+    |      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+    |      launchStyle = "0"
+    |      useCustomWorkingDirectory = "NO"
+    |      ignoresPersistentStateOnLaunch = "NO"
+    |      debugDocumentVersioning = "YES"
+    |      debugServiceExtension = "internal"
+    |      allowLocationSimulation = "YES">
+    |      <BuildableProductRunnable
+    |         runnableDebuggingMode = "0">
+    |         <BuildableReference
+    |            BuildableIdentifier = "primary"
+    |            BlueprintIdentifier = "$blueprintIdentifier"
+    |            BuildableName = "$buildableName"
+    |            BlueprintName = "$blueprintName"
+    |            ReferencedContainer = "container:$referencedContainer">
+    |         </BuildableReference>
+    |      </BuildableProductRunnable>
+    |   </LaunchAction>
+    |   <ProfileAction
+    |      buildConfiguration = "Release"
+    |      shouldUseLaunchSchemeArgsEnv = "YES"
+    |      savedToolIdentifier = ""
+    |      useCustomWorkingDirectory = "NO"
+    |      debugDocumentVersioning = "YES">
+    |      <BuildableProductRunnable
+    |         runnableDebuggingMode = "0">
+    |         <BuildableReference
+    |            BuildableIdentifier = "primary"
+    |            BlueprintIdentifier = "$blueprintIdentifier"
+    |            BuildableName = "$buildableName"
+    |            BlueprintName = "$blueprintName"
+    |            ReferencedContainer = "container:$referencedContainer">
+    |         </BuildableReference>
+    |      </BuildableProductRunnable>
+    |   </ProfileAction>
+    |   <AnalyzeAction
+    |      buildConfiguration = "Debug">
+    |   </AnalyzeAction>
+    |   <ArchiveAction
+    |      buildConfiguration = "Release"
+    |      revealArchiveInOrganizer = "YES">
+    |   </ArchiveAction>
+    |</Scheme>
+""".trimMargin() + "\n"

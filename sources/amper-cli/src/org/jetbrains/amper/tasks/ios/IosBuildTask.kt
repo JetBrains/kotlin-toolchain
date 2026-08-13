@@ -80,8 +80,7 @@ class IosBuildTask(
             this += "xcrun"
             this += "xcodebuild"
             this += "-project"; this += module.xcodeProjectPath.absolutePathString()
-            // FIXME: Select/manage proper scheme instead of relying on the target name (KTC-5687).
-            this += "-scheme"; this += settings.targetName
+            this += "-scheme"; this += IosConventions.SCHEME_NAME
             this += "-destination"; this += "generic/platform=${platform.toXcodePlatformTitle()}"
             this += "-configuration"; this += buildType.name
             this += "-derivedDataPath"; this += derivedDataPath.pathString

@@ -27,6 +27,17 @@ object IosConventions {
      * This is used in Xcode project generation for linker search paths.
      */
     const val FRAMEWORKS_DIR_NAME = "AmperFrameworks"
+
+    /**
+     * Shared scheme name that is used to build the iOS app.
+     */
+    const val SCHEME_NAME = "app"
+
+    /**
+     * Name of the directory of the xcode project.
+     * @see xcodeProjectPath
+     */
+    const val XCODE_PROJECT_DIRECTORY_NAME = "module.xcodeproj"
 }
 
 /**
@@ -38,5 +49,5 @@ val AmperModule.xcodeProjectPath: Path
             "Expected ${ProductType.IOS_APP}, got $type"
         }
 
-        return source.moduleDir / "module.xcodeproj"
+        return source.moduleDir / IosConventions.XCODE_PROJECT_DIRECTORY_NAME
     }

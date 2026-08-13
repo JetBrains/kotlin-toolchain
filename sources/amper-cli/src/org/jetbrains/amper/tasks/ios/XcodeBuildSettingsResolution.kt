@@ -96,9 +96,6 @@ val XcodeBuildSettingsResolution.Resolver.developmentTeam: String?
 val XcodeBuildSettingsResolution.Resolver.codeSigningAllowed: String?
     get() = getSetting("CODE_SIGNING_ALLOWED")
 
-val XcodeBuildSettingsResolution.Resolver.targetName: String
-    get() = getRequiredSetting(BuildSettingNames.TARGET_NAME)
-
 val XcodeBuildSettingsResolution.Resolver.productName: String
     get() = getRequiredSetting(BuildSettingNames.PRODUCT_NAME)
 
