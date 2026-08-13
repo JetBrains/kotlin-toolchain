@@ -77,6 +77,7 @@ import org.jetbrains.kotlin.metadata.format.projectStructure.parseKmpLibraryMeta
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.concurrent.CancellationException
+import kotlin.collections.filter
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.io.path.Path
@@ -349,7 +350,7 @@ class MavenDependencyNodeWithContext internal constructor(
      * todo (AB) : Replace with proper isKmpLibrary() condition that takes multi-platform context into account
      */
     fun isKmpLibrary(): Boolean = when {
-        context.settings.platforms.size == 1 -> dependency.files(false).isEmpty()
+        context.settings.platforms.size == 1 -> dependency.filesRaw(false).isEmpty()
         else -> false
     }
 
@@ -657,6 +658,21 @@ interface MavenDependency {
     val state: ResolutionState
     val pomPath: Path?
 
+    /**
+     * Returns all files belonging to the dependency.
+     *
+     * This method being called after resolution is finished,
+     * guarantied for each returned file that
+     * - it either points to the existing path [DependencyFile.path]
+     * - or the error occurred during file resolution is presented in [messages]
+     *   (in that case, [DependencyFile.path] might either not exist or be left unspecified)
+     *
+     * If it is called before resolution is finished,
+     * then a list of files that is going to be resolved is returned.
+     *
+     * @param withSources if set to true and resolution was requested to include sources, then sources will be returned as well.
+     * otherwise, only classpath artifacts are returned.
+     */
     fun files(withSources: Boolean = false): List<DependencyFile>
 
     fun toSerializableReference(graphContext: DependencyGraphContext): MavenDependencyReference {
@@ -828,11 +844,50 @@ class MavenDependencyImpl internal constructor(
     override val pomPath: Path?
         get() = pom.path
 
-    override fun files(withSources: Boolean) =
+    override fun files(withSources: Boolean): List<DependencyFileImpl> =
+        filesRaw(withSources = withSources).filterByExistence()
+
+    /**
+     * Internal method that provides an ability to skip filtering of non-existing files.
+     * It is useful when resolution is in progress and have intermediate state.
+     * External callers are intended to call publicly available [MavenDependency.files]
+     * (that returns list of resolved existing files after resolution had finished or a raw list if it is not yet started)
+     */
+    internal fun filesRaw(withSources: Boolean = false) =
         if (withSources)
             _files
         else
             _filesWithoutSources.filterNot { it.hasSourcesFilename() }
+
+    private fun List<DependencyFileImpl>.filterByExistence(): List<DependencyFileImpl>  {
+        val isDownloadFinished = downloadState in [DownloadState.WITHOUT_SOURCES, DownloadState.COMPLETE ]
+        if (!isDownloadFinished) return this
+
+        return filter {
+            // If an error was detected while resolving this file, return it and skip the existence check.
+            // (it might be an error on downloading, or something else that prevented the file from existing locally,
+            // the error will be propagated to the main dependency node, see [MavenDependencyImpl.messages])
+            val resolvedWithAnError = it.diagnosticsReporter.getMessages().any { it.severity >= Severity.ERROR }
+            if (resolvedWithAnError) return@filter true
+
+            val exists = it.path?.exists() == true
+            // Check below raises a hard error only in case a file returned by DR is supposed to exist, but it doesn't.
+            // It indicates some internal inconsistency and treated as an illegal state, that should never happen.
+            check(
+                exists
+                        // a missing optional file is not an internal issue, there was no error detected during its resolution,
+                        // the file simply doesn't exist.
+                        || it.isOptional
+                        // Missing of auto-added documentation doesn't lead to an error no matter what
+                        || it.isAutoAddedDocumentation
+                        // Missing of documentation doesn't lead to an error no matter what
+                        || it.isDocumentation
+            ) {
+                "File '$it' was returned from dependency resolution, but is missing on disk"
+            }
+            exists
+        }
+    }
 
     private fun DependencyFileImpl.hasSourcesFilename(): Boolean =
         fileName.endsWith("-sources.jar") || fileName.endsWith("-javadoc.jar")
@@ -2306,7 +2361,7 @@ class MavenDependencyImpl internal constructor(
     private suspend fun downloadDependenciesImpl(context: Context, downloadSources: Boolean = false) {
         val withSources = downloadSources || alwaysDownloadSources()
 
-        val allFiles = files(withSources)
+        val allFiles = filesRaw(withSources)
         val notDownloaded = allFiles
             .filter {
                 (context.settings.platforms.size == 1 // Verification of multiplatform hash is done at the file-producing stage

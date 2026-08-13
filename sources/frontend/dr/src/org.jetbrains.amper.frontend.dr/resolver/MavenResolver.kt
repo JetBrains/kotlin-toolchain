@@ -126,6 +126,8 @@ open class MavenResolver(
         )
     }
 
+    // todo (AB) : Check all usages of this non-cli [MavenResolver] and figure out who and how handles the errors?
+    //  make sure ERROR diagnostics are not left unattended
     protected open fun handleProblems(buildProblems: List<BuildProblem>, resolveSourceMoniker: String) =
         Unit
 }

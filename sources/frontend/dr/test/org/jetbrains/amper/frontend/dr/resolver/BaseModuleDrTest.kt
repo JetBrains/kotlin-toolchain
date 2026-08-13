@@ -185,15 +185,13 @@ abstract class BaseModuleDrTest {
         testInfo: TestInfo,
         root: DependencyNode,
         withSources: Boolean = false,
-        checkExistence: Boolean = false,
-        checkAutoAddedDocumentation: Boolean = true,
         scope: ResolutionScope? = null,
     ) {
         val goldenFile = goldenFileOsArchAware(
             "${testInfo.testMethod.get().name.replace(" ", "_")}.files.txt")
         val expected = getGoldenFileText(goldenFile, fileDescription = "Golden file for files")
         withActualDumpAndDelayedAssertion(goldenFile) {
-            assertFiles(expected.trim().lines(), root, withSources, checkExistence, checkAutoAddedDocumentation, scope)
+            assertFiles(expected.trim().lines(), root, withSources, scope)
         }
     }
 
@@ -202,8 +200,6 @@ abstract class BaseModuleDrTest {
         expectedFiles: List<String>,
         root: DependencyNode,
         withSources: Boolean = false,
-        checkExistence: Boolean = false,// could be set to true only in case dependency files were downloaded by caller already
-        checkAutoAddedDocumentation: Boolean = true, // auto-added documentation files are skipped from check if this flag is false.
         scope: ResolutionScope? = null,
     ) {
         root.distinctBfsSequence()
@@ -212,9 +208,7 @@ abstract class BaseModuleDrTest {
             .filterKeys { scope == null || it == scope }
             .mapValues {
                 it.value.flatMap { (it.unwrap() as MavenDependencyNode).dependency.files(withSources) }
-                    .filterNot { !checkAutoAddedDocumentation && it.isAutoAddedDocumentation }
-                    .filter { !it.isOptional || it.path?.exists() == true }
-                    .mapNotNull { it.path }
+                    .mapNotNull { it.path?.takeIf { it.exists() } }
                     .sortedBy { it.name }
                     .toSet()
             }.also { filesPerScope ->
@@ -225,14 +219,6 @@ abstract class BaseModuleDrTest {
                     }
                 }
                 assertEqualsWithDiff(expectedFiles, actualList)
-
-                if (checkExistence) {
-                    filesPerScope.flatMap { it.value }.forEach {
-                        check(it.exists()) {
-                            "File $it was returned from dependency resolution, but is missing on disk"
-                        }
-                    }
-                }
             }
     }
 

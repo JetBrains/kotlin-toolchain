@@ -202,8 +202,8 @@ class InitialMavenPhaseTask(parameters: PhaseTaskParameters) : BeforeMavenPhaseT
             .let { it.runtimeDependenciesRootNode ?: it.compileDependenciesRootNode }
             .distinctBfsSequence()
             .filterIsInstance<MavenDependencyNode>()
-            // Filter out all dependencies without files.
-            .mapNotNull { it.dependency.files().firstOrNull()?.path?.to(it) }
+            // Filter out all dependencies without existing files.
+            .mapNotNull { it.dependency.files().firstOrNull { it.path?.exists() == true }?.path?.to(it) }
             .map { [path, node] ->
                 DefaultMavenArtifact(
                     groupId = node.dependency.group,

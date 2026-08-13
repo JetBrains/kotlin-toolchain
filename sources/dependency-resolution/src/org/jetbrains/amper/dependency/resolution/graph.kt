@@ -214,12 +214,9 @@ interface DependencyNode {
                 node.dependency
                     .files()
                     .filter { it.fileCondition() }
-                    .forEach { file ->
-                        val path = file.path ?: return@forEach
-                        check(path.exists() || file.isOptional || file.isAutoAddedDocumentation) {
-                            "File '$file' was returned from dependency resolution, but is missing on disk"
-                        }
-                        files.add(path)
+                    .mapNotNull { it.path?.takeIf { it.exists() } }
+                    .let {
+                        files.addAll(it)
                     }
             }
             nodeBlock(node)

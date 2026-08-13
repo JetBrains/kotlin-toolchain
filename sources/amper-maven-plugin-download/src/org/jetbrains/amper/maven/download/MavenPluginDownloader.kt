@@ -13,6 +13,7 @@ import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.dr.resolver.MavenResolver
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import java.nio.file.Path
+import kotlin.io.path.exists
 
 /**
  * Downloads a single Maven artifact and returns the path to its JAR file.
@@ -36,6 +37,6 @@ suspend fun MavenResolver.downloadSingleArtifactJar(
     val dependencyNode = resolvedRoot.root.children.first() as MavenDependencyNode
     return dependencyNode.dependency.files()
         .filter { it.extension == "jar" }
-        .mapNotNull { it.path }
+        .mapNotNull { it.path?.takeIf { it.exists() } }
         .singleOrNull()
 }

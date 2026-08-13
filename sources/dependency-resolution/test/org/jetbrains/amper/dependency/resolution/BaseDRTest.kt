@@ -10,7 +10,6 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.amper.dependency.resolution.diagnostics.Message
 import org.jetbrains.amper.dependency.resolution.diagnostics.Severity
 import org.jetbrains.amper.dependency.resolution.diagnostics.SimpleDiagnosticDescriptor
-import org.jetbrains.amper.dependency.resolution.diagnostics.SimpleMessage
 import org.jetbrains.amper.dependency.resolution.diagnostics.detailedMessage
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.assertEqualsWithDiff
@@ -253,42 +252,21 @@ abstract class BaseDRTest {
         RootDependencyNodeWithContext(children = map { it.toMavenNode(context) }, templateContext = context)
 
     protected fun assertFiles(
-        files: List<String>, root: DependencyNode,
+        files: List<String>,
+        root: DependencyNode,
         withSources: Boolean = false,
-        checkExistence: Boolean = false,// could be set to true only in case dependency files were downloaded by caller already
-        checkAutoAddedDocumentation: Boolean = true, // auto-added documentation files are skipped from check if this flag is false.
-        checkOptional: Boolean = false // optional files are skipped from check if this flag is false.
     ) {
         root.distinctBfsSequence()
             .filterIsInstance<MavenDependencyNode>()
-            .flatMap { it.dependency.files(withSources) }
+            .flatMap {
+                it.dependency.files(withSources)
+            }
             .mapNotNull { file -> file.path?.let { file to it } }
             .sortedBy { it.second.name }
             .distinctBy { it.second }
             .toSet()
             .let {
-                val resolvedFiles = if (!checkExistence) {
-                    it
-                } else {
-                    it.filter {
-                        val file = it.first
-                        val filePath = it.second
-                        val exists = filePath.exists()
-                        check(exists
-                                || !checkOptional && file.isOptional
-                                || !checkAutoAddedDocumentation && file.isAutoAddedDocumentation) {
-                            SimpleMessage(
-                                text = "File '$filePath' was returned from dependency resolution, but is missing on disk",
-                                id = "File is missing on disk",
-                                // todo (AB) : Those messages enrich context of the failure, but those are not
-                                // todo (AB) : available in deserialized graph. It might be better to get messages from dependency node instead
-                                childMessages = (file as? DependencyFileImpl)?.diagnosticsReporter?.getMessages().orEmpty(),
-                            ).detailedMessage
-                        }
-                        exists
-                    }
-                }
-                assertEqualsWithDiff(files, resolvedFiles.map { file -> file.second.name })
+                assertEqualsWithDiff(files, it.map { file -> file.second.name })
             }
     }
 
@@ -296,15 +274,12 @@ abstract class BaseDRTest {
         testInfo: TestInfo,
         root: DependencyNode,
         withSources: Boolean = false,
-        checkExistence: Boolean = false,
-        checkAutoAddedDocumentation: Boolean = true,
-        checkOptional: Boolean = false,
     ) {
         val fileList = goldenFileOsArchAware("${testInfo.nameToGoldenFile()}.files.txt")
         if (!fileList.exists()) { fileList.createFile() }
         val expected = fileList.readText().trim().lines()
         withActualDump(fileList) {
-            assertFiles(expected, root, withSources, checkExistence, checkAutoAddedDocumentation, checkOptional = checkOptional)
+            assertFiles(expected, root, withSources)
         }
     }
 
@@ -312,38 +287,20 @@ abstract class BaseDRTest {
         testInfo: TestInfo,
         root: DependencyNodeHolderWithContext,
         withSources: Boolean = false,
-        checkAutoAddedDocumentation: Boolean = true,
-        checkOptional: Boolean = false,
         verifyMessages: Boolean = false,
         filterMessages: List<Message>.() -> List<Message> = { defaultFilterMessages() }
     ) {
         downloadDependencies(root, withSources, verifyMessages, filterMessages)
-        assertFiles(
-            testInfo,
-            root,
-            withSources,
-            checkExistence = true,
-            checkOptional = checkOptional,
-            checkAutoAddedDocumentation = checkAutoAddedDocumentation
-        )
+        assertFiles(testInfo, root, withSources)
     }
 
     protected suspend fun downloadAndAssertFiles(
         files: List<String>, root: DependencyNodeHolderWithContext, withSources: Boolean = false,
-        checkAutoAddedDocumentation: Boolean = true,
-        checkOptional: Boolean = false,
         verifyMessages: Boolean = false,
         filterMessages: List<Message>.() -> List<Message> = { defaultFilterMessages() }
     ) {
         downloadDependencies(root, withSources, verifyMessages, filterMessages)
-        assertFiles(
-            files,
-            root,
-            withSources,
-            checkExistence = true,
-            checkOptional = checkOptional,
-            checkAutoAddedDocumentation = checkAutoAddedDocumentation
-        )
+        assertFiles(files, root, withSources)
     }
 
     private suspend fun downloadDependencies(

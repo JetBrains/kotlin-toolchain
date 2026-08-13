@@ -17,6 +17,7 @@ import org.jetbrains.amper.test.dr.toMavenNode
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
 import kotlin.io.path.div
+import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.name
 import kotlin.test.Test
@@ -644,7 +645,7 @@ class BuildGraphTest : BaseDRTest() {
             scope = ResolutionScope.RUNTIME,
             verifyMessages = true
         )
-        downloadAndAssertFiles(testInfo, root, withSources = true, checkAutoAddedDocumentation = false)
+        downloadAndAssertFiles(testInfo, root, withSources = true/*, checkAutoAddedDocumentation = false*/)
     }
 
     /**
@@ -955,7 +956,6 @@ class BuildGraphTest : BaseDRTest() {
             ),
             root,
             withSources = true,
-            checkAutoAddedDocumentation = false
         )
     }
 
@@ -2624,7 +2624,7 @@ class BuildGraphTest : BaseDRTest() {
             dependency = listOf("org.jetbrains.compose.desktop:desktop-jvm-windows-x64:1.5.10"),
             scope = ResolutionScope.RUNTIME,
         )
-        downloadAndAssertFiles(testInfo, root, withSources = true, checkAutoAddedDocumentation = false)
+        downloadAndAssertFiles(testInfo, root, withSources = true)
     }
 
     @Test

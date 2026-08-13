@@ -268,9 +268,7 @@ fun getDependencyFile(
 
 @Serializable
 data class DependencyFilePlain private constructor(
-    override val isAutoAddedDocumentation: Boolean = false,
     override val isDocumentation: Boolean = false,
-    override val isOptional: Boolean = false,
     override val extension: String = "jar",
     private val pathAsString: String? = null,
     override val kmpSourceSet: String? = null,
@@ -278,9 +276,7 @@ data class DependencyFilePlain private constructor(
 ) : DependencyFile {
 
     constructor(dependencyFile: DependencyFile) : this(
-        dependencyFile.isAutoAddedDocumentation,
         dependencyFile.isDocumentation,
-        dependencyFile.isOptional,
         dependencyFile.extension,
         dependencyFile.path?.absolutePathString(),
         dependencyFile.kmpSourceSet,
@@ -291,9 +287,7 @@ data class DependencyFilePlain private constructor(
 }
 
 sealed interface DependencyFile {
-    val isAutoAddedDocumentation: Boolean
     val isDocumentation: Boolean
-    val isOptional: Boolean
     val extension: String
     val path: Path?
     val kmpSourceSet: String?
@@ -305,8 +299,8 @@ open class DependencyFileImpl(
     val nameWithoutExtension: String,
     override val extension: String,
     override val isDocumentation: Boolean = false,
-    override val isAutoAddedDocumentation: Boolean = false,
-    override val isOptional: Boolean = false,
+    internal val isAutoAddedDocumentation: Boolean = false,
+    internal val isOptional: Boolean = false,
     private val fileCache: FileCache = dependency.settings.fileCache,
 ): DependencyFile {
     val settings = TypedKeyMap()

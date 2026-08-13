@@ -10,6 +10,7 @@ import org.jetbrains.amper.test.dr.toMavenNode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.assertNotNull
+import org.junit.jupiter.api.assertNull
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import java.util.*
@@ -20,7 +21,6 @@ import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class ResolverTest: BaseDRTest() {
@@ -178,8 +178,8 @@ class ResolverTest: BaseDRTest() {
         val expectedErrorPath = Dirs.userCacheRoot.resolve(".m2.cache/com/fasterxml/jackson/core/jackson-core/2.17.2 - ../shared")
 
         assertEquals(
-            node.messages.single().message,
             "Unable to resolve dependency com.fasterxml.jackson.core:jackson-core:2.17.2 - ../shared",
+            node.messages.single().message,
             "Unexpected error message"
         )
 
@@ -223,7 +223,7 @@ class ResolverTest: BaseDRTest() {
         dependency.also {
             val cleanCacheRoot = uniqueNestedTempDir()
 
-            // 2. Populating clean test local storage with all related dependencies, excluding source file.
+            // 2. Populating clean test local storage with all related dependencies, excluding a source file.
             val cliktRelativePath = Path(".m2.cache/com/github/ajalt/clikt/clikt-core-wasm-js/5.0.3")
             val cliktDirInCleanCacheRoot = cleanCacheRoot.resolve(cliktRelativePath).createDirectories()
 
@@ -232,7 +232,7 @@ class ResolverTest: BaseDRTest() {
                 .copyToRecursively(cliktDirInCleanCacheRoot, followLinks = false, overwrite = false)
             cliktDirInCleanCacheRoot.resolve("clikt-core-wasm-js-5.0.3-sources.jar").deleteIfExists()
 
-            // 3. Preparing resolution context that will reuse artifacts from default cache
+            // 3. Preparing resolution context that will reuse artifacts from the default cache
             val cleanContext = context(
                 platform = platforms,
                 cacheBuilder = {
@@ -254,13 +254,18 @@ class ResolverTest: BaseDRTest() {
                 .flatMap { it.dependency.files(true) }
                 .singleOrNull { it.path?.name == "clikt-core-wasm-js-5.0.3-sources.jar" }
 
-            assertNotNull(sourcesFile?.path) { "Sources file is not found in the resolved dependencies graph" }
-            assertFalse(sourcesFile.path!!.exists(), "Sources file is not found in the resolved dependencies graph")
+            assertNull(sourcesFile) { "Existing sources file is found in the resolved dependencies graph" }
 
-            // 5. Resolving dependencies WITH sources. As a result, test artifacts storage won't contain sources.
+            // 5. Resolving dependencies WITH sources. As a result, test artifacts storage will contain sources.
             downloadAndAssertFiles(testInfo, root, withSources = true)
 
-            assertTrue(sourcesFile.path!!.exists(), "Sources file should has been downloaded")
+            val sourcesFileAfterRedownloading = root.distinctBfsSequence()
+                .filterIsInstance<MavenDependencyNode>()
+                .flatMap { it.dependency.files(true) }
+                .singleOrNull { it.path?.name == "clikt-core-wasm-js-5.0.3-sources.jar" }
+
+            assertNotNull(sourcesFileAfterRedownloading) { "Sources file is not found in the resolved dependencies graph" }
+            assertTrue(sourcesFileAfterRedownloading.path!!.exists(), "Sources file should has been downloaded")
         }
     }
 }
