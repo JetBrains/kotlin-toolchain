@@ -236,9 +236,9 @@ fun Fragment.allFragmentDependencies(includeSelf: Boolean = false, dependencyTyp
  *      /    \
  *  desktop  apple
  *      \    /
- *     macosX64
+ *    macosArm64
  * ```
- * In this situation calling [ancestralPath] on `macosX64` yields `[macosX64, desktop, apple, common]`.
+ * In this situation calling [ancestralPath] on `macosArm64` yields `[macosArm64, desktop, apple, common]`.
  * The order between `desktop` and `apple` is unspecified.
  */
 fun Fragment.ancestralPath(): Sequence<Fragment> = sequence {

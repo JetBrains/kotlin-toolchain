@@ -47,7 +47,7 @@ class TypoTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `using -p ios should suggest macosArm64 and macosX64`() {
+    fun `using -p ios should suggest iosArm64 iosSimulatorArm64 iosX64`() {
         testTypo(
             "run", "-p", "ios",
             expectedError = "invalid value for -p: invalid choice: ios. Did you mean one of iosArm64, " +

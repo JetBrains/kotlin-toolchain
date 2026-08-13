@@ -297,14 +297,9 @@ class KmpPublicationTest : AmperCliTestBase() {
         )
 
         assertTrue(
-            actual = r.stderr.contains("Key macos_arm64 is missing in the map.")
-                    || r.stderr.contains("Key macos_x64 is missing in the map."),
-            message = """
-                    Process stderr must contain an error for the Kotlin CLI call (PID ${r.pid}):
-                    "kotlin task ':libraryNested:cinteropMacosArm64' or ':libraryNested:cinteropMacosX64'",
-                    Kotlin Toolchain STDERR:
-                    ${r.stderr.prependIndent("                    ")}
-                """.trimMargin(),
+            actual = r.stderr.contains("Key macos_arm64 is missing in the map."),
+            message = "Process stderr must contain an error for the Kotlin CLI call (PID ${r.pid}). " +
+                    "Kotlin Toolchain STDERR:\n" + r.stderr,
         )
     }
 
