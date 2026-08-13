@@ -130,7 +130,7 @@ class MavenConvertTest : AmperCliTestBase() {
                 storeParameterNames: true
                 release: 17
               kotlin:
-                version: 2.2.21
+                version: 2.3.21
                 freeCompilerArgs:
                   - -Xjsr305=strict
                   - -Xannotation-default-target=param-property
@@ -142,12 +142,12 @@ class MavenConvertTest : AmperCliTestBase() {
               - bom: org.springframework.boot:spring-boot-dependencies:4.0.0
               - bom: org.springframework.boot:spring-boot-starter-parent:4.0.0
               - org.springframework.boot:spring-boot-starter:4.0.0: exported
-              - org.jetbrains.kotlin:kotlin-reflect:2.2.21: exported
-              - org.jetbrains.kotlin:kotlin-stdlib:2.2.21: exported
+              - org.jetbrains.kotlin:kotlin-reflect:2.3.21: exported
+              - org.jetbrains.kotlin:kotlin-stdlib:2.3.21: exported
 
             test-dependencies:
               - org.springframework.boot:spring-boot-starter-test:4.0.0
-              - org.jetbrains.kotlin:kotlin-test-junit5:2.2.21
+              - org.jetbrains.kotlin:kotlin-test-junit5:2.3.21
 
         """.trimIndent(), (buildResult.projectDir / "module.yaml").readText()
         )
