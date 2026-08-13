@@ -49,7 +49,7 @@ class AmperBuildTest : AmperCliTestBase() {
     @RunWithAndWithoutJic
     fun `build command succeeds in jvm-default-compiler-settings`(compileJavaIncrementally: Boolean) = runSlowTest {
         runCliWithOrWithoutJps(
-            projectRoot = testProject("jvm-default-compiler-settings"),
+            projectDir = testProject("jvm-default-compiler-settings"),
             "build",
             compileJavaIncrementally = compileJavaIncrementally,
         )
@@ -136,15 +136,10 @@ class AmperBuildTest : AmperCliTestBase() {
         writeText(readText().replace(oldValue, newValue))
     }
 
-    @Test
-    fun `build Java incrementally works with lowest supported JDK`() = runSlowTest {
-        runCli(projectDir = testProject("java-ic-lowest-jdk"), "build")
-    }
-
     @RunWithAndWithoutJic
     fun `build jar with main class`(useJavaIncrementalCompilation: Boolean) = runSlowTest {
         val result = runCliWithOrWithoutJps(
-            projectRoot = testProject("java-kotlin-mixed"),
+            projectDir = testProject("java-kotlin-mixed"),
             "build",
             compileJavaIncrementally = useJavaIncrementalCompilation,
             )
@@ -377,32 +372,49 @@ class AmperBuildTest : AmperCliTestBase() {
         }
     }
 
+    // JIC doesn't have the same lowest JDK, so this is not redundant with the other "lowest JDK for JVM" test
+    @Test
+    fun `build Java incrementally works with lowest supported JDK`() = runSlowTest {
+        runCli(projectDir = testProject("java-ic-lowest-jdk"), "build")
+    }
+
+    @Test
+    fun `jvm hello world with lowest supported JDK`() = runSlowTest {
+        runCli(projectDir = testProject("jvm-custom-jdk-lowest"), "build")
+    }
+
+    @RunWithAndWithoutJic
+    fun `jvm hello world with highest supported JDK`(compileJavaIncrementally: Boolean) = runSlowTest {
+        runCliWithOrWithoutJps(
+            projectDir = testProject("jvm-custom-jdk-highest"),
+            "build",
+            compileJavaIncrementally = compileJavaIncrementally,
+        )
+    }
+
     @Test
     fun `multiplatform lib with highest known JDK`() = runSlowTest {
-        val projectContext = testProject("multiplatform-highest-jdk")
-        runCli(projectDir = projectContext, "build", configureAndroidHome = true)
+        runCli(projectDir = testProject("multiplatform-highest-jdk"), "build", configureAndroidHome = true)
     }
 
     @Test
     fun `multiplatform lib with lowest supported JDK`() = runSlowTest {
-        val projectContext = testProject("multiplatform-lowest-jdk-and-kotlin")
-        runCli(projectDir = projectContext, "build", configureAndroidHome = true)
+        runCli(projectDir = testProject("multiplatform-lowest-jdk-and-kotlin"), "build", configureAndroidHome = true)
     }
 
     // AMPER-5259
     @Test
     fun `AARs in test dependencies are properly processed`() = runSlowTest {
-        val projectContext = testProject("android-test-dependency")
-        runCli(projectDir = projectContext, "build", configureAndroidHome = true)
+        runCli(projectDir = testProject("android-test-dependency"), "build", configureAndroidHome = true)
     }
 
     private suspend fun runCliWithOrWithoutJps(
-        projectRoot: Path,
+        projectDir: Path,
         vararg args: String,
         compileJavaIncrementally: Boolean,
     ): AmperCliResult {
         val result = runCli(
-            projectDir = projectRoot,
+            projectDir = projectDir,
             *args,
             amperJvmArgs = listOf("-Dorg.jetbrains.amper.jic=${compileJavaIncrementally}"),
         )

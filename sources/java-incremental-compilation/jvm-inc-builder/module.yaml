@@ -30,3 +30,10 @@ dependencies:
   - jaxen:jaxen:1.2.0
   - com.thoughtworks.qdox:qdox:2.2.0
   - $libs.intellij.deps.fastutil
+
+  # Workaround to avoid the Unsafe native access from the Netty library:
+  # sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0$2
+  # The platform transitively depends on Netty 4.2.0-RC2 (not a stable version!).
+  # Netty dropped the Unsafe usage in the stable version, so we bump here.
+  - io.netty:netty-codec-protobuf:4.2.17.Final: runtime-only
+  - io.netty:netty-codec-http2:4.2.17.Final: runtime-only
