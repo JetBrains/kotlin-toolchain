@@ -28,7 +28,7 @@ class AndroidSettings : SchemaNode() {
     @SchemaDoc("Minimum API level needed to run the application. " +
             "[Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html)")
     @KnownIntValues(37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21)
-    val minSdk by value(AndroidVersion(24))
+    val minSdk by value(AndroidVersion(DefaultVersions.androidMinApiLevel))
 
     @Misnomers("maxApiLevel")
     @SchemaDoc("Maximum API level on which the application can run. " +
@@ -87,14 +87,14 @@ class AndroidSettings : SchemaNode() {
     // The default should be at least as high as the minimal version supported by the AGP we use:
     // https://developer.android.com/build/releases/gradle-plugin (see SDK Build Tools Minimum version field)
     @SchemaDoc("Version of [SDK Build Tools](https://developer.android.com/tools/releases/build-tools) to use.")
-    val buildToolsVersion by value("37.0.0")
+    val buildToolsVersion by value(DefaultVersions.androidBuildTools)
 }
 
 class AndroidCompileSdkVersion : SchemaNode() {
     @Shorthand
     @SchemaDoc("The Android API level to compile the project against.")
     @KnownIntValues(37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21)
-    val apiLevel by value(AndroidVersion(37))
+    val apiLevel by value(AndroidVersion(DefaultVersions.androidCompileApiLevel))
 
     @SchemaDoc("Minor API level of the Android API.")
     val minorApiLevel by value(0)

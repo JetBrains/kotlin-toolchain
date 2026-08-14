@@ -46,10 +46,11 @@ interface AmperJre {
 
 @Configurable
 interface DefaultVersions {
+    val android: AndroidVersions
     val compose: String
     val composeHotReload: String
     val dataframe: String
-    val jdk: String
+    val jdk: Int
     val junitPlatform: String
     val kotlin: String
     val kotlinxRpc: String
@@ -58,4 +59,11 @@ interface DefaultVersions {
     val ktor: String
     val lombok: String
     val springBoot: String
+}
+
+@Configurable
+interface AndroidVersions {
+    val buildTools: String
+    val compileApiLevel: Int
+    val minApiLevel: Int
 }

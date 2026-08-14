@@ -61,6 +61,9 @@ class VersionUpdater(val amperRootDir: Path) {
     private fun updateDefaultVersionsKt(defaultVersions: DefaultVersions) {
         defaultVersionsKt.replaceFileText { text ->
             text
+                .replaceDefaultVersionVariable(variableName = "androidBuildTools", newValue = defaultVersions.android.buildTools)
+                .replaceDefaultVersionIntVariable(variableName = "androidCompileApiLevel", newValue = defaultVersions.android.compileApiLevel)
+                .replaceDefaultVersionIntVariable(variableName = "androidMinApiLevel", newValue = defaultVersions.android.minApiLevel)
                 .replaceDefaultVersionVariable(variableName = "compose", newValue = defaultVersions.compose)
                 .replaceDefaultVersionVariable(variableName = "composeHotReload", newValue = defaultVersions.composeHotReload)
                 .replaceDefaultVersionVariable(variableName = "dataframe", newValue = defaultVersions.dataframe)
@@ -81,9 +84,9 @@ class VersionUpdater(val amperRootDir: Path) {
         replacement = newValue,
     )
 
-    private fun String.replaceDefaultVersionIntVariable(variableName: String, newValue: String): String = replaceRegexGroup1(
+    private fun String.replaceDefaultVersionIntVariable(variableName: String, newValue: Int): String = replaceRegexGroup1(
         regex = Regex("""/\*managed_default\*/\s*val\s+${Regex.escape(variableName)}\s*=\s*(\d+)"""),
-        replacement = newValue,
+        replacement = newValue.toString(),
     )
 
     private fun updateKotlinCliWrappers(versions: Versions) {

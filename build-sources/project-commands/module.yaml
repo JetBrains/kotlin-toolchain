@@ -30,6 +30,19 @@ plugins:
       # to lower our minimum supported JDK to 17 right now.
       minSupportedJUnitPlatform: 1.14.3
       defaultsForUsers:
+        android:
+          # Releases: https://developer.android.com/tools/releases/build-tools
+          # This somewhat depends on the AGP version—it shouldn't be _less_ than the default supported by the AGP (but can be higher):
+          # https://developer.android.com/build/releases/agp-9-3-0-release-notes
+          # We still might want to keep it updated and somewhat on par with compile SDK (but, apparently, it doesn't have to be)
+          buildTools: 37.0.0
+          # https://developer.android.com/about/versions
+          # There is also this link: https://developer.android.com/tools/releases/platforms, however, it seems to be updated with a delay
+          # It might be worth also checking https://apilevels.com/ for the latest stable.
+          compileApiLevel: 37
+          # https://apilevels.com/ or Android Studio Project wizard should be consulted to choose the default.
+          # Also, you might refer to [com.android.sdklib.SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION].
+          minApiLevel: 24
         # https://github.com/JetBrains/compose-multiplatform/releases
         # Also, update the mapping between Compose and Material3 versions in composeMaterial3VersionForCMPVersion()
         compose: 1.11.1
