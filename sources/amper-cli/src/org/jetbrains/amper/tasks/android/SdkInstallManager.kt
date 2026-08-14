@@ -60,33 +60,18 @@ class SdkInstallManager(private val userCacheRoot: AmperUserCacheRoot, private v
         androidSdkPath.createDirectories()
     }
 
-    suspend fun install(packagePath: String, checkForLatestMinorApiLevel: Boolean = false): RepoPackage {
+    suspend fun install(packagePath: String): RepoPackage {
         return if (packagePath.contains("system-images")) {
             installSystemImage(packagePath)
         } else {
-            installPackage(packagePath, checkForLatestMinorApiLevel)
+            installPackage(packagePath)
         }
     }
 
-    suspend fun installPackage(packagePath: String, checkForLatestMinorApiLevel: Boolean): RepoPackage =
+    suspend fun installPackage(packagePath: String): RepoPackage =
         FileMutexGroup.Default.withDoubleLock(androidSdkPath / "$packagePath.lock") {
-            // An already-installed package may be stored under the exact requested path, or under a
-            // minor-API-level variant of it (see [selectBestMatchingPackagePath]).
-            if (checkForLatestMinorApiLevel) {
-                installLatestMinorApiLevelFromRemote(packagePath)
-            } else {
-                findInstalledPackage(packagePath) ?: installPackageFromRemote(packagePath)
-            }
+            findInstalledPackage(packagePath) ?: installPackageFromRemote(packagePath)
         }
-
-    private suspend fun installLatestMinorApiLevelFromRemote(packagePath: String): RepoPackage {
-        // TODO: Introduce caching
-        val remotePackages = packages().remotePackage
-        val resolvedPackagePath = selectLatestMinorApiLevelPackagePath(packagePath, remotePackages.map { it.path })
-            ?: error("Package $packagePath not found")
-        return findInstalledPackage(resolvedPackagePath)
-            ?: installPackageFromRemote(resolvedPackagePath, remotePackages)
-    }
 
     private fun findInstalledPackage(packagePath: String): RepoPackage? {
         val installedPackagePath = resolveInstalledPackagePath(packagePath) ?: return null

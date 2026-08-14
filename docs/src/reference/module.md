@@ -288,11 +288,11 @@ Read more in the [Testing](../user-guide/testing.md) section.
 
 `settings.android.compileSdk` configures the Android SDK version used to compile the module. Use an API level directly as a shorthand, or use an object to configure the API level, minor API level, and SDK extension level.
 
-| Attribute             | Default | Description                                                                                                                            |
-|-----------------------|---------|----------------------------------------------------------------------------------------------------------------------------------------|
-| `apiLevel: int`       | 37      | The Android API level to compile the project against.                                                                                  |
-| `minorApiLevel: int?` | `null`  | Minor API level of the Android API. When omitted, the Kotlin Toolchain checks for and uses a newer Android SDK version when available. |
-| `sdkExtension: int?`  | `null`  | Android SDK extension level to compile the project against. [Read more](https://developer.android.com/guide/sdk-extensions)            |
+| Attribute            | Default | Description                                                                                                                 |
+|----------------------|---------|-----------------------------------------------------------------------------------------------------------------------------|
+| `apiLevel: int`      | 37      | The Android API level to compile the project against.                                                                       |
+| `minorApiLevel: int` | 0       | Minor API level of the Android API.                                                                                         |
+| `sdkExtension: int?` | `null`  | Android SDK extension level to compile the project against. [Read more](https://developer.android.com/guide/sdk-extensions) |
 
 ```yaml title="Shorthand"
 settings:

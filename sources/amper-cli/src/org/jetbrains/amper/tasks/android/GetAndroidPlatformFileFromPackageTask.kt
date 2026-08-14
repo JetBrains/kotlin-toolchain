@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.tasks.android
@@ -16,12 +16,11 @@ class GetAndroidPlatformFileFromPackageTask(
     private val androidSdkPath: Path,
     private val userCacheRoot: AmperUserCacheRoot,
     override val taskName: TaskName,
-    private val checkForLatestMinorApiLevel: Boolean = false,
 ) : Task {
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): Result {
         val packagePath = SdkInstallManager(userCacheRoot, androidSdkPath)
-            .install(packageName, checkForLatestMinorApiLevel)
+            .install(packageName)
             .path
         val localFileSystemPackagePath = packagePath
             .split(";")

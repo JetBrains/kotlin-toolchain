@@ -422,10 +422,6 @@ private fun TaskGraphBuilder.setupAndroidPlatformTask(
                     minorApiLevel = compileSdk.minorApiLevel,
                     sdkExtension = compileSdk.sdkExtension,
                 ),
-                checkForLatestMinorApiLevel = shouldCheckForNewerAndroidPlatformMinorApiLevel(
-                    apiLevel = compileSdk.apiLevel.versionNumber,
-                    minorApiLevel = compileSdk.minorApiLevel,
-                ),
                 androidSdkPath = androidSdkPath,
                 userCacheRoot = userCacheRoot,
                 taskName = AndroidTaskType.InstallPlatform.getTaskName(module, Platform.ANDROID, isTest)
@@ -452,10 +448,6 @@ internal fun androidPlatformPackageName(
     }
     sdkExtension?.let { append("-ext$it") }
 }
-
-internal fun shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel: Int, minorApiLevel: Int?): Boolean =
-    // Google releases minor API levels of platform starting with Android 36
-    apiLevel >= 36 && minorApiLevel == null
 
 private fun TaskGraphBuilder.setupDownloadBuildToolsTask(
     module: AmperModule,

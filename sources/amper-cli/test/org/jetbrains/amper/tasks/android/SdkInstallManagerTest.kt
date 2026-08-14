@@ -6,9 +6,7 @@ package org.jetbrains.amper.tasks.android
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class SdkInstallManagerTest {
 
@@ -158,16 +156,5 @@ class SdkInstallManagerTest {
             "platforms;android-35-ext14",
             androidPlatformPackageName(apiLevel = 35, minorApiLevel = 0, sdkExtension = 14),
         )
-    }
-
-    @Test
-    fun `latest minor API level is checked only when it is unspecified for API 37 and later`() {
-        assertTrue(shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel = 37, minorApiLevel = null))
-        assertTrue(shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel = 36, minorApiLevel = null))
-        assertTrue(shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel = 42, minorApiLevel = null))
-
-        assertFalse(shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel = 37, minorApiLevel = 0))
-        assertFalse(shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel = 36, minorApiLevel = 0))
-        assertFalse(shouldCheckForNewerAndroidPlatformMinorApiLevel(apiLevel = 35, minorApiLevel = null))
     }
 }

@@ -96,9 +96,8 @@ class AndroidCompileSdkVersion : SchemaNode() {
     @KnownIntValues(37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21)
     val apiLevel by value(AndroidVersion(37))
 
-    @SchemaDoc("Minor API level of the Android API. If `null` (default), the Kotlin Toolchain will always check if there " +
-            "is a newer version of the Android SDK and use it.")
-    val minorApiLevel by nullableValue<Int>()
+    @SchemaDoc("Minor API level of the Android API.")
+    val minorApiLevel by value(0)
 
     @SchemaDoc("The Android SDK extension level to compile the project against. " +
             "[Read more](https://developer.android.com/guide/sdk-extensions)")

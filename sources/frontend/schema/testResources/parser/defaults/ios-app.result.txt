@@ -12,7 +12,7 @@ Fragments:
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorApiLevel: <default> null
+          minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -211,7 +211,7 @@ Fragments:
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorApiLevel: <default> null
+          minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -406,7 +406,7 @@ Fragments:
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorApiLevel: <default> null
+          minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -604,7 +604,7 @@ Fragments:
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorApiLevel: <default> null
+          minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -800,7 +800,7 @@ Fragments:
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorApiLevel: <default> null
+          minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -996,7 +996,7 @@ Fragments:
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorApiLevel: <default> null
+          minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -1195,7 +1195,7 @@ Fragments:
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorApiLevel: <default> null
+          minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -1391,7 +1391,7 @@ Fragments:
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorApiLevel: <default> null
+          minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -1590,7 +1590,7 @@ Fragments:
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorApiLevel: <default> null
+          minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -1789,7 +1789,7 @@ Fragments:
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorApiLevel: <default> null
+          minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -1985,7 +1985,7 @@ Fragments:
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorApiLevel: <default> null
+          minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
         maxSdk: <default> null
@@ -2184,7 +2184,7 @@ Fragments:
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
-          minorApiLevel: <default> null
+          minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
         maxSdk: <default> null
