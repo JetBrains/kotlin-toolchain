@@ -103,6 +103,33 @@ If you need to customize the repositories, see [Managing Maven repositories](#ma
 [^2]: If you're not familiar with Maven repositories, check out Maven's
 [Introduction to repositories :fontawesome-solid-external-link:](https://maven.apache.org/guides/introduction/introduction-to-repositories.html).
 
+#### Classifiers and packaging types
+
+Maven coordinates can be extended with a classifier and a packaging type, using the notation
+`group:artifact:version:classifier@packagingType`. Both additions are optional.
+
+A classifier picks one of several artifacts published under the same coordinates, for example, a platform-specific
+build. A packaging type picks the kind of artifact to fetch, for example, an executable, an Android library, or an
+archive, instead of the default library archive (jar).
+
+The packaging type only plays a role for libraries published in the Maven format alone, and the kind of artifact to
+fetch is determined as follows:
+
+* the type you declare in the coordinates wins;
+* otherwise, the type the library declares for itself in the pom.xml is used;
+* if neither declares one, a regular library archive is expected.
+
+Declaring the type `pom` means that only the library's descriptor is used and no artifact is fetched, which is handy
+for libraries that merely aggregate other dependencies. Conversely, a library that declares that type for itself 
+in the pom.xml still contributes its regular jar artifact when it publishes one 
+(and it is not an error when it doesn't).
+
+Declaring a packaging type doesn't turn the dependency into an artifact-only dependency: 
+transitive dependencies keep being resolved as usual.
+
+Libraries published with Gradle metadata describe their artifacts themselves, so declaring a packaging type has no
+effect on them.
+
 ### Catalog dependencies
 
 See [Library Catalogs](#library-catalogs).
