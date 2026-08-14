@@ -2,5 +2,5 @@ product: jvm/lib
 
 settings:
   kotlin:
-    version: <![Warning] Incremental compilation of Kotlin sources may behave incorrectly prior to Kotlin 2.4.0. For example, changes in compiler arguments are not taken into account and dont lead to recompilation. Update Kotlin to at least 2.4.0, or disable incremental compilation to avoid subtle incrementality issues.!>2.3.21<!>
-    compileIncrementally: <![Warning] Incremental compilation of Kotlin sources may behave incorrectly prior to Kotlin 2.4.0. For example, changes in compiler arguments are not taken into account and dont lead to recompilation. Update Kotlin to at least 2.4.0, or disable incremental compilation to avoid subtle incrementality issues.!>true<!>
+    version: <![Warning] Incremental compilation of Kotlin sources may behave incorrectly prior to Kotlin 2.4.0. For example, changes in compiler arguments are not taken into account and dont lead to recompilation. Update Kotlin to at least 2.4.0, or disable incremental compilation with `settings.kotlin.compileIncrementally: false` to avoid subtle incrementality issues.!>2.3.21<!>
+    compileIncrementally: <![Warning] Incremental compilation of Kotlin sources may behave incorrectly prior to Kotlin 2.4.0. For example, changes in compiler arguments are not taken into account and dont lead to recompilation. Update Kotlin to at least 2.4.0, or disable incremental compilation with `settings.kotlin.compileIncrementally: false` to avoid subtle incrementality issues.!>true<!>
