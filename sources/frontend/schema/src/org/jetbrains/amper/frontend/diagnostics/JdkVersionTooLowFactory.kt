@@ -20,7 +20,7 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
 
 object JdkVersionTooLowFactory : TreeDiagnosticFactory {
 
-    private const val MinimumSupportedJdkVersion = 11
+    private const val MinimumSupportedJdkVersion = 17
 
     override fun analyze(root: TreeNode, minimalModule: MinimalModule, problemReporter: ProblemReporter) {
         val reportedPlaces = mutableSetOf<Trace>() // somehow the computed properties lead to duplicate reports

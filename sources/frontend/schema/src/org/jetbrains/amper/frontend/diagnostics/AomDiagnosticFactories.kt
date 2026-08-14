@@ -16,7 +16,6 @@ val AomSingleModuleDiagnosticFactories: List<AomSingleModuleDiagnosticFactory> =
     ComposeVersionWithDisabledCompose,
     JavaIncrementalCompilationRequiresJava21Factory,
     JdkDistributionRequiresLicenseFactory,
-    JUnitRequiresHigherJdkVersionFactory,
     KotlinIncrementalCompilationMayBehaveIncorrectlyFactory,
     KotlinVersionDoesNotSupportJdkFactory,
     SerializationVersionWithDisabledSerialization,
