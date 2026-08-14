@@ -385,7 +385,7 @@ class AmperBuildTest : AmperCliTestBase() {
 
     @Test
     fun `multiplatform lib with lowest supported JDK`() = runSlowTest {
-        val projectContext = testProject("multiplatform-lowest-jdk")
+        val projectContext = testProject("multiplatform-lowest-jdk-and-kotlin")
         runCli(projectDir = projectContext, "build", configureAndroidHome = true)
     }
 
