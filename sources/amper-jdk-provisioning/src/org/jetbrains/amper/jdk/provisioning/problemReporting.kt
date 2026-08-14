@@ -24,7 +24,7 @@ abstract class ProvisioningProblem(
 ) : BuildProblem {
 
     override val message: @Nls String
-        get() = ProvisioningBundle.message(messageKey, params)
+        get() = ProvisioningBundle.message(messageKey, *params)
 
     override val level: Level
         get() = Level.Warning

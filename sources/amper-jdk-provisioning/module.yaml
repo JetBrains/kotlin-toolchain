@@ -22,7 +22,12 @@ dependencies:
 test-dependencies:
   - //sources/test-base
   - $libs.junit.jupiter.params
+  - $libs.system.stubs.jupiter
 
 settings:
   kotlin:
     serialization: json
+  jvm:
+    test:
+      # The System stubs test library uses an agent to dynamically set env vars / system props
+      freeJvmArgs: [ -XX:+EnableDynamicAgentLoading ]

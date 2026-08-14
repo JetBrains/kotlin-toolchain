@@ -5,22 +5,28 @@
 package org.jetbrains.amper.jdk.provisioning
 
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.frontend.schema.JdkSelectionMode
 import org.jetbrains.amper.frontend.schema.JvmDistribution
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.TempDirExtension
 import org.jetbrains.amper.test.runTestWithMdc
 import org.junit.jupiter.api.Assumptions.assumeFalse
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.minutes
@@ -170,6 +176,28 @@ class JdkProviderTest {
             )
         )
     }
+
+    @ExtendWith(SystemStubsExtension::class)
+    @Test
+    fun provisionJdk_reportsInvalidJavaHome(environmentVariables: EnvironmentVariables) =
+        runTestWithMdc(timeout = 10.minutes) {
+            val invalidPath = "not-a-valid-path"
+            environmentVariables["JAVA_HOME"] = invalidPath
+            val collectingProblemReporter = CollectingProblemReporter()
+            with(collectingProblemReporter) {
+                createTestJdkProvider().getJdk(
+                    criteria = JdkProvisioningCriteria(majorVersion = 21),
+                    selectionMode = JdkSelectionMode.javaHome,
+                )
+            }
+            val problems = collectingProblemReporter.problems
+            assertEquals(1, problems.size, "Expected a single problem about the invalid JAVA_HOME, got ${problems.size}:\n" +
+                    problems.joinToString("\n") { it.message })
+            val problem = problems.single()
+            assertIs<InvalidJavaHome>(problem)
+            assertEquals("not-a-valid-path", problem.javaHomeValue)
+            assertEquals("`JAVA_HOME` is set to a path that does not exist: not-a-valid-path", problem.message)
+        }
 
     @Test
     fun provisionJdk_failsWithNoResults() = runTestWithMdc(timeout = 3.minutes) {
