@@ -182,9 +182,19 @@ class SdkInstallManager(private val userCacheRoot: AmperUserCacheRoot, private v
         get(url).bodyAsChannel().toInputStream().use { it.unmarshal<Repository>() }
 
     suspend fun findUnacceptedSdkLicenseIds(incrementalCache: IncrementalCache): List<String> =
+        licenseChecker(incrementalCache).findUnacceptedLicenseIds()
+
+    /**
+     * Writes the license hash files for the given ids (explicit user acceptance,
+     * see settings.android.acceptedLicenses). Returns the ids actually written.
+     */
+    suspend fun acceptSdkLicenses(licenseIds: Set<String>, incrementalCache: IncrementalCache): Set<String> =
+        licenseChecker(incrementalCache).acceptLicenses(licenseIds)
+
+    private fun licenseChecker(incrementalCache: IncrementalCache) =
         AndroidSdkLicenseChecker(androidSdkPath, incrementalCache) { packageManifest ->
             packageManifest.readRepository().localPackage.license
-        }.findUnacceptedLicenseIds()
+        }
 
     private fun writePackageXml(pkg: RemotePackage, localPackagePath: Path): LocalPackage {
         val localPackage = LocalPackageImpl.create(pkg)

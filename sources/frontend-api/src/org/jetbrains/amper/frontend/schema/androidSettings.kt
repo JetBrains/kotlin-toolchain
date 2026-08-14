@@ -24,6 +24,14 @@ value class AndroidVersion(val versionNumber: Int): Comparable<AndroidVersion> {
 }
 
 class AndroidSettings : SchemaNode() {
+    @SchemaDoc("Android SDK license IDs whose terms are explicitly accepted by the user. " +
+            "When the license check finds one of these licenses unaccepted, the toolchain " +
+            "writes its hash file into the SDK's licenses directory instead of failing, so " +
+            "a fresh machine or a CI runner can build without running sdkmanager --licenses. " +
+            "Only the listed licenses are accepted; the toolchain never accepts licenses " +
+            "implicitly. License texts: https://developer.android.com/studio/intro/update#downloads")
+    val acceptedLicenses: List<String> by value(default = emptyList())
+
     @Misnomers("minApiLevel")
     @SchemaDoc("Minimum API level needed to run the application. " +
             "[Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html)")

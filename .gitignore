@@ -14,3 +14,6 @@ shared test caches/
 
 local.properties
 keystore.properties
+
+# Test-run artifacts (amper junit listener debug logs)
+junit-jupiter/
