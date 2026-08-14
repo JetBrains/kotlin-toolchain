@@ -66,14 +66,19 @@ fun Repository.Credentials.readCredentials(): RepositoryCredentials? {
 
 context(_: ProblemReporter)
 internal fun Module.readResolveRepositories(): List<ResolutionRepository> {
-    val customRepositories = repositories.orEmpty().filter { it.resolve }.map { repository ->
+    val customResolveRepositories = repositories.orEmpty().filter { it.resolve }.map { repository ->
         ResolutionRepository(
             id = repository.id,
             url = repository.url,
             credentials = repository.credentials?.readCredentials(),
         )
     }
-    return (defaultMavenRepositories + customRepositories)
+
+    val notOverriddenDefaultRepositories = defaultMavenRepositories.filter { defaultRepository ->
+        repositories.orEmpty().none { it.id == defaultRepository.id }
+    }
+
+    return (notOverriddenDefaultRepositories + customResolveRepositories)
         // deduplicating repository list by repository ID, taking the last entry corresponding to the id only.
         .asReversed()
         .distinctBy { it.id }

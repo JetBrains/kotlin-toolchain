@@ -1,0 +1,8 @@
+product:
+  type: kmp/lib
+  platforms: [ iosArm64 ]
+
+repositories:
+  - id: mavenCentral
+    url: https://x.y
+    resolve: false

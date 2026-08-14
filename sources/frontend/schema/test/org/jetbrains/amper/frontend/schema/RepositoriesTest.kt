@@ -34,4 +34,14 @@ internal class RepositoriesTest : FrontendTestCaseBase(Path("testResources") / "
         copyLocalToBuild("repositories-credentials.local.properties")
         diagnosticsTest("repositories-no-credentials-key")
     }
+
+    @Test
+    fun `overriding provided repository`() {
+        aomTest("overriding-provided-repository")
+    }
+
+    @Test
+    fun `disable provided repository`() {
+        aomTest("disable-provided-repository")
+    }
 }
