@@ -1,0 +1,10 @@
+product: jvm/app
+
+settings:
+  jvm:
+    jdk:
+      version: <![Error] Unsupported JDK version 8. Should be at least 11.!>8<!>
+    test:
+      # JUnit 6 requires JDK17, so this other error would pollute the test.
+      # This is why we use JUnit 5 only requires JDK 8, so it doesn't add noise to this test
+      junitPlatformVersion: 1.14.1

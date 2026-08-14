@@ -31,6 +31,7 @@ enum class FrontendDiagnosticId : DiagnosticId {
     JUnitRequiresHigherJdkVersion,
     JavaIncrementalCompilationRequiresJava16,
     JdkDistributionRequiresLicense,
+    JdkVersionTooLow,
     JvmReleaseTooLowForDependency,
     KeystoreFileDoesNotExist,
     KeystorePropertiesDoesNotContainKey,

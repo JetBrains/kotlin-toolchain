@@ -8,6 +8,7 @@ import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.tree.EnumNode
 import org.jetbrains.amper.frontend.tree.ErrorNode
+import org.jetbrains.amper.frontend.tree.IntNode
 import org.jetbrains.amper.frontend.tree.KeyValue
 import org.jetbrains.amper.frontend.tree.ListNode
 import org.jetbrains.amper.frontend.tree.MappingNode
@@ -25,7 +26,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 /**
- * Visits the given [properties] in all instances of [T] within the given [TreeNode]'s descendants.
+ * Visits the given [properties] in all instances of [T] within this [TreeNode] and its descendants.
  * Properties with null values are skipped.
  */
 inline fun <reified T : SchemaNode, reified V : Enum<*>?> TreeNode.visitEnumProperties(
@@ -38,7 +39,7 @@ inline fun <reified T : SchemaNode, reified V : Enum<*>?> TreeNode.visitEnumProp
 }
 
 /**
- * Visits the given [properties] in all instances of [T] within the given [TreeNode]'s descendants.
+ * Visits the given [properties] in all instances of [T] within this [TreeNode] and its descendants.
  */
 inline fun <reified T : SchemaNode> TreeNode.visitStringProperties(
     vararg properties: KProperty1<T, String>,
@@ -48,7 +49,17 @@ inline fun <reified T : SchemaNode> TreeNode.visitStringProperties(
 }
 
 /**
- * Visits the given [properties] in all instances of [T] within the given [TreeNode]'s descendants.
+ * Visits the given [properties] in all instances of [T] within this [TreeNode] and its descendants.
+ */
+inline fun <reified T : SchemaNode> TreeNode.visitIntProperties(
+    vararg properties: KProperty1<T, Int>,
+    noinline visitSelected: (KeyValue, Int) -> Unit,
+) = visitProperties<T, IntNode>(*properties) { keyValue, intNode ->
+    visitSelected(keyValue, intNode.value)
+}
+
+/**
+ * Visits the given [properties] in all instances of [T] within this [TreeNode] and its descendants.
  */
 inline fun <reified T : SchemaNode> TreeNode.visitNullableStringProperties(
     vararg properties: KProperty1<T, String?>,
@@ -63,7 +74,7 @@ inline fun <reified T : SchemaNode> TreeNode.visitNullableStringProperties(
 }
 
 /**
- * Visits the given [properties] in all instances of [T] within the given [TreeNode]'s descendants.
+ * Visits the given [properties] in all instances of [T] within this [TreeNode] and its descendants.
  * Properties with values that are not nodes of type [ListNode] are skipped.
  */
 inline fun <reified T : SchemaNode> TreeNode.visitListProperties(
@@ -85,7 +96,7 @@ internal inline fun <reified T : SchemaNode, reified VN : TreeNode> TreeNode.vis
 }
 
 /**
- * Visits the given [properties] in all instances of [T] within the given [TreeNode]'s descendants.
+ * Visits the given [properties] in all instances of [T] within this [TreeNode] and its descendants.
  */
 @PublishedApi
 internal fun <T : SchemaNode> TreeNode.visitProperties(

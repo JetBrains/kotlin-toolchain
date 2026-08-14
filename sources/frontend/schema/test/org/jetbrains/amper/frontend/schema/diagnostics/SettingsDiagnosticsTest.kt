@@ -67,6 +67,11 @@ class SettingsDiagnosticsTest : FrontendTestCaseBase(Path("testResources") / "di
     }
 
     @Test
+    fun `jdk version too low`() {
+        diagnosticsTest("jdk-version-too-low")
+    }
+
+    @Test
     fun `compose material3 with unknown version mapping`() {
         diagnosticsTest("compose-material3-unknown-version")
     }

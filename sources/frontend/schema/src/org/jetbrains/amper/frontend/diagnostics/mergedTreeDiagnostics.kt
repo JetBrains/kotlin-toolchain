@@ -25,6 +25,7 @@ interface TreeDiagnosticFactory {
 val TreeDiagnosticFactories = [
     AndroidTooOldVersionFactory,
     IncorrectSettingsSectionFactory,
+    JdkVersionTooLowFactory,
     KotlinCompilerVersionDiagnosticsFactory,
     ObsoleteLibProductTypeDiagnosticsFactory,
     TemplateNameWithoutPostfix,
