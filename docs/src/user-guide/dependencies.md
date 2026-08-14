@@ -310,10 +310,10 @@ This section describes the default repositories and how to configure more.
 
 ### Default repositories
 
-| Name                        | URL                                                      |
-|-----------------------------|----------------------------------------------------------|
-| Maven Central               | `https://repo1.maven.org/maven2`                         |
-| Google                      | `https://maven.google.com`                               |
+| Name          | ID             | URL                              |
+|---------------|----------------|----------------------------------|
+| Maven Central | `mavenCentral` | `https://repo1.maven.org/maven2` |
+| Google        | `mavenGoogle`  | `https://maven.google.com`       |
 
 ### Adding repositories
 
@@ -330,6 +330,45 @@ repositories:
 1. When using just a string, it is used as both the `url` and `id` of the repository.
 2. When only the `url` is set, the `id` defaults to the URL. This is equivalent to just using the URL string without the `url:` key.
 3. You can use a custom `id` that is different from the URL by specifying the `id:` key explicitly.
+
+### Overriding or disabling default repositories
+
+Declaring a repository with the `id` of a [default one](#default-repositories) replaces it.
+This is how you point Maven Central or Google at a company mirror, or add credentials to them:
+
+```yaml title="module.yaml"
+repositories:
+  - id: mavenCentral
+    url: https://repo.mycompany.com/maven-central-mirror
+    credentials:
+      file: creds.properties
+      usernameKey: username
+      passwordKey: password
+```
+
+Setting `resolve: false` on such an entry disables the default repository instead of replacing it, so dependencies are
+never looked up there:
+
+```yaml title="module.yaml"
+repositories:
+  - id: mavenGoogle
+    url: https://maven.google.com #(1)!
+    resolve: false
+```
+
+1. The `url` is always required, even for a repository that is only disabled.
+
+### The local Maven repository
+
+Use the special `mavenLocal` URL to resolve dependencies from your local Maven repository:
+
+```yaml title="module.yaml"
+repositories:
+  - mavenLocal
+```
+
+This is handy to consume libraries that you install locally, for example while testing them before a release.
+The same URL can also be used to [publish](publishing.md#publishing-to-the-local-maven-repository) into it.
 
 ### Authentication
 
