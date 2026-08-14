@@ -232,7 +232,11 @@ internal abstract class WebCompileKlibTask(
             .use {
                 logger.infoNoConsole("Compiling module '${module.userReadableName}' for platform '${platform.pretty}'...")
                 val result = context(processRunner) {
-                    compiler.compileJs(compilerArgs = compilerArgs, ArgsMode.ArgFile(tempRoot = tempRoot))
+                    compiler.compileWeb(
+                        compilerArgs = compilerArgs,
+                        argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
+                        webPlatform = expectedPlatform,
+                    )
                 }
                 if (result.exitCode != 0) {
                     userReadableError("Kotlin ${expectedPlatform.name} compilation failed (see errors above)")

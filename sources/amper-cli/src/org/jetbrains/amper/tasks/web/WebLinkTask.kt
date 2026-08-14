@@ -215,7 +215,11 @@ internal abstract class WebLinkTask(
             .setListAttribute("compiler-args", compilerArgs)
             .use {
                 val result = context(processRunner) {
-                    compiler.compileJs(compilerArgs = compilerArgs, argsMode = ArgsMode.ArgFile(tempRoot = tempRoot))
+                    compiler.compileWeb(
+                        compilerArgs = compilerArgs,
+                        argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
+                        webPlatform = expectedPlatform,
+                    )
                 }
                 if (result.exitCode != 0) {
                     userReadableError("Kotlin ${expectedPlatform.name} linking failed (see errors above)")

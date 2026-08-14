@@ -4,8 +4,10 @@
 
 package org.jetbrains.amper.compilation.compiler
 
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
+import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
@@ -26,40 +28,75 @@ import kotlin.io.path.Path
  */
 context(_: ProblemReporter)
 internal suspend fun KotlinArtifactsDownloader.downloadKotlinCompiler(version: String, jdk: Jdk): KotlinCompiler =
-    KotlinCompiler(downloadKotlinCompilerEmbeddable(version), jdk)
+    KotlinCompiler(
+        compilerJars = downloadKotlinCompilerEmbeddable(version),
+        kotlinVersion = ComparableVersion(version),
+        jdk = jdk,
+    )
 
 /**
  * A type-safe wrapper around the Kotlin compiler CLI.
  */
 internal class KotlinCompiler(
     private val compilerJars: List<Path>,
+    private val kotlinVersion: ComparableVersion,
     private val jdk: Jdk,
 ) {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(KotlinCompiler::class.java)
+
+        private val KotlinVersionWithSeparateWasmCompiler = ComparableVersion("2.4.0")
     }
 
     context(processRunner: ProcessRunner)
-    suspend fun compileMetadata(compilerArgs: List<String>, argsMode: ArgsMode.ArgFile): ProcessResult =
-        processRunner.runJava(
-            jdk = jdk,
-            workingDir = Path("."),
-            mainClass = "org.jetbrains.kotlin.cli.metadata.KotlinMetadataCompiler",
-            classpath = compilerJars,
-            programArgs = compilerArgs,
-            argsMode = argsMode,
-            outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
-        )
+    suspend fun compileMetadata(
+        compilerArgs: List<String>,
+        argsMode: ArgsMode.ArgFile,
+    ): ProcessResult = compile(
+        compilerArgs = compilerArgs,
+        argsMode = argsMode,
+        entryPoint = CompilerEntryPoint.Metadata,
+    )
 
     context(processRunner: ProcessRunner)
-    suspend fun compileJs(compilerArgs: List<String>, argsMode: ArgsMode.ArgFile): ProcessResult =
-        processRunner.runJava(
-            jdk = jdk,
-            workingDir = Path("."),
-            mainClass = "org.jetbrains.kotlin.cli.js.K2JSCompiler",
-            classpath = compilerJars,
-            programArgs = compilerArgs,
-            argsMode = argsMode,
-            outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
-        )
+    suspend fun compileWeb(
+        compilerArgs: List<String>,
+        argsMode: ArgsMode.ArgFile,
+        webPlatform: Platform,
+    ): ProcessResult = compile(
+        compilerArgs = compilerArgs,
+        argsMode = argsMode,
+        entryPoint = when (webPlatform) {
+            Platform.JS -> CompilerEntryPoint.JavaScript
+            Platform.WASM_JS,
+            Platform.WASM_WASI -> if (kotlinVersion >= KotlinVersionWithSeparateWasmCompiler) {
+                // The separate KotlinWasmCompiler main class was only introduced in 2.4.0 (see KT-56850)
+                CompilerEntryPoint.WebAssembly
+            } else {
+                CompilerEntryPoint.JavaScript
+            }
+            else -> error("Unsupported platform for web compilation: ${webPlatform.name}")
+        },
+    )
+
+    context(processRunner: ProcessRunner)
+    private suspend fun compile(
+        compilerArgs: List<String>,
+        argsMode: ArgsMode.ArgFile,
+        entryPoint: CompilerEntryPoint,
+    ): ProcessResult = processRunner.runJava(
+        jdk = jdk,
+        workingDir = Path("."),
+        mainClass = entryPoint.mainClass,
+        classpath = compilerJars,
+        programArgs = compilerArgs,
+        argsMode = argsMode,
+        outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
+    )
+}
+
+private enum class CompilerEntryPoint(val mainClass: String) {
+    Metadata(mainClass = "org.jetbrains.kotlin.cli.metadata.KotlinMetadataCompiler"),
+    JavaScript(mainClass = "org.jetbrains.kotlin.cli.js.K2JSCompiler"),
+    WebAssembly(mainClass = "org.jetbrains.kotlin.cli.js.KotlinWasmCompiler"),
 }
