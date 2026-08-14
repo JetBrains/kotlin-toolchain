@@ -26,9 +26,7 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createTempFile
 import kotlin.io.path.deleteExisting
-import kotlin.io.path.exists
 import kotlin.io.path.extension
-import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.pathString
 import kotlin.io.path.walk
 import kotlin.io.path.writeText
@@ -408,11 +406,8 @@ internal fun kotlinJsCompilerArgs(
     add("-Xir-generate-inline-anonymous-functions")
     add("-Xgenerate-polyfills=false")
     add("-Xgenerate-dts")
-    // -Xes-long-as-bigint was introduced in 2.2.20
-    // https://github.com/JetBrains/kotlin/blob/b23447d5b2db80e0520571d0cec12a3c2ef8d31a/compiler/arguments/src/org/jetbrains/kotlin/arguments/description/JsCompilerArguments.kt#L238
-    if (ComparableVersion(kotlinUserSettings.compilerVersion) >= ComparableVersion("2.2.20")) {
-        add("-Xes-long-as-bigint")
-    }
+    // -Xes-long-as-bigint was introduced in 2.2.20, but we don't support lower Kotlin versions anyway, so this is fine
+    add("-Xes-long-as-bigint")
     add("-target=es2015")
     add("-module-kind=es")
 
