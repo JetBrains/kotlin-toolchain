@@ -22,4 +22,5 @@ Read more about multiplatform topics in the general [Multiplatform modules](../m
 
 ## Publishing
 
-!!! info "Publishing Kotlin Multiplatform libraries is not supported at the moment, but coming soon. Stay tuned!"
+The `kotlin publish <repository>` command can be used to publish the library to a Maven repository.
+Read more about this in the [publishing](../publishing.md) guide.
