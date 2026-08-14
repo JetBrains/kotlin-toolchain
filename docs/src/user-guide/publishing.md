@@ -89,6 +89,20 @@ kotlin publish someIdOfYourChoosing
     If your module depends on other local modules, you must enable publishing for these other modules too.
     We recommend using a template to share the publishing configuration across all your published modules.
 
+## Publishing to the local Maven repository
+
+To install your library into your local Maven repository, declare it with the special
+`mavenLocal` URL:
+
+```yaml title="module.yaml"
+repositories:
+  - url: mavenLocal
+    publish: true
+```
+
+Then publish with `kotlin publish mavenLocal`. No credentials are needed.
+This is the quickest way to try your library out in another project on your machine.
+
 ## Publishing to Maven Central
 
 Maven Central is the most popular Maven repository. Most OSS libraries are published there.
