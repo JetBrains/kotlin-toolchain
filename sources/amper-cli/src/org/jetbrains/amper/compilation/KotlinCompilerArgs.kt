@@ -154,13 +154,6 @@ internal fun kotlinJvmCompilerArgs(
         add("-Xfriend-paths=${friendPaths.joinToString(",")}")
     }
 
-    // FIXME remove in Kotlin 2.2.20 (this is needed only in 2.2.0, not before, not after)
-    val javaSourceRoots = (fragments.flatMap { it.sourceRoots } + additionalSourceRoots.map { it.path })
-        .filter { it.exists() && it.listDirectoryEntries().isNotEmpty() }
-    javaSourceRoots.forEach {
-        add("-Xjava-source-roots=${it.pathString}")
-    }
-
     if (userSettings.kotlin.storeJavaParameterNames) {
         add("-java-parameters")
     }

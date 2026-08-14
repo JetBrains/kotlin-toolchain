@@ -41,10 +41,8 @@ val KotlinCompilerVersionPattern = Regex("""(?<languageVersion>\d+\.\d+)\..*""")
 @EnumOrderSensitive(reverse = true)
 @EnumValueFilter("outdated", isNegated = true)
 enum class KotlinVersion(override val schemaValue: String, override val outdated: Boolean = false) : SchemaEnum {
-    // https://github.com/JetBrains/kotlin/blob/6dff5659f42b0b90863d10ee503efd5a8ebb1034/compiler/util/src/org/jetbrains/kotlin/config/LanguageVersionSettings.kt#L571-L581
-    Kotlin16("1.6", outdated = true), // oldest supported version in Kotlin 2.1.10, which is our minimum
-    Kotlin17("1.7", outdated = true),
-    Kotlin18("1.8", outdated = true),
+    // https://github.com/JetBrains/kotlin/blob/693c44ee79f62895a9b92bdd60fdd7a9bc29a975/compiler/util/src/org/jetbrains/kotlin/config/LanguageVersionSettings.kt#L633-L648
+    Kotlin18("1.8", outdated = true), // oldest supported version in Kotlin 2.2.20, which is our minimum
     Kotlin19("1.9", outdated = true),
     Kotlin20("2.0"),
     Kotlin21("2.1"),

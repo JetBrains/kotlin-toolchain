@@ -12,6 +12,7 @@ import org.jetbrains.amper.frontend.diagnostics.helpers.visitIntProperties
 import org.jetbrains.amper.frontend.messages.PsiBuildProblem
 import org.jetbrains.amper.frontend.messages.extractPsiElementOrNull
 import org.jetbrains.amper.frontend.schema.JdkSettings
+import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.frontend.tree.TreeNode
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
@@ -20,18 +21,16 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
 
 object JdkVersionTooLowFactory : TreeDiagnosticFactory {
 
-    private const val MinimumSupportedJdkVersion = 17
-
     override fun analyze(root: TreeNode, minimalModule: MinimalModule, problemReporter: ProblemReporter) {
         val reportedPlaces = mutableSetOf<Trace>() // somehow the computed properties lead to duplicate reports
         root.visitIntProperties<JdkSettings>(JdkSettings::version) { prop, value ->
             val versionTrace = prop.value.trace
-            if (value < MinimumSupportedJdkVersion && reportedPlaces.add(versionTrace)) {
+            if (value < MinVersions.jdk && reportedPlaces.add(versionTrace)) {
                 problemReporter.reportMessage(
                     JdkVersionTooLow(
                         element = versionTrace.extractPsiElementOrNull() ?: return@visitIntProperties,
                         actualVersion = value,
-                        minVersion = MinimumSupportedJdkVersion,
+                        minVersion = MinVersions.jdk,
                     )
                 )
             }

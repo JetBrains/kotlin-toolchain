@@ -12,6 +12,7 @@ import org.jetbrains.amper.frontend.contexts.MinimalModule
 import org.jetbrains.amper.frontend.diagnostics.helpers.visitStringProperties
 import org.jetbrains.amper.frontend.messages.PsiBuildProblem
 import org.jetbrains.amper.frontend.messages.extractPsiElementOrNull
+import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.frontend.schema.kotlin.KotlinCompilerVersionPattern
 import org.jetbrains.amper.frontend.schema.kotlin.KotlinSettings
 import org.jetbrains.amper.frontend.tree.TreeNode
@@ -21,8 +22,6 @@ import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 
 object KotlinCompilerVersionDiagnosticsFactory : TreeDiagnosticFactory {
-
-    private val MinimumSupportedKotlinVersion = ComparableVersion("2.1.10")
 
     override fun analyze(root: TreeNode, minimalModule: MinimalModule, problemReporter: ProblemReporter) {
         val reportedPlaces = mutableSetOf<Trace>() // somehow the computed properties lead to duplicate reports
@@ -35,12 +34,12 @@ object KotlinCompilerVersionDiagnosticsFactory : TreeDiagnosticFactory {
                         actualVersion = value,
                     )
                 )
-            } else if (ComparableVersion(value) < MinimumSupportedKotlinVersion && reportedPlaces.add(versionTrace)) {
+            } else if (ComparableVersion(value) < MinVersions.kotlin && reportedPlaces.add(versionTrace)) {
                 problemReporter.reportMessage(
                     KotlinCompilerVersionTooLow(
                         element = versionTrace.extractPsiElementOrNull() ?: return@visitStringProperties,
                         actualVersion = value,
-                        minVersion = MinimumSupportedKotlinVersion.toString(),
+                        minVersion = MinVersions.kotlin.toString(),
                     )
                 )
             }

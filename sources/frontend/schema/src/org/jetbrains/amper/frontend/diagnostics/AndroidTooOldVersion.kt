@@ -13,6 +13,7 @@ import org.jetbrains.amper.frontend.messages.extractPsiElementOrNull
 import org.jetbrains.amper.frontend.schema.AndroidCompileSdkVersion
 import org.jetbrains.amper.frontend.schema.AndroidSettings
 import org.jetbrains.amper.frontend.schema.AndroidVersion
+import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.frontend.tree.IntNode
 import org.jetbrains.amper.frontend.tree.KeyValue
 import org.jetbrains.amper.frontend.tree.TreeNode
@@ -33,20 +34,18 @@ class AndroidTooOldVersion(
 
 object AndroidTooOldVersionFactory : TreeDiagnosticFactory {
 
-    private val MINIMAL_ANDROID_VERSION = AndroidVersion(21)
-
     override fun analyze(root: TreeNode, minimalModule: MinimalModule, problemReporter: ProblemReporter) {
         val reportedPlaces = mutableSetOf<PsiElement>() // somehow the computed properties lead to duplicate reports
 
         fun reportTooOldVersion(keyValue: KeyValue, node: IntNode) {
             val version = AndroidVersion(node.value)
             val versionTraceElement = keyValue.value.trace.extractPsiElementOrNull() ?: return
-            if (version < MINIMAL_ANDROID_VERSION && reportedPlaces.add(versionTraceElement)) {
+            if (version < MinVersions.android && reportedPlaces.add(versionTraceElement)) {
                 problemReporter.reportMessage(
                     AndroidTooOldVersion(
                         element = versionTraceElement,
                         used = version,
-                        minVersion = MINIMAL_ANDROID_VERSION,
+                        minVersion = MinVersions.android,
                     )
                 )
             }

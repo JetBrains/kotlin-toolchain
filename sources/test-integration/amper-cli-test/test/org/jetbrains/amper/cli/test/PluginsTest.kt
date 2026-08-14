@@ -64,10 +64,10 @@ class PluginsTest : AmperCliTestBase() {
 
         // In the 'core' and 'lib' modules, the Kotlin version is not overridden, so we expect the default in the
         //   corresponding classpaths.
-        // We expect Kotlin 2.2.10 specifically in the 'from-catalog' because the 'app' module
+        // We expect Kotlin 2.3.0 specifically in the 'from-catalog' because the 'app' module
         //   overrides settings.kotlin.version.
         // We expect Kotlin 2.3.10 specifically in the 'compile' classpaths
-        //   inspite of the 'app' module overrides settings.kotlin.version.
+        //   despite the fact that the 'app' module overrides settings.kotlin.version.
         //   In 'compile', the version is aligned with the runtime classpath of the module.
         //   The runtime classpath of the module gets the default Kotlin version transitively from core/lib because it's
         //   higher, so we expect the default Kotlin version even though it sets Kotlin to 2.2.10 explicitly.
@@ -631,8 +631,8 @@ class PluginsTest : AmperCliTestBase() {
                 taskName = "check-settings",
                 pluginName = "plugin",
                 output = """
-                    kotlinVersion: 2.1.10
-                    kotlinLanguageVersion: 2.1
+                    kotlinVersion: 2.2.20
+                    kotlinLanguageVersion: 2.2
                     kotlinWarningsAsErrors: true
                     jvmRelease: 17
                     jvmRuntimeClasspathMode: jars

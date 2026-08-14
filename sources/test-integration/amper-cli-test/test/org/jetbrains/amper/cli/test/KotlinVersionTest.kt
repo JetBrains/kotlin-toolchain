@@ -9,44 +9,53 @@ import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.cli.test.utils.withTelemetrySpans
+import org.jetbrains.amper.frontend.schema.DefaultVersions
+import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.test.WindowsOnly
 import org.jetbrains.amper.test.spans.assertEachKotlinJvmCompilationSpan
 import org.jetbrains.amper.test.spans.assertEachKotlinNativeCompilationSpan
 import org.jetbrains.amper.test.spans.assertKotlinJvmCompilationSpan
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.slf4j.event.Level
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 import kotlin.test.Test
+
+data class CustomVersionCombination(val kotlinCompiler: String, val jdk: Int)
 
 class KotlinVersionTest : AmperCliTestBase() {
 
-    @Test
-    fun `run kotlin hello world with compiler version 2_1_10`() = runSlowTest {
-        val result = runCli(projectDir = testProject("kotlin-helloworld-custom-version-2.1.10"), "run")
+    companion object {
+        @JvmStatic
+        private fun kotlinVersionsCombinations() = [
+            // Kotlin 2.2.20 supports only up to JDK 24, so we pin to the max LTS that fits
+            CustomVersionCombination(kotlinCompiler = MinVersions.kotlin.canonical, jdk = 21),
+            // Kotlin 2.3 supports up to JDK 25, so we pin this LTS
+            CustomVersionCombination(kotlinCompiler = DefaultVersions.kotlin, jdk = 25),
+            // Kotlin 2.4 supports up to JDK 26, so we pin to the max LTS that fits
+            CustomVersionCombination(kotlinCompiler = "2.4.10", jdk = 25),
+            // Kotlin 2.4 supports up to JDK 26, so we pin to the max LTS that fits
+            CustomVersionCombination(kotlinCompiler = "2.4.20-Beta1", jdk = 25),
+        ]
+    }
+
+    @ParameterizedTest
+    @MethodSource("kotlinVersionsCombinations")
+    fun `run kotlin hello world with custom compiler version`(version: CustomVersionCombination) = runSlowTest {
+        val projectDir = testProject("kotlin-jvm-helloworld-custom-version")
+        val moduleFile = projectDir.resolve("module.yaml")
+        moduleFile.writeText(
+            moduleFile.readText()
+                .replace("{{KOTLIN_COMPILER_VERSION}}", version.kotlinCompiler)
+                .replace("{{JDK_VERSION}}", version.jdk.toString())
+        )
+        val result = runCli(projectDir = projectDir, "run")
 
         result.readTelemetrySpans().assertKotlinJvmCompilationSpan {
             doesNotHaveCompilerArgument("-language-version")
             doesNotHaveCompilerArgument("-api-version")
-            hasAmperModule("kotlin-helloworld-custom-version-2.1.10")
-        }
-    }
-
-    @Test
-    fun `run kotlin hello world with compiler version 2_2_0`() = runSlowTest {
-        val result = runCli(projectDir = testProject("kotlin-helloworld-custom-version-2.2.0"), "run")
-
-        result.readTelemetrySpans().assertKotlinJvmCompilationSpan {
-            doesNotHaveCompilerArgument("-language-version")
-            doesNotHaveCompilerArgument("-api-version")
-            hasAmperModule("kotlin-helloworld-custom-version-2.2.0")
-        }
-    }
-
-    @Test
-    fun `run kotlin hello world with compiler version 2_2_10`() = runSlowTest {
-        val result = runCli(projectDir = testProject("kotlin-helloworld-custom-version-2.2.10"), "run")
-
-        result.readTelemetrySpans().assertKotlinJvmCompilationSpan {
-            doesNotHaveCompilerArgument("-language-version=2.2")
-            hasAmperModule("kotlin-helloworld-custom-version-2.2.10")
+            hasAmperModule("kotlin-jvm-helloworld-custom-version")
         }
     }
 

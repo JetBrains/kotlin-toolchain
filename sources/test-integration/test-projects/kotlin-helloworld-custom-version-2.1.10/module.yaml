@@ -1,9 +1,0 @@
-product: jvm/app
-
-settings:
-  kotlin:
-    version: 2.1.10
-  jvm:
-    jdk:
-      # Kotlin 2.1.10 supports only up to JDK 23, so we pin to the max LTS that fits
-      version: 21
