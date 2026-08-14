@@ -20,6 +20,7 @@ mkdocs text eol=lf
 # Golden module metadata files compared byte-for-byte against LF-generated output
 *.module.json text eol=lf
 *.kotlin-project-structure-metadata.json text eol=lf
+*.kotlin-tooling-metadata.json text eol=lf
 *.original_gradle.json text eol=lf
 # Gradle wrapper from BOM-generation project used for tests
 gradlew text eol=lf

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.1.0",
+  "buildSystem": "Kotlin Toolchain",
+  "buildSystemVersion": "1.0-SNAPSHOT",
+  "buildPlugin": "Kotlin Toolchain",
+  "buildPluginVersion": "1.0-SNAPSHOT",
+  "projectSettings": {
+    "isHmppEnabled": true,
+    "isCompatibilityMetadataVariantEnabled": false,
+    "isKPMEnabled": false
+  },
+  "projectTargets": [
+    {
+      "target": "org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget",
+      "platformType": "native",
+      "extras": {
+        "native": {
+          "konanTarget": "linux_arm64",
+          "konanVersion": "2.3.21",
+          "konanAbiVersion": "2.3.0"
+        }
+      }
+    },
+    {
+      "target": "org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget",
+      "platformType": "native",
+      "extras": {
+        "native": {
+          "konanTarget": "linux_x64",
+          "konanVersion": "2.3.21",
+          "konanAbiVersion": "2.3.0"
+        }
+      }
+    },
+    {
+      "target": "org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget",
+      "platformType": "native",
+      "extras": {
+        "native": {
+          "konanTarget": "mingw_x64",
+          "konanVersion": "2.3.21",
+          "konanAbiVersion": "2.3.0"
+        }
+      }
+    },
+    {
+      "target": "org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget",
+      "platformType": "common"
+    }
+  ]
+}

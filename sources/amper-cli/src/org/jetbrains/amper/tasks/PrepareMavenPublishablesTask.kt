@@ -22,6 +22,7 @@ import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.isArtifactSigningEnabled
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.schema.Checksum
@@ -38,10 +39,15 @@ import org.jetbrains.amper.stdlib.hashing.hash
 import org.jetbrains.amper.tasks.android.AndroidAarTask
 import org.jetbrains.amper.tasks.jvm.JvmClassesJarTask
 import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
+import org.jetbrains.amper.tasks.metadata.KOTLIN_TOOLING_METADATA_CLASSIFIER
+import org.jetbrains.amper.tasks.metadata.KotlinToolingMetadata
 import org.jetbrains.amper.tasks.metadata.cinteropClassifier
 import org.jetbrains.amper.tasks.metadata.generateCommonGradleModuleMetadata
 import org.jetbrains.amper.tasks.metadata.generateGradleMetadataForLeafPlatform
 import org.jetbrains.amper.tasks.metadata.isCinteropClassifier
+import org.jetbrains.amper.tasks.metadata.kotlinToolingMetadataFor
+import org.jetbrains.amper.tasks.metadata.readKlibAbiVersion
+import org.jetbrains.amper.tasks.metadata.writeKotlinToolingMetadata
 import org.jetbrains.amper.tasks.native.NativeCInteropGenerateKlibTask
 import org.jetbrains.amper.tasks.native.NativeCompileKlibTask
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
@@ -79,6 +85,14 @@ class PrepareMavenPublishablesTask(
 
         val signingEnabled = module.isArtifactSigningEnabled()
 
+        // Only multiplatform libraries describe themselves with tooling metadata, just like in Gradle builds.
+        val toolingMetadata = if (module.isMultiplatformPublication()) {
+            kotlinToolingMetadataFor(
+                module = module,
+                konanAbiVersion = findKonanAbiVersion(coordsPerPlatform, modulePublishablesFromOtherTasks),
+            )
+        } else null
+
         val publishables = incrementalCache.executeForSerializable<List<MavenPublishable>>(
             key = taskName.id.value,
             inputValues = mapOf(
@@ -90,6 +104,7 @@ class PrepareMavenPublishablesTask(
                 "moduleInfo" to Json.encodeToString(listOf(module.userReadableName, module.description)),
                 "checksums" to module.publishingSettings.checksums.joinToString(),
                 "publishSources" to module.publishingSettings.publishSources.toString(),
+                "toolingMetadata" to toolingMetadata?.let { Json.encodeToString(it) }.orEmpty(),
             ),
             inputFiles = modulePublishablesFromOtherTasks.map { it.path },
         ) {
@@ -109,6 +124,7 @@ class PrepareMavenPublishablesTask(
             val meaningfulPublishables = mutableListOf<MavenPublishable>()
             meaningfulPublishables.addAll(poms)
             meaningfulPublishables.addAll(modulePublishablesFromOtherTasks)
+            toolingMetadata?.let { meaningfulPublishables.add(generateToolingMetadataPublishable(it, coordsPerPlatform)) }
 
             val checksumsToPublish = module.publishingSettings.checksums
             val checksumPublishables = mutableMapOf<String, List<MavenPublishable>>()
@@ -143,6 +159,40 @@ class PrepareMavenPublishablesTask(
         }
 
         return Result(publishables)
+    }
+
+    /**
+     * Reads the ABI version of the Kotlin/Native compiler from one of the klibs published for the native platforms of
+     * this module, or returns null if this module publishes no native klib (a native module without sources, for
+     * instance).
+     *
+     * All native platforms are compiled by the same compiler, so any of their klibs reports the same version.
+     */
+    private suspend fun findKonanAbiVersion(
+        coordsPerPlatform: Map<Platform, MavenCoordinates>,
+        modulePublishablesFromOtherTasks: List<MavenPublishable>,
+    ): String? = coordsPerPlatform
+        .filterKeys { it.isDescendantOf(Platform.NATIVE) }
+        .values
+        .firstNotNullOfOrNull { coords ->
+            modulePublishablesFromOtherTasks
+                .firstOrNull { it.coordinates == coords && it.mavenArtifactExtension == "klib" }
+                ?.let { readKlibAbiVersion(it.path) }
+        }
+
+    /**
+     * Writes the tooling metadata of this multiplatform library, and returns it as an artifact of the root
+     * publication, with the classifier and extension that its consumers expect.
+     *
+     * Note: this artifact is not part of any Gradle metadata variant, exactly like in Gradle publications.
+     */
+    private suspend fun generateToolingMetadataPublishable(
+        toolingMetadata: KotlinToolingMetadata,
+        coordsPerPlatform: Map<Platform, MavenCoordinates>,
+    ): MavenPublishable {
+        val toolingMetadataFile = writeKotlinToolingMetadata(toolingMetadata, taskOutputRoot.path)
+        val coords = coordsPerPlatform.getValue(Platform.COMMON).copy(classifier = KOTLIN_TOOLING_METADATA_CLASSIFIER)
+        return toolingMetadataFile.toMavenPublishable(coords)
     }
 
     private suspend fun generateGradleMetadata(
