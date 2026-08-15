@@ -962,6 +962,17 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#multiplatform-libraries-included" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiplatform libraries included
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#publishing-to-a-regular-maven-repository" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2555,6 +2566,17 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#multiplatform-libraries-included" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiplatform libraries included
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#publishing-to-a-regular-maven-repository" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2666,15 +2688,23 @@ Maven repositories: PGP signing, sources/javadoc JARs, Central Publish portal cr
 <div class="admonition info">
 <p class="admonition-title">The publishing feature is in preview, and is likely to change. Don't hesitate to share your feedback!</p>
 </div>
-<div class="admonition warning">
-<p class="admonition-title">Multiplatform library publication is not supported yet</p>
-<p>At the moment, only JVM libraries can be published.
-While the <code>publish</code> command for <abbr title="Kotlin Multiplatform">KMP</abbr> libraries will not complain, the <abbr title="Kotlin Multiplatform">KMP</abbr> publications are for now incomplete and
-not consumable by other projects.</p>
-</div>
 <p>Library modules inside your project are useful for modularization, but you can take it one step further by publishing
 your libraries so they can be used by other projects.</p>
 <p>With a little bit of configuration, you'll be able to publish using the <code>kotlin publish</code> command.</p>
+<h2 id="multiplatform-libraries-included">Multiplatform libraries included<a class="headerlink" href="#multiplatform-libraries-included" title="Permanent link">&para;</a></h2>
+<p>Publishing a multiplatform library takes exactly the same configuration as publishing a JVM one — the Kotlin Toolchain
+takes care of the rest. It publishes everything your users need to depend on your library from any of its targets: the
+common API, one artifact per platform, the sources, and the descriptors that let build tools pick the right pieces
+automatically.</p>
+<p>Libraries that bind to native C libraries are covered as well: the <code>cinterop</code> bindings are published both in their
+commonized form, for use from common code, and per platform, so your users get the same C API you compiled against
+without setting up interop themselves.</p>
+<p>The result is consumable from Gradle projects like any other multiplatform library, including single-target
+libraries and mixed target sets such as <code>jvm</code> + <code>android</code> or <code>wasmJs</code> + <code>wasmWasi</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Compose Multiplatform resources</p>
+<p>Resources of Compose Multiplatform libraries are not part of the publication yet (see <a href="https://youtrack.jetbrains.com/issue/KTC-5698/Support-publication-of-composeResources-as-a-part-of-KMP-library-publication">KTC-5698</a>).</p>
+</div>
 <h2 id="publishing-to-a-regular-maven-repository">Publishing to a regular Maven repository<a class="headerlink" href="#publishing-to-a-regular-maven-repository" title="Permanent link">&para;</a></h2>
 <p>To publish to a Maven repository, you essentially need 3 things:</p>
 <ul>
@@ -2867,7 +2897,7 @@ remove artifacts from Maven Central, because Sonatype has a strict policy about 
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 30, 2026 20:53:22 UTC">May 30, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 13, 2026 17:33:32 UTC">August 13, 2026</span>
   </span>
 
     
