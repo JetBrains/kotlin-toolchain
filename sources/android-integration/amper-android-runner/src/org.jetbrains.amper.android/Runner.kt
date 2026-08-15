@@ -16,6 +16,7 @@ import org.gradle.tooling.model.GradleProject
 import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.mavencentral.MavenCentralDefaultConfiguration
 import java.io.BufferedOutputStream
+import java.net.URI
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption.APPEND
 import java.nio.file.StandardOpenOption.CREATE
@@ -28,6 +29,13 @@ import kotlin.io.path.outputStream
 import kotlin.io.path.pathString
 
 private const val DEBUG_JVM_AGENT = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+
+/**
+ * Overrides the Gradle distribution the Tooling API downloads for Android builds.
+ * Point it at a mirror (e.g. https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-8.14.3-bin.zip)
+ * when services.gradle.org is unreachable. When unset, Gradle uses its default distribution URL.
+ */
+private const val GRADLE_DISTRIBUTION_URL_ENV = "KOTLIN_TOOLCHAIN_GRADLE_DISTRIBUTION_URL"
 
 private fun <T : ConfigurableLauncher<T>> T.addDebugJvmArgumentsIf(debug: Boolean): T =
     if (debug) addJvmArguments(DEBUG_JVM_AGENT) else this
@@ -67,6 +75,11 @@ fun runAndroidBuild(
     GradleConnector
         .newConnector()
         .forProjectDirectory(settingsGradlePath.parent.toFile())
+        .apply {
+            System.getenv(GRADLE_DISTRIBUTION_URL_ENV)
+                ?.takeIf { it.isNotBlank() }
+                ?.let { useDistribution(URI(it)) }
+        }
         .connect()
         .use { connection ->
             val androidProjects = connection.extractAndroidProjectModelsFromBuild(buildRequest, jdkDir, debug)
