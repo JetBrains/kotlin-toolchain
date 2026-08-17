@@ -238,7 +238,7 @@ settings@jvm:
   springBoot:
     applyBom: true  # default
     enabled: false  # default
-    version: 4.0.6  # default
+    version: 4.1.0  # default
 
 Module: shared
 
@@ -470,7 +470,7 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
   springBoot:
     applyBom: true  # default
     enabled: false  # default
-    version: 4.0.6  # default
+    version: 4.1.0  # default
 
 settings@jvm:
   compose:
@@ -587,7 +587,7 @@ settings@jvm:
   springBoot:
     applyBom: true  # default
     enabled: false  # default
-    version: 4.0.6  # default
+    version: 4.1.0  # default
 
 settings@android:
   android:
