@@ -418,7 +418,7 @@ class MavenDependencyNodeWithContext internal constructor(
                 .mapNotNull { it.`available-at`?.toCoordinates() }
                 .singleOrNull { it in childrenOriginalCoordinates }
 
-            // todo (AB) : Take corresponding entry from childrenOriginalCoordinates and check its _single_ file extension.
+            // todo (AB): [KTC-5270] Take corresponding entry from childrenOriginalCoordinates and check its _single_ file extension.
             //  If it is AAR then add it as a packaging type to the return coordinates for publishing.
             //  (maybe not only AAR? maybe KLib as well?)
             //  Ensure, that specified packaging type is actually used on publication for filling dependency.type.

@@ -645,7 +645,7 @@ class BuildGraphTest : BaseDRTest() {
             scope = ResolutionScope.RUNTIME,
             verifyMessages = true
         )
-        downloadAndAssertFiles(testInfo, root, withSources = true/*, checkAutoAddedDocumentation = false*/)
+        downloadAndAssertFiles(testInfo, root, withSources = true)
     }
 
     /**
