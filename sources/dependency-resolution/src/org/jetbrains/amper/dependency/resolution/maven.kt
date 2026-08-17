@@ -937,7 +937,8 @@ class MavenDependencyImpl internal constructor(
                             ?: pomPackagingType.value.takeIf { it != "pom" }
                             ?: "jar"
 
-                        // todo (AB) : Packaging type might also imply classifier (if it as not specified explicitly yet)
+                        // todo (AB): [KTC-5270]
+                        //  Packaging type might also imply classifier (if it is not specified explicitly yet)
                         //  It might affect [getNameWithoutExtension] implementation
                         //  See https://maven.apache.org/repositories/dependencies.html
                         val nameWithoutExtension = getNameWithoutExtension(dependency)
@@ -2292,6 +2293,15 @@ class MavenDependencyImpl internal constructor(
         pomPackagingType = project.packaging
             ?.let { PomPackagingType.FromPom(it) }
             ?: PomPackagingType.Unspecified
+
+        // todo (AB): [KTC-5270]
+        //  1. Do not resolve transitive dependencies of the library
+        //  if its effective packaging type is among { 'fat', 'war', 'ear' }.
+        //  Corresponding Maven ArtifactHandler specifies includesDependencies = true
+        //  (i.e., resolved artifact includes dependencies already)
+        //  2. Don't add resolved dependency artifact to the Graph
+        //  if effective dependency packaging type is among { zip, rar, java-source }.
+        //  Corresponding Maven ArtifactHandler specifies addedToClasspath = false
 
         state = getTargetState(level, transitive)
 
