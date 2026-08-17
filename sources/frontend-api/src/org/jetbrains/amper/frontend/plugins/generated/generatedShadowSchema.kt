@@ -106,8 +106,12 @@ public class ShadowDependencyMaven : ShadowDependency() {
     public val version: String by value()
 
     @CanBeReferenced
-    @SchemaDoc(doc = "Optional Maven artifact classifier. Jar by default.")
+    @SchemaDoc(doc = "Optional Maven artifact classifier. Empty by default.")
     public val classifier: String? by nullableValue()
+
+    @CanBeReferenced
+    @SchemaDoc(doc = "Optional Maven artifact packaging type. Jar by default.")
+    public val packagingType: String? by nullableValue()
 }
 
 /**

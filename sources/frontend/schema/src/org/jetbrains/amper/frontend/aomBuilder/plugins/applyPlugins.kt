@@ -98,6 +98,7 @@ internal fun applyPlugins(
                                 artifactId = it.artifactId,
                                 version = it.versionDelegate.asTraceableValue(),
                                 classifier = it.classifier,
+                                packagingType = it.packagingType,
                                 trace = it.trace,
                             )
                         },

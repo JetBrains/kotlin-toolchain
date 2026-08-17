@@ -53,8 +53,13 @@ sealed interface Dependency {
         val version: String
 
         /**
-         * Optional Maven artifact classifier. Jar by default.
+         * Optional Maven artifact classifier. Empty by default.
          */
         val classifier: String?
+
+        /**
+         * Optional Maven artifact packaging type. Jar by default.
+         */
+        val packagingType: String?
     }
 }

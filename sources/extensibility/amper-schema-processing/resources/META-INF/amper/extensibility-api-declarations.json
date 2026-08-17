@@ -180,7 +180,16 @@
                         "type": "string",
                         "isNullable": true
                     },
-                    "doc": "Optional Maven artifact classifier. Jar by default.",
+                    "doc": "Optional Maven artifact classifier. Empty by default.",
+                    "internalAttributes": {}
+                },
+                {
+                    "name": "packagingType",
+                    "type": {
+                        "type": "string",
+                        "isNullable": true
+                    },
+                    "doc": "Optional Maven artifact packaging type. Jar by default.",
                     "internalAttributes": {}
                 }
             ],
