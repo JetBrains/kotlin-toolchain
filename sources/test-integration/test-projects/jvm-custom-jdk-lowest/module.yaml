@@ -1,8 +1,7 @@
 product: jvm/app
 
 settings:
-  kotlin:
-    version: 2.4.10
+  # No specific Kotlin version here, because the lowest supported JDK should support the default Kotlin version
   jvm:
     jdk:
-      version: 17 # should always be the lowest supported JDK
+      version: {{MIN_JDK_VERSION}} # should always be the lowest supported JDK

@@ -11,6 +11,7 @@ import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
@@ -28,6 +29,8 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertContains
 
@@ -64,7 +67,11 @@ class AmperRunTest : AmperCliTestBase() {
 
     @Test
     fun `jvm hello world with lowest supported JDK`() = runSlowTest {
-        val result = runCli(projectDir = testProject("jvm-custom-jdk-lowest"), "run")
+        val projectDir = testProject("jvm-custom-jdk-lowest")
+        val moduleFile = projectDir.resolve("module.yaml")
+        moduleFile.writeText(moduleFile.readText().replace("{{MIN_JDK_VERSION}}", MinVersions.jdk.toString()))
+
+        val result = runCli(projectDir = projectDir, "run")
         result.assertStdoutContains("Hello")
     }
 

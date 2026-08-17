@@ -12,6 +12,7 @@ import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.cli.test.utils.withTelemetrySpans
+import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.spans.assertEachKotlinNativeCompilationSpan
 import org.jetbrains.amper.test.spans.kotlinJvmCompilationSpans
@@ -380,7 +381,10 @@ class AmperBuildTest : AmperCliTestBase() {
 
     @Test
     fun `jvm hello world with lowest supported JDK`() = runSlowTest {
-        runCli(projectDir = testProject("jvm-custom-jdk-lowest"), "build")
+        val projectDir = testProject("jvm-custom-jdk-lowest")
+        val moduleFile = projectDir.resolve("module.yaml")
+        moduleFile.writeText(moduleFile.readText().replace("{{MIN_JDK_VERSION}}", MinVersions.jdk.toString()))
+        runCli(projectDir = projectDir, "build")
     }
 
     @RunWithAndWithoutJic
@@ -399,7 +403,14 @@ class AmperBuildTest : AmperCliTestBase() {
 
     @Test
     fun `multiplatform lib with lowest supported JDK`() = runSlowTest {
-        runCli(projectDir = testProject("multiplatform-lowest-jdk-and-kotlin"), "build", configureAndroidHome = true)
+        val projectDir = testProject("multiplatform-lowest-jdk-and-kotlin")
+        val moduleFile = projectDir.resolve("module.yaml")
+        moduleFile.writeText(
+            moduleFile.readText()
+                .replace("{{MIN_KOTLIN_VERSION}}", MinVersions.kotlin.canonical)
+                .replace("{{MIN_JDK_VERSION}}", MinVersions.jdk.toString())
+        )
+        runCli(projectDir = projectDir, "build", configureAndroidHome = true)
     }
 
     // AMPER-5259

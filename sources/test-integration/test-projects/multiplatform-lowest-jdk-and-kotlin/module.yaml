@@ -27,6 +27,6 @@ product:
 settings:
   jvm:
     jdk:
-      version: 17 # should be the lowest supported JDK
+      version: {{MIN_JDK_VERSION}} # should be the lowest supported JDK
   kotlin:
-    version: 2.1.10 # should be the lowest supported Kotlin
+    version: {{MIN_KOTLIN_VERSION}} # should be the lowest supported Kotlin
