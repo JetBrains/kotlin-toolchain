@@ -97,8 +97,10 @@ private fun LeafFragment.toProjectTarget(kotlinVersion: String, konanAbiVersion:
     platform == Platform.JVM -> ProjectTarget(
         target = KGP_JVM_TARGET,
         platformType = "jvm",
-        // Java sources are compiled as part of the JVM fragment itself, so there is no equivalent of KGP's
-        // 'withJava()' to report here.
+        // The Kotlin Toolchain always compiles the Java sources of the JVM fragment and has no equivalent of KGP's
+        // legacy 'withJava()' opt-in. Reporting false is therefore correct despite Java sources being compiled:
+        // 'withJavaEnabled' describes that Gradle wiring, not the presence of Java sources,
+        // See JvmExtras documentation for more details.
         extras = jvmRelease()?.let { TargetExtras(jvm = JvmExtras(jvmTarget = it, withJavaEnabled = false)) },
     )
     platform == Platform.ANDROID -> ProjectTarget(

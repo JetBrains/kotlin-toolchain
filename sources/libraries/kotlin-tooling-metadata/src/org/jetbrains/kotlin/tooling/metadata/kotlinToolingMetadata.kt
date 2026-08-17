@@ -80,9 +80,31 @@ data class AndroidExtras(
     val targetCompatibility: String,
 )
 
+/**
+ * Details of a JVM target.
+ */
 @Serializable
 data class JvmExtras(
+    /**
+     * The JVM bytecode version targeted by the Kotlin compiler, in the notation used by the Kotlin and Java compilers
+     * ('1.8', '17', '21', …).
+     */
     val jvmTarget: String,
+    /**
+     * Whether the deprecated `withJava()` was called on the KGP `KotlinJvmTarget` this metadata describes.
+     *
+     * This does **not** tell whether the library has Java sources, nor whether any Java source was compiled into the
+     * JVM target. It only reports a legacy Gradle-specific opt-in: `withJava()` pulls the Gradle Java plugin's source
+     * sets (`src/main/java` and `src/test/java`) into the compilations of the JVM target, and disables the Java
+     * plugin's own `jar` and `test` tasks in favour of the target's equivalents. KGP fills this field straight from
+     * `KotlinJvmTarget.withJavaEnabled`, a property that nothing but `withJava()` sets.
+     *
+     * A `false` value therefore says nothing about Java sources, and it is what a Gradle build reports as soon as it
+     * doesn't use that legacy wiring. KGP has deprecated `withJava()` altogether (as of 2.2.10, with the message
+     * "Kotlin Multiplatform JVM target compiles Java sources by default. Please remove `withJava()` call."), so even
+     * Gradle builds that do compile Java sources into their JVM target now report `false` here. Build systems that
+     * compile Java sources without any such opt-in report `false` for the same reason.
+     */
     val withJavaEnabled: Boolean,
 )
 
