@@ -92,10 +92,11 @@ class RichTerminalProblemReporter(
                     cell(muted("$borderPrefix╰─"))
                 }
             }
-            GlobalBuildProblemSource -> horizontalLayout {
-                cells(severityStyledText(problem.level), problemTextWidget(problem))
-                spacing = 0
-            }
+            GlobalBuildProblemSource -> PrefixedWidget(
+                prefix = severityStyledText(problem.level),
+                continuationPrefix = " ".repeat(severityPrefix(problem.level).length),
+                content = problemTextWidget(problem),
+            )
         }
         terminal.println(message, stderr = problem.level == Level.Error)
     }
@@ -197,11 +198,14 @@ class RichTerminalProblemReporter(
         Level.Warning, Level.WeakWarning -> terminal.theme.warning
     }
 
-    private fun severityStyledText(level: Level) = when (level) {
+    private fun severityPrefix(level: Level) = when (level) {
         Level.WeakWarning -> "WEAK WARNING"
         Level.Warning -> "WARNING"
         Level.Error -> "ERROR"
-    }.let { severityStyle(level)(TextStyles.bold("$it: ")) }
+    } + ": "
+
+    private fun severityStyledText(level: Level) =
+        severityStyle(level)(TextStyles.bold(severityPrefix(level)))
 
     private fun resolveSnippet(file: Path, span: LineAndColumnRange): List<String>? {
         val lines = try {

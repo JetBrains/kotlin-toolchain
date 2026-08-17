@@ -21,27 +21,45 @@ private const val androidSdkLicenseCheckCacheKeyPrefix = "android-sdk-license-ch
 internal class AndroidSdkLicenseChecker(
     androidSdkPath: Path,
     private val incrementalCache: IncrementalCache,
-    private val packageLicenseReader: (Path) -> License,
+    private val packageLicenseReader: (Path) -> AndroidSdkPackageLicense,
 ) {
     private val normalizedAndroidSdkPath = androidSdkPath.toAbsolutePath().normalize()
 
-    suspend fun findUnacceptedLicenseIds(): List<String> {
+    suspend fun check(): AndroidSdkLicenseCheckResult {
         val packageManifests = findAndroidSdkPackageManifests(normalizedAndroidSdkPath)
         val licenseFiles = findAndroidSdkLicenseFiles(normalizedAndroidSdkPath)
-        return incrementalCache.executeForSerializable(
+        val packagesByLicenseId = incrementalCache.executeForSerializable(
             key = "$androidSdkLicenseCheckCacheKeyPrefix:${normalizedAndroidSdkPath.pathString}",
             inputValues = emptyMap(),
             inputFiles = (packageManifests + licenseFiles).toList(),
         ) {
             packageManifests
                 .map(packageLicenseReader)
-                .filterNot { it.checkAccepted(normalizedAndroidSdkPath) }
-                .map { it.id }
-                .distinct()
-                .sorted()
+                .filterNot { it.license.checkAccepted(normalizedAndroidSdkPath) }
+                .groupBy { it.license.id }
+                .toSortedMap()
+                .mapValues { entry -> entry.value.map { it.packagePath }.distinct().sorted() }
+        }
+        return if (packagesByLicenseId.isEmpty()) {
+            AndroidSdkLicenseCheckResult.Accepted
+        } else {
+            AndroidSdkLicenseCheckResult.Unaccepted(packagesByLicenseId)
         }
     }
 }
+
+sealed interface AndroidSdkLicenseCheckResult {
+    data object Accepted : AndroidSdkLicenseCheckResult
+
+    data class Unaccepted(
+        val packagesByLicenseId: Map<String, List<String>>,
+    ) : AndroidSdkLicenseCheckResult
+}
+
+internal data class AndroidSdkPackageLicense(
+    val packagePath: String,
+    val license: License,
+)
 
 internal fun findAndroidSdkPackageManifests(androidSdkPath: Path): Set<Path> = buildSet {
     androidSdkPath.visitFileTree {

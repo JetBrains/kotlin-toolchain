@@ -49,7 +49,28 @@ class AndroidSdkLicenseCheckerTest {
     }
 
     @Test
-    fun `unchanged SDK reuses cached unaccepted license IDs without parsing manifests`() = runBlocking {
+    fun `unaccepted SDK licenses include the packages that require them`() = runBlocking {
+        val sdkRoot = (tempDir / "sdk").also { it.createDirectories() }
+        writeManifest(sdkRoot, "platforms/android-36", licenseId = "license-z")
+        writeManifest(sdkRoot, "build-tools/36.0.0", licenseId = "license-a")
+        writeManifest(sdkRoot, "cmdline-tools/latest", licenseId = "license-a")
+        val checker = AndroidSdkLicenseChecker(sdkRoot, createIncrementalCache()) { manifest ->
+            manifest.readTestPackageLicense(sdkRoot)
+        }
+
+        assertEquals(
+            AndroidSdkLicenseCheckResult.Unaccepted(
+                packagesByLicenseId = mapOf(
+                    "license-a" to listOf("build-tools;36.0.0", "cmdline-tools;latest"),
+                    "license-z" to listOf("platforms;android-36"),
+                ),
+            ),
+            checker.check(),
+        )
+    }
+
+    @Test
+    fun `unchanged SDK reuses cached unaccepted licenses without parsing manifests`() = runBlocking {
         val sdkRoot = (tempDir / "sdk").also { it.createDirectories() }
         val stateRoot = tempDir / "incremental-state"
         writeManifest(sdkRoot, "platforms/android-36", licenseId = "license-z")
@@ -61,7 +82,7 @@ class AndroidSdkLicenseCheckerTest {
             incrementalCache = createIncrementalCache(stateRoot),
         ) { manifest ->
             parserInvocations++
-            manifest.readTestLicense()
+            manifest.readTestPackageLicense(sdkRoot)
         }
 
         assertEquals(listOf("license-a", "license-z"), checker().findUnacceptedLicenseIds())
@@ -79,7 +100,7 @@ class AndroidSdkLicenseCheckerTest {
         var parserInvocations = 0
         val checker = AndroidSdkLicenseChecker(sdkRoot, createIncrementalCache()) { path ->
             parserInvocations++
-            path.readTestLicense()
+            path.readTestPackageLicense(sdkRoot)
         }
 
         assertEquals(listOf("license-a"), checker.findUnacceptedLicenseIds())
@@ -112,7 +133,7 @@ class AndroidSdkLicenseCheckerTest {
         var parserInvocations = 0
         val checker = AndroidSdkLicenseChecker(sdkRoot, createIncrementalCache()) { path ->
             parserInvocations++
-            path.readTestLicense()
+            path.readTestPackageLicense(sdkRoot)
         }
 
         assertEquals(listOf("license-a"), checker.findUnacceptedLicenseIds())
@@ -147,11 +168,11 @@ class AndroidSdkLicenseCheckerTest {
         var secondParserInvocations = 0
         val firstChecker = AndroidSdkLicenseChecker(sdkRoot, incrementalCache) { path ->
             firstParserInvocations++
-            path.readTestLicense()
+            path.readTestPackageLicense(sdkRoot)
         }
         val secondChecker = AndroidSdkLicenseChecker(sdkRoot, incrementalCache) { path ->
             secondParserInvocations++
-            path.readTestLicense()
+            path.readTestPackageLicense(sdkRoot)
         }
 
         assertEquals(listOf("license-a"), firstChecker.findUnacceptedLicenseIds())
@@ -174,7 +195,7 @@ class AndroidSdkLicenseCheckerTest {
             incrementalCache = createIncrementalCache(stateRoot),
         ) { path ->
             parserInvocations++
-            path.readTestLicense()
+            path.readTestPackageLicense(sdkRoot)
         }
 
         assertEquals(listOf("license-a"), checker(firstSdkRoot).findUnacceptedLicenseIds())
@@ -194,7 +215,7 @@ class AndroidSdkLicenseCheckerTest {
             incrementalCache = IncrementalCache(stateRoot, codeVersion = "test"),
         ) { path ->
             parserInvocations++
-            path.readTestLicense()
+            path.readTestPackageLicense(sdkRoot)
         }
 
         assertEquals(listOf("license-a"), checker.findUnacceptedLicenseIds())
@@ -222,6 +243,17 @@ class AndroidSdkLicenseCheckerTest {
         val parts = readText().split('|', limit = 2)
         return TestLicense(parts[0], parts[1])
     }
+
+    private fun Path.readTestPackageLicense(sdkRoot: Path): AndroidSdkPackageLicense = AndroidSdkPackageLicense(
+        packagePath = sdkRoot.relativize(parent).toString().replace('/', ';'),
+        license = readTestLicense(),
+    )
+
+    private suspend fun AndroidSdkLicenseChecker.findUnacceptedLicenseIds(): List<String> =
+        when (val result = check()) {
+            AndroidSdkLicenseCheckResult.Accepted -> emptyList()
+            is AndroidSdkLicenseCheckResult.Unaccepted -> result.packagesByLicenseId.keys.toList()
+        }
 
     private fun Path.createFile(): Path = apply {
         createParentDirectories()

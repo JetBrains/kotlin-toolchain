@@ -19,7 +19,7 @@ internal fun createMordantTerminal(): Terminal = spanBuilder("Initialize Mordant
         //   * CI build log UIs
         //   * file containing redirected output of the Kotlin Toolchain
         //   * our own tests (which might check stdout and expect longer lines)
-        nonInteractiveWidth = 120,
+        nonInteractiveWidth = 1500,
     )
 
     // Workaround while waiting for https://github.com/ajalt/mordant/pull/290

@@ -5,10 +5,9 @@
 package org.jetbrains.amper.tasks.android
 
 import com.android.prefs.AndroidLocationsSingleton
-import com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG
-import com.android.sdklib.devices.Abi
+import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkPackageRequest
 import org.jetbrains.amper.android.sdk.provisioning.androidPlatformPackageName
-import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkProvider
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.engine.TaskGraphBuilder
 import org.jetbrains.amper.frontend.AmperModule
@@ -29,45 +28,42 @@ import org.jetbrains.amper.tasks.jvm.JvmCompileTask
 import org.jetbrains.amper.tasks.jvm.JvmRuntimeClasspathTask
 import org.jetbrains.amper.tasks.jvm.JvmTestTask
 import org.jetbrains.amper.util.BuildType
-import java.nio.file.Path
 
 fun ProjectTasksBuilder.setupAndroidTasks() {
     val androidSdkPath = context.androidHomeRoot.path
+    val androidSdkProvider = context.androidSdkProvider
     val needDefaultSystemImage = runSettings.deviceId == null
 
     allModules().alsoPlatforms(Platform.ANDROID).withEach {
         tasks.registerTask(
             task = CheckAndroidSdkLicenseTask(
-                androidSdkPath = androidSdkPath,
-                userCacheRoot = context.userCacheRoot,
-                incrementalCache = context.incrementalCache,
+                androidSdkProvider = androidSdkProvider,
                 taskName = AndroidTaskType.CheckAndroidSdkLicense.getTaskName(module, Platform.ANDROID),
             ),
             dependsOn = AndroidTaskType.InstallCmdlineTools.getTaskName(module, Platform.ANDROID)
         )
-        tasks.setupAndroidCommandlineTools(module, androidSdkPath, context.userCacheRoot)
+        tasks.setupAndroidCommandlineTools(module, androidSdkProvider)
     }
 
     allModules().alsoPlatforms(Platform.ANDROID)
         .alsoTests()
         .withEach {
-            tasks.setupAndroidPlatformTask(module, androidSdkPath, context.userCacheRoot, isTest)
+            tasks.setupAndroidPlatformTask(module, androidSdkProvider, isTest)
         }
 
     allModules().alsoPlatforms(Platform.ANDROID)
         .filterModuleType { it != ProductType.KMP_LIB }
         .alsoTests()
         .withEach {
-            tasks.setupDownloadBuildToolsTask(module, androidSdkPath, context.userCacheRoot, isTest)
-            tasks.setupDownloadPlatformToolsTask(module, androidSdkPath, context.userCacheRoot, isTest)
+            tasks.setupDownloadBuildToolsTask(module, androidSdkProvider, isTest)
+            tasks.setupDownloadPlatformToolsTask(module, androidSdkProvider, isTest)
             if (needDefaultSystemImage) {
-                tasks.setupDownloadSystemImageTask(module, androidSdkPath, context.userCacheRoot, isTest)
+                tasks.setupDownloadSystemImageTask(module, androidSdkProvider, isTest)
             }
             tasks.registerTask(
                 task = GetAndroidPlatformFileFromPackageTask(
-                    packageName = "emulator",
-                    androidSdkPath = androidSdkPath,
-                    userCacheRoot = context.userCacheRoot,
+                    packageRequest = AndroidSdkPackageRequest.Emulator,
+                    androidSdkProvider = androidSdkProvider,
                     taskName = AndroidTaskType.InstallEmulator.getTaskName(module, Platform.ANDROID, isTest)
                 ),
                 dependsOn = AndroidTaskType.CheckAndroidSdkLicense.getTaskName(module, Platform.ANDROID)
@@ -413,8 +409,7 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
 
 private fun TaskGraphBuilder.setupAndroidPlatformTask(
     module: AmperModule,
-    androidSdkPath: Path,
-    userCacheRoot: AmperUserCacheRoot,
+    androidSdkProvider: AndroidSdkProvider,
     isTest: Boolean,
 ) {
     val androidFragment = getAndroidFragment(module, isTest)
@@ -422,13 +417,12 @@ private fun TaskGraphBuilder.setupAndroidPlatformTask(
     registerTask(
         task = GetAndroidPlatformJarTask(
             getAndroidPlatformFileFromPackageTask = GetAndroidPlatformFileFromPackageTask(
-                packageName = androidPlatformPackageName(
-                    apiLevel = compileSdk.apiLevel.versionNumber,
-                    minorApiLevel = compileSdk.minorApiLevel,
-                    sdkExtension = compileSdk.sdkExtension,
+                packageRequest = AndroidSdkPackageRequest.Platform(
+                    compileSdk.apiLevel.versionNumber,
+                    compileSdk.minorApiLevel,
+                    compileSdk.sdkExtension
                 ),
-                androidSdkPath = androidSdkPath,
-                userCacheRoot = userCacheRoot,
+                androidSdkProvider = androidSdkProvider,
                 taskName = AndroidTaskType.InstallPlatform.getTaskName(module, Platform.ANDROID, isTest)
             )
         ),
@@ -438,17 +432,15 @@ private fun TaskGraphBuilder.setupAndroidPlatformTask(
 
 private fun TaskGraphBuilder.setupDownloadBuildToolsTask(
     module: AmperModule,
-    androidSdkPath: Path,
-    userCacheRoot: AmperUserCacheRoot,
+    androidSdkProvider: AndroidSdkProvider,
     isTest: Boolean,
 ) {
     val androidFragment = getAndroidFragment(module, isTest)
     val buildToolsVersion = androidFragment?.settings?.android?.buildToolsVersion ?: return
     registerTask(
         task = GetAndroidPlatformFileFromPackageTask(
-            packageName = "build-tools;$buildToolsVersion",
-            androidSdkPath = androidSdkPath,
-            userCacheRoot = userCacheRoot,
+            packageRequest = AndroidSdkPackageRequest.BuildTools(buildToolsVersion),
+            androidSdkProvider = androidSdkProvider,
             taskName = AndroidTaskType.InstallBuildTools.getTaskName(module, Platform.ANDROID, isTest)
         ),
         dependsOn = AndroidTaskType.CheckAndroidSdkLicense.getTaskName(module, Platform.ANDROID)
@@ -457,15 +449,13 @@ private fun TaskGraphBuilder.setupDownloadBuildToolsTask(
 
 private fun TaskGraphBuilder.setupDownloadPlatformToolsTask(
     module: AmperModule,
-    androidSdkPath: Path,
-    userCacheRoot: AmperUserCacheRoot,
+    androidSdkProvider: AndroidSdkProvider,
     isTest: Boolean,
 ) {
     registerTask(
         GetAndroidPlatformFileFromPackageTask(
-            "platform-tools",
-            androidSdkPath,
-            userCacheRoot,
+            AndroidSdkPackageRequest.PlatformTools,
+            androidSdkProvider,
             AndroidTaskType.InstallPlatformTools.getTaskName(module, Platform.ANDROID, isTest)
         ),
         AndroidTaskType.CheckAndroidSdkLicense.getTaskName(module, Platform.ANDROID)
@@ -474,30 +464,24 @@ private fun TaskGraphBuilder.setupDownloadPlatformToolsTask(
 
 private fun TaskGraphBuilder.setupDownloadSystemImageTask(
     module: AmperModule,
-    androidSdkPath: Path,
-    userCacheRoot: AmperUserCacheRoot,
+    androidSdkProvider: AndroidSdkProvider,
     isTest: Boolean,
 ) {
     val androidFragment = getAndroidFragment(module, isTest)
-    val compileSdk = androidFragment?.settings?.android?.compileSdk ?: return
-    val abi = if (Arch.current == Arch.X64) Abi.X86_64 else Abi.ARM64_V8A
-    val versionTag = buildString {
-        append(compileSdk.apiLevel)
-        if (compileSdk.apiLevel.versionNumber >= 37 || compileSdk.minorApiLevel != 0) {
-            // Minor API level equal to 0 started being appended to platform only since API level 37
-            // - versions 1..35 don't have minor API levels at all
-            // - 36 has 36 and 36.1
-            // - 37 has 37.0 and 37.1
-            // Future is unclear but, hopefully, Google uses the same versioning schema since 37 now.
-            append(".")
-            append(compileSdk.minorApiLevel)
-        }
+    val versionNumber = androidFragment?.settings?.android?.targetSdk?.versionNumber ?: return
+    val abi = if (Arch.current == Arch.X64) {
+        AndroidSdkPackageRequest.SystemImage.ImageAbi.X86_64
+    } else {
+        AndroidSdkPackageRequest.SystemImage.ImageAbi.Arm64V8A
     }
     registerTask(
         GetAndroidPlatformFileFromPackageTask(
-            "system-images;android-$versionTag;${GOOGLE_APIS_TAG.id};$abi",
-            androidSdkPath,
-            userCacheRoot,
+            AndroidSdkPackageRequest.SystemImage(
+                apiLevel = versionNumber,
+                tag = AndroidSdkPackageRequest.SystemImage.ServicesTag.GoogleApis,
+                abi = abi
+            ),
+            androidSdkProvider,
             AndroidTaskType.InstallSystemImage.getTaskName(module, Platform.ANDROID, isTest)
         ),
         AndroidTaskType.CheckAndroidSdkLicense.getTaskName(module, Platform.ANDROID)
@@ -506,15 +490,13 @@ private fun TaskGraphBuilder.setupDownloadSystemImageTask(
 
 private fun TaskGraphBuilder.setupAndroidCommandlineTools(
     module: AmperModule,
-    androidSdkPath: Path,
-    userCacheRoot: AmperUserCacheRoot
+    androidSdkProvider: AndroidSdkProvider,
 ) {
     registerTask(
         GetAndroidPlatformFileFromPackageTask(
-            "cmdline-tools;22.0", // TODO: Temporary keep cmdline tools to 22.0, as 23.0 has issue in our tests on Windows. This code is to be replaced soon anyway.
-            androidSdkPath = androidSdkPath,
-            userCacheRoot = userCacheRoot,
-            AndroidTaskType.InstallCmdlineTools.getTaskName(module, Platform.ANDROID)
+            AndroidSdkPackageRequest.CommandLineTools("latest"),
+            androidSdkProvider = androidSdkProvider,
+            taskName = AndroidTaskType.InstallCmdlineTools.getTaskName(module, Platform.ANDROID)
         )
     )
 }

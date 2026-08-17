@@ -90,9 +90,7 @@ class ProjectFileTest : AmperCliTestBase() {
         )
         val projectYaml = projectDir / "project.yaml"
         assertContains(r.stdout, """
-            |    ╭─ WEAK WARNING: It is recommended to sort the `modules` list alphabetically. This reduces the chance of Git
-            |    │ conflicts and makes it easier to visually locate a module in the list.
-            |    │
+            |    ╭─ WEAK WARNING: It is recommended to sort the `modules` list alphabetically. This reduces the chance of Git conflicts and makes it easier to visually locate a module in the list.
             |    │ → $projectYaml:2:3
             |    │
             |    │   ⌄⌄⌄⌄⌄⌄⌄
@@ -112,9 +110,7 @@ class ProjectFileTest : AmperCliTestBase() {
             |    │ ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
             |    ╰─""".trimMargin())
         assertContains(r.stdout, """
-            |    ╭─ WEAK WARNING: Glob pattern `glob-with-no-matches-at-all/*` doesn't match any Kotlin module directory under the
-            |    │ project root
-            |    │
+            |    ╭─ WEAK WARNING: Glob pattern `glob-with-no-matches-at-all/*` doesn't match any Kotlin module directory under the project root
             |    │ → $projectYaml:7:5
             |    │
             |  7 │   - glob-with-no-matches-at-all/*
@@ -194,9 +190,7 @@ class ProjectFileTest : AmperCliTestBase() {
             |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
             |    ╰─""".trimMargin())
         assertContains(r.stderr, """
-            |    ╭─ ERROR: Unsupported `**` in module glob pattern `forbidden/**/recursive`. Use multiple single-level `*` segments
-            |    │ instead to specify the depth exactly.
-            |    │
+            |    ╭─ ERROR: Unsupported `**` in module glob pattern `forbidden/**/recursive`. Use multiple single-level `*` segments instead to specify the depth exactly.
             |    │ → $projectYaml:12:5
             |    │
             | 12 │   - forbidden/**/recursive

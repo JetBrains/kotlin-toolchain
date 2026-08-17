@@ -11,7 +11,9 @@ dependencies:
   - //sources/core
   - //sources/libraries/concurrency
   - //sources/libraries/incremental-cache: exported
+  - //sources/libraries/telemetry
   - $libs.android.tools.sdklib
+  - $libs.maven.artifact
   - jakarta.xml.bind:jakarta.xml.bind-api:2.3.2
 
 test-dependencies:

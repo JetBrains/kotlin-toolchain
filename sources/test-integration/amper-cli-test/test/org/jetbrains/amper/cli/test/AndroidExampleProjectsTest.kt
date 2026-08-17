@@ -11,6 +11,7 @@ import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
 import io.opentelemetry.api.common.AttributeKey
 import org.gradle.tooling.internal.consumer.ConnectorServices
+import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
@@ -154,9 +155,9 @@ class AndroidExampleProjectsTest : AmperCliTestBase() {
         val expectedError1 = unacceptedLicenseMessage(sdkManagerPath, "android-sdk-license")
         val expectedError2 = unacceptedLicenseMessage(sdkManagerPath, "android-sdk-preview-license")
         if ("preview" in result.stderr) {
-            assertContains(result.stderr, expectedError2)
+            result.assertStderrContains(expectedError2)
         } else {
-            assertContains(result.stderr, expectedError1)
+            result.assertStderrContains(expectedError1)
         }
     }
 
@@ -272,9 +273,9 @@ class AndroidExampleProjectsTest : AmperCliTestBase() {
         )
 
     private fun unacceptedLicenseMessage(sdkManagerPath: Path, licenseName: String) = """
-        Task ':simple:checkAndroidSdkLicenseAndroid' failed: Some licenses have not been accepted in the Android SDK:
-         - $licenseName
-        Run "$sdkManagerPath --licenses" to review and accept them
+        ERROR: Some licenses have not been accepted in the Android SDK:
+                - `$licenseName` (required by: `cmdline-tools;latest`)
+               Run `$sdkManagerPath --licenses` to review and accept them
     """.trimIndent()
 
     @Test
