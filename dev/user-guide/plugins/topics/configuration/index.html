@@ -2853,7 +2853,7 @@ Otherwise, the <code>name</code> of the entry is used in the configuration. </p>
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="kd">enum</span><span class="w"> </span><span class="kd">class</span><span class="w"> </span><span class="nc">MyEnum</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">Hello</span><span class="p">,</span>
-<span class="w">    </span><span class="nd">@EnumValue</span><span class="p">(</span><span class="s">&quot;byeBye&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nd">@EnumValue</span><span class="p">(</span><span class="s">"byeBye"</span><span class="p">)</span>
 <span class="w">    </span><span class="n">Bye</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -2870,13 +2870,13 @@ Otherwise, the <code>name</code> of the entry is used in the configuration. </p>
 <p>Properties use <em>default getter implementation</em> syntax. The getter must have an <em>expression body</em>:</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@Configurable</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nc">Settings</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">myBoolean</span><span class="w"> </span><span class="k">get</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
-<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">myString</span><span class="w"> </span><span class="k">get</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;default&quot;</span>
+<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">myString</span><span class="w"> </span><span class="k">get</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"default"</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>Task parameters use the regular default value syntax:</p>
 <div class="highlight"><pre><span></span><code><span class="nd">@TaskAction</span><span class="w"> </span><span class="kd">fun</span><span class="w"> </span><span class="nf">myAction</span><span class="p">(</span>
 <span class="w">    </span><span class="n">myBoolean</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">    </span><span class="n">myString</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;default&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="n">myString</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"default"</span><span class="p">,</span>
 <span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/*...*/</span><span class="w"> </span><span class="p">}</span>
 </code></pre></div>
 <table>
@@ -2930,7 +2930,7 @@ If the object type has any properties without defaults itself, then it is <stron
 <span class="p">}</span>
 
 <span class="nd">@Configurable</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nc">Foo</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">quu1</span><span class="p">:</span><span class="w"> </span><span class="kt">String</span><span class="w"> </span><span class="k">get</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;hello&quot;</span><span class="w">  </span><span class="c1">// (has default - optional in YAML)</span>
+<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">quu1</span><span class="p">:</span><span class="w"> </span><span class="kt">String</span><span class="w"> </span><span class="k">get</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"hello"</span><span class="w">  </span><span class="c1">// (has default - optional in YAML)</span>
 <span class="p">}</span>
 
 <span class="nd">@Configurable</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="nc">Bar</span><span class="w"> </span><span class="p">{</span>
@@ -2952,9 +2952,9 @@ how dependency notation, task actions or "short forms" work in the Kotlin Toolch
 They have a property marked with the <code class="highlight"><span class="nd">@Shorthand</span></code> internal annotation.
 This enables objects of the type to be constructed in a "short" form: not from the YAML mapping, but from the
 value of the type that the shorthand property has. Other properties are then set to their default values.</p>
-<p>For example, <code class="highlight"><span class="nt">classpath</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="s">&quot;foo:bar:1.0&quot;</span><span class="w"> </span><span class="p p-Indicator">]</span></code> is a short form of
+<p>For example, <code class="highlight"><span class="nt">classpath</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="s">"foo:bar:1.0"</span><span class="w"> </span><span class="p p-Indicator">]</span></code> is a short form of
 <div class="highlight"><pre><span></span><code><span class="nt">classpath</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">dependencies</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="s">&quot;foo:bar:1.0&quot;</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">dependencies</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="s">"foo:bar:1.0"</span><span class="w"> </span><span class="p p-Indicator">]</span>
 </code></pre></div>
 because the <code>dependencies</code> property is marked as a "shorthand".</p>
 <div class="admonition warning">

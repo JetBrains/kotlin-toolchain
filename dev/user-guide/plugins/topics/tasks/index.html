@@ -3247,7 +3247,7 @@ like other custom tasks or <abbr title="The Kotlin Symbol Processing tool, devel
 <span class="w">    </span><span class="n">moduleName</span><span class="p">:</span><span class="w"> </span><span class="kt">String</span><span class="p">,</span>
 <span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">sources</span><span class="p">.</span><span class="na">sourceDirectories</span><span class="p">.</span><span class="na">forEach</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">dir</span><span class="w"> </span><span class="o">-&gt;</span>
-<span class="w">        </span><span class="n">println</span><span class="p">(</span><span class="s">&quot;Module `</span><span class="si">$</span><span class="n">moduleName</span><span class="s">` has </span><span class="si">$</span><span class="n">dir</span><span class="s"> as its source directory&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="n">println</span><span class="p">(</span><span class="s">"Module `</span><span class="si">$</span><span class="n">moduleName</span><span class="s">` has </span><span class="si">$</span><span class="n">dir</span><span class="s"> as its source directory"</span><span class="p">)</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -3291,7 +3291,7 @@ but one can also construct a <code>Classpath</code> spec to request an ad hoc de
 <div class="highlight"><pre><span></span><code><span class="nd">@TaskAction</span>
 <span class="kd">fun</span><span class="w"> </span><span class="nf">packageClasspath</span><span class="p">(</span>
 <span class="w">    </span><span class="nd">@Input</span><span class="w"> </span><span class="n">appClasspath</span><span class="p">:</span><span class="w"> </span><span class="n">Classpath</span><span class="p">,</span>
-<span class="w">    </span><span class="nd">@Input</span><span class="w"> </span><span class="n">extraClasspath</span><span class="p">:</span><span class="w"> </span><span class="n">Classpath?,</span>
+<span class="w">    </span><span class="nd">@Input</span><span class="w"> </span><span class="n">extraClasspath</span><span class="p">:</span><span class="w"> </span><span class="n">Classpath?</span><span class="p">,</span>
 <span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">appClasspath</span><span class="p">.</span><span class="na">resolvedFiles</span><span class="p">.</span><span class="na">forEach</span><span class="w"> </span><span class="p">{</span><span class="w">  </span><span class="nb">it</span><span class="p">.</span><span class="na">copyTo</span><span class="p">(...)</span><span class="w"> </span><span class="p">}</span>
 <span class="w">    </span><span class="p">...</span>

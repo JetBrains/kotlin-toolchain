@@ -2707,28 +2707,28 @@ that would do the source generation based on the contents of the properties file
 <span class="w">    </span><span class="c1">// clean the old state if any is present from the previous invocation</span>
 <span class="w">    </span><span class="n">generatedSourceDir</span><span class="p">.</span><span class="na">deleteRecursively</span><span class="p">()</span><span class="w"> </span>
 
-<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">outputFile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">generatedSourceDir</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="s">&quot;properties.kt&quot;</span>
+<span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">outputFile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">generatedSourceDir</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="s">"properties.kt"</span>
 
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">propertiesFile</span><span class="p">.</span><span class="na">isRegularFile</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="n">error</span><span class="p">(</span><span class="s">&quot;The file </span><span class="si">$</span><span class="n">propertiesFile</span><span class="s"> does not exist&quot;</span><span class="p">)</span><span class="c1">//(1)!</span>
+<span class="w">        </span><span class="n">error</span><span class="p">(</span><span class="s">"The file </span><span class="si">$</span><span class="n">propertiesFile</span><span class="s"> does not exist"</span><span class="p">)</span><span class="c1">//(1)!</span>
 <span class="w">    </span><span class="p">}</span>
-<span class="w">    </span><span class="n">println</span><span class="p">(</span><span class="s">&quot;Generating sources&quot;</span><span class="p">)</span><span class="c1">//(2)!</span>
+<span class="w">    </span><span class="n">println</span><span class="p">(</span><span class="s">"Generating sources"</span><span class="p">)</span><span class="c1">//(2)!</span>
 
 <span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">properties</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">propertiesFile</span><span class="p">.</span><span class="na">bufferedReader</span><span class="p">().</span><span class="na">use</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">reader</span><span class="w"> </span><span class="o">-&gt;</span><span class="w">  </span>
 <span class="w">        </span><span class="n">Properties</span><span class="p">().</span><span class="na">apply</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">load</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span><span class="w"> </span><span class="p">}</span><span class="w">  </span>
 <span class="w">    </span><span class="p">}.</span><span class="na">toMap</span><span class="p">()</span>
 
 <span class="w">    </span><span class="c1">// need to ensure the output directory structure exists: </span>
-<span class="w">    </span><span class="c1">// the Kotlin Toolchain doesn&#39;t pre-create it for us</span>
+<span class="w">    </span><span class="c1">// the Kotlin Toolchain doesn't pre-create it for us</span>
 <span class="w">    </span><span class="n">outputFile</span><span class="p">.</span><span class="na">createParentDirectories</span><span class="p">()</span><span class="w"> </span>
 
 <span class="w">    </span><span class="kd">val</span><span class="w"> </span><span class="nv">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buildString</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="n">appendLine</span><span class="p">(</span><span class="s">&quot;package com.example.generated&quot;</span><span class="p">)</span>
-<span class="w">        </span><span class="n">appendLine</span><span class="p">(</span><span class="s">&quot;public object Config {&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="n">appendLine</span><span class="p">(</span><span class="s">"package com.example.generated"</span><span class="p">)</span>
+<span class="w">        </span><span class="n">appendLine</span><span class="p">(</span><span class="s">"public object Config {"</span><span class="p">)</span>
 <span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">((</span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">properties</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="n">appendLine</span><span class="p">(</span><span class="s">&quot;    const val `</span><span class="si">$</span><span class="n">key</span><span class="s">`: String = \&quot;</span><span class="si">$</span><span class="n">value</span><span class="s">\&quot;&quot;</span><span class="p">)</span>
+<span class="w">            </span><span class="n">appendLine</span><span class="p">(</span><span class="s">"    const val `</span><span class="si">$</span><span class="n">key</span><span class="s">`: String = \"</span><span class="si">$</span><span class="n">value</span><span class="s">\""</span><span class="p">)</span>
 <span class="w">        </span><span class="p">}</span>
-<span class="w">        </span><span class="n">appendLine</span><span class="p">(</span><span class="s">&quot;}&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="n">appendLine</span><span class="p">(</span><span class="s">"}"</span><span class="p">)</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">    </span><span class="n">outputFile</span><span class="p">.</span><span class="na">writeText</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
 <span class="p">}</span>
@@ -2792,7 +2792,7 @@ that Kotlin sources will be located there after the task is run.</p>
       <code class="highlight"><span class="nt">&lt;plugin-id&gt;</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> enabled</span><span class="p">:</span><span class="w"> </span><span class="nv">true</span><span class="w"> </span><span class="p p-Indicator">}</span></code> is the full form</li>
 </ol>
 <p>If we now run the build, it will fail with an error from our <code>generateSources</code> task:
-<div class="highlight"><pre><span></span><code>ERROR: Task &#39;:app:generate@build-config&#39; failed: java.lang.IllegalStateException: The file /path/to/project/app/config.properties does not exist
+<div class="highlight"><pre><span></span><code>ERROR: Task ':app:generate@build-config' failed: java.lang.IllegalStateException: The file /path/to/project/app/config.properties does not exist
         at com.example.GenerateSourcesKt.generateSources(generateSources.kt:19)
 </code></pre></div></p>
 <p>That's because we haven't created the <code>config.properties</code> file yet, and the code of the task checks for that.
@@ -2886,7 +2886,7 @@ Here we'll describe a way to "parameterize" the plugin, so users can configure i
 <span class="cm">    * Properties file name (without extension) </span>
 <span class="cm">    * that is located in the module root.</span>
 <span class="cm">    */</span>
-<span class="w">   </span><span class="kd">val</span><span class="w"> </span><span class="nv">propertiesFileName</span><span class="p">:</span><span class="w"> </span><span class="kt">String</span><span class="w"> </span><span class="k">get</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;config&quot;</span>
+<span class="w">   </span><span class="kd">val</span><span class="w"> </span><span class="nv">propertiesFileName</span><span class="p">:</span><span class="w"> </span><span class="kt">String</span><span class="w"> </span><span class="k">get</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"config"</span>
 
 <span class="w">   </span><span class="cm">/**</span>
 <span class="cm">    * Extra properties to generate in addition to the ones read from the </span>
@@ -2921,9 +2921,9 @@ so the user still can use the plugin right away by simply having written <code>b
 <div class="highlight"><span class="filename">app/module.yaml</span><pre><span></span><code><span class="nt">plugins</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">build-config</span><span class="p">:</span>
 <span class="hll"><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w"> </span><span class="c1"># (1)!</span>
-</span><span class="hll"><span class="w">    </span><span class="nt">propertiesFileName</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;konfig&quot;</span><span class="w"> </span><span class="c1"># (2)!</span>
+</span><span class="hll"><span class="w">    </span><span class="nt">propertiesFileName</span><span class="p">:</span><span class="w"> </span><span class="s">"konfig"</span><span class="w"> </span><span class="c1"># (2)!</span>
 </span><span class="hll"><span class="w">    </span><span class="nt">additionalConfig</span><span class="p">:</span>
-</span><span class="hll"><span class="w">      </span><span class="nt">VERSION</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.0&quot;</span>
+</span><span class="hll"><span class="w">      </span><span class="nt">VERSION</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0"</span>
 </span></code></pre></div></p>
 <ol>
 <li>We still need to enable our plugin explicitly.</li>
@@ -2945,7 +2945,7 @@ But we haven't wired them to our task! Let's fix that.</p>
 <span class="hll"><span class="w">  </span><span class="n">additionalConfig</span><span class="p">:</span><span class="w"> </span><span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span><span class="w"> </span><span class="kt">String</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="c1">//(1)!</span>
 </span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="c1">// ...</span>
-<span class="w">  </span><span class="c1">// don&#39;t forget to process properties passed via the additionalConfig parameter</span>
+<span class="w">  </span><span class="c1">// don't forget to process properties passed via the additionalConfig parameter</span>
 <span class="w">  </span><span class="c1">// ...  </span>
 <span class="p">}</span>
 </code></pre></div></p>

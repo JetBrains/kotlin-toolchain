@@ -2651,7 +2651,7 @@ This project can later be customized and checked into a VCS.</p>
 <li>the target has a script build phase called <code>Build Kotlin</code> with the code:
    <div class="highlight"><pre><span></span><code><span class="w"> </span><span class="c1"># !KOTLIN INTEGRATION STEP!</span>
 <span class="w"> </span><span class="c1"># This script is managed by the Kotlin Toolchain, do not edit manually!</span>
-<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">KOTLIN_CLI_WRAPPER_PATH</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>tool<span class="w"> </span>xcode-integration
+<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">KOTLIN_CLI_WRAPPER_PATH</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>tool<span class="w"> </span>xcode-integration
 </code></pre></div></li>
 </ol>
 <p>Changes to the Xcode project that do not break these requirements are allowed.</p>

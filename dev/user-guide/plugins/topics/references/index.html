@@ -2704,7 +2704,7 @@ This works for properties that expect either <code>string</code> or <code>path</
 <p>References inside mapping keys are not yet allowed.
 So constructions like this are not permitted:
 <div class="highlight"><pre><span></span><code><span class="nt">myMap</span><span class="p">:</span>
-<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">${module.name}</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;value&quot;</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">${module.name}</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">"value"</span>
 </code></pre></div></p>
 </div>
 <h2 id="reference-resolution">Reference resolution<a class="headerlink" href="#reference-resolution" title="Permanent link">&para;</a></h2>
@@ -2734,8 +2734,8 @@ Such implicit properties are:</p>
 <span class="w">  </span><span class="c1"># foo: 1 (by default)</span>
 <span class="w">  </span><span class="c1"># provided: 2 (reference-only)</span>
 <span class="w">  </span><span class="nt">list</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">quu</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;a&#39;</span>
-<span class="w">      </span><span class="nt">buu</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;b&#39;</span><span class="w"> </span><span class="c1"># scopes here: (2)</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">quu</span><span class="p">:</span><span class="w"> </span><span class="s">'a'</span>
+<span class="w">      </span><span class="nt">buu</span><span class="p">:</span><span class="w"> </span><span class="s">'b'</span><span class="w"> </span><span class="c1"># scopes here: (2)</span>
 <span class="w">  </span><span class="nt">baz</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
 <span class="w">  </span><span class="nt">bar</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span><span class="w"> </span><span class="c1"># scopes here: (3)</span>
 </code></pre></div>

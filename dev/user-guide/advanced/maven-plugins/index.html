@@ -2617,7 +2617,7 @@ Each entry uses standard Maven coordinates notation (<code>groupId:artifactId:ve
 <span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">    </span><span class="nt">configuration</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">includes</span><span class="p">:</span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;*Smoke*&quot;</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"*Smoke*"</span>
 </code></pre></div>
 <p>The keys inside <code>configuration</code> directly correspond to the goal's parameters as documented by the respective plugin.
 The Kotlin Toolchain reads the plugin's descriptor to resolve parameter types, so IDE completion and validation are available for
@@ -2633,12 +2633,12 @@ supported parameter types.</p>
 <span class="w">  </span><span class="nt">maven-enforcer-plugin.enforce</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">    </span><span class="nt">configuration</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">rules</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;</span>
+<span class="w">      </span><span class="nt">rules</span><span class="p">:</span><span class="w"> </span><span class="s">"</span>
 <span class="w">        </span><span class="s">&lt;rules&gt;</span>
 <span class="w">          </span><span class="s">&lt;requireJavaVersion&gt;</span>
 <span class="w">            </span><span class="s">&lt;version&gt;[21,)&lt;/version&gt;</span>
 <span class="w">          </span><span class="s">&lt;/requireJavaVersion&gt;</span>
-<span class="w">        </span><span class="s">&lt;/rules&gt;&quot;</span>
+<span class="w">        </span><span class="s">&lt;/rules&gt;"</span>
 </code></pre></div>
 <h3 id="adding-extra-plugin-dependencies">Adding extra plugin dependencies<a class="headerlink" href="#adding-extra-plugin-dependencies" title="Permanent link">&para;</a></h3>
 <p>Some mojos require additional dependencies that are not bundled with the plugin itself. Add them under the
@@ -2652,7 +2652,7 @@ supported parameter types.</p>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">io.spring.nohttp:nohttp-checkstyle:0.0.11</span>
 <span class="w">    </span><span class="nt">configuration</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">configLocation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./nohttp-checkstyle.xml</span>
-<span class="w">      </span><span class="nt">includes</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;**/*&quot;</span>
+<span class="w">      </span><span class="nt">includes</span><span class="p">:</span><span class="w"> </span><span class="s">"**/*"</span>
 </code></pre></div>
 <h1 id="source-generation-capability">Source generation capability<a class="headerlink" href="#source-generation-capability" title="Permanent link">&para;</a></h1>
 <p>Maven plugins that generate sources integrate with the Kotlin Toolchain's compilation pipeline automatically.</p>

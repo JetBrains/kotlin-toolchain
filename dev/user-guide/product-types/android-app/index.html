@@ -2721,7 +2721,7 @@ get proper support for Android-specific features.</p>
 <a href="https://developer.android.com/guide/topics/manifest/manifest-intro">official Android documentation</a>:</p>
 <div class="highlight"><span class="filename">src/AndroidManifest.xml</span><pre><span></span><code><span class="nt">&lt;manifest</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="nt">&gt;</span>
 <span class="w">  </span><span class="nt">&lt;application</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="nt">&gt;</span>
-<span class="w">    </span><span class="nt">&lt;activity</span><span class="w"> </span><span class="na">android:name=</span><span class="s">&quot;com.example.myapp.MainActivity&quot;</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="nt">&gt;</span>
+<span class="w">    </span><span class="nt">&lt;activity</span><span class="w"> </span><span class="na">android:name=</span><span class="s">"com.example.myapp.MainActivity"</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="nt">&gt;</span>
 <span class="w">    </span><span class="nt">&lt;/activity&gt;</span>
 <span class="w">  </span><span class="nt">&lt;/application&gt;</span>
 <span class="nt">&lt;/manifest&gt;</span>
@@ -2761,10 +2761,10 @@ available options.</p>
 <h3 id="code-shrinking">Code shrinking<a class="headerlink" href="#code-shrinking" title="Permanent link">&para;</a></h3>
 <p>When creating a release build with the Kotlin Toolchain, R8 will be used automatically, with minification and shrinking enabled.
 This is equivalent to the following Gradle configuration:</p>
-<div class="highlight"><pre><span></span><code><span class="c1">// Gradle equivalent of the Kotlin Toolchain&#39;s defaults</span>
+<div class="highlight"><pre><span></span><code><span class="c1">// Gradle equivalent of the Kotlin Toolchain's defaults</span>
 <span class="n">isMinifyEnabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 <span class="n">isShrinkResources</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<span class="n">proguardFiles</span><span class="p">(</span><span class="n">getDefaultProguardFile</span><span class="p">(</span><span class="s">&quot;proguard-android-optimize.txt&quot;</span><span class="p">))</span>
+<span class="n">proguardFiles</span><span class="p">(</span><span class="n">getDefaultProguardFile</span><span class="p">(</span><span class="s">"proguard-android-optimize.txt"</span><span class="p">))</span>
 </code></pre></div>
 <p>You can create a <code>proguard-rules.pro</code> file in the module folder to add custom rules for R8.</p>
 <div class="highlight"><pre><span></span><code>├─ src/

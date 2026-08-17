@@ -2740,7 +2740,7 @@ Here is what we do:</p>
 </span>╰─ module.yaml
 </code></pre></div>
 <div class="highlight"><span class="filename">main.kt</span><pre><span></span><code><span class="kd">fun</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">println</span><span class="p">(</span><span class="s">&quot;Hello, World!&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">println</span><span class="p">(</span><span class="s">"Hello, World!"</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div>
 </div>
@@ -2807,8 +2807,8 @@ no need to create separate Maven-like <code>java/</code> and <code>kotlin/</code
 <div class="highlight"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="nn">kotlinx.datetime.*</span>
 
 <span class="kd">fun</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">println</span><span class="p">(</span><span class="s">&quot;Hello, World!&quot;</span><span class="p">)</span>
-<span class="w">    </span><span class="n">println</span><span class="p">(</span><span class="s">&quot;It&#39;s </span><span class="si">${</span><span class="n">Clock</span><span class="p">.</span><span class="na">System</span><span class="p">.</span><span class="na">now</span><span class="p">().</span><span class="na">toLocalDateTime</span><span class="p">(</span><span class="n">TimeZone</span><span class="p">.</span><span class="na">currentSystemDefault</span><span class="p">())</span><span class="si">}</span><span class="s"> here&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">println</span><span class="p">(</span><span class="s">"Hello, World!"</span><span class="p">)</span>
+<span class="w">    </span><span class="n">println</span><span class="p">(</span><span class="s">"It's </span><span class="si">${</span><span class="n">Clock</span><span class="p">.</span><span class="na">System</span><span class="p">.</span><span class="na">now</span><span class="p">().</span><span class="na">toLocalDateTime</span><span class="p">(</span><span class="n">TimeZone</span><span class="p">.</span><span class="na">currentSystemDefault</span><span class="p">())</span><span class="si">}</span><span class="s"> here"</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div>
 <div class="admonition abstract">
@@ -2908,7 +2908,7 @@ Read more in the <a href="../../user-guide/dependencies/#library-catalogs">Libra
 
 <span class="kd">fun</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">application</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="n">Window</span><span class="p">(</span><span class="n">onCloseRequest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">::</span><span class="n">exitApplication</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="n">BasicText</span><span class="p">(</span><span class="s">&quot;Hello, World!&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="n">BasicText</span><span class="p">(</span><span class="s">"Hello, World!"</span><span class="p">)</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -2994,7 +2994,7 @@ a <code>module.yaml</code> with the following content:</p>
 
 <span class="nd">@Composable</span>
 <span class="kd">fun</span><span class="w"> </span><span class="nf">sayHello</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">BasicText</span><span class="p">(</span><span class="s">&quot;Hello, World!&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">BasicText</span><span class="p">(</span><span class="s">"Hello, World!"</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>And re-use it in the <code>jvm-app/src/main.kt</code> file:</p>
@@ -3105,7 +3105,7 @@ Create a <code>MainActivity.kt</code> file in <code>android-app/src</code> with 
 <span class="k">import</span><span class="w"> </span><span class="nn">androidx.appcompat.app.AppCompatActivity</span>
 
 <span class="kd">class</span><span class="w"> </span><span class="nc">MainActivity</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">AppCompatActivity</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="kd">override</span><span class="w"> </span><span class="kd">fun</span><span class="w"> </span><span class="nf">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">:</span><span class="w"> </span><span class="n">Bundle?)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">override</span><span class="w"> </span><span class="kd">fun</span><span class="w"> </span><span class="nf">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">:</span><span class="w"> </span><span class="n">Bundle?</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="k">super</span><span class="p">.</span><span class="na">onCreate</span><span class="p">(</span><span class="n">savedInstanceState</span><span class="p">)</span>
 <span class="w">        </span><span class="n">setContent</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="n">sayHello</span><span class="p">()</span>
