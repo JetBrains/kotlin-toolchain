@@ -20,23 +20,17 @@ import org.jetbrains.kotlin.tooling.metadata.KGP_JS_IR_TARGET
 import org.jetbrains.kotlin.tooling.metadata.KGP_JVM_TARGET
 import org.jetbrains.kotlin.tooling.metadata.KGP_METADATA_TARGET
 import org.jetbrains.kotlin.tooling.metadata.KGP_NATIVE_TARGET
-import org.jetbrains.kotlin.tooling.metadata.KOTLIN_TOOLING_METADATA_FILE_NAME
 import org.jetbrains.kotlin.tooling.metadata.KOTLIN_TOOLING_METADATA_SCHEMA_VERSION
 import org.jetbrains.kotlin.tooling.metadata.KotlinToolingMetadata
 import org.jetbrains.kotlin.tooling.metadata.NativeExtras
 import org.jetbrains.kotlin.tooling.metadata.ProjectSettings
 import org.jetbrains.kotlin.tooling.metadata.ProjectTarget
 import org.jetbrains.kotlin.tooling.metadata.TargetExtras
-import org.jetbrains.kotlin.tooling.metadata.serialize
 import org.slf4j.LoggerFactory
 import java.io.IOException
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption
-import java.util.Properties
+import java.util.*
 import java.util.zip.ZipFile
-import kotlin.io.path.createDirectories
-import kotlin.io.path.div
 
 private val logger = LoggerFactory.getLogger("kotlin-tooling-metadata")
 
@@ -167,26 +161,4 @@ internal suspend fun readKlibAbiVersion(klib: Path): String? = withContext(Dispa
         logger.warn("Cannot read the ABI version from the klib at '$klib', it won't be reported in the tooling metadata", e)
         null
     }
-}
-
-/**
- * Writes the given tooling [metadata] to a [KOTLIN_TOOLING_METADATA_FILE_NAME] file in the [outputDir], and returns
- * its path.
- */
-internal suspend fun writeKotlinToolingMetadata(metadata: KotlinToolingMetadata, outputDir: Path): Path {
-    outputDir.createDirectories()
-
-    val toolingMetadataPath = outputDir / KOTLIN_TOOLING_METADATA_FILE_NAME
-
-    withContext(Dispatchers.IO) {
-        Files.writeString(
-            toolingMetadataPath,
-            metadata.serialize(),
-            StandardOpenOption.CREATE,
-            StandardOpenOption.WRITE,
-            StandardOpenOption.TRUNCATE_EXISTING,
-        )
-    }
-
-    return toolingMetadataPath
 }

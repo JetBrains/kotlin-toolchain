@@ -22,8 +22,8 @@ import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.isArtifactSigningEnabled
+import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.schema.Checksum
 import org.jetbrains.amper.incrementalcache.IncrementalCache
@@ -45,12 +45,12 @@ import org.jetbrains.amper.tasks.metadata.generateGradleMetadataForLeafPlatform
 import org.jetbrains.amper.tasks.metadata.isCinteropClassifier
 import org.jetbrains.amper.tasks.metadata.kotlinToolingMetadataFor
 import org.jetbrains.amper.tasks.metadata.readKlibAbiVersion
-import org.jetbrains.amper.tasks.metadata.writeKotlinToolingMetadata
 import org.jetbrains.amper.tasks.native.NativeCInteropGenerateKlibTask
 import org.jetbrains.amper.tasks.native.NativeCompileKlibTask
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
 import org.jetbrains.kotlin.tooling.metadata.KOTLIN_TOOLING_METADATA_CLASSIFIER
 import org.jetbrains.kotlin.tooling.metadata.KotlinToolingMetadata
+import org.jetbrains.kotlin.tooling.metadata.writeTo
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -190,7 +190,9 @@ class PrepareMavenPublishablesTask(
         toolingMetadata: KotlinToolingMetadata,
         coordsPerPlatform: Map<Platform, MavenCoordinates>,
     ): MavenPublishable {
-        val toolingMetadataFile = writeKotlinToolingMetadata(toolingMetadata, taskOutputRoot.path)
+        val toolingMetadataFile = withContext(Dispatchers.IO) {
+            toolingMetadata.writeTo(taskOutputRoot.path)
+        }
         val coords = coordsPerPlatform.getValue(Platform.COMMON).copy(classifier = KOTLIN_TOOLING_METADATA_CLASSIFIER)
         return toolingMetadataFile.toMavenPublishable(coords)
     }

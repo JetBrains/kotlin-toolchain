@@ -6,6 +6,10 @@ package org.jetbrains.kotlin.tooling.metadata
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.nio.file.Path
+import kotlin.io.path.createDirectories
+import kotlin.io.path.div
+import kotlin.io.path.writeText
 
 /**
  * The classifier of the tooling metadata artifact in the publication, as expected by its consumers.
@@ -131,4 +135,18 @@ private val json = Json {
     isLenient = true
     prettyPrint = true
     prettyPrintIndent = "  "
+}
+
+/**
+ * Writes the given [KotlinToolingMetadata] to a [KOTLIN_TOOLING_METADATA_FILE_NAME] file in the [outputDir], and returns
+ * its path.
+ */
+fun KotlinToolingMetadata.writeTo(outputDir: Path): Path {
+    outputDir.createDirectories()
+
+    val toolingMetadataPath = outputDir / KOTLIN_TOOLING_METADATA_FILE_NAME
+
+    toolingMetadataPath.writeText(serialize())
+
+    return toolingMetadataPath.also { it.writeText(serialize()) }
 }
