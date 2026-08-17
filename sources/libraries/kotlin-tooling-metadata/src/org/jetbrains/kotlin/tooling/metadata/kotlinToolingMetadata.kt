@@ -78,9 +78,31 @@ data class TargetExtras(
     val native: NativeExtras? = null,
 )
 
+/**
+ * Details of an Android target.
+ *
+ * Despite being the Android-specific part of the format, both fields are Java versions, exactly as the identically
+ * named properties of the Gradle Java plugin and of AGP's `compileOptions`. The format has no field at all for the
+ * Android SDK levels of the target (`compileSdk`, `minSdk`, …).
+ */
 @Serializable
 data class AndroidExtras(
+    /**
+     * The Java language level of the Java sources of this target ('1.8', '17', '21', …), *not* an Android SDK level.
+     *
+     * KGP reads it from `android { compileOptions { sourceCompatibility } }`, an AGP property of the Gradle
+     * `JavaVersion` type, and reports its string form: '1.8' and below for Java 8 and older, the plain major version
+     * from Java 9 on.
+     */
     val sourceCompatibility: String,
+    /**
+     * The version of the Java bytecode generated for this target ('1.8', '17', '21', …), *not* an Android SDK level.
+     *
+     * Same notation and origin as [sourceCompatibility], but read from
+     * `android { compileOptions { targetCompatibility } }`. AGP exposes the two as separate knobs, so a Gradle build
+     * may well report different values in them; a build system that configures a single JVM release per target
+     * reports that release in both, since the release sets the language level and the bytecode version at once.
+     */
     val targetCompatibility: String,
 )
 

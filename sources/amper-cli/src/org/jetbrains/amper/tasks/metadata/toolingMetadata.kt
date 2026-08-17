@@ -100,6 +100,9 @@ private fun LeafFragment.toProjectTarget(kotlinVersion: String, konanAbiVersion:
     platform == Platform.ANDROID -> ProjectTarget(
         target = KGP_ANDROID_TARGET,
         platformType = "androidJvm",
+        // Both fields are Java versions, not Android SDK levels (see their documentation). AGP configures the Java
+        // language level and the bytecode version separately, while the JVM release of the fragment sets both at
+        // once, so we report it in both fields.
         extras = jvmRelease()?.let {
             TargetExtras(android = AndroidExtras(sourceCompatibility = it, targetCompatibility = it))
         },
@@ -135,6 +138,10 @@ private fun LeafFragment.toProjectTarget(kotlinVersion: String, konanAbiVersion:
 /**
  * The JVM release of this fragment in the notation used by the Kotlin and Java compilers ('1.8', '17', '21', …),
  * or null if no release is enforced.
+ *
+ * The release defaults to the JDK version, so it is only null if it was explicitly set to null. The Kotlin and Java
+ * compiler defaults then apply, and they differ, so there is no single version to report as the compatibility of the
+ * target: this is why the targets report no extras at all in that case.
  */
 private fun LeafFragment.jvmRelease(): String? = settings.jvm.release?.let {
     if (it <= 8) "1.$it" else it.toString()
