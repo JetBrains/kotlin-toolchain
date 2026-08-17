@@ -14,6 +14,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
+import org.jetbrains.amper.cli.SoftTaskFailureException
 import org.jetbrains.amper.cli.UserReadableError
 import org.jetbrains.amper.cli.events.EventSinkContributors
 import org.jetbrains.amper.cli.events.buildEventScope
@@ -176,6 +177,7 @@ class TaskExecutor(
         when (mode) {
             Mode.GREEDY -> ExecutionResult.Failure(taskId, e)
             Mode.FAIL_FAST -> when (e) {
+                is SoftTaskFailureException -> ExecutionResult.Failure(taskId, e)
                 is UserReadableError -> userReadableError("Task '${taskId.value}' failed: ${e.message}", exitCode = e.exitCode)
                 else -> throw TaskExecutionFailed(taskId, e)
             }

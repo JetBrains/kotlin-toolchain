@@ -6,7 +6,6 @@ package org.jetbrains.amper.tasks.android
 
 import com.android.prefs.AndroidLocationsSingleton
 import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkPackageRequest
-import org.jetbrains.amper.android.sdk.provisioning.androidPlatformPackageName
 import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkProvider
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.engine.TaskGraphBuilder
@@ -35,13 +34,6 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
     val needDefaultSystemImage = runSettings.deviceId == null
 
     allModules().alsoPlatforms(Platform.ANDROID).withEach {
-        tasks.registerTask(
-            task = CheckAndroidSdkLicenseTask(
-                androidSdkProvider = androidSdkProvider,
-                taskName = AndroidTaskType.CheckAndroidSdkLicense.getTaskName(module, Platform.ANDROID),
-            ),
-            dependsOn = AndroidTaskType.InstallCmdlineTools.getTaskName(module, Platform.ANDROID)
-        )
         tasks.setupAndroidCommandlineTools(module, androidSdkProvider)
     }
 
@@ -66,7 +58,6 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
                     androidSdkProvider = androidSdkProvider,
                     taskName = AndroidTaskType.InstallEmulator.getTaskName(module, Platform.ANDROID, isTest)
                 ),
-                dependsOn = AndroidTaskType.CheckAndroidSdkLicense.getTaskName(module, Platform.ANDROID)
             )
         }
 
@@ -96,6 +87,7 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
                 ),
                 dependsOn = listOf(
                     AndroidTaskType.InstallBuildTools.getTaskName(module, platform, isTest),
+                    AndroidTaskType.InstallCmdlineTools.getTaskName(module, platform),
                     AndroidTaskType.InstallPlatformTools.getTaskName(module, platform, isTest),
                     AndroidTaskType.InstallPlatform.getTaskName(module, platform, isTest),
                     CommonTaskType.Dependencies.getTaskName(module, platform, isTest),
@@ -426,7 +418,6 @@ private fun TaskGraphBuilder.setupAndroidPlatformTask(
                 taskName = AndroidTaskType.InstallPlatform.getTaskName(module, Platform.ANDROID, isTest)
             )
         ),
-        dependsOn = AndroidTaskType.CheckAndroidSdkLicense.getTaskName(module, Platform.ANDROID)
     )
 }
 
@@ -443,7 +434,6 @@ private fun TaskGraphBuilder.setupDownloadBuildToolsTask(
             androidSdkProvider = androidSdkProvider,
             taskName = AndroidTaskType.InstallBuildTools.getTaskName(module, Platform.ANDROID, isTest)
         ),
-        dependsOn = AndroidTaskType.CheckAndroidSdkLicense.getTaskName(module, Platform.ANDROID)
     )
 }
 
@@ -458,7 +448,6 @@ private fun TaskGraphBuilder.setupDownloadPlatformToolsTask(
             androidSdkProvider,
             AndroidTaskType.InstallPlatformTools.getTaskName(module, Platform.ANDROID, isTest)
         ),
-        AndroidTaskType.CheckAndroidSdkLicense.getTaskName(module, Platform.ANDROID)
     )
 }
 
@@ -484,7 +473,6 @@ private fun TaskGraphBuilder.setupDownloadSystemImageTask(
             androidSdkProvider,
             AndroidTaskType.InstallSystemImage.getTaskName(module, Platform.ANDROID, isTest)
         ),
-        AndroidTaskType.CheckAndroidSdkLicense.getTaskName(module, Platform.ANDROID)
     )
 }
 
@@ -524,7 +512,6 @@ internal enum class AndroidTaskType(
     InstallSystemImage("installSystemImage", "installing Android System Image"),
     InstallEmulator("installEmulator", "installing Android Emulator"),
     InstallCmdlineTools("installCmdlineTools", "installing `cmdline-tools` for Android"),
-    CheckAndroidSdkLicense("checkAndroidSdkLicense", "checking Android SDK license"),
     Aar("aar", "writing AAR"),
     Prepare("prepare", "preparing Android build"),
     Build("build", "building Android app"),

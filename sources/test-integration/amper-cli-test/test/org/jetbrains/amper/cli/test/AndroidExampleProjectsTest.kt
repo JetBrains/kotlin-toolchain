@@ -9,7 +9,6 @@ import com.google.devrel.gmscore.tools.apk.arsc.ArscBlamer
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
-import io.opentelemetry.api.common.AttributeKey
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
@@ -18,18 +17,12 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.core.extract.extractZip
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.Dirs
-import org.jetbrains.amper.test.android.AndroidTools
 import org.jf.dexlib2.DexFileFactory
 import org.jf.dexlib2.Opcodes
-import org.junit.jupiter.api.parallel.ResourceLock
 import java.nio.file.Path
 import kotlin.io.path.PathWalkOption
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.copyTo
-import kotlin.io.path.copyToRecursively
 import kotlin.io.path.createDirectories
-import kotlin.io.path.createParentDirectories
-import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.extension
@@ -44,9 +37,6 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
-
-private const val androidSdkLicenseCacheSpanNamePrefix = "inc: run: android-sdk-license-check:"
-private val incrementalCacheStatusKey = AttributeKey.stringKey("status")
 
 class AndroidExampleProjectsTest : AmperCliTestBase() {
 
@@ -147,136 +137,34 @@ class AndroidExampleProjectsTest : AmperCliTestBase() {
             assertEmptyStdErr = false,
         )
 
-        val sdkManagerPath = androidSdkHome / "cmdline-tools/22.0/bin/sdkmanager"
-
-        // The missing license should be the one from the cmdline-tools, which is the only thing that was installed in
-        // this empty SDK home. Since we install the latest version, we sometimes get the regular license and sometimes
-        // the preview. That's why we need this 2-choice assertion.
-        val expectedError1 = unacceptedLicenseMessage(sdkManagerPath, "android-sdk-license")
-        val expectedError2 = unacceptedLicenseMessage(sdkManagerPath, "android-sdk-preview-license")
+        val sdkManagerPath = androidSdkHome / "cmdline-tools/latest/bin/sdkmanager"
         if ("preview" in result.stderr) {
-            result.assertStderrContains(expectedError2)
+            // As we fetch the latest cmdline-tools, we might get preview license for it.
+            val expectedError = unacceptedLicenseMessage(
+                sdkManagerPath,
+                mapOf(
+                    "android-sdk-license" to ["build-tools;37.0.0", "platform-tools", "platforms;android-37.0"],
+                    "android-sdk-preview-license" to ["cmdline-tools;latest"]
+                )
+            )
+            result.assertStderrContains(expectedError)
         } else {
-            result.assertStderrContains(expectedError1)
+            val expectedError = unacceptedLicenseMessage(
+                sdkManagerPath,
+                mapOf("android-sdk-license" to ["build-tools;37.0.0", "cmdline-tools;latest", "platform-tools", "platforms;android-37.0"])
+            )
+            result.assertStderrContains(expectedError)
         }
     }
 
-    @Test
-    @ResourceLock("android-sdk-license-cache-traces")
-    fun `SDK license check cache is hit on a repeated check`() = runSlowTest {
-        val projectDir = testProject("android/simple")
-        val androidTools = AndroidTools.getOrInstallForTests()
-        val androidSdkPath = createMinimalAndroidSdkForLicenseCacheTest(androidTools.androidSdkHome)
-        val environment = androidEnvironment(androidTools, androidSdkPath)
-        try {
-            val coldCheck = runAndroidSdkLicenseCheck(projectDir, environment)
-            assertEquals(
-                "requires-building",
-                coldCheck.telemetrySpans
-                    .single { it.name.startsWith(androidSdkLicenseCacheSpanNamePrefix) }
-                    .attributes[incrementalCacheStatusKey],
-            )
-
-            val warmCheck = runAndroidSdkLicenseCheck(projectDir, environment)
-            assertEquals(
-                "up-to-date",
-                warmCheck.telemetrySpans
-                    .single { it.name.startsWith(androidSdkLicenseCacheSpanNamePrefix) }
-                    .attributes[incrementalCacheStatusKey],
-            )
-        } finally {
-            androidSdkPath.deleteRecursively()
+    private fun unacceptedLicenseMessage(sdkManagerPath: Path, licenseMap: Map<String, List<String>>) = buildString {
+        appendLine("ERROR: Some licenses have not been accepted in the Android SDK:")
+        for ([licenseKey, packages] in licenseMap) {
+            appendLine(" - `$licenseKey` (required by: `$packages`)")
         }
+        appendLine()
+        append("Run `$sdkManagerPath --licenses` to review and accept them")
     }
-
-    @Test
-    @ResourceLock("android-sdk-license-cache-traces")
-    fun `SDK license check cache is invalidated when a package manifest is added or removed`() = runSlowTest {
-        val projectDir = testProject("android/simple")
-        val androidTools = AndroidTools.getOrInstallForTests()
-        val androidSdkPath = createMinimalAndroidSdkForLicenseCacheTest(androidTools.androidSdkHome)
-        val environment = androidEnvironment(androidTools, androidSdkPath)
-        try {
-            val coldCheck = runAndroidSdkLicenseCheck(projectDir, environment)
-            assertEquals(
-                "requires-building",
-                coldCheck.telemetrySpans
-                    .single { it.name.startsWith(androidSdkLicenseCacheSpanNamePrefix) }
-                    .attributes[incrementalCacheStatusKey],
-            )
-
-            val extraPackageDir = androidSdkPath / "build-tools" / "amper-license-cache-test"
-            val sourcePackageManifest = androidSdkPath / "cmdline-tools" / "22.0" / "package.xml"
-            try {
-                sourcePackageManifest.copyTo((extraPackageDir / "package.xml").createParentDirectories())
-                val checkAfterAddingPackage = runAndroidSdkLicenseCheck(projectDir, environment)
-                assertEquals(
-                    "requires-building",
-                    checkAfterAddingPackage.telemetrySpans
-                        .single { it.name.startsWith(androidSdkLicenseCacheSpanNamePrefix) }
-                        .attributes[incrementalCacheStatusKey],
-                )
-
-                val unchangedCheck = runAndroidSdkLicenseCheck(projectDir, environment)
-                assertEquals(
-                    "up-to-date",
-                    unchangedCheck.telemetrySpans
-                        .single { it.name.startsWith(androidSdkLicenseCacheSpanNamePrefix) }
-                        .attributes[incrementalCacheStatusKey],
-                )
-            } finally {
-                extraPackageDir.deleteRecursively()
-            }
-
-            val checkAfterRemovingPackage = runAndroidSdkLicenseCheck(projectDir, environment)
-            assertEquals(
-                "requires-building",
-                checkAfterRemovingPackage.telemetrySpans
-                    .single { it.name.startsWith(androidSdkLicenseCacheSpanNamePrefix) }
-                    .attributes[incrementalCacheStatusKey],
-            )
-        } finally {
-            androidSdkPath.deleteRecursively()
-        }
-    }
-
-    private suspend fun runAndroidSdkLicenseCheck(
-        projectDir: Path,
-        environment: Map<String, String>,
-    ): AmperCliResult = runCli(
-        projectDir = projectDir,
-        "task", ":simple:checkAndroidSdkLicenseAndroid",
-        configureAndroidHome = false,
-        environment = environment,
-    )
-
-    private fun createMinimalAndroidSdkForLicenseCacheTest(sourceAndroidSdkPath: Path): Path {
-        val androidSdkPath = tempRoot / "android-sdk-license-cache-test"
-
-        // The license check only needs the command-line tools package manifest and the accepted-license files.
-        // Copying these to a private SDK keeps this test from mutating the persistent SDK shared by concurrent tests.
-        val sourcePackageManifest = sourceAndroidSdkPath / "cmdline-tools" / "22.0" / "package.xml"
-        sourcePackageManifest.copyTo(
-            (androidSdkPath / "cmdline-tools" / "22.0" / "package.xml").createParentDirectories(),
-        )
-        (sourceAndroidSdkPath / "licenses").copyToRecursively(
-            target = androidSdkPath / "licenses",
-            followLinks = false,
-        )
-        return androidSdkPath
-    }
-
-    private fun androidEnvironment(androidTools: AndroidTools, androidSdkPath: Path): Map<String, String> =
-        androidTools.environment() + mapOf(
-            "ANDROID_HOME" to androidSdkPath.absolutePathString(),
-            "ANDROID_SDK_ROOT" to androidSdkPath.absolutePathString(),
-        )
-
-    private fun unacceptedLicenseMessage(sdkManagerPath: Path, licenseName: String) = """
-        ERROR: Some licenses have not been accepted in the Android SDK:
-                - `$licenseName` (required by: `cmdline-tools;latest`)
-               Run `$sdkManagerPath --licenses` to review and accept them
-    """.trimIndent()
 
     @Test
     fun `bundle without signing enabled has no signature`() = runSlowTest {
@@ -327,23 +215,6 @@ class AndroidExampleProjectsTest : AmperCliTestBase() {
         result.assertStdoutContains("task :simple:transformDependenciesAndroid -> :simple:resolveDependenciesAndroid")
         // test
         result.assertStdoutContains("task :simple:transformDependenciesAndroidTest -> :simple:resolveDependenciesAndroidTest")
-
-        // to accept android sdk license, we need cmdline tools
-        result.assertStdoutContains("task :simple:checkAndroidSdkLicenseAndroid -> :simple:installCmdlineToolsAndroid")
-
-        // Android sdk components can be installed separately, we need to check android sdk licenses every time.
-        // Since scheduling ensures that only one instance of a task executed during the build, checking android sdk
-        // license will be performed only once
-        result.assertStdoutContains("task :simple:installBuildToolsAndroid -> :simple:checkAndroidSdkLicenseAndroid")
-        result.assertStdoutContains("task :simple:installBuildToolsAndroidTest -> :simple:checkAndroidSdkLicenseAndroid")
-        result.assertStdoutContains("task :simple:installEmulatorAndroid -> :simple:checkAndroidSdkLicenseAndroid")
-        result.assertStdoutContains("task :simple:installEmulatorAndroidTest -> :simple:checkAndroidSdkLicenseAndroid")
-        result.assertStdoutContains("task :simple:installPlatformAndroid -> :simple:checkAndroidSdkLicenseAndroid")
-        result.assertStdoutContains("task :simple:installPlatformAndroidTest -> :simple:checkAndroidSdkLicenseAndroid")
-        result.assertStdoutContains("task :simple:installPlatformToolsAndroid -> :simple:checkAndroidSdkLicenseAndroid")
-        result.assertStdoutContains("task :simple:installPlatformToolsAndroidTest -> :simple:checkAndroidSdkLicenseAndroid")
-        result.assertStdoutContains("task :simple:installSystemImageAndroid -> :simple:checkAndroidSdkLicenseAndroid")
-        result.assertStdoutContains("task :simple:installSystemImageAndroidTest -> :simple:checkAndroidSdkLicenseAndroid")
     }
 
     @Test
@@ -442,7 +313,6 @@ class AndroidExampleProjectsTest : AmperCliTestBase() {
             configureAndroidHome = true,
         )
     }
-
 
     /**
      * Regression test for KTC-5751.

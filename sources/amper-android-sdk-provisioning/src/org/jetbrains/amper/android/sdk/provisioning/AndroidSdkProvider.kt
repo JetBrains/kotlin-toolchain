@@ -5,6 +5,7 @@
 package org.jetbrains.amper.android.sdk.provisioning
 
 import com.android.repository.api.ConsoleProgressIndicator
+import com.android.repository.api.License
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
@@ -26,7 +27,6 @@ import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.extract.ExtractOptions
 import org.jetbrains.amper.core.extract.extractFileToLocation
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.telemetry.useWithoutCoroutines
 import java.io.InputStream
@@ -65,6 +65,10 @@ data class AndroidSdkPackage(
      * The root directory of the installed package.
      */
     val location: Path,
+    /**
+     * The license required by the package.
+     */
+    val license: License,
 )
 
 /**
@@ -85,11 +89,6 @@ class AndroidSdkProvider(
         userCacheRoot = userCacheRoot,
         incrementalCache = incrementalCache,
     )
-    private val licenseChecker = AndroidSdkLicenseChecker(sdkRoot, incrementalCache) { packageManifest ->
-        packageManifest.readRepository().localPackage.let { localPackage ->
-            AndroidSdkPackageLicense(localPackage.path, localPackage.license)
-        }
-    }
     private val repositories = AsyncConcurrentMap<AndroidSdkRepository, Repository>()
     private val packages = AsyncConcurrentMap<AndroidSdkPackageRequest, AndroidSdkPackage>()
     private val packagesMutexGroup = StripedFileMutexGroup(256)
@@ -112,6 +111,7 @@ class AndroidSdkProvider(
                     AndroidSdkPackage(
                         packagePath = installedPackage.packagePath,
                         location = installedPackage.packagePath.toLocalPath(),
+                        license = installedPackage.license,
                     )
                 }
             }
@@ -248,25 +248,6 @@ class AndroidSdkProvider(
                     repositoryXmlListsProvider.getRepositoryXml(repository).readRepository()
                 }
             }
-
-    /**
-     * Checks the installed package licenses and reports unaccepted licenses through [ProblemReporter].
-     */
-    context(problemReporter: ProblemReporter)
-    suspend fun checkLicensesAndReport(): AndroidSdkLicenseCheckResult =
-        tracer.spanBuilder("Check Android SDK licenses").use {
-            val result = licenseChecker.check()
-            when (result) {
-                AndroidSdkLicenseCheckResult.Accepted -> {}
-                is AndroidSdkLicenseCheckResult.Unaccepted -> problemReporter.reportMessage(
-                    UnacceptedAndroidSdkLicenses(
-                        sdkRoot,
-                        result.packagesByLicenseId,
-                    )
-                )
-            }
-            result
-        }
 
     private fun writePackageXml(pkg: RemotePackage, localPackagePath: Path): LocalPackage {
         val localPackage = LocalPackageImpl.create(pkg)

@@ -1,12 +1,15 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.engine
 
+import org.jetbrains.amper.cli.SoftTaskFailureException
 import org.jetbrains.amper.cli.UserReadableError
+import org.jetbrains.amper.cli.aggregate
 import org.jetbrains.amper.engine.TaskExecutor.TaskExecutionFailed
 import org.jetbrains.amper.frontend.TaskId
+import org.jetbrains.amper.stdlib.collections.partitionIsInstance
 import org.jetbrains.amper.tasks.TaskResult
 
 /**
@@ -32,9 +35,12 @@ suspend fun TaskExecutor.runTasksAndReportOnFailure(tasks: Set<TaskId>): Map<Tas
  */
 private fun Map<TaskId, ExecutionResult>.resultsOrThrowCombinedError(): Map<TaskId, TaskResult> {
     val exceptions = values.filterIsInstance<ExecutionResult.Failure>().map { it.exception }
-    if (exceptions.isNotEmpty()) {
-        val firstException = exceptions.first()
-        exceptions.drop(1).forEach { e -> firstException.addSuppressed(e) }
+    val [softExceptions, otherExceptions] = exceptions.partitionIsInstance<_, SoftTaskFailureException>()
+    val resultExceptions = softExceptions.aggregate() + otherExceptions
+
+    if (resultExceptions.isNotEmpty()) {
+        val firstException = resultExceptions.first()
+        resultExceptions.drop(1).forEach { e -> firstException.addSuppressed(e) }
         throw firstException
     }
     return mapValues { [_, result] ->

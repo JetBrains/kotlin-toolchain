@@ -133,3 +133,9 @@ inline fun <T> Collection<T>.forEachEndAware(block: (isLast: Boolean, item: T) -
  */
 inline fun <T> Collection<T>.filterIf(condition: Boolean, predicate: (T) -> Boolean): Collection<T> =
     if (condition) filter(predicate) else this
+
+inline fun <reified T, reified R: T> Collection<T>.partitionIsInstance(): Pair<List<R>, List<T>> {
+    val [instanced, rest] = partition { it is R }
+    @Suppress("UNCHECKED_CAST") // Checked above
+    return instanced as List<R> to rest
+}
