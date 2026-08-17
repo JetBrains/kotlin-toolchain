@@ -202,13 +202,13 @@ class AndroidExampleProjectsTest : AmperCliTestBase() {
         // debug
         result.assertStdoutContains("task :simple:buildAndroidDebug -> :simple:runtimeClasspathAndroid")
         result.assertStdoutContains("task :simple:compileAndroidDebug -> :simple:installPlatformAndroid, :simple:transformDependenciesAndroid, :simple:resolveDependenciesAndroid, :simple:prepareAndroidDebug")
-        result.assertStdoutContains("task :simple:prepareAndroidDebug -> :simple:installBuildToolsAndroid, :simple:installPlatformToolsAndroid, :simple:installPlatformAndroid, :simple:resolveDependenciesAndroid")
-        result.assertStdoutContains("task :simple:runAndroidDebug -> :simple:installSystemImageAndroid, :simple:installEmulatorAndroid, :simple:buildAndroidDebug")
+        result.assertStdoutContains("task :simple:prepareAndroidDebug -> :simple:installBuildToolsAndroid, installCmdlineTools, installPlatformTools, :simple:installPlatformAndroid, :simple:resolveDependenciesAndroid")
+        result.assertStdoutContains("task :simple:runAndroidDebug -> :simple:installSystemImageAndroid, installEmulator, :simple:buildAndroidDebug")
         // release
         result.assertStdoutContains("task :simple:buildAndroidRelease -> :simple:runtimeClasspathAndroid")
         result.assertStdoutContains("task :simple:compileAndroidRelease -> :simple:installPlatformAndroid, :simple:transformDependenciesAndroid, :simple:resolveDependenciesAndroid, :simple:prepareAndroidRelease")
-        result.assertStdoutContains("task :simple:prepareAndroidRelease -> :simple:installBuildToolsAndroid, :simple:installPlatformToolsAndroid, :simple:installPlatformAndroid, :simple:resolveDependenciesAndroid")
-        result.assertStdoutContains("task :simple:runAndroidRelease -> :simple:installSystemImageAndroid, :simple:installEmulatorAndroid, :simple:buildAndroidRelease")
+        result.assertStdoutContains("task :simple:prepareAndroidRelease -> :simple:installBuildToolsAndroid, installCmdlineTools, installPlatformTools, :simple:installPlatformAndroid, :simple:resolveDependenciesAndroid")
+        result.assertStdoutContains("task :simple:runAndroidRelease -> :simple:installSystemImageAndroid, installEmulator, :simple:buildAndroidRelease")
 
         // transform dependencies
         // main

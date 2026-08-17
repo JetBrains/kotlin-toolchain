@@ -19,7 +19,7 @@ import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.shouldPublishSourcesJars
 import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
-import org.jetbrains.amper.tasks.android.AndroidTaskType
+import org.jetbrains.amper.tasks.android.AndroidModuleTaskType
 import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
 import org.jetbrains.amper.tasks.metadata.allMetadataFragments
 import org.jetbrains.amper.tasks.native.CommonizeNativeDistributionTask
@@ -242,7 +242,7 @@ fun ProjectTasksBuilder.setupCommonTasks() {
 private fun ModuleSequenceCtx.tasksWithPlatformSpecificPublishablesFor(platform: Platform): List<TaskName> = buildList {
     when (platform) {
         Platform.JVM -> add(CommonTaskType.Jar.getTaskName(module, platform, isTest = false))
-        Platform.ANDROID -> add(AndroidTaskType.Aar.getTaskName(module, platform, isTest = false, BuildType.Release))
+        Platform.ANDROID -> add(AndroidModuleTaskType.Aar.getTaskName(module, platform, isTest = false, BuildType.Release))
         Platform.JS,
         Platform.WASM_JS,
         Platform.WASM_WASI,

@@ -19,12 +19,10 @@ import org.jetbrains.amper.test.spans.assertKotlinJvmCompilationSpan
 import org.jetbrains.amper.test.spans.kotlinJvmCompilationSpans
 import org.jetbrains.amper.test.spans.kotlinNativeCompilationSpans
 import org.jetbrains.amper.test.spans.withAmperModule
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.nio.file.Path
 import java.util.jar.JarFile
-import kotlin.collections.plus
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
@@ -34,7 +32,7 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertTrue
 
-class ExampleProjectsTest: AmperCliTestBase() {
+class ExampleProjectsTest : AmperCliTestBase() {
 
     private fun exampleProject(name: String): Path = copyProjectToTempDir(Dirs.examplesRoot.resolve(name)).also {
         LocalAmperPublication.setupWrappersIn(it)
@@ -103,6 +101,7 @@ class ExampleProjectsTest: AmperCliTestBase() {
             (jvmBaseTasks + jvmTestTasks + iosLibraryTasksWithoutX64 + androidTestTasks).forEach {
                 assertContains(stdout, ":shared:$it")
             }
+            androidGlobalTasks.forEach { assertContains(stdout, it) }
             androidAppTasks.forEach { assertContains(stdout, ":android-app:$it") }
             jvmAppTasks.forEach { assertContains(stdout, ":jvm-app:$it") }
             iosAppTasksWithoutX64.forEach { assertContains(stdout, ":ios-app:$it") }
@@ -224,6 +223,7 @@ class ExampleProjectsTest: AmperCliTestBase() {
             "tasks",
             configureAndroidHome = true,
         )
+        androidGlobalTasks.forEach { assertContains(result1.stdout, it) }
         androidAppTasks.forEach { assertContains(result1.stdout, ":compose-android:$it") }
 
         val result2 = runCli(
@@ -245,7 +245,7 @@ class ExampleProjectsTest: AmperCliTestBase() {
             assertContains(stdout, "0 tests failed")
         }
     }
-    
+
     @Test
     fun `spring-petclinic-kotlin`() = runSlowTest {
         val projectRoot = exampleProject("spring-petclinic-kotlin")
@@ -304,12 +304,15 @@ private val androidTestTasks = listOf(
     "compileAndroidTestRelease",
 )
 
+private val androidGlobalTasks = [
+    "installEmulator",
+    "installPlatformTools",
+]
+
 private val androidBaseTasks = listOf(
     "compileAndroidDebug",
     "compileAndroidRelease",
-    "installEmulatorAndroid",
     "installPlatformAndroid",
-    "installPlatformToolsAndroid",
     "buildAndroidDebug",
     "buildAndroidRelease",
     "prepareAndroidDebug",

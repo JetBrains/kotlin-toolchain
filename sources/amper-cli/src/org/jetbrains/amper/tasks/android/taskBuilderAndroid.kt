@@ -9,6 +9,7 @@ import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkPackageRequest
 import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkProvider
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.engine.TaskGraphBuilder
+import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
@@ -33,8 +34,29 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
     val androidSdkProvider = context.androidSdkProvider
     val needDefaultSystemImage = runSettings.deviceId == null
 
-    allModules().alsoPlatforms(Platform.ANDROID).withEach {
-        tasks.setupAndroidCommandlineTools(module, androidSdkProvider)
+    val hasAndroidModules = allModules().alsoPlatforms(Platform.ANDROID).any()
+    if (hasAndroidModules) {
+        tasks.registerTask(
+            GetAndroidPlatformFileFromPackageTask(
+                AndroidSdkPackageRequest.CommandLineTools("latest"),
+                androidSdkProvider = androidSdkProvider,
+                taskName = AndroidGlobalTaskType.InstallCmdlineTools,
+            )
+        )
+        tasks.registerTask(
+            task = GetAndroidPlatformFileFromPackageTask(
+                packageRequest = AndroidSdkPackageRequest.Emulator,
+                androidSdkProvider = androidSdkProvider,
+                taskName = AndroidGlobalTaskType.InstallEmulator
+            ),
+        )
+        tasks.registerTask(
+            GetAndroidPlatformFileFromPackageTask(
+                packageRequest = AndroidSdkPackageRequest.PlatformTools,
+                androidSdkProvider = androidSdkProvider,
+                taskName = AndroidGlobalTaskType.InstallPlatformTools
+            ),
+        )
     }
 
     allModules().alsoPlatforms(Platform.ANDROID)
@@ -48,17 +70,9 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
         .alsoTests()
         .withEach {
             tasks.setupDownloadBuildToolsTask(module, androidSdkProvider, isTest)
-            tasks.setupDownloadPlatformToolsTask(module, androidSdkProvider, isTest)
             if (needDefaultSystemImage) {
                 tasks.setupDownloadSystemImageTask(module, androidSdkProvider, isTest)
             }
-            tasks.registerTask(
-                task = GetAndroidPlatformFileFromPackageTask(
-                    packageRequest = AndroidSdkPackageRequest.Emulator,
-                    androidSdkProvider = androidSdkProvider,
-                    taskName = AndroidTaskType.InstallEmulator.getTaskName(module, Platform.ANDROID, isTest)
-                ),
-            )
         }
 
     allModules().alsoPlatforms(Platform.ANDROID)
@@ -68,7 +82,7 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
         .withEach {
             val fragments = module.fragments.filter { it.isTest == isTest && it.platforms.contains(platform) }
 
-            val prepareTaskName = AndroidTaskType.Prepare.getTaskName(
+            val prepareTaskName = AndroidModuleTaskType.Prepare.getTaskName(
                 module, platform, isTest, buildType,
             )
             tasks.registerTask(
@@ -86,10 +100,10 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
                     jdkProvider = context.jdkProvider,
                 ),
                 dependsOn = listOf(
-                    AndroidTaskType.InstallBuildTools.getTaskName(module, platform, isTest),
-                    AndroidTaskType.InstallCmdlineTools.getTaskName(module, platform),
-                    AndroidTaskType.InstallPlatformTools.getTaskName(module, platform, isTest),
-                    AndroidTaskType.InstallPlatform.getTaskName(module, platform, isTest),
+                    AndroidModuleTaskType.InstallBuildTools.getTaskName(module, platform, isTest),
+                    AndroidGlobalTaskType.InstallCmdlineTools,
+                    AndroidGlobalTaskType.InstallPlatformTools,
+                    AndroidModuleTaskType.InstallPlatform.getTaskName(module, platform, isTest),
                     CommonTaskType.Dependencies.getTaskName(module, platform, isTest),
                 )
             )
@@ -100,7 +114,7 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
         // no `alsoTests()` here - we do the unit testing ourselves, no need to build anything with Gradle for that.
         .alsoBuildTypes()
         .withEach {
-            val taskName = AndroidTaskType.Build.getTaskName(
+            val taskName = AndroidModuleTaskType.Build.getTaskName(
                 module, platform, isTest, buildType,
             )
             tasks.registerTask(
@@ -138,7 +152,7 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
             )
 
             if (isTest) {
-                val mockablePlatformJarTaskName = AndroidTaskType.MockablePlatformJar.getTaskName(module, platform, false)
+                val mockablePlatformJarTaskName = AndroidModuleTaskType.MockablePlatformJar.getTaskName(module, platform, false)
                 tasks.registerTask(
                     task = AndroidMockablePlatformJarTask(
                         taskName = mockablePlatformJarTaskName,
@@ -186,11 +200,11 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
                     openTelemetry = context.openTelemetry,
                 ),
                 dependsOn = buildList {
-                    add(AndroidTaskType.InstallPlatform.getTaskName(module, platform, isTest))
+                    add(AndroidModuleTaskType.InstallPlatform.getTaskName(module, platform, isTest))
                     add(CommonTaskType.TransformDependencies.getTaskName(module, platform, isTest))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (module.type != ProductType.KMP_LIB && !isTest) {
-                        add(AndroidTaskType.Prepare.getTaskName(module, platform, isTest = false, buildType))
+                        add(AndroidModuleTaskType.Prepare.getTaskName(module, platform, isTest = false, buildType))
                     }
                     if (isTest) {
                         // test compilation depends on main classes
@@ -231,7 +245,7 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
                     dependsOn = compileTaskName,
                 )
 
-                val aarTaskName = AndroidTaskType.Aar.getTaskName(module, platform, isTest = false, buildType)
+                val aarTaskName = AndroidModuleTaskType.Aar.getTaskName(module, platform, isTest = false, buildType)
                 tasks.registerTask(
                     task = AndroidAarTask(
                         taskName = aarTaskName,
@@ -266,7 +280,7 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
                     // Third-party-dependencies
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {
-                        add(AndroidTaskType.MockablePlatformJar.getTaskName(module, platform, false))
+                        add(AndroidModuleTaskType.MockablePlatformJar.getTaskName(module, platform, false))
                     }
 
                     // Module-dependencies
@@ -282,7 +296,7 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
 
                         val archiveTask = if (!isTest && isAndroidDependency) {
                             // Production always depends on AAR for Android module dependency
-                            AndroidTaskType.Aar.getTaskName(dependsOn, platform, isTest = false, buildType)
+                            AndroidModuleTaskType.Aar.getTaskName(dependsOn, platform, isTest = false, buildType)
                         } else {
                             // Depend on JAR in case of test dependency or if we depend on a JVM module
                             val jarTaskPlatform = if (isAndroidDependency) platform else Platform.JVM
@@ -299,7 +313,7 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
                         add(CommonTaskType.Jar.getTaskName(module, platform, isTest = false, buildType))
                     } else {
                         // Production runtime classpath depends on AAR, not JAR
-                        add(AndroidTaskType.Aar.getTaskName(module, platform, isTest = false, buildType))
+                        add(AndroidModuleTaskType.Aar.getTaskName(module, platform, isTest = false, buildType))
                     }
                 }
             )
@@ -336,10 +350,10 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
                 ),
                 dependsOn = buildList {
                     if (needDefaultSystemImage) {
-                        add(AndroidTaskType.InstallSystemImage.getTaskName(module, platform, false))
+                        add(AndroidModuleTaskType.InstallSystemImage.getTaskName(module, platform, false))
                     }
-                    add(AndroidTaskType.InstallEmulator.getTaskName(module, platform, false))
-                    add(AndroidTaskType.Build.getTaskName(module, platform, false, buildType))
+                    add(AndroidGlobalTaskType.InstallEmulator)
+                    add(AndroidModuleTaskType.Build.getTaskName(module, platform, false, buildType))
                 }
             )
         }
@@ -377,7 +391,7 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
         .alsoPlatforms(Platform.ANDROID)
         .withEach {
             val fragments = module.fragments.filter { !it.isTest && it.platforms.contains(Platform.ANDROID) }
-            val taskName = AndroidTaskType.Bundle.getTaskName(module, Platform.ANDROID, false)
+            val taskName = AndroidModuleTaskType.Bundle.getTaskName(module, Platform.ANDROID, false)
             tasks.registerTask(
                 task = AndroidBundleTask(
                     module = module,
@@ -415,7 +429,7 @@ private fun TaskGraphBuilder.setupAndroidPlatformTask(
                     compileSdk.sdkExtension
                 ),
                 androidSdkProvider = androidSdkProvider,
-                taskName = AndroidTaskType.InstallPlatform.getTaskName(module, Platform.ANDROID, isTest)
+                taskName = AndroidModuleTaskType.InstallPlatform.getTaskName(module, Platform.ANDROID, isTest)
             )
         ),
     )
@@ -432,21 +446,7 @@ private fun TaskGraphBuilder.setupDownloadBuildToolsTask(
         task = GetAndroidPlatformFileFromPackageTask(
             packageRequest = AndroidSdkPackageRequest.BuildTools(buildToolsVersion),
             androidSdkProvider = androidSdkProvider,
-            taskName = AndroidTaskType.InstallBuildTools.getTaskName(module, Platform.ANDROID, isTest)
-        ),
-    )
-}
-
-private fun TaskGraphBuilder.setupDownloadPlatformToolsTask(
-    module: AmperModule,
-    androidSdkProvider: AndroidSdkProvider,
-    isTest: Boolean,
-) {
-    registerTask(
-        GetAndroidPlatformFileFromPackageTask(
-            AndroidSdkPackageRequest.PlatformTools,
-            androidSdkProvider,
-            AndroidTaskType.InstallPlatformTools.getTaskName(module, Platform.ANDROID, isTest)
+            taskName = AndroidModuleTaskType.InstallBuildTools.getTaskName(module, Platform.ANDROID, isTest)
         ),
     )
 }
@@ -471,21 +471,8 @@ private fun TaskGraphBuilder.setupDownloadSystemImageTask(
                 abi = abi
             ),
             androidSdkProvider,
-            AndroidTaskType.InstallSystemImage.getTaskName(module, Platform.ANDROID, isTest)
+            AndroidModuleTaskType.InstallSystemImage.getTaskName(module, Platform.ANDROID, isTest)
         ),
-    )
-}
-
-private fun TaskGraphBuilder.setupAndroidCommandlineTools(
-    module: AmperModule,
-    androidSdkProvider: AndroidSdkProvider,
-) {
-    registerTask(
-        GetAndroidPlatformFileFromPackageTask(
-            AndroidSdkPackageRequest.CommandLineTools("latest"),
-            androidSdkProvider = androidSdkProvider,
-            taskName = AndroidTaskType.InstallCmdlineTools.getTaskName(module, Platform.ANDROID)
-        )
     )
 }
 
@@ -502,16 +489,20 @@ private fun ModuleSequenceCtx.checkDependencySupportsJvm(dependsOn: AmperModule)
     }
 }
 
-internal enum class AndroidTaskType(
+
+internal object AndroidGlobalTaskType {
+    val InstallCmdlineTools = TaskName("installCmdlineTools", "installing `cmdline-tools` for Android")
+    val InstallEmulator = TaskName("installEmulator", "installing Android Emulator")
+    val InstallPlatformTools = TaskName("installPlatformTools", "installing `platform-tools` for Android")
+}
+
+internal enum class AndroidModuleTaskType(
     override val internalName: String,
     override val operationMoniker: String,
 ) : TaskNameFactory.LeafPlatform {
     InstallBuildTools("installBuildTools", "installing `build-tools` for Android"),
-    InstallPlatformTools("installPlatformTools", "installing `platform-tools` for Android"),
     InstallPlatform("installPlatform", "installing Android Platform"),
     InstallSystemImage("installSystemImage", "installing Android System Image"),
-    InstallEmulator("installEmulator", "installing Android Emulator"),
-    InstallCmdlineTools("installCmdlineTools", "installing `cmdline-tools` for Android"),
     Aar("aar", "writing AAR"),
     Prepare("prepare", "preparing Android build"),
     Build("build", "building Android app"),
