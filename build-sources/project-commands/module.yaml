@@ -65,7 +65,7 @@ plugins:
         # https://github.com/google/ksp/releases
         ksp: 2.3.9
         # https://github.com/ktorio/ktor/releases
-        ktor: 3.4.3
+        ktor: 3.5.2
         # https://projectlombok.org/download
         lombok: 1.18.46
         # https://spring.io/projects/spring-boot#learn
