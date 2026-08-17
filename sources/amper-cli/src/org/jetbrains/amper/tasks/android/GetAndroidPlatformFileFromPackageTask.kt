@@ -4,7 +4,7 @@
 
 package org.jetbrains.amper.tasks.android
 
-import org.jetbrains.amper.android.sdk.provisioning.SdkInstallManager
+import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkProvider
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
@@ -20,7 +20,7 @@ class GetAndroidPlatformFileFromPackageTask(
 ) : Task {
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): Result {
-        val packagePath = SdkInstallManager(userCacheRoot, androidSdkPath)
+        val packagePath = AndroidSdkProvider(userCacheRoot, androidSdkPath)
             .install(packageName)
             .path
         val localFileSystemPackagePath = packagePath

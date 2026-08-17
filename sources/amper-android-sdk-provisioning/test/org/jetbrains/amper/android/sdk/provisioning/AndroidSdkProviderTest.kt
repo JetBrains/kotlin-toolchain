@@ -8,7 +8,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class SdkInstallManagerTest {
+class AndroidSdkProviderTest {
 
     // A realistic slice of the platform packages currently published in the Android SDK repository.
     // Note that "platforms;android-37" is intentionally absent: API 37 is only published as 37.0.

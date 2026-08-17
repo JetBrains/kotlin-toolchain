@@ -4,7 +4,7 @@
 
 package org.jetbrains.amper.tasks.android
 
-import org.jetbrains.amper.android.sdk.provisioning.SdkInstallManager
+import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkProvider
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.Task
@@ -23,7 +23,7 @@ class CheckAndroidSdkLicenseTask(
 ): Task {
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
-        val unacceptedLicenseIds = SdkInstallManager(userCacheRoot, androidSdkPath)
+        val unacceptedLicenseIds = AndroidSdkProvider(userCacheRoot, androidSdkPath)
             .findUnacceptedSdkLicenseIds(incrementalCache)
         if (unacceptedLicenseIds.isNotEmpty()) {
             val licensesListText = unacceptedLicenseIds.joinToString("\n") { " - $it" }

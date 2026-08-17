@@ -54,7 +54,7 @@ private val androidSystemImagesRepositoryUrlBuilder: URLBuilder
         .also { it.appendPathSegments(androidRepositoryBasePath) }
         .also { it.appendPathSegments(androidSystemImagePath) }
 
-class SdkInstallManager(private val userCacheRoot: AmperUserCacheRoot, private val androidSdkPath: Path) {
+class AndroidSdkProvider(private val userCacheRoot: AmperUserCacheRoot, private val androidSdkPath: Path) {
 
     init {
         androidSdkPath.createDirectories()
