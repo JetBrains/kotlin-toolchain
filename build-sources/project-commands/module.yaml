@@ -59,7 +59,7 @@ plugins:
         # Also check/update JDK compatibility: [KotlinVersionDoesNotSupportJdkFactory] and [KotlinVersionDoesNotSupportJdkDiagnosticsTest].
         kotlin: 2.3.21
         # https://github.com/Kotlin/kotlinx-rpc/releases
-        kotlinxRpc: 0.10.2
+        kotlinxRpc: 0.10.3
         # https://github.com/Kotlin/kotlinx.serialization/releases
         kotlinxSerialization: 1.11.0
         # https://github.com/google/ksp/releases
