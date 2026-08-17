@@ -7,10 +7,12 @@ package org.jetbrains.amper.tasks.android
 import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkPackageRequest
 import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkProvider
 import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkProvisioningBundle
+import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkResult
 import org.jetbrains.amper.android.sdk.provisioning.PackagePath
 import org.jetbrains.amper.cli.SoftTaskFailureAggregator
 import org.jetbrains.amper.cli.SoftTaskFailureException
 import org.jetbrains.amper.cli.UserReadableError
+import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
@@ -25,17 +27,23 @@ class GetAndroidPlatformFileFromPackageTask(
 ) : Task {
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): Result {
-        val androidSdkPackage = androidSdkProvider.provision(packageRequest)
-        if (!androidSdkPackage.license.checkAccepted(androidSdkProvider.sdkRoot)) {
-            // TODO: Support license acceptance in the interactive mode?
-            throw LicenseCheckException(
-                sdkRoot = androidSdkProvider.sdkRoot,
-                licenseId = androidSdkPackage.license.id,
-                packagePath = androidSdkPackage.packagePath,
-            )
-        }
+        when (val provisionResult = androidSdkProvider.provision(packageRequest)) {
+            // TODO: Add traces to the request? E.g., where the version of Android Platform was defined
+            is AndroidSdkResult.Error -> userReadableError(provisionResult.message)
+            is AndroidSdkResult.Success -> {
+                val androidPackage = provisionResult.androidPackage
+                if (!androidPackage.license.checkAccepted(androidSdkProvider.sdkRoot)) {
+                    // TODO: Support license acceptance in the interactive mode?
+                    throw LicenseCheckException(
+                        sdkRoot = androidSdkProvider.sdkRoot,
+                        licenseId = androidPackage.license.id,
+                        packagePath = androidPackage.packagePath,
+                    )
+                }
 
-        return Result(listOf(androidSdkPackage.location))
+                return Result(listOf(androidPackage.location))
+            }
+        }
     }
 
     data class Result(

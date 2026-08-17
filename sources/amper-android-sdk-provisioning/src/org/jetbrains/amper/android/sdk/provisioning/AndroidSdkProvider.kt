@@ -5,7 +5,6 @@
 package org.jetbrains.amper.android.sdk.provisioning
 
 import com.android.repository.api.ConsoleProgressIndicator
-import com.android.repository.api.License
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
@@ -27,6 +26,7 @@ import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.extract.ExtractOptions
 import org.jetbrains.amper.core.extract.extractFileToLocation
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.telemetry.useWithoutCoroutines
 import java.io.InputStream
@@ -42,34 +42,7 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.io.path.outputStream
-
-/**
- * Package path (notation) in the Android SDK repository notation.
- *
- * Examples:
- * - `platforms;android-37.0`
- * - `ndk;27.0.11902837`
- * - `build-tools;37.0.0`
- */
-@JvmInline
-value class PackagePath(val path: String) {
-    override fun toString(): String = path
-}
-
-data class AndroidSdkPackage(
-    /**
-     * Notation of the package.
-     */
-    val packagePath: PackagePath,
-    /**
-     * The root directory of the installed package.
-     */
-    val location: Path,
-    /**
-     * The license required by the package.
-     */
-    val license: License,
-)
+import kotlin.io.path.relativeTo
 
 /**
  * Provisions Android SDK packages into [sdkRoot].
@@ -90,7 +63,7 @@ class AndroidSdkProvider(
         incrementalCache = incrementalCache,
     )
     private val repositories = AsyncConcurrentMap<AndroidSdkRepository, Repository>()
-    private val packages = AsyncConcurrentMap<AndroidSdkPackageRequest, AndroidSdkPackage>()
+    private val packages = AsyncConcurrentMap<AndroidSdkPackageRequest, AndroidSdkResult>()
     private val packagesMutexGroup = StripedFileMutexGroup(256)
 
     init {
@@ -99,24 +72,34 @@ class AndroidSdkProvider(
 
     /**
      * Finds or provisions the SDK package based on the [request].
+     *
+     * Potential errors in the local SDK storage are reported via [localPackageProblemReporter]
+     * (e.g., if the local package is corrupted).
+     * The provisioning failures itself are reported as [AndroidSdkResult.Error]s.
      */
     @UsedInIdePlugin
-    suspend fun provision(request: AndroidSdkPackageRequest): AndroidSdkPackage =
+    context(localPackageProblemReporter: ProblemReporter)
+    suspend fun provision(request: AndroidSdkPackageRequest): AndroidSdkResult =
         tracer.spanBuilder("Provision Android SDK package $request")
             .use { span ->
                 span.setAttribute("from-memory-cache", true)
                 packages.computeIfAbsent(request) {
                     span.setAttribute("from-memory-cache", false)
                     val installedPackage = install(request)
-                    AndroidSdkPackage(
-                        packagePath = installedPackage.packagePath,
-                        location = installedPackage.packagePath.toLocalPath(),
-                        license = installedPackage.license,
+                        ?: return@computeIfAbsent AndroidSdkResult.Error("Failed to provision ${request.displayName}")
+
+                    AndroidSdkResult.Success(
+                        AndroidSdkPackage(
+                            packagePath = installedPackage.packagePath,
+                            location = installedPackage.packagePath.toLocalPath(),
+                            license = installedPackage.license,
+                        )
                     )
                 }
             }
 
-    private suspend fun install(request: AndroidSdkPackageRequest): RepoPackage =
+    context(_: ProblemReporter)
+    private suspend fun install(request: AndroidSdkPackageRequest): RepoPackage? =
         when (request) {
             // TODO: Some packages have no version qualifiers or use "latest".
             //  In that case it might make sense to compare it somehow with the remote version (checksum?).
@@ -150,64 +133,72 @@ class AndroidSdkProvider(
     private val AndroidSdkPackageRequest.Platform.packagePath: PackagePath
         get() = PackagePath(buildString {
             append("platforms;android-")
-            append(apiLevel)
-            if (apiLevel >= 37 || minorApiLevel != 0) {
-                // Minor API level 0 started being published at API 37. API 36 has only 36 and 36.1.
-                append(".$minorApiLevel")
-            }
-            sdkExtension?.let { append("-ext$it") }
+            append(platformVersionString(apiLevel, minorApiLevel, sdkExtension))
         })
 
     private val AndroidSdkPackageRequest.PlatformSources.packagePath: PackagePath
         get() = PackagePath(buildString {
             append("sources;android-")
-            append(apiLevel)
-            if (apiLevel >= 37 || minorApiLevel != 0) {
-                // Minor API level 0 started being published at API 37. API 36 has only 36 and 36.1.
-                append(".$minorApiLevel")
-            }
+            append(platformVersionString(apiLevel, minorApiLevel))
         })
 
-    private suspend fun installSystemImage(request: AndroidSdkPackageRequest.SystemImage): RepoPackage {
+    private fun platformVersionString(
+        apiLevel: Int,
+        minorApiLevel: Int,
+        sdkExtension: Int? = null,
+    ): String = buildString {
+        append(apiLevel)
+        if (apiLevel >= 37 || minorApiLevel != 0) {
+            // Minor API level 0 started being published at API 37. API 36 has only 36 and 36.1.
+            append(".$minorApiLevel")
+        }
+        sdkExtension?.let { append("-ext$it") }
+    }
+
+    context(_: ProblemReporter)
+    private suspend fun installSystemImage(request: AndroidSdkPackageRequest.SystemImage): RepoPackage? {
         val lockName =
             "system-images;android-${request.apiLevel};${request.tag.value};${request.abi.repositoryValue}.lock"
         return packagesMutexGroup.withDoubleLock(sdkRoot / lockName) {
             val localPackage = request.findBestPackageLocally(sdkRoot)
-            if (localPackage == null) {
-                val remotePackages = getRepository(AndroidSdkRepository.SystemImages).remotePackage
-                val alignedName = request.findBestPackageRemotely(remotePackages)
-                    ?: error("Package matching $request not found")
-                installPackageFromRemote(alignedName, remotePackages, AndroidSdkRepository.SystemImages)
-            } else {
-                readLocalPackage(localPackage) ?: error("Package $localPackage is corrupted")
+            if (localPackage != null) {
+                val deducedPath = PackagePath(localPackage.relativeTo(sdkRoot).joinToString(";"))
+                val localPackage = readLocalPackage(deducedPath, localPackage)
+                if (localPackage != null) return@withDoubleLock localPackage
+                // Fallback to downloading remote package if failed to read it locally
             }
+
+            val remotePackages = getRepository(AndroidSdkRepository.SystemImages).remotePackage
+            val alignedName = request.findBestPackageRemotely(remotePackages) ?: return@withDoubleLock null
+            installPackageFromRemote(alignedName, remotePackages, AndroidSdkRepository.SystemImages)
         }
     }
 
+    context(_: ProblemReporter)
     private suspend fun findAndInstallExactPackage(
         packagePath: PackagePath,
         repository: AndroidSdkRepository,
-    ): RepoPackage =
+    ): RepoPackage? =
         packagesMutexGroup.withDoubleLock(sdkRoot / "$packagePath.lock") {
-            val localPackage = findAndReadInstalledPackage(packagePath)
-            if (localPackage == null) {
-                val remotePackages = getRepository(repository).remotePackage
-                installPackageFromRemote(packagePath, remotePackages, repository)
-            } else {
-                localPackage
+            val installedPackagePath = packagePath.toLocalPath()
+            if (installedPackagePath.isDirectory()) {
+                val localPackage = readLocalPackage(packagePath, installedPackagePath)
+                if (localPackage != null) return@withDoubleLock localPackage
+                // Fallback to downloading remote package if failed to read it locally
             }
+
+            val remotePackages = getRepository(repository).remotePackage
+            installPackageFromRemote(packagePath, remotePackages, repository)
         }
 
-    private fun findAndReadInstalledPackage(packagePath: PackagePath): RepoPackage? {
-        val installedPackagePath = packagePath.toLocalPath()
-        if (!installedPackagePath.isDirectory()) return null
-        return readLocalPackage(installedPackagePath)
-    }
-
-    private fun readLocalPackage(path: Path): RepoPackage? =
+    context(problemReporter: ProblemReporter)
+    private fun readLocalPackage(packagePath: PackagePath, path: Path): RepoPackage? =
         tracer.spanBuilder("Read local Android SDK package").useWithoutCoroutines {
             val packageManifest = path / "package.xml"
-            if (!packageManifest.exists()) return@useWithoutCoroutines null
+            if (!packageManifest.exists()) {
+                problemReporter.reportMessage(LocalPackageWithoutManifest(packagePath, path))
+                return@useWithoutCoroutines null
+            }
             packageManifest.readRepository().localPackage
         }
 
@@ -215,8 +206,8 @@ class AndroidSdkProvider(
         packagePath: PackagePath,
         remotePackages: List<RemotePackage>,
         repository: AndroidSdkRepository,
-    ): RepoPackage {
-        val pkg = remotePackages.firstOrNull { it.path == packagePath.path } ?: error("Package $packagePath not found")
+    ): RepoPackage? {
+        val pkg = remotePackages.firstOrNull { it.path == packagePath.path } ?: return null
         return installRemotePackage(pkg, URLBuilder(repository.baseUrl))
     }
 

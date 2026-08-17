@@ -5,17 +5,32 @@
 package org.jetbrains.amper.android.sdk.provisioning
 
 import org.jetbrains.amper.core.UsedInIdePlugin
+import org.jetbrains.annotations.Nls
 
 /**
  * Describes an Android SDK package to provision.
  */
 sealed interface AndroidSdkPackageRequest {
 
-    data class CommandLineTools(val version: String) : AndroidSdkPackageRequest
+    /**
+     * User-readable description of the request.
+     */
+    val displayName: @Nls String
 
-    data object PlatformTools : AndroidSdkPackageRequest
+    data class CommandLineTools(val version: String) : AndroidSdkPackageRequest {
+        override val displayName: @Nls String
+            get() = AndroidSdkProvisioningBundle.message("commandline.tools.display.name", version)
+    }
 
-    data object Emulator : AndroidSdkPackageRequest
+    data object PlatformTools : AndroidSdkPackageRequest {
+        override val displayName: @Nls String
+            get() = AndroidSdkProvisioningBundle.message("platform.tools.display.name")
+    }
+
+    data object Emulator : AndroidSdkPackageRequest {
+        override val displayName: @Nls String
+            get() = AndroidSdkProvisioningBundle.message("emulator.display.name")
+    }
 
     @UsedInIdePlugin
     data class Platform(
@@ -28,6 +43,12 @@ sealed interface AndroidSdkPackageRequest {
             require(minorApiLevel >= 0) { "Android minor API level must not be negative" }
             require(sdkExtension == null || sdkExtension >= 0) { "Android SDK extension must not be negative" }
         }
+
+        override val displayName: @Nls String
+            get() = AndroidSdkProvisioningBundle.message(
+                "platform.display.name",
+                platformVersionString(apiLevel, minorApiLevel, sdkExtension),
+            )
     }
 
     @UsedInIdePlugin
@@ -39,9 +60,18 @@ sealed interface AndroidSdkPackageRequest {
             require(apiLevel >= 1) { "Android API level must be positive" }
             require(minorApiLevel >= 0) { "Android minor API level must not be negative" }
         }
+
+        override val displayName: @Nls String
+            get() = AndroidSdkProvisioningBundle.message(
+                "platform.sources.display.name",
+                platformVersionString(apiLevel, minorApiLevel),
+            )
     }
 
-    data class BuildTools(val version: String) : AndroidSdkPackageRequest
+    data class BuildTools(val version: String) : AndroidSdkPackageRequest {
+        override val displayName: @Nls String
+            get() = AndroidSdkProvisioningBundle.message("build.tools.display.name", version)
+    }
 
     data class SystemImage(
         val apiLevel: Int,
@@ -63,5 +93,31 @@ sealed interface AndroidSdkPackageRequest {
             X86_64("x86_64"),
             Arm64V8A("arm64-v8a"),
         }
+
+        override val displayName: @Nls String
+            get() = AndroidSdkProvisioningBundle.message(
+                "system.image.display.name",
+                when (abi) {
+                    ImageAbi.X86_64 -> "x86"
+                    ImageAbi.Arm64V8A -> "ARM64"
+                },
+                apiLevel.toString(),
+                when (tag) {
+                    ServicesTag.GoogleApis -> "Google APIs"
+                },
+            )
     }
+}
+
+private fun platformVersionString(
+    apiLevel: Int,
+    minorApiLevel: Int,
+    sdkExtension: Int? = null,
+): String = buildString {
+    append(apiLevel)
+    if (apiLevel >= 37 || minorApiLevel != 0) {
+        // Minor API level 0 started being published at API 37. API 36 has only 36 and 36.1.
+        append(".$minorApiLevel")
+    }
+    sdkExtension?.let { append("-ext$it") }
 }
