@@ -6,17 +6,17 @@ package org.jetbrains.amper.cli.commands
 
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.options.multiple
-import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.unique
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.options.buildTypeOption
 import org.jetbrains.amper.cli.options.leafPlatformOption
+import org.jetbrains.amper.cli.options.moduleOption
 import org.jetbrains.amper.cli.withBackend
 import org.jetbrains.amper.frontend.Model
 
 internal class BuildCommand : AmperModelAwareCommand(name = "build") {
 
-    private val modules by option("-m", "--module",
+    private val modules by moduleOption(
         help = "The specific module to build (run the `show modules` command to get the modules list). " +
                 "This option can be repeated to build several modules."
     ).multiple().unique()
