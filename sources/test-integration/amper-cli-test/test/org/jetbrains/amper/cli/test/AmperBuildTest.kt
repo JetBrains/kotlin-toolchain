@@ -176,15 +176,18 @@ class AmperBuildTest : AmperCliTestBase() {
             expectedExitCode = 1,
             assertEmptyStdErr = false,
         )
-        val file = r.projectDir.resolve("shared/src/World.kt").toUri()
-        // Uses old style of reporting (< 2.4.0-Beta2), should be updated if the default Kotlin version changes.
-        r.assertStderrContains("ERROR (shared) $file:2:26 Unresolved reference 'XXXX'")
-
-        val lastLine = r.stderr.lines().last { it.isNotBlank() }
-        assertEquals(
-            "ERROR: Task ':shared:compileJvm' failed: Kotlin compilation failed with 1 errors (see above)".trimIndent(),
-            lastLine,
-        )
+        val path = Path("shared/src/World.kt")
+        val expectedStderr = """
+                ╭─ ERROR: Unresolved reference 'XXXX'.
+                │ → $path:2:26 (shared)
+                │
+              2 │     fun get() : String = XXXX
+                │                          ⌃⌃⌃⌃
+                ╰─
+            
+            ERROR: Task ':shared:compileJvm' failed: Kotlin compilation failed with 1 errors (see above)
+        """.trimIndent()
+        assertEquals(expectedStderr.trim(), r.stderr.trim())
     }
 
     @Test

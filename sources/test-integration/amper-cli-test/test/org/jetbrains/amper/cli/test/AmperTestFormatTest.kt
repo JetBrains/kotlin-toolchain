@@ -62,9 +62,9 @@ class AmperTestFormatTest : AmperCliTestBase() {
                             at org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:42)
                             at org.junit.jupiter.api.Assertions.fail(Assertions.java:143)
                             at kotlin.test.junit5.JUnit5Asserter.fail(JUnitSupport.kt:56)
-                            at kotlin.test.Asserter.assertTrue(Assertions.kt:766)
+                            at kotlin.test.Asserter.assertTrue(Assertions.kt:767)
                             at kotlin.test.junit5.JUnit5Asserter.assertTrue(JUnitSupport.kt:30)
-                            at kotlin.test.Asserter.assertTrue(Assertions.kt:776)
+                            at kotlin.test.Asserter.assertTrue(Assertions.kt:777)
                             at kotlin.test.junit5.JUnit5Asserter.assertTrue(JUnitSupport.kt:30)
                             at kotlin.test.AssertionsKt__AssertionsKt.assertTrue(Assertions.kt:44)
                             at kotlin.test.AssertionsKt.assertTrue(Unknown Source)
@@ -116,7 +116,7 @@ class AmperTestFormatTest : AmperCliTestBase() {
                         ) {
                             testFailed(
                                 message = "org.opentest4j.AssertionFailedError: The boolean value is incorrect",
-                                serializedStackTrace = "org.opentest4j.AssertionFailedError: The boolean value is incorrect$ENL\tat org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:42)$ENL\tat org.junit.jupiter.api.Assertions.fail(Assertions.java:143)$ENL\tat kotlin.test.junit5.JUnit5Asserter.fail(JUnitSupport.kt:56)$ENL\tat kotlin.test.Asserter.assertTrue(Assertions.kt:766)$ENL\tat kotlin.test.junit5.JUnit5Asserter.assertTrue(JUnitSupport.kt:30)$ENL\tat kotlin.test.Asserter.assertTrue(Assertions.kt:776)$ENL\tat kotlin.test.junit5.JUnit5Asserter.assertTrue(JUnitSupport.kt:30)$ENL\tat kotlin.test.AssertionsKt__AssertionsKt.assertTrue(Assertions.kt:44)$ENL\tat kotlin.test.AssertionsKt.assertTrue(Unknown Source)$ENL\tat FailedTest.booleanFailure(tests.kt:13)$ENL"
+                                serializedStackTrace = "org.opentest4j.AssertionFailedError: The boolean value is incorrect$ENL\tat org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:42)$ENL\tat org.junit.jupiter.api.Assertions.fail(Assertions.java:143)$ENL\tat kotlin.test.junit5.JUnit5Asserter.fail(JUnitSupport.kt:56)$ENL\tat kotlin.test.Asserter.assertTrue(Assertions.kt:767)$ENL\tat kotlin.test.junit5.JUnit5Asserter.assertTrue(JUnitSupport.kt:30)$ENL\tat kotlin.test.Asserter.assertTrue(Assertions.kt:777)$ENL\tat kotlin.test.junit5.JUnit5Asserter.assertTrue(JUnitSupport.kt:30)$ENL\tat kotlin.test.AssertionsKt__AssertionsKt.assertTrue(Assertions.kt:44)$ENL\tat kotlin.test.AssertionsKt.assertTrue(Unknown Source)$ENL\tat FailedTest.booleanFailure(tests.kt:13)$ENL"
                             )
                         }
                     }

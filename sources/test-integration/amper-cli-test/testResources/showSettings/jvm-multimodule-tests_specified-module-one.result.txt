@@ -39,7 +39,7 @@ settings@jvm:
       presets: null  # default
     allWarningsAsErrors: false  # default
     apiVersion: null  # default, from ${languageVersion}
-    compileIncrementally: false  # default, based on ${version}: enabled for Kotlin compiler >= 2.4.0
+    compileIncrementally: true  # default, based on ${version}: enabled for Kotlin compiler >= 2.4.0
     compilerPlugins: []  # default
     dataframe:
       enabled: false  # default
@@ -73,7 +73,7 @@ settings@jvm:
       version: 1.11.0  # default
     suppressWarnings: false  # default
     verbose: false  # default
-    version: 2.3.21  # default
+    version: 2.4.10  # default
   ktor:
     applyBom: true  # default
     enabled: false  # default

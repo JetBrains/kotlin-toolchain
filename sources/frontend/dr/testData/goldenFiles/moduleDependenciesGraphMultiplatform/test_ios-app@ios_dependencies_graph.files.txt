@@ -35,6 +35,8 @@ foundation-nonJvmMain-1.11.1.klib
 foundation-skikoMain-1.11.1.klib
 graphics-shapes-commonMain-1.1.0.klib
 graphics-shapes-nonJvmMain-1.1.0.klib
+kotlin-stdlib-commonMain-#kotlinVersion.klib
+kotlin-stdlib-commonNonJvmMain-#kotlinVersion.klib
 kotlinx-coroutines-core-commonMain-1.9.0.klib
 kotlinx-coroutines-core-concurrentMain-1.9.0.klib
 kotlinx-coroutines-core-nativeDarwinMain-1.9.0.klib

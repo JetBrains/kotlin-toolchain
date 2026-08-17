@@ -252,14 +252,14 @@ ARG2: <${argumentsWithSpecialChars[2]}>"""
 
     @Test
     fun `do not call kotlinc again if sources were not changed`() = runSlowTest {
-        val projectRoot = testProject("jvm-language-version-2.1")
+        val projectRoot = testProject("jvm-default-compiler-settings")
 
         val result1 = runCli(projectDir = projectRoot, "run")
-        result1.assertStdoutContains("Hello, world!")
+        result1.assertStdoutContains("Hello, World")
         result1.readTelemetrySpans().kotlinJvmCompilationSpans.assertSingle()
 
         val result2 = runCli(projectDir = projectRoot, "run")
-        result2.assertStdoutContains("Hello, world!")
+        result2.assertStdoutContains("Hello, World")
         result2.readTelemetrySpans().kotlinJvmCompilationSpans.assertNone()
     }
 

@@ -1,7 +1,7 @@
 Fragments:
   common
     External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
     Src folders:
       src
     Fragment dependencies:
@@ -94,7 +94,7 @@ Fragments:
         }
         allWarningsAsErrors: <default> false
         apiVersion: <default> null
-        compileIncrementally: <default> false
+        compileIncrementally: <default> true
         compilerPlugins: <default> [
         ]
         dataframe: <default> {
@@ -144,7 +144,7 @@ Fragments:
         }
         suppressWarnings: <default> false
         verbose: <default> false
-        version: <default> 2.3.21
+        version: <default> 2.4.10
       }
       ktor: <default> {
         applyBom: <default> true
@@ -196,9 +196,9 @@ Fragments:
 
   commonTest
     External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
     Src folders:
       test
     Fragment dependencies:
@@ -292,7 +292,7 @@ Fragments:
         }
         allWarningsAsErrors: <default> false
         apiVersion: <default> null
-        compileIncrementally: <default> false
+        compileIncrementally: <default> true
         compilerPlugins: <default> [
         ]
         dataframe: <default> {
@@ -342,7 +342,7 @@ Fragments:
         }
         suppressWarnings: <default> false
         verbose: <default> false
-        version: <default> 2.3.21
+        version: <default> 2.4.10
       }
       ktor: <default> {
         applyBom: <default> true
@@ -394,7 +394,7 @@ Fragments:
 
   wasmJs
     External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
     Src folders:
       src@wasmJs
     Fragment dependencies:
@@ -488,7 +488,7 @@ Fragments:
         }
         allWarningsAsErrors: <default> false
         apiVersion: <default> null
-        compileIncrementally: <default> false
+        compileIncrementally: <default> true
         compilerPlugins: <default> [
         ]
         dataframe: <default> {
@@ -538,7 +538,7 @@ Fragments:
         }
         suppressWarnings: <default> false
         verbose: <default> false
-        version: <default> 2.3.21
+        version: <default> 2.4.10
       }
       ktor: <default> {
         applyBom: <default> true
@@ -590,9 +590,9 @@ Fragments:
 
   wasmJsTest
     External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
     Src folders:
       test@wasmJs
     Fragment dependencies:
@@ -687,7 +687,7 @@ Fragments:
         }
         allWarningsAsErrors: <default> false
         apiVersion: <default> null
-        compileIncrementally: <default> false
+        compileIncrementally: <default> true
         compilerPlugins: <default> [
         ]
         dataframe: <default> {
@@ -737,7 +737,7 @@ Fragments:
         }
         suppressWarnings: <default> false
         verbose: <default> false
-        version: <default> 2.3.21
+        version: <default> 2.4.10
       }
       ktor: <default> {
         applyBom: <default> true
@@ -789,7 +789,7 @@ Fragments:
 
   web
     External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
     Src folders:
       src@web
     Fragment dependencies:
@@ -883,7 +883,7 @@ Fragments:
         }
         allWarningsAsErrors: <default> false
         apiVersion: <default> null
-        compileIncrementally: <default> false
+        compileIncrementally: <default> true
         compilerPlugins: <default> [
         ]
         dataframe: <default> {
@@ -933,7 +933,7 @@ Fragments:
         }
         suppressWarnings: <default> false
         verbose: <default> false
-        version: <default> 2.3.21
+        version: <default> 2.4.10
       }
       ktor: <default> {
         applyBom: <default> true
@@ -985,9 +985,9 @@ Fragments:
 
   webTest
     External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
     Src folders:
       test@web
     Fragment dependencies:
@@ -1082,7 +1082,7 @@ Fragments:
         }
         allWarningsAsErrors: <default> false
         apiVersion: <default> null
-        compileIncrementally: <default> false
+        compileIncrementally: <default> true
         compilerPlugins: <default> [
         ]
         dataframe: <default> {
@@ -1132,7 +1132,7 @@ Fragments:
         }
         suppressWarnings: <default> false
         verbose: <default> false
-        version: <default> 2.3.21
+        version: <default> 2.4.10
       }
       ktor: <default> {
         applyBom: <default> true

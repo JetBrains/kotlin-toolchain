@@ -1,7 +1,7 @@
 Fragments:
   common
     External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
       MavenDependency(coordinates=org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0, trace=TransformedValueTrace(description=because Kotlinx Serialization is enabled, sourceValue=SchemaValue(property = org.jetbrains.amper.frontend.schema.kotlin.plugins.SerializationSettings.enabled, value = true), definitionTrace=DefaultTrace, precedingValue=null), compile=true, runtime=true, exported=false)
     Src folders:
       src
@@ -9,7 +9,7 @@ Fragments:
     Settings: {
       kotlin: {
         apiVersion: <default> 1.9
-        compileIncrementally: <default> false
+        compileIncrementally: <default> true
         languageVersion: 1.9
         serialization: {
           enabled: <default> true
@@ -20,8 +20,8 @@ Fragments:
 
   commonTest
     External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-junit5:2.3.21, trace=TransformedValueTrace(description=because the test engine is junit-5, sourceValue=SchemaValue(property = org.jetbrains.amper.frontend.schema.Settings.junit, value = JUNIT5), definitionTrace=DefaultTrace, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-junit5:2.4.10, trace=TransformedValueTrace(description=because the test engine is junit-5, sourceValue=SchemaValue(property = org.jetbrains.amper.frontend.schema.Settings.junit, value = JUNIT5), definitionTrace=DefaultTrace, precedingValue=null), compile=true, runtime=true, exported=false)
       MavenDependency(coordinates=org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0, trace=TransformedValueTrace(description=because Kotlinx Serialization is enabled, sourceValue=SchemaValue(property = org.jetbrains.amper.frontend.schema.kotlin.plugins.SerializationSettings.enabled, value = true), definitionTrace=DefaultTrace, precedingValue=null), compile=true, runtime=true, exported=false)
     Src folders:
       test
@@ -30,7 +30,7 @@ Fragments:
     Settings: {
       kotlin: {
         apiVersion: <default> 1.9
-        compileIncrementally: <default> false
+        compileIncrementally: <default> true
         languageVersion: 1.9
         serialization: {
           enabled: <default> true
@@ -41,7 +41,7 @@ Fragments:
 
   jvm
     External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
       MavenDependency(coordinates=org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0, trace=TransformedValueTrace(description=because Kotlinx Serialization is enabled, sourceValue=SchemaValue(property = org.jetbrains.amper.frontend.schema.kotlin.plugins.SerializationSettings.enabled, value = true), definitionTrace=DefaultTrace, precedingValue=null), compile=true, runtime=true, exported=false)
     Src folders:
       src@jvm
@@ -50,7 +50,7 @@ Fragments:
     Settings: {
       kotlin: {
         apiVersion: <default> 1.9
-        compileIncrementally: <default> false
+        compileIncrementally: <default> true
         languageVersion: 1.9
         serialization: {
           enabled: <default> true
@@ -61,8 +61,8 @@ Fragments:
 
   jvmTest
     External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-junit5:2.3.21, trace=TransformedValueTrace(description=because the test engine is junit-5, sourceValue=SchemaValue(property = org.jetbrains.amper.frontend.schema.Settings.junit, value = JUNIT5), definitionTrace=DefaultTrace, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-junit5:2.4.10, trace=TransformedValueTrace(description=because the test engine is junit-5, sourceValue=SchemaValue(property = org.jetbrains.amper.frontend.schema.Settings.junit, value = JUNIT5), definitionTrace=DefaultTrace, precedingValue=null), compile=true, runtime=true, exported=false)
       MavenDependency(coordinates=org.jetbrains.kotlinx:kotlinx-serialization-core:1.11.0, trace=TransformedValueTrace(description=because Kotlinx Serialization is enabled, sourceValue=SchemaValue(property = org.jetbrains.amper.frontend.schema.kotlin.plugins.SerializationSettings.enabled, value = true), definitionTrace=DefaultTrace, precedingValue=null), compile=true, runtime=true, exported=false)
     Src folders:
       test@jvm
@@ -72,7 +72,7 @@ Fragments:
     Settings: {
       kotlin: {
         apiVersion: <default> 1.9
-        compileIncrementally: <default> false
+        compileIncrementally: <default> true
         languageVersion: 1.9
         serialization: {
           enabled: <default> true

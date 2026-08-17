@@ -1,7 +1,7 @@
 Fragments:
   main
     External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
     Src folders:
       src
     Fragment dependencies:
@@ -11,15 +11,15 @@ Fragments:
       }
       kotlin: {
         apiVersion: <default> 2.3
-        compileIncrementally: <default> false
+        compileIncrementally: <default> true
         languageVersion: 2.3
       }
     }
 
   test
     External dependencies:
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.3.21, trace=DefaultTrace, compile=true, runtime=true, exported=false)
-      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-junit5:2.3.21, trace=TransformedValueTrace(description=because the test engine is junit-5, sourceValue=SchemaValue(property = org.jetbrains.amper.frontend.schema.Settings.junit, value = JUNIT5), definitionTrace=DefaultTrace, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.10, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-junit5:2.4.10, trace=TransformedValueTrace(description=because the test engine is junit-5, sourceValue=SchemaValue(property = org.jetbrains.amper.frontend.schema.Settings.junit, value = JUNIT5), definitionTrace=DefaultTrace, precedingValue=null), compile=true, runtime=true, exported=false)
     Src folders:
       test
     Fragment dependencies:
@@ -30,7 +30,7 @@ Fragments:
       }
       kotlin: {
         apiVersion: <default> 2.3
-        compileIncrementally: <default> false
+        compileIncrementally: <default> true
         languageVersion: 2.3
       }
     }

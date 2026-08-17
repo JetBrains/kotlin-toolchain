@@ -204,7 +204,19 @@ abstract class AmperCliWithWrapperTestBase {
             }
             if (assertEmptyStdErr) {
                 assertTrue(
-                    actual = result.stderr.isBlank(),
+                    actual = result.stderr
+                        .lines()
+                        .filter { it.isNotBlank() }
+                        // we can't really do anything about this one, see KT-88611
+                        .filterNot { "warning: KLIB loader: The same 'unique_name=kotlin-stdlib-common' found in more than one library" in it }
+                        // LLVM dropped the AArch64 'zcm' feature in the version bundled since Kotlin 2.4.10 (LLVM 21),
+                        // but klibs published by earlier Kotlin/Native versions still record '+zcm' in the
+                        // 'target-features' of their embedded bitcode. LLVM reports it while reading such bitcode when
+                        // linking Apple targets, and only says it ignores the feature. This is out of our hands until
+                        // those artifacts are republished: 'org.jetbrains.compose.ui:ui-uikit-iossimulatorarm64:1.11.1'
+                        // is one of them.
+                        .filterNot { "'+zcm' is not a recognized feature for this target (ignoring feature)" in it }
+                        .isEmpty(),
                     message = """
                         Process stderr must be empty for the Kotlin CLI call (PID ${result.pid}):
                         $wrapper ${args.joinToString(" ")}

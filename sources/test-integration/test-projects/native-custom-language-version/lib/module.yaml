@@ -4,4 +4,4 @@ product:
 
 settings:
   kotlin:
-    languageVersion: 2.2
+    languageVersion: {{LANGUAGE_VERSION}}

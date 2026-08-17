@@ -57,7 +57,7 @@ plugins:
         # https://kotlinlang.org/docs/releases.html
         # Also check AGP compatibility: https://developer.android.com/build/kotlin-support
         # Also check/update JDK compatibility: [KotlinVersionDoesNotSupportJdkFactory] and [KotlinVersionDoesNotSupportJdkDiagnosticsTest].
-        kotlin: 2.3.21
+        kotlin: 2.4.10
         # https://github.com/Kotlin/kotlinx-rpc/releases
         kotlinxRpc: 0.10.3
         # https://github.com/Kotlin/kotlinx.serialization/releases
