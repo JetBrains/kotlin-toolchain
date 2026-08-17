@@ -63,6 +63,7 @@ modules:
   - sources/libraries/jetbrains-jdk-list
   - sources/libraries/kotlin-native-rules
   - sources/libraries/kotlin-project-structure-metadata
+  - sources/libraries/kotlin-tooling-metadata
   - sources/libraries/maven-central-configuration
   - sources/libraries/maven-central-portal-publisher-client
   - sources/libraries/maven-plugin-xml-parser

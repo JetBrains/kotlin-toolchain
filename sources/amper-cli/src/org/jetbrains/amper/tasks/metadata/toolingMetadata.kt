@@ -6,13 +6,28 @@ package org.jetbrains.amper.tasks.metadata
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.tasks.rootFragment
+import org.jetbrains.kotlin.tooling.metadata.AndroidExtras
+import org.jetbrains.kotlin.tooling.metadata.JsExtras
+import org.jetbrains.kotlin.tooling.metadata.JvmExtras
+import org.jetbrains.kotlin.tooling.metadata.KGP_ANDROID_TARGET
+import org.jetbrains.kotlin.tooling.metadata.KGP_JS_IR_TARGET
+import org.jetbrains.kotlin.tooling.metadata.KGP_JVM_TARGET
+import org.jetbrains.kotlin.tooling.metadata.KGP_METADATA_TARGET
+import org.jetbrains.kotlin.tooling.metadata.KGP_NATIVE_TARGET
+import org.jetbrains.kotlin.tooling.metadata.KOTLIN_TOOLING_METADATA_FILE_NAME
+import org.jetbrains.kotlin.tooling.metadata.KOTLIN_TOOLING_METADATA_SCHEMA_VERSION
+import org.jetbrains.kotlin.tooling.metadata.KotlinToolingMetadata
+import org.jetbrains.kotlin.tooling.metadata.NativeExtras
+import org.jetbrains.kotlin.tooling.metadata.ProjectSettings
+import org.jetbrains.kotlin.tooling.metadata.ProjectTarget
+import org.jetbrains.kotlin.tooling.metadata.TargetExtras
+import org.jetbrains.kotlin.tooling.metadata.serialize
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.file.Files
@@ -24,18 +39,6 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 
 private val logger = LoggerFactory.getLogger("kotlin-tooling-metadata")
-
-/**
- * The classifier of the tooling metadata artifact in the publication, as expected by its consumers.
- */
-internal const val KOTLIN_TOOLING_METADATA_CLASSIFIER = "kotlin-tooling-metadata"
-
-private const val KOTLIN_TOOLING_METADATA_FILE_NAME = "kotlin-tooling-metadata.json"
-
-/**
- * The version of the tooling metadata format itself, not of the tool that produced it.
- */
-private const val SCHEMA_VERSION = "1.1.0"
 
 /**
  * Where KGP reports the Kotlin Gradle plugin, the Kotlin Toolchain has no build plugin at all: multiplatform support
@@ -51,83 +54,6 @@ private const val BUILD_PLUGIN = BUILD_SYSTEM
  */
 private const val KLIB_MANIFEST_ENTRY = "default/manifest"
 private const val KLIB_ABI_VERSION_PROPERTY = "abi_version"
-
-// The target class names below are KGP implementation classes. They have no equivalent in the Kotlin Toolchain, but
-// they are part of the format that consumers of this file understand, so we report the ones matching our targets.
-private const val KGP_METADATA_TARGET = "org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget"
-private const val KGP_JVM_TARGET = "org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget"
-private const val KGP_ANDROID_TARGET = "org.jetbrains.kotlin.gradle.plugin.mpp.KotlinAndroidTarget"
-private const val KGP_JS_IR_TARGET = "org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget"
-private const val KGP_NATIVE_TARGET = "org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget"
-
-/**
- * Describes how a multiplatform library was built, and which platforms it was built for.
- *
- * This is published next to the root artifact of a multiplatform library with the
- * [KOTLIN_TOOLING_METADATA_CLASSIFIER] classifier and the `json` extension, the same way KGP publishes it.
- *
- * See https://kotlinlang.org/docs/multiplatform-publish-lib.html and the `KotlinToolingMetadata` format in KGP.
- */
-@Serializable
-internal data class KotlinToolingMetadata(
-    val schemaVersion: String,
-    val buildSystem: String,
-    val buildSystemVersion: String,
-    val buildPlugin: String,
-    val buildPluginVersion: String,
-    val projectSettings: ProjectSettings,
-    val projectTargets: List<ProjectTarget>,
-)
-
-@Serializable
-internal data class ProjectSettings(
-    val isHmppEnabled: Boolean,
-    val isCompatibilityMetadataVariantEnabled: Boolean,
-    val isKPMEnabled: Boolean,
-)
-
-@Serializable
-internal data class ProjectTarget(
-    val target: String,
-    val platformType: String,
-    val extras: TargetExtras? = null,
-)
-
-/**
- * Platform-specific details of a target. Only the entry matching the target's platform type is set.
- */
-@Serializable
-internal data class TargetExtras(
-    val android: AndroidExtras? = null,
-    val jvm: JvmExtras? = null,
-    val js: JsExtras? = null,
-    val native: NativeExtras? = null,
-)
-
-@Serializable
-internal data class AndroidExtras(
-    val sourceCompatibility: String,
-    val targetCompatibility: String,
-)
-
-@Serializable
-internal data class JvmExtras(
-    val jvmTarget: String,
-    val withJavaEnabled: Boolean,
-)
-
-@Serializable
-internal data class JsExtras(
-    val isBrowserConfigured: Boolean,
-    val isNodejsConfigured: Boolean,
-)
-
-@Serializable
-internal data class NativeExtras(
-    val konanTarget: String,
-    val konanVersion: String,
-    val konanAbiVersion: String,
-)
 
 /**
  * Describes the given multiplatform [module] as tooling metadata.
@@ -149,7 +75,7 @@ internal fun kotlinToolingMetadataFor(module: AmperModule, konanAbiVersion: Stri
         .map { it.toProjectTarget(kotlinVersion, konanAbiVersion) }
 
     return KotlinToolingMetadata(
-        schemaVersion = SCHEMA_VERSION,
+        schemaVersion = KOTLIN_TOOLING_METADATA_SCHEMA_VERSION,
         buildSystem = BUILD_SYSTEM,
         buildSystemVersion = AmperBuild.mavenVersion,
         buildPlugin = BUILD_PLUGIN,
@@ -242,7 +168,8 @@ internal suspend fun readKlibAbiVersion(klib: Path): String? = withContext(Dispa
 }
 
 /**
- * Writes the given tooling [metadata] to a `kotlin-tooling-metadata.json` file in the [outputDir], and returns its path.
+ * Writes the given tooling [metadata] to a [KOTLIN_TOOLING_METADATA_FILE_NAME] file in the [outputDir], and returns
+ * its path.
  */
 internal suspend fun writeKotlinToolingMetadata(metadata: KotlinToolingMetadata, outputDir: Path): Path {
     outputDir.createDirectories()
@@ -252,7 +179,7 @@ internal suspend fun writeKotlinToolingMetadata(metadata: KotlinToolingMetadata,
     withContext(Dispatchers.IO) {
         Files.writeString(
             toolingMetadataPath,
-            json.encodeToString(metadata),
+            metadata.serialize(),
             StandardOpenOption.CREATE,
             StandardOpenOption.WRITE,
             StandardOpenOption.TRUNCATE_EXISTING,

@@ -39,8 +39,6 @@ import org.jetbrains.amper.stdlib.hashing.hash
 import org.jetbrains.amper.tasks.android.AndroidAarTask
 import org.jetbrains.amper.tasks.jvm.JvmClassesJarTask
 import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
-import org.jetbrains.amper.tasks.metadata.KOTLIN_TOOLING_METADATA_CLASSIFIER
-import org.jetbrains.amper.tasks.metadata.KotlinToolingMetadata
 import org.jetbrains.amper.tasks.metadata.cinteropClassifier
 import org.jetbrains.amper.tasks.metadata.generateCommonGradleModuleMetadata
 import org.jetbrains.amper.tasks.metadata.generateGradleMetadataForLeafPlatform
@@ -51,6 +49,8 @@ import org.jetbrains.amper.tasks.metadata.writeKotlinToolingMetadata
 import org.jetbrains.amper.tasks.native.NativeCInteropGenerateKlibTask
 import org.jetbrains.amper.tasks.native.NativeCompileKlibTask
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
+import org.jetbrains.kotlin.tooling.metadata.KOTLIN_TOOLING_METADATA_CLASSIFIER
+import org.jetbrains.kotlin.tooling.metadata.KotlinToolingMetadata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Path

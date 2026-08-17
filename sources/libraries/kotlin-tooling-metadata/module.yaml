@@ -1,0 +1,10 @@
+product: jvm/lib
+
+description: Library represents the format of the Kotlin tooling metadata
+
+apply:
+  - //sources/common.module-template.yaml
+
+settings:
+  kotlin:
+    serialization: json
