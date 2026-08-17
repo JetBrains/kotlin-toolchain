@@ -52,6 +52,15 @@ The default `index.html` looks like this:
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <style> /*(1)!*/
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
     <title>{% raw %}{{kotlin.moduleName}}{% endraw %}</title>
     {% raw %}{{kotlin.scripts}}{% endraw %}
 </head>
@@ -60,6 +69,8 @@ The default `index.html` looks like this:
 </body>
 </html>
 ```
+
+1. Styles required for the content to fill the entire screen. See [Compose Multiplatform documentation](https://kotlinlang.org/docs/multiplatform/compose-css-styles.html) for explanation.
 
 ## Dependencies
 

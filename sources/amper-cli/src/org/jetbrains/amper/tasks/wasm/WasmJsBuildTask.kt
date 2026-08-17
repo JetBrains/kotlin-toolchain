@@ -229,12 +229,23 @@ class WasmJsBuildTask(
     private fun createIndexHtml() {
         val (moduleName, _ = moduleFile, scriptLines) = indexHtmlDefaultTemplateValues()
 
+        // We add default CSS for the viewport to take the whole browser window
+        // See https://kotlinlang.org/docs/multiplatform/compose-css-styles.html
         taskOutputPath.path.resolve("index.html").writeText(
             """
             |<!DOCTYPE html>
             |<html lang="en">
             |<head>
             |    <meta charset="UTF-8">
+            |    <style>
+            |       html, body {
+            |           width: 100%;
+            |           height: 100%;
+            |           margin: 0;
+            |           padding: 0;
+            |           overflow: hidden;
+            |       }
+            |    </style>
             |    <title>$moduleName</title>
             |${scriptLines.prependIndent("    ")}
             |</head>

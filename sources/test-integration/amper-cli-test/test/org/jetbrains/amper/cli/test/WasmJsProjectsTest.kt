@@ -32,6 +32,15 @@ class WasmJsProjectsTest : AmperCliTestBase() {
             |<html lang="en">
             |<head>
             |    <meta charset="UTF-8">
+            |    <style>
+            |       html, body {
+            |           width: 100%;
+            |           height: 100%;
+            |           margin: 0;
+            |           padding: 0;
+            |           overflow: hidden;
+            |       }
+            |    </style>
             |    <title>wasm-js-app-with-compose</title>
             |    <script src="import-map-loader.js"></script>
             |    <script src="wasm-js-app-with-compose.mjs" type="module"></script>
@@ -63,6 +72,15 @@ class WasmJsProjectsTest : AmperCliTestBase() {
             |<html lang="en">
             |<head>
             |    <meta charset="UTF-8">
+            |    <style>
+            |       html, body {
+            |           width: 100%;
+            |           height: 100%;
+            |           margin: 0;
+            |           padding: 0;
+            |           overflow: hidden;
+            |       }
+            |    </style>
             |    <title>{{kotlin.moduleName}}</title>
             |    {{kotlin.scripts}}
             |</head>
@@ -93,6 +111,15 @@ class WasmJsProjectsTest : AmperCliTestBase() {
             |<html lang="en">
             |<head>
             |    <meta charset="UTF-8">
+            |    <style>
+            |       html, body {
+            |           width: 100%;
+            |           height: 100%;
+            |           margin: 0;
+            |           padding: 0;
+            |           overflow: hidden;
+            |       }
+            |    </style>
             |    <title>{{kotlin.moduleName}}</title>
             |    <script src="import-map-loader.js"></script>
             |    <script src="{{kotlin.moduleFile}}" type="module"></script>
