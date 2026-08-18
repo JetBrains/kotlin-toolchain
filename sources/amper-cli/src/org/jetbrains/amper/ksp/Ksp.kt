@@ -51,15 +51,6 @@ internal class Ksp(
         }
         val args = config.toCommandLineOptions(workingDir, legacyListMode) + processorClasspathStr
 
-        // KSP uses some restrictive APIs inside
-        // Since Java 25, we need to explicitly allow them
-        val jvmArgs = if (jdk.majorVersion >= 25) {
-            listOf(
-                "--enable-native-access=ALL-UNNAMED",
-                "--sun-misc-unsafe-memory-access=allow",
-            )
-        } else emptyList()
-
         logger.debug("ksp {} {}", compilationType, args)
         val result = processRunner.runJava(
             jdk = jdk,
@@ -69,7 +60,16 @@ internal class Ksp(
             programArgs = args,
             argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
             outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger, prefix = "[ksp] ")),
-            jvmArgs = jvmArgs,
+            // KSP uses some Unsafe APIs inside (because it depends on AA, thus IntelliJ)
+            // Since Java 25, we need to explicitly allow them.
+            // They should eventually fix the actual usage inside. This is tracked over there:
+            // https://github.com/google/ksp/issues/2753
+            jvmArgs = buildList {
+                if (jdk.majorVersion >= 25) {
+                    add("--enable-native-access=ALL-UNNAMED")
+                    add("--sun-misc-unsafe-memory-access=allow")
+                }
+            },
         )
         // Note: KSP fails automatically with exit code 1 if any error log is present
         if (result.exitCode != 0) {
