@@ -18,3 +18,5 @@ dependencies:
 
 test-dependencies:
   - //sources/test-base
+  - //sources/libraries/system-info
+  - $libs.opentelemetry.sdkTesting
