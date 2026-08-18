@@ -2228,11 +2228,40 @@ class MavenDependencyImpl internal constructor(
      * Hibernate ORM was published under the group `org.hibernate` until version 6, and under `org.hibernate.orm`
      * since then. To keep capability-based conflict detection working against the old coordinates, its variants
      * declare the legacy `org.hibernate:<module>` capability in addition to the current `org.hibernate.orm:<module>`
-     * one. This is a same-library rename rather than a real capability conflict, so such variants must be accepted.
+     * one.
+     * This is a same-library rename that could in general produce a real capability conflict.
+     * Being ignored, it could lead to adding classes from both old and new libraries on the classpath
+     * in case the dependency graph includes both libraries (since those are not automatically aligned by vesion).
+     * But in the case of Hibernate, the migration was done smoothly and transparently.
+     * This is why a new version of a Hibernate library declaring capabilities
+     * could be added to the dependency graph without any issues.
      *
-     * Without this exception, [capabilityMatches] would reject the `apiElements`/`runtimeElements` variants (which
+     * How it works:
+     * A new version of the library published to group `org.hibernate.orm` not only declares capabilities
+     * but also declares dependency on `hibernate-platform` (BOM)
+     * that among others defines a constraint for the OLD library as well.
+     *
+     * "dependencyConstraints": [
+     *    ...
+     *    {
+     *     "group": "org.hibernate",
+     *     "module": "hibernate-core",
+     *     "version": {
+     *       "requires": "7.4.1.Final"
+     *      }
+     *    },
+     *
+     * This way any OLD library met in the graph is automatically aligned with the version of the new library.
+     * And, as a final piece of the puzzle, the old Hibernate library with group `org.hibernate` is kept publishing
+     * with its new version as well.
+     * But only pom.xml is published, and it is empty.
+     * A single purpose of this stub pom is to serve as a relocation marker
+     * and as a stub for dependency resolution. After the conflict is solved and a new version of old `org.hibernate` library
+     * is resolved, the empty pom.xml comes into play and makes the resolution process happy.
+     *
+     * Note: Without this exception, [capabilityMatches] would reject the `apiElements`/`runtimeElements` variants (which
      * declare both capabilities) and keep only the capability-less `sources`/`javadoc` variants, silently dropping
-     * the main jar from the classpath.
+     * the main jar related to the new Hibernate library from the classpath.
      */
     private fun Variant.isHibernateException() =
         isHibernate()

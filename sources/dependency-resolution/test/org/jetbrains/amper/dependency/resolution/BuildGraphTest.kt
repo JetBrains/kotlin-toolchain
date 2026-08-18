@@ -1587,6 +1587,41 @@ class BuildGraphTest : BaseDRTest() {
         downloadAndAssertFiles(testInfo, root)
     }
 
+    /**
+     * This test checks that the Hibernate library is correctly resolved even after declared capabilities of the new library
+     * are ignored by dependency resolution [isHibernateException()],
+     * and there is an old library in the graph conflicting with a new Hibernate library.
+     *
+     * Some details:
+     * Hibernate ORM was published under the group `org.hibernate` until version 6,
+     * and under `org.hibernate.orm` since then.
+     * To keep capability-based conflict detection working against the old coordinates, its variants
+     * declare the legacy `org.hibernate:<module>` capability in addition to the current `org.hibernate.orm:<module>`
+     * one.
+     *
+     * Gradle fails to resolve the project if both Hibernate dependencies are declared.
+     * It fails with a cryptic error forcing the user to choose what dependency to use.
+     *
+     * Indeed, allowing both dependencies to be presented on the classpath could, in general,
+     * lead to runtime error, because both libraries might contain the same classes but of different versions -
+     * since the packaging layout itself has not changed; only the group in Maven coordinates was updated.
+     *
+     * But in the case of Hibernate, migration was done smoothly and transparently.
+     * The new version effectively removes that old version from the dependency graph.
+     * See the resolved graph from the golden file.
+     */
+    @Test
+    fun `org_hibernate_orm hibernate-core 7_4_1_Final Conflict`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            dependency = [
+                "org.hibernate.orm:hibernate-core:7.4.1.Final",
+                "org.hibernate:hibernate-core:5.6.15.Final",
+            ]
+        )
+        downloadAndAssertFiles(testInfo, root)
+    }
+
     @Test
     fun `org_jetbrains_packagesearch packagesearch-plugin 1_0_0-SNAPSHOT`(testInfo: TestInfo) = runDrTest {
         val root = doTest(
