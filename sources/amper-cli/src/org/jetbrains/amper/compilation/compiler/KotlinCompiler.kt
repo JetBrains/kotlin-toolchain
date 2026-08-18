@@ -57,6 +57,16 @@ internal class KotlinCompiler(
         compilerArgs = compilerArgs,
         argsMode = argsMode,
         entryPoint = CompilerEntryPoint.Metadata,
+        extraJvmArgs = buildList {
+            if (jdk.majorVersion >= 24) {
+                // The metadata compiler generates this warning on JDK 24+:
+                // "sun.misc.Unsafe::invokeCleaner has been called by org.jetbrains.kotlin.cli.jvm.compiler.jarfs.FastJarFileSystemKt"
+                // See KT-76799, where a workaround (JVM arg) is mentioned for the `kotlinc` start script.
+                // Since we're launching Java by hand (not via the start script), we need to add it too.
+                // The proper fix is for the compiler to remove Unsafe usages in FastJarFileSystemKt.
+                add("--sun-misc-unsafe-memory-access=allow")
+            }
+        },
     )
 
     context(processRunner: ProcessRunner)
