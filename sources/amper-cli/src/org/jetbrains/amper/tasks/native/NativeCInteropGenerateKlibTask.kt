@@ -7,6 +7,7 @@ package org.jetbrains.amper.tasks.native
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.UserReadableError
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
+import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.compilation.downloadNativeCompiler
 import org.jetbrains.amper.compilation.serializableKotlinSettings
@@ -143,7 +144,7 @@ internal class NativeCInteropGenerateKlibTask(
                         }
                     }
 
-                    logger.info("Running cinterop '$cinteropName' for platform '${platform.pretty}'...")
+                    logger.infoNoConsole("Running cinterop '$cinteropName' for platform '${platform.pretty}'...")
                     nativeCompiler.cinterop(processRunner, args)
 
                     [outputKlib]

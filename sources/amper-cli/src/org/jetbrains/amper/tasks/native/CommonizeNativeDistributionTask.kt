@@ -8,6 +8,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
+import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.downloadNativeCompiler
@@ -95,7 +96,7 @@ class CommonizeNativeDistributionTask(
                             *commonizerClasspath.toTypedArray()
                         )
                     ) {
-                        logger.info("Commonizing Kotlin/Native distribution...")
+                        logger.infoNoConsole("Commonizing Kotlin/Native distribution...")
                         val result = processRunner.runJava(
                             jdk = compiler.jdk,
                             workingDir = Path("."),

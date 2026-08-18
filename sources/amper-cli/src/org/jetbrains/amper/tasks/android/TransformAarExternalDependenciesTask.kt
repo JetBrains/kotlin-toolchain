@@ -7,6 +7,7 @@ package org.jetbrains.amper.tasks.android
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.core.extract.extractFileToLocation
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
@@ -41,7 +42,7 @@ internal class TransformAarExternalDependenciesTask(
             inputFiles = resolvedAndroidDependencies,
         ) {
             if (resolvedAndroidDependencies.isNotEmpty()) {
-                logger.info("Transforming AAR external dependencies...")
+                logger.infoNoConsole("Transforming AAR external dependencies...")
             }
             val outputs = resolvedAndroidDependencies.extractAars().flatMap(::extractedAarClasspathJars)
             IncrementalCache.ExecutionResult(outputs, emptyMap())
