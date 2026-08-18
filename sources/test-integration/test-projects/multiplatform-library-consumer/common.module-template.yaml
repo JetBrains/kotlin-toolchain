@@ -8,8 +8,3 @@ settings:
     group: org.jetbrains.kotlintoolchain.kmp.sample.consumer
     version: 1.0.0
     publishSources: true
-  jvm:
-    jdk:
-      version: 21
-  kotlin:
-    version: 2.3.21
