@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend
 
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.editor.Document
 import com.intellij.psi.PsiElement
 import org.jetbrains.amper.frontend.api.PsiTrace
@@ -84,7 +85,10 @@ fun Trace.asBuildProblemSource(): BuildProblemSource {
 fun PsiElement.asBuildProblemSource(): PsiBuildProblemSource = PsiBuildProblemSource(this)
 
 fun getLineAndColumnRangeInPsiFile(node: PsiElement): LineAndColumnRange {
-    val document: Document = node.containingFile.viewProvider.document
+    val document: Document = runReadActionBlocking {
+        node.containingFile.viewProvider.document
+    }
+
     val textRange = node.textRange
     return LineAndColumnRange(
         offsetToLineAndColumn(document, textRange.startOffset),
