@@ -9,6 +9,7 @@ import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.jdk.provisioning.Jdk
+import org.jetbrains.amper.jdk.provisioning.majorVersion
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
@@ -84,6 +85,7 @@ internal class KotlinCompiler(
         compilerArgs: List<String>,
         argsMode: ArgsMode.ArgFile,
         entryPoint: CompilerEntryPoint,
+        extraJvmArgs: List<String> = [],
     ): ProcessResult = processRunner.runJava(
         jdk = jdk,
         workingDir = Path("."),
@@ -92,6 +94,21 @@ internal class KotlinCompiler(
         programArgs = compilerArgs,
         argsMode = argsMode,
         outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
+        jvmArgs = buildList {
+            // The Kotlin compiler relies on Jansi (now Jline), which uses native calls:
+            // "java.lang.System::load has been called by org.jetbrains.kotlin.org.fusesource.jansi.internal.JansiLoader"
+            // We need to enable native access on JDK 24+ to avoid a warning (and in the future an error).
+            // See KT-76111, which was fixed by adding the JVM flag to the compiler start script.
+            // Since we're launching Java by hand (not via the start script), we need to add it too.
+            // See also https://jline.org/docs/troubleshooting/#jdk-24-restricted-method-warning, which is the
+            // recommendation from Jline themselves.
+            if (jdk.majorVersion >= 24) {
+                // We can't specify the Jansi module specifically when using a classpath (we would need module path),
+                // so we go for `ALL-UNNAMED`.
+                add("--enable-native-access=ALL-UNNAMED")
+            }
+            addAll(extraJvmArgs)
+        },
     )
 }
 

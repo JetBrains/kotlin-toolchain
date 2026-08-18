@@ -15,6 +15,7 @@ import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
+import org.jetbrains.amper.jdk.provisioning.majorVersion
 import org.jetbrains.amper.jvm.getDefaultJdk
 import org.jetbrains.amper.kotlin.native.KonanDistribution
 import org.jetbrains.amper.kotlin.native.downloadAndExtractKotlinNative
@@ -138,13 +139,18 @@ class KotlinNativeCompiler(
             programArgs = programArgs,
             argsMode = argsMode,
             // JVM args partially copied from <kotlinNativeHome>/bin/run_konan
-            jvmArgs = listOf(
-                "-ea",
-                "-Xmx3G",
-                "-XX:TieredStopAtLevel=1",
-                "-Dfile.encoding=UTF-8",
-                "-Dkonan.home=${konanDistribution.homeDir.pathString}",
-            ),
+            jvmArgs = buildList {
+                add("-ea")
+                add("-Xmx3G")
+                add("-XX:TieredStopAtLevel=1")
+                add("-Dfile.encoding=UTF-8")
+                add("-Dkonan.home=${konanDistribution.homeDir.pathString}")
+                if (jdk.majorVersion >= 24) {
+                    // The native compiler needs native access for some of its business:
+                    // "java.lang.System::load has been called by kotlinx.cinterop.JvmUtilsKt"
+                    add("--enable-native-access=ALL-UNNAMED")
+                }
+            },
             outputMode = ProcessOutputMode.listenAndCaptureStderr(LoggingProcessOutputListener(logger)),
         )
     }
