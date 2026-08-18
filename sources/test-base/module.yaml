@@ -24,12 +24,14 @@ dependencies:
   - $kotlin.test.junit5
   - $libs.jna
   - $libs.jna.platform
+  - //sources/amper-android-sdk-provisioning
   - //sources/amper-build-info
   - //sources/amper-jdk-provisioning
   - //sources/amper-problem-reporting
   - //sources/core
   - //sources/dependency-resolution
   - //sources/libraries/async-processes: exported # for ProcessResult in the API
+  - //sources/libraries/concurrency
   - //sources/libraries/incremental-cache
   - //sources/libraries/stdlib-extended
   - //sources/libraries/system-info

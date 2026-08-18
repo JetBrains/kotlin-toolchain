@@ -122,7 +122,7 @@ abstract class AmperCliTestBase : AmperCliWithWrapperTestBase() {
             args = effectiveArgs,
             environment = buildMap {
                 if (configureAndroidHome) {
-                    putAll(AndroidTools.getOrInstallForTests().environment())
+                    putAll(AndroidTools.prepareForTests().environment())
                 }
                 put("AMPER_BUILD_DIR", buildOutputRoot.pathString)
                 put("AMPER_NO_GRADLE_DAEMON", "1")

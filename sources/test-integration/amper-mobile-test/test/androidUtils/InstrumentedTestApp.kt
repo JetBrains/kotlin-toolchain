@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package androidUtils
@@ -57,7 +57,7 @@ object InstrumentedTestApp  {
                 args = listOf("createDebugAndroidTestApk"),
                 cmdName = "gradle (test-apk)",
                 testReporter = testReporter,
-                additionalEnv = AndroidTools.getOrInstallForTests().environment(),
+                additionalEnv = AndroidTools.prepareForTests().environment(),
                 gradleVersion = "9.1.0",
             )
         } finally {

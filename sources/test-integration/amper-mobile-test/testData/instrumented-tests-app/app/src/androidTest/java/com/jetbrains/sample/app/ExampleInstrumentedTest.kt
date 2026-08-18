@@ -33,8 +33,7 @@ class AppOpenTest {
         device.pressHome()
 
         // Wait for launcher
-        val launcherPackage = "com.android.launcher3" // device.launcherPackageName is unreliable
-        assertThat(launcherPackage, notNullValue())
+        val launcherPackage = "com.google.android.apps.nexuslauncher"
         val launcherAppeared = device.wait(Until.hasObject(By.pkg(launcherPackage).depth(0)), launchTimeout)
         assertThat("Launcher '$launcherPackage' should be present but isn't", launcherAppeared, `is`(true))
 

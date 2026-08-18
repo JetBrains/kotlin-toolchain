@@ -127,7 +127,7 @@ object Dirs {
     /**
      * A root directory to store Android SDK data and setup caches, reused between test runs and between CI builds.
      *
-     * **Note:** consumers should generally prefer [org.jetbrains.amper.test.android.AndroidTools.getOrInstallForTests].
+     * **Note:** consumers should generally prefer [org.jetbrains.amper.test.android.AndroidTools.prepareForTests].
      */
     internal val androidTestCache: Path by lazy { persistentCaches / "android" }
 }

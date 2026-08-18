@@ -4,10 +4,20 @@
 
 package org.jetbrains.amper.test.android
 
+import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkPackage
+import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkPackageRequest
+import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkProvider
+import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkResult
+import org.jetbrains.amper.concurrency.FileMutexGroup
+import org.jetbrains.amper.concurrency.withDoubleLock
+import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.problems.reporting.NoopProblemReporter
 import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputListener
@@ -28,14 +38,11 @@ import kotlin.concurrent.thread
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.appendLines
-import kotlin.io.path.createDirectories
-import kotlin.io.path.createFile
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
-import kotlin.io.path.readLines
 import kotlin.random.Random
+import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 
 private val binExtension = if (OsFamily.current.isWindows) ".exe" else ""
@@ -61,17 +68,25 @@ class AndroidTools(
     private val androidUserHome: Path = androidUserHomeParent / ".android"
     private val adbExe: Path = androidSdkHome / "platform-tools/adb$binExtension"
     private val emulatorExe: Path = androidSdkHome / "emulator/emulator$binExtension"
+    private val incrementalCache = IncrementalCache(androidUserHomeParent / "setup-cache", codeVersion = "1")
+    private val sdkProvider = AndroidSdkProvider(
+        AmperUserCacheRoot(Dirs.userCacheRoot),
+        androidSdkHome,
+        incrementalCache,
+        OpenTelemetry.noop()
+    )
 
     @Volatile
     private var shutdownHookRegistered = false
 
+
     companion object {
         /**
-         * Creates an [AndroidTools] instance backed by an Android SDK specifically provisioned for tests.
-         * If the SDK is not present, it is provisioned during the call to this function.
-         * The provisioned SDK is preserved between test runs and CI builds.
+         * Prepares [AndroidTools] instance specifically provisioned for tests.
+         * Has all the expected licenses accepted and also provides a JDK required for running tools like emulator
+         * or AVD manager.
          */
-        suspend fun getOrInstallForTests(): AndroidTools = AndroidToolsInstaller.install(
+        suspend fun prepareForTests(): AndroidTools = AndroidToolsInstaller.prepare(
             androidSdkHome = Dirs.androidTestCache / "sdk",
             androidUserHomeParent = Dirs.androidTestCache,
             androidSetupCacheDir = Dirs.androidTestCache / "setup-cache",
@@ -97,7 +112,7 @@ class AndroidTools(
 
     private fun findCmdlineToolScript(name: String): Path {
         val possibleBinDirs = listOf(
-            androidSdkHome / "cmdline-tools/22.0/bin",
+            androidSdkHome / "cmdline-tools/latest/bin",
             androidSdkHome / "cmdline-tools/bin",
             androidSdkHome / "tools/bin",
         )
@@ -107,63 +122,40 @@ class AndroidTools(
     }
 
     /**
-     * Installs the package corresponding to the given [packageName] in this Android SDK.
-     */
-    suspend fun installSdkPackage(
-        packageName: String,
-        outputListener: ProcessOutputListener = ProcessOutputListener.NOOP,
-    ) {
-        log("Installing '$packageName' into '$androidSdkHome'...")
-        sdkmanager("--sdk_root=$androidSdkHome", packageName, outputListener = outputListener)
-            .checkExitCodeIsZero()
-    }
-
-    private suspend fun sdkmanager(
-        vararg args: String,
-        outputListener: ProcessOutputListener = ProcessOutputListener.NOOP,
-    ): ProcessResult = runAndroidSdkProcess(
-        executable = findCmdlineToolScript("sdkmanager"),
-        args = args,
-        outputListener = outputListener,
-    )
-
-    /**
-     * Accepts the Android-related license with the given [name] and [hash].
-     */
-    fun acceptLicense(name: String, hash: String) {
-        log("Accepting license '$name'...")
-        val licenseFile = androidSdkHome / "licenses" / name
-        licenseFile.parent.createDirectories()
-
-        if (!licenseFile.exists()) {
-            licenseFile.createFile()
-        }
-        if (hash !in licenseFile.readLines()) {
-            licenseFile.appendLines(listOf(hash))
-        }
-    }
-
-    /**
-     * Creates a new AVD with the given [name] and configuration.
+     * Checks if AVD with the given [name] exists or creates one using [apiLevel] and [arch].
      *
-     * Use [force] to overwrite a potentially existing AVD with the same name.
-     * It is useful if you already checked for the absence of AVD with that name, because the list
+     * NB: existing AVDs are matched solely by name.
      */
-    suspend fun createAvd(
+    suspend fun ensureAvdExists(
         name: String,
-        apiLevel: Int = 35,
-        variant: String = "default",
-        arch: String = Arch.current.toEmulatorArch(),
+        apiLevel: Int = 37,
+        arch: AndroidSdkPackageRequest.SystemImage.ImageAbi = Arch.current.toEmulatorArch(),
         force: Boolean = true,
-    ) {
-        // Note: this modifies .knownPackages, which might be important for caching
+    ) = FileMutexGroup.Default.withDoubleLock(androidSdkHome / "avd-creation.lock") { // We have to use file lock because multiple test processes on TC might try to create a device in parallel
+        if (name in listAvds()) return@withDoubleLock
+        println("AVD $name not found, creating a new one...")
+        val result = context(NoopProblemReporter) {
+            // Command line tools are required for AVD manager
+            sdkProvider.provision(AndroidSdkPackageRequest.CommandLineTools("latest")).getOrFail()
+            // Emulator is required to create virtual device
+            sdkProvider.provision(AndroidSdkPackageRequest.Emulator).getOrFail()
+
+            sdkProvider.provision(AndroidSdkPackageRequest.SystemImage(
+                apiLevel,
+                AndroidSdkPackageRequest.SystemImage.ServicesTag.GoogleApis,
+                arch,
+            ))
+        }
+        val androidPackage = result.getOrFail()
+
+        // TODO: Use AvdManager from SDK instead?
         val args = buildList {
             add("create")
             add("avd")
             add("--name")
             add(name)
             add("--package")
-            add("system-images;android-$apiLevel;$variant;$arch")
+            add(androidPackage.packagePath.path)
             if (force) add("--force")
         }
         avdmanager(
@@ -172,13 +164,18 @@ class AndroidTools(
         ).checkExitCodeIsZero()
     }
 
+    private fun AndroidSdkResult.getOrFail(): AndroidSdkPackage = when (this) {
+        is AndroidSdkResult.Error -> fail(message)
+        is AndroidSdkResult.Success -> androidPackage
+    }
+
     /**
      * Returns the list of available AVD names.
      *
      * **Important:** it is possible that another AVD exists but has a broken system image. In that case, its name will
      * not be part of the returned list, but its presence will prevent the creation of a new AVD with the same name.
      */
-    suspend fun listAvds(): List<String> = avdmanager("list", "avd", "-c")
+    private suspend fun listAvds(): List<String> = avdmanager("list", "avd", "-c")
         .checkExitCodeIsZero().stdout
         .lines()
         .filter { it.isNotBlank() }
@@ -190,11 +187,6 @@ class AndroidTools(
             input = input,
             outputListener = PrefixPrintOutputListener("avdmanager"),
         )
-
-    /**
-     * Returns whether an Android emulator is currently running.
-     */
-    suspend fun isEmulatorRunning(): Boolean = adb("devices").checkExitCodeIsZero().stdout.contains("emulator")
 
     /**
      * Runs the given [block] alongside a new Android emulator with the AVD (Android Virtual Device) identified by the
@@ -357,19 +349,6 @@ class Emulator(
     }
 
     /**
-     * Uninstalls the application with the given [packageName].
-     *
-     * If [ignoreFailures] is true (the default), the exit code of the `adb uninstall` command is not checked.
-     * This is useful to avoid failing if the package is not found (already not installed).
-     */
-    suspend fun uninstall(packageName: String, ignoreFailures: Boolean = true) {
-        val result = adb("uninstall", packageName, outputListener = PrefixPrintOutputListener("adb uninstall"))
-        if (!ignoreFailures) {
-            result.checkExitCodeIsZero()
-        }
-    }
-
-    /**
      * Returns the last [nSeconds] seconds of logcat output at warning level or above.
      */
     suspend fun logcatLastNSeconds(nSeconds: Int): String {
@@ -386,7 +365,7 @@ class Emulator(
     }
 }
 
-fun Arch.toEmulatorArch(): String = when(this) {
-    Arch.X64 -> "x86_64"
-    Arch.Arm64 -> "arm64-v8a"
+fun Arch.toEmulatorArch(): AndroidSdkPackageRequest.SystemImage.ImageAbi = when(this) {
+    Arch.X64 -> AndroidSdkPackageRequest.SystemImage.ImageAbi.X86_64
+    Arch.Arm64 -> AndroidSdkPackageRequest.SystemImage.ImageAbi.Arm64V8A
 }

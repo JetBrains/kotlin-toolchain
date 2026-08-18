@@ -26,7 +26,7 @@ import kotlin.time.Duration.Companion.minutes
  */
 open class AndroidBaseTest : TestBase() {
 
-    private val androidTools = runBlocking { AndroidTools.getOrInstallForTests() }
+    private val androidTools = runBlocking { AndroidTools.prepareForTests() }
 
     /**
      * Executes instrumented tests for the Android project specified by [projectSource],
@@ -116,10 +116,6 @@ private suspend fun <T> AndroidTools.withEmulator(block: suspend Emulator.() -> 
         returnsResultOf(block)
     }
     val testAvdName = "amper-test-avd"
-    // If no emulator is currently running, a new one is started before executing the command.
-    if (!listAvds().contains(testAvdName)) {
-        println("AVD $testAvdName not found, creating a new one...")
-        createAvd(testAvdName)
-    }
+    ensureAvdExists(testAvdName)
     return withEmulator(testAvdName) { block() }
 }
