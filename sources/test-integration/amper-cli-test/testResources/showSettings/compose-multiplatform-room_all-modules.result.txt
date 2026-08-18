@@ -69,7 +69,7 @@ settings@android:
     ksp:
       processorOptions: {}  # default
       processors: []  # default
-      version: 2.3.9  # default
+      version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
     noArg:
@@ -178,7 +178,7 @@ settings@jvm:
     ksp:
       processorOptions: {}  # default
       processors: []  # default
-      version: 2.3.9  # default
+      version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
     noArg:
@@ -288,7 +288,7 @@ settings@iosArm64+iosSimulatorArm64:
           groupId: androidx.room  # module.yaml
           packagingType: null  # default
           version: 2.8.4  # module.yaml
-      version: 2.3.9  # default
+      version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
     noArg:
@@ -410,7 +410,7 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
           groupId: androidx.room  # module.yaml
           packagingType: null  # default
           version: 2.8.4  # module.yaml
-      version: 2.3.9  # default
+      version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
     noArg:
@@ -527,7 +527,7 @@ settings@jvm:
           groupId: androidx.room  # module.yaml
           packagingType: null  # default
           version: 2.8.4  # module.yaml
-      version: 2.3.9  # default
+      version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
     noArg:
@@ -655,7 +655,7 @@ settings@android:
           groupId: androidx.room  # module.yaml
           packagingType: null  # default
           version: 2.8.4  # module.yaml
-      version: 2.3.9  # default
+      version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
     noArg:
@@ -759,7 +759,7 @@ settings@iosArm64:
           groupId: androidx.room  # module.yaml
           packagingType: null  # default
           version: 2.8.4  # module.yaml
-      version: 2.3.9  # default
+      version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
     noArg:
@@ -860,7 +860,7 @@ settings@iosSimulatorArm64:
           groupId: androidx.room  # module.yaml
           packagingType: null  # default
           version: 2.8.4  # module.yaml
-      version: 2.3.9  # default
+      version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
     noArg:
