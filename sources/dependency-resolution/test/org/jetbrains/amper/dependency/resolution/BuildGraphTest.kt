@@ -195,6 +195,25 @@ class BuildGraphTest : BaseDRTest() {
     }
 
     /**
+     * This test checks that dependency specified by an open-ended range could be substituted
+     * by directly declared dependency.
+     */
+    @Test
+    fun `com_unity3d_ads unity-ads 4_18_0`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            repositories = [REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_MAVEN_GOOGLE],
+            dependency = listOf(
+                "com.unity3d.ads:unity-ads:4.18.0",
+                "com.unity3d.ads-mediation:adquality-sdk:9.9.0"
+            )
+        )
+        downloadAndAssertFiles(testInfo, root)
+    }
+
+
+
+    /**
      * This test checks that a classifier is taken into account and the appropriate artifact is resolved
      */
     @Test
