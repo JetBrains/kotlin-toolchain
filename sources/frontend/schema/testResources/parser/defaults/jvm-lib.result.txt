@@ -99,7 +99,7 @@ Fragments:
         ]
         dataframe: <default> {
           enabled: <default> false
-          version: <default> 1.0.0-Beta5
+          version: <default> 1.0.0-rc01
         }
         debug: <default> null
         freeCompilerArgs: <default> null
@@ -296,7 +296,7 @@ Fragments:
         ]
         dataframe: <default> {
           enabled: <default> false
-          version: <default> 1.0.0-Beta5
+          version: <default> 1.0.0-rc01
         }
         debug: <default> null
         freeCompilerArgs: <default> null

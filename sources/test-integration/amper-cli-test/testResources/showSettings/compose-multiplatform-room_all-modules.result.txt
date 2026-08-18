@@ -64,7 +64,7 @@ settings@android:
     compilerPlugins: []  # default
     dataframe:
       enabled: false  # default
-      version: 1.0.0-Beta5  # default
+      version: 1.0.0-rc01  # default
     freeCompilerArgs: null  # default
     ksp:
       processorOptions: {}  # default
@@ -173,7 +173,7 @@ settings@jvm:
     compilerPlugins: []  # default
     dataframe:
       enabled: false  # default
-      version: 1.0.0-Beta5  # default
+      version: 1.0.0-rc01  # default
     freeCompilerArgs: null  # default
     ksp:
       processorOptions: {}  # default
@@ -276,7 +276,7 @@ settings@iosArm64+iosSimulatorArm64:
     compilerPlugins: []  # default
     dataframe:
       enabled: false  # default
-      version: 1.0.0-Beta5  # default
+      version: 1.0.0-rc01  # default
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
@@ -399,7 +399,7 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
     compilerPlugins: []  # default
     dataframe:
       enabled: false  # default
-      version: 1.0.0-Beta5  # default
+      version: 1.0.0-rc01  # default
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
@@ -515,7 +515,7 @@ settings@jvm:
     compilerPlugins: []  # default
     dataframe:
       enabled: false  # default
-      version: 1.0.0-Beta5  # default
+      version: 1.0.0-rc01  # default
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
@@ -643,7 +643,7 @@ settings@android:
     compilerPlugins: []  # default
     dataframe:
       enabled: false  # default
-      version: 1.0.0-Beta5  # default
+      version: 1.0.0-rc01  # default
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
@@ -747,7 +747,7 @@ settings@iosArm64:
     compilerPlugins: []  # default
     dataframe:
       enabled: false  # default
-      version: 1.0.0-Beta5  # default
+      version: 1.0.0-rc01  # default
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
@@ -848,7 +848,7 @@ settings@iosSimulatorArm64:
     compilerPlugins: []  # default
     dataframe:
       enabled: false  # default
-      version: 1.0.0-Beta5  # default
+      version: 1.0.0-rc01  # default
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:

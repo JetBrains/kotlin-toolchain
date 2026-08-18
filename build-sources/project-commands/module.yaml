@@ -49,7 +49,7 @@ plugins:
         # https://github.com/JetBrains/compose-hot-reload/releases
         composeHotReload: 1.2.0
         # https://github.com/Kotlin/dataframe/releases
-        dataframe: 1.0.0-Beta5
+        dataframe: 1.0.0-rc01
         # https://www.oracle.com/nl/java/technologies/downloads/
         jdk: 21
         # https://github.com/junit-team/junit-framework/releases

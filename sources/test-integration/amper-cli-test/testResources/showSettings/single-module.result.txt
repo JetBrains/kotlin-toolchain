@@ -42,7 +42,7 @@ settings@jvm:
     compilerPlugins: []  # default
     dataframe:
       enabled: false  # default
-      version: 1.0.0-Beta5  # default
+      version: 1.0.0-rc01  # default
     freeCompilerArgs: null  # default
     ksp:
       processorOptions: {}  # default
