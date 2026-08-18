@@ -73,10 +73,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -273,10 +273,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -469,10 +469,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -668,10 +668,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -863,10 +863,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -1061,10 +1061,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -1257,10 +1257,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -1453,10 +1453,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -1652,10 +1652,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -1851,10 +1851,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -2047,10 +2047,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -2246,10 +2246,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -2442,10 +2442,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -2640,10 +2640,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -2836,10 +2836,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -3035,10 +3035,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -3231,10 +3231,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -3430,10 +3430,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -3626,10 +3626,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {
@@ -3825,10 +3825,10 @@ Fragments:
           ]
           distributions: <default> null
           selectionMode: <default> auto
-          version: <default> 21
+          version: <default> 25
         }
         mainClass: <default> null
-        release: <default> 21
+        release: <default> 25
         runtimeClasspathMode: <default> jars
         storeParameterNames: <default> false
         test: <default> {

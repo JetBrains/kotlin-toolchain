@@ -201,10 +201,10 @@ class ExampleProjectsTest: AmperCliTestBase() {
             assertKotlinJvmCompilationSpan {
                 doesNotHaveCompilerArgument("-language-version")
                 doesNotHaveCompilerArgument("-api-version")
-                hasCompilerArgument("-Xjdk-release=21")
+                hasCompilerArgument("-Xjdk-release=25")
             }
             assertJavaCompilationSpan {
-                hasCompilerArgument("--release", "21")
+                hasCompilerArgument("--release", "25")
             }
         }
 

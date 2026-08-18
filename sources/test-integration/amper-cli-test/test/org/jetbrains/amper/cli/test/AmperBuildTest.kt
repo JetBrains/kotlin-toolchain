@@ -14,6 +14,7 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.cli.test.utils.withTelemetrySpans
 import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.test.AmperCliResult
+import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.spans.assertEachKotlinNativeCompilationSpan
 import org.jetbrains.amper.test.spans.kotlinJvmCompilationSpans
 import org.jetbrains.amper.test.spans.withAmperModule
@@ -413,7 +414,23 @@ class AmperBuildTest : AmperCliTestBase() {
                 .replace("{{MIN_KOTLIN_VERSION}}", MinVersions.kotlin.canonical)
                 .replace("{{MIN_JDK_VERSION}}", MinVersions.jdk.toString())
         )
-        runCli(projectDir = projectDir, "build", configureAndroidHome = true)
+        val result = runCli(
+            projectDir = projectDir,
+            "build",
+            configureAndroidHome = true,
+            assertEmptyStdErr = false,
+        )
+        // We're using a low Kotlin version while the native compiler uses the default JDK as a JRE to run.
+        // This combination generates these expected warnings about Unsafe usages (which were fixed in later compiler
+        // versions). We can ignore them for now until our minimum version reaches 2.4.10.
+        val expectedWarnings = [
+            "WARNING: A terminally deprecated method in sun.misc.Unsafe has been called",
+            "WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.jetbrains.kotlin.com.intellij.util.containers.Unsafe",
+            "WARNING: Please consider reporting this to the maintainers of class org.jetbrains.kotlin.com.intellij.util.containers.Unsafe",
+            "WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release",
+        ]
+        val filteredStderr = result.stderr.lines().filter { line -> expectedWarnings.none { it in line } }
+        assertEqualsWithDiff([], filteredStderr, "stderr should only contain expected warnings")
     }
 
     // AMPER-5259

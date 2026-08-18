@@ -1,5 +1,8 @@
 product: jvm/app
 
 settings:
+  jvm:
+    jdk:
+      version: 21 # An otherwise suitable JDK for 2.1.20, to avoid polluting with the wrong error
   kotlin:
     version: <![Error] Unsupported Kotlin compiler version `2.1.20`. Should be at least `2.2.20`.!>2.1.20<!>

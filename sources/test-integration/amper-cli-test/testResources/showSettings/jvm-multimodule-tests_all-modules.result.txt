@@ -23,8 +23,8 @@ settings@jvm:
       acknowledgedLicenses: []  # default
       distributions: null  # default
       selectionMode: auto  # default
-      version: 21  # default
-    release: 21  # default, from ${jdk.version}
+      version: 25  # default
+    release: 25  # default, from ${jdk.version}
     runtimeClasspathMode: jars  # default
     storeParameterNames: false  # default
     test:
@@ -135,8 +135,8 @@ settings@jvm:
       acknowledgedLicenses: []  # default
       distributions: null  # default
       selectionMode: auto  # default
-      version: 21  # default
-    release: 21  # default, from ${jdk.version}
+      version: 25  # default
+    release: 25  # default, from ${jdk.version}
     runtimeClasspathMode: jars  # default
     storeParameterNames: false  # default
     test:
