@@ -5,72 +5,32 @@
 package org.jetbrains.amper.cli.commands
 
 import com.github.ajalt.clikt.core.Context
-import com.github.ajalt.clikt.core.context
-import com.github.ajalt.clikt.output.HelpFormatter.ParameterHelp
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
-import com.github.ajalt.clikt.parameters.groups.OptionGroup
-import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
 import kotlinx.coroutines.Deferred
-import org.jetbrains.amper.cli.MultiUsageKotlinCliHelpFormatter
 import org.jetbrains.amper.cli.UserReadableError
-import org.jetbrains.amper.cli.context.CliContext
-import org.jetbrains.amper.cli.context.GlobalCliContext
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.context.copyWithNewProjectContext
 import org.jetbrains.amper.cli.context.findProjectContext
-import org.jetbrains.amper.cli.logging.infoNoConsole
-import org.jetbrains.amper.cli.options.ProjectLayoutOptions
 import org.jetbrains.amper.cli.options.UserJvmArgsOption
 import org.jetbrains.amper.cli.options.buildTypeOption
 import org.jetbrains.amper.cli.options.leafPlatformOption
 import org.jetbrains.amper.cli.options.userJvmArgsOption
 import org.jetbrains.amper.cli.project.preparePluginsAndReadModel
 import org.jetbrains.amper.cli.resolveModuleToRun
-import org.jetbrains.amper.cli.userReadableError
-import org.jetbrains.amper.cli.widgets.withIndeterminateProgress
 import org.jetbrains.amper.cli.withBackend
-import org.jetbrains.amper.compilation.compiler.provisionKotlinCompilerCli
 import org.jetbrains.amper.compose.reload.HotReloadDelegate
 import org.jetbrains.amper.compose.reload.HotReloadLoop
-import org.jetbrains.amper.frontend.schema.DefaultVersions
-import org.jetbrains.amper.frontend.schema.DiscouragedDirectDefaultVersionAccess
-import org.jetbrains.amper.jvm.getJdkOrUserError
-import org.jetbrains.amper.processes.ProcessInput
-import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.ComposeHotReloadSettings
-import java.nio.file.Path
 import kotlin.io.path.Path
-import kotlin.io.path.extension
-import kotlin.io.path.notExists
 
-internal class RunCommand : AmperSubcommand(name = "run") {
-
-    init {
-        context {
-            helpFormatter = { context ->
-                object : MultiUsageKotlinCliHelpFormatter(context) {
-                    override fun listUsages(parameters: List<ParameterHelp>, programName: String): List<UsageEntry> {
-                        val normalParameters = renderUsageParametersString(parameters)
-                        val scriptParameters = normalParameters
-                            .replace("<options>", "<script_options>")
-                            .replace("<app_arguments>", "<script_arguments>")
-                        return [
-                            UsageEntry(highlight = programName, muted = normalParameters),
-                            UsageEntry(highlight = "$programName --script <script_path>", muted = scriptParameters),
-                            UsageEntry(highlight = "$programName <script_path>", muted = scriptParameters),
-                        ]
-                    }
-                }
-            }
-        }
-    }
+internal class RunCommand : AmperProjectAwareCommand(name = "run") {
 
     private val module by option("-m", "--module", help = "Specific module to run (run the `show modules` command to get the modules list)")
 
@@ -139,10 +99,6 @@ internal class RunCommand : AmperSubcommand(name = "run") {
         """.trimIndent(),
     ).flag("--no-open-browser", default = true)
 
-    private val layoutOptions by ProjectLayoutOptions()
-
-    private val scriptOptions by ScriptOptions()
-
     private val programArguments by argument(name = "app_arguments").multiple()
 
     override fun help(context: Context): String =
@@ -169,39 +125,9 @@ internal class RunCommand : AmperSubcommand(name = "run") {
         kotlin run -p jvm
         kotlin run -p android 
         ```
-        
-        **Example 3:** Run a simple standalone `.main.kts` script:
-        ```
-        kotlin run --script my-script.main.kts
-        kotlin run --script my-script.main.kts -- arg1 arg2
-        ```
-        
-        **Example 4:** Simpler form to run scripts outside any project:
-        ```
-        kotlin run my-script.main.kts
-        kotlin run my-script.main.kts -- arg1 arg2
-        ```
     """.trimIndent()
 
-    override suspend fun run() {
-        val script = scriptOptions.scriptPath
-        val cliContext = findCliContext(layoutOptions)
-        when {
-            script != null -> cliContext.runScript(script, programArguments)
-            cliContext is ProjectCliContext -> runProjectApp(cliContext)
-            cliContext is GlobalCliContext -> {
-                val scriptPath = programArguments.firstOrNull()?.let(::Path)
-                    ?: userReadableError(
-                        "The 'run' command is executed outside of a project. Expected a --script or a " +
-                                "positional argument with the path of a .main.kts script to run."
-                    )
-                cliContext.runScript(scriptPath = scriptPath, args = programArguments.drop(1))
-            }
-        }
-    }
-
-    private suspend fun runProjectApp(cliContext: ProjectCliContext) {
-        setProjectSpecificState(cliContext)
+    override suspend fun run(cliContext: ProjectCliContext) {
         if (composeHotReloadMode) {
             // If the configuration doesn't actually support hot-reload,
             // it will be diagnosed and the error will be thrown.
@@ -211,34 +137,6 @@ internal class RunCommand : AmperSubcommand(name = "run") {
                 it.runApplication(moduleName = module, platform = platform, buildType = variant)
             }
         }
-    }
-
-    private suspend fun CliContext.runScript(scriptPath: Path, args: List<String>) {
-        if (scriptPath.notExists()) {
-            userReadableError("'$scriptPath' does not exist, cannot run it as a Kotlin script")
-        }
-        if (scriptPath.extension != "kts") {
-            userReadableError("The given file is not a Kotlin script, please provide a file with .kts extension")
-        }
-        val kotlinCompiler = terminal.withIndeterminateProgress("Provisioning Kotlin compiler ${scriptOptions.kotlinVersion}...") {
-            context(userCacheRoot, processRunner) {
-                provisionKotlinCompilerCli(scriptOptions.kotlinVersion)
-            }
-        }
-        val jdk = terminal.withIndeterminateProgress("Provisioning JDK ${scriptOptions.jdkMajorVersion}...") {
-            context(problemReporter) {
-                jdkProvider.getJdkOrUserError(majorVersion = scriptOptions.jdkMajorVersion)
-            }
-        }
-        logger.infoNoConsole("Running script ${scriptOptions.scriptPath}")
-        kotlinCompiler.runKotlinScript(
-            scriptPath = scriptPath,
-            workingDir = workingDir,
-            jdkHome = jdk.homeDir,
-            args = args,
-            input = ProcessInput.Inherit,
-            outputMode = ProcessOutputMode.Inherit,
-        )
     }
 
     private fun allRunSettings(
@@ -348,22 +246,4 @@ internal class RunCommand : AmperSubcommand(name = "run") {
     companion object {
         const val COMPOSE_HOT_RELOAD_OPTION_NAME = "--compose-hot-reload-mode"
     }
-}
-
-@OptIn(DiscouragedDirectDefaultVersionAccess::class)
-private class ScriptOptions : OptionGroup(
-    name = "Script-specific options",
-) {
-    val scriptPath by option("--script", help = "Executes the given Kotlin script (.main.kts)")
-        .path(mustExist = true, canBeFile = true, canBeDir = false)
-
-    val kotlinVersion by option(
-        "--script-kotlin-version",
-        help = "The Kotlin compiler version to use to compile and run Kotlin scripts (.main.kts)",
-    ).default(DefaultVersions.kotlin)
-
-    val jdkMajorVersion by option(
-        "--script-jdk-version",
-        help = "The major JDK version to use to run Kotlin scripts (.main.kts)",
-    ).int().default(DefaultVersions.jdk)
 }

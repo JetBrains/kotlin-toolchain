@@ -48,12 +48,7 @@ class AmperRunTest : AmperCliTestBase() {
         val r = runCli(projectDir = testProject("jvm-kotlin-test-smoke"), "run", "--help")
 
         // Check that '--' is printed before program arguments
-        val usageText = """
-            Usage:
-              kotlin run [<options>] -- [<app_arguments>]...
-              kotlin run --script <script_path> [<script_options>] -- [<script_arguments>]...
-              kotlin run <script_path> [<script_options>] -- [<script_arguments>]...
-        """.trimIndent()
+        val usageText = "Usage: kotlin run [<options>] -- [<app_arguments>]..."
 
         val actualUsageOutput = r.stdoutClean.lines().takeWhile { it.isNotBlank() }.joinToString("\n")
         assertEquals(usageText, actualUsageOutput)

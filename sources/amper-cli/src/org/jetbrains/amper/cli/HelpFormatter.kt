@@ -7,13 +7,7 @@ package org.jetbrains.amper.cli
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.output.HelpFormatter.ParameterHelp
 import com.github.ajalt.clikt.output.MordantMarkdownHelpFormatter
-import com.github.ajalt.mordant.rendering.Whitespace
 import com.github.ajalt.mordant.rendering.Widget
-import com.github.ajalt.mordant.table.verticalLayout
-import com.github.ajalt.mordant.widgets.Text
-import com.github.ajalt.mordant.widgets.definitionList
-import com.github.ajalt.mordant.widgets.withPadding
-import kotlin.text.replace
 
 open class AmperHelpFormatter(context: Context) : MordantMarkdownHelpFormatter(context, showDefaultValues = true) {
 
@@ -41,33 +35,4 @@ open class AmperHelpFormatter(context: Context) : MordantMarkdownHelpFormatter(c
                 RenderedSection(styleSectionTitle(renderedTitle), content)
             }.toList()
     }
-}
-
-abstract class MultiUsageKotlinCliHelpFormatter(
-    context: Context,
-) : AmperHelpFormatter(context) {
-
-    protected data class UsageEntry(val highlight: String, val muted: String)
-
-    protected abstract fun listUsages(parameters: List<ParameterHelp>, programName: String): List<UsageEntry>
-
-    override fun renderUsage(
-        parameters: List<ParameterHelp>,
-        programName: String
-    ): Widget {
-        val title = styleUsageTitle(localization.usageTitle())
-
-        return verticalLayout {
-            cell(Text(title, whitespace = Whitespace.NORMAL))
-            listUsages(parameters, programName).forEach { usage ->
-                cell(renderUsageEntry(usage.highlight, usage.muted))
-            }
-        }
-    }
-
-    private fun renderUsageEntry(programName: String, formattedParams: String): Widget = definitionList {
-        entry(programName, Text(formattedParams, whitespace = Whitespace.NORMAL))
-        inline = true
-        descriptionSpacing = 1
-    }.withPadding { left = 2 }
 }
