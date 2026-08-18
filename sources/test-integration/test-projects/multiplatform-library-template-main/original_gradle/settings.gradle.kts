@@ -1,3 +1,7 @@
+/*
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 pluginManagement {
     repositories {
         google()
@@ -20,7 +24,6 @@ include(":libraryNested")
 include(":linuxWindowsShared")
 include(":nativeShared")
 include(":nativePlatform")
-include(":nonNativeShared")
 include(":edgeCase_jvmLib")
 include(":edgeCase_jvmPlusAndroid")
 include(":edgeCase_kmpSinglePlatform")
