@@ -8,7 +8,13 @@ test-dependencies@android:
 settings:
   junit: junit-4
   jvm:
+    jdk:
+      version: 25
     test:
+      freeJvmArgs:
+        # Robolectric transitively depends on conscrypt, which requires native access
+        # See https://github.com/google/conscrypt/issues/1332
+        - --enable-native-access=ALL-UNNAMED
       # Robolectric uses its own MavenArtifactFetcher to download `android-all-instrumented` at test
       # runtime, and does not honor KOTLIN_DEFAULT_MAVEN_CENTRAL_URL. Route it through the JetBrains
       # cache-redirector to avoid HTTP 429 from repo1.maven.org on CI agents.
@@ -16,4 +22,5 @@ settings:
         robolectric.dependency.repo.url: https://cache-redirector.jetbrains.com/repo1.maven.org/maven2
         robolectric.dependency.repo.id: jetbrains-cache-redirector
   kotlin:
+    version: 2.4.10
     freeCompilerArgs: [ -Xexpect-actual-classes ]
