@@ -2,6 +2,12 @@ product: jvm/app
 
 settings:
   jvm:
+    jdk:
+      # Sticking to 21 because the Lombok maintainers rae not willing to fix their usage of Unsafe just yet.
+      # See https://github.com/projectlombok/lombok/issues/3852 (wrongfully closed, IMO)
+      # And https://github.com/projectlombok/lombok/issues/4046 (new, open, but almost empty)
+      # We could also suppress the warning if KTC-5725 was implemented.
+      version: 21
     mainClass: Main
 
   java:
