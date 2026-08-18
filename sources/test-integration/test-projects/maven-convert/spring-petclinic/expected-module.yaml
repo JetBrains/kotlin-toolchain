@@ -12,27 +12,27 @@ settings:
     storeParameterNames: true
   springBoot:
     enabled: true
-    version: 4.0.1
+    version: 4.1.0
 
 dependencies:
-  - bom: org.springframework.boot:spring-boot-dependencies:4.0.1
-  - bom: org.springframework.boot:spring-boot-starter-parent:4.0.1
-  - org.springframework.boot:spring-boot-starter-actuator:4.0.1: exported
-  - org.springframework.boot:spring-boot-starter-cache:4.0.1: exported
-  - org.springframework.boot:spring-boot-starter-data-jpa:4.0.1: exported
-  - org.springframework.boot:spring-boot-starter-thymeleaf:4.0.1: exported
-  - org.springframework.boot:spring-boot-starter-validation:4.0.1: exported
-  - org.springframework.boot:spring-boot-starter-webmvc:4.0.1: exported
+  - bom: org.springframework.boot:spring-boot-dependencies:4.1.0
+  - bom: org.springframework.boot:spring-boot-starter-parent:4.1.0
+  - org.springframework.boot:spring-boot-starter-actuator:4.1.0: exported
+  - org.springframework.boot:spring-boot-starter-cache:4.1.0: exported
+  - org.springframework.boot:spring-boot-starter-data-jpa:4.1.0: exported
+  - org.springframework.boot:spring-boot-starter-thymeleaf:4.1.0: exported
+  - org.springframework.boot:spring-boot-starter-validation:4.1.0: exported
+  - org.springframework.boot:spring-boot-starter-webmvc:4.1.0: exported
   - javax.cache:cache-api:1.1.1: exported
-  - jakarta.xml.bind:jakarta.xml.bind-api:4.0.4: exported
+  - jakarta.xml.bind:jakarta.xml.bind-api:4.0.5: exported
   - com.h2database:h2:2.4.240: runtime-only
-  - com.github.ben-manes.caffeine:caffeine:3.2.3: runtime-only
-  - com.mysql:mysql-connector-j:9.5.0: runtime-only
-  - org.postgresql:postgresql:42.7.8: runtime-only
+  - com.github.ben-manes.caffeine:caffeine:3.2.4: runtime-only
+  - com.mysql:mysql-connector-j:9.7.0: runtime-only
+  - org.postgresql:postgresql:42.7.11: runtime-only
   - org.webjars:webjars-locator-lite:1.1.2: runtime-only
   - org.webjars.npm:bootstrap:5.3.8: runtime-only
   - org.webjars.npm:font-awesome:4.7.0: runtime-only
-  - org.springframework.boot:spring-boot-devtools:4.0.1: exported
+  - org.springframework.boot:spring-boot-devtools:4.1.0: exported
 
 # Maven compatibility plugins are disabled by default. To enable a plugin mojo, set enabled: true.
 mavenPlugins:
@@ -79,9 +79,13 @@ mavenPlugins:
     enabled: false
   native-maven-plugin.compile-no-fork:
     enabled: false
+  native-maven-plugin.generateDynamicAccessMetadata:
+    enabled: false
   native-maven-plugin.generateResourceConfig:
     enabled: false
   native-maven-plugin.generateTestResourceConfig:
+    enabled: false
+  native-maven-plugin.list-libraries-missing-metadata:
     enabled: false
   native-maven-plugin.merge-agent-files:
     enabled: false
@@ -136,10 +140,10 @@ mavenPlugins:
     enabled: false
 
 test-dependencies:
-  - org.springframework.boot:spring-boot-starter-data-jpa-test:4.0.1
-  - org.springframework.boot:spring-boot-starter-restclient-test:4.0.1
-  - org.springframework.boot:spring-boot-starter-webmvc-test:4.0.1
-  - org.springframework.boot:spring-boot-testcontainers:4.0.1
-  - org.springframework.boot:spring-boot-docker-compose:4.0.1
-  - org.testcontainers:testcontainers-junit-jupiter:2.0.3
-  - org.testcontainers:testcontainers-mysql:2.0.3
+  - org.springframework.boot:spring-boot-starter-data-jpa-test:4.1.0
+  - org.springframework.boot:spring-boot-starter-restclient-test:4.1.0
+  - org.springframework.boot:spring-boot-starter-webmvc-test:4.1.0
+  - org.springframework.boot:spring-boot-testcontainers:4.1.0
+  - org.springframework.boot:spring-boot-docker-compose:4.1.0
+  - org.testcontainers:testcontainers-junit-jupiter:2.0.5
+  - org.testcontainers:testcontainers-mysql:2.0.5
