@@ -1,7 +1,7 @@
 product: jvm/app
 
 dependencies:
-  - org.springframework.boot:spring-boot-starter:3.4.2
+  - org.springframework.boot:spring-boot-starter:4.1.0
 
 settings:
   jvm:
