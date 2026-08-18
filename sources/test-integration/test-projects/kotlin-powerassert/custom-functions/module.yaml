@@ -2,6 +2,7 @@ product: jvm/app
 
 test-settings:
   kotlin:
+    version: 2.4.10 # affects quotes in the output (KT-85151)
     powerAssert:
       enabled: true
       functions: [ kotlin.assert, kotlin.test.assertEquals ]

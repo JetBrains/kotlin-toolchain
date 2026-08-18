@@ -2,5 +2,5 @@ product: jvm/app
 
 test-settings:
   kotlin:
-    version: 2.4.0 # needed to get multiline strings support (KT-69036)
+    version: 2.4.10 # needed to get multiline strings support (KT-69036)
     powerAssert: enabled

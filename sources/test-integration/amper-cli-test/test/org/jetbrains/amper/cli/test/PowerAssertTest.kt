@@ -23,12 +23,12 @@ class PowerAssertTest : AmperCliTestBase() {
         result.assertStdoutContains("""
             assert(name1 == name2 + name1[2])
                    |     |  |     | |    |
-                   |     |  |     | |    o
-                   |     |  |     | george
-                   |     |  |     fredo
-                   |     |  fred
+                   |     |  |     | |    'o'
+                   |     |  |     | "george"
+                   |     |  |     "fredo"
+                   |     |  "fred"
                    |     false
-                   george
+                   "george"
         """.trimIndent())
 
         // assertEquals should be processed by default
@@ -48,23 +48,21 @@ class PowerAssertTest : AmperCliTestBase() {
         result.assertStdoutContains("""
             assert(name1 == name2 + name1[2])
                    |     |  |     | |    |
-                   |     |  |     | |    o
-                   |     |  |     | george
-                   |     |  |     fredo
-                   |     |  fred
+                   |     |  |     | |    'o'
+                   |     |  |     | "george"
+                   |     |  |     "fredo"
+                   |     |  "fred"
                    |     false
-                   george
+                   "george"
         """.trimIndent())
 
         // assertEquals should be processed because explicitly mentioned in the settings
         result.assertStdoutContains("""
             assertEquals(name1, name2.substring(2, name2.length))
                          |      |     |            |     |
-                         |      |     |            |     4
-                         |      |     |            fred
-                         |      |     ed
-                         |      fred
-                         george
+                         |      |     "ed"         |     4
+                         |      "fred"             "fred"
+                         "george"
         """.trimIndent())
     }
 
