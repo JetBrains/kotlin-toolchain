@@ -1,0 +1,5 @@
+root
+╰─── org.hibernate.orm:hibernate-core:7.4.1.Final
+     ├─── org.hibernate.orm:hibernate-platform:7.4.1.Final
+     ├─── jakarta.persistence:jakarta.persistence-api:3.2.0
+     ╰─── jakarta.transaction:jakarta.transaction-api:2.0.1

@@ -1571,6 +1571,22 @@ class BuildGraphTest : BaseDRTest() {
         )
     }
 
+    /**
+     * This test checks that hibernate-core (published under the `org.hibernate.orm` group) is resolved with its
+     * main jar, despite its `apiElements`/`runtimeElements` variants declaring an additional legacy
+     * `org.hibernate:hibernate-core` capability (from before the group rename).
+     *
+     * Amper generally denies libraries whose variants declare capabilities other than the library's own one
+     * (to avoid potential runtime conflicts), but same-library renames like this one must be an exception.
+     * Otherwise, only the capability-less `sources`/`javadoc` variants match, and the main jar is silently
+     * dropped from the classpath, which breaks Hibernate/JPA auto-configuration downstream.
+     */
+    @Test
+    fun `org_hibernate_orm hibernate-core 7_4_1_Final`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(testInfo, platform = setOf(ResolutionPlatform.JVM))
+        downloadAndAssertFiles(testInfo, root)
+    }
+
     @Test
     fun `org_jetbrains_packagesearch packagesearch-plugin 1_0_0-SNAPSHOT`(testInfo: TestInfo) = runDrTest {
         val root = doTest(

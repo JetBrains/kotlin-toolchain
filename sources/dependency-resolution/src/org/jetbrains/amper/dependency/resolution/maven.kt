@@ -2190,7 +2190,7 @@ class MavenDependencyImpl internal constructor(
         .filter { categoryMatches(it) }
         .filterWithFallbackScope(settings.scope)
 
-    private fun Variant.isOneOfExceptions() = isKotlinException() || isGuavaException()
+    private fun Variant.isOneOfExceptions() = isKotlinException() || isGuavaException() || isHibernateException()
 
     private fun Variant.isKotlinException() =
         isKotlinTestJunit() && capabilities.sortedBy { it.name } == listOf(
@@ -2223,6 +2223,23 @@ class MavenDependencyImpl internal constructor(
         )
 
     private fun isGuava() = group == "com.google.guava" && module == "guava"
+
+    /**
+     * Hibernate ORM was published under the group `org.hibernate` until version 6, and under `org.hibernate.orm`
+     * since then. To keep capability-based conflict detection working against the old coordinates, its variants
+     * declare the legacy `org.hibernate:<module>` capability in addition to the current `org.hibernate.orm:<module>`
+     * one. This is a same-library rename rather than a real capability conflict, so such variants must be accepted.
+     *
+     * Without this exception, [capabilityMatches] would reject the `apiElements`/`runtimeElements` variants (which
+     * declare both capabilities) and keep only the capability-less `sources`/`javadoc` variants, silently dropping
+     * the main jar from the classpath.
+     */
+    private fun Variant.isHibernateException() =
+        isHibernate()
+                && capabilities.contains(toCapability())
+                && capabilities.contains(Capability("org.hibernate", module, version.orUnspecified()))
+
+    private fun isHibernate() = group == "org.hibernate.orm"
 
     private fun MavenDependency.toCapability() = Capability(group, module, version.orUnspecified())
 
