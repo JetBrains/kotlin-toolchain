@@ -89,20 +89,9 @@ class KotlinModuleMetadataTest : AmperCliTestBase() {
      */
     @Test
     fun `run native metadata compilation platform API`() = runSlowTest {
-        val r = runCli(projectDir = testProject("multiplatform-library-template-main"),
+        runCli(projectDir = testProject("multiplatform-library-template-main"),
             "task",
             ":nativePlatform:compileMetadataCommon",
-            assertEmptyStdErr = false
-        )
-
-        assertTrue(
-            actual = r.stderr.replace("ERROR logging: using Kotlin home directory dist\\kotlinc", "").isBlank(),
-            message = """
-                    Process stderr must be empty for the Kotlin CLI call (PID ${r.pid}):
-                    "kotlin task :nativePlatform:compileMetadataCommon",
-                    Kotlin Toolchain STDERR:
-                    ${r.stderr.prependIndent("                    ")}
-                """.trimMargin(),
         )
     }
 

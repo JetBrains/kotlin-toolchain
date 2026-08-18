@@ -16,8 +16,8 @@
       "extras": {
         "native": {
           "konanTarget": "linux_arm64",
-          "konanVersion": "2.3.21",
-          "konanAbiVersion": "2.3.0"
+          "konanVersion": "2.4.10",
+          "konanAbiVersion": "2.4.0"
         }
       }
     },
@@ -27,8 +27,8 @@
       "extras": {
         "native": {
           "konanTarget": "linux_x64",
-          "konanVersion": "2.3.21",
-          "konanAbiVersion": "2.3.0"
+          "konanVersion": "2.4.10",
+          "konanAbiVersion": "2.4.0"
         }
       }
     },
@@ -38,8 +38,8 @@
       "extras": {
         "native": {
           "konanTarget": "mingw_x64",
-          "konanVersion": "2.3.21",
-          "konanAbiVersion": "2.3.0"
+          "konanVersion": "2.4.10",
+          "konanAbiVersion": "2.4.0"
         }
       }
     },

@@ -15,7 +15,7 @@
       "platformType": "jvm",
       "extras": {
         "jvm": {
-          "jvmTarget": "21",
+          "jvmTarget": "25",
           "withJavaEnabled": false
         }
       }

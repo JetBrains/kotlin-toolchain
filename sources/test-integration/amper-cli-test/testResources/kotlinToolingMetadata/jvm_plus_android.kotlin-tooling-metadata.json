@@ -15,8 +15,8 @@
       "platformType": "androidJvm",
       "extras": {
         "android": {
-          "sourceCompatibility": "21",
-          "targetCompatibility": "21"
+          "sourceCompatibility": "25",
+          "targetCompatibility": "25"
         }
       }
     },
@@ -25,7 +25,7 @@
       "platformType": "jvm",
       "extras": {
         "jvm": {
-          "jvmTarget": "21",
+          "jvmTarget": "25",
           "withJavaEnabled": false
         }
       }
