@@ -30,7 +30,7 @@ settings@jvm:
     test:
       extraEnvironment: {}  # default
       freeJvmArgs: []  # default
-      junitPlatformVersion: 6.0.3  # default
+      junitPlatformVersion: 6.1.3  # default
       systemProperties: {}  # default
   kotlin:
     allOpen:
@@ -142,7 +142,7 @@ settings@jvm:
     test:
       extraEnvironment: {}  # default
       freeJvmArgs: []  # default
-      junitPlatformVersion: 6.0.3  # default
+      junitPlatformVersion: 6.1.3  # default
       systemProperties: {}  # default
   kotlin:
     allOpen:
