@@ -239,31 +239,26 @@ class AmperBackend(
      */
     suspend fun runTasks(tasks: Set<TaskId>): Map<TaskId, TaskResult> = taskExecutor.runTasksAndReportOnFailure(tasks)
 
-    suspend fun publish(modules: Set<String>?, repositoryId: String) {
-        require(modules == null || modules.isNotEmpty())
-
-        if (modules != null) {
-            for (moduleName in modules) {
-                val module = model.getModuleByName(moduleName)
-                if (module.mavenPublishRepositories.none { it.id == repositoryId }) {
-                    if (module.mavenResolveRepositories.any { it.id == repositoryId }) {
-                        // TODO: Include trace info here?
-                        userReadableError(
-                            "Cannot publish to repository '${repositoryId}' because it's not marked as publishable. " +
-                                    "Please check your configuration and make sure that `publish: true` " +
-                                    "is set for this repository."
-                        )
-                    } else {
-                        userReadableError("Module '$moduleName' does not have repository with id '$repositoryId'")
-                    }
+    suspend fun publish(modules: Collection<AmperModule>, repositoryId: String) {
+        for (module in modules) {
+            if (module.mavenPublishRepositories.none { it.id == repositoryId }) {
+                if (module.mavenResolveRepositories.any { it.id == repositoryId }) {
+                    // TODO: Include trace info here?
+                    userReadableError(
+                        "Cannot publish to repository '${repositoryId}' because it's not marked as publishable. " +
+                                "Please check your configuration and make sure that `publish: true` " +
+                                "is set for this repository."
+                    )
+                } else {
+                    userReadableError("Module '${module.userReadableName}' does not have repository with id '$repositoryId'")
                 }
             }
         }
 
+        val moduleNames = modules.mapTo(mutableSetOf()) { it.userReadableName }
         val publishTasks = taskGraph.tasks
             .filterIsInstance<PublishTask>()
-            .filter { it.targetRepositoryId == repositoryId }
-            .filter { modules == null || modules.contains(it.module.userReadableName) }
+            .filter { it.targetRepositoryId == repositoryId && it.module.userReadableName in moduleNames }
             .map { it.id }
             .toSet()
 

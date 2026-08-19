@@ -28,7 +28,7 @@ internal fun AmperModule.jvmComposeRunDependencies(): Set<Path> = buildSet {
     val relevantModules = buildSet {
         fun addDependencies(scope: ResolutionScope) = addAll(
             with(ModuleDependencies) {
-                getDependentAmperModules(
+                getLocalModuleDependencies(
                     isTest = false,
                     platform = Platform.JVM,
                     dependencyReason = scope,

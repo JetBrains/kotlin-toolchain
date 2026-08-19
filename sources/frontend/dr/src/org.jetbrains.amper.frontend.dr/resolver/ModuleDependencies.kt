@@ -48,7 +48,6 @@ import org.jetbrains.amper.frontend.dr.resolver.flow.Classpath
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.frontend.dr.resolver.swiftpm.SerializableSwiftPMDependencyNodeFromAmperModule
 import org.jetbrains.amper.frontend.dr.resolver.swiftpm.SwiftPMDependencyNodeFromAmperModule
-import org.jetbrains.amper.frontend.dr.resolver.swiftpm.SwiftPMDependencyNodeFromAmperModuleImpl
 import org.jetbrains.amper.frontend.fragmentsToDependOnFromOtherModuleFragmentWith
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.schema.Repository.Companion.SpecialMavenLocalUrl
@@ -686,10 +685,11 @@ class ModuleDependencies private constructor(
         }
 
         /**
-         * Returns a dependencies sequence of the given module in the resolution scope
-         * of the given [platform], [isTest] and [dependencyReason].
+         * Returns a sequence of the transitive dependencies of this module on other local modules in the resolution
+         * scope of the given [platform], [isTest] and [dependencyReason].
+         * External maven dependencies are ignored, only local modules are returned.
          */
-        fun AmperModule.getDependentAmperModules(
+        fun AmperModule.getLocalModuleDependencies(
             isTest: Boolean,
             platform: Platform,
             dependencyReason: ResolutionScope,
