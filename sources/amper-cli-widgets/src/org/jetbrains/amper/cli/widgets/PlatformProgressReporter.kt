@@ -78,7 +78,7 @@ interface PlatformProgressReporter {
  */
 fun PlatformProgressReporter(
     terminal: Terminal,
-) : PlatformProgressReporter = if (terminal.terminalInfo.interactive) {
+) : PlatformProgressReporter = if (terminal.terminalInfo.outputInteractive) {
     PlatformProgressReporterImpl()
 } else PlatformProgressReporterNoop
 
@@ -106,6 +106,7 @@ private class PlatformProgressReporterImpl(
     private fun ensureRestHookUninstalled() {
         synchronized(HookHolder) {
             resetHook?.let(Runtime.getRuntime()::removeShutdownHook)
+            resetHook = null
         }
     }
 

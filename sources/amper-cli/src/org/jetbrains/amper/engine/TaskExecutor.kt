@@ -15,7 +15,15 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
 import org.jetbrains.amper.cli.UserReadableError
+import org.jetbrains.amper.cli.events.EventSinkContributors
+import org.jetbrains.amper.cli.events.buildEventScope
+import org.jetbrains.amper.cli.events.createOperationSink
+import org.jetbrains.amper.cli.events.taskEventScope
 import org.jetbrains.amper.cli.userReadableError
+import org.jetbrains.amper.events.sink.BuildEventSink
+import org.jetbrains.amper.events.sink.GlobalEventSink
+import org.jetbrains.amper.events.sink.OperationEventSink
+import org.jetbrains.amper.events.sink.plus
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.stdlib.graphs.depthFirstNodeSequence
@@ -30,7 +38,8 @@ class TaskExecutor(
     private val graph: TaskGraph,
     private val mode: Mode,
     private val problemReporter: ProblemReporter,
-    private val listenerProvider: TaskGraphExecutionListener.Provider = { TaskGraphExecutionListener.Noop },
+    private val globalEventSink: GlobalEventSink,
+    private val eventSinkContributors: EventSinkContributors,
 ) {
     class ExecutionPlan(
         val totalTasksCount: Int,
@@ -58,20 +67,23 @@ class TaskExecutor(
             .setAttribute("root-tasks", tasksToRun.joinToString { it.value })
             .use {
                 val executionPlan = buildExecutionPlan(tasksToRun)
-                val listener = listenerProvider.createListener(executionPlan)
-                val executionContext = DefaultTaskGraphExecutionContext(problemReporter)
-                try {
-                    val results = ConcurrentHashMap<TaskId, Deferred<ExecutionResult>>()
-                    val _ = context(listener, executionContext) {
-                        runTasks(tasksToRun, currentPath = emptyList(), results)
-                    }
+                val hookManager = DefaultTaskGraphExecutionUtils()
+                buildEventScope(
+                    totalTaskCount = executionPlan.totalTasksCount,
+                    sink = globalEventSink,
+                ) {
+                    try {
+                        val results = ConcurrentHashMap<TaskId, Deferred<ExecutionResult>>()
+                        val _ = context(hookManager) {
+                            runTasks(tasksToRun, currentPath = emptyList(), results)
+                        }
 
-                    // this is just to unpack results (by that point, all tasks must have finished executing already)
-                    results.mapValues { it.value.await() }
-                } finally {
-                    spanBuilder("Post graph execution hooks").use {
-                        executionContext.runPostGraphExecutionHooks()
-                        listener.taskGraphExecutionFinished()
+                        // this is just to unpack results (by that point, all tasks must have finished executing already)
+                        results.mapValues { it.value.await() }
+                    } finally {
+                        spanBuilder("Post graph execution hooks").use {
+                            hookManager.runPostGraphExecutionHooks()
+                        }
                     }
                 }
             }
@@ -96,7 +108,7 @@ class TaskExecutor(
      *
      * Fails if one of the given [taskIds] is already in the graph execution's [currentPath] (which means a cycle).
      */
-    context(_: TaskGraphExecutionListener, _: TaskGraphExecutionContext)
+    context(_: BuildEventSink, _: TaskGraphExecutionUtils)
     private suspend fun runTasks(
         taskIds: Set<TaskId>,
         currentPath: List<TaskId>,
@@ -115,7 +127,7 @@ class TaskExecutor(
     /**
      * Runs the given task's dependencies, and then the task itself.
      */
-    context(_: TaskGraphExecutionListener, _: TaskGraphExecutionContext)
+    context(_: BuildEventSink, _: TaskGraphExecutionUtils)
     private suspend fun runDependenciesAndTask(
         taskId: TaskId,
         currentPath: List<TaskId>,
@@ -152,7 +164,7 @@ class TaskExecutor(
     /**
      * Runs the task identified by [taskId], and returns its result.
      */
-    context(_: TaskGraphExecutionListener, _: TaskGraphExecutionContext)
+    context(_: BuildEventSink, _: TaskGraphExecutionUtils)
     private suspend fun runSingleTaskSafely(
         taskId: TaskId,
         dependencyResults: List<TaskResult>,
@@ -170,21 +182,28 @@ class TaskExecutor(
         }
     }
 
-    context(progressListener: TaskGraphExecutionListener, _: TaskGraphExecutionContext)
+    context(_: BuildEventSink, executionUtils: TaskGraphExecutionUtils)
     private suspend fun runSingleTask(
         taskId: TaskId,
         dependencyResults: List<TaskResult>,
     ): TaskResult = spanBuilder("task ${taskId.value}").use {
         val task = graph.nameToTask[taskId] ?: error("Unable to find task by name: ${taskId.value}")
-        val taskListener = progressListener.taskStarted(task)
-        try {
+        taskEventScope(
+            moniker = task.taskName.spec,
+            isInteractive = task is RunTask,
+        ) {
             val mdcWithTaskName = MDCContext(MDC.getCopyOfContextMap() + ("amper-task-name" to taskId.value))
             withContext(tasksDispatcher + mdcWithTaskName + CoroutineName("task:${taskId.value}")) {
-                task.run(dependencyResults)
+                task.run(
+                    dependenciesResult = dependencyResults,
+                    executionContext = TaskGraphExecutionContext(
+                        // TODO: Introduce a scoped event-based problem reporter?
+                        problemReporter = problemReporter,
+                        eventSink = contextOf<OperationEventSink>() + eventSinkContributors.createOperationSink(),
+                        executionUtils = executionUtils,
+                    ),
+                )
             }
-        } finally {
-            // TODO: completion status can be tracked here as well
-            taskListener.onTaskFinished()
         }
     }
 

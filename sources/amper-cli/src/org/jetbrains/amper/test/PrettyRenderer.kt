@@ -8,6 +8,7 @@ import com.github.ajalt.mordant.rendering.TextStyle
 import com.github.ajalt.mordant.rendering.TextStyles.bold
 import com.github.ajalt.mordant.rendering.Theme
 import com.github.ajalt.mordant.terminal.Terminal
+import org.jetbrains.amper.events.sink.EventSink
 import org.jetbrains.amper.testevents.TestDescriptor
 import org.jetbrains.amper.testevents.TestEvent
 import org.jetbrains.amper.testevents.TestFinished
@@ -25,19 +26,28 @@ import org.jetbrains.amper.testevents.TestSuiteStarted
 
 /**
  * Renders Kotlin Toolchain test events for local CLI use.
+ *
+ * @param isVerbose `true` renders all the test events, `false` only renders failures, aborts, and skips.
  */
 internal class PrettyRenderer(
     private val terminal: Terminal,
-) : TestEventRenderer {
+    private val isVerbose: Boolean = !terminal.terminalInfo.outputInteractive,
+) : EventSink<TestEvent> {
     private val descriptors = mutableMapOf<TestId, TestDescriptor>()
 
-    override fun render(event: TestEvent) {
+    override fun emit(event: TestEvent) = render(event)
+
+    private fun render(event: TestEvent) {
         when (event) {
             is TestSuiteStarted -> {
                 descriptors[event.descriptor.id] = event.descriptor
-                print(PrettyTestEvent.ContainerStarted, event.descriptor.displayName)
+                if (isVerbose) {
+                    print(PrettyTestEvent.ContainerStarted, event.descriptor.displayName)
+                }
             }
-            is TestSuiteFinished -> descriptors[event.testId]?.let { print(PrettyTestEvent.ContainerFinished, it.displayName) }
+            is TestSuiteFinished -> if (isVerbose) {
+                descriptors[event.testId]?.let { print(PrettyTestEvent.ContainerFinished, it.displayName) }
+            }
             is TestSuiteAborted -> descriptors[event.testId]?.let {
                 print(PrettyTestEvent.Aborted, it.displayName)
                 detail(PrettyTestEvent.Aborted.style, "Reason", event.abortMessage)
@@ -52,11 +62,19 @@ internal class PrettyRenderer(
             }
             is TestStarted -> {
                 descriptors[event.descriptor.id] = event.descriptor
-                print(PrettyTestEvent.TestStarted, event.descriptor.displayName)
+                if (isVerbose) {
+                    print(PrettyTestEvent.TestStarted, event.descriptor.displayName)
+                }
             }
-            is TestStdoutEvent -> terminal.rawPrint(event.text)
-            is TestStderrEvent -> terminal.rawPrint(event.text, stderr = true)
-            is TestFinished.Succeeded -> descriptors[event.testId]?.let { print(PrettyTestEvent.Succeeded, it.displayName) }
+            is TestStdoutEvent -> if (isVerbose) {
+                terminal.rawPrint(event.text)
+            }
+            is TestStderrEvent -> if (isVerbose) {
+                terminal.rawPrint(event.text, stderr = true)
+            }
+            is TestFinished.Succeeded -> if (isVerbose) {
+                descriptors[event.testId]?.let { print(PrettyTestEvent.Succeeded, it.displayName) }
+            }
             is TestFinished.Aborted -> descriptors[event.testId]?.let {
                 print(PrettyTestEvent.Aborted, it.displayName)
                 detail(PrettyTestEvent.Aborted.style, "Reason", event.abortMessage)
@@ -69,7 +87,7 @@ internal class PrettyRenderer(
                 print(PrettyTestEvent.Failed, it.displayName)
                 detail(PrettyTestEvent.Failed.style, "Exception", event.stackTrace ?: event.failureMessage)
             }
-            is TestReportEvent -> {
+            is TestReportEvent -> if (isVerbose) {
                 print(PrettyTestEvent.Reported, descriptors[event.testId]?.displayName ?: event.testId.value)
                 detail(PrettyTestEvent.Reported.style, event.key, event.value)
             }

@@ -5,7 +5,7 @@
 package org.jetbrains.amper.testevents
 
 import kotlinx.serialization.Serializable
-import org.jetbrains.amper.events.Event
+import org.jetbrains.amper.events.OperationScopedEvent
 import org.jetbrains.amper.serialization.paths.SerializablePath
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -14,7 +14,32 @@ import kotlin.time.Instant
  * An event emitted while a test run is executing.
  */
 @Serializable
-sealed interface TestEvent : Event
+sealed interface TestEvent : OperationScopedEvent.DomainEvent {
+    /**
+     * [TestId] that is associated with this event; `null` if there is no particular test associated.
+     */
+    val testId: TestId?
+}
+
+/**
+ * A [TestEvent] that is associated with a test by a [testId].
+ */
+@Serializable
+sealed interface TestEventWithId : TestEvent {
+    override val testId: TestId
+}
+
+/**
+ * A [TestEvent] that contains the test [descriptor].
+ * Such events are issued when the test is mentioned the first time.
+ */
+@Serializable
+sealed interface TestEventWithDescriptor : TestEventWithId {
+    val descriptor: TestDescriptor
+
+    override val testId: TestId
+        get() = descriptor.id
+}
 
 /**
  * A non-blank identifier that __uniquely__ identifies a test or test suite within a test run.
@@ -74,24 +99,24 @@ data class TestDescriptor(
  * Signals that a test suite has started.
  */
 @Serializable
-data class TestSuiteStarted(val descriptor: TestDescriptor) : TestEvent
+data class TestSuiteStarted(override val descriptor: TestDescriptor) : TestEventWithDescriptor
 
 /**
  * Signals that a test suite has been aborted.
  */
 @Serializable
 data class TestSuiteAborted(
-    val testId: TestId,
+    override val testId: TestId,
     val duration: Duration?,
     val abortMessage: String,
-) : TestEvent
+) : TestEventWithId
 
 /**
  * Signals that a test suite failed.
  */
 @Serializable
 data class TestSuiteFailed(
-    val testId: TestId,
+    override val testId: TestId,
     val duration: Duration?,
     val failureMessage: String,
     val stackTrace: String? = null,
@@ -99,16 +124,16 @@ data class TestSuiteFailed(
     val actual: String? = null,
     val expectedFilePath: SerializablePath? = null,
     val actualFilePath: SerializablePath? = null,
-) : TestEvent
+) : TestEventWithId
 
 /**
  * Signals that a test suite has finished.
  */
 @Serializable
 data class TestSuiteFinished(
-    val testId: TestId,
+    override val testId: TestId,
     val duration: Duration? = null,
-) : TestEvent
+) : TestEventWithId
 
 /**
  * Signals that a test suite has been skipped.
@@ -117,15 +142,15 @@ data class TestSuiteFinished(
  */
 @Serializable
 data class TestSuiteSkipped(
-    val descriptor: TestDescriptor,
+    override val descriptor: TestDescriptor,
     val reason: String,
-) : TestEvent
+) : TestEventWithDescriptor
 
 /**
  * Signals that an individual test has started.
  */
 @Serializable
-data class TestStarted(val descriptor: TestDescriptor) : TestEvent
+data class TestStarted(override val descriptor: TestDescriptor) : TestEventWithDescriptor
 
 /**
  * Signals that an individual test has been skipped.
@@ -133,14 +158,14 @@ data class TestStarted(val descriptor: TestDescriptor) : TestEvent
  * There is no [TestStarted] or [TestFinished] for this event—it's self-contained.
  */
 @Serializable
-data class TestSkipped(val descriptor: TestDescriptor, val reason: String) : TestEvent
+data class TestSkipped(override val descriptor: TestDescriptor, val reason: String) : TestEventWithDescriptor
 
 /**
  * Signals that an individual test has finished.
  */
 @Serializable
-sealed interface TestFinished : TestEvent {
-    val testId: TestId
+sealed interface TestFinished : TestEventWithId {
+    override val testId: TestId
     val duration: Duration?
 
     /**
@@ -180,7 +205,7 @@ sealed interface TestFinished : TestEvent {
  */
 @Serializable
 data class TestStdoutEvent(
-    val testId: TestId?,
+    override val testId: TestId?,
     val text: String,
 ) : TestEvent
 
@@ -189,7 +214,7 @@ data class TestStdoutEvent(
  */
 @Serializable
 data class TestStderrEvent(
-    val testId: TestId?,
+    override val testId: TestId?,
     val text: String,
 ) : TestEvent
 
@@ -198,9 +223,9 @@ data class TestStderrEvent(
  */
 @Serializable
 data class TestReportEvent(
-    val testId: TestId,
+    override val testId: TestId,
     val key: String,
     val value: String,
     val mediaType: String? = null,
     val timestamp: Instant? = null,
-) : TestEvent
+) : TestEventWithId

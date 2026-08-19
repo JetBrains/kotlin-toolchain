@@ -6,14 +6,11 @@ package org.jetbrains.amper.engine
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.jetbrains.amper.events.sink.OperationEventSink
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import java.util.*
 
-/**
- * The context of a task graph execution, available to task actions when the tasks are actually executing.
- * Also provides the [ProblemReporter] API.
- */
-interface TaskGraphExecutionContext : ProblemReporter {
+interface TaskGraphExecutionUtils {
 
     val executionId: String
 
@@ -27,10 +24,17 @@ interface TaskGraphExecutionContext : ProblemReporter {
     suspend fun addPostGraphExecutionHook(block: suspend () -> Unit)
 }
 
-internal class DefaultTaskGraphExecutionContext(
-    problemReporter: ProblemReporter,
-) : TaskGraphExecutionContext, ProblemReporter by problemReporter {
+/**
+ * The context of a task graph execution, available to task actions when the tasks are actually executing.
+ * Also provides the [ProblemReporter] API.
+ */
+data class TaskGraphExecutionContext(
+    val problemReporter: ProblemReporter,
+    val eventSink: OperationEventSink,
+    val executionUtils: TaskGraphExecutionUtils,
+) : ProblemReporter by problemReporter /* TODO: Refactor this delegation away */
 
+internal class DefaultTaskGraphExecutionUtils : TaskGraphExecutionUtils {
     override val executionId: String = UUID.randomUUID().toString()
 
     private val mutex = Mutex()

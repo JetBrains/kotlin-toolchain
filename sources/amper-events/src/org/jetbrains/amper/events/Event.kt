@@ -13,4 +13,4 @@ package org.jetbrains.amper.events
  * NB: All events should be Serializable to support passing events between processes for tools to be able to consume
  * events produced by the Kotlin Toolchain.
  */
-interface Event
+sealed interface Event

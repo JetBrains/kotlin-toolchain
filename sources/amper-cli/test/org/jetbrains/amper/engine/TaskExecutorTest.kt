@@ -8,6 +8,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.amper.cli.UserReadableError
 import org.jetbrains.amper.engine.TaskExecutor.Mode
+import org.jetbrains.amper.events.payload.TaskMonikerSpec
+import org.jetbrains.amper.events.sink.NoopEventSink
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.problems.reporting.NoopProblemReporter
 import org.jetbrains.amper.tasks.TaskResult
@@ -224,7 +226,7 @@ class TaskExecutorTest {
     private val runningTasksCount = AtomicInteger(0)
     private val maxParallelTasksCount = AtomicInteger(0)
 
-    private fun testTaskName(name: String) = TaskName(TaskId(name), renderOperationMonikerWidget = {})
+    private fun testTaskName(name: String) = TaskName(TaskId(name), spec = TaskMonikerSpec.ProjectScoped(name))
 
     private inner class TestTask(
         val name: String,
@@ -260,5 +262,7 @@ class TaskExecutorTest {
         graph = graph,
         mode = mode,
         problemReporter = NoopProblemReporter,
+        globalEventSink = NoopEventSink,
+        eventSinkContributors = [],
     )
 }

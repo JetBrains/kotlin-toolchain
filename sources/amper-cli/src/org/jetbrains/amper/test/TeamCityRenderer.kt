@@ -12,6 +12,7 @@ import jetbrains.buildServer.messages.serviceMessages.TestFailed
 import jetbrains.buildServer.messages.serviceMessages.TestIgnored
 import jetbrains.buildServer.messages.serviceMessages.TestStdErr
 import jetbrains.buildServer.messages.serviceMessages.TestStdOut
+import org.jetbrains.amper.events.sink.EventSink
 import org.jetbrains.amper.testevents.TestDescriptor
 import org.jetbrains.amper.testevents.TestEvent
 import org.jetbrains.amper.testevents.TestFinished
@@ -41,7 +42,7 @@ import jetbrains.buildServer.messages.serviceMessages.TestSuiteStarted as TeamCi
  */
 internal class TeamCityRenderer(
     private val terminal: Terminal,
-) : TestEventRenderer {
+) : EventSink<TestEvent> {
     private val descriptors = mutableMapOf<TestId, TestDescriptor>()
     /**
      * This ID is added to the flow ID to guarantee the uniqueness of IDs across multiple runs under single CLI invocation.
@@ -50,7 +51,9 @@ internal class TeamCityRenderer(
      */
     private val testRunId = Uuid.random()
 
-    override fun render(event: TestEvent) {
+    override fun emit(event: TestEvent) = render(event)
+
+    private fun render(event: TestEvent) {
         when (event) {
             is TestSuiteStarted -> renderStarted(event.descriptor) { name, locationHint ->
                 TeamCitySuiteStarted(name).withPresentation(

@@ -11,6 +11,8 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
 import org.jetbrains.amper.cli.context.ProjectCliContext
+import org.jetbrains.amper.cli.events.TaskProgressWidgetEventSinkContributor
+import org.jetbrains.amper.cli.events.TestEventSinksContributor
 import org.jetbrains.amper.engine.TaskExecutor
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.tasks.AllRunSettings
@@ -43,6 +45,18 @@ internal suspend fun <T> withBackend(
 
     return coroutineScope {
         val backgroundScope = childScope("project background scope")
+
+        val eventSinkContributors = [
+            TaskProgressWidgetEventSinkContributor(
+                terminal = cliContext.terminal,
+                coroutineScope = backgroundScope,
+            ),
+            TestEventSinksContributor(
+                terminal = cliContext.terminal,
+                testRunSettings = runSettings,
+            ),
+        ]
+
         val backend = AmperBackend(
             context = cliContext,
             model = model,
@@ -51,7 +65,7 @@ internal suspend fun <T> withBackend(
             includePluginTasks = includePluginTasks,
             xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
             taskExecutionMode = taskExecutionMode,
-            backgroundScope = backgroundScope,
+            eventSinkContributors = eventSinkContributors,
         )
         try {
             spanBuilder("Run command with backend").use {

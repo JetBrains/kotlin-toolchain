@@ -4,9 +4,7 @@
 
 package org.jetbrains.amper.engine
 
-import com.github.ajalt.mordant.markdown.Markdown
-import com.github.ajalt.mordant.rendering.Theme
-import com.github.ajalt.mordant.table.HorizontalLayoutBuilder
+import org.jetbrains.amper.events.payload.TaskMonikerSpec
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
@@ -33,7 +31,7 @@ class TaskName(
      *
      * TODO: Maybe use Bundle here somehow?
      */
-    val renderOperationMonikerWidget: context(Theme) HorizontalLayoutBuilder.() -> Unit,
+    val spec: TaskMonikerSpec,
 )
 
 /**
@@ -49,11 +47,7 @@ fun TaskName(
     require(operationMoniker.isNotBlank()) { "blank `operationMoniker`" }
     return TaskName(
         id = TaskId(internalName),
-        renderOperationMonikerWidget = {
-            cell(Markdown(operationMoniker)) {
-                style(bold = true)
-            }
-        },
+        spec = TaskMonikerSpec.ProjectScoped(operationMoniker),
     )
 }
 
@@ -73,12 +67,10 @@ fun TaskName(
     require(operationMoniker.isNotBlank()) { "blank `operationMoniker`" }
     return TaskName(
         id = TaskId.moduleTask(module, internalName),
-        renderOperationMonikerWidget = {
-            renderModule(module)
-            cell(Markdown(operationMoniker)) {
-                style(bold = true)
-            }
-        },
+        spec = TaskMonikerSpec.ModuleScoped(
+            moduleName = module.userReadableName,
+            operationMoniker = operationMoniker,
+        ),
     )
 }
 
@@ -108,20 +100,13 @@ fun TaskName(
     val testSuffix = isTest.testSuffix
     return TaskName(
         id = TaskId.moduleTask(module, "${internalName}$uppercasePlatform$testSuffix$buildTypeSuffix$suffix"),
-        renderOperationMonikerWidget = {
-            renderModule(module)
-            val theme = contextOf<Theme>()
-
-            cell(Markdown(operationMoniker)) {
-                style(bold = true)
-            }
-
-            cell(theme.muted("[${platform.pretty}]"))
-            if (buildType != null) cell(theme.muted("[${buildType.value}]"))
-            // NOTE: We ignore suffix here
-
-            if (isTest) cell(theme.muted("for unit tests"))
-        }
+        spec = TaskMonikerSpec.CompilationScoped(
+            moduleName = module.userReadableName,
+            platform = platform.pretty,
+            isTest = isTest,
+            buildType = buildType?.value,
+            operationMoniker = operationMoniker,
+        ),
     )
 }
 
@@ -141,21 +126,10 @@ fun TaskName(
     require(operationMoniker.isNotBlank()) { "blank `operationMoniker`" }
     return TaskName(
         id = TaskId.moduleTask(fragment.module, "$internalName${fragment.name.doCapitalize()}"),
-        renderOperationMonikerWidget = {
-            renderModule(fragment.module)
-            val theme = contextOf<Theme>()
-            cell(Markdown(operationMoniker)) {
-                style(bold = true)
-            }
-            cell(theme.muted("[${fragment.name}]"))
-        }
+        spec = TaskMonikerSpec.FragmentScoped(
+            moduleName = fragment.module.userReadableName,
+            fragmentName = fragment.name,
+            operationMoniker = operationMoniker,
+        ),
     )
-}
-
-/**
- * Helper function to prefix the [TaskName.renderOperationMonikerWidget] with a [module].
- */
-context(theme: Theme)
-fun HorizontalLayoutBuilder.renderModule(module: AmperModule) {
-    cell(theme.muted("module ") + theme.info(module.userReadableName) + theme.muted(":"))
 }

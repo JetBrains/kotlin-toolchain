@@ -4,11 +4,11 @@
 
 package org.jetbrains.amper.cli
 
-import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.cli.context.ProjectCliContext
+import org.jetbrains.amper.cli.events.EventSinkContributors
+import org.jetbrains.amper.cli.events.createGlobalSink
 import org.jetbrains.amper.cli.options.UserJvmArgsOption
-import org.jetbrains.amper.cli.widgets.TaskProgressRenderer
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.GenerateKlibsForIdeTask
@@ -87,9 +87,10 @@ class AmperBackend(
      */
     val taskExecutionMode: TaskExecutor.Mode = TaskExecutor.Mode.FAIL_FAST,
     /**
-     * Background scope is terminated when project-related activities are finished (e.g., on Amper exit)
+     * [EventSinkContributors] that set up [org.jetbrains.amper.events.sink.EventSink]
+     * hierarchical structure for the build.
      */
-    val backgroundScope: CoroutineScope,
+    val eventSinkContributors: EventSinkContributors,
 ) {
     internal val taskGraph: TaskGraph by lazy {
         spanBuilder("Build task graph").useWithoutCoroutines {
@@ -105,13 +106,13 @@ class AmperBackend(
     }
 
     private val taskExecutor: TaskExecutor by lazy {
-        TaskExecutor(taskGraph, taskExecutionMode, context.problemReporter) {
-            TaskProgressRenderer(
-                terminal = context.terminal,
-                coroutineScope = backgroundScope,
-                executionPlan = it,
-            )
-        }
+        TaskExecutor(
+            graph = taskGraph,
+            mode = taskExecutionMode,
+            problemReporter = context.problemReporter,
+            globalEventSink = eventSinkContributors.createGlobalSink(),
+            eventSinkContributors = eventSinkContributors,
+        )
     }
 
     /**

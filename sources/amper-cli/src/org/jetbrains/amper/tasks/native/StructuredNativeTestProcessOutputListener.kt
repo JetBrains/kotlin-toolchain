@@ -19,8 +19,8 @@ import jetbrains.buildServer.messages.serviceMessages.TestStdErr
 import jetbrains.buildServer.messages.serviceMessages.TestStdOut
 import jetbrains.buildServer.messages.serviceMessages.TestSuiteFinished
 import jetbrains.buildServer.messages.serviceMessages.TestSuiteStarted
+import org.jetbrains.amper.events.sink.EventSink
 import org.jetbrains.amper.processes.output.ProcessOutputListener
-import org.jetbrains.amper.test.TestEventRenderer
 import org.jetbrains.amper.testevents.TestDescriptor
 import org.jetbrains.amper.testevents.TestEvent
 import org.jetbrains.amper.testevents.TestId
@@ -43,7 +43,7 @@ import org.jetbrains.amper.testevents.TestSuiteStarted as AmperTestSuiteStarted
  * that all tests run sequentially.
  */
 internal class StructuredNativeTestProcessOutputListener(
-    private val renderer: TestEventRenderer,
+    private val eventSink: EventSink<TestEvent>,
 ) : ProcessOutputListener {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -334,7 +334,7 @@ internal class StructuredNativeTestProcessOutputListener(
         return nonFlowIdStack.lastOrNull()
     }
 
-    private fun emit(event: TestEvent) = renderer.render(event)
+    private fun emit(event: TestEvent) = eventSink.emit(event)
 
     private fun TestId?.child(name: String): TestId = if (this != null) TestId("$value.$name") else TestId(name)
 

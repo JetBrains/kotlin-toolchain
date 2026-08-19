@@ -90,7 +90,7 @@ class MavenPublishTask(
          * > option has been removed. Details can be found in MINSTALL-143.
          */
         spanBuilder("Maven publish").use {
-            context(getPlexusContainer(executionContext)) {
+            context(getPlexusContainer()) {
                 if (targetRepository.isMavenLocal) {
                     installToMavenLocal(artifacts, localRepositoryPath)
                 } else {
@@ -181,10 +181,11 @@ class MavenPublishTask(
     companion object {
         private val plexusContainerCache = ConcurrentHashMap<String, PlexusContainer>()
 
-        suspend fun getPlexusContainer(executionContext: TaskGraphExecutionContext): PlexusContainer =
-            plexusContainerCache.getOrPut(executionContext.executionId) {
+        context(executionContext: TaskGraphExecutionContext)
+        suspend fun getPlexusContainer(): PlexusContainer =
+            plexusContainerCache.getOrPut(executionContext.executionUtils.executionId) {
                 createPlexusContainer().also { container ->
-                    executionContext.addPostGraphExecutionHook {
+                    executionContext.executionUtils.addPostGraphExecutionHook {
                         spanBuilder("Dispose of Maven's PlexusContainer").use {
                             container.dispose()
                         }

@@ -14,7 +14,7 @@ import jetbrains.buildServer.messages.serviceMessages.TestStdErr
 import jetbrains.buildServer.messages.serviceMessages.TestStdOut
 import jetbrains.buildServer.messages.serviceMessages.TestSuiteFinished
 import jetbrains.buildServer.messages.serviceMessages.TestSuiteStarted
-import org.jetbrains.amper.test.TestEventRenderer
+import org.jetbrains.amper.events.sink.EventSink
 import org.jetbrains.amper.testevents.TestDescriptor
 import org.jetbrains.amper.testevents.TestEvent
 import org.jetbrains.amper.testevents.TestId
@@ -165,11 +165,11 @@ class StructuredNativeTestProcessOutputListenerTest {
         )
     }
 
-    private class RecordingRenderer : TestEventRenderer {
+    private class RecordingRenderer : EventSink<TestEvent> {
         val events: List<TestEvent>
             field = mutableListOf()
 
-        override fun render(event: TestEvent) {
+        override fun emit(event: TestEvent) {
             events += event
         }
     }

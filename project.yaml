@@ -12,6 +12,7 @@ modules:
   - repository-restrictions
   - sources/amper-build-info
   - sources/amper-cli
+  - sources/amper-cli-widgets
   - sources/amper-compose-hot-reload
   - sources/amper-events
   - sources/amper-jdk-provisioning

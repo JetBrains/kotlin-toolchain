@@ -36,8 +36,6 @@ import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.test.FilterMode
-import org.jetbrains.amper.test.PrettyRenderer
-import org.jetbrains.amper.test.TeamCityRenderer
 import org.jetbrains.amper.test.TestFilter
 import org.jetbrains.amper.test.wildcardsToRegex
 import org.jetbrains.amper.util.BuildType
@@ -209,10 +207,7 @@ class JvmTestTask(
                     jvmArgs = finalJvmArgs,
                     environment = environment,
                     outputMode = ProcessOutputMode.listen(StructuredJUnitProcessOutputListener(
-                        renderer = when (runSettings.testResultsFormat) {
-                            TestResultsFormat.Pretty -> PrettyRenderer(terminal)
-                            TestResultsFormat.TeamCity -> TeamCityRenderer(terminal)
-                        },
+                        eventSink = executionContext.eventSink,
                     )),
                 )
 

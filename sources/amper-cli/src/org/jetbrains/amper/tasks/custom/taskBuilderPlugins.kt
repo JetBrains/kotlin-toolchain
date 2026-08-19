@@ -4,11 +4,9 @@
 
 package org.jetbrains.amper.tasks.custom
 
-import com.github.ajalt.mordant.markdown.Markdown
-import com.github.ajalt.mordant.rendering.Theme
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.engine.TaskName
-import org.jetbrains.amper.engine.renderModule
+import org.jetbrains.amper.events.payload.TaskMonikerSpec
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.plugins.TaskFromPluginDescription
@@ -23,14 +21,11 @@ import org.jetbrains.amper.tasks.getTaskName
 
 private fun TaskFromPluginDescription.taskName() = TaskName(
     id = backendTaskId,
-    renderOperationMonikerWidget = {
-        renderModule(enabledIn)
-        val theme = contextOf<Theme>()
-        cell(Markdown("running `$name`")) {
-            style(bold = true)
-        }
-        cell("from plugin '${pluginId.value}'") { style = theme.muted }
-    },
+    spec = TaskMonikerSpec.FromPlugin(
+        moduleName = enabledIn.userReadableName,
+        pluginId = pluginId.value,
+        name = name,
+    ),
 )
 
 fun ProjectTasksBuilder.setupTasksFromPlugins() {

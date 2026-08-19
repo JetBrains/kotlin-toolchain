@@ -4,9 +4,9 @@
 
 package org.jetbrains.amper.tasks.jvm
 
+import org.jetbrains.amper.events.sink.EventSink
 import org.jetbrains.amper.junit.event.JUnitEventProtocol
 import org.jetbrains.amper.processes.output.ProcessOutputListener
-import org.jetbrains.amper.test.TestEventRenderer
 import org.jetbrains.amper.testevents.TestDescriptor
 import org.jetbrains.amper.testevents.TestEvent
 import org.jetbrains.amper.testevents.TestFinished
@@ -29,8 +29,7 @@ import kotlin.time.Instant
  * Translates private JUnit records to Kotlin Toolchain events.
  */
 internal class StructuredJUnitProcessOutputListener(
-    // TODO: Introduce event bus and emit events there
-    private val renderer: TestEventRenderer,
+    private val eventSink: EventSink<TestEvent>,
 ) : ProcessOutputListener {
     override fun onStdoutLine(line: String, pid: Long) {
         JUnitEventProtocol.decode(line)?.let(::emit) ?: emit(TestStdoutEvent(null, "$line${System.lineSeparator()}"))
@@ -111,9 +110,9 @@ internal class StructuredJUnitProcessOutputListener(
         )
     }
 
-    private fun emit(event: JUnitEventProtocol.Event) = renderer.render(event.toTestEvent())
+    private fun emit(event: JUnitEventProtocol.Event) = eventSink.emit(event.toTestEvent())
 
-    private fun emit(event: TestEvent) = renderer.render(event)
+    private fun emit(event: TestEvent) = eventSink.emit(event)
 
     private fun JUnitEventProtocol.Location.toTestLocationHint(): TestLocationHint = when (this) {
         is JUnitEventProtocol.Location.Class -> TestLocationHint.Class(className)

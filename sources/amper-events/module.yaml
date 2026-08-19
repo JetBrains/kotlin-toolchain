@@ -5,3 +5,7 @@ description: Structured output events library for the Kotlin Toolchain.
 apply:
   - //sources/common.module-template.yaml
   - //sources/used-in-idea.module-template.yaml
+
+settings:
+  kotlin:
+    serialization: enabled

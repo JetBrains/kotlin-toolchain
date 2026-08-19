@@ -7,7 +7,7 @@ apply:
   - //sources/used-in-idea.module-template.yaml
 
 dependencies:
-  - //sources/amper-events
+  - //sources/amper-events: exported
   - //sources/libraries/serialization-extended
 
 settings:

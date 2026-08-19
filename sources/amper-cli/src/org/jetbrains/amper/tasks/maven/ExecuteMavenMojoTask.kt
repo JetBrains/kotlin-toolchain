@@ -141,7 +141,7 @@ class ExecuteMavenMojoTask(
 
         val mojoExecution = MojoExecution(
             /* mojoDescriptor = */ mojoDesc,
-            /* executionId = */ executionContext.executionId,
+            /* executionId = */ executionContext.executionUtils.executionId,
             /* source = */ MojoExecution.Source.CLI
         ).apply { configuration = configDom }
 

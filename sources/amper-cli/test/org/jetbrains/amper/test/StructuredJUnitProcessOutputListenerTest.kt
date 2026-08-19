@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.test
 
+import org.jetbrains.amper.events.sink.EventSink
 import org.jetbrains.amper.junit.event.JUnitEventProtocol
 import org.jetbrains.amper.tasks.jvm.StructuredJUnitProcessOutputListener
 import org.jetbrains.amper.testevents.TestDescriptor
@@ -26,7 +27,7 @@ class StructuredJUnitProcessOutputListenerTest {
     @Test
     fun `renders protocol output as test output events`() {
         val renderer = RecordingRenderer()
-        val listener = StructuredJUnitProcessOutputListener(renderer = renderer)
+        val listener = StructuredJUnitProcessOutputListener(eventSink = renderer)
 
         listener.onStdoutLine(JUnitEventProtocol.encode(JUnitEventProtocol.Event.TestStdout("test", "protocol stdout")), pid = 1)
         listener.onStderrLine(JUnitEventProtocol.encode(JUnitEventProtocol.Event.TestStderr("test", "protocol stderr")), pid = 1)
@@ -49,7 +50,7 @@ class StructuredJUnitProcessOutputListenerTest {
     @Test
     fun `preserves a report media type`() {
         val renderer = RecordingRenderer()
-        val listener = StructuredJUnitProcessOutputListener(renderer = renderer)
+        val listener = StructuredJUnitProcessOutputListener(eventSink = renderer)
 
         listener.onStdoutLine(
             JUnitEventProtocol.encode(
@@ -81,7 +82,7 @@ class StructuredJUnitProcessOutputListenerTest {
     @Disabled("Kotlin CLI needs to bootstrap to launch this test correctly. Otherwise, the old version of amper-junit-event-protocol classes added on the runtime take precedence.")
     fun `converts aborted and skipped protocol events`() {
         val renderer = RecordingRenderer()
-        val listener = StructuredJUnitProcessOutputListener(renderer = renderer)
+        val listener = StructuredJUnitProcessOutputListener(eventSink = renderer)
         val descriptor = TestDescriptor(TestId("test"), TestId("suite"), "Skipped test")
         val suiteDescriptor = TestDescriptor(TestId("suite"), null, "Skipped suite")
 
@@ -109,11 +110,11 @@ class StructuredJUnitProcessOutputListenerTest {
         )
     }
 
-    private class RecordingRenderer : TestEventRenderer {
+    private class RecordingRenderer : EventSink<TestEvent> {
         val events: List<TestEvent>
          field = mutableListOf()
 
-        override fun render(event: TestEvent) {
+        override fun emit(event: TestEvent) {
             events += event
         }
     }

@@ -42,7 +42,7 @@ class AmperBackendTest : AmperIntegrationTestBase() {
             context = cliContext,
             model = model,
             runSettings = AllRunSettings(),
-            backgroundScope = backgroundScope,
+            eventSinkContributors = [],
         )
     }
 

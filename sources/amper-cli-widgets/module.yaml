@@ -1,0 +1,12 @@
+product: jvm/lib
+
+apply:
+  - //sources/common.module-template.yaml
+  - //sources/can-have-pre-release-flags.module-template.yaml
+
+dependencies:
+  - //sources/amper-events
+  - //sources/amper-test-events
+  - $libs.kotlinx.coroutines.core
+  - $libs.mordant
+  - $libs.clikt.markdown
