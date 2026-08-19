@@ -28,7 +28,6 @@ enum class FrontendDiagnosticId : DiagnosticId {
     IncorrectSettingsSection,
     InvalidKotlinCompilerVersion,
     InvalidXmlForPlexusConfiguration,
-    JUnitRequiresHigherJdkVersion,
     JavaIncrementalCompilationRequiresJava16,
     JdkDistributionRequiresLicense,
     JdkVersionTooLow,
