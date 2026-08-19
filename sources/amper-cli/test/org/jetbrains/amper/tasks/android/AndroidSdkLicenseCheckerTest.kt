@@ -54,7 +54,7 @@ class AndroidSdkLicenseCheckerTest {
         val stateRoot = tempDir / "incremental-state"
         writeManifest(sdkRoot, "platforms/android-36", licenseId = "license-z")
         writeManifest(sdkRoot, "build-tools/36.0.0", licenseId = "license-a")
-        writeManifest(sdkRoot, "cmdline-tools/latest", licenseId = "license-a")
+        writeManifest(sdkRoot, "cmdline-tools/22.0", licenseId = "license-a")
         var parserInvocations = 0
         fun checker() = AndroidSdkLicenseChecker(
             androidSdkPath = sdkRoot,

@@ -9,9 +9,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.amper.processes.ProcessInput
-import org.jetbrains.amper.processes.output.ProcessOutputMode
-import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.ProcessResult
+import org.jetbrains.amper.processes.output.ProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
@@ -97,7 +97,7 @@ class AndroidTools(
 
     private fun findCmdlineToolScript(name: String): Path {
         val possibleBinDirs = listOf(
-            androidSdkHome / "cmdline-tools/latest/bin",
+            androidSdkHome / "cmdline-tools/22.0/bin",
             androidSdkHome / "cmdline-tools/bin",
             androidSdkHome / "tools/bin",
         )

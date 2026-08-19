@@ -26,7 +26,7 @@ class CheckAndroidSdkLicenseTask(
             .findUnacceptedSdkLicenseIds(incrementalCache)
         if (unacceptedLicenseIds.isNotEmpty()) {
             val licensesListText = unacceptedLicenseIds.joinToString("\n") { " - $it" }
-            val licensesCommand = "${androidSdkPath / "cmdline-tools" / "latest" / "bin" / "sdkmanager"} --licenses"
+            val licensesCommand = "${androidSdkPath / "cmdline-tools" / "22.0" / "bin" / "sdkmanager"} --licenses"
             userReadableError("Some licenses have not been accepted in the Android SDK:\n" +
                     "$licensesListText\n" +
                     "Run \"$licensesCommand\" to review and accept them")

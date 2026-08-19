@@ -512,7 +512,7 @@ private fun TaskGraphBuilder.setupAndroidCommandlineTools(
 ) {
     registerTask(
         GetAndroidPlatformFileFromPackageTask(
-            "cmdline-tools;latest",
+            "cmdline-tools;22.0", // TODO: Temporary keep cmdline tools to 22.0, as 23.0 has issue in our tests on Windows. This code is to be replaced soon anyway.
             androidSdkPath = androidSdkPath,
             userCacheRoot = userCacheRoot,
             AndroidTaskType.InstallCmdlineTools.getTaskName(module, Platform.ANDROID)

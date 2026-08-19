@@ -25,10 +25,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipFile
 import kotlin.io.path.div
-import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.pathString
-import kotlin.io.path.readText
-import kotlin.io.path.writeText
 
 internal object AndroidToolsInstaller {
 
@@ -48,7 +45,7 @@ internal object AndroidToolsInstaller {
     )
 
     private val toolsToInstall = listOf(
-        "cmdline-tools;latest", // the tests download the latest anyway, so we pre-download it to avoid 100% cache miss
+        "cmdline-tools;22.0", // Cmdline tools 23 has some problems on Windows. Considering this class is dropped soon, we can pin 22.
         "platform-tools",
         "platforms;android-31",
         "platforms;android-33",
@@ -141,9 +138,12 @@ internal object AndroidToolsInstaller {
         val commandLineToolsFilename = when (OsFamily.current) {
             OsFamily.Linux,
             OsFamily.FreeBSD,
-            OsFamily.Solaris -> "commandlinetools-linux-11076708_latest.zip"
-            OsFamily.MacOs -> "commandlinetools-mac-11076708_latest.zip"
-            OsFamily.Windows -> "commandlinetools-win-11076708_latest.zip"
+            OsFamily.Solaris -> "commandlinetools-linux-15859902_latest.zip"
+            OsFamily.MacOs -> when (Arch.current) {
+                Arch.X64 -> "commandlinetools-mac_x86_64-15859902_latest.zip"
+                Arch.Arm64 -> "commandlinetools-mac_arm64-15859902_latest.zip"
+            }
+            OsFamily.Windows -> "commandlinetools-win-15859902_latest.zip"
         }
         return Downloader.downloadFileToCacheLocation(
             url = "https://cache-redirector.jetbrains.com/dl.google.com/android/repository/$commandLineToolsFilename",
@@ -165,11 +165,6 @@ internal object AndroidToolsInstaller {
     }
 
     private suspend fun AndroidTools.installToolsAndAcceptLicenses() {
-        // Workaround for the SDK bug https://issuetracker.google.com/issues/391118558
-        // (cmdline-tools scripts fail on directories with spaces, which we use in our tests)
-        // We need to fix the scripts so we can use the sdkmanager to install the other required Android tools
-        fixQuotingInScripts(androidSdkHome / "cmdline-tools" / "bin")
-
         licensesToAccept.forEach { (name, hash) ->
             acceptLicense(name, hash)
         }
@@ -178,27 +173,6 @@ internal object AndroidToolsInstaller {
             suspendingRetryWithExponentialBackOff(backOffLimitMs = TimeUnit.MINUTES.toMillis(1)) {
                 installSdkPackage(packageName = tool, outputListener = PrefixPrintOutputListener("sdkmanager"))
             }
-            // We also need to fix the 'latest' cmdline-tools scripts after installation, because they will be used
-            // to install other packages, and used in tests as well
-            if (tool == "cmdline-tools;latest") {
-                fixQuotingInScripts(androidSdkHome / "cmdline-tools" / "latest/bin")
-            }
-        }
-    }
-
-    // Workaround for the SDK bug https://issuetracker.google.com/issues/391118558
-    // (cmdline-tools scripts fail on directories with spaces, which we use in our tests)
-    private fun fixQuotingInScripts(scriptsDir: Path) {
-        scriptsDir.listDirectoryEntries().forEach { script ->
-            val fixedContent = script
-                .readText()
-                .replace(Regex("""DEFAULT_JVM_OPTS='[^']*(?<!")\${"$"}APP_HOME(?!")[^']*'""")) { match ->
-                    match.value.replace("\$APP_HOME", "\"\$APP_HOME\"")
-                }
-                .replace(Regex("""(?<!")\${"$"}JAVACMD(?!")""")) { match ->
-                    match.value.replace("\$JAVACMD", "\"\$JAVACMD\"")
-                }
-            script.writeText(fixedContent)
         }
     }
 }

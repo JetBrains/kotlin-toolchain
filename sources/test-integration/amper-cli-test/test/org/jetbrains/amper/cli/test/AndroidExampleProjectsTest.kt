@@ -146,7 +146,7 @@ class AndroidExampleProjectsTest : AmperCliTestBase() {
             assertEmptyStdErr = false,
         )
 
-        val sdkManagerPath = androidSdkHome / "cmdline-tools/latest/bin/sdkmanager"
+        val sdkManagerPath = androidSdkHome / "cmdline-tools/22.0/bin/sdkmanager"
 
         // The missing license should be the one from the cmdline-tools, which is the only thing that was installed in
         // this empty SDK home. Since we install the latest version, we sometimes get the regular license and sometimes
@@ -205,7 +205,7 @@ class AndroidExampleProjectsTest : AmperCliTestBase() {
             )
 
             val extraPackageDir = androidSdkPath / "build-tools" / "amper-license-cache-test"
-            val sourcePackageManifest = androidSdkPath / "cmdline-tools" / "latest" / "package.xml"
+            val sourcePackageManifest = androidSdkPath / "cmdline-tools" / "22.0" / "package.xml"
             try {
                 sourcePackageManifest.copyTo((extraPackageDir / "package.xml").createParentDirectories())
                 val checkAfterAddingPackage = runAndroidSdkLicenseCheck(projectDir, environment)
@@ -254,9 +254,9 @@ class AndroidExampleProjectsTest : AmperCliTestBase() {
 
         // The license check only needs the command-line tools package manifest and the accepted-license files.
         // Copying these to a private SDK keeps this test from mutating the persistent SDK shared by concurrent tests.
-        val sourcePackageManifest = sourceAndroidSdkPath / "cmdline-tools" / "latest" / "package.xml"
+        val sourcePackageManifest = sourceAndroidSdkPath / "cmdline-tools" / "22.0" / "package.xml"
         sourcePackageManifest.copyTo(
-            (androidSdkPath / "cmdline-tools" / "latest" / "package.xml").createParentDirectories(),
+            (androidSdkPath / "cmdline-tools" / "22.0" / "package.xml").createParentDirectories(),
         )
         (sourceAndroidSdkPath / "licenses").copyToRecursively(
             target = androidSdkPath / "licenses",
