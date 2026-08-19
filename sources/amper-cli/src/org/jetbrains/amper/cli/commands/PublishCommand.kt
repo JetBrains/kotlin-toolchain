@@ -6,17 +6,20 @@ package org.jetbrains.amper.cli.commands
 
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.split
+import com.github.ajalt.clikt.parameters.options.multiple
+import com.github.ajalt.clikt.parameters.options.unique
 import org.jetbrains.amper.cli.context.ProjectCliContext
+import org.jetbrains.amper.cli.options.moduleOption
 import org.jetbrains.amper.cli.withBackend
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.aomBuilder.defaultMavenRepositories
 
 internal class PublishCommand : AmperModelAwareCommand(name = "publish") {
 
-    private val module by option("-m", "--modules", help = "The modules to publish, delimited by `,`. " +
-            "By default, the `publish` command will publish all possible modules").split(",")
+    private val modules by moduleOption(
+        help = "The module to publish. If unspecified, the `publish` command publishes all modules with enabled " +
+                "publication. This option can be repeated to publish multiple modules.",
+    ).multiple().unique()
 
     private val repositoryId by argument(
         "repository-id",
@@ -29,7 +32,7 @@ internal class PublishCommand : AmperModelAwareCommand(name = "publish") {
     override suspend fun run(cliContext: ProjectCliContext, model: Model) {
         withBackend(cliContext, model) { backend ->
             backend.publish(
-                modules = module?.toSet(),
+                modules = modules.takeIf { it.isNotEmpty() },
                 repositoryId = repositoryId,
             )
         }

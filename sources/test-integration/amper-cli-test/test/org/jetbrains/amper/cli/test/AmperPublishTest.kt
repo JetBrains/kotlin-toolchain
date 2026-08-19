@@ -567,7 +567,7 @@ class AmperPublishTest : AmperCliTestBase() {
 
         runCli(
             projectDir = testProject("jvm-publish-multimodule"),
-            "publish", "mavenLocal", "--modules=main-lib",
+            "publish", "mavenLocal", "--module=main-lib",
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
             configureAndroidHome = true,
         )
@@ -698,7 +698,7 @@ class AmperPublishTest : AmperCliTestBase() {
         // Publish 'main-lib' from project 'jvm-publish-multimodule' to mavenLocal
         runCli(
             projectDir = testProject("jvm-publish-multimodule"),
-            "publish", "mavenLocal", "--modules=main-lib",
+            "publish", "mavenLocal", "--module=main-lib",
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
             configureAndroidHome = true,
         )
@@ -746,7 +746,7 @@ class AmperPublishTest : AmperCliTestBase() {
         // Publish 'main-lib' from project 'jvm-publish-multimodule' to mavenLocal
         val result = runCli(
             projectDir = publishedProject,
-            "publish", "mavenLocal", "--modules=main-lib",
+            "publish", "mavenLocal", "--module=main-lib",
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
             configureAndroidHome = true,
         )
@@ -763,7 +763,7 @@ class AmperPublishTest : AmperCliTestBase() {
         // but publish artifact from previous run where it was built and cached)
         runCli(
             projectDir = publishedProject,
-            "publish", "mavenLocal", "--modules=main-lib",
+            "publish", "mavenLocal", "--module=main-lib",
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
             configureAndroidHome = true,
         )
