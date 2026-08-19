@@ -14,6 +14,7 @@ import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.options.UserJvmArgsOption
 import org.jetbrains.amper.cli.options.buildTypeOption
 import org.jetbrains.amper.cli.options.leafPlatformOption
+import org.jetbrains.amper.cli.options.moduleOption
 import org.jetbrains.amper.cli.options.userJvmArgsOption
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withBackend
@@ -32,7 +33,7 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
 
     // Note: we can't use patterns for test methods because JUnit Console Launcher only supports literals for this
     private val includeTestFilters by option("--include-test",
-        metavar = "TEST_FQN",
+        metavar = "<test_fqn>",
         help = """
             Only run the given test. The option can be repeated to run multiple specific tests.
             
@@ -49,7 +50,7 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
         .multiple()
 
     private val includeClassFilters by option("--include-classes",
-        metavar = "PATTERN",
+        metavar = "<pattern>",
         help = """
             Only run tests classes or suites matching the given pattern.
             The option can be repeated to include test classes matching any pattern (OR semantics).
@@ -67,7 +68,7 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
         .multiple()
 
     private val excludeClassFilters by option("--exclude-classes",
-        metavar = "PATTERN",
+        metavar = "<pattern>",
         help = """
             Do not run test classes or suites matching the given pattern.
             The option can be repeated to exclude test classes matching any pattern.
@@ -94,14 +95,12 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
         """.trimIndent()
     )
 
-    private val includeModules by option("-m", "--include-module",
-        metavar = "MODULE",
+    private val includeModules by moduleOption("-m", "--include-module",
         help = "Only run tests from the given module. The option can be repeated to run tests from several modules."
     ).multiple()
 
-    private val excludeModules by option(
+    private val excludeModules by moduleOption(
         "--exclude-module",
-        metavar = "MODULE",
         help = """
             Do not run tests from the given module. The option can be repeated to exclude several modules.
             
@@ -112,7 +111,6 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
 
     private val format by option(
         "--format",
-        metavar = "FORMAT",
         help = """
             The format to use for test results:
             - `pretty` is a human-readable format for local CLI runs

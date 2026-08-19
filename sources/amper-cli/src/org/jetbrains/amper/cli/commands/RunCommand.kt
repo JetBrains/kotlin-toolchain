@@ -20,6 +20,7 @@ import org.jetbrains.amper.cli.context.findProjectContext
 import org.jetbrains.amper.cli.options.UserJvmArgsOption
 import org.jetbrains.amper.cli.options.buildTypeOption
 import org.jetbrains.amper.cli.options.leafPlatformOption
+import org.jetbrains.amper.cli.options.moduleOption
 import org.jetbrains.amper.cli.options.userJvmArgsOption
 import org.jetbrains.amper.cli.project.preparePluginsAndReadModel
 import org.jetbrains.amper.cli.resolveModuleToRun
@@ -32,7 +33,9 @@ import kotlin.io.path.Path
 
 internal class RunCommand : AmperProjectAwareCommand(name = "run") {
 
-    private val module by option("-m", "--module", help = "Specific module to run (run the `show modules` command to get the modules list)")
+    private val module by moduleOption(
+        help = "Specific module to run (run the `show modules` command to get the modules list)",
+    )
 
     private val platform by leafPlatformOption(
         help = "Run the app on specified platform. This option is only necessary if the module has multiple main " +

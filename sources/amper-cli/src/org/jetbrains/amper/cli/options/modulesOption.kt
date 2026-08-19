@@ -17,10 +17,13 @@ internal const val ModuleOptionName = "--module"
  * [multiple][com.github.ajalt.clikt.parameters.options.multiple] modifier so it can be repeated by users.
  * For consistency, do not use comma-separated lists.
  */
-internal fun ParameterHolder.moduleOption(help: String): OptionWithValues<String?, String, String> = option(
-    "-m",
-    ModuleOptionName,
+internal fun ParameterHolder.moduleOption(
+    vararg names: String = ["-m", ModuleOptionName],
+    help: String,
+    metavar: String = "<module>",
+): OptionWithValues<String?, String, String> = option(
+    *names,
     help = help,
-    metavar = "<module>",
+    metavar = metavar,
     completionCandidates = ModuleCompletionCandidates,
 )
