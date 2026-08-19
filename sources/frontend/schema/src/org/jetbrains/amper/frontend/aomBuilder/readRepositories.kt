@@ -94,7 +94,7 @@ internal fun Module.readPublishRepositories(): List<PublicationRepository> =
         )
     }.distinctBy { it.id }
 
-private val defaultMavenRepositories = [
+val defaultMavenRepositories = [
     ResolutionRepository(
         id = "mavenCentral",
         url = MavenCentralDefaultConfiguration.url,
