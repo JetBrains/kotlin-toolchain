@@ -41,6 +41,26 @@ internal class AndroidSdkLicenseChecker(
                 .sorted()
         }
     }
+
+    /**
+     * Writes the license hash files for the given ids into the SDK's licenses
+     * directory — the same acceptance that `sdkmanager --licenses` performs.
+     * Only the listed licenses are accepted, never anything else. Returns the
+     * ids that were actually written (unknown ids are ignored).
+     */
+    fun acceptLicenses(ids: Set<String>): Set<String> {
+        val licensesById = findAndroidSdkPackageManifests(normalizedAndroidSdkPath)
+            .map(packageLicenseReader)
+            .associateBy { it.id }
+        val written = mutableSetOf<String>()
+        for (id in ids) {
+            val license = licensesById[id] ?: continue
+            if (license.setAccepted(normalizedAndroidSdkPath)) {
+                written += id
+            }
+        }
+        return written
+    }
 }
 
 internal fun findAndroidSdkPackageManifests(androidSdkPath: Path): Set<Path> = buildSet {

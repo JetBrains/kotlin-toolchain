@@ -13,12 +13,16 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.div
+import kotlin.io.path.exists
+import kotlin.io.path.isRegularFile
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.moveTo
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class AndroidSdkLicenseCheckerTest {
     @TempDir
@@ -70,6 +74,37 @@ class AndroidSdkLicenseCheckerTest {
         // Use a new cache instance, as a new CLI invocation would.
         assertEquals(listOf("license-a", "license-z"), checker().findUnacceptedLicenseIds())
         assertEquals(3, parserInvocations, "manifests must not be parsed on a cache hit")
+    }
+
+    @Test
+    fun `acceptLicenses writes the hash files for the given ids`() = runBlocking {
+        val sdkRoot = (tempDir / "sdk").also { it.createDirectories() }
+        writeManifest(sdkRoot, "platforms/android-36", licenseId = "license-a")
+        writeManifest(sdkRoot, "build-tools/36.0.0", licenseId = "license-b")
+        val checker = AndroidSdkLicenseChecker(
+            sdkRoot,
+            createIncrementalCache(),
+        ) { path -> path.readTestLicense() }
+
+        assertEquals(listOf("license-a", "license-b"), checker.findUnacceptedLicenseIds())
+
+        assertEquals(setOf("license-b"), checker.acceptLicenses(setOf("license-b")))
+        assertTrue((sdkRoot / "licenses" / "license-b").isRegularFile())
+        assertEquals(listOf("license-a"), checker.findUnacceptedLicenseIds())
+    }
+
+    @Test
+    fun `acceptLicenses ignores unknown ids and never writes unlisted licenses`() = runBlocking {
+        val sdkRoot = (tempDir / "sdk").also { it.createDirectories() }
+        writeManifest(sdkRoot, "platforms/android-36", licenseId = "license-a")
+        val checker = AndroidSdkLicenseChecker(
+            sdkRoot,
+            createIncrementalCache(),
+        ) { path -> path.readTestLicense() }
+
+        assertEquals(emptySet(), checker.acceptLicenses(setOf("license-unknown")))
+        assertFalse((sdkRoot / "licenses" / "license-a").exists())
+        assertEquals(listOf("license-a"), checker.findUnacceptedLicenseIds())
     }
 
     @Test

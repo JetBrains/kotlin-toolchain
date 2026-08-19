@@ -18,18 +18,30 @@ class CheckAndroidSdkLicenseTask(
     private val androidSdkPath: Path,
     private val userCacheRoot: AmperUserCacheRoot,
     private val incrementalCache: IncrementalCache,
+    private val acceptedLicenseIds: Set<String>,
     override val taskName: TaskName,
 ): Task {
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
-        val unacceptedLicenseIds = SdkInstallManager(userCacheRoot, androidSdkPath)
-            .findUnacceptedSdkLicenseIds(incrementalCache)
+        val installManager = SdkInstallManager(userCacheRoot, androidSdkPath)
+        val unacceptedLicenseIds = installManager.findUnacceptedSdkLicenseIds(incrementalCache)
         if (unacceptedLicenseIds.isNotEmpty()) {
-            val licensesListText = unacceptedLicenseIds.joinToString("\n") { " - $it" }
-            val licensesCommand = "${androidSdkPath / "cmdline-tools" / "latest" / "bin" / "sdkmanager"} --licenses"
-            userReadableError("Some licenses have not been accepted in the Android SDK:\n" +
-                    "$licensesListText\n" +
-                    "Run \"$licensesCommand\" to review and accept them")
+            // Licenses the user explicitly listed in settings.android.acceptedLicenses
+            // are accepted here (hash files written), like sdkmanager --licenses would.
+            val acceptedByUser = acceptedLicenseIds.intersect(unacceptedLicenseIds.toSet())
+            if (acceptedByUser.isNotEmpty()) {
+                installManager.acceptSdkLicenses(acceptedByUser, incrementalCache)
+            }
+            val remaining = installManager.findUnacceptedSdkLicenseIds(incrementalCache)
+            if (remaining.isNotEmpty()) {
+                val licensesListText = remaining.joinToString("\n") { " - $it" }
+                val licensesCommand = "${androidSdkPath / "cmdline-tools" / "latest" / "bin" / "sdkmanager"} --licenses"
+                userReadableError("Some licenses have not been accepted in the Android SDK:\n" +
+                        "$licensesListText\n" +
+                        "Run \"$licensesCommand\" to review and accept them, or list the licenses you " +
+                        "explicitly accept in module.yaml under settings.android.acceptedLicenses " +
+                        "(e.g. [android-sdk-license])")
+            }
         }
         return Result()
     }
