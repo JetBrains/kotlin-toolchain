@@ -1,0 +1,10 @@
+product:
+  type: ios/app
+  platforms: [ iosSimulatorArm64 ]
+
+dependencies:
+  - ../shared
+settings:
+  compose:
+    enabled: true
+    version: 1.7.0

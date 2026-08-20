@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Top bar title -->
+    <string name="history_title">History</string>
+
+    <!-- FAB label -->
+    <string name="fab_label">+</string>
+
+    <!-- Button text for file selection -->
+    <string name="select_file_button">Select File</string>
+
+    <!-- Default text for unknown file -->
+    <string name="unknown_file">Unknown File</string>
+
+    <!-- Placeholder for loading content -->
+    <string name="loading_content">Loading...</string>
+
+    <!-- Error message for file reading failure -->
+    <string name="file_reading_error">Failed to read file</string>
+
+    <!-- Permission denied toast message -->
+    <string name="permission_denied">Permission denied</string>
+</resources>

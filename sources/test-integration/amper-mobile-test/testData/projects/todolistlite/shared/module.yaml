@@ -1,0 +1,12 @@
+product:
+  type: lib
+  platforms: [jvm, android, iosSimulatorArm64]
+
+dependencies:
+  - $compose.foundation: exported
+  - $compose.material: exported
+  - org.jetbrains.compose.material:material-icons-core:1.7.3
+
+settings:
+  compose:
+    enabled: true

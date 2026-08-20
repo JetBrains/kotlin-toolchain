@@ -1,0 +1,15 @@
+product: android/app
+dependencies:
+  - androidx.appcompat:appcompat:1.7.0
+  - ../shared
+
+settings:
+  android:
+    applicationId: "com.recipeapp"
+    namespace: "com.recipeapp"
+  compose:
+    version: 1.7.0
+    enabled: true
+    resources:
+      packageName: "com.recipeapp"
+      exposedAccessors: true

@@ -1,0 +1,9 @@
+product: ios/app
+
+dependencies:
+  - $compose.foundation
+  - $compose.material3
+  - org.jetbrains.compose.material:material-icons-core:1.7.3
+
+settings:
+  compose: enabled

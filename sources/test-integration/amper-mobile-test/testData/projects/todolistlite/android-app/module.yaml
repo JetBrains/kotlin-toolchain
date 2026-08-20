@@ -1,0 +1,12 @@
+product: android/app
+dependencies:
+  - ../shared
+  - androidx.activity:activity-compose:1.7.2
+  - $compose.material
+  - androidx.appcompat:appcompat:1.6.1
+
+settings:
+  android:
+    applicationId: "org.jetbrains.todo"
+    namespace: "org.jetbrains.todo"
+  compose: enabled

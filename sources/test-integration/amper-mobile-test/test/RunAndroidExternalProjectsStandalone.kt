@@ -10,20 +10,20 @@ class RunAndroidExternalProjectsStandalone : AndroidBaseTest() {
 
     @Test
     fun kmptexterAppTest() = runInstrumentedTests(
-        projectSource = amperExternalProject("kmptxter"),
+        projectSource = testProject("kmptxter"),
         applicationId = "com.river.kmptxter",
     )
 
     @Test
     fun toDoListApp() = runInstrumentedTests(
-        projectSource = amperExternalProject("todolistlite"),
+        projectSource = testProject("todolistlite"),
         applicationId = "org.jetbrains.todo",
         androidAppModuleName = "android-app",
     )
 
     @Test
     fun recipeApp() = runInstrumentedTests(
-        projectSource = amperExternalProject("recipeapp"),
+        projectSource = testProject("recipeapp"),
         applicationId = "com.recipeapp",
         androidAppModuleName = "android-app",
     )

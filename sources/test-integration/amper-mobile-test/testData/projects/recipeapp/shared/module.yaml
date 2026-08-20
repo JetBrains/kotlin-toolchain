@@ -1,0 +1,22 @@
+product:
+  type: lib
+  platforms: [android, iosSimulatorArm64]
+
+dependencies:
+  - $compose.material: exported
+  - $compose.components.resources: exported
+  - $compose.runtime: exported
+  - $compose.foundation: exported
+  - $compose.material3: exported
+  - org.jetbrains.androidx.navigation:navigation-compose:2.7.0-alpha04: exported
+
+settings:
+  kotlin:
+    serialization: json
+  android:
+    minSdk: 24
+  compose:
+    enabled: true
+    version: 1.7.0
+    resources:
+      packageName: com.reciepeapp

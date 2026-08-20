@@ -85,13 +85,7 @@ open class TestBase : AmperCliWithWrapperTestBase() {
         println("Git repository '${repoUrl.substringAfterLast('/')}' successfully cloned to $cloneDestination")
     }
 
-    protected fun amperExternalProject(
-        name: String,
-    ) = ProjectSource.RemoteRepository(
-        cloneUrl = "ssh://git.jetbrains.team/amper/amper-external-projects.git",
-        cloneIntoDirName = "amper-external-projects",
-        projectRelativePath = Path(name),
-    )
+    protected fun testProject(name: String) = ProjectSource.Local(path = Path("testData/projects/$name"))
 
     /**
      * Where the test project is located and how to access it
