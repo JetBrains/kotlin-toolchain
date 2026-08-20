@@ -23,6 +23,7 @@ import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.readText
+import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
@@ -57,12 +58,12 @@ class DependencyFileTest: BaseDRTest() {
         }.also { context ->
             val dependency = MavenDependencyImpl(context.settings, "org.jetbrains.kotlin", "kotlin-test", "1.9.20")
             val extension = "module"
-            val name = "${getNameWithoutExtension(dependency)}.$extension"
+            val name = "${dependency.coordinates.getNameWithoutExtension()}.$extension"
             val target = gradleLocalRepository.getPath(dependency, name, "3bf4b49eb37b4aca302f99bd99769f6e310bdb2")
             target.parent.createDirectories()
             Path("testData/metadata/json/module/$name").copyTo(target)
 
-            val dependencyFile = getDependencyFile(dependency, getNameWithoutExtension(dependency), extension)
+            val dependencyFile = getDependencyFile(dependency, extension = extension)
             assertTrue(dependencyFile.getPath()!!.startsWith(gradleLocalPath) )
 
             val downloaded = dependencyFile.getPath()?.exists() == true
@@ -90,6 +91,65 @@ class DependencyFileTest: BaseDRTest() {
             dependency.downloadDependencies(context)
 
             dependency.verifyOwnMessages()
+        }
+    }
+
+    /**
+     * Gradle stores an artifact under the name declared in Gradle metadata, that name is used both for storing
+     * and for resolving files in this layout, even if DR uses the Gradle layout as its primary local storage.
+     */
+    @Test
+    fun `file with a name that differs from the file name in a repository is stored in gradle layout`() = runDrTest {
+        val gradleLocalRepository = gradleLocalRepository()
+        Context {
+            cache = {
+                amperCache = amperPath
+                localRepository = gradleLocalRepository
+                readOnlyExternalRepositories = emptyList()
+            }
+        }.also { context ->
+            val dependency = MavenDependencyImpl(context.settings, "org.jetbrains.kotlin", "kotlin-test", "1.9.20")
+
+            val content = "KMP metadata jar content"
+            val bytes = content.toByteArray()
+            val nameInMetadata = "kotlin-test-metadata-1.9.20.jar"
+            val fileNameInRepository = "kotlin-test-1.9.20.jar"
+            val variantFile = org.jetbrains.gradle.module.metadata.format.File(
+                name = nameInMetadata,
+                fileNameInRepository,
+                0,
+                computeHash("sha512", bytes).hash,
+                computeHash("sha256", bytes).hash,
+                sha1 = computeHash("sha1", bytes).hash,
+                computeHash("md5", bytes).hash,
+            )
+            dependency.variants = listOf(
+                org.jetbrains.gradle.module.metadata.format.Variant("", files = listOf(variantFile))
+            )
+
+            val dependencyFile = getDependencyFile(dependency, variantFile)
+            assertEquals(
+                fileNameInRepository, dependencyFile.fileName,
+                "DR names files after the name they have in a repository"
+            )
+
+            // store the file the same way downloading of it does
+            val target = gradleLocalRepository.getPath(dependency, dependencyFile.fileName, computeHash("sha1", bytes).hash)
+            assertEquals(
+                nameInMetadata, target.name,
+                "A file must be stored under the name declared in Gradle metadata"
+            )
+            target.parent.createDirectories()
+            target.writeText(content)
+
+            assertEquals(
+                target, dependencyFile.getPath(),
+                "The stored file must be resolved from the gradle layout afterwards"
+            )
+            assertTrue(
+                dependencyFile.isDownloadedWithVerification(settings = context.settings),
+                "The stored file must be resolved with a matching checksum, no re-download is expected"
+            )
         }
     }
 
@@ -154,7 +214,7 @@ class DependencyFileTest: BaseDRTest() {
     }
 
     /**
-     * Test checks that DR fails if library doesn't declare variant for required platform
+     * Test checks that DR fails if the library doesn't declare a variant for a required platform
      * 'org.jetbrains.skiko:skiko-awt-runtime-macos-arm64:0.8.22' depends on 'org.jetbrains.skiko:skiko-awt:0.8.22'
      * that define jvm-related variants only
      */
@@ -325,7 +385,7 @@ class DependencyFileTest: BaseDRTest() {
             val errors = dependency.messages.filter { it.severity == Severity.ERROR }
             assertTrue(errors.isEmpty(), "There must be no errors: $errors")
 
-            val dependencyFile = getDependencyFile(dependency, getNameWithoutExtension(dependency), "jar")
+            val dependencyFile = getDependencyFile(dependency, extension = "jar")
             assertTrue(dependencyFile.getPath()!!.startsWith(mavenLocalPath))
 
             val downloaded = dependencyFile.getPath()?.exists() == true
@@ -349,7 +409,7 @@ class DependencyFileTest: BaseDRTest() {
             MavenCoordinates("org.jetbrains.kotlinx", "kotlinx-coroutines-core-jvm", "1.8.0").toMavenNode(it)
         }
 
-        // 1. check that dependencies are resolved and downloaded sucessfully
+        // 1. check that dependencies are resolved and downloaded successfully
         val dependencyNode = getDependencyNode()
 
         Resolver().buildGraph(dependencyNode)
@@ -360,7 +420,7 @@ class DependencyFileTest: BaseDRTest() {
         Resolver().downloadDependencies(dependencyNode)
 
         val dependencyFile = DependencyFileImpl(
-            dependencyNode.dependency, getNameWithoutExtension(dependencyNode.dependency), "jar")
+            dependencyNode.dependency, dependencyNode.dependency.coordinates.getNameWithoutExtension(), "jar")
         val path = dependencyFile.getPath()!!
         assertTrue(path.startsWith(mavenLocalPath))
 
@@ -377,7 +437,7 @@ class DependencyFileTest: BaseDRTest() {
         // 3. Check that the previous downloading result is cached for the dependency
         Resolver().downloadDependencies(dependencyNode)
         assertTrue(dependencyNode.dependency.messages.none { it.severity == Severity.ERROR },
-            "There must be no errors because downloading result mucst have been cached: ${dependencyNode.dependency.messages}")
+            "There must be no errors because downloading result must have been cached: ${dependencyNode.dependency.messages}")
         val hasMatchingChecksumAfterCachedReDownloading = dependencyFile.isDownloadedWithVerification(settings = dependencyNode.context.settings)
         assertFalse(hasMatchingChecksumAfterCachedReDownloading, "Downloading result (the error) was cached for the MavenDependency, file was not re-downloaded")
 
@@ -413,7 +473,7 @@ class DependencyFileTest: BaseDRTest() {
 
             Resolver().downloadDependencies(dependencyNode)
 
-            val dependencyFile = getDependencyFile(dependencyNode.dependency, getNameWithoutExtension(dependencyNode.dependency), "module")
+            val dependencyFile = getDependencyFile(dependencyNode.dependency, extension = "module")
             val path = dependencyFile.getPath()!!
             assertTrue(path.startsWith(mavenLocalPath))
 
@@ -430,7 +490,7 @@ class DependencyFileTest: BaseDRTest() {
             val dependencyNodeDuplicate = MavenDependencyNodeWithContext(context,
                 MavenDependencyImpl(context.settings, "org.jetbrains.kotlinx", "kotlinx-coroutines-core-jvm", "1.7.3")
             )
-            val dependencyFileDuplicate = getDependencyFile(dependencyNodeDuplicate.dependency, getNameWithoutExtension(dependencyNodeDuplicate.dependency), "module")
+            val dependencyFileDuplicate = getDependencyFile(dependencyNodeDuplicate.dependency, extension = "module")
 
             // Check that the artifact was not successfully re-downloaded during LOCAL run
             Resolver().buildGraph(dependencyNodeDuplicate, level = ResolutionLevel.LOCAL)
@@ -463,7 +523,7 @@ class DependencyFileTest: BaseDRTest() {
             val errors = dependency.messages.filter { it.severity == Severity.ERROR }
             assertTrue(errors.isEmpty(), "There must be no errors: $errors")
 
-            val dependencyFile = getDependencyFile(dependency, "${getNameWithoutExtension(dependency)}-all", "jar")
+            val dependencyFile = getDependencyFile(dependency, "${dependency.coordinates.getNameWithoutExtension()}-all", "jar")
             assertTrue(dependencyFile.getPath()!!.startsWith(mavenLocalPath))
 
             val downloaded = dependencyFile.getPath()?.exists() == true
@@ -657,6 +717,46 @@ class DependencyFileTest: BaseDRTest() {
             assertEquals(setOf("commonMain"),
                 dependency.files().map { it.kmpSourceSet }.toSet(),
                 "Unexpected list of resolved source sets"
+            )
+        }
+    }
+
+    /**
+     * KMP resources are published as a separate variant for native, JS, and Wasm targets,
+     * they are resolved along with the main artifacts but are not a part of [MavenDependency.files].
+     */
+    @Test
+    fun `kmp resources of a library are resolved`() = runDrTest {
+        val kmpResourcesFileName = "calf-cupertino-icons-iosarm64-0.13.0-kotlin_resources.kotlin_resources.zip"
+        Context {
+            platforms = setOf(ResolutionPlatform.IOS_ARM64)
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL)
+            cache = {
+                amperCache = amperPath
+                localRepository = mavenLocalRepository()
+                readOnlyExternalRepositories = emptyList()
+            }
+        }.also { context ->
+            val dependency = MavenDependencyImpl(
+                context.settings,
+                "com.mohamedrejeb.calf", "calf-cupertino-icons-iosarm64", "0.13.0"
+            )
+            dependency.resolveChildren(context, ResolutionLevel.NETWORK)
+            dependency.downloadDependencies(context)
+            dependency.verifyOwnMessages()
+
+            assertEquals(
+                listOf(kmpResourcesFileName),
+                dependency.kmpResourcesFiles.map { it.fileName },
+                "KMP resources of the library must be resolved"
+            )
+            assertTrue(
+                dependency.kmpResourcesFiles.all { it.getPath()?.exists() == true },
+                "KMP resources of the library must be downloaded"
+            )
+            assertTrue(
+                dependency.files().none { it.fileName == kmpResourcesFileName },
+                "KMP resources must not be returned among the files of the library"
             )
         }
     }

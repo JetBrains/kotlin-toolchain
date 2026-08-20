@@ -820,12 +820,12 @@ class MavenDependencyImpl internal constructor(
 
     internal val moduleFile = getDependencyFile(
         dependency = this,
-        nameWithoutExtension = getNameWithoutExtension(this, withClassifier = false),
+        nameWithoutExtension = getMetadataFileNameWithoutExtension(),
         extension = "module"
     )
     private var moduleMetadata: Module? = null
     val pom = getDependencyFile(dependency = this,
-        nameWithoutExtension = getNameWithoutExtension(this, withClassifier = false),
+        nameWithoutExtension = getMetadataFileNameWithoutExtension(),
         extension = "pom"
     )
     private var pomText: String? = null
@@ -905,7 +905,7 @@ class MavenDependencyImpl internal constructor(
                         // file URL is reconstructed from coordinates, files belonging to selected variants are ignored.
                         val isDocumentationOrMetadata = classifier == "sources" || classifier == "javadoc"
                         val targetList = if (isDocumentationOrMetadata) documentationAndMetadataFiles else classpathFiles
-                        val nameWithoutExtension = getNameWithoutExtension(dependency)
+                        val nameWithoutExtension = dependency.coordinates.getNameWithoutExtension()
                         val actualPackagingType = coordinates.packagingType ?: "jar"
                         val extension = resolveArtifactExtension(actualPackagingType)
                         targetList.add(getDependencyFile(dependency, nameWithoutExtension, extension, isDocumentation = isDocumentationOrMetadata))
@@ -940,18 +940,17 @@ class MavenDependencyImpl internal constructor(
                         ?: pomPackagingType.value.takeIf { it != "pom" }
                         ?: "jar"
 
-                    // todo (AB): [KTC-5270]
-                    //  Packaging type might also imply classifier (if it is not specified explicitly yet)
-                    //  It might affect [getNameWithoutExtension] implementation
-                    //  See https://maven.apache.org/repositories/dependencies.html
-                    val nameWithoutExtension = getNameWithoutExtension(dependency)
-
                     val extension = resolveArtifactExtension(actualPackagingType)
 
                     // Library published with packaging type equal to 'pom' may or may not contain actual artifacts.
                     // We try to resolve the default artifact, but it is OK if it doesn't exist.
                     val isOptional = coordinates.packagingType == null && pomPackagingType.value == "pom"
-                    classpathFiles.add(getDependencyFile(dependency, nameWithoutExtension, extension, isOptional = isOptional))
+
+                    // todo (AB): [KTC-5270]
+                    //  Packaging type might also imply classifier (if it is not specified explicitly yet)
+                    //  It might affect coordinates and thus [getNameWithoutExtension] used in getDependencyFile by default
+                    //  See https://maven.apache.org/repositories/dependencies.html
+                    classpathFiles.add(getDependencyFile(dependency, extension = extension, isOptional = isOptional))
                     if (extension == "jar") {
                         documentationAndMetadataFiles.add(getAutoAddedSourcesDependencyFile())
                     }
@@ -1007,6 +1006,9 @@ class MavenDependencyImpl internal constructor(
             }
         }
     }
+
+    private fun getMetadataFileNameWithoutExtension() =
+        coordinates.copy(classifier = null).getNameWithoutExtension()
 
     private suspend fun resolve(context: Context, level: ResolutionLevel, transitive: Boolean) {
         try {

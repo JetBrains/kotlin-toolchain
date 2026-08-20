@@ -19,6 +19,7 @@ import org.jetbrains.amper.test.runTestRespectingDelays
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.fail
 import org.opentest4j.AssertionFailedError
+import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.util.*
 import kotlin.contracts.InvocationKind
@@ -432,5 +433,13 @@ abstract class BaseDRTest {
     private fun StringBuilder.ensureEndsWith(suffix: String = "/"): StringBuilder {
         if (!endsWith(suffix)) append(suffix)
         return this
+    }
+
+    protected fun computeHash(algorithm: String, data: ByteArray): Hasher {
+        val hashArgorithm = hashAlgorithms.singleOrNull { it.name == algorithm }
+            ?: error("hash algorithms sha1 is not available")
+        return Hasher(hashArgorithm).also {
+            it.writer.write(ByteBuffer.wrap(data))
+        }
     }
 }

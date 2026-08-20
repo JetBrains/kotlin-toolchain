@@ -7,6 +7,7 @@ package org.jetbrains.amper.dependency.resolution
 import org.jetbrains.amper.dependency.resolution.files.Writer
 import org.jetbrains.amper.dependency.resolution.files.computeHash
 import org.slf4j.LoggerFactory
+import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException

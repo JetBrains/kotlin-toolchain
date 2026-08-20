@@ -123,6 +123,8 @@ interface LocalRepository {
      * It can't return `null` as all necessary information must be available at a call site.
      *
      * Gradle uses a SHA1 hash as a part of a path.
+     *
+     * @name - file name used in repository URL (the one resolved from Gradle metadata [File.url] if any)
      */
     fun getPath(dependency: MavenDependencyImpl, name: String, sha1: String): Path
 
@@ -131,6 +133,8 @@ interface LocalRepository {
      * It can't return `null` as all necessary information must be available at a call site.
      *
      * Gradle uses a SHA1 hash as a part of a path.
+     *
+     * @name - file name used in repository URL (the one resolved from Gradle metadata [File.url] if any)
      */
     suspend fun getPath(dependency: MavenDependencyImpl, name: String, sha1: suspend () -> String): Path =
         getPath(dependency, name, sha1())
@@ -156,10 +160,20 @@ class GradleLocalRepository(internal val filesPath: Path) : LocalRepository {
 
     override fun guessPath(dependency: MavenDependencyImpl, name: String): Path? {
         val location = getLocation(dependency)
-        val pathFromVariant = fileFromVariant(dependency, name)?.let { location.resolve("${it.sha1}/${it.name}").normalize() }
-        if (pathFromVariant != null) return pathFromVariant.normalize()
-        if (!location.exists()) return null
-        return location.naiveSearchDepth2 { it.name == name }.firstOrNull()?.normalize()
+
+        val fileFromVariant = fileFromVariant(dependency, name)
+        val sha1FromVariant = fileFromVariant?.sha1?.takeIfSpecified()
+
+        if (sha1FromVariant != null) {
+            return location.resolve("$sha1FromVariant/${fileFromVariant.name}").normalize()
+        } else {
+            // The hash is not published, it is known from the content only,
+            // thus the path could be told for an already stored file only.
+            if (!location.exists()) return null
+
+            val fileName = fileFromVariant?.name ?: name
+            return location.naiveSearchDepth2 { it.name == fileName }.firstOrNull()?.normalize()
+        }
     }
 
     /**
@@ -182,7 +196,14 @@ class GradleLocalRepository(internal val filesPath: Path) : LocalRepository {
 
     override fun getPath(dependency: MavenDependencyImpl, name: String, sha1: String): Path {
         val location = getLocation(dependency)
-        return location.resolve(sha1).resolve(name)
+        // Files are stored in this layout under the name declared in Gradle metadata [File.name] (as Gradle itself does),
+        // and not under [name] that is the name of the file in the repository (those could differ,
+        // see [fileFromVariant]). Otherwise, such a file would not be found by [guessPath] afterward.
+        // Files that are not listed in Gradle metadata at all (pom, module, checksums, artifacts produced by Kotlin toolchain
+        // itself, everything resolved from pom.xml) keep [name], that is the name Gradle stores them under as well.
+        val fileName = fileFromVariant(dependency, name)?.name ?: name
+        // A directory is named exactly after the given hash (as Gradle itself does, see [guessPath]).
+        return location.resolve(sha1).resolve(fileName)
     }
 
     private fun getLocation(dependency: MavenDependencyImpl) =
@@ -243,7 +264,7 @@ private fun DependencyFileImpl.getHashDependencyFile(algorithm: HashAlgorithm) =
 
 fun getDependencyFile(
     dependency: MavenDependencyImpl,
-    nameWithoutExtension: String,
+    nameWithoutExtension: String = dependency.coordinates.getNameWithoutExtension(),
     extension: String,
     isDocumentation: Boolean = false,
     isAutoAddedDocumentation: Boolean = false,
@@ -981,12 +1002,10 @@ open class DependencyFileImpl(
 
     private suspend fun getHashFromGradleCacheDirectory(algorithm: HashAlgorithm) =
         if (getCacheDirectory() is GradleLocalRepository && algorithm.name == "sha1") {
-            getPath()?.parent?.name?.fixOldGradleHash(40)
+            getPath()?.parent?.name?.fixOldGradleHash(SHA1_HASH_LENGTH)
         } else {
             null
         }
-
-    private fun String.fixOldGradleHash(hashLength: Int) = takeIf { it != "null" }?.padStart(hashLength, '0')
 
     private suspend fun download(
         writers: Collection<Writer>,
@@ -1184,7 +1203,7 @@ open class DependencyFileImpl(
                     when (algorithm.name) {
                         "sha512" -> fileFromVariant(dependency, fileName)?.sha512?.fixOldGradleHash(128)
                         "sha256" -> fileFromVariant(dependency, fileName)?.sha256?.fixOldGradleHash(64)
-                        "sha1" -> fileFromVariant(dependency, fileName)?.sha1?.fixOldGradleHash(40)
+                        "sha1" -> fileFromVariant(dependency, fileName)?.sha1?.fixOldGradleHash(SHA1_HASH_LENGTH)
                         "md5" -> fileFromVariant(dependency, fileName)?.md5?.fixOldGradleHash(32)
                         else -> null
                     }
@@ -1544,15 +1563,51 @@ class SnapshotDependencyFileImpl(
     }
 }
 
-internal fun getNameWithoutExtension(node: MavenDependency, withClassifier: Boolean = true): String {
-    val moduleName = node.module
-    val versionSuffix = "-${node.version.orUnspecified()}"
-    val classifierSuffix = node.classifier?.takeIf { withClassifier }?.let { "-$it" } ?: ""
+internal fun MavenCoordinates.getNameWithoutExtension(): String {
+    val moduleName = artifactId
+    val versionSuffix = "-${version.orUnspecified()}"
+    val classifierSuffix = classifier?.let { "-$it" } ?: ""
     return "$moduleName$versionSuffix$classifierSuffix"
 }
 
-private fun fileFromVariant(dependency: MavenDependencyImpl, name: String) =
-    dependency.variants.flatMap { it.files }.singleOrNull { it.name == name }
+/**
+ *
+ * @param fileUrlPath a path to the file taken either from the actual URL or from [File.url] in Gradle metadata
+ *
+ * @return a Gradle metadata file record whose [File.url] matches given [fileUrlPath] (file name parts are the same)
+ * or `null` if there is no single matching record.
+ *
+ * Note that a variant file record could declare a [File.name]
+ * that differs from the name of the file in the repository (derived from the [File.url]),
+ * e.g., a KMP metadata jar or a KMP resources archive:
+ * ```
+ * "name": "calf-cupertino-icons-0.13.0.kotlin_resources.zip",
+ * "url": "calf-cupertino-icons-iosarm64-0.13.0-kotlin_resources.kotlin_resources.zip"
+ * ```
+ */
+private fun fileFromVariant(dependency: MavenDependencyImpl, fileUrlPath: String): File? {
+    val fileNameFromUrl = fileUrlPath.substringAfterLast("/")
+    return dependency.variants.flatMap { it.files }.singleOrNull { it.url.substringAfterLast("/") == fileNameFromUrl }
+}
+
+internal const val SHA1_HASH_LENGTH = 40
+
+private const val UNSPECIFIED_HASH = "null"
+
+/**
+ * Returns this hash or `null` if it declares no value:
+ * an old version of Gradle serialized an unspecified hash as the "null" string.
+ */
+private fun String.takeIfSpecified() = takeIf { it != UNSPECIFIED_HASH }
+
+/**
+ * Normalizes a hash to the full-length form it is compared in:
+ * Gradle formats hashes with leading zeros stripped, while a locally computed hash always has them.
+ *
+ * This is intended for comparing hash *values* only. A path in the Gradle layout is based on a hash the way
+ * Gradle formats it, i.e., with stripped leading zeros (see [GradleLocalRepository.guessPath]).
+ */
+private fun String.fixOldGradleHash(hashLength: Int) = takeIfSpecified()?.padStart(hashLength, '0')
 
 //// Ktor-based implementation of asynchronous reading from the ByteReadChannel and writing
 //// the received data to provided [writers]
