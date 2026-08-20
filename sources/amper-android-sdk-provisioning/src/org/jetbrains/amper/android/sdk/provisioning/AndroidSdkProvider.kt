@@ -157,8 +157,7 @@ class AndroidSdkProvider(
 
     context(_: ProblemReporter)
     private suspend fun installSystemImage(request: AndroidSdkPackageRequest.SystemImage): RepoPackage? {
-        val lockName =
-            "system-images;android-${request.apiLevel};${request.tag.value};${request.abi.repositoryValue}.lock"
+        val lockName = "system-images;android;${request.tag.value};${request.abi.repositoryValue}.lock"
         return packagesMutexGroup.withDoubleLock(sdkRoot / lockName) {
             val localPackage = request.findBestPackageLocally(sdkRoot)
             if (localPackage != null) {
@@ -298,18 +297,17 @@ class AndroidSdkProvider(
 
 private val RepoPackage.packagePath: PackagePath get() = PackagePath(path)
 
+private data class LocalSystemImage(val version: ComparableVersion, val servicesRoot: Path)
+
 private fun AndroidSdkPackageRequest.SystemImage.findBestPackageLocally(sdkHome: Path): Path? {
     val systemImagesHome = sdkHome / "system-images"
     if (!systemImagesHome.exists()) return null
 
-    val suitableEntries = systemImagesHome.listDirectoryEntries(glob = "android-$apiLevel*")
+    val acceptableVersion = ComparableVersion("$minimalAcceptableApiLevel")
+    val (servicesRoot) = systemImagesHome.listDirectoryEntries(glob = "android-*")
         .mapNotNull { imageRoot ->
-            if (
-                // Exact match
-                imageRoot.name != "android-$apiLevel" &&
-                // Match by exact major version (to avoid matches like android-30 matching for API level 3)
-                !imageRoot.name.startsWith("android-$apiLevel.")
-            ) return@mapNotNull null
+            val version = ComparableVersion(imageRoot.name.removePrefix("android-"))
+            if (version < acceptableVersion) return@mapNotNull null
 
             val acceptableTag = imageRoot.listDirectoryEntries()
                 .sortedBy { it.name } // Sort for consistent choice
@@ -322,14 +320,10 @@ private fun AndroidSdkPackageRequest.SystemImage.findBestPackageLocally(sdkHome:
                     (child / abi.repositoryValue).exists()
                 }
             if (acceptableTag == null) return@mapNotNull null
-            imageRoot to acceptableTag
+            LocalSystemImage(version, acceptableTag)
         }
-    val [_, acceptableTag] = suitableEntries.maxByOrNull { [imageRoot, _] ->
-        val versionComponent = imageRoot.name.substringAfter("android-")
-        ComparableVersion(versionComponent)
-    } ?: return null
-
-    return acceptableTag / abi.repositoryValue
+        .maxByOrNull { it.version } ?: return null
+    return servicesRoot / abi.repositoryValue
 }
 
 private fun AndroidSdkPackageRequest.SystemImage.findBestPackageRemotely(packages: List<RemotePackage>): PackagePath? {
@@ -338,11 +332,12 @@ private fun AndroidSdkPackageRequest.SystemImage.findBestPackageRemotely(package
         // We can't use channel as an indicator of stable package because beta packages are published to the stable channel
         if (remotePackage.path.contains("beta") || remotePackage.path.contains("dev")) return@filter false
 
-        typeDetails.apiLevel == apiLevel &&
+        // We want to download the latest available system image so that it's suitable for most of the projects later on
+        typeDetails.apiLevel >= minimalAcceptableApiLevel &&
                 typeDetails.abis.contains(abi.repositoryValue) &&
                 typeDetails.tags.map { it.id }.contains(tag.value)
     }.maxByOrNull { remotePackage ->
         val typeDetails = remotePackage.typeDetails as DetailsTypes.SysImgDetailsType // already filtered above
-        typeDetails.apiMinorLevel
+        ComparableVersion(typeDetails.apiLevelString)
     }?.packagePath
 }

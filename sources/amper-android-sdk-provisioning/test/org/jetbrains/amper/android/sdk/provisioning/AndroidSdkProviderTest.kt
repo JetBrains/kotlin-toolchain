@@ -81,7 +81,7 @@ class AndroidSdkProviderTest {
         @Test
         fun `system image`() = runTestWithMdc(timeout = 10.minutes) {
             val request = AndroidSdkPackageRequest.SystemImage(
-                apiLevel = 21, // the lowest API level with an arm64-v8a/x86_64 image, to keep the download small
+                minimalAcceptableApiLevel = 37,
                 tag = AndroidSdkPackageRequest.SystemImage.ServicesTag.GoogleApis,
                 abi = systemImageAbi,
             )
@@ -242,13 +242,13 @@ class AndroidSdkProviderTest {
     fun `system image display name includes abi, api level, and services tag`() = runTestWithMdc(timeout = 3.minutes) {
         val setup = createTestProvider()
         val request = AndroidSdkPackageRequest.SystemImage(
-            apiLevel = 9999,
+            minimalAcceptableApiLevel = 9999,
             tag = AndroidSdkPackageRequest.SystemImage.ServicesTag.GoogleApis,
             abi = AndroidSdkPackageRequest.SystemImage.ImageAbi.Arm64V8A,
         )
         val error = setup.assertErrorProvisioning(request)
         assertEquals(
-            "Failed to provision Android ARM64 system image for API level `9999` (Google APIs services)",
+            "Failed to provision Android ARM64 system image API level `9999+` (Google APIs services)",
             error,
         )
     }
@@ -256,7 +256,7 @@ class AndroidSdkProviderTest {
     @Test
     fun `system image is read from a local install without contacting the remote repository`() = runTestWithMdc(timeout = 10.minutes) {
         val request = AndroidSdkPackageRequest.SystemImage(
-            apiLevel = 21,
+            minimalAcceptableApiLevel = 37,
             tag = AndroidSdkPackageRequest.SystemImage.ServicesTag.GoogleApis,
             abi = systemImageAbi,
         )
@@ -270,6 +270,34 @@ class AndroidSdkProviderTest {
         assertTrue(
             setupB.spans(readRepositorySpanName("system-images")).isEmpty(),
             "an already-installed system image should be read locally without ever contacting the system images repository",
+        )
+    }
+
+    @Test
+    fun `system image with a lower minimum api level reuses a locally installed newer image`() = runTestWithMdc(timeout = 10.minutes) {
+        val setupA = createTestProvider(incrementalCacheStateRoot = tempDirExtension.path / "inc-a")
+        val installedPackage = setupA.assertSuccessProvisioning(
+            AndroidSdkPackageRequest.SystemImage(
+                minimalAcceptableApiLevel = 37,
+                tag = AndroidSdkPackageRequest.SystemImage.ServicesTag.GoogleApis,
+                abi = systemImageAbi,
+            ),
+        )
+
+        val setupB = createTestProvider(incrementalCacheStateRoot = tempDirExtension.path / "inc-b")
+        val reusedPackage = setupB.assertSuccessProvisioning(
+            AndroidSdkPackageRequest.SystemImage(
+                minimalAcceptableApiLevel = 35,
+                tag = AndroidSdkPackageRequest.SystemImage.ServicesTag.GoogleApis,
+                abi = systemImageAbi,
+            ),
+        )
+
+        assertEquals(installedPackage.packagePath, reusedPackage.packagePath)
+        assertEquals(1, setupB.spans(readLocalPackageSpanName).size)
+        assertTrue(
+            setupB.spans(readRepositorySpanName("system-images")).isEmpty(),
+            "a locally installed newer system image should satisfy a lower minimum API level without contacting the repository",
         )
     }
 
@@ -335,4 +363,3 @@ private fun downloadSpanName(packagePath: String) = "Download Android SDK packag
 private fun readRepositorySpanName(repositoryName: String) = "Read Android repository $repositoryName"
 private fun fetchRepositoryXmlSpanName(repositoryName: String) = "Fetch Android SDK $repositoryName repository XML list"
 private fun incrementalCacheRunSpanName(repositoryName: String) = "inc: run: android-$repositoryName"
-

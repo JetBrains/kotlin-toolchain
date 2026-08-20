@@ -73,13 +73,20 @@ sealed interface AndroidSdkPackageRequest {
             get() = AndroidSdkProvisioningBundle.message("build.tools.display.name", version)
     }
 
+    /**
+     * System image provisioning tries to avoid downloading (as those images are pretty big),
+     * so any local image that is __at least__ [minimalAcceptableApiLevel] will be preferred to downloading.
+     *
+     * If no local images matching this criterion were found, the __latest stable__ system image will be downloaded
+     * as it's the one that can be later reused in most projects.
+     */
     data class SystemImage(
-        val apiLevel: Int,
+        val minimalAcceptableApiLevel: Int,
         val tag: ServicesTag,
         val abi: ImageAbi,
     ) : AndroidSdkPackageRequest {
         init {
-            require(apiLevel >= 1) { "Android API level must be positive" }
+            require(minimalAcceptableApiLevel >= 1) { "Android API level must be positive" }
         }
 
         enum class ServicesTag(val value: String) {
@@ -101,7 +108,7 @@ sealed interface AndroidSdkPackageRequest {
                     ImageAbi.X86_64 -> "x86"
                     ImageAbi.Arm64V8A -> "ARM64"
                 },
-                apiLevel.toString(),
+                minimalAcceptableApiLevel.toString(),
                 when (tag) {
                     ServicesTag.GoogleApis -> "Google APIs"
                 },

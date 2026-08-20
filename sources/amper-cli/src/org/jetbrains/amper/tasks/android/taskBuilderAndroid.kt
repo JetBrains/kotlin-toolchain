@@ -457,7 +457,7 @@ private fun TaskGraphBuilder.setupDownloadSystemImageTask(
     isTest: Boolean,
 ) {
     val androidFragment = getAndroidFragment(module, isTest)
-    val versionNumber = androidFragment?.settings?.android?.targetSdk?.versionNumber ?: return
+    val targetSdk = androidFragment?.settings?.android?.targetSdk?.versionNumber ?: return
     val abi = if (Arch.current == Arch.X64) {
         AndroidSdkPackageRequest.SystemImage.ImageAbi.X86_64
     } else {
@@ -466,7 +466,8 @@ private fun TaskGraphBuilder.setupDownloadSystemImageTask(
     registerTask(
         GetAndroidPlatformFileFromPackageTask(
             AndroidSdkPackageRequest.SystemImage(
-                apiLevel = versionNumber,
+                // By default, anything that is higher than target SDK is good enough to run the app with
+                minimalAcceptableApiLevel = targetSdk,
                 tag = AndroidSdkPackageRequest.SystemImage.ServicesTag.GoogleApis,
                 abi = abi
             ),
