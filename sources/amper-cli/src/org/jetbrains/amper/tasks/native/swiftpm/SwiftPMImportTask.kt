@@ -95,6 +95,7 @@ internal class SwiftPMImportTask(
     private val fetchedPackage by internalFetchedPackage(module)
     private val generatedPackage by generatedPackage<InternalSwiftPMImportPackage>(module)
     private val localPackageInputsArtifact by localPackageInputs(module)
+    private val swiftPMDependenciesArtifact by swiftPMDependenciesArtifact(module)
 
     // We only want to generate def files and make cinterops run if we have direct SwiftPM dependencies
     private val cinteropArtifacts by if (module.hasDirectSwiftPMDependencies()) {
@@ -312,6 +313,7 @@ internal class SwiftPMImportTask(
             key = "package-dump-${module.userReadableName}-${platform.sdk}",
             inputValues = mapOf(
                 "archs" to targetFragments.map { it.platform.clangArch }.sorted().joinToString(","),
+                "packageGraph" to swiftPMJson.encodeToString(swiftPMDependenciesArtifact.swiftPMDependencies),
             ),
             inputFiles = listOf(
                 /**

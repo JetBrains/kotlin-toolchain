@@ -8,6 +8,10 @@ let package = Package(
             name: "packageProduct",
             targets: ["ObjCCompatibleSwiftTarget"]
         ),
+        .library(
+            name: "packageProduct2",
+            targets: ["AnotherTarget"]
+        ),
     ],
     targets: [
         .target(
@@ -18,6 +22,9 @@ let package = Package(
         ),
         .target(
              name: "ObjCTarget"
-        )
+        ),
+        .target(
+            name: "AnotherTarget"
+        ),
     ]
 )

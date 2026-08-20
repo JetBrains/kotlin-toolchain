@@ -418,6 +418,85 @@ open class SwiftPMImportTests : IOSBaseTest() {
     }
 
     @Test
+    fun `KTC-5746 - test incremental product changes invalidate cinterops`() = runBlocking {
+        val project = copyProjectToTempDir(ProjectSource.Local(Dirs.amperTestProjectsRoot / "swiftpm-integration-tests/direct-local-swiftpm-dependency"))
+
+        suspend fun dumpImportedClasses(): List<String> {
+            val inputKlib = project.resolve("build/generated/direct-local-swiftpm-dependency/iosSimulatorArm64/cinterop/direct-local-swiftpm-dependency-cinterop-direct-local-swiftpm-dependency_swiftPMImport.klib")
+            val outputDump = project.resolve("outputDump")
+            runAmper(
+                workingDir = project,
+                args = listOf("build"),
+            )
+            runAmper(
+                workingDir = project,
+                args = listOf("task", ":direct-local-swiftpm-dependency:dumpKlib"),
+                environment = baseEnvironmentForWrapper() + mapOf(
+                    "INPUT_KLIB" to inputKlib.pathString,
+                    "OUTPUT_DUMP" to outputDump.pathString,
+                ),
+            )
+            return outputDump.useLines {
+                it.filter { "<init>" in it }.toList()
+            }
+        }
+
+        project.resolve("module.yaml").writeText(
+            """
+                product: 
+                  type: kmp/lib
+                  platforms: [iosSimulatorArm64]
+
+                dependencies:
+                  - localSwiftPackage:
+                      path: "packageDependency"
+                      products: [ "packageProduct" ]
+                
+                settings:
+                  kotlin:
+                    version: "2.4.0"
+            """.trimIndent()
+        )
+        assertEquals(
+            listOf(
+                "swiftPMImport.direct.local.swiftpm.dependency/ObjCCompatibleSwift.<init>|objc:init#Constructor[100]",
+                "swiftPMImport.direct.local.swiftpm.dependency/ObjCCompatibleSwiftMeta.<init>|<init>(){}[100]",
+                "swiftPMImport.direct.local.swiftpm.dependency/ObjCTarget.<init>|objc:init#Constructor[100]",
+                "swiftPMImport.direct.local.swiftpm.dependency/ObjCTargetMeta.<init>|<init>(){}[100]",
+            ),
+            dumpImportedClasses(),
+        )
+
+        project.resolve("module.yaml").writeText(
+            """
+                product: 
+                  type: kmp/lib
+                  platforms: [iosSimulatorArm64]
+
+                dependencies:
+                  - localSwiftPackage:
+                      path: "packageDependency"
+                      products: [ "packageProduct", "packageProduct2" ]
+                
+                settings:
+                  kotlin:
+                    version: "2.4.0"
+            """.trimIndent()
+        )
+        assertEquals(
+            listOf(
+                "swiftPMImport.direct.local.swiftpm.dependency/AnotherTarget.<init>|objc:init#Constructor[100]",
+                "swiftPMImport.direct.local.swiftpm.dependency/AnotherTargetMeta.<init>|<init>(){}[100]",
+                "swiftPMImport.direct.local.swiftpm.dependency/ObjCCompatibleSwift.<init>|objc:init#Constructor[100]",
+                "swiftPMImport.direct.local.swiftpm.dependency/ObjCCompatibleSwiftMeta.<init>|<init>(){}[100]",
+                "swiftPMImport.direct.local.swiftpm.dependency/ObjCTarget.<init>|objc:init#Constructor[100]",
+                "swiftPMImport.direct.local.swiftpm.dependency/ObjCTargetMeta.<init>|<init>(){}[100]",
+            ),
+            dumpImportedClasses(),
+        )
+    }
+
+    @Test
     fun `test incremental static linkage and test runs on iOS Simulator and macOS`() = runBlocking {
         testIncrementalLinkageAndIncrementalTestRuns("static")
     }
