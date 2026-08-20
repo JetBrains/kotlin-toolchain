@@ -13,7 +13,6 @@ import com.github.ajalt.mordant.table.horizontalLayout
 import com.github.ajalt.mordant.table.verticalLayout
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.ProgressBar
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
 import kotlin.time.Duration.Companion.seconds
 
@@ -41,37 +40,38 @@ internal fun BuildState.render(): Widget = verticalLayout {
             append(theme.muted(" / $totalTasksCount tasks"))
         })
     })
-    testStatistics?.run {
-        val visibleCounters = buildList {
-            add(theme.success("$succeeded passed"))
-            if (skipped > 0) add(theme.warning("$skipped skipped"))
-            if (failed > 0) add(theme.danger("$failed failed"))
-        }
-        cell(buildString {
-            append("Tests: ")
-            visibleCounters.joinTo(this, separator = theme.muted(" • "))
-        })
-    }
-
+    testStatistics?.let { cell(it.render()) }
     val maxTasksOnScreen = terminal.size.height / 3
 
     appendEntries(
         entries = taskStates.values.filter { it.shown },
-        remainingLineBudget = AtomicInteger(maxTasksOnScreen),
+        remainingLineBudget = LineBudget(maxTasksOnScreen),
     )
 }
 
 context(terminal: Terminal)
-internal fun VerticalLayoutBuilder.appendEntries(
+internal fun TestStatistics.render(): String = buildString {
+    val theme = terminal.theme
+    val visibleCounters = buildList {
+        add(theme.success("$succeeded passed"))
+        if (skipped > 0) add(theme.warning("$skipped skipped"))
+        if (failed > 0) add(theme.danger("$failed failed"))
+    }
+    append("Tests: ")
+    visibleCounters.joinTo(this, separator = theme.muted(" • "))
+}
+
+context(terminal: Terminal)
+private fun VerticalLayoutBuilder.appendEntries(
     entries: Collection<StatusEntryState>,
-    remainingLineBudget: AtomicInteger,
+    remainingLineBudget: LineBudget,
     indent: List<String> = [],
 ) {
     val theme = terminal.theme
     val isTopLevel = indent.isEmpty()
     entries.forEachIndexed { i, (renderedMoniker, childEntries, elapsed, ticks) ->
         val remaining = entries.size - i
-        if (remainingLineBudget.get() <= 0
+        if (remainingLineBudget.value <= 0
             && remaining > 1  // no sense in replacing one real line with the '(+1 more)' line, might as well print it
         ) {
             val cutoffText = "(+$remaining more)"
@@ -84,7 +84,7 @@ internal fun VerticalLayoutBuilder.appendEntries(
             return
         }
 
-        remainingLineBudget.decrementAndGet()
+        remainingLineBudget.value--
 
         val isLast = i == entries.size - 1
         cell(buildString {
@@ -119,5 +119,7 @@ internal fun VerticalLayoutBuilder.appendEntries(
         )
     }
 }
+
+private data class LineBudget(var value: Int)
 
 private val SpinnerFrames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]

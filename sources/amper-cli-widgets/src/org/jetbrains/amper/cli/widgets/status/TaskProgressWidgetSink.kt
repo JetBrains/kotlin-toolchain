@@ -8,13 +8,11 @@ import com.github.ajalt.mordant.animation.animation
 import com.github.ajalt.mordant.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import org.jetbrains.amper.cli.widgets.PlatformProgressReporter
+import org.jetbrains.amper.cli.widgets.TerminalCursorManager
 import org.jetbrains.amper.events.BuildScopedEvent
 import org.jetbrains.amper.events.GlobalScopedEvent
 import org.jetbrains.amper.events.OperationId
@@ -57,22 +55,29 @@ class TaskProgressWidgetSink(
         val statusEntryState: StatusEntryState,
     )
 
+    private val cursor = TerminalCursorManager(terminal)
     private val platformProgressReporter = PlatformProgressReporter(terminal)
-    private var cursorHidden = false
     private var buildState: BuildState? = null
     private val testTrackingStates: MutableMap<TestId, TestTrackingState> = mutableMapOf()
-    private val updateTicks = Channel<Unit>()
 
     private val theme get() = terminal.theme
+
+    private val animation = terminal.animation<BuildState> { state ->
+        state.render(terminal = terminal)
+    }
 
     init {
         // IMPORTANT: We use mutable non-synchronized state, so we ensure the access is single-threaded.
         coroutineScope.launch(Dispatchers.IO.limitedParallelism(1)) {
             launch {  // Job: listen to events, update the state and trigger animation updates
-                for (event in events) {
-                    if (handleGlobalEvent(event)) {
-                        triggerWidgetUpdate()
+                try {
+                    for (event in events) {
+                        if (handleGlobalEvent(event)) {
+                            updateWidget()
+                        }
                     }
+                } finally {
+                    hideAnimation()
                 }
             }
 
@@ -88,47 +93,9 @@ class TaskProgressWidgetSink(
                 while (true) {
                     buildState?.let {
                         updateOperations(it.taskStates.values)
-                        triggerWidgetUpdate()
+                        updateWidget()
                     }
                     delay(100.milliseconds)
-                }
-            }
-
-            launch {  // Job: listen to update triggers and render the animated widget
-                val animation = terminal.animation<BuildState> { state ->
-                    state.render(terminal = terminal)
-                }
-
-                fun hideAnimation() {
-                    ensureCursorShown()
-                    animation.clear()
-                    platformProgressReporter.update(PlatformProgressReporter.Progress.Hidden)
-                }
-
-                try {
-                    @OptIn(FlowPreview::class)
-                    updateTicks.consumeAsFlow().debounce(30.milliseconds).collect {
-                        val state = buildState
-                        // Clear the widget if no build is active
-                        // or any task requires interactive access to the terminal
-                        if (state == null || state.taskStates.values.any { it.isInteractive }) {
-                            // Quick-fix: before the `RunTask` implementors are properly refactored to not be tasks,
-                            // we simply cancel the widget to not mess with the potentially interactive processes
-                            // that are launched from the task.
-                            hideAnimation()
-                        } else {
-                            ensureCursorHidden()
-                            animation.update(state)
-
-                            platformProgressReporter.update(
-                                state = PlatformProgressReporter.Progress.Percentage(
-                                    ratio = state.completeTasksCount.toFloat() / state.totalTasksCount,
-                                )
-                            )
-                        }
-                    }
-                } finally {
-                    hideAnimation()
                 }
             }
         }
@@ -145,7 +112,9 @@ class TaskProgressWidgetSink(
             true
         }
         is GlobalScopedEvent.BuildFinished -> {
-            check(buildState?.buildId == event.id) { "Invalid $event: no such build" }
+            val finishedBuild = buildState
+            check(finishedBuild?.buildId == event.id) { "Invalid $event: no such build" }
+            printEpilogue(finishedBuild)
             buildState = null
             true
         }
@@ -170,7 +139,7 @@ class TaskProgressWidgetSink(
                 delay(200.milliseconds)
                 state.taskStates[event.id]?.let {
                     it.shown = true
-                    triggerWidgetUpdate()
+                    updateWidget()
                 }
             }
             // If interactive - update immediately to hide the widget
@@ -260,21 +229,36 @@ class TaskProgressWidgetSink(
         }
     }
 
-    private suspend fun triggerWidgetUpdate() {
-        updateTicks.send(Unit)
-    }
+    private fun updateWidget() {
+        val state = buildState
+        // Clear the widget if no build is active
+        // or any task requires interactive access to the terminal
+        if (state == null || state.taskStates.values.any { it.isInteractive }) {
+            // Quick-fix: before the `RunTask` implementors are properly refactored to not be tasks,
+            // we simply cancel the widget to not mess with the potentially interactive processes
+            // that are launched from the task.
+            hideAnimation()
+        } else {
+            cursor.ensureHidden()
+            animation.update(state)
 
-    private fun ensureCursorHidden() {
-        if (!cursorHidden) {
-            terminal.cursor.hide(showOnExit = true)
-            cursorHidden = true
+            platformProgressReporter.update(
+                state = PlatformProgressReporter.Progress.Percentage(
+                    ratio = state.completeTasksCount.toFloat() / state.totalTasksCount,
+                )
+            )
         }
     }
 
-    private fun ensureCursorShown() {
-        if (cursorHidden) {
-            terminal.cursor.show()
-            cursorHidden = false
+    private fun hideAnimation() {
+        animation.clear()
+        cursor.ensureShown()
+        platformProgressReporter.update(PlatformProgressReporter.Progress.Hidden)
+    }
+
+    private fun printEpilogue(state: BuildState) {
+        state.testStatistics?.let {
+            terminal.println(it.render(terminal = terminal))
         }
     }
 
