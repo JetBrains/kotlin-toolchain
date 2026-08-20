@@ -86,13 +86,25 @@ private class PlatformProgressReporterImpl(
     /* we don't use Terminal here for now. See TO-DO below */
 ) : PlatformProgressReporter {
 
-    override fun update(state: Progress) {
-        if (state is Progress.Hidden) {
-            ensureRestHookUninstalled()
-        } else {
-            ensureResetHookInstalled()
+    override fun update(state: Progress): Unit = synchronized(StateHolder) {
+        if (isShutdown) return
+
+        if (currentState != state) {
+            doUpdate(state)
+            currentState = state
+
+            if (state is Progress.Hidden) {
+                resetHook?.let(Runtime.getRuntime()::removeShutdownHook)
+                resetHook = null
+            } else {
+                if (resetHook == null) {
+                    resetHook = Thread {
+                        synchronized(StateHolder) { isShutdown = true }
+                        doUpdate(Progress.Hidden)
+                    }.also(Runtime.getRuntime()::addShutdownHook)
+                }
+            }
         }
-        doUpdate(state)
     }
 
     private fun doUpdate(state: Progress) {
@@ -101,24 +113,7 @@ private class PlatformProgressReporterImpl(
         //  TODO: figure out why/report issue?
         @Suppress("ReplacePrintlnWithLogging")
         print("${OSC}9;4;${codeOf(state)}$ST")
-    }
-
-    private fun ensureRestHookUninstalled() {
-        synchronized(HookHolder) {
-            resetHook?.let(Runtime.getRuntime()::removeShutdownHook)
-            resetHook = null
-        }
-    }
-
-    private fun ensureResetHookInstalled() {
-        synchronized(HookHolder) {
-            if (resetHook == null) {
-                resetHook = Thread {
-                    doUpdate(Progress.Hidden)
-                    System.out.flush()  // Need to ensure this gets to the STDOUT without the `\n`.
-                }.also(Runtime.getRuntime()::addShutdownHook)
-            }
-        }
+        System.out.flush()  // Need to ensure this gets to the STDOUT without the `\n`.
     }
 
     private fun codeOf(state: Progress): String {
@@ -133,7 +128,9 @@ private class PlatformProgressReporterImpl(
         }
     }
 
-    private companion object HookHolder {
+    private companion object StateHolder {
+        private var currentState: Progress? = null
+        private var isShutdown = false
         private var resetHook: Thread? = null
     }
 }
