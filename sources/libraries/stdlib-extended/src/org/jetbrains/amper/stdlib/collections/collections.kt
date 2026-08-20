@@ -121,3 +121,9 @@ inline fun <T> Collection<T>.forEachEndAware(block: (isLast: Boolean, item: T) -
     forEachIndexed { index, item ->
         block(index == size - 1, item)
     }
+
+/**
+ * Applies the filter defined by the given [predicate] if [condition] is true, otherwise returns this collection as-is.
+ */
+inline fun <T> Collection<T>.filterIf(condition: Boolean, predicate: (T) -> Boolean): Collection<T> =
+    if (condition) filter(predicate) else this

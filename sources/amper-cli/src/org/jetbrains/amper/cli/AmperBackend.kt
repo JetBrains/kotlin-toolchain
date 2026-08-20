@@ -5,6 +5,7 @@
 package org.jetbrains.amper.cli
 
 import org.jetbrains.amper.buildinfo.AmperBuild
+import org.jetbrains.amper.cli.apprun.RunTarget
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.events.EventSinkContributors
 import org.jetbrains.amper.cli.events.createGlobalSink
@@ -32,9 +33,8 @@ import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.plugins.CustomCommandFromPlugin
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.system.info.Arch
+import org.jetbrains.amper.stdlib.collections.filterIf
 import org.jetbrains.amper.system.info.OsFamily
-import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.CinteropGenSettings
 import org.jetbrains.amper.tasks.CommonTaskType
@@ -55,6 +55,7 @@ import org.jetbrains.amper.tasks.jvm.JvmHotRunTask
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.useWithoutCoroutines
 import org.jetbrains.amper.util.BuildType
+import org.jetbrains.amper.util.currentHostRunnablePlatforms
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -283,14 +284,14 @@ class AmperBackend(
         moduleNamesToCheck.forEach { model.getModuleByName(it) }
 
         requestedPlatforms
-            ?.filter { it !in runnablePlatforms }
+            ?.filter { it !in currentHostRunnablePlatforms }
             ?.takeIf { it.isNotEmpty() }
             ?.let { unsupportedPlatforms ->
                 val message = """
                     Unable to run requested platform(s) on the current system.
                     
                     Requested unsupported platforms: ${formatPlatforms(unsupportedPlatforms)}
-                    Runnable platforms on the current system: ${formatPlatforms(runnablePlatforms)}
+                    Runnable platforms on the current system: ${formatPlatforms(currentHostRunnablePlatforms)}
                 """.trimIndent()
                 userReadableError(message)
             }
@@ -301,7 +302,7 @@ class AmperBackend(
         }
 
         val platformTestTasks = allTestTasks
-            .filter { it.platform in (requestedPlatforms ?: runnablePlatforms) }
+            .filter { it.platform in (requestedPlatforms ?: currentHostRunnablePlatforms) }
             .filterByBuildTypeAndReport(
                 explicit = buildType?.let(::setOf),
                 default = BuildType.Debug,
@@ -376,7 +377,7 @@ class AmperBackend(
                 is CheckEntry.Custom -> listOf(check.custom.performedBy)
                 CheckEntry.Tests ->
                     taskGraph.tasks.filterIsInstance<TestTask>().filter {
-                        it.module in selectedModules && it.platform in runnablePlatforms
+                        it.module in selectedModules && it.platform in currentHostRunnablePlatforms
                     }.map { it.id }
             }
         }.toSet()
@@ -438,24 +439,14 @@ class AmperBackend(
             .flatMap { result -> result.changes }
     }
 
-    suspend fun runApplication(moduleName: String?, platform: Platform?, buildType: BuildType?) {
-        val moduleToRun = model.resolveModuleToRun(
-            moduleName = moduleName,
-            platform = platform,
-            hasDeviceId = runSettings.deviceId != null,
-            isComposeHotReload = false,
-        )
-        runApplication(moduleToRun, platform, buildType)
+    suspend fun runApplication(target: RunTarget) {
+        runApplication(target.module, target.platform, target.buildType)
     }
 
-    suspend fun runApplication(moduleToRun: AmperModule, platform: Platform?, buildType: BuildType?) {
-
-        val platformToRun = platform?.also { checkExplicitPlatformCanBeRun(it) }
-            ?: findSingleRunnablePlatform(moduleToRun)
-
-        if (platformToRun !in moduleToRun.leafPlatforms) {
+    suspend fun runApplication(moduleToRun: AmperModule, platform: Platform, buildType: BuildType?) {
+        if (platform !in moduleToRun.leafPlatforms) {
             userReadableError("""
-                Platform '${platformToRun.pretty}' is not found for module '${moduleToRun.userReadableName}'.
+                Platform '${platform.pretty}' is not found for module '${moduleToRun.userReadableName}'.
 
                 Available platforms: ${formatPlatforms(moduleToRun.leafPlatforms)}
             """.trimIndent())
@@ -463,14 +454,11 @@ class AmperBackend(
         if (runSettings.composeHotReloadMode && !isComposeEnabledFor(moduleToRun)) {
             userReadableError("Compose must be enabled to use Compose Hot Reload mode")
         }
-        if (runSettings.userJvmArgs.isNotEmpty() && platformToRun != Platform.JVM) {
-            logger.warn("The $UserJvmArgsOption option have no effect when running a non-JVM app")
-        }
 
         val moduleRunTasks = taskGraph.tasks
             .filterIsInstance<RunTask>()
-            .filter { runSettings.composeHotReloadMode == it is JvmHotRunTask }
-            .filter { it.module == moduleToRun && it.platform == platformToRun }
+            .filterIf(runSettings.composeHotReloadMode) { it is JvmHotRunTask }
+            .filter { it.module == moduleToRun && it.platform == platform }
             .filterByBuildTypeAndReport(
                 explicit = buildType?.let(::setOf),
                 default = BuildType.Debug,
@@ -486,13 +474,13 @@ class AmperBackend(
                             "See the documentation for more info:\n" +
                             "${AmperBuild.documentationUrl}/user-guide/product-types",
                 )
-                else -> userReadableError("No run tasks are available for module '${moduleToRun.userReadableName}' and platform '${platformToRun.pretty}'")
+                else -> userReadableError("No run tasks are available for module '${moduleToRun.userReadableName}' and platform '${platform.pretty}'")
             }
         }
 
         val task = moduleRunTasks.singleOrNull()
             ?: error("Multiple run tasks match the selected module '${moduleToRun.userReadableName}' " +
-                    "and platform '${platformToRun.pretty}'")
+                    "and platform '${platform.pretty}'")
 
         runTask(task.id)
     }
@@ -505,88 +493,6 @@ class AmperBackend(
             "Module '${module.userReadableName}' of type '${module.type.value}' cannot be run directly by the Kotlin Toolchain at the moment.\n" +
                     "See the documentation for more info:\n$documentationUrl",
         )
-    }
-
-    private fun checkExplicitPlatformCanBeRun(platform: Platform) {
-        if (platform !in runnablePlatforms) {
-            userReadableError("Code compiled for the '${platform.pretty}' platform cannot be run from the current host")
-        }
-        if (runSettings.composeHotReloadMode && platform != Platform.JVM) {
-            userReadableError(
-                "Compose Hot Reload only supports the JVM platform and cannot work with '${platform.pretty}'. " +
-                        "Please remove the '--compose-hot-reload-mode' or the '--platform' option."
-            )
-        }
-        if (runSettings.deviceId != null && !platform.supportsDeviceSelection) {
-            userReadableError(
-                "Platform '${platform.pretty}' does not support device selection with --device-id. " +
-                        "Please remove the option."
-            )
-        }
-        if (runSettings.deviceId == null && platform.requiresPhysicalDeviceSelection) {
-            userReadableError(
-                "Platform '${platform.pretty}' requires selecting a physical device. " +
-                        "Please provide the --device-id option."
-            )
-        }
-    }
-
-    private fun findSingleRunnablePlatform(moduleToRun: AmperModule): Platform {
-        val runnablePlatformsIgnoringDeviceId = (moduleToRun.leafPlatforms intersect runnablePlatforms)
-            .ifEmpty {
-                userReadableError(
-                    "None of the platforms of module '${moduleToRun.userReadableName}' can be run from " +
-                            "the current host.\n\n" +
-                            "Current platforms: ${formatModulePlatforms(moduleToRun)}"
-                )
-            }
-        val effectivelyRunnablePlatforms = runnablePlatformsIgnoringDeviceId
-            .filter { !runSettings.composeHotReloadMode || it == Platform.JVM }
-            .ifEmpty {
-                userReadableError(
-                    "Module '${moduleToRun.userReadableName}' doesn't support Compose Hot Reload because it's not a " +
-                            "JVM application. Please remove the --compose-hot-reload-mode option."
-                )
-            }
-            .filter { runSettings.deviceId == null || it.supportsDeviceSelection }
-            .ifEmpty {
-                val platformsAreFiltered = runnablePlatformsIgnoringDeviceId.size < moduleToRun.leafPlatforms.size
-                userReadableError {
-                    append("No platforms of module '${moduleToRun.userReadableName}'")
-                    if (platformsAreFiltered) {
-                        append(" that are runnable on this host")
-                    }
-                    appendLine(" support device selection with --device-id. Please remove the option.")
-                    appendLine()
-                    appendLine("Current platforms: ${formatModulePlatforms(moduleToRun)}")
-                    if (platformsAreFiltered) {
-                        appendLine("Runnable on this host: ${formatPlatforms(runnablePlatformsIgnoringDeviceId)}")
-                    }
-                }
-            }
-            .filter { runSettings.deviceId != null || !it.requiresPhysicalDeviceSelection }
-            .ifEmpty {
-                userReadableError("Please select a physical device to run module '${moduleToRun.userReadableName}' " +
-                        "with --device-id.")
-            }
-        if (effectivelyRunnablePlatforms.size > 1) {
-            // special case where there is definitely a preference to avoid Rosetta
-            if (effectivelyRunnablePlatforms.toSet() == setOf(Platform.MACOS_X64, Platform.MACOS_ARM64)
-                && SystemInfo.CurrentHost.family.isMac
-                && SystemInfo.CurrentHost.arch == Arch.Arm64
-            ) {
-                return Platform.MACOS_ARM64
-            }
-            // we still list runnablePlatformsIgnoringDeviceId in the error, because we don't know if the user will
-            // add --device-id in the next try
-            userReadableError("""
-                Multiple platforms are available to run in module '${moduleToRun.userReadableName}'.
-                Please specify one with '--platform' argument.
-
-                Runnable on this host: ${formatPlatforms(runnablePlatformsIgnoringDeviceId)}
-            """.trimIndent())
-        }
-        return effectivelyRunnablePlatforms.single()
     }
 
     /**

@@ -329,12 +329,12 @@ ARG2: <${argumentsWithSpecialChars[2]}>"""
 
         val result = runCli(
             projectDir = projectRoot,
-            "run", "--platform", "iosArm64",
+            "run", "--platform", "iosSimulatorArm64",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
         )
 
-        result.assertStderrContains("There are no application modules in the project that support the 'iosArm64' platform")
+        result.assertStderrContains("There are no application modules in the project that support the 'iosSimulatorArm64' platform")
     }
 
     @Test
@@ -534,7 +534,22 @@ ARG2: <${argumentsWithSpecialChars[2]}>"""
             assertEmptyStdErr = false,
         )
 
-        result.assertStderrContains("ERROR: Please select a physical device to run module 'device-only' with --device-id.")
+        result.assertStderrContains("ERROR: Please select a physical device with --device-id to run module 'device-only'.")
+    }
+
+    @Test
+    fun `run fails if --device-id is not provided and a physical target is specified`() = runSlowTest {
+        val projectRoot = testProject("ios/device-only")
+
+        val result = runCli(
+            projectDir = projectRoot,
+            "run", "--platform=iosArm64",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        result.assertStderrContains("ERROR: Platform 'iosArm64' requires selecting a physical device. " +
+                "Please provide the --device-id option or choose another platform.")
     }
 
     @Test
@@ -587,9 +602,7 @@ ARG2: <${argumentsWithSpecialChars[2]}>"""
             assertEmptyStdErr = false,
         )
 
-        result.assertStderrContains(
-            "There are no application modules in the project that support the 'jvm' platform and device selection " +
-                    "with --device-id."
-        )
+        result.assertStderrContains("ERROR: Platform 'jvm' does not support device selection with --device-id. " +
+                "Please remove the option or choose another platform.")
     }
 }

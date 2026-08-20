@@ -106,14 +106,10 @@ class ComposeHotReloadTest : AmperCliTestBase() {
             assertEmptyStdErr = false,
         )
 
-        result.assertStderrContains("""
-            ERROR: There are no application modules in the project that support the 'android' platform and Compose Hot Reload.
-            
-            Available application modules and their platforms:
-              app-android: android
-              app-ios: iosArm64 iosSimulatorArm64
-              app-jvm: jvm
-        """.trimIndent())
+        result.assertStderrContains(
+            "ERROR: Compose Hot Reload only supports the JVM platform and cannot work with 'android'. " +
+                    "Please remove the '--compose-hot-reload-mode' or the '--platform' option.",
+        )
     }
 
     @Disabled("Running the app during the test makes it unable to terminate on its own (the window must be closed by hand)")

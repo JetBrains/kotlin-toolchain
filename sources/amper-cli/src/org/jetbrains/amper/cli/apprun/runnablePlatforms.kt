@@ -9,6 +9,20 @@ import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.SystemInfo
 
 /**
+ * The leaf [org.jetbrains.amper.frontend.Platform]s that can be "run" from the current host.
+ *
+ * That is, code compiled to the returned [org.jetbrains.amper.frontend.Platform]s can be run in any of the following ways:
+ * * on this host directly
+ * * in an emulator that runs on this host
+ * * on a suitable physical device connected to this host
+ *
+ * Note: the actual presence of connected physical devices is not checked here.
+ * Platforms that correspond to connected devices are returned as part of the set based on whether it would be
+ * _possible_ to run them, should a suitable device be connected.
+ */
+internal val currentHostRunnablePlatforms: Set<Platform> by lazy { SystemInfo.CurrentHost.runnablePlatforms() }
+
+/**
  * Returns the leaf [Platform]s that can be "run" from a host with this [SystemInfo].
  *
  * That is, code compiled to the returned [Platform]s can be run in any of the following ways:
@@ -20,7 +34,7 @@ import org.jetbrains.amper.system.info.SystemInfo
  * Platforms that correspond to connected devices are returned as part of the set based on whether it would be
  * _possible_ to run them, should a suitable device be connected.
  */
-internal fun SystemInfo.runnablePlatforms(): Set<Platform> =
+private fun SystemInfo.runnablePlatforms(): Set<Platform> =
     Platform.entries.filterTo(mutableSetOf()) { platform -> platform.isRunnableFrom(this) }
 
 /**
@@ -35,7 +49,7 @@ internal fun SystemInfo.runnablePlatforms(): Set<Platform> =
  * If this [Platform] corresponds to a connected physical device, this function returns `true` based on whether it
  * would be _possible_ to run it, should a suitable device be connected.
  */
-fun Platform.isRunnableFrom(system: SystemInfo): Boolean = when (this) {
+private fun Platform.isRunnableFrom(system: SystemInfo): Boolean = when (this) {
     Platform.COMMON,
     Platform.WEB,
     Platform.NATIVE,
