@@ -9,6 +9,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
+import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.Downloader
@@ -93,7 +94,7 @@ class JvmTestTask(
         val compileTask = dependenciesResult.filterIsInstance<JvmCompileTask.Result>().singleOrNull()
             ?: error("${JvmCompileTask::class.simpleName} result is not found in dependencies")
         if (compileTask.classesOutputRoots.all { it.listDirectoryEntries().isEmpty() }) {
-            logger.warn("No test classes, skipping test execution for module '${module.userReadableName}'")
+            logger.debug("No test classes, skipping test execution for module '${module.userReadableName}'")
             return EmptyTaskResult
         }
 
@@ -195,7 +196,7 @@ class JvmTestTask(
             .setListAttribute("jvm-args-from-maven", additionalJvmArgsFromMaven)
             .setListAttribute("junit-args", junitArgs)
             .use {
-                logger.info("Testing module '${module.userReadableName}' for platform '${platform.pretty}'...")
+                logger.infoNoConsole("Testing module '${module.userReadableName}' for platform '${platform.pretty}'...")
 
                 val result = processRunner.runJava(
                     jdk = jdk,

@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.tasks.native
 
-import com.github.ajalt.mordant.terminal.Terminal
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.cli.telemetry.setAmperModule
@@ -33,7 +32,6 @@ class NativeTestTask(
     private val runSettings: NativeTestRunSettings,
     override val platform: Platform,
     override val buildType: BuildType,
-    private val terminal: Terminal,
     private val processRunner: ProcessRunner,
 ) : ArtifactTaskBase(), TestTask {
 

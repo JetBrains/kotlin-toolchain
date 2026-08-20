@@ -208,7 +208,6 @@ fun ProjectTasksBuilder.setupNativeTasks() {
                     buildType = buildType,
                     platform = platform,
                     runSettings = runSettings,
-                    terminal = context.terminal,
                     processRunner = context.processRunner,
                 ),
                 LinkTaskType.getTaskName(module, platform, isTest = true, buildType)

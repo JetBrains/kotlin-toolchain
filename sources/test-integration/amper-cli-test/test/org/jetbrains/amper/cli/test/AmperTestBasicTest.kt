@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.cli.test
 
-import org.jetbrains.amper.cli.test.utils.assertLogStartsWith
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
@@ -16,7 +15,6 @@ import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.WindowsOnly
 import org.jetbrains.amper.test.spans.spansNamed
 import org.junit.jupiter.api.Assumptions
-import org.slf4j.event.Level
 import kotlin.io.path.readText
 import kotlin.test.Ignore
 import kotlin.test.Test
@@ -203,28 +201,6 @@ class AmperTestBasicTest : AmperCliTestBase() {
     fun `native test app test`() = runSlowTest {
         runCli(projectDir = testProject("native-test-app-test"), "test")
         // TODO assert that some test was actually run
-    }
-
-    @Test
-    fun `should warn on no test sources (jvm)`() = runSlowTest {
-        // Testing a module should not fail if there are no test sources at all but warn about it
-        val result = runCli(projectDir = testProject("jvm-kotlin-test-no-test-sources"), "test")
-        result.assertLogStartsWith(
-            "No test classes, skipping test execution for module 'jvm-kotlin-test-no-test-sources'",
-            Level.WARN
-        )
-    }
-
-    @Test
-    @WindowsOnly
-    @Ignore("AMPER-476")
-    fun `should warn on no test sources (native)`() = runSlowTest {
-        // Testing a module should not fail if there are no test sources at all but warn about it
-        val result = runCli(projectDir = testProject("native-test-no-test-sources"), "test", "--platform=mingwX64")
-        result.assertLogStartsWith(
-            "No test classes, skipping test execution for module 'native-test-no-test-sources'",
-            Level.WARN
-        )
     }
 
     @Test
