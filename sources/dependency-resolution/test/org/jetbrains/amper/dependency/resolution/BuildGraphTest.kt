@@ -2959,6 +2959,45 @@ class BuildGraphTest : BaseDRTest() {
     }
 
     /**
+     * This test check that a KMP-resources artifact is NOT resolved in multiplatform context
+     */
+    @Test
+    fun `com_mohamedrejeb_calf calf-cupertino-icons 0_13_0`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            scope = ResolutionScope.COMPILE,
+            platform = setOf(
+                ResolutionPlatform.IOS_ARM64,
+                ResolutionPlatform.ANDROID,
+                ResolutionPlatform.WASM_JS,
+                ResolutionPlatform.JS,
+                ResolutionPlatform.JVM,
+            ),
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_DL_GOOGLE_ANDROID),
+        )
+
+        downloadAndAssertFiles(testInfo, root)
+    }
+
+    /**
+     * This test check that a KMP-resources artifact is correctly resolved in a leaf-platform context
+     */
+    @Test
+    fun `com_mohamedrejeb_calf calf-cupertino-icons 0_13_0 iosArm64`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            dependency = ["com.mohamedrejeb.calf:calf-cupertino-icons:0.13.0"],
+            scope = ResolutionScope.COMPILE,
+            platform = setOf(
+                ResolutionPlatform.IOS_ARM64,
+            ),
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_DL_GOOGLE_ANDROID),
+        )
+
+        downloadAndAssertFiles(testInfo, root)
+    }
+
+    /**
      * This test checks that a property with an empty value declared in pom.xml
      * is not ignored and is successfully used for substitutions.
      *

@@ -1,9 +1,10 @@
-COMPILE
 animation-core-iosarm64-1.11.1.klib
 animation-iosarm64-1.11.1.klib
 annotation-iosarm64-1.9.1.klib
 atomicfu-iosarm64-0.28.0-cinterop-interop.klib
 atomicfu-iosarm64-0.28.0.klib
+calf-cupertino-icons-iosarm64-0.13.0-kotlin_resources.kotlin_resources.zip
+calf-cupertino-icons-iosarm64-0.13.0.klib
 collection-iosarm64-1.5.0.klib
 components-resources-iosArm64-1.11.1-kotlin_resources.kotlin_resources.zip
 components-resources-iosArm64-1.11.1.klib

@@ -262,7 +262,7 @@ abstract class BaseDRTest {
         root.distinctBfsSequence()
             .filterIsInstance<MavenDependencyNode>()
             .flatMap {
-                it.dependency.files(withSources)
+                it.dependency.files(withSources) + it.dependency.kmpResourcesFiles
             }
             .mapNotNull { file -> file.path?.let { file to it } }
             .sortedBy { it.second.name }

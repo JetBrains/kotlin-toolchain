@@ -223,6 +223,27 @@ interface DependencyNode {
         }
         return files.toList()
     }
+
+    /**
+     * @return paths of the archives with KMP resources of all dependency graph nodes.
+     *
+     * Note: those archives are not a part of [dependencyPaths], they are not meant to be put on a classpath,
+     * see [MavenDependency.kmpResourcesFiles].
+     */
+    fun kmpResourcesPaths(): List<Path> {
+        val files = mutableSetOf<Path>()
+        for (node in distinctBfsSequence()) {
+            if (node is MavenDependencyNode) {
+                node.dependency
+                    .kmpResourcesFiles
+                    .mapNotNull { it.path?.takeIf { it.exists() } }
+                    .let {
+                        files.addAll(it)
+                    }
+            }
+        }
+        return files.toList()
+    }
 }
 
 fun DependencyNode.unwrap(): DependencyNode =

@@ -37,8 +37,10 @@ components-resources-android-1.8.2.aar
 components-resources-blockingMain-1.8.2.klib
 components-resources-commonMain-1.8.2.klib
 components-resources-desktop-1.8.2.jar
+components-resources-iosArm64-1.8.2-kotlin_resources.kotlin_resources.zip
 components-resources-iosArm64-1.8.2.klib
 components-resources-iosMain-1.8.2.klib
+components-resources-iosSimulatorArm64-1.8.2-kotlin_resources.kotlin_resources.zip
 components-resources-iosSimulatorArm64-1.8.2.klib
 components-resources-nativeMain-1.8.2.klib
 components-resources-skikoMain-1.8.2.klib
@@ -236,8 +238,10 @@ components-resources-android-1.8.2.aar
 components-resources-blockingMain-1.8.2.klib
 components-resources-commonMain-1.8.2.klib
 components-resources-desktop-1.8.2.jar
+components-resources-iosArm64-1.8.2-kotlin_resources.kotlin_resources.zip
 components-resources-iosArm64-1.8.2.klib
 components-resources-iosMain-1.8.2.klib
+components-resources-iosSimulatorArm64-1.8.2-kotlin_resources.kotlin_resources.zip
 components-resources-iosSimulatorArm64-1.8.2.klib
 components-resources-nativeMain-1.8.2.klib
 components-resources-skikoMain-1.8.2.klib

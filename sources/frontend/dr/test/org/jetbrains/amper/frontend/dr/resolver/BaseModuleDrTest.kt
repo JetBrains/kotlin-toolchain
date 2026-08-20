@@ -207,7 +207,11 @@ abstract class BaseModuleDrTest {
             .groupBy { (it.unwrap() as MavenDependencyNode).dependency.resolutionConfig.scope } // todo (AB) : Group by module and test/main as well
             .filterKeys { scope == null || it == scope }
             .mapValues {
-                it.value.flatMap { (it.unwrap() as MavenDependencyNode).dependency.files(withSources) }
+                it.value
+                    .flatMap {
+                        val mavenDependency = (it.unwrap() as MavenDependencyNode)
+                        mavenDependency.dependency.files(withSources) + mavenDependency.dependency.kmpResourcesFiles
+                    }
                     .mapNotNull { it.path?.takeIf { it.exists() } }
                     .sortedBy { it.name }
                     .toSet()

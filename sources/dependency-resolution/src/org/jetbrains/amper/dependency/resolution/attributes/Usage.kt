@@ -18,6 +18,8 @@ sealed class Usage(override val value: String) : AttributeValue {
             KotlinApi.value -> KotlinApi
             KotlinRuntime.value -> KotlinRuntime
             KotlinMetadata.value -> KotlinMetadata
+            KotlinMultiplatformResources.value -> KotlinMultiplatformResources
+            KotlinMultiplatformResourcesJs.value -> KotlinMultiplatformResourcesJs
             else -> Other(value)
         }
 
@@ -32,6 +34,17 @@ sealed class Usage(override val value: String) : AttributeValue {
                 }
             }
         }
+
+        /**
+         * A usage of the variant KMP resources of the given [platform] are published in,
+         * or `null` if resources are not published as a separate variant for that platform
+         * (resources of JVM and Android targets are packed into the main artifact).
+         */
+        fun kmpResourcesUsage(platform: ResolutionPlatform): Usage? = when (platform.type) {
+            PlatformType.NATIVE -> KotlinMultiplatformResources
+            PlatformType.JS, PlatformType.WASM -> KotlinMultiplatformResourcesJs
+            PlatformType.JVM, PlatformType.ANDROID_JVM, PlatformType.COMMON -> null
+        }
     }
 
     object JavaApi : Usage("java-api")
@@ -39,6 +52,17 @@ sealed class Usage(override val value: String) : AttributeValue {
     object KotlinApi : Usage("kotlin-api")
     object KotlinRuntime : Usage("kotlin-runtime")
     object KotlinMetadata : Usage("kotlin-metadata")
+
+    /**
+     * KMP resources of a native target, see [kmpResourcesUsage].
+     */
+    object KotlinMultiplatformResources : Usage("kotlin-multiplatformresources")
+
+    /**
+     * KMP resources of a JS or a Wasm target, see [kmpResourcesUsage].
+     */
+    object KotlinMultiplatformResourcesJs : Usage("kotlin-multiplatformresourcesjs")
+
     class Other(value: String) : Usage(value)
 
     fun isApi(): Boolean = value.endsWith("-api")

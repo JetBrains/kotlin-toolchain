@@ -663,6 +663,15 @@ interface MavenDependency {
      */
     fun files(withSources: Boolean = false): List<DependencyFile>
 
+    /**
+     * Archives with KMP resources of this dependency, they are published as a separate variant
+     * for native, JS and Wasm targets only (resources of JVM and Android targets are packed into the main artifact).
+     *
+     * These files are not a part of [files] on purpose: they are not meant to be put on a compilation classpath,
+     * they are archives to be unpacked by a consumer.
+     */
+    val kmpResourcesFiles: List<DependencyFile> get() = emptyList()
+
     fun toSerializableReference(graphContext: DependencyGraphContext): MavenDependencyReference {
         return graphContext.getMavenDependencyReference(this)
             ?: run {
@@ -672,6 +681,7 @@ interface MavenDependency {
                     packaging,
                     messages,
                     files(true).map { DependencyFilePlain(it) },
+                    kmpResourcesFiles.map { DependencyFilePlain(it) },
                     pomPath?.absolutePathString(),
                     resolutionConfig.toSerializableReference(graphContext),
                     state,
@@ -702,6 +712,7 @@ class MavenDependencyPlain internal constructor (
     override val packaging: String? = null,
     override val messages: List<Message> = emptyList(),
     val files: List<DependencyFilePlain>,
+    val kmpResourcesFilesPlain: List<DependencyFilePlain> = emptyList(),
     private val pomPathAsString: String? = null,
     private val resolutionConfigReference: ResolutionConfigReference,
     override val state: ResolutionState = ResolutionState.RESOLVED,
@@ -717,6 +728,8 @@ class MavenDependencyPlain internal constructor (
     override fun files(withSources: Boolean): List<DependencyFile> {
         return if (withSources) files else files.filterNot { it.isDocumentation }
     }
+
+    override val kmpResourcesFiles: List<DependencyFile> get() = kmpResourcesFilesPlain
 
     override fun toString() = coordinates.toPrettyString(effectivePackagingType = packaging)
 }
@@ -799,6 +812,16 @@ class MavenDependencyImpl internal constructor(
     var swiftPMDependenciesMetadata: DependencyFileImpl? = null
         private set
 
+    /**
+     * Variants KMP resources of this dependency are published in.
+     *
+     * KMP resources are published as a separate variant for native, JS and Wasm targets only;
+     * resources of JVM and Android targets are packed into the main artifact.
+     */
+    @Volatile
+    internal var kmpResourcesVariants: List<Variant> = emptyList()
+        private set
+
     @Volatile
     internal var dependencyConstraints: List<MavenDependencyConstraintImpl> = emptyList()
         private set
@@ -813,7 +836,8 @@ class MavenDependencyImpl internal constructor(
                 ?.let { listOf(it) }
                 ?: (pom.diagnosticsReporter.getMessages() +
                         moduleFile.diagnosticsReporter.getMessages() +
-                        files(withSources = true).flatMap { it.diagnosticsReporter.getMessages() })
+                        (files(withSources = true) + kmpResourcesFiles)
+                            .flatMap { it.diagnosticsReporter.getMessages() })
         }
 
     private val mutex = Mutex()
@@ -881,6 +905,29 @@ class MavenDependencyImpl internal constructor(
         fileName.endsWith("-sources.jar") || fileName.endsWith("-javadoc.jar")
 
     private val _files: Files by filesProvider()
+
+    /**
+     * Archives with KMP resources of this dependency (see [kmpResourcesVariants]).
+     *
+     * These files are not a part of [files] on purpose: they are not meant to be put on a compilation classpath,
+     * they are archives to be unpacked by a consumer.
+     */
+    override val kmpResourcesFiles: List<DependencyFileImpl> by kmpResourcesFilesProvider()
+
+    private fun kmpResourcesFilesProvider() =
+        PropertyWithDependencyGeneric(
+            dependencyProviders = listOf(
+                { thisRef: MavenDependencyImpl -> thisRef.kmpResourcesVariants },
+            ),
+            valueProvider = { dependencies ->
+                val kmpResourcesVariants = dependencies[0] as List<*>
+                val dependency = this@MavenDependencyImpl
+                kmpResourcesVariants
+                    .map { it as Variant }
+                    .flatMap { it.files }
+                    .map { getDependencyFile(dependency, it) }
+            }
+        )
 
     private fun filesProvider() =
         PropertyWithDependencyGeneric(
@@ -1318,6 +1365,11 @@ class MavenDependencyImpl internal constructor(
                                 dependencyConstraints = it
                             }
                         }
+
+                    // KMP resources are taken from the very same graph, only the artifact is chosen differently.
+                    // Dependencies declared by a resources-variant are deliberately ignored:
+                    // they duplicate (or, for JS and Wasm, widen) the dependencies of the main variant.
+                    kmpResourcesVariants = resolveVariants(moduleMetadata, context.settings, platform, isResource = true)
                 }
             } else {
                 // Multiplatform case
@@ -2177,6 +2229,7 @@ class MavenDependencyImpl internal constructor(
         module: Module,
         settings: Settings,
         platform: ResolutionPlatform,
+        isResource: Boolean = false,
     ): List<Variant> {
         val initiallyFilteredVariants = module
             .variants
@@ -2188,7 +2241,9 @@ class MavenDependencyImpl internal constructor(
         val validVariants = initiallyFilteredVariants
             .filterWithFallbackPlatform(platform)
             .filterWithFallbackJvmEnvironment(platform)
-            .filterWithFallbackScope(settings.scope)
+            .let {
+                if (isResource) it.filterKmpResources(platform) else it.filterWithFallbackScope(settings.scope)
+            }
             .filterMultipleVariantsByUnusedAttributes()
             .filterWellKnowSpecialLibraries(this.group, this.module)
             .let {
@@ -2208,6 +2263,18 @@ class MavenDependencyImpl internal constructor(
     ): List<Variant> = module.variants
         .filter { categoryMatches(it) }
         .filterWithFallbackScope(settings.scope)
+
+    /**
+     * KMP resources are published as a separate variant with a dedicated usage that is not related to a scope,
+     * thus there is nothing to fall back to: a module that publishes no resources has no such variant at all,
+     * the same holds for a module built for a platform that packs resources into its main artifact.
+     *
+     * An empty result means "there are no KMP resources"; it is not a resolution failure.
+     */
+    private fun List<Variant>.filterKmpResources(platform: ResolutionPlatform): List<Variant> =
+        Usage.kmpResourcesUsage(platform)
+            ?.let { usage -> filter { it.getAttributeValue(Usage) == usage } }
+            ?: emptyList()
 
     private fun Variant.isOneOfExceptions() = isKotlinException() || isGuavaException() || isHibernateException()
 
@@ -2437,7 +2504,9 @@ class MavenDependencyImpl internal constructor(
     private suspend fun downloadDependenciesImpl(context: Context, downloadSources: Boolean = false) {
         val withSources = downloadSources || alwaysDownloadSources()
 
-        val allFiles = filesRaw(withSources)
+        // KMP resources are downloaded together with the main artifacts, but are not returned from [files],
+        // see [kmpResourcesFiles]
+        val allFiles = filesRaw(withSources) + kmpResourcesFiles
         val notDownloaded = allFiles
             .filter {
                 (context.settings.platforms.size == 1 // Verification of multiplatform hash is done at the file-producing stage

@@ -5,6 +5,7 @@ annotation-iosarm64-1.9.1.klib
 atomicfu-iosarm64-0.28.0-cinterop-interop.klib
 atomicfu-iosarm64-0.28.0.klib
 collection-iosarm64-1.5.0.klib
+components-resources-iosArm64-1.11.1-kotlin_resources.kotlin_resources.zip
 components-resources-iosArm64-1.11.1.klib
 foundation-iosarm64-1.11.1.klib
 foundation-layout-iosarm64-1.11.1.klib
