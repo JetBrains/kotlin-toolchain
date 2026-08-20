@@ -7,6 +7,7 @@ package androidUtils
 import TestBase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
 import org.jetbrains.amper.test.android.AndroidTools
 import org.jetbrains.amper.test.android.Emulator
@@ -26,7 +27,7 @@ import kotlin.time.Duration.Companion.minutes
  */
 open class AndroidBaseTest : TestBase() {
 
-    private val androidTools = runBlocking { AndroidTools.prepareForTests() }
+    private val androidTools = runBlocking(MDCContext()) { AndroidTools.prepareForTests() }
 
     /**
      * Executes instrumented tests for the Android project specified by [projectSource],
