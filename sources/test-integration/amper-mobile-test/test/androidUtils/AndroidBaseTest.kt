@@ -27,7 +27,7 @@ import kotlin.time.Duration.Companion.minutes
  */
 open class AndroidBaseTest : TestBase() {
 
-    private val androidTools = runBlocking(MDCContext()) { AndroidTools.prepareForTests() }
+    private val androidTools by lazy { runBlocking(MDCContext()) { AndroidTools.prepareForTests() } }
 
     /**
      * Executes instrumented tests for the Android project specified by [projectSource],
