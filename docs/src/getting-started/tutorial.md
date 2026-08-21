@@ -429,7 +429,7 @@ and add the new platforms and a couple of additional dependencies for Android:
 ```yaml hl_lines="3 9-10 12-15"
 product:
   type: kmp/lib
-  platforms: [ jvm, android, iosArm64, iosSimulatorArm64, iosX64 ]
+  platforms: [ jvm, android, iosArm64, iosSimulatorArm64 ]
 
 dependencies:
   - $compose.foundation: exported
@@ -569,7 +569,7 @@ Now we will apply these templates to our module files:
 ```yaml title="shared/module.yaml" hl_lines="5-6"
 product:
   type: kmp/lib
-  platforms: [ jvm, android, iosArm64, iosSimulatorArm64, iosX64 ]
+  platforms: [ jvm, android, iosArm64, iosSimulatorArm64 ]
 
 apply:
   - //compose.module-template.yaml

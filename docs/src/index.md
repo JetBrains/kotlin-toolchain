@@ -124,7 +124,7 @@ Install the [Kotlin Toolchain plugin](https://plugins.jetbrains.com/plugin/31850
     # Produce a shared library for the JVM, Android, and iOS platforms:
     product:
       type: kmp/lib
-      platforms: [jvm, android, iosArm64, iosSimulatorArm64, iosX64]
+      platforms: [jvm, android, iosArm64, iosSimulatorArm64]
 
     # Shared Compose dependencies:
     dependencies:

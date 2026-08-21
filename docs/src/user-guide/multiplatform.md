@@ -31,21 +31,21 @@ common
      │   ╰─ mingwX64
      ├─ apple
      │   ├─ macos
-     │   │   ├─ macosX64
+     │   │   ├─ macosX64 (deprecated)
      │   │   ╰─ macosArm64
      │   ├─ ios
      │   │   ├─ iosArm64
      │   │   ├─ iosSimulatorArm64
      │   │   ╰─ iosX64
      │   ├─ watchos
-     │   │   ├─ watchosArm32
+     │   │   ├─ watchosArm32 (deprecated)
      │   │   ├─ watchosArm64
      │   │   ├─ watchosDeviceArm64
      │   │   ╰─ watchosSimulatorArm64
      │   ╰─ tvos
      │       ├─ tvosArm64
      │       ├─ tvosSimulatorArm64
-     │       ╰─ tvosX64
+     │       ╰─ tvosX64 (deprecated)
      ╰─ androidNative
          ├─ androidNativeArm32
          ├─ androidNativeArm64
@@ -83,8 +83,8 @@ We'll see in the next sections how these directories and settings interact.
 
 ## Module layout
 
-Here is an overview of what the layout of a multiplatform module looks like when `jvm`, `iosArm64`, `iosSimulatorArm64`,
-and `iosX64` platforms are enabled:
+Here is an overview of what the layout of a multiplatform module looks like when `jvm`, `iosArm64`, and 
+`iosSimulatorArm64` platforms are enabled:
 
 --8<-- "includes/module-layouts/kmp-lib.md"
 
