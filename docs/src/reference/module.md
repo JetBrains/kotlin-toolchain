@@ -171,7 +171,7 @@ Read more about the [product types](../user-guide/basics.md#product-type).
 
 Supported product types and platforms:
 
-| Product Type       | Description                                                                              | Platforms                                                        |
+| Product Type       | Description                                                                              | Supported platforms                                              |
 |--------------------|------------------------------------------------------------------------------------------|------------------------------------------------------------------|
 | `android/app`      | An Android VM application.                                                               | `android`                                                        |
 | `ios/app`          | An iOS application.                                                                      | device: `iosArm64`<br> simulators: `iosX64`, `iosSimulatorArm64` |
@@ -182,8 +182,8 @@ Supported product types and platforms:
 | `kmp/lib`          | A reusable Kotlin Multiplatform library that other modules can depend on.                | any (the list must be specified explicitly)                      |
 | `linux/app`        | A native Linux application.                                                              | `linuxX86`, `linuxArm64`                                         |
 | `macos/app`        | A native macOS application.                                                              | `macosX64`, `macosArm64`                                         |
-| `wasmJs/app`       | A Wasm (JS) application.                                                                 | `wasmJs`                                                         |
-| `wasmWasi/app`     | A Wasm (WASI) application.                                                               | `wasmWasi`                                                       |
+| `wasm-js/app`      | A Wasm (JS) application.                                                                 | `wasmJs`                                                         |
+| `wasm-wasi/app`    | A Wasm (WASI) application.                                                               | `wasmWasi`                                                       |
 | `windows/app`      | A native Windows application.                                                            | `mingwX64`                                                       |
 
 Check the list of all [Kotlin Multiplatform targets](https://kotlinlang.org/docs/native-target-support.html) and the
