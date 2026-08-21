@@ -5,6 +5,12 @@
 package org.jetbrains.amper.stdlib.collections
 
 /**
+ * Applies the given [transform] function to each element of the original collection
+ * and returns the results as a [Set].
+ */
+inline fun <T, U> Collection<T>.mapToSet(transform: (T) -> U): Set<U> = mapTo(mutableSetOf()) { transform(it) }
+
+/**
  * Returns a string containing all the elements separated using the given separators.
  *
  * * For empty lists or lists of size 1, separators are irrelevant and ignored.
