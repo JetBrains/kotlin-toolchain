@@ -19,6 +19,7 @@ import com.github.ajalt.mordant.terminal.success
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import org.apache.maven.artifact.versioning.ComparableVersion
+import org.jetbrains.amper.cli.terminal.promptBoolean
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.downloader.amperHttpClient
@@ -183,18 +184,12 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
         }
         val targetDirRef = targetDir.pathString.takeIf { it != "." } ?: "the current directory"
         val prompt = if (missingScripts.size == wrapperPaths.size) {
-            "Kotlin wrappers were not found in $targetDirRef.\nWould you like to create them from scratch? (Y/n)"
+            "Kotlin wrappers were not found in $targetDirRef.\nWould you like to create them from scratch?"
         } else {
-            "A Kotlin wrapper is missing: ${missingScripts.first().normalize().absolutePathString()}.\nUpdating will create it. Would you like to continue? (Y/n)"
+            "A Kotlin wrapper is missing: ${missingScripts.first().normalize().absolutePathString()}.\nUpdating will create it. Would you like to continue?"
         }
-        val answer = terminal.prompt(
-            prompt = prompt,
-            default = "y",
-            showChoices = false,
-            showDefault = false,
-            choices = listOf("y", "Y", "n", "N"),
-        )
-        if (answer?.lowercase() != "y") {
+        val answer = terminal.promptBoolean(question = prompt, default = true)
+        if (answer != true) {
             terminal.println("Update aborted.")
             exitProcess(0)
         }

@@ -156,6 +156,29 @@ class AmperPublishTest : AmperCliTestBase() {
     }
 
     @Test
+    fun `publish to maven local with explicit module (jvm single-module)`() = runSlowTest {
+        val mavenLocalForTest = createTempMavenLocalDir()
+        val groupDir = mavenLocalForTest.resolve("amper/test/jvm-publish")
+
+        runCli(
+            projectDir = testProject("jvm-publish"),
+            "publish", "mavenLocal", "--module=jvm-publish",
+            amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
+            configureAndroidHome = true,
+        )
+
+        groupDir.assertContainsRelativeFiles(
+            "artifactName/2.2/_remote.repositories",
+            "artifactName/2.2/artifactName-2.2-javadoc.jar",
+            "artifactName/2.2/artifactName-2.2-sources.jar",
+            "artifactName/2.2/artifactName-2.2.jar",
+            "artifactName/2.2/artifactName-2.2.module",
+            "artifactName/2.2/artifactName-2.2.pom",
+            "artifactName/maven-metadata-local.xml",
+        )
+    }
+
+    @Test
     fun `publish to maven local is incremental`() = runSlowTest {
         val projectDir = testProject("jvm-publish")
         val mavenLocalForTest = createTempMavenLocalDir()
@@ -693,7 +716,7 @@ class AmperPublishTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `publish to maven local (jvm and kmp multi-module)`() = runSlowTest {
+    fun `publish to maven local --non-transitive (jvm and kmp multi-module)`() = runSlowTest {
         val mavenLocalForTest = createTempMavenLocalDir()
         val groupDir = mavenLocalForTest.resolve("amper/test/jvm-publish-multimodule")
 
@@ -1153,6 +1176,25 @@ class AmperPublishTest : AmperCliTestBase() {
             "Task ':jvm-publish-broken-credentials:publishToRepoWithMissingCredentialsKeys' failed: " +
                     "Unable to get credentials for publishing, see errors above",
         )
+    }
+
+    @Test
+    fun `publish module with deps without --transitive nor --non-transitive flag should fail`() = runSlowTest {
+        val projectDir = testProject("jvm-publish-multimodule")
+
+        val result = runCli(
+            projectDir = projectDir,
+            "publish", "mavenLocal", "--module=main-lib",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        result.assertStderrContains("""
+            ERROR: The selected modules have dependencies on 2 other local modules:
+             - jvm-lib
+             - kmp-lib
+            Please pass the --transitive or --non-transitive flag to decide whether they should be published as well.
+        """.trimIndent())
     }
 
     private fun createAuthenticator(
