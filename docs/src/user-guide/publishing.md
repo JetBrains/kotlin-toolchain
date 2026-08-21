@@ -12,30 +12,31 @@ your libraries so they can be used by other projects.
 
 With a little bit of configuration, you'll be able to publish using the `kotlin publish` command.
 
-## Multiplatform libraries included
+## Supported components
 
-Publishing a multiplatform library takes exactly the same configuration as publishing a JVM one — the Kotlin Toolchain
-takes care of the rest. It publishes everything your users need to depend on your library from any of its targets: the
-common API, one artifact per platform, the sources, and the descriptors that let build tools pick the right pieces
-automatically.
+All library modules (JVM and multiplatform) can be published to Maven repositories. All Kotlin platforms are supported.
 
 Libraries that bind to native C libraries are covered as well: the `cinterop` bindings are published both in their
 commonized form, for use from common code, and per platform, so your users get the same C API you compiled against
 without setting up interop themselves.
 
-The result is consumable from Gradle projects like any other multiplatform library, including single-target
-libraries and mixed target sets such as `jvm` + `android` or `wasmJs` + `wasmWasi`.
-
 !!! note "Compose Multiplatform resources"
 
     Resources of Compose Multiplatform libraries are not part of the publication yet (see [KTC-5698](https://youtrack.jetbrains.com/issue/KTC-5698/Support-publication-of-composeResources-as-a-part-of-KMP-library-publication)).
+
+## Interoperability with Maven/Gradle
+
+The Kotlin Toolchain's publication format is compatible with other build tools that consume libraries from Maven
+repositories. This includes Maven and Gradle, but also any build tools that understands the same format.
+
+Your consumers don't need to use the Kotlin Toolchain to depend on your published libraries.
 
 ## Publishing to a regular Maven repository
 
 To publish to a Maven repository, you essentially need 3 things:
 
 * the publication configuration
-* the target repository
+* the target repository's URL
 * the credentials to publish
 
 This is how your `module.yaml` should look like:
