@@ -145,6 +145,9 @@ class AndroidTools(
 
     /**
      * Creates a new AVD with the given [name] and configuration.
+     *
+     * Use [force] to overwrite a potentially existing AVD with the same name.
+     * It is useful if you already checked for the absence of AVD with that name, because the list
      */
     suspend fun createAvd(
         name: String,
@@ -171,6 +174,9 @@ class AndroidTools(
 
     /**
      * Returns the list of available AVD names.
+     *
+     * **Important:** it is possible that another AVD exists but has a broken system image. In that case, its name will
+     * not be part of the returned list, but its presence will prevent the creation of a new AVD with the same name.
      */
     suspend fun listAvds(): List<String> = avdmanager("list", "avd", "-c")
         .checkExitCodeIsZero().stdout
