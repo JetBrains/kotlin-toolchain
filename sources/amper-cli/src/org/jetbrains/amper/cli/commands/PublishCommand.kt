@@ -39,7 +39,7 @@ internal class PublishCommand : AmperModelAwareCommand(name = "publish") {
         help = "When enabled, the command also publishes modules that are local dependencies of the modules " +
                 "specified with `-m`/`--module`. This option has no effect if `-m`/`--module` is not specified, " +
                 "because all publishable modules are published anyway in that case."
-    ).flag(default = false)
+    ).flag("--non-transitive", default = false)
 
     override fun help(context: Context): String = "Publish modules to a repository"
 
