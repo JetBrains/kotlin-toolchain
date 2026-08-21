@@ -284,18 +284,19 @@ interact in multiplatform modules.
 
 ### Path notation
 
-Forward slash `/` is used as a path component separator on every platform. Backslashes `\` are not to be used.
+All configuration files use a forward slash `/` as a path component separator, on every platform.
+Backslashes `\` should not be used, even on Windows.
 
 To refer to a file or directory in the project, use `//`-prefixed paths, for example `//libs/utils` or `//LICENSE.txt`.
-In this notation paths are resolved from the project root directory,
+In this notation, paths are resolved from the project root directory,
 where the `project.yaml` (or the single `module.yaml`) is located. 
 
-This works for module dependencies, module templates, and in other places, where a `path` value is expected, and it is the
-preferred way of working with paths.
+This works for module dependencies, module templates, and in other places, where a `Path` value is expected, 
+and it is the preferred way of working with paths.
 
 Simple relative paths are also supported, for example `./foo.txt`, `resources/picture.jpg` or `../bar.bin`.
 Such paths are resolved against **the directory containing the `.yaml` file where the path is specified**.
 
 !!! note "Tip: Prefer `//` over `../`"
     It's recommended to use `//` path notation over relative `../` paths in most cases.
-    This way moving the `yaml` file will not affect the paths within. 
+    This way, moving the `yaml` file will not affect the paths within. 
