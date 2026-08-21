@@ -7,6 +7,7 @@ package org.jetbrains.amper.tasks.android
 import org.jetbrains.amper.android.AndroidBuildRequest
 import org.jetbrains.amper.cli.context.AmperBuildLogsRoot
 import org.jetbrains.amper.cli.context.AmperProjectRoot
+import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
@@ -28,6 +29,7 @@ internal class AndroidPrepareTask(
     androidSdkPath: Path,
     private val fragments: List<Fragment>,
     projectRoot: AmperProjectRoot,
+    userCacheRoot: AmperUserCacheRoot,
     taskOutputRoot: TaskOutputRoot,
     buildLogsRoot: AmperBuildLogsRoot,
     jdkProvider: JdkProvider,
@@ -38,6 +40,7 @@ internal class AndroidPrepareTask(
     androidSdkPath,
     fragments,
     projectRoot,
+    userCacheRoot,
     taskOutputRoot,
     buildLogsRoot,
     jdkProvider,

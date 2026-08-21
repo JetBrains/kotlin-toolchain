@@ -21,10 +21,19 @@ const val SYNTHETIC_ROOT_ANDROID_PROJECT_PATH: String = ":kotlin-toolchain-andro
 
 @Serializable
 data class ResolvedDependency(
-    val group: String,
-    val artifact: String,
-    val version: String,
-    val path: SerializablePath
+    val path: SerializablePath,
+    /**
+     * The identity of this dependency in the delegated Gradle build, unique within the build.
+     *
+     * This is the path of [path] relative to the storage it was resolved into, which for a Maven artifact ends with
+     * its coordinates and its file name. Identity matters because AGP identifies some classpath entries by name, and
+     * a file name alone is ambiguous: different Maven artifacts can share one (KTC-5751).
+     *
+     * The path is relative rather than absolute so that the identity is stable across machines and across relocations
+     * of the storage, since AGP persists it in its incremental state. Dependencies that come from neither storage
+     * (locally built artifacts, the Android platform jar, ...) fall back to their absolute path.
+     */
+    val id: String,
 )
 
 @Serializable

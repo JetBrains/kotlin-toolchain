@@ -443,6 +443,59 @@ class AndroidExampleProjectsTest : AmperCliTestBase() {
     }
 
 
+    /**
+     * Regression test for KTC-5751.
+     *
+     * The runtime classpath of this project contains several pairs of artifacts that share the exact same file
+     * name in different directories (e.g. `lifecycle-runtime-android-2.11.0.aar` published under both
+     * `androidx.lifecycle` and `org.jetbrains.androidx.lifecycle`).
+     *
+     * AGP names its Java resource merger inputs after the Gradle component identifier of each runtime classpath
+     *  entry and persists those names in the incremental merger state. Before the fix, the entries were passed to Gradle as
+     * coordinate-less file dependencies, their identifiers only carried the file name, so these pairs become
+     * indistinguishable, and the second (incremental) build fails with "Unknown file: META-INF/...".
+     */
+    @Test
+    fun `incremental build succeeds when dependency artifacts share file names`() = runSlowTest {
+        val taskName = ":duplicate-dependency-file-names:buildAndroidDebug"
+        val result = runCli(
+            projectDir = testProject("android/duplicate-dependency-file-names"),
+            "task", taskName,
+            configureAndroidHome = true,
+        )
+
+        // The runtime dependencies must reach Gradle with an identity that distinguishes same-named artifacts,
+        // which their file name alone does not.
+        val generatedSettings = result.getTaskOutputPath(taskName) / "gradle-project" / "settings.gradle.kts"
+        val generatedSettingsText = generatedSettings.readText()
+        val ids = Regex(""""id":"([^"]*)"""").findAll(generatedSettingsText).map { it.groupValues[1] }.toList()
+        assertTrue(ids.isNotEmpty(), "No runtime dependency identities found in $generatedSettings")
+        assertEquals(
+            ids.size,
+            ids.distinct().size,
+            "Runtime dependencies were passed to Gradle with colliding identities: " +
+                    ids.groupBy { it }.filterValues { it.size > 1 }.keys,
+        )
+        // Sanity check that this project does exercise the same-file-name case in the first place: the androidx and
+        // the org.jetbrains.androidx flavours of this artifact are both on the runtime classpath.
+        val sameNamedArtifact = "lifecycle-runtime-android-2.11.0.aar"
+        assertEquals(
+            2,
+            ids.count { it.endsWith("/$sameNamedArtifact") },
+            "Expected two distinct artifacts named $sameNamedArtifact among $ids",
+        )
+
+        val sourceFile = result.projectDir / "src" / "com" / "jetbrains" / "sample" / "app" / "MainActivity.kt"
+        sourceFile.writeText(sourceFile.readText().replace("Hello", "Hello again"))
+
+        // The incremental Gradle build must not fail on the colliding Java resource merger inputs.
+        runCli(
+            projectDir = result.projectDir,
+            "task", taskName,
+            configureAndroidHome = true,
+        )
+    }
+
     @AfterTest
     fun tearDown() {
         ConnectorServices.reset()

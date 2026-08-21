@@ -6,6 +6,7 @@ package org.jetbrains.amper.tasks.android
 
 import org.jetbrains.amper.cli.context.AmperBuildLogsRoot
 import org.jetbrains.amper.cli.context.AmperProjectRoot
+import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
@@ -23,6 +24,7 @@ abstract class LastPhaseAndroidDelegatedGradleTask(
     androidSdkPath: Path,
     fragments: List<Fragment>,
     projectRoot: AmperProjectRoot,
+    userCacheRoot: AmperUserCacheRoot,
     taskOutputPath: TaskOutputRoot,
     buildLogsRoot: AmperBuildLogsRoot,
     jdkProvider: JdkProvider,
@@ -34,6 +36,7 @@ abstract class LastPhaseAndroidDelegatedGradleTask(
     androidSdkPath,
     fragments,
     projectRoot,
+    userCacheRoot,
     taskOutputPath,
     buildLogsRoot,
     jdkProvider,

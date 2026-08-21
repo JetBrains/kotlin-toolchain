@@ -10,6 +10,8 @@ import org.jetbrains.amper.android.ResolvedDependency
 import org.jetbrains.amper.android.runAndroidBuild
 import org.jetbrains.amper.cli.context.AmperBuildLogsRoot
 import org.jetbrains.amper.cli.context.AmperProjectRoot
+import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.dependency.resolution.MavenLocalRepository
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
@@ -35,6 +37,7 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
 import kotlin.io.path.exists
+import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.pathString
 
 abstract class AndroidDelegatedGradleTask(
@@ -44,6 +47,7 @@ abstract class AndroidDelegatedGradleTask(
     private val androidSdkPath: Path,
     private val fragments: List<Fragment>,
     private val projectRoot: AmperProjectRoot,
+    private val userCacheRoot: AmperUserCacheRoot,
     private val taskOutputPath: TaskOutputRoot,
     private val buildLogsRoot: AmperBuildLogsRoot,
     private val jdkProvider: JdkProvider,
@@ -59,7 +63,7 @@ abstract class AndroidDelegatedGradleTask(
             modulePath = moduleGradlePath,
             moduleClasses = emptyList(),
             resolvedAndroidRuntimeDependencies = runtimeClasspath.map {
-                ResolvedDependency("group", "artifact", "version", it)
+                ResolvedDependency(path = it, id = it.dependencyId())
             },
         )
         val request = AndroidBuildRequest(
@@ -131,6 +135,38 @@ abstract class AndroidDelegatedGradleTask(
                 ?: error("${JvmRuntimeClasspathTask::class.simpleName} result is not found in dependencies of $taskName")
         val runtimeClasspath = runtimeClasspathTaskResult.jvmRuntimeClasspath
         return runtimeClasspath
+    }
+
+    /**
+     * The identity to hand this classpath element over to Gradle with (see [ResolvedDependency.id]): its path
+     * relative to the storage it was resolved into.
+     *
+     * Elements that are not located in any of those storages (locally compiled classes, generated classes, the
+     * Android platform jar ...) are identified by their absolute path. It is machine-specific, but still unique,
+     * which is all that Gradle needs.
+     *
+     * Relativization is done to make diagnostics reported by Gradle nicer, it covers all cases for now,
+     * but even if id does not, there is no harm, uniqueness is the key here.
+     *
+     * An alternative solution would be propagating maven coordinates here along with paths, but
+     * that requires changing of [org.jetbrains.amper.tasks.ResolveExternalDependenciesTask.Result] that might be an
+     * overcomplication for solving this particular case.
+     */
+    private fun Path.dependencyId(): String {
+        val absolutePath = toAbsolutePath().normalize()
+        val storage = storageRoots.firstOrNull { absolutePath.startsWith(it) }
+        return (storage?.relativize(absolutePath) ?: absolutePath).invariantSeparatorsPathString
+    }
+
+    /**
+     * The storages a resolved dependency can be located in:
+     *  - the Amper cache, which contains Amper's own local storage,
+     *  - the local Maven repository, in case the dependency was taken from `mavenLocal`.
+     *
+     * Lazy because discovering the local Maven repository reads the Maven settings from disk.
+     */
+    private val storageRoots: List<Path> by lazy {
+        listOf(userCacheRoot.path, MavenLocalRepository.Default.repository).map { it.toAbsolutePath().normalize() }
     }
 
     class Result(val artifacts: List<Path>) : TaskResult

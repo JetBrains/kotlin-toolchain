@@ -1,0 +1,13 @@
+product: android/app
+
+settings:
+  android:
+    namespace: com.jetbrains.sample.app
+
+dependencies:
+  # This coordinate transitively brings in both org.jetbrains.androidx.lifecycle:* and androidx.lifecycle:*
+  # artifacts that have the exact same file names (e.g. lifecycle-runtime-android-2.11.0.aar) in different
+  # directories. AGP identifies its Java resource merger inputs by the Gradle component identifier of each
+  # runtime classpath entry, so these entries must not be passed to Gradle as coordinate-less file
+  # dependencies, otherwise their identifiers collide and the second (incremental) build fails.
+  - org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.11.0
