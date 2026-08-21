@@ -233,20 +233,6 @@ fun ProjectTasksBuilder.setupCommonTasks() {
                         ),
                         dependsOn = listOf(prepareMavenPublishablesTaskName),
                     )
-
-                    // Publish task should depend on publishing of modules which this module depends on
-                    // TODO It could be optional in the future by, e.g., introducing an option to `publish` command
-                    val localModuleDependencies = module.fragments.filter { !it.isTest }
-                        .flatMap { it.externalDependencies }
-                        .filterIsInstance<LocalModuleDependency>()
-                        .map { it.module }
-                        .distinctBy { it.userReadableName }
-                    for (moduleDependency in localModuleDependencies) {
-                        tasks.registerDependency(
-                            taskName = publishTaskName,
-                            dependsOn = publishTaskNameFor(moduleDependency, repository),
-                        )
-                    }
                 }
             }
         }

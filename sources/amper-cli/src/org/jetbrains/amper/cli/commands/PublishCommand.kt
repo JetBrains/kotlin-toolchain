@@ -70,6 +70,7 @@ private fun Collection<AmperModule>.transitiveClosure(): List<AmperModule> =
 
 context(cliContext: ProjectCliContext)
 private fun AmperModule.transitiveClosure(): Sequence<AmperModule> = sequence {
+    yield(this@transitiveClosure)
     leafPlatforms.forEach { platform ->
         yieldAll(getModuleDependencies(isTest = false, platform = platform, dependencyReason = ResolutionScope.COMPILE))
         yieldAll(getModuleDependencies(isTest = false, platform = platform, dependencyReason = ResolutionScope.RUNTIME))

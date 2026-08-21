@@ -9,6 +9,7 @@ import org.bouncycastle.openpgp.api.OpenPGPCertificate
 import org.bouncycastle.openpgp.api.bc.BcOpenPGPApi
 import org.jetbrains.amper.cli.test.utils.assertContainsRelativeFiles
 import org.jetbrains.amper.cli.test.utils.assertErrors
+import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertWarnings
@@ -561,13 +562,13 @@ class AmperPublishTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `publish to maven local (jvm and kmp multi-module)`() = runSlowTest {
+    fun `publish to maven local --transitive (jvm and kmp multi-module)`() = runSlowTest {
         val mavenLocalForTest = createTempMavenLocalDir()
         val groupDir = mavenLocalForTest.resolve("amper/test/jvm-publish-multimodule")
 
         runCli(
             projectDir = testProject("jvm-publish-multimodule"),
-            "publish", "mavenLocal", "--module=main-lib",
+            "publish", "mavenLocal", "--module=main-lib", "--transitive",
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
             configureAndroidHome = true,
         )
@@ -692,13 +693,75 @@ class AmperPublishTest : AmperCliTestBase() {
     }
 
     @Test
+    fun `publish to maven local (jvm and kmp multi-module)`() = runSlowTest {
+        val mavenLocalForTest = createTempMavenLocalDir()
+        val groupDir = mavenLocalForTest.resolve("amper/test/jvm-publish-multimodule")
+
+        runCli(
+            projectDir = testProject("jvm-publish-multimodule"),
+            "publish", "mavenLocal", "--module=main-lib", "--non-transitive",
+            amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
+            configureAndroidHome = true,
+        )
+
+        // note that publishing of main-lib module triggers all other modules (by design)
+        groupDir.assertContainsRelativeFiles(
+            "main-lib/1.2.3/_remote.repositories",
+            "main-lib/1.2.3/main-lib-1.2.3-javadoc.jar",
+            "main-lib/1.2.3/main-lib-1.2.3-sources.jar",
+            "main-lib/1.2.3/main-lib-1.2.3.jar",
+            "main-lib/1.2.3/main-lib-1.2.3.module",
+            "main-lib/1.2.3/main-lib-1.2.3.pom",
+            "main-lib/maven-metadata-local.xml",
+        )
+
+        val pom = groupDir / "main-lib/1.2.3/main-lib-1.2.3.pom"
+        assertEquals(expected = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <!-- This module was also published with a richer model, Gradle metadata, -->
+              <!-- which should be used instead. Do not delete the following line which -->
+              <!-- is to indicate to Gradle or any Gradle module metadata file consumer -->
+              <!-- that they should prefer consuming it instead. -->
+              <!-- do_not_remove: published-with-gradle-metadata -->
+              <modelVersion>4.0.0</modelVersion>
+              <groupId>amper.test.jvm-publish-multimodule</groupId>
+              <artifactId>main-lib</artifactId>
+              <version>1.2.3</version>
+              <name>main-lib</name>
+              <dependencies>
+                <dependency>
+                  <groupId>amper.test.jvm-publish-multimodule</groupId>
+                  <artifactId>jvm-lib</artifactId>
+                  <version>1.2.3</version>
+                  <scope>compile</scope>
+                </dependency>
+                <dependency>
+                  <groupId>amper.test.jvm-publish-multimodule</groupId>
+                  <artifactId>kmp-lib-jvm</artifactId>
+                  <version>1.2.3</version>
+                  <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                  <groupId>org.jetbrains.kotlin</groupId>
+                  <artifactId>kotlin-stdlib</artifactId>
+                  <version>${DefaultVersions.kotlin}</version>
+                  <scope>runtime</scope>
+                </dependency>
+              </dependencies>
+            </project>
+        """.trimIndent(), pom.readText().trim())
+    }
+
+    @Test
     fun `consume RELEASE version of dependency from maven local (jvm multi-module)`() = runSlowTest {
         val mavenLocalForTest = createTempMavenLocalDir()
 
         // Publish 'main-lib' from project 'jvm-publish-multimodule' to mavenLocal
         runCli(
             projectDir = testProject("jvm-publish-multimodule"),
-            "publish", "mavenLocal", "--module=main-lib",
+            "publish", "mavenLocal", "--module=main-lib", "--transitive",
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
             configureAndroidHome = true,
         )
@@ -746,10 +809,12 @@ class AmperPublishTest : AmperCliTestBase() {
         // Publish 'main-lib' from project 'jvm-publish-multimodule' to mavenLocal
         val result = runCli(
             projectDir = publishedProject,
-            "publish", "mavenLocal", "--module=main-lib",
+            "publish", "mavenLocal", "--module=main-lib", "--transitive",
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
             configureAndroidHome = true,
         )
+        result.assertStdoutContains("Module 'kmp-lib' published to Maven local")
+        result.assertStdoutContains("Module 'jvm-lib' published to Maven local")
         result.assertStdoutContains("Module 'main-lib' published to Maven local")
 
         // Consume 'main-lib' from mavenLocal in project `jvm-consume-mavenLocal`
@@ -763,7 +828,7 @@ class AmperPublishTest : AmperCliTestBase() {
         // but publish artifact from previous run where it was built and cached)
         runCli(
             projectDir = publishedProject,
-            "publish", "mavenLocal", "--module=main-lib",
+            "publish", "mavenLocal", "--module=main-lib", "--transitive",
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
             configureAndroidHome = true,
         )

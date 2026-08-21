@@ -290,7 +290,7 @@ class KmpPublicationTest : AmperCliTestBase() {
     fun `publication of apple fragments with cinterop is forbidden from Windows`() = runSlowTest {
         val r = runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-template-main"),
-            "publish", "mavenLocal", "--module=libraryNested",
+            "publish", "mavenLocal", "--module=libraryNested", "--transitive",
             configureAndroidHome = true,
             expectedExitCode = 1,
             assertEmptyStdErr = false
