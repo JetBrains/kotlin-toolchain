@@ -492,11 +492,23 @@ private fun TaskGraphBuilder.setupDownloadSystemImageTask(
     isTest: Boolean,
 ) {
     val androidFragment = getAndroidFragment(module, isTest)
-    val versionNumber = androidFragment?.settings?.android?.targetSdk?.versionNumber ?: return
+    val compileSdk = androidFragment?.settings?.android?.compileSdk ?: return
     val abi = if (Arch.current == Arch.X64) Abi.X86_64 else Abi.ARM64_V8A
+    val versionTag = buildString {
+        append(compileSdk.apiLevel)
+        if (compileSdk.apiLevel.versionNumber >= 37 || compileSdk.minorApiLevel != 0) {
+            // Minor API level equal to 0 started being appended to platform only since API level 37
+            // - versions 1..35 don't have minor API levels at all
+            // - 36 has 36 and 36.1
+            // - 37 has 37.0 and 37.1
+            // Future is unclear but, hopefully, Google uses the same versioning schema since 37 now.
+            append(".")
+            append(compileSdk.minorApiLevel)
+        }
+    }
     registerTask(
         GetAndroidPlatformFileFromPackageTask(
-            "system-images;android-$versionNumber;${GOOGLE_APIS_TAG.id};$abi",
+            "system-images;android-$versionTag;${GOOGLE_APIS_TAG.id};$abi",
             androidSdkPath,
             userCacheRoot,
             AndroidTaskType.InstallSystemImage.getTaskName(module, Platform.ANDROID, isTest)
