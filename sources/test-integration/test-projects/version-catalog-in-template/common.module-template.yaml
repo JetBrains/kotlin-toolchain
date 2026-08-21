@@ -1,0 +1,7 @@
+dependencies:
+  - $libs.nonexistent
+settings:
+  kotlin:
+    compilerPlugins:
+      - id: io.ktor.ktor-compiler-plugin
+        dependency: $libs.ktor.compiler.plugin1

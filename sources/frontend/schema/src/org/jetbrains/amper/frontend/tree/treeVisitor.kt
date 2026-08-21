@@ -179,7 +179,7 @@ abstract class TreeTransformer : TreeVisitor<TransformResult<TreeNode>> {
     override fun visitList(node: ListNode): TransformResult<TreeNode> =
         node.children.visitAll().mapIfChanged { node.copy(children = it) }
 
-    override fun visitMap(node: MappingNode) =
+    override fun visitMap(node: MappingNode): TransformResult<TreeNode> =
         node.children.visitAll().mapIfChanged { node.copy(children = it) }
 
     @JvmName("acceptAllList")

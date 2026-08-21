@@ -21,12 +21,12 @@ import org.jetbrains.amper.frontend.reportBundleError
 import org.jetbrains.amper.frontend.schema.ExternalMavenDependency
 import org.jetbrains.amper.frontend.schema.toMavenCoordinates
 import org.jetbrains.amper.frontend.tree.Changed
+import org.jetbrains.amper.frontend.tree.ErrorNode
 import org.jetbrains.amper.frontend.tree.KeyValue
 import org.jetbrains.amper.frontend.tree.MappingNode
-import org.jetbrains.amper.frontend.tree.NotChanged
-import org.jetbrains.amper.frontend.tree.Removed
 import org.jetbrains.amper.frontend.tree.StringNode
 import org.jetbrains.amper.frontend.tree.TransformResult
+import org.jetbrains.amper.frontend.tree.TreeNode
 import org.jetbrains.amper.frontend.tree.TreeTransformer
 import org.jetbrains.amper.frontend.tree.copy
 import org.jetbrains.amper.frontend.types.SchemaType
@@ -51,26 +51,33 @@ internal class CatalogVersionsSubstitutor(
         DeclarationOfShadowDependencyCatalog to DeclarationOfShadowDependencyMaven,
     )
 
-    override fun visitMap(node: MappingNode): TransformResult<MappingNode> {
-        // Here we don't know what kind of node we are visiting, so we have to use `super`.
-        val substituted = substitutionTypes[node.declaration] ?: return super.visitMap(node)
-        // Here we know that we have the right node (one of the dependencies), so we can return `NotChanged`.
-        val catalogKeyProp = node.children.singleOrNull { it.key == "catalogKey" } ?: return NotChanged
-        // TODO Maybe report here.
-        val catalogKeyScalar = catalogKeyProp.value as? StringNode ?: return Removed
+    override fun visitMap(node: MappingNode): TransformResult<TreeNode> {
+        val substituted = substitutionTypes[node.declaration]
+            ?: return super.visitMap(node)
+
+        fun errorNode() = ErrorNode(substituted.toType(), node.trace, node.contexts)
+
+        val catalogKeyProp = node.children.singleOrNull { it.key == "catalogKey" }
+        val catalogKeyScalar = catalogKeyProp?.value as? StringNode
+            // Something went wrong in the parsing, i.e., already reported - no need to report anything additionally.
+            ?: return Changed(errorNode())
+
         val catalogKey = catalogKeyScalar.value
         val found = context(problemReporter) {
-            catalog.findInCatalogWithReport(catalogKey.removePrefix("$"), catalogKeyScalar.trace) ?: return Removed
+            catalog.findInCatalogWithReport(catalogKey.removePrefix("$"), catalogKeyScalar.trace)
+                ?: return Changed(errorNode())
         }
 
         // Parse coordinates and create new key values.
         val catalogCoordinates = found.toMavenCoordinates()
-        val newKeyValues = listOf(
+        val newKeyValues = [
             ExternalMavenDependency::groupId.name to catalogCoordinates.groupId,
             ExternalMavenDependency::artifactId.name to catalogCoordinates.artifactId,
             ExternalMavenDependency::version.name to catalogCoordinates.version?.value,
-        ).mapNotNull { [propName, value] ->
-            val property = checkNotNull(substituted.getProperty(propName)) { "Missing `$propName` property in the dependency type" }
+        ].mapNotNull { [propName, value] ->
+            val property = checkNotNull(substituted.getProperty(propName)) {
+                "Missing `$propName` property in the dependency type"
+            }
             val newNode = StringNode(
                 value = value ?: return@mapNotNull null,
                 semantics = (property.type as SchemaType.StringType).semantics,
@@ -84,7 +91,11 @@ internal class CatalogVersionsSubstitutor(
             KeyValue(catalogKeyProp.keyTrace, newNode, property, catalogKeyProp.trace)
         }
         
-        val newChildren = node.children - catalogKeyProp + newKeyValues
+        val newChildren = buildList {
+            addAll(node.children)
+            remove(catalogKeyProp)
+            addAll(newKeyValues)
+        }
         return Changed(node.copy(children = newChildren, declaration = substituted))
     }
 }

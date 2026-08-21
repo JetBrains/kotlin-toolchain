@@ -9,6 +9,7 @@ import org.jetbrains.amper.frontend.tree.Changed
 import org.jetbrains.amper.frontend.tree.MappingNode
 import org.jetbrains.amper.frontend.tree.StringNode
 import org.jetbrains.amper.frontend.tree.TransformResult
+import org.jetbrains.amper.frontend.tree.TreeNode
 import org.jetbrains.amper.frontend.tree.TreeTransformer
 import org.jetbrains.amper.frontend.tree.copy
 import org.jetbrains.amper.frontend.tree.copyWithValue
@@ -24,7 +25,7 @@ internal class ComposeOsSpecificSubstitutor(systemInfo: SystemInfo) : TreeTransf
     private fun MappingNode.singleMatchingStringChild(key: String) =
         children.singleOrNull { it.key == key }?.takeIf { it.value is StringNode }
 
-    override fun visitMap(node: MappingNode): TransformResult<MappingNode> {
+    override fun visitMap(node: MappingNode): TransformResult<TreeNode> {
         val artifactIdKeyValue = node.singleMatchingStringChild(SchemaMavenCoordinates::artifactId.name)
         val artifactIdNode = artifactIdKeyValue?.value as? StringNode ?: return super.visitMap(node)
         val artifactIdMatches = artifactIdNode.value == "desktop-jvm" || artifactIdNode.value == "desktop"

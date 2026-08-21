@@ -4,9 +4,11 @@
 
 package org.jetbrains.amper.cli.test
 
+import org.jetbrains.amper.cli.test.utils.assertErrors
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import kotlin.io.path.div
 import kotlin.test.Test
 
 class VersionCatalogTest : AmperCliTestBase() {
@@ -41,5 +43,21 @@ class VersionCatalogTest : AmperCliTestBase() {
             assertEmptyStdErr = false,
         )
         result.assertStderrContains("No catalog value for the key `libs.kotlinx.datetime`")
+    }
+
+    @Test
+    fun `test invalid version catalog key in template produces no duplicate errors`() = runSlowTest {
+        val projectDir = testProject("version-catalog-in-template")
+        val result = runCli(
+            projectDir = projectDir,
+            "build",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+        result.assertErrors(
+            "${projectDir / "common.module-template.yaml"}:2:5: No catalog value for the key `libs.nonexistent`",
+            "${projectDir / "common.module-template.yaml"}:7:21: No catalog value for the key `libs.ktor.compiler.plugin1`",
+            "failed to read Kotlin project model, refer to the errors above",
+        )
     }
 }
