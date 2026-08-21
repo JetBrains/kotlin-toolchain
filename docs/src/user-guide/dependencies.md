@@ -16,14 +16,14 @@ dependencies:
   - //my-other-module #(1)!
   - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1 #(2)!
   - $libs.apache.commons.lang3 #(3)!
-  - $kotlin.reflect #(4)!
+  - $compose.ui #(4)!
 ```
 
 1. Dependency on another module of the project (see [Module dependencies](#module-dependencies)).
 2. Dependency on an external Maven library, with the provided coordinates (see [External Maven dependencies](#external-maven-dependencies)).
 3. Dependency on a library from the project's [Library Catalog](#library-catalogs).
 4. Dependency on a library from a built-in [Library Catalog](#library-catalogs)
-   (in this case, the catalog brought by the Kotlin "toolchain").
+   (in this case, the `$compose` catalog brought by the Compose "toolchain").
 
 ### Module dependencies
 
@@ -132,7 +132,7 @@ effect on them.
 
 ### Catalog dependencies
 
-See [Library Catalogs](#library-catalogs).
+See [Library Catalogs](#library-catalogs) below.
 
 ### Transitivity and scope
 
@@ -180,7 +180,7 @@ By default, the scope is `all`. You can restrict a dependency's scope as follows
 
 #### Transitivity
 
-By default, dependencies of your module are not added to the compilation of dependent modules.
+By default, the dependencies of your module are not added to the compilation of dependent modules.
 In the following setup, `app` cannot directly use Ktor classes in its code:
 
 <div class="grid" markdown>
