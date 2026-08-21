@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.android.sdk.provisioning
 
-import com.android.repository.api.License
 import java.nio.file.Path
 
 /**
@@ -32,5 +31,11 @@ data class AndroidSdkPackage(
     /**
      * The license required by the package.
      */
-    val license: License,
+    val license: AndroidLicense,
 )
+
+interface AndroidLicense {
+    val id: String
+
+    fun isAccepted(): Boolean
+}

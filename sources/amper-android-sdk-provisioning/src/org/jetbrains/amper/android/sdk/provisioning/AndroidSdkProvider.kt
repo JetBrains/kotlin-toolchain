@@ -5,6 +5,7 @@
 package org.jetbrains.amper.android.sdk.provisioning
 
 import com.android.repository.api.ConsoleProgressIndicator
+import com.android.repository.api.License
 import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
@@ -92,11 +93,18 @@ class AndroidSdkProvider(
                         AndroidSdkPackage(
                             packagePath = installedPackage.packagePath,
                             location = installedPackage.packagePath.toLocalPath(),
-                            license = installedPackage.license,
+                            license = AndroidSdkBackedLicense(sdkRoot, installedPackage.license),
                         )
                     )
                 }
             }
+
+    private class AndroidSdkBackedLicense(private val sdkRoot: Path, private val license: License) : AndroidLicense {
+        override val id: String
+            get() = license.id
+
+        override fun isAccepted(): Boolean = license.checkAccepted(sdkRoot)
+    }
 
     context(_: ProblemReporter)
     private suspend fun install(request: AndroidSdkPackageRequest): RepoPackage? =

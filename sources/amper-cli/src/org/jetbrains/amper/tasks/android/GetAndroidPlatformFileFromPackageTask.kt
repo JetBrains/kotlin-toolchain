@@ -32,7 +32,7 @@ class GetAndroidPlatformFileFromPackageTask(
             is AndroidSdkResult.Error -> userReadableError(provisionResult.message)
             is AndroidSdkResult.Success -> {
                 val androidPackage = provisionResult.androidPackage
-                if (!androidPackage.license.checkAccepted(androidSdkProvider.sdkRoot)) {
+                if (!androidPackage.license.isAccepted()) {
                     // TODO: Support license acceptance in the interactive mode?
                     throw LicenseCheckException(
                         sdkRoot = androidSdkProvider.sdkRoot,
