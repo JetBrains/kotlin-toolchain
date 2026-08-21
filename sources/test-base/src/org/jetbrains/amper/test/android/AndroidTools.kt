@@ -151,10 +151,20 @@ class AndroidTools(
         apiLevel: Int = 35,
         variant: String = "default",
         arch: String = Arch.current.toEmulatorArch(),
+        force: Boolean = true,
     ) {
         // Note: this modifies .knownPackages, which might be important for caching
+        val args = buildList {
+            add("create")
+            add("avd")
+            add("--name")
+            add(name)
+            add("--package")
+            add("system-images;android-$apiLevel;$variant;$arch")
+            if (force) add("--force")
+        }
         avdmanager(
-            "create", "avd", "-n", name, "-k", "system-images;android-$apiLevel;$variant;$arch",
+            *args.toTypedArray(),
             input = ProcessInput.text("no\n"), // Do you wish to create a custom hardware profile? [no]
         ).checkExitCodeIsZero()
     }
