@@ -345,7 +345,7 @@ Common `dependencies:` and `settings:` are automatically propagated to the platf
 - Scalar values (strings, numbers etc.) are overridden by more specialized `@platform`-sections.
 - Mappings and lists are appended.
 
-Think of the rules like adding merging Java/Kotlin Maps.
+Think of the rules like adding to Java/Kotlin Maps.
 
 ## Interoperability between languages
 
