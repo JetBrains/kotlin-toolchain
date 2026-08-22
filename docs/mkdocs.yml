@@ -114,6 +114,7 @@ nav:
       - getting-started/index.md
       - 'IDE setup': getting-started/ide-setup.md
       - 'Tutorial': getting-started/tutorial.md
+      - 'Migrating from Gradle': getting-started/migrating-from-gradle.md
       - 'Migrating from Maven': getting-started/migrating-from-maven.md
   - 'User guide':
       - user-guide/index.md
