@@ -2772,21 +2772,21 @@ Some target platforms belong to the same <em>family</em> and share some common A
      │   ╰─ mingwX64
      ├─ apple
      │   ├─ macos
-     │   │   ├─ macosX64
+     │   │   ├─ macosX64 (deprecated)
      │   │   ╰─ macosArm64
      │   ├─ ios
      │   │   ├─ iosArm64
      │   │   ├─ iosSimulatorArm64
      │   │   ╰─ iosX64
      │   ├─ watchos
-     │   │   ├─ watchosArm32
+     │   │   ├─ watchosArm32 (deprecated)
      │   │   ├─ watchosArm64
      │   │   ├─ watchosDeviceArm64
      │   │   ╰─ watchosSimulatorArm64
      │   ╰─ tvos
      │       ├─ tvosArm64
      │       ├─ tvosSimulatorArm64
-     │       ╰─ tvosX64
+     │       ╰─ tvosX64 (deprecated)
      ╰─ androidNative
          ├─ androidNativeArm32
          ├─ androidNativeArm64
@@ -2816,8 +2816,8 @@ The Kotlin Toolchain defines a special suffix, called the <code>@platform</code>
 families are described in the <a href="#supported-platforms">Platforms hierarchy</a> section.</p>
 <p>We'll see in the next sections how these directories and settings interact.</p>
 <h2 id="module-layout">Module layout<a class="headerlink" href="#module-layout" title="Permanent link">&para;</a></h2>
-<p>Here is an overview of what the layout of a multiplatform module looks like when <code>jvm</code>, <code>iosArm64</code>, <code>iosSimulatorArm64</code>,
-and <code>iosX64</code> platforms are enabled:</p>
+<p>Here is an overview of what the layout of a multiplatform module looks like when <code>jvm</code>, <code>iosArm64</code>, and 
+<code>iosSimulatorArm64</code> platforms are enabled:</p>
 <div class="highlight"><pre><span></span><code>my-module/
 ├─<span class="w"> </span>resources/<span class="w">       </span><span class="c1"># common resources, used in all targets</span>
 ├─<span class="w"> </span>resources@ios/<span class="w">   </span><span class="c1"># resources that are only available to the iOS code</span>
@@ -3051,7 +3051,7 @@ E.g., for the given configuration:</p>
 <li>Scalar values (strings, numbers etc.) are overridden by more specialized <code>@platform</code>-sections.</li>
 <li>Mappings and lists are appended.</li>
 </ul>
-<p>Think of the rules like adding merging Java/Kotlin Maps.</p>
+<p>Think of the rules like adding to Java/Kotlin Maps.</p>
 <h2 id="interoperability-between-languages">Interoperability between languages<a class="headerlink" href="#interoperability-between-languages" title="Permanent link">&para;</a></h2>
 <p>Kotlin Multiplatform implies smooth interoperability with platform languages, APIs, and frameworks.
 There are three distinct scenarios where such interoperability is needed:</p>
@@ -3104,7 +3104,7 @@ See more in the dedicated <a href="../product-types/ios-app/#swift-support">Swif
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 17, 2026 14:21:56 UTC">June 17, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 22, 2026 01:25:41 UTC">August 22, 2026</span>
   </span>
 
     
