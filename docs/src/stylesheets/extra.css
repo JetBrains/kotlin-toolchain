@@ -7,6 +7,12 @@ table code {
     white-space: nowrap;
 }
 
+/* make tables a bit more compact */
+.md-typeset table:not([class]) th,
+.md-typeset table:not([class]) td {
+    padding: 0.4rem 0.6rem;
+}
+
 /* ============================================
    HOMEPAGE HERO STYLES
    ============================================ */
