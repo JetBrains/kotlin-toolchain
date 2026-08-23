@@ -363,10 +363,31 @@ private fun implicitMavenRepositories(
                 add(
                     ResolutionRepository(
                         id = "amper-maven",
-                        url = "https://packages.jetbrains.team/maven/p/amper/amper",
+                        url = pluginApiRepositoryUrl(),
                     )
                 )
             }
         }
     }
 }
+
+internal const val DefaultAmperRepositoryUrl = "https://packages.jetbrains.team/maven/p/amper/amper"
+
+/**
+ * The repository that holds the `amper-extensibility-api` a module of type `jvm/amper-plugin` implicitly
+ * depends on, at the version of the distribution that builds it.
+ *
+ * That artifact is published next to the distribution itself, so a distribution served from anywhere
+ * other than [DefaultAmperRepositoryUrl] - a mirror, a fork, a build published inside a company - holds
+ * it in the repository it was downloaded from, and in no other. [downloadRoot], which the wrapper
+ * scripts report through the `KOTLIN_CLI_DOWNLOAD_ROOT` environment variable, is where that is; the
+ * default repository is used when it says nothing, which is the case when the distribution was not
+ * started through a wrapper script.
+ */
+internal fun pluginApiRepositoryUrl(
+    downloadRoot: String? = System.getenv("KOTLIN_CLI_DOWNLOAD_ROOT"),
+): String = downloadRoot
+    ?.trim()
+    ?.trimEnd('/')
+    ?.takeIf { it.isNotEmpty() }
+    ?: DefaultAmperRepositoryUrl
