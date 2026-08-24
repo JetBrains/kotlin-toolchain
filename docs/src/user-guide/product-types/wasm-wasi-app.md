@@ -51,7 +51,7 @@ There are no extra packaging facilities at the moment, and the `package` command
 
 ## Running WASI application
 
-!!! warning "Kotlin/Wasm application targetting WASI cannot be run directly by the Kotlin CLI at the moment."
+!!! warning "Kotlin/Wasm application targeting WASI cannot be run directly by the Kotlin CLI at the moment."
 
 To run WASI application, you need to:
 
