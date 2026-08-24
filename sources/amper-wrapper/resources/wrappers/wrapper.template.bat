@@ -175,7 +175,7 @@ if exist "%wrapper_candidate%" (
 
 if exist "%project_dir%\project.yaml" (
     @rem Found project.yaml but no wrapper alongside it
-    echo WARNING: Found a project.yaml in '%project_dir%', but the wrapper script is missing; using Kotlin Toolchain v$kotlin_cli_version. >&2
+    echo WARNING: Found a project.yaml in '%project_dir%', but the wrapper script is missing; using Kotlin Toolchain v%kotlin_cli_version%. >&2
     exit /b 1
 )
 
