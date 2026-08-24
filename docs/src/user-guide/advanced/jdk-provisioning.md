@@ -22,9 +22,9 @@ This page describes how this can be configured.
 
 ## Default behavior
 
-By default, the Kotlin Toolchain doesn't constrain the JDK distribution, but it expects a specific major version: **currently 21**.
+By default, the Kotlin Toolchain doesn't constrain the JDK distribution, but it expects a specific major version: **currently 25**.
 
-Since the default [selectionMode](#jdk-selection-mode) is `auto`, the Kotlin Toolchain will look for a JDK 21 in 
+Since the default [selectionMode](#jdk-selection-mode) is `auto`, the Kotlin Toolchain will look for a JDK 25 in 
 `JAVA_HOME`, and if not found, will provision one.
 
 ## JDK requirements
@@ -161,7 +161,7 @@ settings:
 
 ### One specific commercial distribution
 
-Require Oracle JDK 21 and acknowledge its license. Find it in `JAVA_HOME` or provision it if `JAVA_HOME` is not 
+Require Oracle GraalVM 21 and acknowledge its license. Find it in `JAVA_HOME` or provision it if `JAVA_HOME` is not 
 suitable.
 
 ```yaml title="module.yaml"
@@ -169,30 +169,31 @@ settings:
   jvm:
     jdk:
       version: 21
-      distributions: [oracle]
-      acknowledgedLicenses: [oracle]
+      distributions: [oracleGraalVM]
+      acknowledgedLicenses: [oracleGraalVM]
 ```
 
 ### One specific full JDK version
 
-Manually place the specific `21.0.9+7-LTS-338` version of the Oracle JDK in `JAVA_HOME`, and ensures the Kotlin Toolchain uses it:
+Manually place a specific build of Oracle GraalVM for JDK 21 in `JAVA_HOME`, and ensure the Kotlin Toolchain uses it:
 
 ```yaml title="module.yaml"
 settings:
   jvm:
     jdk:
       version: 21
-      distributions: [oracle]
+      distributions: [oracleGraalVM]
       selectionMode: javaHome # (1)!
-      acknowledgedLicenses: [oracle] # (2)!
+      acknowledgedLicenses: [oracleGraalVM] # (2)!
 ```
 
 1.   Ensures the Kotlin Toolchain never provisions another JDK, just fail if the machine is misconfigured
-2.   Tell the Kotlin Toolchain that we know about Oracle's commercial license and accept it
+2.   Tell the Kotlin Toolchain that we know about Oracle GraalVM's commercial license and accept it
 
 ### Ignoring `JAVA_HOME`
 
-Always provision Corretto 21 regardless of JAVA_HOME
+Always use a Corretto 21 from the Kotlin Toolchain-managed cache (provision it the first time), regardless of 
+`JAVA_HOME`.
 
 ```yaml title="module.yaml"
 settings:

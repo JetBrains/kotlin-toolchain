@@ -54,13 +54,15 @@ Read more in the [Testing](../user-guide/testing.md) section.
 
 Supported dependency types:
 
-| Notation                                    | Description                                                                                                                |
-|---------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
-| `- //<project path>`                        | Dependency on [another module](../user-guide/dependencies.md#module-dependencies) in the codebase.                         |
-| `- <group ID>:<artifact ID>:<version>`      | Dependency on [a Kotlin or Java library](../user-guide/dependencies.md#external-maven-dependencies) in a Maven repository. |
-| `- $<catalog.key>`                          | Dependency from [a dependency catalog](../user-guide/dependencies.md#library-catalogs).                                    |
-| `- bom: <group ID>:<artifact ID>:<version>` | Dependency on [a BOM](../user-guide/dependencies.md#using-a-maven-bom).                                                    |
-| `- bom: $<catalog.key>`                     | Dependency on [a BOM from a dependency catalog](../user-guide/dependencies.md#library-catalogs).                           |
+| Item notation                                                       | Description                                                                                                                                                                          |
+|---------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `- //<project path>`                                                | Dependency on [another module](../user-guide/dependencies.md#module-dependencies) in the codebase.                                                                                   |
+| `- <groupId>:<artifactId>[:<version>[:<classifier>]][@<packaging>]` | Dependency on [a Kotlin or Java library](../user-guide/dependencies.md#external-maven-dependencies) in a Maven repository. The version, classifier, and packaging type are optional. |
+| `- $<catalog.key>`                                                  | Dependency from [a dependency catalog](../user-guide/dependencies.md#library-catalogs).                                                                                              |
+| `- bom: <groupId>:<artifactId>:<version>`                           | Dependency on [a BOM](../user-guide/dependencies.md#using-a-maven-bom).                                                                                                              |
+| `- bom: $<catalog.key>`                                             | Dependency on [a BOM from a dependency catalog](../user-guide/dependencies.md#library-catalogs).                                                                                     |
+| `- swiftPackage: ...`                                               | Dependency on a remote Swift package, only for [iOS apps](../user-guide/product-types/ios-app.md).                                                                                   |
+| `- localSwiftPackage: <path>`                                       | Dependency on a local Swift package, only for [iOS apps](../user-guide/product-types/ios-app.md).                                                                                    |
 
 Each dependency (except BOM) has the following attributes:
 
@@ -148,6 +150,13 @@ settings:
 
 ```
 
+## `mavenPlugins`
+
+The `mavenPlugins` section enables and configures Maven plugin mojos from Maven plugins registered in the project's
+`project.yaml` file. Read more in the [Maven plugins](../user-guide/advanced/maven-plugins.md) section.
+
+!!! warning "This is a prototype that can be dropped at any time."
+
 ## `pluginInfo`
 
 The `pluginInfo` section is only available if the `product.type` is `jvm/amper-plugin`.
@@ -159,47 +168,60 @@ It configures plugin-specific build settings.
 | ~~`description: string`~~ | `null`                      | **Deprecated**. Use the plugin module's top-level `description` instead.                                                                                                                        |  
 | `settingsClass: string`   | `null` (no plugin settings) | The fully qualified name of the @Configurable-annotated interface to be used as plugin configuration. This interface can't come from a dependency, it must be declared in the source directory. |
 
+## `plugins`
+
+The `plugins` section enables and configures plugins registered in the project's `project.yaml` file, for this
+particular module. Read more in the [Plugins](../user-guide/plugins/overview.md) section.
+
 ## `product`
 
 The `product` section defines what should be produced out of the module.
 Read more about the [product types](../user-guide/basics.md#product-type).
 
-| Attribute             | Default               | Description                                 |
-|-----------------------|-----------------------|---------------------------------------------|
-| `platform: enum list` | (derived from `type`) | What platforms to generate the product for. |
-| `type: enum`          | -                     | What type of product to generate.           |
+| Attribute              | Default               | Description                                 |
+|------------------------|-----------------------|---------------------------------------------|
+| `platforms: enum list` | (derived from `type`) | What platforms to generate the product for. |
+| `type: enum`           | -                     | What type of product to generate.           |
 
 Supported product types and platforms:
 
-| Product Type       | Description                                                                              | Supported platforms                                              |
-|--------------------|------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| `android/app`      | An Android VM application.                                                               | `android`                                                        |
-| `ios/app`          | An iOS application.                                                                      | device: `iosArm64`<br> simulators: `iosX64`, `iosSimulatorArm64` |
-| `js/app`           | A JavaScript application.                                                                | `js`                                                             |
-| `jvm/amper-plugin` | A plugin for the Kotlin Toolchain (see [Plugins](../user-guide/plugins/quick-start.md)). | `jvm`                                                            |
-| `jvm/app`          | A JVM application (console, desktop, server...).                                         | `jvm`                                                            |
-| `jvm/lib`          | A JVM library that other modules can depend on.                                          | `jvm`                                                            |
-| `kmp/lib`          | A reusable Kotlin Multiplatform library that other modules can depend on.                | any (the list must be specified explicitly)                      |
-| `linux/app`        | A native Linux application.                                                              | `linuxX86`, `linuxArm64`                                         |
-| `macos/app`        | A native macOS application.                                                              | `macosX64`, `macosArm64`                                         |
-| `wasm-js/app`      | A Wasm (JS) application.                                                                 | `wasmJs`                                                         |
-| `wasm-wasi/app`    | A Wasm (WASI) application.                                                               | `wasmWasi`                                                       |
-| `windows/app`      | A native Windows application.                                                            | `mingwX64`                                                       |
+| Product Type       | Description                                                                              | Supported platforms                                   |
+|--------------------|------------------------------------------------------------------------------------------|-------------------------------------------------------|
+| `android/app`      | An Android VM application.                                                               | `android`                                             |
+| `ios/app`          | An iOS application.                                                                      | `iosArm64` (device)<br/>`iosSimulatorArm64` (simulator) |
+| `js/app`           | A JavaScript application.                                                                | `js`                                                  |
+| `jvm/amper-plugin` | A plugin for the Kotlin Toolchain (see [Plugins](../user-guide/plugins/quick-start.md)). | `jvm`                                                 |
+| `jvm/app`          | A JVM application (console, desktop, server...).                                         | `jvm`                                                 |
+| `jvm/lib`          | A JVM library that other modules can depend on.                                          | `jvm`                                                 |
+| `kmp/lib`          | A reusable Kotlin Multiplatform library that other modules can depend on.                | any (the list must be specified explicitly)           |
+| `linux/app`        | A native Linux application.                                                              | `linuxArm64`, `linuxX64`       |
+| `macos/app`        | A native macOS application.                                                              | `macosArm64`<br/>~~`macosX64`~~ (deprecated)          |
+| `wasm-js/app`      | A Wasm (JS) application.                                                                 | `wasmJs`                                              |
+| `wasm-wasi/app`    | A Wasm (WASI) application.                                                               | `wasmWasi`                                            |
+| `windows/app`      | A native Windows application.                                                            | `mingwX64`                                            |
 
 Check the list of all [Kotlin Multiplatform targets](https://kotlinlang.org/docs/native-target-support.html) and the
 level of their support.
+
+!!! info "Apple Intel is being phased out" 
+
+    The `iosX64` (Intel iOS simulator) platform is not available for `ios/app`, only for `kmp/lib`.
+    This platform will eventually be phased out (even though it's not deprecated yet), and Compose libraries already
+    don't support it.
+    
+    The `macosX64` platform (Intel macs) is deprecated since Kotlin 2.3.20.
 
 Examples:
 
 ```yaml title="Short form"
 # Defaults to all supported platforms for the corresponding target
-product: macos/app
+product: linux/app
 ```
 
 ```yaml title="Full form, explicitly specified platforms"
 product:
-  type: macos/app
-  platforms: [ macosArm64, macosArm64 ]
+  type: linux/app
+  platforms: [ linuxX64, linuxArm64 ]
 ```
 
 ```yaml title="Multiplatform Library for JVM and Android platforms"
@@ -213,11 +235,13 @@ product:
 The `repositories` section defines the list of repositories used to look up and download the module dependencies.
 Read more about [Managing Maven repositories](../user-guide/dependencies.md#managing-maven-repositories).
 
-| Attribute              | Default          | Description                                            | 
-|------------------------|------------------|--------------------------------------------------------|
-| `credentials: object?` | `null`           | Credentials to connect to this repository (if needed). |
-| `id: string`           | (set from `url`) | The ID of the repository, used to reference it.        |
-| `url: string`          | -                | The URL of the repository.                             |
+| Attribute              | Default          | Description                                              | 
+|------------------------|------------------|----------------------------------------------------------|
+| `credentials: object?` | `null`           | Credentials to connect to this repository (if needed).   |
+| `id: string`           | (set from `url`) | The ID of the repository, used to reference it.          |
+| `publish: boolean`     | `false`          | Whether this repository can be used to publish artifacts. |
+| `resolve: boolean`     | `true`           | Whether this repository can be used to resolve artifacts. |
+| `url: string`          | -                | The URL of the repository.                               |
 
 Credentials support username/password authentication and have the following attributes:
 
@@ -235,7 +259,7 @@ repositories:
   - https://jitpack.io
 ```
 
-1. When using just a string, it is used as both the `url` and `uuidValue` of the repository
+1. When using just a string, it is used as the `url` of the repository (and the `id` defaults to the url)
 
 ```yaml title="Full form"
 repositories:
@@ -275,8 +299,7 @@ Read more in the [Testing](../user-guide/testing.md) section.
 | `namespace: string`           | `org.example.namespace` | A Kotlin or Java package name for the generated `R` and `BuildConfig` classes. [Read more](https://developer.android.com/build/configure-app-module#set-namespace).                                                                             |
 | `compileSdk: object \| int`   | 37                      | The Android SDK version to compile the code against. The code can use only the Android APIs up to that API level. [Read more](https://developer.android.com/reference/tools/gradle-api/com/android/build/api/dsl/CommonExtension#compileSdk()). |
 | `targetSdk: int`              | (set from `compileSdk`) | The target API level for the application. [Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html).                                                                                                               |
-| `minSdk: int`                 | 21                      | Minimum API level needed to run the application. [Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html).                                                                                                        |
-| `maxSdk: int?`                | `null`                  | Maximum API level on which the application can run. [Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html).                                                                                                     |
+| `minSdk: int`                 | 24                      | Minimum API level needed to run the application. [Read more](https://developer.android.com/guide/topics/manifest/uses-sdk-element.html).                                                                                                        |
 | `signing: object`             |                         | Android signing settings. [Read more](https://developer.android.com/studio/publish/app-signing).                                                                                                                                                |
 | `versionCode: int`            | 1                       | Version code. [Read more](https://developer.android.com/studio/publish/versioning).                                                                                                                                                             |
 | `versionName: string`         | `unspecified`           | Version name. [Read more](https://developer.android.com/studio/publish/versioning).                                                                                                                                                             |
@@ -394,7 +417,7 @@ framework. Read more about [Compose configuration](../user-guide/builtin-tech/co
 
 | Attribute         | Default | Description                                      |
 |-------------------|---------|--------------------------------------------------|
-| `version: string` | `1.0.0` | The Compose Hot Reload toolchain version to use. |
+| `version: string` | `1.2.0` | The Compose Hot Reload toolchain version to use. |
 
 Examples:
 
@@ -407,14 +430,14 @@ settings:
 settings:
   compose:
     enabled: true
-    version: 1.6.10
+    version: 1.11.1
 ```
 
 ```yaml title="Full form with resources configuration"
 settings:
   compose:
     enabled: true
-    version: 1.6.10
+    version: 1.11.1
     resources:
       packageName: "com.example.myapp.resources"
       exposedAccessors: true
@@ -503,12 +526,12 @@ Supported values for `distributions` and `acknowledgedLicenses`:
 - `jetbrains` (JetBrains Runtime)
 - `oracleOpenJdk` (Oracle OpenJDK)
 - `microsoft` (Microsoft)
-- `bisheng` (BiSheng)
 - `dragonwell` (Alibaba Dragonwell)
 - `liberica` (BellSoft Liberica)
 - `sapMachine` (SapMachine)
 - `semeru` (IBM Semeru Open Edition)
-- `oracle` (Oracle JDK; requires license)
+- `graalVM` (GraalVM Community Edition)
+- `oracleGraalVM` (Oracle GraalVM; requires license)
 
 Values for `selectionMode`:
 
@@ -525,7 +548,7 @@ Read more about [testing support](../user-guide/testing.md).
 
 | Value                          | Default | Description                                   |
 |--------------------------------|---------|-----------------------------------------------|
-| `junitPlatformVersion: string` | 6.0.1   | The JUnit platform version used to run tests. |
+| `junitPlatformVersion: string` | 6.1.3   | The JUnit platform version used to run tests. |
 | `extraEnvironment: map`        | `{}`    | Environment variables for the test process.   |
 | `freeJvmArgs: string list`     | `[]`    | Free JVM arguments for the test process.      |
 | `systemProperties: map`        | `{}`    | JVM system properties for the test process.   |
@@ -534,32 +557,38 @@ Read more about [testing support](../user-guide/testing.md).
 
 `settings.kotlin` configures the Kotlin language and the compiler.
 
-| Attribute                        | Default                      | Description                                                                                                                                                          |
-|----------------------------------|------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `version: string`                | 2.3.20                       | The version of the Kotlin compiler and stdlib to use.                                                                                                                |
-| `allOpen: object`                |                              | Configure the [Kotlin all-open compiler plugin](https://kotlinlang.org/docs/all-open-plugin.html).                                                                   |
-| `allWarningsAsErrors: boolean`   | `false`                      | Turn any warnings into a compilation error.                                                                                                                          |
-| `apiVersion: enum`               | (set from `languageVersion`) | Allow using declarations only from the specified version of Kotlin bundled libraries.                                                                                |
-| `compilerPlugins: object list`   | `[]`                         | Configure third-party Kotlin compiler plugins.                                                                                                                       |
-| `debug: boolean`                 | `true`                       | (Only for [native targets](https://kotlinlang.org/docs/native-target-support.html)) Enable emitting debug information.                                               |
-| `freeCompilerArgs: string list`  | `[]`                         | Pass any [compiler option](https://kotlinlang.org/docs/compiler-reference.html#compiler-options) directly.                                                           |
-| `jsPlainObjects: object \| enum` |                              | Enable the Kotlin JS-plain-objects compiler plugin.                                                                                                                  |
-| `ksp: object`                    |                              | Configure [Kotlin Symbol Processing](../user-guide/advanced/ksp.md).                                                                                                 |
-| `languageVersion: enum`          | (major.minor from `version`) | Provide source compatibility with the specified version of Kotlin.                                                                                                   |
-| `noArg: object`                  |                              | Configure the [Kotlin no-arg compiler plugin](https://kotlinlang.org/docs/no-arg-plugin.html).                                                                       |
-| `optIns: enum list`              | `[]`                         | Enable usages of API that [requires opt-in](https://kotlinlang.org/docs/opt-in-requirements.html) with a requirement annotation with the given fully qualified name. |
-| `progressiveMode: boolean`       | `false`                      | Enable the [progressive mode for the compiler](https://kotlinlang.org/docs/compiler-reference.html#progressive).                                                     |
-| `serialization: object \| enum`  |                              | Configure [Kotlin serialization](https://github.com/Kotlin/kotlinx.serialization).                                                                                   |
-| `suppressWarnings: boolean`      | `false`                      | Suppress the compiler from displaying warnings during compilation.                                                                                                   |
-| `verbose: boolean`               | `false`                      | Enable verbose logging output which includes details of the compilation process.                                                                                     |
+| Attribute                         | Default                          | Description                                                                                                                                                          |
+|-----------------------------------|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `version: string`                 | 2.4.10                           | The version of the Kotlin compiler and stdlib to use.                                                                                                                |
+| `allOpen: object`                 |                                  | Configure the [Kotlin all-open compiler plugin](https://kotlinlang.org/docs/all-open-plugin.html).                                                                   |
+| `allWarningsAsErrors: boolean`    | `false`                          | Turn any warnings into a compilation error.                                                                                                                          |
+| `apiVersion: enum`                | (set from `languageVersion`)     | Allow using declarations only from the specified version of Kotlin bundled libraries.                                                                                |
+| `compileIncrementally: boolean`   | (enabled for Kotlin >= 2.4.0)    | Whether Kotlin code should be compiled incrementally (only recompile what's necessary depending on the changes).                                                     |
+| `compilerPlugins: object list`    | `[]`                             | Configure third-party Kotlin compiler plugins.                                                                                                                       |
+| `dataframe: object \| enum`       |                                  | Configure the [Kotlin DataFrame compiler plugin](https://kotlin.github.io/dataframe/home.html).                                                                      |
+| `debug: boolean`                  | (enabled in debug variants)      | (Only for [native targets](https://kotlinlang.org/docs/native-target-support.html)) Enable emitting debug information.                                               |
+| `freeCompilerArgs: string list`   | `[]`                             | Pass any [compiler option](https://kotlinlang.org/docs/compiler-reference.html#compiler-options) directly.                                                           |
+| `jsPlainObjects: object \| enum`  |                                  | Enable the Kotlin JS-plain-objects compiler plugin.                                                                                                                  |
+| `ksp: object`                     |                                  | Configure [Kotlin Symbol Processing](../user-guide/advanced/ksp.md).                                                                                                 |
+| `languageVersion: enum`           | (major.minor from `version`)     | Provide source compatibility with the specified version of Kotlin.                                                                                                   |
+| `linkerOptions: string list`      | `[]`                             | (Only for [native targets](https://kotlinlang.org/docs/native-target-support.html)) Additional arguments to pass to the linker during binary building.               |
+| `noArg: object`                   |                                  | Configure the [Kotlin no-arg compiler plugin](https://kotlinlang.org/docs/no-arg-plugin.html).                                                                       |
+| `optIns: string list`             | `[]`                             | Enable usages of API that [requires opt-in](https://kotlinlang.org/docs/opt-in-requirements.html) with a requirement annotation with the given fully qualified name. |
+| `optimization: boolean`           | (enabled in release variants)    | (Only for [native targets](https://kotlinlang.org/docs/native-target-support.html)) Enable compilation optimizations and produce a binary with better runtime performance. |
+| `powerAssert: object \| enum`     |                                  | Configure the [Kotlin power-assert compiler plugin](https://kotlinlang.org/docs/power-assert.html).                                                                  |
+| `progressiveMode: boolean`        | `false`                          | Enable the [progressive mode for the compiler](https://kotlinlang.org/docs/compiler-reference.html#progressive).                                                     |
+| `rpc: object \| enum`             |                                  | Configure the [kotlinx.rpc compiler plugin](https://kotlin.github.io/kotlinx-rpc/).                                                                                  |
+| `serialization: object \| enum`   |                                  | Configure [Kotlin serialization](https://github.com/Kotlin/kotlinx.serialization).                                                                                   |
+| `suppressWarnings: boolean`       | `false`                          | Suppress the compiler from displaying warnings during compilation.                                                                                                   |
+| `verbose: boolean`                | `false`                          | Enable verbose logging output which includes details of the compilation process.                                                                                     |
 
 The `serialization` attribute is an object with the following properties:
 
-| Attribute          | Default                | Description                                                                                                                                                                           |
-|--------------------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `enabled: boolean` | `false`                | Enable the `@Serializable` annotation processing, and add the core serialization library. When enabled, a built-in catalog for kotlinx.serialization format dependencies is provided. |
-| `version: string`  | `1.11.0`               | The version to use for the core serialization library and the serialization formats.                                                                                                  |
-| `format: enum`     | `none` (only core lib) | A shortcut for `enabled: true` and adding the given serialization format dependency. For instance, `json` adds the JSON format in addition to enabling serialization.                 |
+| Attribute          | Default                       | Description                                                                                                                                                                           |
+|--------------------|-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `enabled: boolean` | (enabled if `format` is set)  | Enable the `@Serializable` annotation processing, and add the core serialization library. When enabled, a built-in catalog for kotlinx.serialization format dependencies is provided. Automatically enabled when `format` is specified, `false` otherwise. |
+| `version: string`  | `1.11.0`                      | The version to use for the core serialization library and the serialization formats.                                                                                                  |
+| `format: string`   | `null` (only core lib)        | A shortcut for `enabled: true` and adding the given serialization format dependency. For instance, `json` adds the JSON format in addition to enabling serialization. Known formats: `json`, `json-io`, `json-okio`, `hocon`, `protobuf`, `cbor`, `properties`. |
 
 You can also use a short form and directly specify `serialization: enabled` or `serialization: json`.
 
@@ -569,7 +598,7 @@ Examples:
 # Set Kotlin language version and opt-ins
 settings:
   kotlin:
-    languageVersion: 1.8
+    languageVersion: 2.3
     optIns: [ kotlin.io.path.ExperimentalPathApi ]
 ```
 
@@ -657,6 +686,16 @@ compilation.
 Check the [third-party compiler plugins](../user-guide/advanced/kotlin-compiler-plugins.md#third-party-compiler-plugins)
 section for more information and examples.
 
+#### `settings.kotlin.dataframe`
+
+`settings.kotlin.dataframe` configures the [Kotlin DataFrame](https://kotlin.github.io/dataframe/home.html) compiler
+plugin.
+
+| Attribute          | Default      | Description                                        |
+|--------------------|--------------|----------------------------------------------------|
+| `enabled: boolean` | `false`      | Enable the Kotlin DataFrame compiler plugin        |  
+| `version: string`  | `1.0.0-rc01` | The version of the Kotlin DataFrame library to use |  
+
 #### `settings.kotlin.jsPlainObjects`
 
 `settings.kotlin.jsPlainObjects` configures the [JS plain objects compiler plugin](https://kotlinlang.org/docs/js-plain-objects.html),
@@ -708,9 +747,30 @@ which allows processing Kotlin source code with custom processors (usually to ge
 
 | Attribute                               | Default | Description                                                                                                              |
 |-----------------------------------------|---------|--------------------------------------------------------------------------------------------------------------------------|
-| `version: string`                       | `2.3.9` | The version of KSP to use                                                                                                |  
+| `version: string`                       | `2.3.11` | The version of KSP to use                                                                                               |  
 | `processors: string list`               | `[]`    | The list of KSP processors to use. Each item can be a path to a local module, a catalog reference, or maven coordinates. |  
 | `processorOptions: map<string, string>` | `{}`    | Some options to pass to KSP processors. Refer to each processor documentation for details.                               |  
+
+#### `settings.kotlin.powerAssert`
+
+`settings.kotlin.powerAssert` configures the [Kotlin power-assert compiler plugin](https://kotlinlang.org/docs/power-assert.html),
+which enriches assertion failure messages with intermediate values.
+
+| Attribute                 | Default           | Description                                                                                                                                             |
+|---------------------------|-------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `enabled: boolean`        | `false`           | Enable the Kotlin power-assert compiler plugin                                                                                                          |  
+| `functions: string list`  | `[kotlin.assert]` | A list of fully-qualified function names that the Power-assert plugin should transform. If not specified, only `kotlin.assert()` calls are transformed. |  
+
+#### `settings.kotlin.rpc`
+
+`settings.kotlin.rpc` configures the [kotlinx.rpc compiler plugin](https://kotlin.github.io/kotlinx-rpc/).
+
+| Attribute                              | Default  | Description                                                                                                                                              |
+|----------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `enabled: boolean`                     | `false`  | Enable the kotlinx.rpc compiler plugin                                                                                                                   |  
+| `applyBom: boolean`                    | `true`   | Apply the kotlinx.rpc BOM to enforce dependency version alignment                                                                                        |  
+| `version: string`                      | `0.10.3` | The version of kotlinx.rpc to use                                                                                                                        |  
+| `annotationTypeSafetyEnabled: boolean` | `true`   | Controls `@Rpc` annotation type-safety compile-time checkers. Disabling is considered unsafe and is only needed when type-safety analysis fails on valid code. |  
 
 ### `settings.ktor`
 
@@ -719,7 +779,7 @@ which allows processing Kotlin source code with custom processors (usually to ge
 | Attribute           | Default | Description                                                                                                          |
 |---------------------|---------|----------------------------------------------------------------------------------------------------------------------|
 | `enabled: boolean`  | `false` | Enable the Ktor server framework. This is just a convenience to generate library catalog entries for Ktor libraries. |  
-| `version: string`   | `3.4.1` | The Ktor version used for the BOM and in the generated library catalog entries                                       |  
+| `version: string`   | `3.5.2` | The Ktor version used for the BOM and in the generated library catalog entries                                       |  
 | `applyBom: boolean` | `true`  | Whether to apply the Ktor BOM                                                                                        |
 
 Example:
@@ -738,7 +798,7 @@ settings:
 | Attribute          | Default   | Description                                         |
 |--------------------|-----------|-----------------------------------------------------|
 | `enabled: boolean` | `false`   | Enable Lombok                                       |  
-| `version: string`  | `1.18.38` | Lombok version for runtime and annotation processor |
+| `version: string`  | `1.18.46` | Lombok version for runtime and annotation processor |
 
 Example:
 
@@ -765,6 +825,50 @@ settings:
     entryPoint: com.example.MainKt.main
 ```
 
+### `settings.publishing`
+
+`settings.publishing` configures the publication of the module to Maven repositories.
+Read more in the [Publishing](../user-guide/publishing.md) section.
+
+| Attribute              | Default          | Description                                                                                                                                                                                                                                    |
+|------------------------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `enabled: boolean`     | `false`          | Enables the publication of the module to Maven repositories (via `./kotlin publish`).                                                                                                                                                         |
+| `group: string`        | `null`           | Group ID of the published Maven artifact.                                                                                                                                                                                                      |
+| `version: string`      | `null`           | Version of the published Maven artifact.                                                                                                                                                                                                      |
+| `artifactId: string`   | (module name)    | Base artifact ID of the published Maven artifacts (for multiplatform libraries, a suffix may be appended to distinguish artifacts from different platforms).                                                                                   |
+| `pom: object`          |                  | Custom metadata to configure in the published `pom.xml` file.                                                                                                                                                                                  |
+| `signArtifacts: boolean` | `false`        | If set to true, artifacts published to Maven repositories are signed with a private PGP signing key, and these signatures are published as extra artifacts. The key must be specified via the `KOTLIN_TOOLCHAIN_SIGNING_KEY` environment variable in the ASCII-armored format (and its passphrase, if any, via `KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE`). |
+| `publishSources: boolean` | `false`       | If set to true, JARs with sources for each platform are published as extra artifacts.                                                                                                                                                          |
+| `checksums: enum list` | `[md5, sha1]`    | The list of checksums to publish for each artifact (possible values: `md5`, `sha1`, `sha256`, `sha512`). By default, only the checksums required by Maven Central are published to reduce the number of files.                                 |
+| `mavenCentral: object` | (disabled)       | Configures publication to Maven Central (via the Publish portal).                                                                                                                                                                              |
+
+`settings.publishing.pom` configures custom metadata in the published `pom.xml` file. Most of it is required for
+Maven Central publication, and is usually the same for the whole project, thus configured in a common template.
+
+| Attribute                 | Default              | Description                                                                                                                              |
+|---------------------------|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| `name: string`            | (module name)        | A user-readable name for this module.                                                                                                    |
+| `description: string`     | (module description) | A description for this module.                                                                                                           |
+| `url: string`             | `null`               | The URL to the module's homepage in the POM metadata.                                                                                    |
+| `licenses: object list`   | `[]`                 | The licenses that apply to this module. Each license has a `name` and a `url`.                                                           |
+| `scm: object`             |                      | The source control management information for this module.                                                                               |
+| `developers: object list` | `[]`                 | The developers working on this module. Each developer has a `name` (required), and optionally `id`, `url`, `email`, `organization`, and `organizationUrl`. |
+
+`settings.publishing.pom.scm` describes the source control management information:
+
+| Attribute                    | Default                    | Description                                                                                                                  |
+|------------------------------|----------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| `url: string`                | `null`                     | The URL to the repository hosting the source code of this module, e.g. `https://github.com/spring-projects/spring-boot.git`. |
+| `connection: string`         | (`scm:git:` + the `url`)   | A URL with `scm:` scheme that Maven uses to connect to the version control system with _read_ access.                       |
+| `developerConnection: string`| (`scm:git:` + the `url`)   | A URL with `scm:` scheme that Maven uses to connect to the version control system with _write_ access.                      |
+
+`settings.publishing.mavenCentral` configures publication to Maven Central (via the Publish portal):
+
+| Attribute               | Default  | Description                                                                                                                                                                            |
+|-------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `enabled: boolean`      | `false`  | Enables publication to Maven Central, which can then be triggered using `kotlin publish mavenCentral`.                                                                                 |
+| `publishingMode: enum`  | `manual` | Whether the publication should be fully automated, or pause for manual verification. With `manual`, the publication pauses after validation of the uploaded deployment bundle and awaits a manual trigger from the Central Portal UI. With `auto`, it automatically continues and publishes the deployment without manual intervention. |
+
 ### `settings.springBoot`
 
 `settings.springBoot` configures the Spring Boot framework (JVM platform only).
@@ -772,7 +876,7 @@ settings:
 | Attribute           | Default | Description                          |
 |---------------------|---------|--------------------------------------|
 | `enabled: boolean`  | `false` | Enable Spring Boot                   |  
-| `version: string`   | `4.0.5` | Spring Boot version                  |  
+| `version: string`   | `4.1.0` | Spring Boot version                  |  
 | `applyBom: boolean` | `true`  | Whether to apply the Spring Boot BOM |
 
 Example:

@@ -49,14 +49,15 @@ kotlin --help       # shows the available commands and general options
 kotlin build --help # shows the options for the 'build' command specifically
 ```
 
-Useful commands:
+Here are the most commonly used commands:
 
 - `kotlin init` to create a new Kotlin project
 - `kotlin build` to compile and link all code in the project
 - `kotlin run` to run your application
 - `kotlin test` to run tests in the project
-- `kotlin show (modules|settings|dependencies|tasks)` to introspect the project's configuration
+- `kotlin show (modules|settings|dependencies|tasks|checks|commands)` to introspect the project's configuration
 - `kotlin clean` to remove the project's build output and caches
+- `kotlin publish` to publish modules to a repository
 
 !!! example "Try it out!"
 

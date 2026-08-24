@@ -121,7 +121,12 @@ See the documentation on the [project layout](user-guide/basics.md#project-layou
 
 ### Is there an automated migration tool?
 
-Not currently, but it's certainly something we’re looking into.
+Yes, for Maven projects: the `./kotlin tool convert-project` command does the bulk of the conversion for you, on a
+best-effort basis. See the [Migrating from Maven](getting-started/migrating-from-maven.md) guide for details.
+
+For Gradle projects, there is no conversion tool at the moment. Gradle build scripts contain arbitrary code, which makes
+it hard to define a proper automatic and deterministic conversion. However, AI agents are quite good at this, especially
+with the [Kotlin Toolchain skills](https://github.com/singleton11/kotlin-toolchain-skills).
 
 ### Feature X is not yet supported, what can I do?
 

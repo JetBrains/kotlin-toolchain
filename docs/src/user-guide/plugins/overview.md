@@ -39,7 +39,7 @@ Tasks can also serve as [checks](topics/checks.md) and [commands](topics/custom-
 Task actions can consume:
 
 - [Typed contents](topics/tasks.md#consuming-things-from-the-build) from the build:
-    - module sources/resources (via built‑in `ModuleSources` configurable, e.g., `${module.sources}`/`${module.resources}`)
+    - module sources/resources (via built‑in `ModuleSources` configurable, e.g., `${module.kotlinJavaSources}`/`${module.resources}`)
     - module compilation result (via built‑in `CompilationArtifact` configurable, e.g., `${module.jar}`)
     - module runtime/compilation classpath (via built‑in `Classpath` configurable, e.g., `${module.runtimeClasspath}`/`${module.compileClasspath}`)
     - resolve arbitrary Maven dependencies as an ad hoc classpath (via a custom `Classpath` configuration, like `myClasspath: [ "group:name:version", ... ]`)
@@ -47,9 +47,10 @@ Task actions can consume:
 
 Task actions can produce:
 
-- [Typed contents](topics/tasks.md#contributing-back-to-the-build):
-    - Kotlin/Java sources (via `markOutputAs`)
-    - resources (via `markOutputAs`)
+- [Typed contents](topics/tasks.md#contributing-back-to-the-build) declared in the top‑level `generated:` block:
+    - Kotlin/Java sources (via `generated.sources`)
+    - resources (via `generated.resources`)
+    - cinterop definition files (via `generated.cinteropDefinitions`)
 - arbitrary file trees in specified paths
 
 For more information on these features, see the KDocs on these built‑in configurable interfaces.

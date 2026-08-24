@@ -5,10 +5,11 @@ description: |
 ---
 # Wrapper script & provisioning
 
-Part of our philosophy is to avoid the hassle of setting up toolchains, including the JDK and the Kotlin Toolchain itself.
+Part of our philosophy is to avoid the hassle of setting up toolchains, including the JDK and the Kotlin Toolchain 
+itself.
 
-The recommended way to use the Kotlin Toolchain is to check the Kotlin wrapper script into your project's root folder, so that anyone 
-cloning your project can just run `./kotlin build` and start working right away — that's it.
+The recommended way to use the Kotlin Toolchain is to check the Kotlin wrapper script into your project's root folder, 
+so that anyone cloning your project can just run `./kotlin build` and start working right away — that's it.
 No installation needed, no matter their OS.
 
 ## What's the wrapper script?
@@ -16,12 +17,21 @@ No installation needed, no matter their OS.
 The **Kotlin wrapper script** is a small file (`kotlin` or `kotlin.bat`) that downloads and runs the actual Kotlin CLI 
 application[^1], and serves as an entry point for all Kotlin CLI commands.
 
-Of course, the Kotlin CLI application is only downloaded once (per version) and subsequent calls to the wrapper 
+Of course, the Kotlin CLI application is only downloaded once (per version) and subsequent calls to the wrapper
 immediately delegate to it.
 
-[^1]: The Kotlin CLI is, at the moment, a JVM application. The Kotlin Toolchain distribution is therefore a bunch of JAR files, and
-      they need a Java Runtime Environment (JRE) to run. This is an implementation detail and may change in the future,
-      so you should not rely on it.
+[^1]: The Kotlin CLI is, at the moment, a JVM application. The Kotlin Toolchain distribution is therefore a bunch of JAR
+      files, and they need a Java Runtime Environment (JRE) to run. This is an implementation detail and may change in 
+      the future, so you should not rely on it.
+
+## Project-local version detection
+
+The wrapper script is the source of truth for the version of the Kotlin Toolchain used in your project. 
+A globally installed wrapper (for instance, installed [via SDKMAN or the installer script](index.md#installation)) doesn't blindly use its own 
+version. When run, it searches the current directory and its ancestors for a project (a directory with a `project.yaml` or
+`module.yaml` file) containing its own `kotlin` wrapper script.
+If it finds one, it reads the Kotlin Toolchain version and distribution checksum from that wrapper and uses them
+instead of its own, so the project is built with the version it declares.
 
 ## Concurrency
 
@@ -43,6 +53,13 @@ for the current OS:
       It is, however, respected for the regular Kotlin cache.
 
 This location can be customized by setting the `KOTLIN_CLI_BOOTSTRAP_CACHE_DIR` environment variable.
+
+## Shared cache location
+
+Once running, the Kotlin CLI itself uses another cache directory, shared between all Kotlin projects (for downloaded
+dependencies, JDKs, and other tools).
+This location can be customized by setting the `KOTLIN_SHARED_CACHE_DIR` environment variable, or by using the
+`--shared-cache-dir` command line option (which takes precedence over the environment variable).
 
 ## Disabling the welcome banner
 

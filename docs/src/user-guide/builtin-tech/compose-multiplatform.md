@@ -66,7 +66,8 @@ Use `settings.compose.enabled` to enable Compose:
 Enabling Compose does the following:
 
 * configures the Compose compiler plugin for the Kotlin compiler
-* adds the required `org.jetbrains.compose.runtime:runtime` dependency (implicitly)
+* adds the required `org.jetbrains.compose.runtime:runtime` and `org.jetbrains.compose.components:components-resources`
+  dependencies (implicitly)
 * enables the built-in `$compose.*` library catalog for all optional Compose modules
 
 ### Custom Compose version
@@ -117,11 +118,13 @@ Read more about setting up and using compose resources in
 
 ### Generated accessors package
 
-By default, resources accessors are generated in the package `<sanitized-module-name>.generated.resources`, where 
-`<sanitized-module-name>` is the module name with all non-letter symbols replaced with `_`.
+By default, resources accessors are generated in the package `<sanitized-name>.generated.resources`, where 
+`<sanitized-name>` is derived from the `group` and `artifactId` of the `settings.publishing` section if they are set,
+or from the module name otherwise. The name is sanitized by lowercasing it, replacing `-` characters with `_`, and
+prefixing it with `_` if it starts with a digit.
 
-In the above example where the module name is `my-kmp-module`, the package name for the generated resources is 
-therefore `my_kmp_module.generated.resources`.
+In the above example where the module name is `my-kmp-module` (and no publishing settings are set), the package name 
+for the generated resources is therefore `my_kmp_module.generated.resources`.
 
 You can customize the package name by setting the `settings.compose.resources.packageName` property in your module file:
 

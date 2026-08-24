@@ -43,7 +43,7 @@ You can run your application using the `./kotlin run` command.
 
 You can use the `build` command to create an APK, or the `package` command to create an Android Application Bundle (AAB).
 
-The `package` command will not only build the APK, but also minify/obfuscate it with ProGuard, and sign it.
+The `package` command will not only build the AAB, but also minify/obfuscate it with R8, and sign it.
 See the dedicated [signing](#signing) and [code shrinking](#code-shrinking) sections below to learn how to configure this.
 
 ### Resolving duplicate Java resources
