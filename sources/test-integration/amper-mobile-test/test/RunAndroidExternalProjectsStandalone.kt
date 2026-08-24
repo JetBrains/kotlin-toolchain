@@ -33,7 +33,7 @@ class RunAndroidExternalProjectsStandalone : AndroidBaseTest() {
         projectSource = ProjectSource.RemoteRepository(
             cloneUrl = "https://github.com/JetBrains/kotlinconf-app.git",
             cloneIntoDirName = "kotlinconf-app",
-            refLikeToCheckout = "amper",
+            refLikeToCheckout = "kotlin-toolchain",
         ),
         applicationId = "com.jetbrains.kotlinconf",
         androidAppModuleName = "androidApp",

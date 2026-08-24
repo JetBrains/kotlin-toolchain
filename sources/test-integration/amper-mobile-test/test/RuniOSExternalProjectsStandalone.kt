@@ -38,7 +38,7 @@ class RuniOSExternalProjectsStandalone : IOSBaseTest() {
         projectSource = ProjectSource.RemoteRepository(
             cloneUrl = "https://github.com/JetBrains/kotlinconf-app.git",
             cloneIntoDirName = "kotlinconf-app",
-            refLikeToCheckout = "amper",
+            refLikeToCheckout = "kotlin-toolchain",
         ),
         bundleIdentifier = "com.kotlinconf.iosapp",
         iosAppModuleName = "iosApp",

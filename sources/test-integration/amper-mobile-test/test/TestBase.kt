@@ -54,11 +54,7 @@ open class TestBase : AmperCliWithWrapperTestBase() {
     private suspend fun cloneToTempDir(projectSource: ProjectSource.RemoteRepository): Path {
         val cloneDir = tempRoot / projectSource.cloneIntoDirName
 
-        gitClone(repoUrl = projectSource.cloneUrl, cloneDestination = cloneDir)
-
-        if (projectSource.refLikeToCheckout != null) {
-            gitCheckout(repoDir = cloneDir, refLike = projectSource.refLikeToCheckout)
-        }
+        gitClone(repoUrl = projectSource.cloneUrl, cloneDestination = cloneDir, projectSource.refLikeToCheckout)
 
         val projectDir = (cloneDir / projectSource.projectRelativePath).normalize()
         check(projectDir.exists()) {
@@ -70,9 +66,15 @@ open class TestBase : AmperCliWithWrapperTestBase() {
     /**
      * Clones the Git repository from the given [repoUrl] into the specified [cloneDestination].
      */
-    private suspend fun gitClone(repoUrl: String, cloneDestination: Path) {
+    private suspend fun gitClone(repoUrl: String, cloneDestination: Path, refLikeToCheckout: String?) {
         runProcess(
-            command = ["git", "clone", repoUrl, cloneDestination.absolutePathString()],
+            command = buildList {
+                addAll(["git", "clone"])
+                if (refLikeToCheckout != null) {
+                    addAll(["-b", refLikeToCheckout])
+                }
+                addAll(["--depth", "1", repoUrl, cloneDestination.absolutePathString()])
+            },
             outputMode = ProcessOutputMode.captureStderr(),
         )
             .checkExitCodeIsZero()
@@ -81,18 +83,6 @@ open class TestBase : AmperCliWithWrapperTestBase() {
             error("Git clone completed but .git folder is missing. Something went wrong.")
         }
         println("Git repository '${repoUrl.substringAfterLast('/')}' successfully cloned to $cloneDestination")
-    }
-
-    /**
-     * Checks out the given [refLike] in the git repo located at [repoDir].
-     */
-    private suspend fun gitCheckout(repoDir: Path, refLike: String) {
-        runProcess(
-            workingDir = repoDir.toAbsolutePath(),
-            command = ["git", "checkout", refLike],
-            outputMode = ProcessOutputMode.captureStderr(),
-        ).checkExitCodeIsZero()
-        println("Successfully checked out ref-like `$refLike`")
     }
 
     protected fun amperExternalProject(

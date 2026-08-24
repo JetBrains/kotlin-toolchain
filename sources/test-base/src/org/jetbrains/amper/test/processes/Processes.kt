@@ -17,7 +17,7 @@ fun <T : ProcessResult> T.checkExitCodeIsZero(): T {
         buildString {
             append("Execution failed with exit code $exitCode for command: $command")
             when (this@checkExitCodeIsZero) {
-                is ProcessResult.WithOutputs -> {
+                is ProcessResult.WithStderr -> {
                     appendLine()
                     append("Process stderr:\n${stderr}")
                 }
