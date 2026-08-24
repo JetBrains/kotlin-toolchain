@@ -7,5 +7,4 @@ dependencies:
   - $compose.material3: exported
 
 settings:
-  compose:
-    enabled: true
+  compose: enabled
