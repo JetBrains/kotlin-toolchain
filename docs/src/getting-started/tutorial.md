@@ -371,13 +371,13 @@ Here is the project structure that we need:
 ```
 ├─ android-app/
 │  ├─ src/
-│  │  ├─ main.kt
-│  │  ╰─ AndroidManifest.xml
+│  │  ├─ AndroidManifest.xml
+│  │  ╰─ MainActivity.kt
 │  ╰─ module.yaml
 ├─ ios-app/
 │  ├─ src/
 │  │  ├─ iosApp.swift
-│  │  ╰─ main.kt
+│  │  ╰─ ViewController.kt
 │  ├─ module.yaml
 │  ╰─ module.xcodeproj
 ├─ jvm-app/
@@ -490,16 +490,16 @@ into `android-app/src` folder, and the [iosApp.swift file]({{ examples_base_url 
 These files bind the Compose UI code with the native application entry points.
 
 Make sure that your project structure looks like this:
-``` hl_lines="4 8"
+``` hl_lines="3 8"
 ├─ android-app/
 │  ├─ src/
-│  │  ├─ main.kt
-│  │  ╰─ AndroidManifest.xml
+│  │  ├─ AndroidManifest.xml
+│  │  ╰─ MainActivity.kt
 │  ╰─ module.yaml
 ├─ ios-app/
 │  ├─ src/
 │  │  ├─ iosApp.swift
-│  │  ╰─ main.kt
+│  │  ╰─ ViewController.kt
 │  ╰─ module.yaml
 ├─ jvm-app/
 ├─ shared/

@@ -44,7 +44,7 @@ an entry point is unspecified.
 Using the `build` command compiles your code to WebAssembly (`.wasm` file) and generates a JavaScript wrapper file 
 (`.mjs`) to load it.
 
-These files are produced in the `artifacts/CompiledWebArtifact/<module-name>wasmWasi<debug|release>` folder 
+These files are produced in the `build/artifacts/CompiledWebArtifact/<module-name>wasmWasi<debug|release>` folder 
 at the moment, but this is subject to change.
 
 There are no extra packaging facilities at the moment, and the `package` command is not supported for this product type.

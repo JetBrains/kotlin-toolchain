@@ -99,6 +99,9 @@ mavenPlugins:
 The `mavenPlugins` section allows you to run third-party Maven plugins directly in your Kotlin project.
 However, not all plugins are guaranteed to work, so by default they are disabled. You can selectively enable
 plugins you need by setting `enabled: true` in their configuration after the conversion.
+Alternatively, you can run the converter with the `--enable-compatibility-plugins` flag to generate these plugins
+already enabled, at the risk of issues from untested plugin configurations.
+
 Please refer to the [Maven plugins](../user-guide/advanced/maven-plugins.md) section for more details.
 
 ## Dependency mapping

@@ -10,11 +10,26 @@ Test code is located in the `test/` folder:
 ├─ test/           # test code
 │  ├─ MainTest.kt
 │  ╰─ ...
+├─ testResources/  # test resources
 ╰─ module.yaml
 ```
 
+Resources that should only be available to test code go into the `testResources/` folder.
+In multiplatform modules, platform-specific test resources can be placed in `testResources@platform/` folders,
+just like `src@platform/` folders for sources.
+
 By default, the [Kotlin test](https://kotlinlang.org/api/latest/kotlin.test/) framework is preconfigured for each
-platform. Additional test-only dependencies should be added to the `test-dependencies:` section of your module
+platform.
+
+!!! note "JUnit version"
+
+    On the JVM and Android platforms, tests run with JUnit, and JUnit 5 is used by default.
+    You can change this with the `settings.junit` setting, which accepts `junit-5`, `junit-4`, or `none`.
+    This setting also selects which flavor of the Kotlin test library is added automatically:
+    `kotlin-test-junit5`, `kotlin-test-junit`, or just `kotlin-test`, respectively.
+    See the [`settings.junit` reference](../reference/module.md#settingsjunit) for more details.
+
+Additional test-only dependencies should be added to the `test-dependencies:` section of your module
 configuration file:
 
 ```yaml title="module.yaml"
@@ -73,10 +88,10 @@ test-dependencies:
 # these settings affect the main and test code
 settings: 
   kotlin:
-    languageVersion: 1.8
+    languageVersion: 2.1
 
 # these settings affect tests only
 test-settings:
   kotlin:
-    languageVersion: 1.9 # overrides settings.kotlin.languageVersion 1.8
+    languageVersion: 2.2 # overrides settings.kotlin.languageVersion 2.1
 ```

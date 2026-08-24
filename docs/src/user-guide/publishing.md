@@ -85,6 +85,13 @@ configured a repository with ID `someIdOfYourChoosing`):
 kotlin publish someIdOfYourChoosing
 ```
 
+If you only want to publish some specific modules, use the `-m`/`--module` option (which can be repeated to select
+multiple modules). Add the `--transitive` option to also publish the local modules that the selected modules depend on:
+
+```
+kotlin publish -m my-lib --transitive someIdOfYourChoosing
+```
+
 !!! note "Don't forget to publish your dependencies"
 
     If your module depends on other local modules, you must enable publishing for these other modules too.
@@ -124,9 +131,13 @@ There are a handful of requirements[^1] imposed by Sonatype to publish to Maven 
 [^1]: You can learn more about them [on the official website](https://central.sonatype.org/publish/requirements/)
 
 * javadocs and sources JARs must be published
-* checksums for all artifacts must be published
+* checksums for all artifacts must be published[^2]
 * artifacts need to be signed with a PGP signature
 * some mandatory metadata about the module must be present
+
+[^2]: By default, the Kotlin Toolchain publishes the checksums required by Maven Central (`md5` and `sha1`) for each
+artifact. You can customize this list using `settings.publishing.checksums`, with any combination of `md5`, `sha1`,
+`sha256`, and `sha512`.
 
 You can satisfy all of these requirements with a little bit of configuration:
 
@@ -205,7 +216,7 @@ The Kotlin Toolchain provides 2 modes for publishing:
 
 By default, the Kotlin Toolchain uses the `manual` mode, to avoid surprises.
 Once the first deployment is successful, you might want to streamline the publication by switching to `auto` mode.
-This can be done using `settings.mavenCentral.publishingMode: auto`.
+This can be done using `settings.publishing.mavenCentral.publishingMode: auto`.
 
 !!! warning "One does not simply remove artifacts from Maven Central"
 

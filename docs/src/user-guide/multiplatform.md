@@ -245,7 +245,7 @@ product:
 settings:
   # Kotlin toolchain settings that are used for both platforms
   kotlin:
-    languageVersion: 1.8
+    languageVersion: 2.3
 
   # Android-specific settings are used only when building for android
   android:
@@ -269,7 +269,7 @@ settings@android:    # settings to be used for Android target platform
   android:           # Android toolchain settings
     compileSdk: 33
   kotlin:        # Kotlin toolchain settings
-    languageVersion: 1.8
+    languageVersion: 2.3
 ```
 
 Luckily, there should rarely be a need for such a configuration.
@@ -282,7 +282,7 @@ settings:
   android:           # Android toolchain settings
     compileSdk: 33
   kotlin:        # Kotlin toolchain settings
-    languageVersion: 1.8
+    languageVersion: 2.3
 ```
 
 For settings with the `@platform`-qualifiers, the [propagation rules](#dependencysettings-propagation) apply.
@@ -295,7 +295,7 @@ product:
 
 settings:           # common toolchain settings
   kotlin:           # Kotlin toolchain
-    languageVersion: 1.8
+    languageVersion: 2.4
     freeCompilerArgs: [x]
   android:              # Android toolchain
     compileSdk: 33
@@ -305,7 +305,7 @@ settings@android:   # specialization for Android platform
 
 settings@ios:       # specialization for all iOS platforms
   kotlin:           # Kotlin toolchain
-    languageVersion: 1.9
+    languageVersion: 2.3
     freeCompilerArgs: [y]
 
 settings@iosArm64:  # specialization for iOS arm64 platform 
@@ -318,7 +318,7 @@ The effective settings are:
 ```yaml 
 settings@android:
   kotlin:
-    languageVersion: 1.8   # from settings:
+    languageVersion: 2.4   # from settings:
     freeCompilerArgs: [x]  # from settings:
   compose: enabled         # from settings@android:
   android:                
@@ -327,13 +327,13 @@ settings@android:
 ```yaml 
 settings@iosArm64:
   kotlin:
-    languageVersion: 1.9      # from settings@ios:
+    languageVersion: 2.3      # from settings@ios:
     freeCompilerArgs: [x, y]  # merged from settings: and settings@ios:
 ```
 ```yaml 
 settings@iosSimulatorArm64:
   kotlin:
-    languageVersion: 1.9      # from settings@ios:
+    languageVersion: 2.3      # from settings@ios:
     freeCompilerArgs: [x, y, z]  # merged from settings: and settings@ios: and settings@iosArm64:
 ```
 

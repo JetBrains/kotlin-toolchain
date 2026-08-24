@@ -263,7 +263,7 @@ like other custom tasks or KSP, and include their results in `sourceDirectories`
           lint:
             action: !someKindOfLinter
               moduleName: ${module.name}
-              sources: ${module.sources}
+              sources: ${module.kotlinJavaSources}
         ```
     === "plugin.yaml (including generated sources)"
         ```yaml
@@ -304,7 +304,7 @@ but one can also construct a `Classpath` spec to request an ad hoc dependency re
         ```yaml
         tasks:
           package:
-            action: !packageTheApp
+            action: !packageClasspath
               appClasspath: ${module.runtimeClasspath} #(1)!
               extraClasspath: #(2)!
                 - foo:bar:1.0

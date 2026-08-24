@@ -131,6 +131,7 @@ tasks:
 | `module.kotlinJavaSources` | `ModuleSources`                                               | Kotlin and Java sources (JVM, main).                                                                                  |
 | `module.resources`         | `ModuleSources`                                               | Resources (JVM, main).                                                                                                |
 | `module.jar`               | `CompilationArtifact`                                         | Compiled JAR (JVM, main).                                                                                             |
+| `module.classes`           | `CompilationArtifact`                                         | Directory with the compiled classes (JVM, main).                                                                      |
 | `module.self`              | `Dependency.Local`                                            | A dependency pointing to the module itself                                                                            |
 | `module.settings.**`       | depends on the actual setting type: `string`, `boolean`, etc. | The settings of the module where the plugin is enabled. For example, `module.settings.publishing.version`.            |
 | `project.rootDir`          | `path`                                                        | Absolute path to the project root where `project.yaml` (or `module.yaml`) is for multi- (or single-) module projects. |

@@ -80,7 +80,7 @@ with your application.
 
 ## Packaging
 
-Using the `build` command packages your application under the `build/tasks_<module-name>_buildWasmJsAppWasmJs<Debug|Release>` 
+Using the `build` command packages your application under the `build/tasks/_<module-name>_buildWasmJsAppWasmJs<Debug|Release>` 
 folder, but this is subject to change.
 
 The package includes:

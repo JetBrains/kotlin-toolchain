@@ -127,8 +127,8 @@ Task parameters use the regular default value syntax:
 
 ```kotlin
 @TaskAction fun myAction(
-    myBoolean = false,
-    myString = "default",
+    myBoolean: Boolean = false,
+    myString: String = "default",
 ) { /*...*/ }
 ```
 
@@ -137,7 +137,7 @@ Task parameters use the regular default value syntax:
 | `string`, `boolean`, `integer` | Kotlin constant expression of the appropriate type    |
 | `enum E`                       | enum constant references, e.g., `E.Constant`          |
 | `path`                         | not supported yet                                     |
-| `sequence [T]`                 | `emptyList()`                                         |
+| `sequence [T]`                 | `emptyList()`, `listOf(...)` with constant elements   |
 | `mapping {string : T}`         | `emptyMap()`                                          |
 | `T` \| `null`                  | `null` (not required - implicit default)              |
 | `object T`                     | not supported (instantiated implicitly, see the note) |

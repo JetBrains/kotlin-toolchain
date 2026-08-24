@@ -16,10 +16,11 @@ settings:
 
 Setting `springBoot: enabled` performs the following actions:
 
-* Applies the [Spring Boot Dependencies BOM](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies)
-* Adds the `spring-boot-starter` dependency
-* Adds the `spring-boot-starter-test` test dependency
-* Configures `all-open` and `no-arg` Kotlin compiler plugins with the `spring` preset
+* Applies the [Spring Boot Dependencies BOM](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies),
+  so you can add the Spring Boot starters you need (such as `spring-boot-starter-web` or `spring-boot-starter-test`)
+  to your dependencies without specifying their versions
+* Configures the `all-open` Kotlin compiler plugin with the `spring` preset
+* Configures the `no-arg` plugin with the `jpa` preset
 * Adds the necessary compiler arguments for `kotlinc` and `javac`:
   * For Java, `-parameters` is passed to the compiler to preserve parameter names.
   * For Kotlin, `-java-parameters` is passed to the compiler for the same reason. Also `-Xjsr305` is set to `strict`

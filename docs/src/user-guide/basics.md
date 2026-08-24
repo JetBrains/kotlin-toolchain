@@ -185,7 +185,7 @@ Here are some example module files for different types of modules:
        The `jvm/app` product type means that the module produces a [JVM application](product-types/jvm-app.md).
        Read more about other product types in the [Product types](product-types/index.md) section.
     2. The `dependencies` section contains the list of dependencies for this module. 
-       Here `io.ktor:ktor-client-core:2.3.0` are the 
+       Here `io.ktor:ktor-client-java:2.3.0` are the 
        [Maven coordinates :fontawesome-solid-external-link:](https://maven.apache.org/pom.html#Maven_Coordinates) of 
        the Ktor client library (with Java engine).
        Read more about dependencies in general in the [Dependencies](dependencies.md) section.
@@ -272,7 +272,7 @@ All toolchain settings are specified in dedicated groups in the `settings` secti
 ```yaml
 settings:
   kotlin:
-    languageVersion: 1.8
+    languageVersion: 2.3
   android:
     compileSdk: 31
 ```

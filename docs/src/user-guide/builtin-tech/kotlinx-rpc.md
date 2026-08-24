@@ -20,6 +20,7 @@ settings:
 This will automatically:
 
 * enable code generation for your `@Rpc` services via the kotlinx.rpc compiler plugin
+* add the required `org.jetbrains.kotlinx:kotlinx-rpc-core` runtime dependency (implicitly)
 * apply the kotlinx.rpc [BOM (Bill of Materials)](../dependencies.md#using-a-maven-bom) to align the versions of the 
   RPC-related artifacts
 * add some useful [library catalog](../dependencies.md#library-catalogs) entries starting with `$kotlin.rpc.`

@@ -22,6 +22,10 @@ modules:
   - libs/lib1
 ```
 
+!!! info "Sorting alphabetically is recommended"
+
+    This reduces the chance of Git conflicts and makes it easier to visually locate a module in the list.
+
 You can also use [glob patterns](https://en.wikipedia.org/wiki/Glob_(programming)) to include multiple module
 directories at once. Only directories that contain a `module.yaml` file are taken into account:
 
@@ -35,7 +39,8 @@ Globs may contain the following special characters:
 
 - `*` matches zero or more characters of a path name component without crossing directory boundaries
 - `?` matches exactly one character of a path name component
-- `[abc]` matches exactly one character of the given set (here `a`, `b`, or `c`). A dash (`-`) can be used to match a range, such as `[a-z]`.
+- `[abc]` matches exactly one character of the given set (here `a`, `b`, or `c`). A dash (`-`) can be used to match a range, such as `[a-z]`. A leading `!` negates the set: `[!abc]` matches exactly one character that is *not* in the given set.
+- `{a,b}` matches one of the comma-separated subpatterns given in the braces (here `a` or `b`)
 
 !!! failure "Using `**` to recursively match directories at multiple depth levels is not supported."
 
@@ -48,6 +53,9 @@ Globs may contain the following special characters:
 The `plugins` section lists plugin dependencies that should be made available to project modules.
 Listing a plugin here does not enable it by itself; it only makes it available so that modules can opt in (by enabling 
 the plugin).
+
+A plugin module referenced here must also be included in the project's [`modules`](#modules) list, otherwise an error 
+is reported.
 
 Example:
 ```yaml
