@@ -266,7 +266,7 @@ class JvmTestTask(
         // Note: using --select=nested-method:com.example.Enclosing/Nested.myTest as specified in the docs doesn't
         // work, but using the plain --select-method with a $ sign to separate the nested class works fine...
         val nestedClassSuffix = if (nestedClassName != null) "$$nestedClassName" else ""
-        val paramsList = if (paramTypes != null) "(${paramTypes.joinToString(",")})" else ""
+        val paramsList = if (paramTypes != null) "(${paramTypes.joinToString(",") { it.slashToDollar() }})" else ""
         return "--select-method=$suiteFqn$nestedClassSuffix#$testName$paramsList"
     }
 

@@ -102,15 +102,27 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
+    fun `include test in nested class with nested parameter`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("jvm-tests-with-params"),
+            "test",
+            "--include-test=com.example.testswithparams.OverloadsTest/NestedTest.test(com.example.testswithparams.OverloadsTest/NestedArgument)",
+        )
+        r.assertJUnitTestCount(expected = 1)
+        r.assertStdoutContainsLine("running OverloadsTest.NestedTest.test(NestedArgument)")
+    }
+
+    @Test
     fun `run all parameterized tests (jvm-tests-with-params)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("jvm-tests-with-params"),
             "test",
         )
-        r.assertJUnitTestCount(expected = 3)
+        r.assertJUnitTestCount(expected = 4)
         r.assertStdoutContainsLine("running OverloadsTest.test()")
         r.assertStdoutContainsLine("running OverloadsTest.test(TestInfo)")
         r.assertStdoutContainsLine("running OverloadsTest.test(TestInfo, TestReporter)")
+        r.assertStdoutContainsLine("running OverloadsTest.NestedTest.test(NestedArgument)")
     }
 
     @Test

@@ -333,6 +333,21 @@ class AmperTestFormatTest : AmperCliTestBase() {
                 val serviceMessages = parseTeamCityServiceMessages(r.stdout)
                 val expectedMessages = buildServiceMessages {
                     suiteWithFlow(
+                        name = $$"com.example.testswithparams.OverloadsTest$NestedTest",
+                        displayName = $$"OverloadsTest$NestedTest",
+                        locationHint = $$"java:suite://com.example.testswithparams.OverloadsTest$NestedTest",
+                    ) {
+                        testWithFlow(
+                            name = $$"com.example.testswithparams.OverloadsTest$NestedTest: " +
+                                    $$"com.example.testswithparams.OverloadsTest$NestedTest.test(NestedArgument)",
+                            displayName = "test(NestedArgument)",
+                            locationHint = $$"java:test://com.example.testswithparams.OverloadsTest$NestedTest/" +
+                                    $$"test[com.example.testswithparams.OverloadsTest$NestedArgument]",
+                        ) {
+                            testStdOut("running OverloadsTest.NestedTest.test(NestedArgument)$NL")
+                        }
+                    }
+                    suiteWithFlow(
                         name = "com.example.testswithparams.OverloadsTest",
                         displayName = "OverloadsTest",
                         locationHint = "java:suite://com.example.testswithparams.OverloadsTest"
