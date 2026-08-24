@@ -232,12 +232,21 @@ private suspend inline fun <T> Path.withFileChannelLock(vararg options: OpenOpti
  */
 private suspend fun FileChannel.lockWithRetry(): FileLock? =
     withRetry(
-        retryOnException = { it is IOException && it.message?.contains("Resource deadlock avoided") == true },
+        retryOnException = { it is IOException && it.isOsResourceDeadlockDetected() },
     ) {
         runInterruptible {
             lock()
         }
     }
+
+/**
+ * Whether this exception is the special error the OS throws when detecting a deadlock between processes.
+ */
+private fun IOException.isOsResourceDeadlockDetected(): Boolean {
+    val m = message ?: return false
+    return m.contains("Resource deadlock avoided", ignoreCase = true)
+            || m.contains("Resource deadlock would occur", ignoreCase = true)
+}
 
 // todo (AB): 10 seconds is not enough
 suspend fun <T> withRetry(
