@@ -2546,6 +2546,10 @@ be listed.</p>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">app</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">libs/lib1</span>
 </code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">Sorting alphabetically is recommended</p>
+<p>This reduces the chance of Git conflicts and makes it easier to visually locate a module in the list.</p>
+</div>
 <p>You can also use <a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob patterns</a> to include multiple module
 directories at once. Only directories that contain a <code>module.yaml</code> file are taken into account:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># include all direct subfolders in the `plugins` dir that contain `module.yaml` files:</span>
@@ -2556,7 +2560,8 @@ directories at once. Only directories that contain a <code>module.yaml</code> fi
 <ul>
 <li><code>*</code> matches zero or more characters of a path name component without crossing directory boundaries</li>
 <li><code>?</code> matches exactly one character of a path name component</li>
-<li><code>[abc]</code> matches exactly one character of the given set (here <code>a</code>, <code>b</code>, or <code>c</code>). A dash (<code>-</code>) can be used to match a range, such as <code>[a-z]</code>.</li>
+<li><code>[abc]</code> matches exactly one character of the given set (here <code>a</code>, <code>b</code>, or <code>c</code>). A dash (<code>-</code>) can be used to match a range, such as <code>[a-z]</code>. A leading <code>!</code> negates the set: <code>[!abc]</code> matches exactly one character that is <em>not</em> in the given set.</li>
+<li><code>{a,b}</code> matches one of the comma-separated subpatterns given in the braces (here <code>a</code> or <code>b</code>)</li>
 </ul>
 <div class="admonition failure">
 <p class="admonition-title">Using <code>**</code> to recursively match directories at multiple depth levels is not supported.</p>
@@ -2570,6 +2575,8 @@ Prefixing them with <code>//</code> is neither supported nor necessary.</p>
 <p>The <code>plugins</code> section lists plugin dependencies that should be made available to project modules.
 Listing a plugin here does not enable it by itself; it only makes it available so that modules can opt in (by enabling 
 the plugin).</p>
+<p>A plugin module referenced here must also be included in the project's <a href="#modules"><code>modules</code></a> list, otherwise an error 
+is reported.</p>
 <p>Example:
 <div class="highlight"><pre><span></span><code><span class="nt">plugins</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">//my-plugin</span>
@@ -2616,7 +2623,7 @@ Entries use the same notation as <a href="../../user-guide/dependencies/#module-
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="June 17, 2026 14:21:56 UTC">June 17, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 24, 2026 21:25:52 UTC">August 24, 2026</span>
   </span>
 
     

@@ -2425,10 +2425,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#mavenplugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mavenPlugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#plugininfo" class="md-nav__link">
     <span class="md-ellipsis">
       
         pluginInfo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plugins
       
     </span>
   </a>
@@ -2654,6 +2676,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#settingskotlindataframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings.kotlin.dataframe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#settingskotlinjsplainobjects" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2680,6 +2713,28 @@
     <span class="md-ellipsis">
       
         settings.kotlin.ksp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settingskotlinpowerassert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings.kotlin.powerAssert
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settingskotlinrpc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings.kotlin.rpc
       
     </span>
   </a>
@@ -2718,6 +2773,17 @@
     <span class="md-ellipsis">
       
         settings.native
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settingspublishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings.publishing
       
     </span>
   </a>
@@ -2892,10 +2958,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#mavenplugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mavenPlugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#plugininfo" class="md-nav__link">
     <span class="md-ellipsis">
       
         pluginInfo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plugins
       
     </span>
   </a>
@@ -3121,6 +3209,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#settingskotlindataframe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings.kotlin.dataframe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#settingskotlinjsplainobjects" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3147,6 +3246,28 @@
     <span class="md-ellipsis">
       
         settings.kotlin.ksp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settingskotlinpowerassert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings.kotlin.powerAssert
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settingskotlinrpc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings.kotlin.rpc
       
     </span>
   </a>
@@ -3185,6 +3306,17 @@
     <span class="md-ellipsis">
       
         settings.native
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settingspublishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings.publishing
       
     </span>
   </a>
@@ -3271,7 +3403,7 @@ Read more in the <a href="../../user-guide/testing/">Testing</a> section.</p>
 <table>
 <thead>
 <tr>
-<th>Notation</th>
+<th>Item notation</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -3281,20 +3413,28 @@ Read more in the <a href="../../user-guide/testing/">Testing</a> section.</p>
 <td>Dependency on <a href="../../user-guide/dependencies/#module-dependencies">another module</a> in the codebase.</td>
 </tr>
 <tr>
-<td><code>- &lt;group ID&gt;:&lt;artifact ID&gt;:&lt;version&gt;</code></td>
-<td>Dependency on <a href="../../user-guide/dependencies/#external-maven-dependencies">a Kotlin or Java library</a> in a Maven repository.</td>
+<td><code>- &lt;groupId&gt;:&lt;artifactId&gt;[:&lt;version&gt;[:&lt;classifier&gt;]][@&lt;packaging&gt;]</code></td>
+<td>Dependency on <a href="../../user-guide/dependencies/#external-maven-dependencies">a Kotlin or Java library</a> in a Maven repository. The version, classifier, and packaging type are optional.</td>
 </tr>
 <tr>
 <td><code>- $&lt;catalog.key&gt;</code></td>
 <td>Dependency from <a href="../../user-guide/dependencies/#library-catalogs">a dependency catalog</a>.</td>
 </tr>
 <tr>
-<td><code>- bom: &lt;group ID&gt;:&lt;artifact ID&gt;:&lt;version&gt;</code></td>
+<td><code>- bom: &lt;groupId&gt;:&lt;artifactId&gt;:&lt;version&gt;</code></td>
 <td>Dependency on <a href="../../user-guide/dependencies/#using-a-maven-bom">a <abbr title="Bill of materials">BOM</abbr></a>.</td>
 </tr>
 <tr>
 <td><code>- bom: $&lt;catalog.key&gt;</code></td>
 <td>Dependency on <a href="../../user-guide/dependencies/#library-catalogs">a <abbr title="Bill of materials">BOM</abbr> from a dependency catalog</a>.</td>
+</tr>
+<tr>
+<td><code>- swiftPackage: ...</code></td>
+<td>Dependency on a remote Swift package, only for <a href="../../user-guide/product-types/ios-app/">iOS apps</a>.</td>
+</tr>
+<tr>
+<td><code>- localSwiftPackage: &lt;path&gt;</code></td>
+<td>Dependency on a local Swift package, only for <a href="../../user-guide/product-types/ios-app/">iOS apps</a>.</td>
 </tr>
 </tbody>
 </table>
@@ -3397,6 +3537,12 @@ For libraries, it is also used as a description in published metadata by default
 <span class="nt">settings</span><span class="p">:</span>
 <span class="w">  </span><span class="c1"># ...</span>
 </code></pre></div>
+<h2 id="mavenplugins"><code>mavenPlugins</code><a class="headerlink" href="#mavenplugins" title="Permanent link">&para;</a></h2>
+<p>The <code>mavenPlugins</code> section enables and configures Maven plugin mojos from Maven plugins registered in the project's
+<code>project.yaml</code> file. Read more in the <a href="../../user-guide/advanced/maven-plugins/">Maven plugins</a> section.</p>
+<div class="admonition warning">
+<p class="admonition-title">This is a prototype that can be dropped at any time.</p>
+</div>
 <h2 id="plugininfo"><code>pluginInfo</code><a class="headerlink" href="#plugininfo" title="Permanent link">&para;</a></h2>
 <p>The <code>pluginInfo</code> section is only available if the <code>product.type</code> is <code>jvm/amper-plugin</code>.
 It configures plugin-specific build settings.</p>
@@ -3415,7 +3561,7 @@ It configures plugin-specific build settings.</p>
 <td>The ID that is used to refer to the plugin in the configuration files.</td>
 </tr>
 <tr>
-<td>~~<code>description: string</code>~~</td>
+<td><del><code>description: string</code></del></td>
 <td><code>null</code></td>
 <td><strong>Deprecated</strong>. Use the plugin module's top-level <code>description</code> instead.</td>
 </tr>
@@ -3426,6 +3572,9 @@ It configures plugin-specific build settings.</p>
 </tr>
 </tbody>
 </table>
+<h2 id="plugins"><code>plugins</code><a class="headerlink" href="#plugins" title="Permanent link">&para;</a></h2>
+<p>The <code>plugins</code> section enables and configures plugins registered in the project's <code>project.yaml</code> file, for this
+particular module. Read more in the <a href="../../user-guide/plugins/overview/">Plugins</a> section.</p>
 <h2 id="product"><code>product</code><a class="headerlink" href="#product" title="Permanent link">&para;</a></h2>
 <p>The <code>product</code> section defines what should be produced out of the module.
 Read more about the <a href="../../user-guide/basics/#product-type">product types</a>.</p>
@@ -3439,7 +3588,7 @@ Read more about the <a href="../../user-guide/basics/#product-type">product type
 </thead>
 <tbody>
 <tr>
-<td><code>platform: enum list</code></td>
+<td><code>platforms: enum list</code></td>
 <td>(derived from <code>type</code>)</td>
 <td>What platforms to generate the product for.</td>
 </tr>
@@ -3468,7 +3617,7 @@ Read more about the <a href="../../user-guide/basics/#product-type">product type
 <tr>
 <td><code>ios/app</code></td>
 <td>An iOS application.</td>
-<td>device: <code>iosArm64</code><br> simulators: <code>iosX64</code>, <code>iosSimulatorArm64</code></td>
+<td><code>iosArm64</code> (device)<br/><code>iosSimulatorArm64</code> (simulator)</td>
 </tr>
 <tr>
 <td><code>js/app</code></td>
@@ -3498,12 +3647,12 @@ Read more about the <a href="../../user-guide/basics/#product-type">product type
 <tr>
 <td><code>linux/app</code></td>
 <td>A native Linux application.</td>
-<td><code>linuxX86</code>, <code>linuxArm64</code></td>
+<td><code>linuxArm64</code>, <code>linuxX64</code></td>
 </tr>
 <tr>
 <td><code>macos/app</code></td>
 <td>A native macOS application.</td>
-<td><code>macosX64</code>, <code>macosArm64</code></td>
+<td><code>macosArm64</code><br/><del><code>macosX64</code></del> (deprecated)</td>
 </tr>
 <tr>
 <td><code>wasm-js/app</code></td>
@@ -3524,13 +3673,20 @@ Read more about the <a href="../../user-guide/basics/#product-type">product type
 </table>
 <p>Check the list of all <a href="https://kotlinlang.org/docs/native-target-support.html">Kotlin Multiplatform targets</a> and the
 level of their support.</p>
+<div class="admonition info">
+<p class="admonition-title">Apple Intel is being phased out</p>
+<p>The <code>iosX64</code> (Intel iOS simulator) platform is not available for <code>ios/app</code>, only for <code>kmp/lib</code>.
+This platform will eventually be phased out (even though it's not deprecated yet), and Compose libraries already
+don't support it.</p>
+<p>The <code>macosX64</code> platform (Intel macs) is deprecated since Kotlin 2.3.20.</p>
+</div>
 <p>Examples:</p>
 <div class="highlight"><span class="filename">Short form</span><pre><span></span><code><span class="c1"># Defaults to all supported platforms for the corresponding target</span>
-<span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macos/app</span>
+<span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">linux/app</span>
 </code></pre></div>
 <div class="highlight"><span class="filename">Full form, explicitly specified platforms</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">macos/app</span>
-<span class="w">  </span><span class="nt">platforms</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">macosArm64</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">macosArm64</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">linux/app</span>
+<span class="w">  </span><span class="nt">platforms</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">linuxX64</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">linuxArm64</span><span class="w"> </span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <div class="highlight"><span class="filename">Multiplatform Library for JVM and Android platforms</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kmp/lib</span>
@@ -3557,6 +3713,16 @@ Read more about <a href="../../user-guide/dependencies/#managing-maven-repositor
 <td><code>id: string</code></td>
 <td>(set from <code>url</code>)</td>
 <td>The ID of the repository, used to reference it.</td>
+</tr>
+<tr>
+<td><code>publish: boolean</code></td>
+<td><code>false</code></td>
+<td>Whether this repository can be used to publish artifacts.</td>
+</tr>
+<tr>
+<td><code>resolve: boolean</code></td>
+<td><code>true</code></td>
+<td>Whether this repository can be used to resolve artifacts.</td>
 </tr>
 <tr>
 <td><code>url: string</code></td>
@@ -3594,7 +3760,7 @@ Read more about <a href="../../user-guide/dependencies/#managing-maven-repositor
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://jitpack.io</span>
 </code></pre></div>
 <ol>
-<li>When using just a string, it is used as both the <code>url</code> and <code>uuidValue</code> of the repository</li>
+<li>When using just a string, it is used as the <code>url</code> of the repository (and the <code>id</code> defaults to the url)</li>
 </ol>
 <div class="highlight"><span class="filename">Full form</span><pre><span></span><code><span class="nt">repositories</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repo.spring.io/ui/native/release</span>
@@ -3648,13 +3814,8 @@ Read more in the <a href="../../user-guide/testing/">Testing</a> section.</p>
 </tr>
 <tr>
 <td><code>minSdk: int</code></td>
-<td>21</td>
+<td>24</td>
 <td>Minimum API level needed to run the application. <a href="https://developer.android.com/guide/topics/manifest/uses-sdk-element.html">Read more</a>.</td>
-</tr>
-<tr>
-<td><code>maxSdk: int?</code></td>
-<td><code>null</code></td>
-<td>Maximum API level on which the application can run. <a href="https://developer.android.com/guide/topics/manifest/uses-sdk-element.html">Read more</a>.</td>
 </tr>
 <tr>
 <td><code>signing: object</code></td>
@@ -3911,7 +4072,7 @@ framework. Read more about <a href="../../user-guide/builtin-tech/compose-multip
 <tbody>
 <tr>
 <td><code>version: string</code></td>
-<td><code>1.0.0</code></td>
+<td><code>1.2.0</code></td>
 <td>The Compose Hot Reload toolchain version to use.</td>
 </tr>
 </tbody>
@@ -3923,12 +4084,12 @@ framework. Read more about <a href="../../user-guide/builtin-tech/compose-multip
 <div class="highlight"><span class="filename">Full form</span><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">compose</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.6.10</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.11.1</span>
 </code></pre></div>
 <div class="highlight"><span class="filename">Full form with resources configuration</span><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">compose</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.6.10</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.11.1</span>
 <span class="w">    </span><span class="nt">resources</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">packageName</span><span class="p">:</span><span class="w"> </span><span class="s">"com.example.myapp.resources"</span>
 <span class="w">      </span><span class="nt">exposedAccessors</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
@@ -4109,12 +4270,12 @@ about <a href="../../user-guide/testing/">testing support</a>.</p>
 <li><code>jetbrains</code> (JetBrains Runtime)</li>
 <li><code>oracleOpenJdk</code> (Oracle OpenJDK)</li>
 <li><code>microsoft</code> (Microsoft)</li>
-<li><code>bisheng</code> (BiSheng)</li>
 <li><code>dragonwell</code> (Alibaba Dragonwell)</li>
 <li><code>liberica</code> (BellSoft Liberica)</li>
 <li><code>sapMachine</code> (SapMachine)</li>
 <li><code>semeru</code> (IBM Semeru Open Edition)</li>
-<li><code>oracle</code> (Oracle JDK; requires license)</li>
+<li><code>graalVM</code> (GraalVM Community Edition)</li>
+<li><code>oracleGraalVM</code> (Oracle GraalVM; requires license)</li>
 </ul>
 <p>Values for <code>selectionMode</code>:</p>
 <ul>
@@ -4139,7 +4300,7 @@ Read more about <a href="../../user-guide/testing/">testing support</a>.</p>
 <tbody>
 <tr>
 <td><code>junitPlatformVersion: string</code></td>
-<td>6.0.1</td>
+<td>6.1.3</td>
 <td>The JUnit platform version used to run tests.</td>
 </tr>
 <tr>
@@ -4172,7 +4333,7 @@ Read more about <a href="../../user-guide/testing/">testing support</a>.</p>
 <tbody>
 <tr>
 <td><code>version: string</code></td>
-<td>2.3.20</td>
+<td>2.4.10</td>
 <td>The version of the Kotlin compiler and stdlib to use.</td>
 </tr>
 <tr>
@@ -4191,13 +4352,23 @@ Read more about <a href="../../user-guide/testing/">testing support</a>.</p>
 <td>Allow using declarations only from the specified version of Kotlin bundled libraries.</td>
 </tr>
 <tr>
+<td><code>compileIncrementally: boolean</code></td>
+<td>(enabled for Kotlin &gt;= 2.4.0)</td>
+<td>Whether Kotlin code should be compiled incrementally (only recompile what's necessary depending on the changes).</td>
+</tr>
+<tr>
 <td><code>compilerPlugins: object list</code></td>
 <td><code>[]</code></td>
 <td>Configure third-party Kotlin compiler plugins.</td>
 </tr>
 <tr>
+<td><code>dataframe: object \| enum</code></td>
+<td></td>
+<td>Configure the <a href="https://kotlin.github.io/dataframe/home.html">Kotlin DataFrame compiler plugin</a>.</td>
+</tr>
+<tr>
 <td><code>debug: boolean</code></td>
-<td><code>true</code></td>
+<td>(enabled in debug variants)</td>
 <td>(Only for <a href="https://kotlinlang.org/docs/native-target-support.html">native targets</a>) Enable emitting debug information.</td>
 </tr>
 <tr>
@@ -4221,19 +4392,39 @@ Read more about <a href="../../user-guide/testing/">testing support</a>.</p>
 <td>Provide source compatibility with the specified version of Kotlin.</td>
 </tr>
 <tr>
+<td><code>linkerOptions: string list</code></td>
+<td><code>[]</code></td>
+<td>(Only for <a href="https://kotlinlang.org/docs/native-target-support.html">native targets</a>) Additional arguments to pass to the linker during binary building.</td>
+</tr>
+<tr>
 <td><code>noArg: object</code></td>
 <td></td>
 <td>Configure the <a href="https://kotlinlang.org/docs/no-arg-plugin.html">Kotlin no-arg compiler plugin</a>.</td>
 </tr>
 <tr>
-<td><code>optIns: enum list</code></td>
+<td><code>optIns: string list</code></td>
 <td><code>[]</code></td>
 <td>Enable usages of API that <a href="https://kotlinlang.org/docs/opt-in-requirements.html">requires opt-in</a> with a requirement annotation with the given fully qualified name.</td>
+</tr>
+<tr>
+<td><code>optimization: boolean</code></td>
+<td>(enabled in release variants)</td>
+<td>(Only for <a href="https://kotlinlang.org/docs/native-target-support.html">native targets</a>) Enable compilation optimizations and produce a binary with better runtime performance.</td>
+</tr>
+<tr>
+<td><code>powerAssert: object \| enum</code></td>
+<td></td>
+<td>Configure the <a href="https://kotlinlang.org/docs/power-assert.html">Kotlin power-assert compiler plugin</a>.</td>
 </tr>
 <tr>
 <td><code>progressiveMode: boolean</code></td>
 <td><code>false</code></td>
 <td>Enable the <a href="https://kotlinlang.org/docs/compiler-reference.html#progressive">progressive mode for the compiler</a>.</td>
+</tr>
+<tr>
+<td><code>rpc: object \| enum</code></td>
+<td></td>
+<td>Configure the <a href="https://kotlin.github.io/kotlinx-rpc/">kotlinx.rpc compiler plugin</a>.</td>
 </tr>
 <tr>
 <td><code>serialization: object \| enum</code></td>
@@ -4264,8 +4455,8 @@ Read more about <a href="../../user-guide/testing/">testing support</a>.</p>
 <tbody>
 <tr>
 <td><code>enabled: boolean</code></td>
-<td><code>false</code></td>
-<td>Enable the <code>@Serializable</code> annotation processing, and add the core serialization library. When enabled, a built-in catalog for kotlinx.serialization format dependencies is provided.</td>
+<td>(enabled if <code>format</code> is set)</td>
+<td>Enable the <code>@Serializable</code> annotation processing, and add the core serialization library. When enabled, a built-in catalog for kotlinx.serialization format dependencies is provided. Automatically enabled when <code>format</code> is specified, <code>false</code> otherwise.</td>
 </tr>
 <tr>
 <td><code>version: string</code></td>
@@ -4273,9 +4464,9 @@ Read more about <a href="../../user-guide/testing/">testing support</a>.</p>
 <td>The version to use for the core serialization library and the serialization formats.</td>
 </tr>
 <tr>
-<td><code>format: enum</code></td>
-<td><code>none</code> (only core lib)</td>
-<td>A shortcut for <code>enabled: true</code> and adding the given serialization format dependency. For instance, <code>json</code> adds the JSON format in addition to enabling serialization.</td>
+<td><code>format: string</code></td>
+<td><code>null</code> (only core lib)</td>
+<td>A shortcut for <code>enabled: true</code> and adding the given serialization format dependency. For instance, <code>json</code> adds the JSON format in addition to enabling serialization. Known formats: <code>json</code>, <code>json-io</code>, <code>json-okio</code>, <code>hocon</code>, <code>protobuf</code>, <code>cbor</code>, <code>properties</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -4284,7 +4475,7 @@ Read more about <a href="../../user-guide/testing/">testing support</a>.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Set Kotlin language version and opt-ins</span>
 <span class="nt">settings</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">languageVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.8</span>
+<span class="w">    </span><span class="nt">languageVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.3</span>
 <span class="w">    </span><span class="nt">optIns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">kotlin.io.path.ExperimentalPathApi</span><span class="w"> </span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="c1"># Enable Kotlin Serialization with the JSON format</span>
@@ -4393,6 +4584,30 @@ compilation.</p>
 </table>
 <p>Check the <a href="../../user-guide/advanced/kotlin-compiler-plugins/#third-party-compiler-plugins">third-party compiler plugins</a>
 section for more information and examples.</p>
+<h4 id="settingskotlindataframe"><code>settings.kotlin.dataframe</code><a class="headerlink" href="#settingskotlindataframe" title="Permanent link">&para;</a></h4>
+<p><code>settings.kotlin.dataframe</code> configures the <a href="https://kotlin.github.io/dataframe/home.html">Kotlin DataFrame</a> compiler
+plugin.</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled: boolean</code></td>
+<td><code>false</code></td>
+<td>Enable the Kotlin DataFrame compiler plugin</td>
+</tr>
+<tr>
+<td><code>version: string</code></td>
+<td><code>1.0.0-rc01</code></td>
+<td>The version of the Kotlin DataFrame library to use</td>
+</tr>
+</tbody>
+</table>
 <h4 id="settingskotlinjsplainobjects"><code>settings.kotlin.jsPlainObjects</code><a class="headerlink" href="#settingskotlinjsplainobjects" title="Permanent link">&para;</a></h4>
 <p><code>settings.kotlin.jsPlainObjects</code> configures the <a href="https://kotlinlang.org/docs/js-plain-objects.html">JS plain objects compiler plugin</a>,
 which lets you create and copy plain JS objects in a type-safe way.</p>
@@ -4477,7 +4692,7 @@ which allows processing Kotlin source code with custom processors (usually to ge
 <tbody>
 <tr>
 <td><code>version: string</code></td>
-<td><code>2.3.9</code></td>
+<td><code>2.3.11</code></td>
 <td>The version of <abbr title="The Kotlin Symbol Processing tool, developed by Google">KSP</abbr> to use</td>
 </tr>
 <tr>
@@ -4489,6 +4704,63 @@ which allows processing Kotlin source code with custom processors (usually to ge
 <td><code>processorOptions: map&lt;string, string&gt;</code></td>
 <td><code>{}</code></td>
 <td>Some options to pass to <abbr title="The Kotlin Symbol Processing tool, developed by Google">KSP</abbr> processors. Refer to each processor documentation for details.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="settingskotlinpowerassert"><code>settings.kotlin.powerAssert</code><a class="headerlink" href="#settingskotlinpowerassert" title="Permanent link">&para;</a></h4>
+<p><code>settings.kotlin.powerAssert</code> configures the <a href="https://kotlinlang.org/docs/power-assert.html">Kotlin power-assert compiler plugin</a>,
+which enriches assertion failure messages with intermediate values.</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled: boolean</code></td>
+<td><code>false</code></td>
+<td>Enable the Kotlin power-assert compiler plugin</td>
+</tr>
+<tr>
+<td><code>functions: string list</code></td>
+<td><code>[kotlin.assert]</code></td>
+<td>A list of fully-qualified function names that the Power-assert plugin should transform. If not specified, only <code>kotlin.assert()</code> calls are transformed.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="settingskotlinrpc"><code>settings.kotlin.rpc</code><a class="headerlink" href="#settingskotlinrpc" title="Permanent link">&para;</a></h4>
+<p><code>settings.kotlin.rpc</code> configures the <a href="https://kotlin.github.io/kotlinx-rpc/">kotlinx.rpc compiler plugin</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled: boolean</code></td>
+<td><code>false</code></td>
+<td>Enable the kotlinx.rpc compiler plugin</td>
+</tr>
+<tr>
+<td><code>applyBom: boolean</code></td>
+<td><code>true</code></td>
+<td>Apply the kotlinx.rpc <abbr title="Bill of materials">BOM</abbr> to enforce dependency version alignment</td>
+</tr>
+<tr>
+<td><code>version: string</code></td>
+<td><code>0.10.3</code></td>
+<td>The version of kotlinx.rpc to use</td>
+</tr>
+<tr>
+<td><code>annotationTypeSafetyEnabled: boolean</code></td>
+<td><code>true</code></td>
+<td>Controls <code>@Rpc</code> annotation type-safety compile-time checkers. Disabling is considered unsafe and is only needed when type-safety analysis fails on valid code.</td>
 </tr>
 </tbody>
 </table>
@@ -4510,7 +4782,7 @@ which allows processing Kotlin source code with custom processors (usually to ge
 </tr>
 <tr>
 <td><code>version: string</code></td>
-<td><code>3.4.1</code></td>
+<td><code>3.5.2</code></td>
 <td>The Ktor version used for the <abbr title="Bill of materials">BOM</abbr> and in the generated library catalog entries</td>
 </tr>
 <tr>
@@ -4544,7 +4816,7 @@ which allows processing Kotlin source code with custom processors (usually to ge
 </tr>
 <tr>
 <td><code>version: string</code></td>
-<td><code>1.18.38</code></td>
+<td><code>1.18.46</code></td>
 <td>Lombok version for runtime and annotation processor</td>
 </tr>
 </tbody>
@@ -4578,6 +4850,157 @@ which allows processing Kotlin source code with custom processors (usually to ge
 <span class="w">  </span><span class="nt">native</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">entryPoint</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">com.example.MainKt.main</span>
 </code></pre></div>
+<h3 id="settingspublishing"><code>settings.publishing</code><a class="headerlink" href="#settingspublishing" title="Permanent link">&para;</a></h3>
+<p><code>settings.publishing</code> configures the publication of the module to Maven repositories.
+Read more in the <a href="../../user-guide/publishing/">Publishing</a> section.</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled: boolean</code></td>
+<td><code>false</code></td>
+<td>Enables the publication of the module to Maven repositories (via <code>./kotlin publish</code>).</td>
+</tr>
+<tr>
+<td><code>group: string</code></td>
+<td><code>null</code></td>
+<td>Group ID of the published Maven artifact.</td>
+</tr>
+<tr>
+<td><code>version: string</code></td>
+<td><code>null</code></td>
+<td>Version of the published Maven artifact.</td>
+</tr>
+<tr>
+<td><code>artifactId: string</code></td>
+<td>(module name)</td>
+<td>Base artifact ID of the published Maven artifacts (for multiplatform libraries, a suffix may be appended to distinguish artifacts from different platforms).</td>
+</tr>
+<tr>
+<td><code>pom: object</code></td>
+<td></td>
+<td>Custom metadata to configure in the published <code>pom.xml</code> file.</td>
+</tr>
+<tr>
+<td><code>signArtifacts: boolean</code></td>
+<td><code>false</code></td>
+<td>If set to true, artifacts published to Maven repositories are signed with a private PGP signing key, and these signatures are published as extra artifacts. The key must be specified via the <code>KOTLIN_TOOLCHAIN_SIGNING_KEY</code> environment variable in the ASCII-armored format (and its passphrase, if any, via <code>KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE</code>).</td>
+</tr>
+<tr>
+<td><code>publishSources: boolean</code></td>
+<td><code>false</code></td>
+<td>If set to true, JARs with sources for each platform are published as extra artifacts.</td>
+</tr>
+<tr>
+<td><code>checksums: enum list</code></td>
+<td><code>[md5, sha1]</code></td>
+<td>The list of checksums to publish for each artifact (possible values: <code>md5</code>, <code>sha1</code>, <code>sha256</code>, <code>sha512</code>). By default, only the checksums required by Maven Central are published to reduce the number of files.</td>
+</tr>
+<tr>
+<td><code>mavenCentral: object</code></td>
+<td>(disabled)</td>
+<td>Configures publication to Maven Central (via the Publish portal).</td>
+</tr>
+</tbody>
+</table>
+<p><code>settings.publishing.pom</code> configures custom metadata in the published <code>pom.xml</code> file. Most of it is required for
+Maven Central publication, and is usually the same for the whole project, thus configured in a common template.</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name: string</code></td>
+<td>(module name)</td>
+<td>A user-readable name for this module.</td>
+</tr>
+<tr>
+<td><code>description: string</code></td>
+<td>(module description)</td>
+<td>A description for this module.</td>
+</tr>
+<tr>
+<td><code>url: string</code></td>
+<td><code>null</code></td>
+<td>The URL to the module's homepage in the POM metadata.</td>
+</tr>
+<tr>
+<td><code>licenses: object list</code></td>
+<td><code>[]</code></td>
+<td>The licenses that apply to this module. Each license has a <code>name</code> and a <code>url</code>.</td>
+</tr>
+<tr>
+<td><code>scm: object</code></td>
+<td></td>
+<td>The source control management information for this module.</td>
+</tr>
+<tr>
+<td><code>developers: object list</code></td>
+<td><code>[]</code></td>
+<td>The developers working on this module. Each developer has a <code>name</code> (required), and optionally <code>id</code>, <code>url</code>, <code>email</code>, <code>organization</code>, and <code>organizationUrl</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><code>settings.publishing.pom.scm</code> describes the source control management information:</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>url: string</code></td>
+<td><code>null</code></td>
+<td>The URL to the repository hosting the source code of this module, e.g. <code>https://github.com/spring-projects/spring-boot.git</code>.</td>
+</tr>
+<tr>
+<td><code>connection: string</code></td>
+<td>(<code>scm:git:</code> + the <code>url</code>)</td>
+<td>A URL with <code>scm:</code> scheme that Maven uses to connect to the version control system with <em>read</em> access.</td>
+</tr>
+<tr>
+<td><code>developerConnection: string</code></td>
+<td>(<code>scm:git:</code> + the <code>url</code>)</td>
+<td>A URL with <code>scm:</code> scheme that Maven uses to connect to the version control system with <em>write</em> access.</td>
+</tr>
+</tbody>
+</table>
+<p><code>settings.publishing.mavenCentral</code> configures publication to Maven Central (via the Publish portal):</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled: boolean</code></td>
+<td><code>false</code></td>
+<td>Enables publication to Maven Central, which can then be triggered using <code>kotlin publish mavenCentral</code>.</td>
+</tr>
+<tr>
+<td><code>publishingMode: enum</code></td>
+<td><code>manual</code></td>
+<td>Whether the publication should be fully automated, or pause for manual verification. With <code>manual</code>, the publication pauses after validation of the uploaded deployment bundle and awaits a manual trigger from the Central Portal UI. With <code>auto</code>, it automatically continues and publishes the deployment without manual intervention.</td>
+</tr>
+</tbody>
+</table>
 <h3 id="settingsspringboot"><code>settings.springBoot</code><a class="headerlink" href="#settingsspringboot" title="Permanent link">&para;</a></h3>
 <p><code>settings.springBoot</code> configures the Spring Boot framework (JVM platform only).</p>
 <table>
@@ -4596,7 +5019,7 @@ which allows processing Kotlin source code with custom processors (usually to ge
 </tr>
 <tr>
 <td><code>version: string</code></td>
-<td><code>4.0.5</code></td>
+<td><code>4.1.0</code></td>
 <td>Spring Boot version</td>
 </tr>
 <tr>
@@ -4632,7 +5055,7 @@ which allows processing Kotlin source code with custom processors (usually to ge
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 21, 2026 22:21:30 UTC">August 21, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 24, 2026 21:25:52 UTC">August 24, 2026</span>
   </span>
 
     

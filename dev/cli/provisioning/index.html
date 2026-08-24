@@ -2266,6 +2266,17 @@ itself. This is why we recommend checking the Kotlin wrapper script into your pr
 </li>
       
         <li class="md-nav__item">
+  <a href="#project-local-version-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project-local version detection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#concurrency" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2281,6 +2292,17 @@ itself. This is why we recommend checking the Kotlin wrapper script into your pr
     <span class="md-ellipsis">
       
         Bootstrap cache location
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shared-cache-location" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared cache location
       
     </span>
   </a>
@@ -2577,6 +2599,17 @@ itself. This is why we recommend checking the Kotlin wrapper script into your pr
 </li>
       
         <li class="md-nav__item">
+  <a href="#project-local-version-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project-local version detection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#concurrency" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2592,6 +2625,17 @@ itself. This is why we recommend checking the Kotlin wrapper script into your pr
     <span class="md-ellipsis">
       
         Bootstrap cache location
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shared-cache-location" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared cache location
       
     </span>
   </a>
@@ -2685,15 +2729,23 @@ itself. This is why we recommend checking the Kotlin wrapper script into your pr
 
 
 <h1 id="wrapper-script-provisioning">Wrapper script &amp; provisioning<a class="headerlink" href="#wrapper-script-provisioning" title="Permanent link">&para;</a></h1>
-<p>Part of our philosophy is to avoid the hassle of setting up toolchains, including the JDK and the Kotlin Toolchain itself.</p>
-<p>The recommended way to use the Kotlin Toolchain is to check the Kotlin wrapper script into your project's root folder, so that anyone 
-cloning your project can just run <code>./kotlin build</code> and start working right away — that's it.
+<p>Part of our philosophy is to avoid the hassle of setting up toolchains, including the JDK and the Kotlin Toolchain 
+itself.</p>
+<p>The recommended way to use the Kotlin Toolchain is to check the Kotlin wrapper script into your project's root folder, 
+so that anyone cloning your project can just run <code>./kotlin build</code> and start working right away — that's it.
 No installation needed, no matter their OS.</p>
 <h2 id="whats-the-wrapper-script">What's the wrapper script?<a class="headerlink" href="#whats-the-wrapper-script" title="Permanent link">&para;</a></h2>
 <p>The <strong>Kotlin wrapper script</strong> is a small file (<code>kotlin</code> or <code>kotlin.bat</code>) that downloads and runs the actual Kotlin CLI 
 application<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>, and serves as an entry point for all Kotlin CLI commands.</p>
-<p>Of course, the Kotlin CLI application is only downloaded once (per version) and subsequent calls to the wrapper 
+<p>Of course, the Kotlin CLI application is only downloaded once (per version) and subsequent calls to the wrapper
 immediately delegate to it.</p>
+<h2 id="project-local-version-detection">Project-local version detection<a class="headerlink" href="#project-local-version-detection" title="Permanent link">&para;</a></h2>
+<p>The wrapper script is the source of truth for the version of the Kotlin Toolchain used in your project. 
+A globally installed wrapper (for instance, installed <a href="../#installation">via SDKMAN or the installer script</a>) doesn't blindly use its own 
+version. When run, it searches the current directory and its ancestors for a project (a directory with a <code>project.yaml</code> or
+<code>module.yaml</code> file) containing its own <code>kotlin</code> wrapper script.
+If it finds one, it reads the Kotlin Toolchain version and distribution checksum from that wrapper and uses them
+instead of its own, so the project is built with the version it declares.</p>
 <h2 id="concurrency">Concurrency<a class="headerlink" href="#concurrency" title="Permanent link">&para;</a></h2>
 <p>The provisioning mechanism and all relevant behaviors in the Kotlin Toolchain are designed to be safe to use concurrently.
 This means you can run as many Kotlin CLI commands as you want in parallel, and they won't disturb each other.</p>
@@ -2723,6 +2775,11 @@ for the current OS:</p>
 </tbody>
 </table>
 <p>This location can be customized by setting the <code>KOTLIN_CLI_BOOTSTRAP_CACHE_DIR</code> environment variable.</p>
+<h2 id="shared-cache-location">Shared cache location<a class="headerlink" href="#shared-cache-location" title="Permanent link">&para;</a></h2>
+<p>Once running, the Kotlin CLI itself uses another cache directory, shared between all Kotlin projects (for downloaded
+dependencies, JDKs, and other tools).
+This location can be customized by setting the <code>KOTLIN_SHARED_CACHE_DIR</code> environment variable, or by using the
+<code>--shared-cache-dir</code> command line option (which takes precedence over the environment variable).</p>
 <h2 id="disabling-the-welcome-banner">Disabling the welcome banner<a class="headerlink" href="#disabling-the-welcome-banner" title="Permanent link">&para;</a></h2>
 <p>When the wrapper script downloads a distribution for the first time, it displays a welcome message to the user.
 This might be too much output if you're running Kotlin CLI in a CI environment, and provisioning the distribution on every
@@ -2756,9 +2813,9 @@ Changing this variable allows you to use your own Maven repository to host the K
 <hr />
 <ol>
 <li id="fn:1">
-<p>The Kotlin CLI is, at the moment, a JVM application. The Kotlin Toolchain distribution is therefore a bunch of JAR files, and
-  they need a Java Runtime Environment (JRE) to run. This is an implementation detail and may change in the future,
-  so you should not rely on it.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+<p>The Kotlin CLI is, at the moment, a JVM application. The Kotlin Toolchain distribution is therefore a bunch of JAR
+  files, and they need a Java Runtime Environment (JRE) to run. This is an implementation detail and may change in 
+  the future, so you should not rely on it.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
 </li>
 <li id="fn:2">
 <p>The XDG convention is not supported at the moment for the bootstrap cache. 
@@ -2786,7 +2843,7 @@ Changing this variable allows you to use your own Maven repository to host the K
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 13, 2026 13:14:52 UTC">May 13, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 24, 2026 21:25:52 UTC">August 24, 2026</span>
   </span>
 
     
