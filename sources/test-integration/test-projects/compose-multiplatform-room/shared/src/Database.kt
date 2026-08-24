@@ -1,4 +1,4 @@
-import androidx.room.*
+import androidx.room3.*
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow

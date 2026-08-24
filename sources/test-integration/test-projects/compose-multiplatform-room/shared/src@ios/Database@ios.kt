@@ -1,4 +1,4 @@
-import androidx.room.*
+import androidx.room3.*
 import platform.Foundation.*
 
 // https://developer.android.com/kotlin/multiplatform/room#ios

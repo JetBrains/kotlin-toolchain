@@ -1,0 +1,10 @@
+# https://developer.android.com/kotlin/multiplatform/room#set-up-dependencies
+
+[versions]
+room3 = "3.0.1"
+sqlite = "2.7.0"
+
+[libraries]
+androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
+androidx-room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
+androidx-room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }

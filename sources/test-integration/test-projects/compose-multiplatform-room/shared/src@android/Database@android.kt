@@ -1,5 +1,5 @@
 import android.content.Context
-import androidx.room.*
+import androidx.room3.*
 
 // https://developer.android.com/kotlin/multiplatform/room#android
 

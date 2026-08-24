@@ -283,11 +283,11 @@ settings@iosArm64+iosSimulatorArm64:
       processorOptions:
         "room.schemaLocation": ./generated-db-schema/ios  # module.yaml
       processors:
-        - artifactId: room-compiler  # module.yaml
+        - artifactId: room3-compiler  # from $libs.androidx.room3.compiler @ libs.versions.toml
           classifier: null  # default
-          groupId: androidx.room  # module.yaml
+          groupId: androidx.room3  # from $libs.androidx.room3.compiler @ libs.versions.toml
           packagingType: null  # default
-          version: 2.8.4  # module.yaml
+          version: 3.0.1  # from $libs.androidx.room3.compiler @ libs.versions.toml
       version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
@@ -405,11 +405,11 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
     ksp:
       processorOptions: {}  # default
       processors:
-        - artifactId: room-compiler  # module.yaml
+        - artifactId: room3-compiler  # from $libs.androidx.room3.compiler @ libs.versions.toml
           classifier: null  # default
-          groupId: androidx.room  # module.yaml
+          groupId: androidx.room3  # from $libs.androidx.room3.compiler @ libs.versions.toml
           packagingType: null  # default
-          version: 2.8.4  # module.yaml
+          version: 3.0.1  # from $libs.androidx.room3.compiler @ libs.versions.toml
       version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
@@ -522,11 +522,11 @@ settings@jvm:
       processorOptions:
         "room.schemaLocation": ./generated-db-schema/jvm  # module.yaml
       processors:
-        - artifactId: room-compiler  # module.yaml
+        - artifactId: room3-compiler  # from $libs.androidx.room3.compiler @ libs.versions.toml
           classifier: null  # default
-          groupId: androidx.room  # module.yaml
+          groupId: androidx.room3  # from $libs.androidx.room3.compiler @ libs.versions.toml
           packagingType: null  # default
-          version: 2.8.4  # module.yaml
+          version: 3.0.1  # from $libs.androidx.room3.compiler @ libs.versions.toml
       version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
@@ -650,11 +650,11 @@ settings@android:
       processorOptions:
         "room.schemaLocation": ./generated-db-schema/android  # module.yaml
       processors:
-        - artifactId: room-compiler  # module.yaml
+        - artifactId: room3-compiler  # from $libs.androidx.room3.compiler @ libs.versions.toml
           classifier: null  # default
-          groupId: androidx.room  # module.yaml
+          groupId: androidx.room3  # from $libs.androidx.room3.compiler @ libs.versions.toml
           packagingType: null  # default
-          version: 2.8.4  # module.yaml
+          version: 3.0.1  # from $libs.androidx.room3.compiler @ libs.versions.toml
       version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
@@ -754,11 +754,11 @@ settings@iosArm64:
       processorOptions:
         "room.schemaLocation": ./generated-db-schema/ios  # module.yaml
       processors:
-        - artifactId: room-compiler  # module.yaml
+        - artifactId: room3-compiler  # from $libs.androidx.room3.compiler @ libs.versions.toml
           classifier: null  # default
-          groupId: androidx.room  # module.yaml
+          groupId: androidx.room3  # from $libs.androidx.room3.compiler @ libs.versions.toml
           packagingType: null  # default
-          version: 2.8.4  # module.yaml
+          version: 3.0.1  # from $libs.androidx.room3.compiler @ libs.versions.toml
       version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
@@ -855,11 +855,11 @@ settings@iosSimulatorArm64:
       processorOptions:
         "room.schemaLocation": ./generated-db-schema/ios  # module.yaml
       processors:
-        - artifactId: room-compiler  # module.yaml
+        - artifactId: room3-compiler  # from $libs.androidx.room3.compiler @ libs.versions.toml
           classifier: null  # default
-          groupId: androidx.room  # module.yaml
+          groupId: androidx.room3  # from $libs.androidx.room3.compiler @ libs.versions.toml
           packagingType: null  # default
-          version: 2.8.4  # module.yaml
+          version: 3.0.1  # from $libs.androidx.room3.compiler @ libs.versions.toml
       version: 2.3.11  # default
     languageFeatures: null  # default
     languageVersion: null  # default
