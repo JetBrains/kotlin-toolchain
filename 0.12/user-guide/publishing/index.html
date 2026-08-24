@@ -2796,6 +2796,10 @@ password=imRollingInTheDeep
 configured a repository with ID <code>someIdOfYourChoosing</code>):</p>
 <div class="highlight"><pre><span></span><code>kotlin publish someIdOfYourChoosing
 </code></pre></div>
+<p>If you only want to publish some specific modules, use the <code>-m</code>/<code>--module</code> option (which can be repeated to select
+multiple modules). Add the <code>--transitive</code> option to also publish the local modules that the selected modules depend on:</p>
+<div class="highlight"><pre><span></span><code>kotlin publish -m my-lib --transitive someIdOfYourChoosing
+</code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Don't forget to publish your dependencies</p>
 <p>If your module depends on other local modules, you must enable publishing for these other modules too.
@@ -2824,7 +2828,7 @@ Publishing your library to Maven Central makes it easier for your users to consu
 <p>There are a handful of requirements<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup> imposed by Sonatype to publish to Maven Central:</p>
 <ul>
 <li>javadocs and sources JARs must be published</li>
-<li>checksums for all artifacts must be published</li>
+<li>checksums for all artifacts must be published<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup></li>
 <li>artifacts need to be signed with a PGP signature</li>
 <li>some mandatory metadata about the module must be present</li>
 </ul>
@@ -2914,7 +2918,7 @@ Maven Central website.</p>
 </ul>
 <p>By default, the Kotlin Toolchain uses the <code>manual</code> mode, to avoid surprises.
 Once the first deployment is successful, you might want to streamline the publication by switching to <code>auto</code> mode.
-This can be done using <code>settings.mavenCentral.publishingMode: auto</code>.</p>
+This can be done using <code>settings.publishing.mavenCentral.publishingMode: auto</code>.</p>
 <div class="admonition warning">
 <p class="admonition-title">One does not simply remove artifacts from Maven Central</p>
 <p>When using the <code>auto</code> mode, you will not get a chance to look at the published artifacts before they are released to
@@ -2926,6 +2930,11 @@ remove artifacts from Maven Central, because Sonatype has a strict policy about 
 <ol>
 <li id="fn:1">
 <p>You can learn more about them <a href="https://central.sonatype.org/publish/requirements/">on the official website</a>&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p>By default, the Kotlin Toolchain publishes the checksums required by Maven Central (<code>md5</code> and <code>sha1</code>) for each
+artifact. You can customize this list using <code>settings.publishing.checksums</code>, with any combination of <code>md5</code>, <code>sha1</code>,
+<code>sha256</code>, and <code>sha512</code>.&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
 </li>
 </ol>
 </div>
@@ -2949,7 +2958,7 @@ remove artifacts from Maven Central, because Sonatype has a strict policy about 
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 21, 2026 22:46:57 UTC">August 21, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 24, 2026 21:25:52 UTC">August 24, 2026</span>
   </span>
 
     

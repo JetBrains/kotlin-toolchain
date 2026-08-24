@@ -2801,8 +2801,8 @@ setting <code>JAVA_HOME</code>, or configuring anything. This is why the Kotlin 
 <p>For many projects, it is important to be able to control the JDK version and sometimes even the distribution.
 This page describes how this can be configured. </p>
 <h2 id="default-behavior">Default behavior<a class="headerlink" href="#default-behavior" title="Permanent link">&para;</a></h2>
-<p>By default, the Kotlin Toolchain doesn't constrain the JDK distribution, but it expects a specific major version: <strong>currently 21</strong>.</p>
-<p>Since the default <a href="#jdk-selection-mode">selectionMode</a> is <code>auto</code>, the Kotlin Toolchain will look for a JDK 21 in 
+<p>By default, the Kotlin Toolchain doesn't constrain the JDK distribution, but it expects a specific major version: <strong>currently 25</strong>.</p>
+<p>Since the default <a href="#jdk-selection-mode">selectionMode</a> is <code>auto</code>, the Kotlin Toolchain will look for a JDK 25 in 
 <code>JAVA_HOME</code>, and if not found, will provision one.</p>
 <h2 id="jdk-requirements">JDK requirements<a class="headerlink" href="#jdk-requirements" title="Permanent link">&para;</a></h2>
 <p>The Kotlin Toolchain will always use a JDK that matches the requirements you configure in your module file, if it can't, the build 
@@ -2908,31 +2908,32 @@ Windows ARM64 machine).</p>
 <span class="w">      </span><span class="nt">distributions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">corretto</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">microsoft</span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <h3 id="one-specific-commercial-distribution">One specific commercial distribution<a class="headerlink" href="#one-specific-commercial-distribution" title="Permanent link">&para;</a></h3>
-<p>Require Oracle JDK 21 and acknowledge its license. Find it in <code>JAVA_HOME</code> or provision it if <code>JAVA_HOME</code> is not 
+<p>Require Oracle GraalVM 21 and acknowledge its license. Find it in <code>JAVA_HOME</code> or provision it if <code>JAVA_HOME</code> is not 
 suitable.</p>
 <div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">jvm</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">jdk</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">21</span>
-<span class="w">      </span><span class="nt">distributions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">oracle</span><span class="p p-Indicator">]</span>
-<span class="w">      </span><span class="nt">acknowledgedLicenses</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">oracle</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">distributions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">oracleGraalVM</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">acknowledgedLicenses</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">oracleGraalVM</span><span class="p p-Indicator">]</span>
 </code></pre></div>
 <h3 id="one-specific-full-jdk-version">One specific full JDK version<a class="headerlink" href="#one-specific-full-jdk-version" title="Permanent link">&para;</a></h3>
-<p>Manually place the specific <code>21.0.9+7-LTS-338</code> version of the Oracle JDK in <code>JAVA_HOME</code>, and ensures the Kotlin Toolchain uses it:</p>
+<p>Manually place a specific build of Oracle GraalVM for JDK 21 in <code>JAVA_HOME</code>, and ensure the Kotlin Toolchain uses it:</p>
 <div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">jvm</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">jdk</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">21</span>
-<span class="w">      </span><span class="nt">distributions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">oracle</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">distributions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">oracleGraalVM</span><span class="p p-Indicator">]</span>
 <span class="w">      </span><span class="nt">selectionMode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">javaHome</span><span class="w"> </span><span class="c1"># (1)!</span>
-<span class="w">      </span><span class="nt">acknowledgedLicenses</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">oracle</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (2)!</span>
+<span class="w">      </span><span class="nt">acknowledgedLicenses</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">oracleGraalVM</span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># (2)!</span>
 </code></pre></div>
 <ol>
 <li>Ensures the Kotlin Toolchain never provisions another JDK, just fail if the machine is misconfigured</li>
-<li>Tell the Kotlin Toolchain that we know about Oracle's commercial license and accept it</li>
+<li>Tell the Kotlin Toolchain that we know about Oracle GraalVM's commercial license and accept it</li>
 </ol>
 <h3 id="ignoring-java_home">Ignoring <code>JAVA_HOME</code><a class="headerlink" href="#ignoring-java_home" title="Permanent link">&para;</a></h3>
-<p>Always provision Corretto 21 regardless of JAVA_HOME</p>
+<p>Always use a Corretto 21 from the Kotlin Toolchain-managed cache (provision it the first time), regardless of 
+<code>JAVA_HOME</code>.</p>
 <div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">jvm</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">jdk</span><span class="p">:</span>
@@ -2960,7 +2961,7 @@ suitable.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 15:51:35 UTC">May 12, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 24, 2026 21:25:52 UTC">August 24, 2026</span>
   </span>
 
     
