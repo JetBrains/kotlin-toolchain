@@ -4,6 +4,9 @@ product:
 
 aliases:
   - nonAndroid: [ jvm, iosArm64, iosSimulatorArm64 ]
+  # This alias crosses the natural hierarchy on purpose: it makes the refinement graph of the iosArm64 compilation
+  # a diamond rather than a chain, which is where merging Compose resources by distance to the leaf fragment breaks.
+  - androidAndIosArm64: [ android, iosArm64 ]
 
 settings:
   compose:

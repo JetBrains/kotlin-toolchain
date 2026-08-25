@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.tasks.compose
 
-import org.jetbrains.amper.BuildPrimitives
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.frontend.LeafFragment
@@ -12,14 +11,11 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.tasks.artifacts.PureArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
-import kotlin.io.path.createDirectories
-import kotlin.io.path.div
-import kotlin.io.path.isDirectory
 
 class MergePreparedComposeResourcesTask(
     buildOutputRoot: AmperBuildOutputRoot,
     incrementalCache: IncrementalCache,
-    fragment: LeafFragment,
+    private val fragment: LeafFragment,
     packagingDir: String,
 ) : PureArtifactTaskBase(buildOutputRoot, incrementalCache, "compose resources > merging") {
     private val packagingDir by extraInput(packagingDir)
@@ -35,15 +31,10 @@ class MergePreparedComposeResourcesTask(
     )
 
     override suspend fun run(executionContext: TaskGraphExecutionContext) {
-        val existingPreparedDirs = preparedDirs.filter { it.preparedPath.isDirectory() }
-        if (existingPreparedDirs.isNotEmpty()) {
-            val outputPath = mergedPreparedDir.path / packagingDir
-            for (preparedDir in existingPreparedDirs) {
-                BuildPrimitives.copy(
-                    from = preparedDir.preparedPath,
-                    to = outputPath.createDirectories(),
-                )
-            }
-        }
+        packageComposeResourcesHierarchy(
+            fragments = preparedDirs.fragmentComposeResources(),
+            outputDir = mergedPreparedDir.path,
+            packagingDir = packagingDir,
+        )
     }
 }

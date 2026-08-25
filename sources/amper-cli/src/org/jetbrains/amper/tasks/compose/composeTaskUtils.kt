@@ -39,8 +39,8 @@ internal fun List<TaskResult>.kmpResourcesArchives(): List<Path> = this
  * The Compose resources of the modules that already merged theirs, one origin per module: they are kept apart to be
  * able to report conflicts between them.
  */
-internal fun List<MergedPreparedComposeResourcesDirArtifact>.moduleComposeResources(): List<ComposeResourcesOrigin> =
-    mapNotNull { ComposeResourcesOrigin.ofModule(moduleName = it.moduleName, mergedDir = it.path) }
+internal fun List<MergedPreparedComposeResourcesDirArtifact>.moduleComposeResources(): List<ModuleComposeResources> =
+    mapNotNull { ModuleComposeResources.of(moduleName = it.moduleName, mergedDir = it.path) }
 
 /**
  * The Compose resources of these KMP resources archives of external dependencies, extracting each of them into the
@@ -48,8 +48,8 @@ internal fun List<MergedPreparedComposeResourcesDirArtifact>.moduleComposeResour
  */
 internal suspend fun List<Path>.externalComposeResources(
     userCacheRoot: AmperUserCacheRoot,
-): List<ComposeResourcesOrigin> = mapNotNull { archive ->
-    ComposeResourcesOrigin.ofExternalArchive(
+): List<ExternalLibraryComposeResources> = mapNotNull { archive ->
+    ExternalLibraryComposeResources.of(
         archive = archive,
         extractedDir = extractFileToCacheLocation(archive, userCacheRoot),
     )
@@ -65,7 +65,7 @@ internal suspend fun List<Path>.externalComposeResources(
  * what KGP does as well: it aggregates the KMP resources of the dependencies with the ones of the project itself
  * with `DuplicatesStrategy.FAIL`.
  */
-internal suspend fun packageComposeResources(origins: List<ComposeResourcesOrigin>, outputDir: Path) {
+internal suspend fun packageComposeResources(origins: List<MergedComposeResources>, outputDir: Path) {
     checkNoConflictingResources(origins)
 
     // the very same directory may be reached through several task dependencies, it is packaged once
@@ -76,4 +76,36 @@ internal suspend fun packageComposeResources(origins: List<ComposeResourcesOrigi
     distinctOrigins.forEach { origin ->
         BuildPrimitives.copy(from = origin.dir, to = composeResourcesDir)
     }
+}
+
+/**
+ * The Compose resources of the fragments of a single module, prepared to be packaged.
+ */
+internal fun List<PreparedComposeResourcesDirArtifact>.fragmentComposeResources(): List<FragmentComposeResources> =
+    mapNotNull { FragmentComposeResources.of(fragment = it.fragment, preparedDir = it.preparedPath) }
+
+/**
+ * Packages the Compose resources of the [fragments] of a single module into the [packagingDir] directory of
+ * [outputDir].
+ *
+ * The resources of a fragment override the ones of the fragments it refines: `ios/composeResources/foo` overrides
+ * `common/composeResources/foo`. Fragments that don't refine each other cannot override each other, though: a file
+ * provided by several of them, none of which refines all the others, fails the build.
+ */
+internal suspend fun packageComposeResourcesHierarchy(
+    fragments: List<FragmentComposeResources>,
+    outputDir: Path,
+    packagingDir: String,
+) {
+    checkOverridesAreResolvable(fragments, packagedUnder = packagingDir)
+
+    if (fragments.isEmpty()) return
+
+    val targetDir = (outputDir / packagingDir).createDirectories()
+    // Copying the most common fragments first lets the most specific fragment providing a file be the last one to
+    // write it. Fragments that don't refine each other end up in an arbitrary order, which is harmless: the check
+    // above ruled out that any of them provides the same file as another one.
+    fragments
+        .sortedBy { it.refinedFragmentsCount }
+        .forEach { fragment -> BuildPrimitives.copy(from = fragment.dir, to = targetDir, overwrite = true) }
 }

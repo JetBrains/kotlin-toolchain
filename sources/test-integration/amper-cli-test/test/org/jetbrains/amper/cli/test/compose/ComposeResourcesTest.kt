@@ -15,9 +15,11 @@ import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
+import kotlin.io.path.readText
 import kotlin.io.path.walk
 import kotlin.test.Test
 import kotlin.test.assertContains
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -106,5 +108,14 @@ class ComposeResourcesTest : CliTestBase() {
         assertTrue(generatedResourcesDir.isDirectory())
         assertTrue((generatedResourcesDir / "drawable").isDirectory()) // Resources from common
         assertTrue((generatedResourcesDir / "files").isDirectory()) // Resources from ios
+
+        // The resources of a fragment override the ones of the fragments it refines, whether it refines them
+        // directly or not ('ios' refines 'common' through 'apple', 'native' and 'nonAndroid' here).
+        assertEquals("iOS refinement", (generatedResourcesDir / "files" / "refined-text.txt").readText())
+
+        // Only the refinement relation decides which fragment wins, not the distance between them: 'apple' and
+        // 'common' are at the very same distance from the 'iosArm64' leaf fragment (through the
+        // 'androidAndIosArm64' alias), but 'apple' does refine 'common'.
+        assertEquals("Apple refinement", (generatedResourcesDir / "files" / "apple-text.txt").readText())
     }
 }
