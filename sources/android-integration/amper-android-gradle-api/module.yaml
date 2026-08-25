@@ -7,7 +7,6 @@ apply:
   - //sources/used-in-gradle.module-template.yaml
 
 dependencies:
-  - //sources/frontend-api
   - //sources/libraries/serialization-extended
 
 settings:
