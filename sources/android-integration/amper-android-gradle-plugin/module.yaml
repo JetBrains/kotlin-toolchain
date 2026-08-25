@@ -8,7 +8,6 @@ apply:
 
 dependencies:
   - //sources/android-integration/amper-android-gradle-api
-  - //sources/android-integration/amper-android-sdk-detector
   - //sources/frontend-api
   - //sources/frontend/schema
   - //sources/libraries/stdlib-extended
