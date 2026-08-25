@@ -86,17 +86,17 @@ internal fun verifyGpgSignature(
     println("GPG signature verified successfully for ${dataFile.name}")
 }
 
-internal fun copyWithDeduplication(destDir: Path, sourcePaths: List<Path>) {
+/**
+ * Copies all files from [sourcePaths] to [destDir], disambiguating colliding filenames.
+ *
+ * @return the effective names that each source file was given in [destDir].
+ */
+internal fun copyWithDeduplication(destDir: Path, sourcePaths: List<Path>): List<String> {
     destDir.createDirectories()
-    // some jars have the exact same filename even though they don't come from the same artifact
-    val alreadySeenFilenames = mutableSetOf<String>()
+    val usedFileNames = DistinctFilenamePool()
     for (path in sourcePaths) {
-        val alreadyExists = !alreadySeenFilenames.add(path.name)
-        val filename = if (alreadyExists) {
-            "${path.nameWithoutExtension}-${path.pathString.sha256String().take(8)}.${path.extension}"
-        } else {
-            path.name
-        }
+        val filename = usedFileNames.registerAndGetName(path)
         path.copyTo(destDir.resolve(filename))
     }
+    return usedFileNames.list()
 }

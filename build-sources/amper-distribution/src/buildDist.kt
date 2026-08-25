@@ -20,10 +20,8 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
-import kotlin.io.path.extension
 import kotlin.io.path.inputStream
 import kotlin.io.path.name
-import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.outputStream
 import kotlin.io.path.pathString
 import kotlin.io.path.readBytes
@@ -47,8 +45,7 @@ fun buildDist(
         println("Writing CLI distribution to $cliTgz")
         cliTgz.writeDistTarGz(
             cliRuntimeClasspath = cliRuntimeClasspath.resolvedFiles,
-            extraClasspaths = extraClasspaths.mapValues { [_, classpath] -> classpath.resolvedFiles } +
-                    extraFilteredClasspaths.mapValues { [_, classpath] -> classpath.resolvedFiles },
+            lazyClasspaths = lazyClasspathsLayout(extraClasspaths, extraFilteredClasspaths),
             mergeFrom = listOf(
                 stagingDir,
                 thirdPartyStagingDir,
@@ -73,15 +70,13 @@ fun buildDist(
 
 private fun Path.writeDistTarGz(
     cliRuntimeClasspath: List<Path>,
-    extraClasspaths: Map<String, List<Path>>,
+    lazyClasspaths: LazyClasspathsLayout,
     mergeFrom: List<Path>,
 ) {
     TarArchiveOutputStream(GZIPOutputStream(outputStream().buffered())).use { tarStream ->
         tarStream.writeFile(contents = argFileContents(), pathInTar = "kotlin-cli.args")
         tarStream.writeDir(cliRuntimeClasspath, targetDirName = "lib")
-        extraClasspaths.forEach { [name, paths] ->
-            tarStream.writeDir(paths, targetDirName = name)
-        }
+        tarStream.write(lazyClasspaths)
         mergeFrom.forEach { stagingDir ->
             stagingDir.walk().forEach { file ->
                 val pathInTar = file.relativeTo(stagingDir).pathString
@@ -91,17 +86,19 @@ private fun Path.writeDistTarGz(
     }
 }
 
+private fun TarArchiveOutputStream.write(extraClasspaths: LazyClasspathsLayout) {
+    extraClasspaths.jars.forEach { (sourcePath, destPathInDist) ->
+        writeFile(sourcePath, destPathInDist)
+    }
+    extraClasspaths.indexFiles.forEach { (contents, destPathInDist) ->
+        writeFile(contents, destPathInDist)
+    }
+}
+
 private fun TarArchiveOutputStream.writeDir(files: List<Path>, targetDirName: String) {
-    // some jars have the exact same filename even though they don't come from the same artifact
-    val alreadySeenFilenames = mutableSetOf<String>()
-    files.sortedBy { it.name }.forEach { path ->
-        val alreadyExists = !alreadySeenFilenames.add(path.name)
-        val filename = if (alreadyExists) {
-            "${path.nameWithoutExtension}-${path.pathString.sha256String().take(8)}.${path.extension}"
-        } else {
-            path.name
-        }
-        writeFile(path, "$targetDirName/$filename")
+    val usedFileNames = DistinctFilenamePool()
+    files.distinct().sortedBy { it.name }.forEach { path ->
+        writeFile(path, "$targetDirName/${usedFileNames.registerAndGetName(path)}")
     }
 }
 

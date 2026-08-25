@@ -9,7 +9,6 @@ import org.jetbrains.amper.plugins.TaskAction
 import org.jetbrains.amper.stdlib.io.path.clean
 import java.nio.file.Path
 import kotlin.io.path.div
-import kotlin.io.path.name
 import kotlin.io.path.writeText
 
 @TaskAction
@@ -21,6 +20,6 @@ fun assembleClasspathWithIndex(
 ) {
     val targetDir = outputRoot / subdirectoryName
     targetDir.clean()
-    copyWithDeduplication(destDir = targetDir, sourcePaths = classpath.resolvedFiles)
-    targetDir.resolve(jarListFileName).writeText(classpath.resolvedFiles.joinToString("\n") { it.name })
+    val jarNames = copyWithDeduplication(destDir = targetDir, sourcePaths = classpath.resolvedFiles)
+    targetDir.resolve(jarListFileName).writeText(jarNames.joinToString("\n"))
 }

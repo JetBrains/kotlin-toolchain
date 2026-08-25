@@ -6,18 +6,26 @@ package org.jetbrains.amper.cli.lazyload
 
 import java.nio.file.Path
 import kotlin.io.path.Path
-import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.div
+import kotlin.io.path.exists
 import kotlin.io.path.name
+import kotlin.io.path.readLines
 
 /**
+ * A classpath that is not loaded as part of the Amper CLI's own classpath, but provided in the distribution to be
+ * loaded lazily (in a separate classloader or process) when needed.
+ *
+ * All the jars of these classpaths are deduplicated in a single `extra/jars` directory of the distribution, and each
+ * classpath is described by a `lazy/<name>.classpath.txt` index file listing the jars it consists of.
+ *
  * This list comes from `amper-cli`'s `module.yaml`.
  */
-internal enum class ExtraClasspath(val dirName: String) {
-    PLUGINS_PROCESSOR(dirName = "plugins-processor"),
-    EXTENSIBILITY_API(dirName = "extensibility-api"),
-    AMPER_JIC_RUNNER(dirName = "amper-jic-runner"),
-    ANDROID_INTEGRATION_GRADLE_PLUGIN(dirName = "android-integration-gradle-plugin"),
-    KOTLIN_BUILD_TOOLS_COMPAT(dirName = "kotlin-build-tools-compat");
+internal enum class ExtraClasspath(private val classpathName: String) {
+    PLUGINS_PROCESSOR(classpathName = "plugins-processor"),
+    EXTENSIBILITY_API(classpathName = "extensibility-api"),
+    AMPER_JIC_RUNNER(classpathName = "amper-jic-runner"),
+    ANDROID_INTEGRATION_GRADLE_PLUGIN(classpathName = "android-integration-gradle-plugin"),
+    KOTLIN_BUILD_TOOLS_COMPAT(classpathName = "kotlin-build-tools-compat");
 
     private val distRoot by lazy {
         Path(checkNotNull(System.getenv("KOTLIN_TOOLCHAIN_DISTRIBUTION_DIR")) {
@@ -25,21 +33,22 @@ internal enum class ExtraClasspath(val dirName: String) {
         })
     }
 
+    private val extraDir get() = distRoot / "extra"
+
     /**
      * Returns the list of jars that belong to this [ExtraClasspath] from the Amper distribution.
      */
-    fun findJarsInDistribution(): List<Path> = distRoot.resolve(dirName)
-        .listDirectoryEntries("*.jar")
-        .sortedWith(jarComparator)
-}
-
-private val jarComparator = Comparator<Path> { jar1, jar2 ->
-    val jar1IsNaughty = jar1.isNaughtyJar()
-    val jar2IsNaughty = jar2.isNaughtyJar()
-    when {
-        jar1IsNaughty && !jar2IsNaughty -> 1 // naughty jar1 should be considered "bigger" (last)
-        !jar1IsNaughty && jar2IsNaughty -> -1 // naughty jar2 should be considered "bigger" (last)
-        else -> jar1.name.compareTo(jar2.name) // both naughty or both good – order normally
+    fun findJarsInDistribution(): List<Path> {
+        val indexFile = extraDir / "$classpathName.classpath.txt"
+        check(indexFile.exists()) {
+            "Missing classpath index file at $indexFile. Ensure your Kotlin Toolchain distribution integrity."
+        }
+        val jarsDir = extraDir / "jars"
+        return indexFile.readLines()
+            .filter { it.isNotBlank() }
+            .map { jarName -> jarsDir / jarName }
+            // the classpath order from the index file is preserved, except for naughty jars (sortedBy is stable)
+            .sortedBy { it.isNaughtyJar() }
     }
 }
 

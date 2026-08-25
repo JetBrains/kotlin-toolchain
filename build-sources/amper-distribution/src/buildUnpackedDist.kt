@@ -25,13 +25,8 @@ fun buildUnpackedDist(
 
     (outputDir / "kotlin-cli.args").writeText(argFileContents())
 
-    copyWithDeduplication(outputDir / "lib", baseClasspath.resolvedFiles)
-    extraClasspaths.forEach { [key, classpath] ->
-        copyWithDeduplication(outputDir / key, classpath.resolvedFiles)
-    }
-    extraFilteredClasspaths.forEach { [key, classpath] ->
-        copyWithDeduplication(outputDir / key, classpath.resolvedFiles)
-    }
+    copyWithDeduplication(outputDir / "lib", baseClasspath.resolvedFiles.distinct())
+    lazyClasspathsLayout(extraClasspaths, extraFilteredClasspaths).copyTo(outputDir)
 
     AmperWrappers.generateLaunchers(outputDir / "bin")
 
