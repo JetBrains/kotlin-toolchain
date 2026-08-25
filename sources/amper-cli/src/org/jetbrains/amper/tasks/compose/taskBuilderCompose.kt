@@ -29,7 +29,7 @@ private fun ProjectTasksBuilder.configureComposeResourcesGeneration() {
         val packageName = config.getResourcesPackageName(module)
         val makeAccessorsPublic = config.exposedAccessors
         val resClassName = config.nameOfResClass
-        val packagingDir = "composeResources/$packageName/"
+        val packagingDir = "$COMPOSE_RESOURCES_DIR/$packageName/"
 
         // `expect` is generated in `common` only, while `actual` are generated in the refined fragments.
         //  do not separate `expect`/`actual` if the module only contains a single main fragment.

@@ -5,24 +5,48 @@
 package org.jetbrains.amper.cli.test.compose
 
 import org.jetbrains.amper.cli.test.CliTestBase
+import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.MacOnly
 import org.junit.jupiter.api.Tag
+import java.util.zip.ZipFile
+import kotlin.io.path.PathWalkOption
 import kotlin.io.path.div
 import kotlin.io.path.exists
+import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
+import kotlin.io.path.walk
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 @Tag("cli-test-group-compose")
 class ComposeResourcesTest : CliTestBase() {
 
     @Test
     fun `compose resources demo build (android)`() = runSlowTest {
-        runCli(
+        val taskName = ":app-android:buildAndroidDebug"
+        val result = runCli(
             projectDir = testProject("compose-resources-demo"),
-            "task", ":app-android:buildAndroidDebug",
+            "task", taskName,
             configureAndroidHome = true,
+        )
+
+        // Compose resources are packaged as Android assets: the ones of this project are passed to AGP inside the AAR
+        // built by the Kotlin Toolchain, while the ones of external libraries are merged by AGP itself from the AARs
+        // it gets on the runtime classpath (this is why they need no KMP resources archive on Android).
+        val apk = result.getTaskOutputPath(taskName)
+            .walk(PathWalkOption.BREADTH_FIRST)
+            .firstOrNull { it.extension == "apk" }
+            ?: fail("No APK is found in the output of the '$taskName' task")
+        val assets = ZipFile(apk.toFile()).use { apkZip ->
+            apkZip.entries().asSequence().map { it.name }.filter { it.startsWith("assets/") }.toList()
+        }
+        assertContains(assets, "assets/composeResources/com.example.gen/files/platform-text.txt")
+        assertContains(
+            assets,
+            "assets/composeResources/com.mohamedrejeb.calf.calf_cupertino_icons.generated.resources/font/sf_symbols.ttf",
         )
     }
 

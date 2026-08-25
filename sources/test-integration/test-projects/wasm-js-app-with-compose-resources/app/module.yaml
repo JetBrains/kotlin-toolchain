@@ -11,3 +11,5 @@ dependencies:
   - ../shared
   - $compose.foundation
   - $compose.material3
+  # an external library that publishes its Compose resources as a separate KMP resources variant
+  - com.mohamedrejeb.calf:calf-cupertino-icons:0.13.0

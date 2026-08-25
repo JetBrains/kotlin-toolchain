@@ -147,6 +147,14 @@ class ResolveExternalDependenciesTask(
         override val compileClasspath: List<SerializablePath>,
         override val runtimeClasspath: List<SerializablePath>,
         val coordinateOverridesForPublishing: PublicationCoordinatesOverrides,
+        /**
+         * Archives with KMP resources of the resolved external dependencies.
+         *
+         * They are published for native, JS, and Wasm targets only
+         * and are meant to be unpacked into an application bundle rather than being on a classpath.
+         * (resources of JVM and Android targets are packed into the main artifact and thus come on a classpath)
+         */
+        val kmpResourcesArchives: List<SerializablePath> = emptyList(),
     ) : TaskResult, ClasspathProvider {
         override val classpathElementType: ClasspathElementType = ClasspathElementType.ExternalMavenDependencies
     }
@@ -230,6 +238,13 @@ class ResolveExternalDependenciesTask(
                             val compileClasspath = compileDependenciesRootNode.dependencyPaths()
                             val runtimeClasspath = runtimeDependenciesRootNode?.dependencyPaths() ?: emptyList()
 
+                            // Resources are a runtime concern:
+                            // they are taken from the RUNTIME graph if there is one
+                            // and from the COMPILE graph otherwise
+                            // (since native has no runtime graph and its COMPILE graph is already transitive).
+                            val kmpResourcesArchives = (runtimeDependenciesRootNode ?: compileDependenciesRootNode)
+                                .kmpResourcesPaths()
+
                             val publicationCoordsOverrides = getPublicationCoordinatesOverrides(
                                 platform = resolutionPlatform.toPlatform(),
                                 compileDependenciesRootNode = compileDependenciesRootNode,
@@ -237,13 +252,14 @@ class ResolveExternalDependenciesTask(
                             )
 
                             ResultWithSerializable(
-                                outputFiles = (compileClasspath + runtimeClasspath).toSet().sorted(),
+                                outputFiles = (compileClasspath + runtimeClasspath + kmpResourcesArchives).toSet().sorted(),
                                 // We reuse the task Result class here because it has exactly the fields we need.
                                 // If types must diverge, we can always introduce a new Result class for this.
                                 outputValue = Result(
                                     compileClasspath = compileClasspath,
                                     runtimeClasspath = runtimeClasspath,
                                     coordinateOverridesForPublishing = publicationCoordsOverrides,
+                                    kmpResourcesArchives = kmpResourcesArchives,
                                 ),
                                 expirationTime = expirationTime,
                             )

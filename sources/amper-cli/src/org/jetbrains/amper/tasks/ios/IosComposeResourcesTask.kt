@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.tasks.ios
 
-import org.jetbrains.amper.BuildPrimitives
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
@@ -18,8 +17,11 @@ import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.compose.MergedPreparedComposeResourcesDirArtifact
+import org.jetbrains.amper.tasks.compose.externalComposeResources
+import org.jetbrains.amper.tasks.compose.kmpResourcesArchives
+import org.jetbrains.amper.tasks.compose.moduleComposeResources
+import org.jetbrains.amper.tasks.compose.packageComposeResources
 import java.nio.file.Path
-import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
 import kotlin.io.path.isDirectory
@@ -32,7 +34,7 @@ class IosComposeResourcesTask(
     private val leafFragment: LeafFragment,
     private val taskOutputRoot: TaskOutputRoot,
     private val incrementalCache: IncrementalCache,
-    userCacheRoot: AmperUserCacheRoot,
+    private val userCacheRoot: AmperUserCacheRoot,
 ) : ArtifactTaskBase() {
     private val dependenciesMerged by Selectors.fromModuleWithDependencies(
         type = MergedPreparedComposeResourcesDirArtifact::class,
@@ -44,9 +46,11 @@ class IosComposeResourcesTask(
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
-        val results = dependenciesMerged.filter { it.path.isDirectory() }
+        val mergedDirs = dependenciesMerged.filter { it.path.isDirectory() }
+        val moduleOrigins = mergedDirs.moduleComposeResources()
+        val externalArchives = dependenciesResult.kmpResourcesArchives()
         val outputPath = taskOutputRoot.path / "merged"
-        if (results.isEmpty()) {
+        if (mergedDirs.isEmpty() && externalArchives.isEmpty()) {
             outputPath.deleteRecursively()
             return EmptyTaskResult
         }
@@ -54,15 +58,14 @@ class IosComposeResourcesTask(
         incrementalCache.execute(
             key = taskName.id.value,
             inputValues = emptyMap(),
-            inputFiles = results.map { it.path },
+            inputFiles = mergedDirs.map { it.path } + externalArchives,
         ) {
             outputPath.clean()
-            results.forEach { result ->
-                BuildPrimitives.copy(
-                    from = result.path,
-                    to = outputPath.createDirectories(),
-                )
-            }
+
+            packageComposeResources(
+                origins = externalArchives.externalComposeResources(userCacheRoot) + moduleOrigins,
+                outputDir = outputPath,
+            )
             IncrementalCache.ExecutionResult(listOf(outputPath))
         }
 

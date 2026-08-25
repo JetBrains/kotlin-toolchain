@@ -26,6 +26,10 @@ import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.compose.MergedPreparedComposeResourcesDirArtifact
+import org.jetbrains.amper.tasks.compose.externalComposeResources
+import org.jetbrains.amper.tasks.compose.kmpResourcesArchives
+import org.jetbrains.amper.tasks.compose.moduleComposeResources
+import org.jetbrains.amper.tasks.compose.packageComposeResources
 import org.jetbrains.amper.tasks.web.NpmInstallTask
 import org.jetbrains.amper.tasks.web.NpmInstallTask.Companion.json
 import org.jetbrains.amper.tasks.web.WebLinkTask
@@ -93,7 +97,9 @@ abstract class WasmJsBuildTaskBase(
             .map { it.resourcesPath }
             .filter { it.exists() }
 
-        val composeResourcesPaths = composeResources.map { it.path }.filter { it.isDirectory() }
+        val composeResourcesMergedDirs = composeResources.filter { it.path.isDirectory() }
+        val composeResourcesOrigins = composeResourcesMergedDirs.moduleComposeResources()
+        val externalComposeResourcesArchives = dependenciesResult.kmpResourcesArchives()
 
         val skikoWasmRuntime: Path? = dependenciesResult
             .filterIsInstance<ResolveExternalDependenciesTask.Result>()
@@ -105,24 +111,25 @@ abstract class WasmJsBuildTaskBase(
         incrementalCache.executeForFiles(
             taskName.id.value,
             inputValues = importMap.mapValues { it.value.invariantSeparatorsPathString },
-            inputFiles = listOfNotNull(linkedDir, skikoWasmRuntime) + resourcesPaths,
+            inputFiles = listOfNotNull(linkedDir, skikoWasmRuntime) +
+                    resourcesPaths + composeResourcesMergedDirs.map { it.path } +
+                    externalComposeResourcesArchives,
         ) {
             taskOutputPath.path.clean()
+
+            // The `resources` of the fragments are not a part of this packaging (they are plain source set
+            // resources in KGP), they are copied last below and override everything else.
+            packageComposeResources(
+                origins = externalComposeResourcesArchives.externalComposeResources(userCacheRoot) +
+                        composeResourcesOrigins,
+                outputDir = taskOutputPath.path,
+            )
 
             BuildPrimitives.copy(
                 from = linkedDir,
                 to = taskOutputPath.path,
                 overwrite = true,
             )
-
-            composeResourcesPaths
-                .forEach { composeResourcesDir ->
-                    BuildPrimitives.copy(
-                        from = composeResourcesDir,
-                        to = taskOutputPath.path,
-                        overwrite = true,
-                    )
-                }
 
             resourcesPaths
                 .forEach { resource ->
@@ -135,10 +142,7 @@ abstract class WasmJsBuildTaskBase(
 
             processHtmlFile()
 
-            processNodeModulesWithImportMap(
-                importMap,
-                nodeModulesPath
-            )
+            processNodeModulesWithImportMap(importMap, nodeModulesPath)
 
             if (skikoWasmRuntime != null) {
                 copySkikoWasmRuntime(skikoWasmRuntime)

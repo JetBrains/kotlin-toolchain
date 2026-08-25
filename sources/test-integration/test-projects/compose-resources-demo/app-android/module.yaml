@@ -10,3 +10,5 @@ dependencies:
   - ../shared
   - androidx.appcompat:appcompat:1.6.1
   - androidx.activity:activity-compose:1.7.2
+  # an external library that publishes its Compose resources for Android as assets inside its AAR
+  - com.mohamedrejeb.calf:calf-cupertino-icons:0.13.0

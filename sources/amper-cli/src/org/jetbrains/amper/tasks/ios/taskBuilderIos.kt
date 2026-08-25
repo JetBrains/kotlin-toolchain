@@ -70,6 +70,8 @@ fun ProjectTasksBuilder.setupIosTasks() {
                     taskOutputRoot = context.getTaskOutputPath(taskName),
                     userCacheRoot = context.userCacheRoot,
                 ),
+                // to get the archives with KMP resources of the external dependencies
+                dependsOn = listOf(CommonTaskType.Dependencies.getTaskName(module, platform, isTest = false)),
             )
         }
 

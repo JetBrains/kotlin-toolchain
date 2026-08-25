@@ -13,11 +13,13 @@ import org.jetbrains.amper.test.AmperCliResult
 import org.junit.jupiter.api.Tag
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
+import kotlin.io.path.fileSize
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @Tag("cli-test-group-web")
 class WasmJsProjectsTest : CliTestBase() {
@@ -170,6 +172,24 @@ class WasmJsProjectsTest : CliTestBase() {
         assertFileExists(sharedResources / "files" / "shared-text.txt")
         assertFileExists(sharedResources / "drawable" / "shared_icon.xml")
         assertFileExists(sharedResources / "values" / "strings.common.cvr")
+
+        // KMP resources coming from external library dependencies (published as a separate variant)
+        val externalResources = appOutput / "composeResources" /
+                "com.mohamedrejeb.calf.calf_cupertino_icons.generated.resources"
+        val externalFont = externalResources / "font" / "sf_symbols.ttf"
+        assertFileExists(externalFont)
+        // a library might publish an empty resources archive, its layout is still unpacked
+        assertFileExists(appOutput / "composeResources" / "components.resources.library.generated.resources")
+
+        // The app module ships a file at the very same path as the external library does (see its `resources` dir).
+        // Resources of this module override the ones coming from its dependencies.
+        // The actual content is deliberately kept out of the failure message: the file of the library is a real font.
+        // It is trimmed because Git normalizes the line endings of the text file it is read from (see .gitattributes).
+        val shadowingContent = "not a font, this file shadows the one published by the external library"
+        assertTrue(
+            message = "The resource of the app module must override the one published by the external library, " +
+                    "but $externalFont is ${externalFont.fileSize()} bytes long",
+        ) { externalFont.readText().trim() == shadowingContent }
     }
 
     private fun AmperCliResult.checkComposeApplication() {
