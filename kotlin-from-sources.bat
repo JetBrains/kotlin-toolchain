@@ -25,11 +25,6 @@ echo Building Kotlin Toolchain distribution from sources...
 call kotlin.bat --log-level=warn do buildUnpackedDistribution
 if errorlevel 1 goto fail
 
-echo Publishing Kotlin Toolchain Android support plugin for delegated Gradle builds...
-rem The Kotlin Toolchain needs a published Amper Android Gradle plugin support for the delegated Gradle builds
-call kotlin.bat --log-level=warn publish -m amper-android-gradle-plugin mavenLocal
-if errorlevel 1 goto fail
-
 cls
 popd
 if errorlevel 1 goto fail

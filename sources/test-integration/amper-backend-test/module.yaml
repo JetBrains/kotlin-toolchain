@@ -19,7 +19,3 @@ test-dependencies:
 
 apply:
   - //sources/common.module-template.yaml
-
-tasks:
-  testJvm:
-    dependsOn: [ :amper-android-gradle-plugin:publishJvmToMavenLocal ]

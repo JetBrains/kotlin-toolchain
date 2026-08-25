@@ -16,6 +16,7 @@ internal enum class ExtraClasspath(val dirName: String) {
     PLUGINS_PROCESSOR(dirName = "plugins-processor"),
     EXTENSIBILITY_API(dirName = "extensibility-api"),
     AMPER_JIC_RUNNER(dirName = "amper-jic-runner"),
+    ANDROID_INTEGRATION_GRADLE_PLUGIN(dirName = "android-integration-gradle-plugin"),
     KOTLIN_BUILD_TOOLS_COMPAT(dirName = "kotlin-build-tools-compat");
 
     private val distRoot by lazy {

@@ -108,6 +108,7 @@ plugins:
       "plugins-processor": [ //sources/extensibility/amper-schema-processor ]
       "amper-jic-runner": [ //sources/java-incremental-compilation/amper-jic-runner ]
       "kotlin-build-tools-compat": [ $libs.kotlin.buildToolsCompat ]
+      "android-integration-gradle-plugin": [ //sources/android-integration/amper-android-gradle-plugin ]
     extraFilteredClasspaths:
       "extensibility-api":
         classpath:

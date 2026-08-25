@@ -14,6 +14,5 @@ test-dependencies:
 
 tasks:
   testJvm:
-    # android gradle plugin is required for Android part of backend
     # fully built zip cli dist is required for wrapper tests and it's published to maven local
-    dependsOn: [ :amper-android-gradle-plugin:publishJvmToMavenLocal, :amper-cli:uploadLocal@amper-distribution ]
+    dependsOn: [ :amper-cli:uploadLocal@amper-distribution ]

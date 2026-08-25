@@ -69,7 +69,7 @@ if [ ! -f "$up_to_date_file" ] || [ "$(cat "$up_to_date_file")" != "$current" ];
 
   echo "Building Kotlin Toolchain distribution from sources..."
   # Amper needs a published Amper Android Gradle plugin support for the delegated Gradle builds
-  if (cd "$script_dir" && ./kotlin --log-level=warn do buildUnpackedDistribution && ./kotlin --log-level=warn publish -m amper-android-gradle-plugin mavenLocal); then
+  if (cd "$script_dir" && ./kotlin --log-level=warn do buildUnpackedDistribution); then
     current_state >"$up_to_date_file"
   else
     build_exit=$?

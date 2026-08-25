@@ -10,6 +10,7 @@ import org.jetbrains.amper.android.ResolvedDependency
 import org.jetbrains.amper.android.runAndroidBuild
 import org.jetbrains.amper.cli.context.AmperBuildLogsRoot
 import org.jetbrains.amper.cli.context.AmperProjectRoot
+import org.jetbrains.amper.cli.lazyload.ExtraClasspath
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.dependency.resolution.MavenLocalRepository
 import org.jetbrains.amper.engine.Task
@@ -106,11 +107,12 @@ abstract class AndroidDelegatedGradleTask(
             gradleLogStdoutPath.createParentDirectories()
             GradleDaemonShutdownHook.setupIfNeeded()
             val result = runAndroidBuild(
-                request,
-                gradleProjectPath,
-                gradleLogStdoutPath,
-                gradleLogStderrPath,
-                jdk.homeDir,
+                buildRequest = request,
+                buildPath = gradleProjectPath,
+                gradleLogStdoutPath = gradleLogStdoutPath,
+                gradleLogStderrPath = gradleLogStderrPath,
+                jdkDir = jdk.homeDir,
+                gradlePluginJars = ExtraClasspath.ANDROID_INTEGRATION_GRADLE_PLUGIN.findJarsInDistribution(),
                 eventHandler = { it.handle(gradleLogStdoutPath, gradleLogStderrPath) },
             )
             IncrementalCache.ExecutionResult(result.filter(::outputFilterPredicate))

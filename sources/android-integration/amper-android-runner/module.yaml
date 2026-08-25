@@ -7,9 +7,7 @@ apply:
   - //sources/used-in-gradle.module-template.yaml
 
 dependencies:
-  - //sources/amper-build-info
   - //sources/libraries/stdlib-extended
-  - //sources/libraries/maven-central-configuration
   - //sources/android-integration/amper-android-gradle-api: exported
   - $libs.gradle.toolingApi: exported
   - $libs.android.tools.builder.model

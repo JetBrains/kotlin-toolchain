@@ -12,5 +12,3 @@ dependencies:
 settings:
   kotlin:
     serialization: enabled
-  publishing:
-    enabled: true

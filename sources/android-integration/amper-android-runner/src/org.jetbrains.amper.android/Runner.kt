@@ -13,8 +13,6 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.model.GradleProject
-import org.jetbrains.amper.buildinfo.AmperBuild
-import org.jetbrains.amper.mavencentral.MavenCentralDefaultConfiguration
 import java.io.BufferedOutputStream
 import java.net.URI
 import java.nio.file.Path
@@ -23,7 +21,9 @@ import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.WRITE
 import java.util.*
 import kotlin.collections.ArrayDeque
+import kotlin.io.path.absolute
 import kotlin.io.path.div
+import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.notExists
 import kotlin.io.path.outputStream
 import kotlin.io.path.pathString
@@ -58,10 +58,11 @@ fun runAndroidBuild(
     gradleLogStdoutPath: Path,
     gradleLogStderrPath: Path,
     jdkDir: Path,
+    gradlePluginJars: List<Path>,
     debug: Boolean = false,
     eventHandler: (ProgressEvent) -> Unit,
 ): List<Path> {
-    val settingsGradlePath = buildPath.createSettingsGradle(buildRequest)
+    val settingsGradlePath = buildPath.createSettingsGradle(buildRequest, gradlePluginJars)
     buildPath.createBuildGradle()
     buildPath.createLocalProperties(buildRequest)
 
@@ -133,18 +134,10 @@ private fun Path.createLocalProperties(buildRequest: AndroidBuildRequest): Path 
     return localPropertiesPath
 }
 
-private fun Path.createSettingsGradle(buildRequest: AndroidBuildRequest): Path {
+private fun Path.createSettingsGradle(buildRequest: AndroidBuildRequest, gradlePluginJars: List<Path>): Path {
     val settingsGradlePath = this / "settings.gradle.kts"
     val settingsGradleFile = settingsGradlePath.toFile()
     settingsGradleFile.createNewFile()
-
-    val fromSources = AmperBuild.isSNAPSHOT
-    val mavenCentralRepo = if (MavenCentralDefaultConfiguration.isDirectUrl) {
-        "mavenCentral()"
-    } else {
-        "maven(\"${MavenCentralDefaultConfiguration.url}\")"
-    }
-
     settingsGradleFile.writeText(
         """
 buildscript {
@@ -156,18 +149,8 @@ buildscript {
         }
     }
     
-    repositories {
-        ${if (fromSources) "mavenLocal()" else ""}
-        maven("https://cache-redirector.jetbrains.com/www.jetbrains.com/intellij-repository/releases")
-        maven("https://cache-redirector.jetbrains.com/packages.jetbrains.team/maven/p/ij/intellij-dependencies")
-        ${if (fromSources) "" else "maven(\"https://packages.jetbrains.team/maven/p/amper/amper\")"}
-        $mavenCentralRepo
-        google()
-        gradlePluginPortal()
-    }
-    
     dependencies {
-        classpath("org.jetbrains.amper.android.settings.plugin:org.jetbrains.amper.android.settings.plugin.gradle.plugin:${AmperBuild.mavenVersion}")
+        classpath(files(${gradlePluginJars.joinToString(separator = ", ") { "\"${it.absolute().invariantSeparatorsPathString}\"" }}))
     }
 }
 

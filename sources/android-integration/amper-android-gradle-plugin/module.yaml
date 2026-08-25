@@ -19,7 +19,3 @@ dependencies:
 settings:
   kotlin:
     serialization: json
-  publishing:
-    enabled: true
-    group: org.jetbrains.amper.android.settings.plugin
-    artifactId: org.jetbrains.amper.android.settings.plugin.gradle.plugin
