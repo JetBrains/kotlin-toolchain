@@ -125,6 +125,16 @@ class AmperProjectStructureTest {
 
     @Test
     fun `modules with UsedInIdePlugin annotation should be exported by amper-libraries-for-idea`() = runTestWithMdc {
+        // Some libraries should not be exported by `amper-libraries-for-idea` because they are required in more
+        // granular manner in some content modules.
+        val knownExceptions = setOf(
+            // Android SDK provisioning in the IDE excludes Android tooling libraries to use them from the Android plugin.
+            // This, however, brings the Android plugin as a dependency to the library module
+            // containing `amper-libraries-for-idea`.
+            // To avoid such a dependency, we exclude it from the export.
+            "amper-android-sdk-provisioning",
+        )
+
         val modules = readAmperProjectModel().modules
         val ideaLibrariesModule = modules.find { it.userReadableName == "amper-libraries-for-idea" }
             ?: error("Module 'amper-libraries-for-idea' not found, please update this test if it was renamed")
@@ -132,7 +142,9 @@ class AmperProjectStructureTest {
         val ideaDependenciesByModule = ideaLibrariesModule.localModuleDependencies(includeTestDeps = false)
             .associate { it.module.userReadableName to it.exported }
 
-        val modulesWithUsedInIdeaAnnotation = modules.filter { it.hasUsedInIdeaAnnotationInKotlinSources() }
+        val modulesWithUsedInIdeaAnnotation = modules
+            .filter { it.userReadableName !in knownExceptions }
+            .filter { it.hasUsedInIdeaAnnotationInKotlinSources() }
         val missingDependencies = modulesWithUsedInIdeaAnnotation.filter { module ->
             ideaDependenciesByModule[module.userReadableName] != true
         }

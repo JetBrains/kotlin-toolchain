@@ -7,7 +7,6 @@ apply:
   - //sources/used-in-idea.module-template.yaml
 
 dependencies:
-  - //sources/android-integration/amper-android-sdk-provisioning: exported
   - //sources/amper-build-info: exported
   - //sources/amper-jdk-provisioning: exported
   - //sources/amper-maven-plugin-download: exported
