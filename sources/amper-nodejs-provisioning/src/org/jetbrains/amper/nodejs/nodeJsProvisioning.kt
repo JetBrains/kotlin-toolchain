@@ -2,7 +2,7 @@
  * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package org.jetbrains.amper.tasks.web
+package org.jetbrains.amper.nodejs
 
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.Downloader
@@ -16,7 +16,10 @@ import kotlin.io.path.div
 /**
  * Downloads the Node.js distribution for the current platform and returns the path to its `node` executable.
  */
-internal suspend fun downloadNodeJs(userCacheRoot: AmperUserCacheRoot): Path {
+suspend fun downloadNodeJs(
+    userCacheRoot: AmperUserCacheRoot,
+    version: String,
+): Path {
     val osString = when (OsFamily.current) {
         OsFamily.Windows -> "win"
         OsFamily.Linux -> "linux"
@@ -31,9 +34,9 @@ internal suspend fun downloadNodeJs(userCacheRoot: AmperUserCacheRoot): Path {
 
     val extension = if (OsFamily.current.isWindows) "zip" else "tar.gz"
 
-    val distributionName = "node-v$NODE_JS_VERSION-$osString-$archString"
+    val distributionName = "node-v$version-$osString-$archString"
     val archive = Downloader.downloadFileToCacheLocation(
-        url = "https://nodejs.org/dist/v$NODE_JS_VERSION/$distributionName.$extension",
+        url = "https://nodejs.org/dist/v$version/$distributionName.$extension",
         userCacheRoot = userCacheRoot,
     )
     val distribution = extractFileToCacheLocation(
@@ -48,5 +51,3 @@ internal suspend fun downloadNodeJs(userCacheRoot: AmperUserCacheRoot): Path {
         distribution / "bin" / "node"
     }
 }
-
-private const val NODE_JS_VERSION = "26.5.1"
