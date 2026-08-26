@@ -13,11 +13,11 @@ import org.jetbrains.amper.dependency.resolution.diagnostics.PomResolvedWithMeta
 import org.jetbrains.amper.dependency.resolution.diagnostics.RegularDependencyDeclaredAsBom
 import org.jetbrains.amper.dependency.resolution.diagnostics.Severity
 import org.jetbrains.amper.dependency.resolution.diagnostics.UnableToDownloadChecksums
+import org.jetbrains.amper.dependency.resolution.diagnostics.UnableToDownloadFile
 import org.jetbrains.amper.test.dr.toMavenNode
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
 import kotlin.io.path.div
-import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.name
 import kotlin.test.Test
@@ -434,6 +434,26 @@ class BuildGraphTest : BaseDRTest() {
     }
 
     /**
+     * This test checks that an appropriate diagnostic is reported if dependency is not resolved
+     * due to incorrectly published hashes.
+     */
+    @Test
+    fun `me_tatarka_inject kotlin-inject-runtime-kmp 0_9_0`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            platform = setOf(ResolutionPlatform.IOS_ARM64),
+        )
+        downloadAndAssertFiles(testInfo, root, verifyMessages = false)
+
+        val message = assertTheOnlyNonInfoMessage<UnableToDownloadFile>(root.children.single(), Severity.ERROR)
+        message.childMessages.filter { it.severity == Severity.ERROR }
+            .forEach {
+                assertEquals(DependencyResolutionDiagnostics.HashesMismatch.id, it.id,
+                    "It is expected that file failed to donload due to incorrect hashes declared in published Gradle metadata ")
+            }
+    }
+
+    /**
      * This test checks that spaces in the beginning and at the end of coordinates
      * of transitive dependencies are correctly processed (ignored).
      *
@@ -454,7 +474,7 @@ class BuildGraphTest : BaseDRTest() {
      * The following declaration is invalid because `Xlint:` got recognized as a namespace prefix by vanilla XML parser,
      * which is unexpected by library authors.
      * Maven parser relaxes restriction here on the consumer side and allows such tag names.
-     * So does Amper. Although it is not a generic behavior, but rather a case-by-case support (rare/unique examples).
+     * So does Amper. Although it is not a generic behavior, rather a case-by-case support (rare/unique examples).
      * See [org.jetbrains.amper.dependency.resolution.maven.sanitizePom] for more details.
      *
      * ```
@@ -545,7 +565,7 @@ class BuildGraphTest : BaseDRTest() {
      * Dependency declaration leaves the version unspecified,
      * this way it should be resolved from the dependencyManagement section of one of the parent projects.
      *
-     * groupId is parametrized, it should be substituted early enough
+     * groupId is parametrized; it should be substituted early enough
      * to be able to match the dependency declared in the dependencyManagement section of parent BOM.
      *
      * The test checks that such a parametrized and unversioned dependency is correctly resolved
