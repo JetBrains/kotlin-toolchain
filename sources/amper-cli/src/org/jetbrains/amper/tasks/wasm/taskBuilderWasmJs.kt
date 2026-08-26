@@ -5,6 +5,8 @@
 package org.jetbrains.amper.tasks.wasm
 
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.nodejs.NodeJsProvider
+import org.jetbrains.amper.pnpm.PnpmProvider
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.LinkTaskType
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
@@ -33,8 +35,15 @@ fun ProjectTasksBuilder.setupWasmJsTasks() {
                     taskOutputPath = context.getTaskOutputPath(npmInstallTaskName),
                     taskName = npmInstallTaskName,
                     processRunner = context.processRunner,
-                    userCacheRoot = context.userCacheRoot,
                     incrementalCache = context.incrementalCache,
+                    nodeJsProvider = NodeJsProvider(
+                        context.userCacheRoot,
+                        context.openTelemetry,
+                    ),
+                    pnpmProvider = PnpmProvider(
+                        context.userCacheRoot,
+                        context.openTelemetry,
+                    ),
                 ),
                 dependsOn = [
                     CommonTaskType.Dependencies.getTaskName(module, platform, isTest),
@@ -124,7 +133,14 @@ fun ProjectTasksBuilder.setupWasmJsTasks() {
                     module = module,
                     processRunner = context.processRunner,
                     runSettings = runSettings,
-                    userCacheRoot = context.userCacheRoot,
+                    nodeJsProvider = NodeJsProvider(
+                        context.userCacheRoot,
+                        context.openTelemetry,
+                    ),
+                    pnpmProvider = PnpmProvider(
+                        context.userCacheRoot,
+                        context.openTelemetry,
+                    ),
                 ),
                 dependsOn = [buildAppTaskName, npmInstallTask]
             )

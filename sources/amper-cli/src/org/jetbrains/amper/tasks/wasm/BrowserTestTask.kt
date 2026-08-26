@@ -16,15 +16,14 @@ import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.withContext
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.userReadableError
-import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.engine.TestTask
 import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.nodejs.downloadNodeJs
-import org.jetbrains.amper.pnpm.downloadPnpm
+import org.jetbrains.amper.nodejs.NodeJsProvider
+import org.jetbrains.amper.pnpm.PnpmProvider
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.AllRunSettings
@@ -57,7 +56,8 @@ class BrowserTestTask(
     override val module: AmperModule,
     private val processRunner: ProcessRunner,
     private val runSettings: AllRunSettings,
-    private val userCacheRoot: AmperUserCacheRoot,
+    private val nodeJsProvider: NodeJsProvider,
+    private val pnpmProvider: PnpmProvider,
 ) : TestTask {
 
     context(executionContext: TaskGraphExecutionContext)
@@ -92,8 +92,8 @@ class BrowserTestTask(
 
                 logger.debug("Opening URL: $url")
 
-                val nodeExecutable = downloadNodeJs(userCacheRoot, NODE_JS_VERSION)
-                val pnpm = downloadPnpm(userCacheRoot, PNPM_VERSION)
+                val nodeExecutable = nodeJsProvider.downloadNodeJs(NODE_JS_VERSION)
+                val pnpm = pnpmProvider.downloadPnpm(PNPM_VERSION)
 
                 spanBuilder("wasm-js-browser-test-install-browsers")
                     .setAttribute("pnpm", pnpm.absolutePathString())

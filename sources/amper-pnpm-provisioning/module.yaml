@@ -8,3 +8,5 @@ apply:
 dependencies:
   - //sources/core
   - //sources/libraries/system-info
+  - //sources/libraries/telemetry
+  - $libs.opentelemetry.api

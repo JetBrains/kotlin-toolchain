@@ -6,7 +6,6 @@ package org.jetbrains.amper.tasks.web
 
 import kotlinx.serialization.json.Json
 import org.jetbrains.amper.ProcessRunner
-import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
@@ -14,8 +13,8 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
-import org.jetbrains.amper.nodejs.downloadNodeJs
-import org.jetbrains.amper.pnpm.downloadPnpm
+import org.jetbrains.amper.nodejs.NodeJsProvider
+import org.jetbrains.amper.pnpm.PnpmProvider
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
@@ -43,8 +42,9 @@ class NpmInstallTask(
     private val taskOutputPath: TaskOutputRoot,
     override val taskName: TaskName,
     private val processRunner: ProcessRunner,
-    private val userCacheRoot: AmperUserCacheRoot,
     private val incrementalCache: IncrementalCache,
+    private val nodeJsProvider: NodeJsProvider,
+    private val pnpmProvider: PnpmProvider,
 ) : Task {
 
     context(executionContext: TaskGraphExecutionContext)
@@ -87,8 +87,8 @@ class NpmInstallTask(
 
                 logger.debug("Generated package.json with ${uniqueNpmDependencies.size} npm dependencies at $packageJsonPath")
 
-                val nodeExecutable = downloadNodeJs(userCacheRoot, NODE_JS_VERSION)
-                val pnpmMjs = downloadPnpm(userCacheRoot, PNPM_VERSION)
+                val nodeExecutable = nodeJsProvider.downloadNodeJs(NODE_JS_VERSION)
+                val pnpmMjs = pnpmProvider.downloadPnpm(PNPM_VERSION)
 
                 spanBuilder("pnpm install")
                     .use {
