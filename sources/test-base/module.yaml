@@ -24,7 +24,7 @@ dependencies:
   - $kotlin.test.junit5
   - $libs.jna
   - $libs.jna.platform
-  - //sources/amper-android-sdk-provisioning
+  - //sources/android-integration/amper-android-sdk-provisioning
   - //sources/amper-build-info
   - //sources/amper-jdk-provisioning
   - //sources/amper-problem-reporting
