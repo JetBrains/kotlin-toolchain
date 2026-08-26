@@ -1,0 +1,3705 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Migrate your Gradle project to the Kotlin Toolchain: learn how the concepts of a Gradle build — plugins, source
+sets, toolchains, compiler options, and test configuration — translate to the Kotlin Toolchain.
+">
+      
+      
+        <meta name="author" content="JetBrains Kotlin Toolchain team">
+      
+      
+        <link rel="canonical" href="https://kotlin-toolchain.org/dev/getting-started/migrating-from-gradle/">
+      
+      
+        <link rel="prev" href="../tutorial/">
+      
+      
+        <link rel="next" href="../migrating-from-maven/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../images/amper-icon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+  
+    
+      
+        <title>Migrating from Gradle - The Kotlin Toolchain</title>
+      
+    
+  
+
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+  
+  
+  
+  
+  <style>:root{--md-annotation-icon:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%2022c5.5%200%2010-4.5%2010-10S17.5%202%2012%202%202%206.5%202%2012s4.5%2010%2010%2010M11%207h2v2h-2zm3%2010h-4v-2h1v-2h-1v-2h3v4h1z%22/%3E%3C/svg%3E');}</style>
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-5P98');</script>
+  <!-- End Google Tag Manager -->
+
+    
+  
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Migrating from Gradle - The Kotlin Toolchain" />
+<meta property="og:description" content="Migrate your Gradle project to the Kotlin Toolchain: learn how the concepts of a Gradle build — plugins, source
+sets, toolchains, compiler options, and test configuration — translate to the Kotlin Toolchain.
+" />
+<meta property="og:image" content="https://kotlin-toolchain.org/dev/assets/images/social/getting-started/migrating-from-gradle.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content="https://kotlin-toolchain.org/dev/getting-started/migrating-from-gradle/" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:title" content="Migrating from Gradle - The Kotlin Toolchain" />
+<meta property="twitter:description" content="Migrate your Gradle project to the Kotlin Toolchain: learn how the concepts of a Gradle build — plugins, source
+sets, toolchains, compiler options, and test configuration — translate to the Kotlin Toolchain.
+" />
+<meta property="twitter:image" content="https://kotlin-toolchain.org/dev/assets/images/social/getting-started/migrating-from-gradle.png" />
+</head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#migrating-from-gradle" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5P98"
+                    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="The Kotlin Toolchain" class="md-header__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
+      
+  <img src="../../images/amper-icon.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            The Kotlin Toolchain
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Migrating from Gradle
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="teal"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/JetBrains/kotlin-toolchain" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    JetBrains/kotlin-toolchain
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../user-guide/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  User guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../cli/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  CLI
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/project/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://github.com/JetBrains/kotlin-toolchain/releases" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Releases ↗
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="The Kotlin Toolchain" class="md-nav__button md-logo" aria-label="The Kotlin Toolchain" data-md-component="logo">
+      
+  <img src="../../images/amper-icon.svg" alt="logo">
+
+    </a>
+    The Kotlin Toolchain
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/JetBrains/kotlin-toolchain" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    JetBrains/kotlin-toolchain
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ide-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IDE setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating from Gradle
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating from Gradle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#terminology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Terminology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-files-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration files at a glance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conversion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conversion
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Conversion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#converting-a-subproject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Converting a subproject
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Converting a subproject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#choose-a-product-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose a product type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kotlin version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kotlin platforms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jvm-application-main-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JVM application main class
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#source-sets-and-file-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source sets and file layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#built-in-frameworks-and-technologies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in frameworks and technologies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jdk-provisioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JDK provisioning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jvm-sourcetargetrelease" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JVM source/target/release
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compiler-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compiler arguments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#junit-platform-by-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JUnit Platform by default
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sharing-build-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sharing build logic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#everyday-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Everyday commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migrating-from-maven/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migrating from Maven
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../user-guide/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/multiplatform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiplatform modules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../user-guide/product-types/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product types
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Product types
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/product-types/android-app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Android application
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/product-types/ios-app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    iOS application
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/product-types/jvm-app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JVM application
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/product-types/jvm-lib/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JVM library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/product-types/kmp-lib/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlin Multiplatform library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/product-types/js-app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlin/JS application
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/product-types/native-app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlin/Native application
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/product-types/wasm-js-app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlin/Wasm web application
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/product-types/wasm-wasi-app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlin/Wasm WASI application
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Built-in technologies
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Built-in technologies
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/builtin-tech/compose-multiplatform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compose Multiplatform
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/builtin-tech/kotlinx-serialization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlinx Serialization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/builtin-tech/kotlinx-rpc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlinx RPC
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/builtin-tech/ktor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ktor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/builtin-tech/lombok/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lombok
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/builtin-tech/spring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spring Boot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plugins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/plugins/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/plugins/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/plugins/topics/checks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Checks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/plugins/topics/custom-commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom commands
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/plugins/topics/structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugin structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/plugins/topics/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/plugins/topics/references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/plugins/topics/tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_11" id="__nav_3_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced topics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced topics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/advanced/jdk-provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JDK provisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/advanced/java-annotation-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Java annotation processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/advanced/ksp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlin Symbol Processing (KSP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/advanced/kotlin-compiler-plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kotlin compiler plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/advanced/native-interop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Native interoperability (cinterop)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/advanced/maven-like-layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maven-like layout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/advanced/maven-plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maven plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/yaml-primer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendix: YAML primer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../cli/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    CLI
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wrapper & provisioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/project/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    project.yaml
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    module.yaml
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/JetBrains/kotlin-toolchain/releases" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases ↗
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#terminology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Terminology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-files-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration files at a glance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conversion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conversion
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Conversion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#converting-a-subproject" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Converting a subproject
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Converting a subproject">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#choose-a-product-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose a product type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kotlin version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kotlin-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kotlin platforms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jvm-application-main-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JVM application main class
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#source-sets-and-file-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source sets and file layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#built-in-frameworks-and-technologies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in frameworks and technologies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jdk-provisioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JDK provisioning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jvm-sourcetargetrelease" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JVM source/target/release
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compiler-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compiler arguments
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#junit-platform-by-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JUnit Platform by default
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sharing-build-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sharing build logic
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#everyday-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Everyday commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/JetBrains/kotlin-toolchain/edit/main/docs/src/getting-started/migrating-from-gradle.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="migrating-from-gradle">Migrating from Gradle<a class="headerlink" href="#migrating-from-gradle" title="Permanent link">&para;</a></h1>
+<p>This guide describes how to convert an existing Gradle project to the Kotlin Toolchain, with details on how specific
+parts should be translated.</p>
+<div class="admonition tip">
+<p class="admonition-title">Have you tried AI?</p>
+<p>Unlike for <a href="../migrating-from-maven/">Maven projects</a>, there is no deterministic conversion tool for Gradle builds.
+Gradle build scripts are arbitrary code, so a faithful automatic translation isn't possible in general.</p>
+<p>However, AI agents can be quite good for this sort of tasks. We recommend the
+<a href="https://github.com/singleton11/kotlin-toolchain-skills">Kotlin Toolchain skills</a>, which will make your agent handle
+this like a champ!</p>
+</div>
+<h2 id="terminology">Terminology<a class="headerlink" href="#terminology" title="Permanent link">&para;</a></h2>
+<p>Here are some Gradle concepts and their Kotlin Toolchain equivalent:</p>
+<table>
+<thead>
+<tr>
+<th>Gradle</th>
+<th>The Kotlin Toolchain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Build</td>
+<td>Project</td>
+</tr>
+<tr>
+<td>Root project</td>
+<td>Root module</td>
+</tr>
+<tr>
+<td>Subproject</td>
+<td>Module</td>
+</tr>
+<tr>
+<td>Convention plugins (simple configuration)</td>
+<td><a href="../../user-guide/templates/">Templates</a></td>
+</tr>
+<tr>
+<td>Plugins</td>
+<td><a href="../../user-guide/plugins/overview/">Plugins</a></td>
+</tr>
+</tbody>
+</table>
+<p>You can learn more about the basic concepts of the Kotlin Toolchain in the <a href="../../user-guide/basics/">user guide</a>.</p>
+<h2 id="configuration-files-at-a-glance">Configuration files at a glance<a class="headerlink" href="#configuration-files-at-a-glance" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Gradle</th>
+<th>The Kotlin Toolchain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>settings.gradle(.kts)</code></td>
+<td><a href="../../reference/project/"><code>project.yaml</code></a> — lists the modules of the project</td>
+</tr>
+<tr>
+<td><code>build.gradle(.kts)</code> (one per subproject)</td>
+<td><a href="../../reference/module/"><code>module.yaml</code></a> (one per module)</td>
+</tr>
+<tr>
+<td><code>gradle/libs.versions.toml</code></td>
+<td><code>gradle/libs.versions.toml</code> or <code>libs.versions.toml</code><br/>(the <a href="../../user-guide/dependencies/#library-catalogs">same format</a> is supported)</td>
+</tr>
+<tr>
+<td><code>gradlew</code> / <code>gradlew.bat</code><br/><code>gradle-wrapper.properties</code></td>
+<td>The <a href="../../cli/provisioning/"><code>kotlin</code> wrapper scripts</a></td>
+</tr>
+<tr>
+<td><code>gradle.properties</code></td>
+<td>No direct equivalent, all settings are in <code>module.yaml</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="conversion">Conversion<a class="headerlink" href="#conversion" title="Permanent link">&para;</a></h2>
+<h3 id="general-workflow">General workflow<a class="headerlink" href="#general-workflow" title="Permanent link">&para;</a></h3>
+<p>Here is how the general workflow looks like:</p>
+<ol>
+<li>Create a <code>project.yaml</code> file listing your modules, based on the <code>include(...)</code> calls in <code>settings.gradle(.kts)</code>.</li>
+<li>For each convention plugin in <code>buildSrc</code> or <code>build-logic</code>, create a template file <code>&lt;name&gt;.module-template.yaml</code>.
+   You can convert it the same way as a <code>build.gradle.kts</code> to <code>module.yaml</code> file, see below.</li>
+<li>For each more complex local plugin, either remove it (if it became redundant) or convert it to a <a href="../../user-guide/plugins/overview/">local Kotlin Toolchain plugin</a></li>
+<li>For each Gradle subproject, create a <code>module.yaml</code> file, translating the build script using the sections below.</li>
+<li>Move the source files to the <a href="../../user-guide/basics/#project-layout">standard layout</a>
+   (or use the <a href="../../user-guide/advanced/maven-like-layout/">Maven-like layout</a> for JVM-only modules).</li>
+<li>Run <code>./kotlin build</code> and <code>./kotlin test</code> to verify the migration.</li>
+<li>Remove the Gradle build files.</li>
+<li>Move your <code>libs.versions.toml</code> (if you have one) to the root of the project</li>
+</ol>
+<h3 id="project-structure">Project structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h3>
+<p>The <code>include(...)</code> calls from <code>settings.gradle(.kts)</code> become the <code>modules</code> list in <code>project.yaml</code>.
+Gradle project paths use <code>:</code> as separator, while the Kotlin Toolchain uses real directory paths:</p>
+<div class="grid">
+<div class="highlight"><span class="filename">settings.gradle.kts</span><pre><span></span><code><span class="n">rootProject</span><span class="p">.</span><span class="na">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"my-project"</span>
+
+<span class="n">include</span><span class="p">(</span><span class="s">":app"</span><span class="p">)</span>
+<span class="n">include</span><span class="p">(</span><span class="s">":libs:lib1"</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">project.yaml</span><pre><span></span><code><span class="nt">modules</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">app</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">libs/lib1</span>
+<span class="l l-Scalar l-Scalar-Plain">‎</span>
+</code></pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Single-module projects don't need a <code>project.yaml</code> file at all — a <code>module.yaml</code> alone is a valid project.</p>
+</div>
+<h3 id="converting-a-subproject">Converting a subproject<a class="headerlink" href="#converting-a-subproject" title="Permanent link">&para;</a></h3>
+<p>The goal is to turn the <code>build.gradle(.kts)</code> build script into a <code>module.yaml</code> file.
+These guidelines also apply to converting a convention plugin into a template file.</p>
+<h4 id="choose-a-product-type">Choose a product type<a class="headerlink" href="#choose-a-product-type" title="Permanent link">&para;</a></h4>
+<p>The Kotlin Toolchain has the concept of <a href="../../user-guide/basics/#product-type">product type</a>, which specifies what a
+given module is meant to produce. This has no direct Gradle equivalent. In Gradle, this is understood through the set of
+plugins you apply and the configuration in general.</p>
+<table>
+<thead>
+<tr>
+<th>Gradle plugins</th>
+<th>Kotlin Toolchain product type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kotlin("multiplatform")</code></td>
+<td><code>kmp/lib</code></td>
+</tr>
+<tr>
+<td><code>kotlin("jvm")</code></td>
+<td><code>jvm/lib</code></td>
+</tr>
+<tr>
+<td><code>kotlin("jvm")</code> + <code>application</code></td>
+<td><code>jvm/app</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition question">
+<p class="admonition-title">No multiplatform app product type?</p>
+<p>The Kotlin Toolchain doesn't allow building different application types from the same module.
+This should not occur in modern Gradle setup either, but it is possible.
+If you are in this situation, use <code>kmp/lib</code> as a product type for such a module and keep all your source code there.
+Then add more modules with application product types for each platform, and make them depend on this shared code.</p>
+</div>
+<h4 id="kotlin-version">Kotlin version<a class="headerlink" href="#kotlin-version" title="Permanent link">&para;</a></h4>
+<p>In Gradle, Kotlin support comes from the Kotlin Gradle plugin (KGP), which you apply and version explicitly in every
+build script or convention plugin. In the Kotlin Toolchain, Kotlin support is built-in.</p>
+<p>The Kotlin version doesn't have to be specified: a default Kotlin version will be used.
+Note that this default is bumped on each Kotlin Toolchain release, so relying on the default can break your builds on 
+update. It is recommended to pin the version.</p>
+<p>Example:</p>
+<div class="grid">
+<div class="highlight"><span class="filename">build.gradle.kts</span><pre><span></span><code><span class="n">plugins</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">kotlin</span><span class="p">(</span><span class="s">"jvm"</span><span class="p">)</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="s">"2.4.10"</span>
+<span class="p">}</span>
+<span class="err">‎</span>
+<span class="err">‎</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jvm/lib</span>
+
+<span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.4.10</span><span class="w"> </span><span class="c1">#(1)! </span>
+</code></pre></div>
+<ol>
+<li>Even though this may match the default version at the time of writing, it's usually more robust to specify the 
+   Kotlin version explicitly, to avoid breaking things when bumping the Kotlin Toolchain.</li>
+</ol>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip: use a <a href="../../user-guide/templates/">template</a> to share the Kotlin version setting.</p>
+</div>
+<h4 id="kotlin-platforms">Kotlin platforms<a class="headerlink" href="#kotlin-platforms" title="Permanent link">&para;</a></h4>
+<p>If your module is multiplatform, set the <code>product.platforms</code> list to same list of targets as in Gradle's <code>kotlin { ... }</code> block:</p>
+<div class="grid">
+<div class="highlight"><span class="filename">build.gradle.kts</span><pre><span></span><code><span class="n">plugins</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">kotlin</span><span class="p">(</span><span class="s">"multiplatform"</span><span class="p">)</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="s">"2.4.10"</span>
+<span class="p">}</span>
+
+<span class="n">kotlin</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">jvm</span><span class="p">()</span>
+<span class="w">    </span><span class="n">iosArm64</span><span class="p">()</span>
+<span class="w">    </span><span class="n">iosSimulatorArm64</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kmp/lib</span>
+<span class="w">  </span><span class="nt">platforms</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">jvm</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">iosArm64</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">iosSimulatorArm64</span><span class="w"> </span><span class="p p-Indicator">]</span>
+
+<span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.4.10</span>
+</code></pre></div>
+</div>
+<h4 id="jvm-application-main-class">JVM application main class<a class="headerlink" href="#jvm-application-main-class" title="Permanent link">&para;</a></h4>
+<p>For <a href="../../user-guide/product-types/jvm-app/">JVM applications</a>, the <strong>main class</strong> is auto-detected if the <code>main</code> function
+is in a file named <code>main.kt</code>. Otherwise, you have to set it explicitly with <code>settings.jvm.mainClass</code>.</p>
+<p>Example (using the <code>maint.kt</code> convention):</p>
+<div class="grid">
+<div class="highlight"><span class="filename">build.gradle.kts</span><pre><span></span><code><span class="n">plugins</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">kotlin</span><span class="p">(</span><span class="s">"jvm"</span><span class="p">)</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="s">"2.4.10"</span>
+<span class="w">    </span><span class="n">application</span>
+<span class="p">}</span>
+
+<span class="n">application</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">mainClass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"com.example.MainKt"</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jvm/app</span>
+
+<span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.4.10</span>
+
+<span class="c1"># auto-detected main class in main.kt</span>
+<span class="l l-Scalar l-Scalar-Plain">‎</span>
+</code></pre></div>
+</div>
+<p>Example (explicit main class):</p>
+<div class="grid">
+<div class="highlight"><span class="filename">build.gradle.kts</span><pre><span></span><code><span class="n">plugins</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">kotlin</span><span class="p">(</span><span class="s">"jvm"</span><span class="p">)</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="s">"2.4.10"</span>
+<span class="w">    </span><span class="n">application</span>
+<span class="p">}</span>
+
+<span class="n">application</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">mainClass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"com.example.Foo"</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jvm/app</span>
+
+<span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">jvm</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">mainClass</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">com.example.Foo</span>
+<span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.4.10</span>
+<span class="l l-Scalar l-Scalar-Plain">‎</span>
+</code></pre></div>
+</div>
+<h4 id="source-sets-and-file-layout">Source sets and file layout<a class="headerlink" href="#source-sets-and-file-layout" title="Permanent link">&para;</a></h4>
+<p>Gradle organizes code into <em>source sets</em>. The Kotlin Toolchain instead uses conventional directories in each module,
+without per-language subdirectories (Kotlin and Java files live side by side).</p>
+<p>For a JVM module, the mapping is:</p>
+<table>
+<thead>
+<tr>
+<th>Gradle (Kotlin JVM)</th>
+<th>The Kotlin Toolchain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/main/kotlin/</code></td>
+<td><code>src/</code></td>
+</tr>
+<tr>
+<td><code>src/main/java/</code></td>
+<td><code>src/</code></td>
+</tr>
+<tr>
+<td><code>src/main/resources/</code></td>
+<td><code>resources/</code></td>
+</tr>
+<tr>
+<td><code>src/test/kotlin/</code></td>
+<td><code>test/</code></td>
+</tr>
+<tr>
+<td><code>src/test/resources/</code></td>
+<td><code>testResources/</code></td>
+</tr>
+</tbody>
+</table>
+<p>For a multiplatform module, each Kotlin source set maps to a source directory with an
+<a href="../../user-guide/multiplatform/#platform-qualifier"><code>@platform</code> qualifier</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Gradle source set</th>
+<th>The Kotlin Toolchain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>commonMain/kotlin/</code></td>
+<td><code>src/</code></td>
+</tr>
+<tr>
+<td><code>jvmMain/kotlin/</code></td>
+<td><code>src@jvm/</code></td>
+</tr>
+<tr>
+<td><code>iosMain/kotlin/</code></td>
+<td><code>src@ios/</code></td>
+</tr>
+<tr>
+<td><code>iosArm64Main/kotlin/</code></td>
+<td><code>src@iosArm64/</code></td>
+</tr>
+<tr>
+<td><code>commonMain/resources/</code></td>
+<td><code>resources/</code></td>
+</tr>
+<tr>
+<td><code>androidMain/resources/</code></td>
+<td><code>resources@android/</code></td>
+</tr>
+<tr>
+<td><code>commonTest/kotlin/</code></td>
+<td><code>test/</code></td>
+</tr>
+<tr>
+<td><code>jvmTest/kotlin/</code></td>
+<td><code>test@jvm/</code></td>
+</tr>
+</tbody>
+</table>
+<p>The <code>@platform</code> qualifiers follow the same <a href="../../user-guide/multiplatform/#supported-platforms">default hierarchy</a>
+as KGP's default hierarchy template, with the same visibility rules as <code>dependsOn</code> relations between source sets:
+code in <code>src@ios</code> sees declarations from <code>src</code>, <code>src@native</code>, and <code>src@apple</code>, and is shared between all iOS targets.
+If you defined custom intermediate source sets in Gradle (custom <code>dependsOn</code> edges), use
+<a href="../../user-guide/multiplatform/#aliases">aliases</a> instead:</p>
+<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">aliases</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">jvmAndAndroid</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">jvm</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">android</span><span class="w"> </span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># enables src@jvmAndAndroid, dependencies@jvmAndAndroid, etc.</span>
+</code></pre></div>
+<p>Per-source-set dependencies map to qualified dependency sections: the <code>commonMain</code> dependencies go to
+<code>dependencies:</code>, the <code>jvmMain</code> ones to <code>dependencies@jvm:</code>, and the <code>commonTest</code> ones to <code>test-dependencies:</code>.</p>
+<div class="admonition tip">
+<p class="admonition-title">JVM-only modules can avoid moving files</p>
+<p>Gradle's default JVM layout is the same as Maven's, so <code>jvm/app</code> and <code>jvm/lib</code> modules can add
+<code>layout: maven-like</code> to their <code>module.yaml</code> and keep the existing <code>src/main/kotlin</code>, <code>src/test/kotlin</code>, etc.
+directories as-is. See <a href="../../user-guide/advanced/maven-like-layout/">Maven-like layout</a>.
+There is no such option for multiplatform modules or custom <code>srcDir</code> configurations — those files need to move.</p>
+</div>
+<h4 id="built-in-frameworks-and-technologies">Built-in frameworks and technologies<a class="headerlink" href="#built-in-frameworks-and-technologies" title="Permanent link">&para;</a></h4>
+<p>Some popular frameworks or technologies that require a Gradle plugin have a built-in equivalent in the Kotlin Toolchain:</p>
+<ul>
+<li><a href="../../user-guide/builtin-tech/compose-multiplatform/">Compose Multiplatform</a></li>
+<li><a href="../../user-guide/builtin-tech/kotlinx-serialization/">kotlinx.serialization</a></li>
+<li><a href="../../user-guide/builtin-tech/kotlinx-rpc/">kotlinx.rpc</a></li>
+<li><a href="../../user-guide/advanced/ksp/"><abbr title="The Kotlin Symbol Processing tool, developed by Google">KSP</abbr></a></li>
+<li><a href="../../user-guide/builtin-tech/ktor/">Ktor</a></li>
+<li><a href="../../user-guide/builtin-tech/spring/">Spring</a></li>
+<li><a href="../../user-guide/builtin-tech/lombok/">Lombok</a></li>
+</ul>
+<p>Check out the relevant sections to see how they are configured in the Kotlin Toolchain.</p>
+<p>Kotlin compiler plugins are also directly supported in the <code>setting.kotlin</code> section and don't require a plugin.
+See the <a href="../../user-guide/advanced/kotlin-compiler-plugins/">compiler plugins section</a> of user guide to learn how to use them.</p>
+<h4 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h4>
+<p>Gradle dependency configurations map to dependency <a href="../../user-guide/dependencies/#transitivity-and-scope">scopes and visibility attributes</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Gradle</th>
+<th>The Kotlin Toolchain</th>
+<th>Config section</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>implementation("group:artifact:1.0")</code></td>
+<td><code>- group:artifact:1.0</code></td>
+<td><code>dependencies</code></td>
+</tr>
+<tr>
+<td><code>api("group:artifact:1.0")</code></td>
+<td><code>- group:artifact:1.0: exported</code></td>
+<td><code>dependencies</code></td>
+</tr>
+<tr>
+<td><code>compileOnly("group:artifact:1.0")</code></td>
+<td><code>- group:artifact:1.0: compile-only</code></td>
+<td><code>dependencies</code></td>
+</tr>
+<tr>
+<td><code>runtimeOnly("group:artifact:1.0")</code></td>
+<td><code>- group:artifact:1.0: runtime-only</code></td>
+<td><code>dependencies</code></td>
+</tr>
+<tr>
+<td><code>implementation(project(":libs:lib1"))</code></td>
+<td><code>- //libs/lib1</code></td>
+<td><code>dependencies</code></td>
+</tr>
+<tr>
+<td><code>implementation(platform("g:bom:1.0"))</code></td>
+<td><code>- bom: g:bom:1.0</code></td>
+<td><code>dependencies</code></td>
+</tr>
+<tr>
+<td><code>implementation(libs.ktor.client.core)</code></td>
+<td><code>- $libs.ktor.client.core</code></td>
+<td><code>dependencies</code></td>
+</tr>
+<tr>
+<td><code>testImplementation("group:artifact:1.0")</code></td>
+<td><code>- group:artifact:1.0</code></td>
+<td><code>test-dependencies</code></td>
+</tr>
+</tbody>
+</table>
+<p>As with Gradle's <code>implementation</code>, dependencies are not part of the module's compile-time API by default:
+mark a dependency as <code>exported</code> where you used <code>api(...)</code>.</p>
+<p>If you use a <a href="https://docs.gradle.org/current/userguide/version_catalogs.html">Gradle version catalog</a>, you can keep
+your <code>gradle/libs.versions.toml</code> file as-is (or move it to the project root): the Kotlin Toolchain reads the same
+format and exposes it as the <code>$libs</code> catalog. Only the <code>[versions]</code> and <code>[libraries]</code> sections are used —
+<code>[plugins]</code> doesn't apply, and <code>[bundles]</code> is not supported.
+See <a href="../../user-guide/dependencies/#library-catalogs">Library catalogs</a>.</p>
+<p>The <code>repositories { ... }</code> block maps to the <code>repositories:</code> list. Maven Central and Google's Maven repository are
+configured by default, so most projects don't need this section at all.
+See <a href="../../user-guide/dependencies/#managing-maven-repositories">Managing Maven repositories</a>.</p>
+<h4 id="jdk-provisioning">JDK provisioning<a class="headerlink" href="#jdk-provisioning" title="Permanent link">&para;</a></h4>
+<p>Gradle can provision JDKs through <a href="https://docs.gradle.org/current/userguide/toolchains.html">Java toolchains</a>, which
+requires a toolchain resolver plugin (usually <code>foojay-resolver-convention</code>) in the settings script. The Kotlin
+Toolchain provisions JDKs out of the box — no plugin required, and no JDK needs to be pre-installed on the machine:</p>
+<div class="grid">
+<div class="highlight"><span class="filename">build.gradle.kts</span><pre><span></span><code><span class="n">java</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">toolchain</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">languageVersion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">JavaLanguageVersion</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="m">17</span><span class="p">)</span>
+<span class="w">        </span><span class="n">vendor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">JvmVendorSpec</span><span class="p">.</span><span class="na">AZUL</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">jvm</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">jdk</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">17</span>
+<span class="w">      </span><span class="nt">distributions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">zulu</span><span class="w"> </span><span class="p p-Indicator">]</span><span class="w"> </span><span class="c1"># optional</span>
+</code></pre></div>
+</div>
+<p>If nothing is configured, the Kotlin Toolchain uses a default JDK version (currently 25) from any distribution.
+By default, it uses the JDK from <code>JAVA_HOME</code> if it matches the requirements, and downloads a matching JDK otherwise —
+like Gradle's toolchain auto-detection and auto-download. This behavior can be adjusted with
+<a href="../../user-guide/advanced/jdk-provisioning/#jdk-selection-mode"><code>settings.jvm.jdk.selectionMode</code></a>:
+use <code>javaHome</code> to forbid downloads (similar to <code>org.gradle.java.installations.auto-download=false</code>), or
+<code>alwaysProvision</code> to ignore <code>JAVA_HOME</code> entirely for more reproducible builds.</p>
+<p>Read more on the <a href="../../user-guide/advanced/jdk-provisioning/">JDK provisioning</a> page.</p>
+<h4 id="jvm-sourcetargetrelease">JVM source/target/release<a class="headerlink" href="#jvm-sourcetargetrelease" title="Permanent link">&para;</a></h4>
+<p>In Gradle, keeping the bytecode compatibility consistent requires aligning several options:
+<code>sourceCompatibility</code>/<code>targetCompatibility</code> or <code>options.release</code> for <code>javac</code>, and <code>jvmTarget</code> for the Kotlin
+compiler. The Kotlin Toolchain replaces all of these with the single
+<a href="../../reference/module/#settingsjvm"><code>settings.jvm.release</code></a> setting, which behaves like <code>javac</code>'s <code>--release</code>
+option but applies to both compilers: it sets the target bytecode version for Kotlin and Java, restricts the
+available JDK APIs, and limits the Java language constructs.</p>
+<div class="grid">
+<div class="highlight"><span class="filename">build.gradle.kts</span><pre><span></span><code><span class="n">java</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">toolchain</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">languageVersion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">JavaLanguageVersion</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="m">21</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">tasks</span><span class="p">.</span><span class="na">withType</span><span class="o">&lt;</span><span class="n">JavaCompile</span><span class="o">&gt;</span><span class="p">().</span><span class="na">configureEach</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">options</span><span class="p">.</span><span class="na">release</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">17</span>
+<span class="p">}</span>
+
+<span class="n">kotlin</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">compilerOptions</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">jvmTarget</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">JvmTarget</span><span class="p">.</span><span class="na">JVM_17</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">jvm</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">jdk</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">21</span><span class="w"> </span><span class="c1"># compile using JDK 21...</span>
+<span class="w">    </span><span class="nt">release</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">17</span><span class="w">   </span><span class="c1"># ...for code that must run on Java 17+</span>
+</code></pre></div>
+</div>
+<p>If <code>release</code> is not set, it defaults to the JDK version, so a plain module compiled with the default JDK 25 targets
+Java 25.</p>
+<p>Relatedly, <code>-parameters</code> (or KGP's <code>javaParameters</code>) is replaced by <code>settings.jvm.storeParameterNames: true</code>, which
+covers both compilers at once.</p>
+<h4 id="compiler-arguments">Compiler arguments<a class="headerlink" href="#compiler-arguments" title="Permanent link">&para;</a></h4>
+<p>KGP's <code>compilerOptions { ... }</code> block maps to <a href="../../reference/module/#settingskotlin"><code>settings.kotlin</code></a>.
+Common options have dedicated settings, and anything else can be passed via <code>freeCompilerArgs</code>:</p>
+<div class="highlight"><span class="filename">build.gradle.kts</span><pre><span></span><code><span class="n">kotlin</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">compilerOptions</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">languageVersion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KotlinVersion</span><span class="p">.</span><span class="na">KOTLIN_2_3</span>
+<span class="w">        </span><span class="n">allWarningsAsErrors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">        </span><span class="n">progressiveMode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">        </span><span class="n">optIn</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="s">"kotlin.time.ExperimentalTime"</span><span class="p">)</span>
+<span class="w">        </span><span class="n">freeCompilerArgs</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="s">"-Xcontext-parameters"</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">languageVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.3</span>
+<span class="w">    </span><span class="nt">allWarningsAsErrors</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">progressiveMode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">optIns</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">kotlin.time.ExperimentalTime</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">freeCompilerArgs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">-Xcontext-parameters</span><span class="w"> </span><span class="p p-Indicator">]</span>
+</code></pre></div>
+<p>Java compiler arguments (<code>options.compilerArgs</code>) map to <code>settings.java.freeCompilerArgs</code> in the same way.</p>
+<p>Where you configured Kotlin compile tasks of a specific target in Gradle, use
+<a href="../../user-guide/multiplatform/#multiplatform-settings"><code>@platform</code>-qualified settings</a> instead, e.g.
+<code>settings@jvm:</code>. Options that only apply to test compilations go into the <code>test-settings:</code> section.
+Platform-specific and test settings are merged with the common ones according to the
+<a href="../../user-guide/multiplatform/#dependencysettings-propagation">propagation rules</a>.</p>
+<h4 id="junit-platform-by-default">JUnit Platform by default<a class="headerlink" href="#junit-platform-by-default" title="Permanent link">&para;</a></h4>
+<p>In Gradle, running JUnit 5 tests requires opting in with <code>useJUnitPlatform()</code> and adding the test framework
+dependencies. In the Kotlin Toolchain, the JUnit Platform is enabled out of the box on JVM and Android:
+<a href="../../reference/module/#settingsjunit"><code>settings.junit</code></a> defaults to <code>junit-5</code>, and the 
+<a href="https://kotlinlang.org/api/latest/kotlin.test/"><code>kotlin-test</code></a> framework is preconfigured for each platform.
+For a typical module, no test configuration is needed at all — put your tests in <code>test/</code> and run <code>./kotlin test</code>.</p>
+<p>The test-task configuration from Gradle maps to <a href="../../reference/module/#settingsjvmtest"><code>settings.jvm.test</code></a>:</p>
+<div class="grid">
+<div class="highlight"><span class="filename">build.gradle.kts</span><pre><span></span><code><span class="n">dependencies</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="n">kotlin</span><span class="p">(</span><span class="s">"test"</span><span class="p">))</span>
+<span class="w">    </span><span class="n">testImplementation</span><span class="p">(</span><span class="s">"io.mockk:mockk:1.14.3"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">tasks</span><span class="p">.</span><span class="na">test</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">useJUnitPlatform</span><span class="p">()</span>
+<span class="w">    </span><span class="n">jvmArgs</span><span class="p">(</span><span class="s">"-Xmx2g"</span><span class="p">)</span>
+<span class="w">    </span><span class="n">systemProperty</span><span class="p">(</span><span class="s">"java.awt.headless"</span><span class="p">,</span><span class="w"> </span><span class="s">"true"</span><span class="p">)</span>
+<span class="w">    </span><span class="n">environment</span><span class="p">(</span><span class="s">"MY_ENV_VAR"</span><span class="p">,</span><span class="w"> </span><span class="s">"value"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">module.yaml</span><pre><span></span><code><span class="nt">test-dependencies</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">io.mockk:mockk:1.14.3</span>
+
+<span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">jvm</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">test</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">freeJvmArgs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">-Xmx2g</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">systemProperties</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">java.awt.headless</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">extraEnvironment</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">MY_ENV_VAR</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">value</span>
+</code></pre></div>
+</div>
+<p>Projects still on JUnit 4 can set <code>settings.junit: junit-4</code>, and <code>settings.junit: none</code> disables the automatic JUnit
+setup entirely. Read more on the <a href="../../user-guide/testing/">Testing</a> page.</p>
+<h2 id="sharing-build-logic">Sharing build logic<a class="headerlink" href="#sharing-build-logic" title="Permanent link">&para;</a></h2>
+<p>Configuration that Gradle projects share via convention plugins, <code>buildSrc</code>, or <code>subprojects { ... }</code> blocks is
+shared using <a href="../../user-guide/templates/">templates</a>: files named <code>&lt;name&gt;.module-template.yaml</code> with the same
+structure as <code>module.yaml</code>, applied where needed:</p>
+<div class="grid">
+<div class="highlight"><span class="filename">common.module-template.yaml</span><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.3.20</span>
+<span class="w">    </span><span class="nt">allWarningsAsErrors</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">jvm</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">release</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">17</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">app/module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jvm/app</span>
+
+<span class="nt">apply</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">//common.module-template.yaml</span>
+</code></pre></div>
+</div>
+<p>For build logic that goes beyond configuration — custom tasks, code generation, verification — see
+<a href="../../user-guide/plugins/overview/">Kotlin Toolchain plugins</a>.</p>
+<h2 id="everyday-commands">Everyday commands<a class="headerlink" href="#everyday-commands" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Gradle</th>
+<th>The Kotlin Toolchain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>./gradlew build</code></td>
+<td><code>./kotlin build</code></td>
+</tr>
+<tr>
+<td><code>./gradlew test</code></td>
+<td><code>./kotlin test</code></td>
+</tr>
+<tr>
+<td><code>./gradlew :app:test</code></td>
+<td><code>./kotlin test -m app</code></td>
+</tr>
+<tr>
+<td><code>./gradlew run</code></td>
+<td><code>./kotlin run</code></td>
+</tr>
+<tr>
+<td><code>./gradlew :app:dependencies</code></td>
+<td><code>./kotlin show dependencies -m app</code></td>
+</tr>
+<tr>
+<td><code>./gradlew tasks</code></td>
+<td><code>./kotlin show tasks</code></td>
+</tr>
+<tr>
+<td><code>./gradlew publishToMavenLocal</code></td>
+<td><code>./kotlin publish mavenLocal</code><sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup></td>
+</tr>
+<tr>
+<td><code>./gradlew clean</code></td>
+<td><code>./kotlin clean</code></td>
+</tr>
+</tbody>
+</table>
+<p>Like <code>gradlew</code>, the <code>kotlin</code> wrapper scripts are meant to be committed to your repository, and download everything
+they need on first use. See <a href="../../cli/provisioning/">Wrapper &amp; provisioning</a>.</p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>After setting up the <a href="../../user-guide/publishing/">publishing configuration</a>.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 22, 2026 23:18:10 UTC">August 22, 2026</span>
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../tutorial/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Tutorial">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Tutorial
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../migrating-from-maven/" class="md-footer__link md-footer__link--next" aria-label="Next: Migrating from Maven">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Migrating from Maven
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2000-2026 JetBrains s.r.o. and contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.action.edit", "content.code.annotate", "content.code.copy", "content.footnote.tooltips", "content.tooltips", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.preview", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
