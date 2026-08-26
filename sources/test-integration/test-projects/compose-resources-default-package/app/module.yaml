@@ -1,0 +1,15 @@
+# No module of this project sets `settings.compose.resources.packageName`, so the directory the resources of each
+# module are isolated in must be derived from the module's published identity: the publishing group of the libraries
+# (their artifact ID is deliberately left unset) and the module name. If the module name were not part of it, both
+# libraries would generate their `Res` class in the same package and isolate their same-named resource files under
+# the same directory, which fails the build. This module has no publishing settings at all, so its own resources are
+# isolated under the module name only.
+product: wasm-js/app
+
+settings:
+  compose: enabled
+
+dependencies:
+  - ../lib-one
+  - ../lib-two
+  - $compose.foundation

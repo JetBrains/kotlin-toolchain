@@ -5,11 +5,8 @@
 package org.jetbrains.amper.tasks.compose
 
 import org.jetbrains.amper.dependency.resolution.attributes.Usage
-import org.jetbrains.amper.frontend.AmperModule
-import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.frontend.isPublishingEnabled
-import org.jetbrains.amper.frontend.schema.ComposeResourcesSettings
 import org.jetbrains.amper.tasks.ModuleTaskTypes
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
@@ -33,7 +30,7 @@ private fun ProjectTasksBuilder.configureComposeResourcesGeneration() {
 
         val rootFragment = module.rootFragment
         val config = rootFragment.settings.compose.resources
-        val packageName = config.getResourcesPackageName(module)
+        val packageName = module.composeResourcesPackageName()
         val makeAccessorsPublic = config.exposedAccessors
         val resClassName = config.nameOfResClass
         val packagingDir = "$COMPOSE_RESOURCES_DIR/$packageName/"
@@ -164,23 +161,3 @@ internal enum class ComposeTaskType(
 ) : TaskNameFactory.LeafPlatform {
     ComposeResourcesArchive("composeResourcesArchive", "compose resources > archiving"),
 }
-
-private fun ComposeResourcesSettings.getResourcesPackageName(module: AmperModule): String {
-    return packageName.takeIf { it.isNotEmpty() } ?: run {
-        val packageParts = module.rootFragment.inferPackageNameFromPublishing() ?: module.inferPackageNameFromModule()
-        (packageParts + listOf("generated", "resources")).joinToString(separator = ".") {
-            it.lowercase().asUnderscoredIdentifier()
-        }
-    }
-}
-
-private fun Fragment.inferPackageNameFromPublishing(): List<String>? =
-    listOfNotNull(settings.publishing.group, settings.publishing.artifactId).takeIf(List<*>::isNotEmpty)
-
-private fun AmperModule.inferPackageNameFromModule(): List<String> {
-    return listOf(userReadableName)
-}
-
-private fun String.asUnderscoredIdentifier(): String =
-    replace('-', '_')
-        .let { if (it.isNotEmpty() && it.first().isDigit()) "_$it" else it }

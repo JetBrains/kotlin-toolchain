@@ -5,6 +5,7 @@
 package org.jetbrains.amper.cli.test.compose
 
 import org.jetbrains.amper.cli.test.CliTestBase
+import org.jetbrains.amper.cli.test.utils.assertFileExists
 import org.jetbrains.amper.cli.test.utils.assertGradleMetadataEquals
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
@@ -84,6 +85,31 @@ class ComposeResourcesTest : CliTestBase() {
             projectDir = testProject("compose-resources-custom-res-class"),
             "build",
         )
+    }
+
+    /**
+     * No module of the project sets a `packageName`, so the resources of each of them must be isolated under a
+     * directory derived from the identity the module is published under: the publishing group, if the module declares
+     * one, and the module name, as the artifact ID is not set either.
+     *
+     * The two libraries publish under the same group, and both provide a resource file at the same path, so
+     * dropping the module name from the derived package doesn't just change the layout: the libraries then generate
+     * their `Res` class in the very same package, and linking the app fails on the duplicated declarations before the
+     * resource conflict is even reported.
+     */
+    @Test
+    fun `compose resources default package name build`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("compose-resources-default-package"),
+            "build",
+        )
+
+        val composeResources = result.getTaskOutputPath(":app:buildWasmJsAppWasmJsDebug") / "composeResources"
+        // The libraries publish under the same group, so only the module name keeps their resources apart.
+        assertFileExists(composeResources / "org.example.lib_one.generated.resources" / "files" / "lib-text.txt")
+        assertFileExists(composeResources / "org.example.lib_two.generated.resources" / "files" / "lib-text.txt")
+        // The app module has no publishing settings, so its resources are isolated under its module name alone.
+        assertFileExists(composeResources / "app.generated.resources" / "files" / "lib-text.txt")
     }
 
     @Test

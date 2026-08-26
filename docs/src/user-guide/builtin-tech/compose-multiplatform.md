@@ -118,13 +118,12 @@ Read more about setting up and using compose resources in
 
 ### Generated accessors package
 
-By default, resources accessors are generated in the package `<sanitized-name>.generated.resources`, where 
-`<sanitized-name>` is derived from the `group` and `artifactId` of the `settings.publishing` section if they are set,
-or from the module name otherwise. The name is sanitized by lowercasing it, replacing `-` characters with `_`, and
-prefixing it with `_` if it starts with a digit.
+By default, resources accessors are generated in the package `<sanitized-module-name>.generated.resources`. Names are
+sanitized by lowercasing them, replacing `-` characters with `_`, and prefixing them with `_` if they start with a
+digit.
 
-In the above example where the module name is `my-kmp-module` (and no publishing settings are set), the package name 
-for the generated resources is therefore `my_kmp_module.generated.resources`.
+In the above example, where the module name is `my-kmp-module`, the package name for the generated resources is
+therefore `my_kmp_module.generated.resources`.
 
 You can customize the package name by setting the `settings.compose.resources.packageName` property in your module file:
 
@@ -134,6 +133,16 @@ settings:
     resources:
       packageName: com.example.gen
 ```
+
+!!! note "Modules published to a Maven repository"
+
+    Libraries usually declare publication coordinates in the `settings.publishing` section. When a `group` is declared
+    there, it is included in the default package, which becomes
+    `<sanitized-group>.<sanitized-artifact-id>.generated.resources`, where `<sanitized-artifact-id>` defaults to the
+    module name, just like the published coordinates do. This is the naming scheme of the Compose Multiplatform Gradle
+    plugin, so such a module gets the same package as it would in a Gradle build, as long as it keeps the default
+    `artifactId`. Modules without a `group` still differ from Gradle, though: Gradle derives a default group from the
+    root project name and the project path, while the Kotlin Toolchain uses the module name alone.
 
 ## :jetbrains-compose-hot-reload: Compose Hot Reload (experimental)
 

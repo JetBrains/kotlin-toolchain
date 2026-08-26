@@ -1,0 +1,4 @@
+modules:
+  - app
+  - lib-one
+  - lib-two

@@ -28,6 +28,52 @@ internal fun isComposeEnabledFor(module: AmperModule) =
     module.commonSettings.compose.enabled
 
 /**
+ * The package of the generated `Res` class of this module, which is also the name of the directory the resources of
+ * this module are isolated in, inside [COMPOSE_RESOURCES_DIR].
+ *
+ * Unless it is set explicitly, it is derived from the identity this module is published under, using the naming scheme
+ * of the Compose Multiplatform Gradle plugin (`[<group>.]<name>.generated.resources`, lowercase, with `-` replaced by
+ * `_`). A module declaring a group and no artifact ID therefore gets the package a Gradle build would give it. The
+ * other cases may differ: Gradle defaults the group to the root project name plus the project path, and it uses the
+ * Gradle project name where we use the artifact ID.
+ */
+internal fun AmperModule.composeResourcesPackageName(): String =
+    commonSettings.compose.resources.packageName.ifEmpty {
+        val packageParts = inferPackageNameFromPublishing() ?: inferPackageNameFromModule()
+        (packageParts + listOf("generated", "resources")).joinToString(separator = ".") {
+            it.lowercase().asUnderscoredIdentifier()
+        }
+    }
+
+/**
+ * The package name parts identifying this module as published: its group, and its artifact ID, which is the module
+ * name when it is not set explicitly (just like in the published coordinates). Without that part, sibling modules of
+ * the same group would all share a package.
+ *
+ * Null if no group is declared: there is no published identity to derive the package from then.
+ */
+private fun AmperModule.inferPackageNameFromPublishing(): List<String>? {
+    val publishing = commonSettings.publishing
+    val group = publishing.group?.takeIf(String::isNotBlank) ?: return null
+    return listOf(group, publishing.artifactId ?: userReadableName)
+}
+
+/**
+ * The package name parts identifying this module inside the project it belongs to, used when it declares no
+ * publishing group.
+ *
+ * TODO Module names are not unique in a project forever: use the path of the module in the project once they aren't.
+ */
+private fun AmperModule.inferPackageNameFromModule(): List<String> = listOf(userReadableName)
+
+/**
+ * Makes this name usable as a package name part: identifiers cannot contain `-` nor start with a digit.
+ */
+private fun String.asUnderscoredIdentifier(): String =
+    replace('-', '_')
+        .let { if (it.isNotEmpty() && it.first().isDigit()) "_$it" else it }
+
+/**
  * The KMP resources archives published by the external dependencies, as resolved by the tasks we depend on.
  */
 internal fun List<TaskResult>.kmpResourcesArchives(): List<Path> = this
