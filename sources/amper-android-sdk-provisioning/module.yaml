@@ -11,6 +11,7 @@ dependencies:
   - //sources/core
   - //sources/libraries/concurrency
   - //sources/libraries/incremental-cache: exported
+  - //sources/libraries/system-info
   - //sources/libraries/telemetry
   - $libs.android.tools.sdklib
   - $libs.maven.artifact
@@ -18,5 +19,4 @@ dependencies:
 
 test-dependencies:
   - //sources/test-base
-  - //sources/libraries/system-info
   - $libs.opentelemetry.sdkTesting

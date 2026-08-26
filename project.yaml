@@ -35,7 +35,6 @@ modules:
   - sources/android-integration/amper-android-gradle-api
   - sources/android-integration/amper-android-gradle-plugin
   - sources/android-integration/amper-android-runner
-  - sources/android-integration/amper-android-sdk-detector
   - sources/core
   - sources/core-intellij
   - sources/dependency-resolution

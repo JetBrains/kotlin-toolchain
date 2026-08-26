@@ -47,7 +47,6 @@ dependencies:
   - //sources/libraries/telemetry
   - //sources/libraries/xcode-model-ext
   - //sources/android-integration/amper-android-runner
-  - //sources/android-integration/amper-android-sdk-detector
   - //sources/java-incremental-compilation/amper-jic-api
   - //sources/amper-maven-plugins-compatibility
   - $libs.bouncycastle.bcprov # for keystore generation

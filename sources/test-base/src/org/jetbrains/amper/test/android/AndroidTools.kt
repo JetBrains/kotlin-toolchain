@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.test.android
 
-import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -70,10 +69,9 @@ class AndroidTools(
     private val emulatorExe: Path = androidSdkHome / "emulator/emulator$binExtension"
     private val incrementalCache = IncrementalCache(androidUserHomeParent / "setup-cache", codeVersion = "1")
     private val sdkProvider = AndroidSdkProvider(
-        AmperUserCacheRoot(Dirs.userCacheRoot),
-        androidSdkHome,
-        incrementalCache,
-        OpenTelemetry.noop()
+        userCacheRoot = AmperUserCacheRoot(Dirs.userCacheRoot),
+        incrementalCache = incrementalCache,
+        sdkRoot = androidSdkHome,
     )
 
     @Volatile

@@ -53,9 +53,9 @@ import kotlin.io.path.relativeTo
  */
 class AndroidSdkProvider(
     private val userCacheRoot: AmperUserCacheRoot,
-    val sdkRoot: Path,
     private val incrementalCache: IncrementalCache,
-    openTelemetry: OpenTelemetry,
+    openTelemetry: OpenTelemetry = OpenTelemetry.noop(),
+    val sdkRoot: Path = AndroidSdkDetector.detectSdkPath(),
 ) {
     private val tracer = openTelemetry.getTracer("org.jetbrains.amper.android.sdk.provisioning")
     private val repositoryXmlListsProvider = AndroidSdkRepositoryXmlListsProvider(

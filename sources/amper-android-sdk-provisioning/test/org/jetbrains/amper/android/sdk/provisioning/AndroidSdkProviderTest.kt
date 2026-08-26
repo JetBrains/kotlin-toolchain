@@ -315,13 +315,13 @@ class AndroidSdkProviderTest {
             .build()
         val provider = AndroidSdkProvider(
             userCacheRoot = AmperUserCacheRoot(Dirs.userCacheRoot),
-            sdkRoot = sdkRoot,
             incrementalCache = IncrementalCache(
                 stateRoot = incrementalCacheStateRoot,
                 codeVersion = "1",
                 openTelemetry = openTelemetry,
             ),
             openTelemetry = openTelemetry,
+            sdkRoot = sdkRoot,
         )
         return TestProviderSetup(provider, exporter)
     }

@@ -1,8 +1,8 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package org.jetbrains.amper.android
+package org.jetbrains.amper.android.sdk.provisioning
 
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.system.info.OsFamily
