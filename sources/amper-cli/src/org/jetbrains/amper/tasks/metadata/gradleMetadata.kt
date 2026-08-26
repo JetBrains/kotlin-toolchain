@@ -34,6 +34,7 @@ import org.jetbrains.amper.tasks.rootFragment
 import org.jetbrains.gradle.module.metadata.format.AvailableAt
 import org.jetbrains.gradle.module.metadata.format.Component
 import org.jetbrains.gradle.module.metadata.format.CreatedBy
+import org.jetbrains.gradle.module.metadata.format.Dependency
 import org.jetbrains.gradle.module.metadata.format.File
 import org.jetbrains.gradle.module.metadata.format.KotlinToolchain
 import org.jetbrains.gradle.module.metadata.format.Module
@@ -52,12 +53,24 @@ import kotlin.io.path.fileSize
  */
 private const val PUBLISHED_SUFFIX = "-published"
 
+/**
+ * The Maven classifier under which the KMP resources archive of a platform is published.
+ * It follows the KGP/CMP convention, e.g. `mylib-wasmjs-1.0-kotlin_resources.kotlin_resources.zip`.
+ */
+internal const val KMP_RESOURCES_CLASSIFIER = "kotlin_resources"
+
+/**
+ * The file extension of the published KMP resources archive, following the KGP/CMP convention.
+ */
+internal const val KMP_RESOURCES_EXTENSION = "kotlin_resources.zip"
+
 internal suspend fun generateCommonGradleModuleMetadata(
     module: AmperModule,
     outputDir: Path,
     allMetadataJarPath: Path?,
     allMetadataSourcesJarPath: Path?,
     checksums: Map<String, List<MavenPublishable>>,
+    platformsWithKmpResources: Set<Platform>,
 ): Path {
     val leafPlatformVariants: List<GradleVariant> = module.leafFragments
         .filterNot { it.isTest }
@@ -69,6 +82,10 @@ internal suspend fun generateCommonGradleModuleMetadata(
 
                 if (module.publishingSettings.publishSources) {
                     add(leafFragment.toGradleMetadataAvailableAtVariant(ResolutionScope.RUNTIME, isSources = true))
+                }
+
+                if (leafFragment.platform in platformsWithKmpResources) {
+                    add(leafFragment.toKmpResourcesAvailableAtVariant())
                 }
             }
         }
@@ -188,13 +205,6 @@ private fun LeafFragment.toGradleMetadataAvailableAtVariant(
     scope: ResolutionScope,
     isSources: Boolean = false,
 ): GradleVariant {
-    val platformSpecificCoordinates = module.publicationCoordinates(platform)
-
-    val groupId = platformSpecificCoordinates.groupId
-    val artifactId = platformSpecificCoordinates.artifactId
-    val version = platformSpecificCoordinates.version
-        ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
-
     val baseVariant = toBaseGradleVariant(scope, isSources)
 
     return baseVariant.copy(
@@ -204,13 +214,27 @@ private fun LeafFragment.toGradleMetadataAvailableAtVariant(
         dependencies = [],
         dependencyConstraints = [],
         files = [],
-        `available-at` = AvailableAt(
-            url = "../../$artifactId/$version/$artifactId-$version.module",
-            group = groupId,
-            module = artifactId,
-            version = version
-        ),
+        `available-at` = platformSpecificModuleReference(),
         capabilities = [],
+    )
+}
+
+/**
+ * A reference to the platform-specific `.module` file of this fragment's platform, relative to the root publication.
+ */
+private fun LeafFragment.platformSpecificModuleReference(): AvailableAt {
+    val platformSpecificCoordinates = module.publicationCoordinates(platform)
+
+    val groupId = platformSpecificCoordinates.groupId
+    val artifactId = platformSpecificCoordinates.artifactId
+    val version = platformSpecificCoordinates.version
+        ?: error("Missing 'version' in publishing settings of module '${module.userReadableName}'")
+
+    return AvailableAt(
+        url = "../../$artifactId/$version/$artifactId-$version.module",
+        group = groupId,
+        module = artifactId,
+        version = version,
     )
 }
 
@@ -228,7 +252,8 @@ suspend fun generateGradleMetadataForLeafPlatform(
     checksums: Map<String, List<MavenPublishable>>,
     platformSpecificArtifact: MavenPublishable?,
     platformSpecificCinteropArtifacts: List<MavenPublishable>,
-    platformSpecificSourcesJar: MavenPublishable? = null,
+    platformSpecificSourcesJar: MavenPublishable?,
+    kmpResourcesArchive: MavenPublishable?,
     overrides: PublicationCoordinatesOverrides,
 ): Path {
     val leafFragment: LeafFragment = module.leafFragments
@@ -248,6 +273,11 @@ suspend fun generateGradleMetadataForLeafPlatform(
             // both the file extension and the checksums/size are taken from the described file.
             val sourcesFile = platformSpecificSourcesJar.toGradleMetadataFile(leafFragment, checksums = checksums)
             add(leafFragment.toGradleVariant(ResolutionScope.RUNTIME, isSources = true, [ sourcesFile ], overrides))
+        }
+
+        if (kmpResourcesArchive != null) {
+            val archiveFile = kmpResourcesArchive.toKmpResourcesGradleMetadataFile(leafFragment, checksums = checksums)
+            add(leafFragment.toKmpResourcesGradleVariant(archiveFile, overrides))
         }
     }
 
@@ -314,6 +344,109 @@ internal fun Path.cinteropClassifier() = "$CINTEROP_CLASSIFIER_PREFIX${cinteropN
  */
 internal val MavenCoordinates.isCinteropClassifier: Boolean
     get() = classifier?.startsWith(CINTEROP_CLASSIFIER_PREFIX) == true
+
+/**
+ * The Gradle metadata variant that carries the KMP resources archive of this fragment's platform, as it must appear in
+ * the platform-specific `.module` file. Follows the KGP/CMP convention so that Gradle consumers can pick it up.
+ */
+private fun LeafFragment.toKmpResourcesGradleVariant(
+    file: File,
+    overrides: PublicationCoordinatesOverrides,
+): GradleVariant {
+    // Like KGP, we declare the same dependencies as the variant consumers use at runtime so that Gradle consumers can
+    // walk the dependency graph and gather the resources of the transitive dependencies too.
+    // K/Toolchain's own dependency resolution doesn't need them: it gathers the resources along the regular graph.
+    // The RUNTIME scope if this platform has one, the COMPILE scope otherwise
+    val applicableScopes = getApplicableVariantScopes(this)
+    val scope = ResolutionScope.RUNTIME.takeIf { applicableScopes.contains(it) } ?: applicableScopes.first()
+
+    return toBaseKmpResourcesVariant().copy(
+        dependencies = toVariantDependencies(scope, overrides),
+        files = [ file ],
+    )
+}
+
+/**
+ * The KMP resources variant of this fragment's platform, as it must appear in the root publication of a multiplatform
+ * library: it only redirects the consumer to the platform-specific publication.
+ */
+private fun LeafFragment.toKmpResourcesAvailableAtVariant(): GradleVariant =
+    toBaseKmpResourcesVariant().copy(`available-at` = platformSpecificModuleReference())
+
+private fun LeafFragment.toBaseKmpResourcesVariant(): GradleVariant {
+    val resolutionPlatform = platform.toResolutionPlatform()!!
+    val usage = Usage.kmpResourcesUsage(resolutionPlatform)
+        ?: error("Platform $platform doesn't publish its KMP resources in a dedicated variant")
+
+    return GradleVariant(
+        name = "${name}ResourcesElements$PUBLISHED_SUFFIX",
+        attributes = buildMap {
+            this[Category.name] = Category.Library.value
+            this[DependencyBundling.name] = DependencyBundling.External.value
+            this[JvmEnvironment.name] = JvmEnvironment.fromPlatform(resolutionPlatform).value
+            // Contrary to the other variants, the elements of this one are the resources themselves, not classes.
+            this["org.gradle.libraryelements"] = usage.value
+            this[Usage.name] = usage.value
+            KotlinNativeTarget.fromPlatform(resolutionPlatform)?.also {
+                this[KotlinNativeTarget.name] = it.value
+            }
+            this[KotlinPlatformType.name] = KotlinPlatformType.fromPlatform(resolutionPlatform).value
+            KotlinWasmTarget.fromPlatform(resolutionPlatform)?.also {
+                this[KotlinWasmTarget.name] = it.value
+            }
+        },
+        dependencies = [],
+        dependencyConstraints = [],
+        files = [],
+        `available-at` = null,
+        capabilities = [],
+    )
+}
+
+/**
+ * Describes the KMP resources archive as a file of a Gradle metadata variant.
+ *
+ * The name follows the KGP convention: it is based on the name of the module and doesn't mention the platform (the
+ * platform-specific artifact ID only appears in the [url][File.url], which is the file name in the Maven layout).
+ */
+private fun MavenPublishable.toKmpResourcesGradleMetadataFile(
+    fragment: LeafFragment,
+    checksums: Map<String, List<MavenPublishable>>,
+): File {
+    val version = coordinates.version
+        ?: error("Missing 'version' in publishing settings of module '${fragment.module.userReadableName}'")
+
+    return File(
+        name = "${fragment.module.userReadableName}-$version.$KMP_RESOURCES_EXTENSION",
+        url = coordinates.mavenFileName(KMP_RESOURCES_EXTENSION),
+        size = path.fileSize(),
+        sha512 = getCheckSumFor(path, "sha512", checksums),
+        sha256 = getCheckSumFor(path, "sha256", checksums),
+        sha1 = getCheckSumFor(path, "sha1", checksums),
+        md5 = getCheckSumFor(path, "md5", checksums),
+    )
+}
+
+/**
+ * The dependencies of this fragment as they must be declared in a published Gradle metadata variant of the given
+ * [scope].
+ */
+private fun LeafFragment.toVariantDependencies(
+    scope: ResolutionScope,
+    overrides: PublicationCoordinatesOverrides,
+): List<Dependency> {
+    val [dependencyPlatform, dependencyOverrides] = if (module.isMultiplatformPublication())
+        // KMP project declares dependencies in terms of common libraries root coordinates.
+        Platform.COMMON to null
+    else
+        // non-KMP project declares dependencies in terms of platform-specific coordinates.
+        platform to overrides
+
+    return dependenciesAvailableForConsumer(scope = scope)
+        .distinct()
+        .mapNotNull { it.toVariantDependency(dependencyPlatform, dependencyOverrides) }
+        .toList()
+}
 
 private fun LeafFragment.toBaseGradleVariant(
     scope: ResolutionScope,
@@ -393,22 +526,7 @@ private fun LeafFragment.toGradleVariant(
 
     val baseVariant = toBaseGradleVariant(scope, isSources)
 
-    val dependencies = if (isSources) {
-        []
-    } else {
-        dependenciesAvailableForConsumer(scope = scope)
-            .distinct()
-            .mapNotNull {
-                val [platform, overrides] = if (module.isMultiplatformPublication())
-                // KMP project declares dependencies in terms of common libraries root coordinates.
-                    Platform.COMMON to null
-                else
-                // non-KMP project declares dependencies in terms of platform-specific coordinates.
-                    platform to overrides
-                it.toVariantDependency(platform, overrides)
-            }
-            .toList()
-    }
+    val dependencies = if (isSources) [] else toVariantDependencies(scope, overrides)
 
     return baseVariant.copy(
         dependencies = dependencies,

@@ -1,0 +1,20 @@
+product:
+  type: kmp/lib
+  platforms: [ jvm, wasmJs ]
+
+settings:
+  compose:
+    enabled: true
+    resources:
+      packageName: com.example.lib.gen
+      exposedAccessors: true
+  publishing:
+    enabled: true
+    group: org.example
+    artifactId: library
+    version: 1.0.0
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    publish: true

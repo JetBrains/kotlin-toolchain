@@ -7,15 +7,12 @@ package org.jetbrains.amper.cli.test.publication
 import kotlinx.serialization.json.Json
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
+import org.jetbrains.amper.cli.test.utils.assertGradleMetadataEquals
 import org.jetbrains.amper.cli.test.utils.runSlowTest
-import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.gradle.module.metadata.format.Module
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.StandardOpenOption
 import kotlin.io.path.div
 import kotlin.io.path.readText
 import kotlin.test.Test
@@ -23,8 +20,6 @@ import kotlin.test.assertEquals
 
 @Tag("cli-test-group-publication")
 class GradleMetadataGenerationTest : CliTestBase() {
-
-    val testGoldenFilesRoot: Path = Dirs.amperSourcesRoot.resolve("test-integration/amper-cli-test/testResources/gradleMetadata")
 
     @Test
     @MacOnly
@@ -145,16 +140,11 @@ class GradleMetadataGenerationTest : CliTestBase() {
         expectedArtifactFileName: String,
         testInfo: TestInfo,
         moduleName: String = artifactName.substringBefore("-"),
-    ) {
-        val sanitizedLinuxX64GradleModuleMetadata = getSanitizedGradleMetadataProducedByCli(
-            tempRoot / "build" / "tasks" / "_${moduleName}_prepareMavenPublishables" / artifactName
-        )
-
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.$expectedArtifactFileName"),
-            sanitizedLinuxX64GradleModuleMetadata
-        )
-    }
+    ) = assertGradleMetadataEquals(
+        expectedFileNameSuffix = expectedArtifactFileName,
+        actualFile = tempRoot / "build" / "tasks" / "_${moduleName}_prepareMavenPublishables" / artifactName,
+        testInfo = testInfo,
+    )
 
     /**
      * Asserts that the POM at [pomFileName] declares the given [expectedPackaging].
@@ -166,42 +156,5 @@ class GradleMetadataGenerationTest : CliTestBase() {
         val pom = (tempRoot / "build" / "tasks" / "_${moduleName}_prepareMavenPublishables" / pomFileName).readText()
         val actualPackaging = Regex("<packaging>(.*)</packaging>").find(pom)?.groupValues?.get(1)
         assertEquals(expectedPackaging, actualPackaging, "Unexpected packaging in $pomFileName:\n$pom")
-    }
-
-    private fun getSanitizedGradleMetadataProducedByCli(
-        gradleModuleMetadataFile: Path,
-    ): Path {
-        val gradleModuleMetadata = gradleModuleMetadataFile.readPGradleModuleMetadata()
-        val sanitizedGradleModuleMetadata = gradleModuleMetadata.copy(
-            variants = gradleModuleMetadata.variants.map {
-                if (it.files.isNotEmpty()) {
-                    it.copy(files = it.files.map {
-                        it.copy(sha512 = "mocked", sha256 = "mocked", sha1 = "mocked", md5 = "mocked", size = -1)
-                    })
-                } else {
-                    it
-                }
-            }
-        ).serialize()
-
-        val patchedGradleModuleMetadata = gradleModuleMetadataFile.parent.resolve("${gradleModuleMetadataFile.fileName}-patched")
-
-        Files.writeString(patchedGradleModuleMetadata, sanitizedGradleModuleMetadata,
-            StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
-
-        return patchedGradleModuleMetadata
-    }
-
-    companion object {
-        private val json = Json {
-            ignoreUnknownKeys = true
-            isLenient = true
-            prettyPrint = true
-            prettyPrintIndent = "  "
-        }
-
-
-        fun Path.readPGradleModuleMetadata(): Module = json.decodeFromString(Files.readString(this))
-        fun Module.serialize(): String = json.encodeToString(this)
     }
 }

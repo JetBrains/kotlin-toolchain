@@ -4,10 +4,17 @@
 
 package org.jetbrains.amper.tasks.compose
 
+import org.jetbrains.amper.dependency.resolution.attributes.Usage
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
+import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
+import org.jetbrains.amper.frontend.isPublishingEnabled
 import org.jetbrains.amper.frontend.schema.ComposeResourcesSettings
+import org.jetbrains.amper.tasks.ModuleTaskTypes
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
+import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
+import org.jetbrains.amper.tasks.TaskNameFactory
+import org.jetbrains.amper.tasks.getTaskName
 import org.jetbrains.amper.tasks.refinedLeafFragmentsDependingOn
 import org.jetbrains.amper.tasks.rootFragment
 import kotlin.io.path.isDirectory
@@ -127,8 +134,35 @@ private fun ProjectTasksBuilder.configureComposeResourcesGeneration() {
                     packagingDir = packagingDir,
                 )
             )
+
+            // Platforms that can't pack the resources into their main artifact publish them in a dedicated archive.
+            val publishesKmpResources = module.isPublishingEnabled() &&
+                    Usage.kmpResourcesUsage(fragment.platform.toResolutionPlatform()!!) != null
+            if (publishesKmpResources) {
+                val archiveTaskName = ComposeTaskType.ComposeResourcesArchive.getTaskName(module, fragment.platform)
+                tasks.registerTask(
+                    ComposeResourcesArchiveTask(
+                        taskName = archiveTaskName,
+                        module = module,
+                        platform = fragment.platform,
+                        taskOutputRoot = context.getTaskOutputPath(archiveTaskName),
+                        incrementalCache = context.incrementalCache,
+                    ),
+                )
+                tasks.registerDependency(
+                    taskName = ModuleTaskTypes.PrepareMavenPublishables.getTaskName(module),
+                    dependsOn = archiveTaskName,
+                )
+            }
         }
     }
+}
+
+internal enum class ComposeTaskType(
+    override val internalName: String,
+    override val operationMoniker: String,
+) : TaskNameFactory.LeafPlatform {
+    ComposeResourcesArchive("composeResourcesArchive", "compose resources > archiving"),
 }
 
 private fun ComposeResourcesSettings.getResourcesPackageName(module: AmperModule): String {

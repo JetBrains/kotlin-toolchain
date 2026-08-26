@@ -14,6 +14,10 @@ settings:
     resources:
       packageName: com.example.gen
       exposedAccessors: true
+  publishing:
+    enabled: true
+    group: org.example
+    version: 1.0.0
 
 dependencies:
   - $compose.material3

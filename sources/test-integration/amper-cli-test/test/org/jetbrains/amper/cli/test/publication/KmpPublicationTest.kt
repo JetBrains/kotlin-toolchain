@@ -11,7 +11,6 @@ import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
-import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.LinuxOnly
 import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.TempDirTestClassExtension
@@ -59,6 +58,7 @@ class KmpPublicationTest : CliTestBase() {
 
                     runCliWithCustomM2(
                         projectDir = testProject("multiplatform-library-template-main"),
+                        mavenLocalRepository = customM2LocalRepository,
                         "publish", "mavenLocal", *modulesToPublish.map { "--module=$it" }.toTypedArray(),
                         configureAndroidHome = true,
                     )
@@ -75,6 +75,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published pure jvm library`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "build", "--module=jvmLibConsumer",
             configureAndroidHome = true,
         )
@@ -84,6 +85,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published pure jvm library in test`() = runSlowTest {
         val r = runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "test", "--include-module", "jvmLibConsumer",
             "--platform", "jvm",
             configureAndroidHome = true,
@@ -102,6 +104,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published kmp jvm library`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "build", "--module=kmpJvmLibConsumer",
             configureAndroidHome = true,
         )
@@ -114,6 +117,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published jvm plus android library`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "build", "--module=jvmPlusAndroidConsumer",
             configureAndroidHome = true,
         )
@@ -126,6 +130,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published wasmJs plus wasmWasi library`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "build", "--module=wasmJsPlusWasmWasiConsumer",
         )
     }
@@ -140,6 +145,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published nativePlatform library for building leaf platforms`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "build", "--module=nativePlatformConsumer",
         )
     }
@@ -155,6 +161,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published source-less library`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "build", "--module=noSourcesConsumer",
         )
     }
@@ -169,6 +176,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published nativePlatform library for shared fragments metadata compilation`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "task",
             ":nativePlatformConsumer:assembleMetadata",
         )
@@ -184,6 +192,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published library in nativePlatform test on Windows`() = runSlowTest {
         val r = runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "test", "--include-module", "nativePlatformConsumer", "--platform", "mingwX64",
             "--include-test",
             "org.jetbrains.kotlintoolchain.kmp.sample.consumer.NativePlatformMingwX64ConsumerTest.test getPosixPathMax()",
@@ -199,6 +208,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published library in Windows leaf platform test`() = runSlowTest {
         val r = runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "test", "--include-module", "libraryConsumer", "--platform", "mingwX64",
             "--include-test",
             "org.jetbrains.kotlintoolchain.kmp.sample.consumer.LibraryWindowsConsumerTest.test 3rd element()",
@@ -214,6 +224,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published library in Linux leaf platform test`() = runSlowTest {
         val r = runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "test", "--include-module", "libraryConsumer", "--platform", "linuxX64",
             "--include-test",
             "org.jetbrains.kotlintoolchain.kmp.sample.consumer.LibraryLinuxConsumerTest.test 3rd element()",
@@ -229,6 +240,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published library in macos leaf platform test`() = runSlowTest {
         val r = runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "test", "--include-module", "libraryConsumer", "--platform", "macosArm64",
             "--include-test",
             "org.jetbrains.kotlintoolchain.kmp.sample.consumer.LibraryMacosConsumerTest.test 3rd element()",
@@ -243,6 +255,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published library for building libraryConsumer leaf platforms`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "build", "--module=libraryConsumer",
             configureAndroidHome = true,
         )
@@ -253,6 +266,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published library for assembling all libraryConsumer metadata`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "task", ":libraryConsumer:assembleMetadata",
             configureAndroidHome = true,
         )
@@ -267,6 +281,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `using published library for assembling all libraryCinteropConsumer metadata`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "task", ":libraryCinteropConsumer:assembleMetadata",
             configureAndroidHome = true,
         )
@@ -277,6 +292,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `published library can not be used for libraryConsumer metadata compilation on non-Mac platform`() = runSlowTest {
         runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-consumer"),
+            mavenLocalRepository = customM2LocalRepository,
             "task", ":libraryConsumer:assembleMetadata",
             configureAndroidHome = true,
         )
@@ -293,6 +309,7 @@ class KmpPublicationTest : CliTestBase() {
     fun `publication of apple fragments with cinterop is forbidden from Windows`() = runSlowTest {
         val r = runCliWithCustomM2(
             projectDir = testProject("multiplatform-library-template-main"),
+            mavenLocalRepository = customM2LocalRepository,
             "publish", "mavenLocal", "--module=libraryNested", "--transitive",
             configureAndroidHome = true,
             expectedExitCode = 1,
@@ -307,26 +324,15 @@ class KmpPublicationTest : CliTestBase() {
         )
     }
 
-    private suspend fun runCliWithCustomM2(
-        projectDir: Path,
-        vararg args: String,
-        expectedExitCode: Int? = 0,
-        assertEmptyStdErr: Boolean = true,
-        configureAndroidHome: Boolean = false,
-    ): AmperCliResult = runCli(
-        projectDir,
-        args = args,
-        expectedExitCode,
-        assertEmptyStdErr,
-        amperJvmArgs = ["-Dmaven.repo.local=\"${customM2LocalRepository.absolutePathString()}\""],
-        configureAndroidHome = configureAndroidHome
-    )
-
     companion object {
         @JvmStatic
         @RegisterExtension
         private val tempDirTestClassExtension = TempDirTestClassExtension()
 
+        /**
+         * A dedicated local Maven repository, shared by all the tests of this class, as they consume the modules
+         * published once for the whole class.
+         */
         private val customM2LocalRepository by lazy {
             tempDirTestClassExtension.path.resolve("m2Local").resolve("repository").createDirectories()
         }

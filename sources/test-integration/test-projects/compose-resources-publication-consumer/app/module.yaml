@@ -1,0 +1,17 @@
+product: wasm-js/app
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: true
+
+settings:
+  compose:
+    enabled: true
+    resources:
+      packageName: com.example.app.gen
+      exposedAccessors: true
+
+dependencies:
+  # a library published by Amper itself (see the 'compose-resources-publication' test project)
+  - org.example:library:1.0.0

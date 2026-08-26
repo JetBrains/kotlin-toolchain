@@ -37,8 +37,11 @@ import org.jetbrains.amper.maven.publish.writePomFor
 import org.jetbrains.amper.serialization.paths.SerializablePath
 import org.jetbrains.amper.stdlib.hashing.hash
 import org.jetbrains.amper.tasks.android.AndroidAarTask
+import org.jetbrains.amper.tasks.compose.ComposeResourcesArchiveTask
 import org.jetbrains.amper.tasks.jvm.JvmClassesJarTask
 import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
+import org.jetbrains.amper.tasks.metadata.KMP_RESOURCES_CLASSIFIER
+import org.jetbrains.amper.tasks.metadata.KMP_RESOURCES_EXTENSION
 import org.jetbrains.amper.tasks.metadata.cinteropClassifier
 import org.jetbrains.amper.tasks.metadata.generateCommonGradleModuleMetadata
 import org.jetbrains.amper.tasks.metadata.generateGradleMetadataForLeafPlatform
@@ -229,6 +232,7 @@ class PrepareMavenPublishablesTask(
                 }
 
                 val sourcesJar = findSourcesArtifactFor(coords, modulePublishablesFromOtherTasks)
+                val kmpResourcesArchive = modulePublishablesFromOtherTasks.findKmpResourcesArchiveFor(coords)
                 generateGradleMetadataForLeafPlatform(
                     module,
                     platform,
@@ -237,6 +241,7 @@ class PrepareMavenPublishablesTask(
                     platformSpecificArtifact,
                     platformSpecificCinteropArtifacts,
                     sourcesJar,
+                    kmpResourcesArchive,
                     overrides
                 ).toMavenPublishable(coords)
             }
@@ -257,7 +262,10 @@ class PrepareMavenPublishablesTask(
             module, taskOutputRoot.path,
             allMetadataJarPath = allMetadataArtifact?.path,
             allMetadataSourcesJarPath = allMetadataSourcesArtifact?.path,
-            checksumPublishables
+            checksumPublishables,
+            platformsWithKmpResources = coordsPerPlatform
+                .filterValues { modulePublishablesFromOtherTasks.findKmpResourcesArchiveFor(it) != null }
+                .keys,
         )
         val allMetadataGradleModulePublishable =
             allMetadataGradleModuleFile.toMavenPublishable(coordsPerPlatform[Platform.COMMON]!!)
@@ -271,6 +279,13 @@ class PrepareMavenPublishablesTask(
         val sourceCoordinates = coords.copy(classifier = "sources")
         modulePublishablesFromOtherTasks.singleWithCoordinatesOrNull(sourceCoordinates)
     } else null
+
+    /**
+     * Returns the KMP resources archive published for the platform with the given [coords], or null if this module
+     * publishes no resources for that platform.
+     */
+    private fun List<MavenPublishable>.findKmpResourcesArchiveFor(coords: MavenCoordinates): MavenPublishable? =
+        singleWithCoordinatesOrNull(coords.copy(classifier = KMP_RESOURCES_CLASSIFIER))
 
     private fun assertNoDirectories(publishables: List<MavenPublishable>) {
         val directoryPublishables = publishables.filter { it.path.isDirectory() }
@@ -421,6 +436,7 @@ private fun TaskResult.toMavenPublishables(coordsPerPlatform: Map<Platform, Mave
     is ResolveExternalDependenciesTask.Result -> emptyList() // this is just for coords overrides, not extra artifacts
     is AssembleAllMetadataTask.Result -> toMavenPublishables(coordsPerPlatform)
     is AndroidAarTask.Result -> toMavenPublishables(coordsPerPlatform)
+    is ComposeResourcesArchiveTask.Result -> toMavenPublishables(coordsPerPlatform)
     is EmptyTaskResult -> emptyList() // task ia noop and has not produced a result
     else -> error("Unsupported dependency result: ${javaClass.name}")
 }
@@ -463,6 +479,15 @@ private fun AssembleAllMetadataTask.Result.toMavenPublishables(
 private fun AndroidAarTask.Result.toMavenPublishables(
     coordsPerPlatform: Map<Platform, MavenCoordinates>
 ): List<MavenPublishable> = [ aarPath.toMavenPublishable(coordsPerPlatform.getValue(Platform.ANDROID)) ]
+
+private fun ComposeResourcesArchiveTask.Result.toMavenPublishables(
+    coordsPerPlatform: Map<Platform, MavenCoordinates>
+): List<MavenPublishable> = [
+    archivePath.toMavenPublishable(
+        coords = coordsPerPlatform.getValue(platform).copy(classifier = KMP_RESOURCES_CLASSIFIER),
+        extension = KMP_RESOURCES_EXTENSION,
+    )
+]
 
 private fun Path.toMavenPublishable(
     coords: MavenCoordinates,

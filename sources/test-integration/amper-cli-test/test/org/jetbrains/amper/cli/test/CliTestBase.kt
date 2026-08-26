@@ -154,6 +154,28 @@ abstract class CliTestBase : AmperCliWithWrapperTestBase() {
         return result
     }
 
+    /**
+     * Runs the CLI like [runCli] does, but using [mavenLocalRepository] as the local Maven repository, so that the
+     * publications of the tests don't pollute the real one.
+     *
+     * It is useful for the tests that publish some stuff and check that consumer works well with that.
+     */
+    protected suspend fun runCliWithCustomM2(
+        projectDir: Path,
+        mavenLocalRepository: Path,
+        vararg args: String,
+        expectedExitCode: Int? = 0,
+        assertEmptyStdErr: Boolean = true,
+        configureAndroidHome: Boolean = false,
+    ): AmperCliResult = runCli(
+        projectDir = projectDir,
+        args = args,
+        expectedExitCode = expectedExitCode,
+        assertEmptyStdErr = assertEmptyStdErr,
+        amperJvmArgs = ["-Dmaven.repo.local=\"${mavenLocalRepository.absolutePathString()}\""],
+        configureAndroidHome = configureAndroidHome,
+    )
+
     protected suspend fun runXcodebuild(
         vararg buildArgs: String,
         workingDir: Path = tempRoot,
