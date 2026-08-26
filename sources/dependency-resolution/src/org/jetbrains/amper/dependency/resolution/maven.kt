@@ -77,7 +77,6 @@ import org.jetbrains.kotlin.metadata.format.projectStructure.parseKmpLibraryMeta
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.concurrent.CancellationException
-import kotlin.collections.filter
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.io.path.Path
@@ -849,15 +848,15 @@ class MavenDependencyImpl internal constructor(
 
     /**
      * Internal method that provides an ability to skip filtering of non-existing files.
-     * It is useful when resolution is in progress and have intermediate state.
+     * It is useful when a resolution is in progress and have intermediate state.
      * External callers are intended to call publicly available [MavenDependency.files]
-     * (that returns list of resolved existing files after resolution had finished or a raw list if it is not yet started)
+     * (that returns a list of resolved existing files after resolution had finished or a raw list if it is not yet started)
      */
     internal fun filesRaw(withSources: Boolean = false) =
         if (withSources)
-            _files
+            _files.classpathFiles + _files.documentationAndMetadataFiles
         else
-            _filesWithoutSources.filterNot { it.hasSourcesFilename() }
+            _files.classpathFiles.filterNot { it.hasSourcesFilename() }
 
     private fun List<DependencyFileImpl>.filterByExistence(): List<DependencyFileImpl>  {
         val isDownloadFinished = downloadState in [DownloadState.WITHOUT_SOURCES, DownloadState.COMPLETE ]
@@ -892,10 +891,9 @@ class MavenDependencyImpl internal constructor(
     private fun DependencyFileImpl.hasSourcesFilename(): Boolean =
         fileName.endsWith("-sources.jar") || fileName.endsWith("-javadoc.jar")
 
-    private val _files: List<DependencyFileImpl> by filesProvider(withSources = true)
-    private val _filesWithoutSources: List<DependencyFileImpl> by filesProvider(withSources = false)
+    private val _files: Files by filesProvider()
 
-    private fun filesProvider(withSources: Boolean) =
+    private fun filesProvider() =
         PropertyWithDependencyGeneric(
             dependencyProviders = listOf(
                 { thisRef: MavenDependencyImpl -> thisRef.variants },
@@ -907,57 +905,72 @@ class MavenDependencyImpl internal constructor(
                 val pomPackagingType = dependencies[1] as PomPackagingType?
                 val sourceSetsFiles = dependencies[2] as List<*>
                 val dependency = this@MavenDependencyImpl
-                buildList {
-                    variants
-                        .map { it as Variant }
-                        .let { if (withSources) it else it.withoutDocumentationAndMetadata }
-                        .let {
-                            val areSourcesMissing = withSources && it.documentationOnly.isEmpty()
-                            it.forEach { variant ->
-                                val isDocumentationOrMetadata = variant.isDocumentationOrMetadata
-                                variant.files.forEach {
-                                    add(getDependencyFile(dependency,it, isDocumentation = isDocumentationOrMetadata))
-                                    if (areSourcesMissing) {
-                                        add(getAutoAddedSourcesDependencyFile())
-                                    }
+
+                val classpathFiles = mutableListOf<DependencyFileImpl>()
+                val documentationAndMetadataFiles = mutableListOf<DependencyFileImpl>()
+
+                variants
+                    .map { it as Variant }
+                    .let {
+                        val areSourcesMissing = it.documentationOnly.isEmpty()
+                        it.forEach { variant ->
+                            val isDocumentationOrMetadata = variant.isDocumentationOrMetadata
+                            val targetList = if (isDocumentationOrMetadata) documentationAndMetadataFiles else classpathFiles
+                            variant.files.forEach {
+                                targetList.add(getDependencyFile(dependency, it, isDocumentation = isDocumentationOrMetadata))
+                                if (!isDocumentationOrMetadata && areSourcesMissing) {
+                                    documentationAndMetadataFiles.add(getAutoAddedSourcesDependencyFile())
                                 }
                             }
                         }
-
-                    pomPackagingType?.let {
-                        if (coordinates.packagingType == "pom" || isBom) {
-                            // skip resolving any artifact if dependency type is explicitly set to 'pom'.
-                            return@let
-                        }
-
-                        val actualPackagingType = coordinates.packagingType
-                            // Preferring packaging type resolved from pom.xml (Gradle like) to the default
-                            // dependency type 'jar'.
-                            // Falling back to 'jar' if pom.xml declares packaging type 'pom'.
-                            ?: pomPackagingType.value.takeIf { it != "pom" }
-                            ?: "jar"
-
-                        // todo (AB): [KTC-5270]
-                        //  Packaging type might also imply classifier (if it is not specified explicitly yet)
-                        //  It might affect [getNameWithoutExtension] implementation
-                        //  See https://maven.apache.org/repositories/dependencies.html
-                        val nameWithoutExtension = getNameWithoutExtension(dependency)
-
-                        val extension = resolveArtifactExtension(actualPackagingType)
-
-                        // Library published with packaging type equal to 'pom' may or may mot contains actual artifacts.
-                        // We try to resolve the default artifact, but it is OK if it doesn't exist.
-                        val isOptional = coordinates.packagingType == null && pomPackagingType.value == "pom"
-                        add(getDependencyFile(dependency, nameWithoutExtension, extension, isOptional = isOptional))
-                        if (extension == "jar" && withSources) {
-                            add(getAutoAddedSourcesDependencyFile())
-                        }
                     }
 
-                    addAll(sourceSetsFiles.map { it as DependencyFileImpl })
+                pomPackagingType?.let {
+                    if (coordinates.packagingType == "pom" || isBom) {
+                        // skip resolving any artifact if dependency type is explicitly set to 'pom'.
+                        return@let
+                    }
+
+                    val actualPackagingType = coordinates.packagingType
+                    // Preferring packaging type resolved from pom.xml (Gradle like) to the default
+                    // dependency type 'jar'.
+                    // Falling back to 'jar' if pom.xml declares packaging type 'pom'.
+                        ?: pomPackagingType.value.takeIf { it != "pom" }
+                        ?: "jar"
+
+                    // todo (AB): [KTC-5270]
+                    //  Packaging type might also imply classifier (if it is not specified explicitly yet)
+                    //  It might affect [getNameWithoutExtension] implementation
+                    //  See https://maven.apache.org/repositories/dependencies.html
+                    val nameWithoutExtension = getNameWithoutExtension(dependency)
+
+                    val extension = resolveArtifactExtension(actualPackagingType)
+
+                    // Library published with packaging type equal to 'pom' may or may mot contains actual artifacts.
+                    // We try to resolve the default artifact, but it is OK if it doesn't exist.
+                    val isOptional = coordinates.packagingType == null && pomPackagingType.value == "pom"
+                    classpathFiles.add(getDependencyFile(dependency, nameWithoutExtension, extension, isOptional = isOptional))
+                    if (extension == "jar") {
+                        documentationAndMetadataFiles.add(getAutoAddedSourcesDependencyFile())
+                    }
                 }
+
+                sourceSetsFiles.map { it as DependencyFileImpl }.forEach {
+                    val targetList = if (it.isDocumentation) documentationAndMetadataFiles else classpathFiles
+                    targetList.add(it)
+                }
+
+                Files(
+                    classpathFiles = classpathFiles,
+                    documentationAndMetadataFiles = documentationAndMetadataFiles,
+                )
             }
         )
+
+    private data class Files(
+        val classpathFiles: List<DependencyFileImpl>,
+        val documentationAndMetadataFiles: List<DependencyFileImpl>,
+    )
 
     /**
      * The repository module/pom file was downloaded from.
@@ -2070,14 +2083,14 @@ class MavenDependencyImpl internal constructor(
     }
 
     /**
-     * This method returns kotlin metadata library that contains a given sourceSet.
+     * This method returns the Kotlin metadata library that contains the given sourceSet.
      *
-     * Usually, a kotlin metadata library contains both:
+     * Usually, a Kotlin metadata library contains both:
      * - sourceSets' descriptor: META-INF/kotlin-project-structure-metadata.json
      * - and sourceSets itself
      *
      * And in that case,
-     * a path of the given kmpMetadataFile (representing the kotlin metadata library) is simply returned.
+     * a path of the given kmpMetadataFile (representing the Kotlin metadata library) is simply returned.
      *
      * But iOS sourceSet might be missing (for historical reasons);
      * in that case, sourceSets are stored in platform-specific kotlin metadata variants.
@@ -2176,7 +2189,7 @@ class MavenDependencyImpl internal constructor(
                 // If there are duplicates still.
                 // We try to choose the best match by well-known attributes (not checked before)
                 // that have a kind of "preferred" value.
-                // This is intended to be the last step of variants resolution
+                // This is intended to be the last step of variants' resolution
                 it.filterMultipleVariantsByAttributePreferredValue()
             }
 
@@ -2231,7 +2244,7 @@ class MavenDependencyImpl internal constructor(
      * one.
      * This is a same-library rename that could in general produce a real capability conflict.
      * Being ignored, it could lead to adding classes from both old and new libraries on the classpath
-     * in case the dependency graph includes both libraries (since those are not automatically aligned by vesion).
+     * in case the dependency graph includes both libraries (since those are not aligned by version automatically).
      * But in the case of Hibernate, the migration was done smoothly and transparently.
      * This is why a new version of a Hibernate library declaring capabilities
      * could be added to the dependency graph without any issues.
@@ -2250,6 +2263,7 @@ class MavenDependencyImpl internal constructor(
      *       "requires": "7.4.1.Final"
      *      }
      *    },
+     * ]
      *
      * This way any OLD library met in the graph is automatically aligned with the version of the new library.
      * And, as a final piece of the puzzle, the old Hibernate library with group `org.hibernate` is kept publishing
@@ -2540,13 +2554,13 @@ class MavenDependencyImpl internal constructor(
 }
 
 fun mavenCoordinatesTrimmed(groupId: String, artifactId: String,version: String?, classifier: String? = null, packagingType: String? = null) =
-        MavenCoordinates(
-            groupId = groupId.trim(),
-            artifactId = artifactId.trim(),
-            version = version?.trim(),
-            classifier = classifier?.trim(),
-            packagingType = packagingType?.trim()
-        )
+    MavenCoordinates(
+        groupId = groupId.trim(),
+        artifactId = artifactId.trim(),
+        version = version?.trim(),
+        classifier = classifier?.trim(),
+        packagingType = packagingType?.trim()
+    )
 
 /**
  * Describes coordinates of a Maven artifact.

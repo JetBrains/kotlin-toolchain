@@ -48,7 +48,9 @@ class DownloadTest: BaseDRTest() {
 
         // Check that there is a suppressed diagnostic about the first (failed) download attempt
         val suppressedHashesMismatchDiagnostics = resolvedGraph.children.single().messages
-            .filterIsInstance<SimpleMessage>().single { it.id == SuccessfulDownload.id }.childMessages
+            .filterIsInstance<SimpleMessage>()
+            .single { it.id == SuccessfulDownload.id && it.childMessages.isNotEmpty() }
+            .childMessages
             .filter { it.severity == Severity.ERROR && it.id == HashesMismatch.id }
         assertEquals(1, suppressedHashesMismatchDiagnostics.size,
             "The first attempt to download the artifact should have failed due to hashes mismatch")
