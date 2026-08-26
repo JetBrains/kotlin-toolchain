@@ -7,8 +7,6 @@ package org.jetbrains.amper.tasks.web
 import kotlinx.serialization.json.Json
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.core.AmperUserCacheRoot
-import org.jetbrains.amper.core.downloader.Downloader
-import org.jetbrains.amper.core.extract.extractFileToCacheLocation
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
@@ -18,8 +16,6 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
-import org.jetbrains.amper.system.info.Arch
-import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
@@ -89,20 +85,22 @@ class NpmInstallTask(
 
                 logger.debug("Generated package.json with ${uniqueNpmDependencies.size} npm dependencies at $packageJsonPath")
 
-                val executable = downloadPnpm()
+                val nodeExecutable = downloadNodeJs(userCacheRoot)
+                val pnpmMjs = downloadPnpm(userCacheRoot)
 
                 spanBuilder("pnpm install")
                     .use {
                         val disableUpdateNotify = processRunner.runProcess(
                             workingDir = outputDir,
-                            command = listOf(
-                                executable.pathString,
+                            command = [
+                                nodeExecutable.pathString,
+                                pnpmMjs.pathString,
                                 "config",
                                 "set",
                                 "--location=project",
                                 "updateNotifier",
                                 "false"
-                            ),
+                            ],
                             span = it,
                             outputMode = ProcessOutputMode.listenAndCaptureStderr(
                                 listener = LoggingProcessOutputListener(logger),
@@ -118,7 +116,11 @@ class NpmInstallTask(
 
                         val result = processRunner.runProcess(
                             workingDir = outputDir,
-                            command = [executable.pathString, "install"],
+                            command = [
+                                nodeExecutable.pathString,
+                                pnpmMjs.pathString,
+                                "install"
+                            ],
                             span = it,
                             outputMode = ProcessOutputMode.listenAndCaptureStderr(
                                 listener = LoggingProcessOutputListener(logger),
@@ -138,37 +140,6 @@ class NpmInstallTask(
         return Result(
             nodeModulesPath = nodeModulesPath.singleOrNull(),
         )
-    }
-
-    private suspend fun downloadPnpm(): Path {
-        val version = PNPM_VERSION
-
-        val osString = when (OsFamily.current) {
-            OsFamily.Windows -> "win32"
-            OsFamily.Linux -> "linux"
-            OsFamily.MacOs -> "darwin"
-            OsFamily.FreeBSD, OsFamily.Solaris -> error("Unsupported OS family: ${OsFamily.current}")
-        }
-
-        val archString = when (Arch.current) {
-            Arch.X64 -> "x64"
-            Arch.Arm64 -> "arm64"
-        }
-
-        val extension = when (OsFamily.current) {
-            OsFamily.Windows -> "zip"
-            OsFamily.Linux, OsFamily.MacOs -> "tar.gz"
-            OsFamily.FreeBSD, OsFamily.Solaris -> error("Unsupported OS family: ${OsFamily.current}")
-        }
-
-        val archive = Downloader.downloadFileToCacheLocation(
-            url = "https://github.com/pnpm/pnpm/releases/download/v$version/pnpm-$osString-$archString.$extension",
-            userCacheRoot = userCacheRoot,
-        )
-        return extractFileToCacheLocation(archiveFile = archive, amperUserCacheRoot = userCacheRoot)
-            .resolve(
-                if (OsFamily.current.isWindows) "pnpm.exe" else "pnpm"
-            )
     }
 
     internal companion object {
@@ -253,5 +224,3 @@ internal fun buildPackageJson(
 private class NpmDependencyCandidate(val name: String, val versionCandidate: NpmVersionCandidate)
 
 private class NpmVersionCandidate(val version: String, val klibPath: Path)
-
-private const val PNPM_VERSION = "11.9.0"

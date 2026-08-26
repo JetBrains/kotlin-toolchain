@@ -122,6 +122,7 @@ fun ProjectTasksBuilder.setupWasmJsTasks() {
                     platform = platform,
                     buildType = buildType,
                     module = module,
+                    processRunner = context.processRunner,
                     runSettings = runSettings,
                     userCacheRoot = context.userCacheRoot,
                 ),
