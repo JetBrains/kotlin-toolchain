@@ -44,28 +44,27 @@ You can learn more about the basic concepts of the Kotlin Toolchain in the [user
 
 ## Conversion
 
-### General workflow 
-
 Here is how the general workflow looks like:
 
-1. Create a `project.yaml` file listing your modules, based on the `include(...)` calls in `settings.gradle(.kts)`.
-2. For each convention plugin in `buildSrc` or `build-logic`, create a template file `<name>.module-template.yaml`.
-   You can convert it the same way as a `build.gradle.kts` to `module.yaml` file, see below.
-3. For each more complex local plugin, either remove it (if it became redundant) or convert it to a [local Kotlin Toolchain plugin](../user-guide/plugins/overview.md)
-4. For each Gradle subproject, create a `module.yaml` file, translating the build script using the sections below.
-5. Move the source files to the [standard layout](../user-guide/basics.md#project-layout)
-   (or use the [Maven-like layout](../user-guide/advanced/maven-like-layout.md) for JVM-only modules).
-6. Run `./kotlin build` and `./kotlin test` to verify the migration.
-7. Remove the Gradle build files.
-8. Move your `libs.versions.toml` (if you have one) to the root of the project
+1. Create a `project.yaml` file listing your modules
+2. Create templates for shared configuration
+3. Create local plugins for more complex logic
+4. Convert your subprojects into modules (creating `module.yaml` files), applying the templates and plugins created above
+5. Move the source files to the Kotlin Toolchain layout (or if you only have JVM modules, you can use the 
+   [Maven-like layout](../user-guide/advanced/maven-like-layout.md))
+6. Run `./kotlin build` and `./kotlin test` to verify the migration
+7. Cleanup the Gradle files
 
-### Project structure
+Let's dive in!
+
+### Step 1: The project file
+
+Create a `project.yaml` at the root of your project, next to `setting.gradle(.kts)`.
 
 The `include(...)` calls from `settings.gradle(.kts)` become the `modules` list in `project.yaml`.
 Gradle project paths use `:` as separator, while the Kotlin Toolchain uses real directory paths:
 
 <div class="grid" markdown>
-
 ```kotlin title="settings.gradle.kts"
 rootProject.name = "my-project"
 
@@ -79,21 +78,56 @@ modules:
   - libs/lib1
 ‎
 ```
-
 </div>
 
-!!! note "Single-module projects don't need a `project.yaml` file at all — a `module.yaml` alone is a valid project."
+!!! question "Why is it all red?"
 
-### Converting a subproject
+    If you're in an IDE, you'll see errors on all modules right now, because these directories don't contain a 
+    `module.yaml` file yet. This is normal, we will create them later.
 
-The goal is to turn the `build.gradle(.kts)` build script into a `module.yaml` file.
-These guidelines also apply to converting a convention plugin into a template file.
+!!! note "Single-module projects" 
+    
+    Single-module projects don't need a `project.yaml` file at all — a `module.yaml` alone is a valid project.
+    That said, we still recommend using `project.yaml` for consistency with other projects, and because this file
+    might become necessary for other reasons (like declaring local plugins).
+
+### Step 2: Create templates for shared configuration
+
+In Gradle, the common configuration shared between subprojects is usually placed in 
+[convention plugins](https://docs.gradle.org/current/userguide/implementing_gradle_plugins_convention.html) 
+(in `buildSrc` or `build-logic`), or in a `subprojects { ... }` block in the root `build.gradle(.kts)`.
+
+In the Kotlin Toolchain, this is done using [templates](../user-guide/templates.md). files named `<name>.module-template.yaml` with the same
+structure as `module.yaml`, applied where needed.
+
+For details about how to convert which parts of your convention plugins or build scripts to templates, check the 
+[Migration reference](#migration-reference) below.
+
+* For each convention plugin in `buildSrc` or `build-logic`, create a template file `<name>.module-template.yaml` (where 
+  `<name>` is your convention plugin's name).
+* Do the same for each part of `subprojects` blocks that is applied conditionally (you'll have to choose a name).
+* If you have unconditional config added to all subprojects via the `subprojects` block, create a 
+  `common.module-template.yaml` to hold this configuration.
+
+You can place templates anywhere in your project tree, but it's easier to choose a single place to put all of them, 
+like a `templates` directory at the root of your project.
+
+### Step 3: Convert custom plugins to Kotlin Toolchain plugins
+
+If you have more complex custom logic in your project — custom tasks, code generation, verification —, check if their 
+functionality already exists in the Kotlin Toolchain as a built-in feature.
+If not, you'll need to decide whether you want to set it aside, or convert it to a 
+[Kotlin Toolchain plugin](../user-guide/plugins/overview.md).
+
+### Step 4: Migrate your subprojects
+
+Each `build.gradle(.kts)` file needs to be translated to a `module.yaml` file.
 
 #### Choose a product type
 
-The Kotlin Toolchain has the concept of [product type](../user-guide/basics.md#product-type), which specifies what a
-given module is meant to produce. This has no direct Gradle equivalent. In Gradle, this is understood through the set of
-plugins you apply and the configuration in general.
+The first step is to choose a [product type](../user-guide/basics.md#product-type), which specifies what a given module
+is meant to produce. This has no direct Gradle equivalent. In Gradle, this is understood through the set of plugins you
+apply and the configuration in general.
 
 | Gradle plugins                  | Kotlin Toolchain product type |
 |---------------------------------|-------------------------------|
@@ -101,14 +135,128 @@ plugins you apply and the configuration in general.
 | `kotlin("jvm")`                 | `jvm/lib`                     |
 | `kotlin("jvm")` + `application` | `jvm/app`                     |
 
-!!! question "No multiplatform app product type?"
+??? question "Need a multiplatform app product type?"
 
     The Kotlin Toolchain doesn't allow building different application types from the same module.
     This should not occur in modern Gradle setup either, but it is possible.
+    
     If you are in this situation, use `kmp/lib` as a product type for such a module and keep all your source code there.
     Then add more modules with application product types for each platform, and make them depend on this shared code.
 
-#### Kotlin version
+#### Apply templates
+
+Whenever a convention plugin was applied, apply instead the template that you created for it in Step 2:
+
+<div class="grid" markdown>
+
+```kotlin title="build.gradle.kts"
+plugins {
+    id("myproject.publishing-conventions")
+}
+‎
+```
+
+```yaml title="module.yaml"
+product: jvm/lib
+
+apply:
+  - //templates/publishing-conventions.module-template.yaml
+```
+</div>
+
+#### Translate the rest
+
+See the [Migration reference](#migration-reference) below to see how to convert other parts of your `build.gradle(.kts)`.
+
+### Step 5: Source sets and file layout
+
+Gradle organizes code into _source sets_. The Kotlin Toolchain has a similar approach, but the directories have different
+names (and no per-language subdirectories):
+
+For a JVM module, the mapping is:
+
+| Gradle (Kotlin JVM)   | The Kotlin Toolchain |
+|-----------------------|----------------------|
+| `src/main/kotlin/`    | `src/`               |
+| `src/main/java/`      | `src/`               |
+| `src/main/resources/` | `resources/`         |
+| `src/test/kotlin/`    | `test/`              |
+| `src/test/resources/` | `testResources/`     |
+
+??? tip "JVM-only modules can avoid moving files"
+
+    Gradle's default JVM layout is the same as Maven's, so `jvm/app` and `jvm/lib` modules can add
+    `layout: maven-like` to their `module.yaml` and keep the existing `src/main/kotlin`, `src/test/kotlin`, etc.
+    directories as-is. See [Maven-like layout](../user-guide/advanced/maven-like-layout.md).
+    There is no such option for multiplatform modules or custom `srcDir` configurations — those files need to move.
+
+For a multiplatform module, each Kotlin source set maps to a source directory with an
+[`@platform` qualifier](../user-guide/multiplatform.md#platform-qualifier):
+
+| Gradle (KMP)        | The Kotlin Toolchain |
+|--------------------------|----------------------|
+| `src/commonMain/kotlin/`     | `src/`               |
+| `src/jvmMain/kotlin/`        | `src@jvm/`           |
+| `src/iosMain/kotlin/`        | `src@ios/`           |
+| `src/iosArm64Main/kotlin/`   | `src@iosArm64/`      |
+| `src/commonTest/kotlin/`     | `test/`              |
+| `src/jvmTest/kotlin/`        | `test@jvm/`          |
+| `src/commonMain/resources/`  | `resources/`         |
+| `src/androidMain/resources/` | `resources@android/` |
+
+The `@platform` qualifiers follow the same [default hierarchy](../user-guide/multiplatform.md#supported-platforms)
+as KGP's default hierarchy template, with the same visibility rules as `dependsOn` relations between source sets:
+code in `src@ios` sees declarations from `src`, `src@native`, and `src@apple`, and is shared between all iOS targets.
+If you defined custom intermediate source sets in Gradle (custom `dependsOn` edges), use
+[aliases](../user-guide/multiplatform.md#aliases) instead:
+
+```yaml title="module.yaml"
+aliases:
+  - jvmAndAndroid: [ jvm, android ] # enables src@jvmAndAndroid, dependencies@jvmAndAndroid, etc.
+```
+
+Per-source-set dependencies map to qualified dependency sections: the `commonMain` dependencies go to
+`dependencies:`, the `jvmMain` ones to `dependencies@jvm:`, and the `commonTest` ones to `test-dependencies:`.
+
+### Step 6: Verify
+
+Check that everything is in order by running `kotlin build` (to compile and link everything) and `kotlin test` to run the 
+tests. If everything is green, you can start cleaning up.
+
+### Step 7: Cleanup
+
+If you have a version catalog, move your `gradle/libs.versions.toml` to the root of the project. The Kotlin Toolchain 
+supports both locations, but the Gradle location is only supported to ease the migration. We recommend placing it at the 
+top level.
+
+You can now remove your Gradle wrapper and configuration files.
+
+## Everyday commands
+
+| Gradle                            | The Kotlin Toolchain                |
+|-----------------------------------|-------------------------------------|
+| `./gradlew build`                 | `./kotlin build`                    |
+| `./gradlew test`                  | `./kotlin test`                     |
+| `./gradlew :app:test`             | `./kotlin test -m app`              |
+| `./gradlew run`                   | `./kotlin run`                      |
+| `./gradlew :app:dependencies`     | `./kotlin show dependencies -m app` |
+| `./gradlew tasks`                 | `./kotlin show tasks`               |
+| `./gradlew publishToMavenLocal`   | `./kotlin publish mavenLocal`[^1]   |
+| `./gradlew clean`                 | `./kotlin clean`                    |
+
+[^1]: After setting up the [publishing configuration](../user-guide/publishing.md).
+
+Like `gradlew`, the `kotlin` wrapper scripts are meant to be committed to your repository, and download everything
+they need on first use. See [Wrapper & provisioning](../cli/provisioning.md).
+
+## Migration reference
+
+This section contains information about how to translate some pieces of Gradle build scripts to the Kotlin Toolchain's 
+module file format. Use it to migrate:
+* a `build.gradle(.kts)` build script to a `module.yaml` file
+* a convention plugin to a `*.module-template.yaml` file
+
+### Kotlin version
 
 In Gradle, Kotlin support comes from the Kotlin Gradle plugin (KGP), which you apply and version explicitly in every
 build script or convention plugin. In the Kotlin Toolchain, Kotlin support is built-in.
@@ -144,7 +292,7 @@ settings:
 
 !!! tip "Tip: use a [template](../user-guide/templates.md) to share the Kotlin version setting."
 
-#### Kotlin platforms
+### Kotlin platforms
 
 If your module is multiplatform, set the `product.platforms` list to same list of targets as in Gradle's `kotlin { ... }` block:
 
@@ -170,11 +318,13 @@ product:
 settings:
   kotlin:
     version: 2.4.10
+  ‎
+  ‎
 ```
 
 </div>
 
-#### JVM application main class
+### JVM application main class
 
 For [JVM applications](../user-guide/product-types/jvm-app.md), the **main class** is auto-detected if the `main` function
 is in a file named `main.kt`. Otherwise, you have to set it explicitly with `settings.jvm.mainClass`.
@@ -235,57 +385,7 @@ settings:
 
 </div>
 
-#### Source sets and file layout
-
-Gradle organizes code into _source sets_. The Kotlin Toolchain instead uses conventional directories in each module,
-without per-language subdirectories (Kotlin and Java files live side by side).
-
-For a JVM module, the mapping is:
-
-| Gradle (Kotlin JVM)   | The Kotlin Toolchain |
-|-----------------------|----------------------|
-| `src/main/kotlin/`    | `src/`               |
-| `src/main/java/`      | `src/`               |
-| `src/main/resources/` | `resources/`         |
-| `src/test/kotlin/`    | `test/`              |
-| `src/test/resources/` | `testResources/`     |
-
-For a multiplatform module, each Kotlin source set maps to a source directory with an
-[`@platform` qualifier](../user-guide/multiplatform.md#platform-qualifier):
-
-| Gradle source set        | The Kotlin Toolchain |
-|--------------------------|----------------------|
-| `commonMain/kotlin/`     | `src/`               |
-| `jvmMain/kotlin/`        | `src@jvm/`           |
-| `iosMain/kotlin/`        | `src@ios/`           |
-| `iosArm64Main/kotlin/`   | `src@iosArm64/`      |
-| `commonMain/resources/`  | `resources/`         |
-| `androidMain/resources/` | `resources@android/` |
-| `commonTest/kotlin/`     | `test/`              |
-| `jvmTest/kotlin/`        | `test@jvm/`          |
-
-The `@platform` qualifiers follow the same [default hierarchy](../user-guide/multiplatform.md#supported-platforms)
-as KGP's default hierarchy template, with the same visibility rules as `dependsOn` relations between source sets:
-code in `src@ios` sees declarations from `src`, `src@native`, and `src@apple`, and is shared between all iOS targets.
-If you defined custom intermediate source sets in Gradle (custom `dependsOn` edges), use
-[aliases](../user-guide/multiplatform.md#aliases) instead:
-
-```yaml title="module.yaml"
-aliases:
-  - jvmAndAndroid: [ jvm, android ] # enables src@jvmAndAndroid, dependencies@jvmAndAndroid, etc.
-```
-
-Per-source-set dependencies map to qualified dependency sections: the `commonMain` dependencies go to
-`dependencies:`, the `jvmMain` ones to `dependencies@jvm:`, and the `commonTest` ones to `test-dependencies:`.
-
-!!! tip "JVM-only modules can avoid moving files"
-
-    Gradle's default JVM layout is the same as Maven's, so `jvm/app` and `jvm/lib` modules can add
-    `layout: maven-like` to their `module.yaml` and keep the existing `src/main/kotlin`, `src/test/kotlin`, etc.
-    directories as-is. See [Maven-like layout](../user-guide/advanced/maven-like-layout.md).
-    There is no such option for multiplatform modules or custom `srcDir` configurations — those files need to move.
-
-#### Built-in frameworks and technologies
+### Built-in frameworks and technologies
 
 Some popular frameworks or technologies that require a Gradle plugin have a built-in equivalent in the Kotlin Toolchain:
 
@@ -302,7 +402,7 @@ Check out the relevant sections to see how they are configured in the Kotlin Too
 Kotlin compiler plugins are also directly supported in the `setting.kotlin` section and don't require a plugin.
 See the [compiler plugins section](../user-guide/advanced/kotlin-compiler-plugins.md) of user guide to learn how to use them.
 
-#### Dependencies
+### Dependencies
 
 Gradle dependency configurations map to dependency [scopes and visibility attributes](../user-guide/dependencies.md#transitivity-and-scope):
 
@@ -330,7 +430,7 @@ The `repositories { ... }` block maps to the `repositories:` list. Maven Central
 configured by default, so most projects don't need this section at all.
 See [Managing Maven repositories](../user-guide/dependencies.md#managing-maven-repositories).
 
-#### JDK provisioning
+### JDK provisioning
 
 Gradle can provision JDKs through [Java toolchains](https://docs.gradle.org/current/userguide/toolchains.html), which
 requires a toolchain resolver plugin (usually `foojay-resolver-convention`) in the settings script. The Kotlin
@@ -366,7 +466,7 @@ use `javaHome` to forbid downloads (similar to `org.gradle.java.installations.au
 
 Read more on the [JDK provisioning](../user-guide/advanced/jdk-provisioning.md) page.
 
-#### JVM source/target/release
+### JVM source/target/release
 
 In Gradle, keeping the bytecode compatibility consistent requires aligning several options:
 `sourceCompatibility`/`targetCompatibility` or `options.release` for `javac`, and `jvmTarget` for the Kotlin
@@ -411,7 +511,7 @@ Java 25.
 Relatedly, `-parameters` (or KGP's `javaParameters`) is replaced by `settings.jvm.storeParameterNames: true`, which
 covers both compilers at once.
 
-#### Compiler arguments
+### Compiler arguments
 
 KGP's `compilerOptions { ... }` block maps to [`settings.kotlin`](../reference/module.md#settingskotlin).
 Common options have dedicated settings, and anything else can be passed via `freeCompilerArgs`:
@@ -446,7 +546,7 @@ Where you configured Kotlin compile tasks of a specific target in Gradle, use
 Platform-specific and test settings are merged with the common ones according to the
 [propagation rules](../user-guide/multiplatform.md#dependencysettings-propagation).
 
-#### JUnit Platform by default
+### JUnit Platform by default
 
 In Gradle, running JUnit 5 tests requires opting in with `useJUnitPlatform()` and adding the test framework
 dependencies. In the Kotlin Toolchain, the JUnit Platform is enabled out of the box on JVM and Android:
@@ -470,15 +570,17 @@ tasks.test {
     systemProperty("java.awt.headless", "true")
     environment("MY_ENV_VAR", "value")
 }
+‎
 ```
 
 ```yaml title="module.yaml"
 test-dependencies:
+  # kotlin-test is already here by default
   - io.mockk:mockk:1.14.3
 
 settings:
   jvm:
-    test:
+    test: #(1)!
       freeJvmArgs: [ -Xmx2g ]
       systemProperties:
         java.awt.headless: true
@@ -486,54 +588,9 @@ settings:
         MY_ENV_VAR: value
 ```
 
+1. This section contains settings for the JVM that is launched to run the tests
+
 </div>
 
 Projects still on JUnit 4 can set `settings.junit: junit-4`, and `settings.junit: none` disables the automatic JUnit
 setup entirely. Read more on the [Testing](../user-guide/testing.md) page.
-
-## Sharing build logic
-
-Configuration that Gradle projects share via convention plugins, `buildSrc`, or `subprojects { ... }` blocks is
-shared using [templates](../user-guide/templates.md): files named `<name>.module-template.yaml` with the same
-structure as `module.yaml`, applied where needed:
-
-<div class="grid" markdown>
-
-```yaml title="common.module-template.yaml"
-settings:
-  kotlin:
-    version: 2.3.20
-    allWarningsAsErrors: true
-  jvm:
-    release: 17
-```
-
-```yaml title="app/module.yaml"
-product: jvm/app
-
-apply:
-  - //common.module-template.yaml
-```
-
-</div>
-
-For build logic that goes beyond configuration — custom tasks, code generation, verification — see
-[Kotlin Toolchain plugins](../user-guide/plugins/overview.md).
-
-## Everyday commands
-
-| Gradle                            | The Kotlin Toolchain                |
-|-----------------------------------|-------------------------------------|
-| `./gradlew build`                 | `./kotlin build`                    |
-| `./gradlew test`                  | `./kotlin test`                     |
-| `./gradlew :app:test`             | `./kotlin test -m app`              |
-| `./gradlew run`                   | `./kotlin run`                      |
-| `./gradlew :app:dependencies`     | `./kotlin show dependencies -m app` |
-| `./gradlew tasks`                 | `./kotlin show tasks`               |
-| `./gradlew publishToMavenLocal`   | `./kotlin publish mavenLocal`[^1]   |
-| `./gradlew clean`                 | `./kotlin clean`                    |
-
-[^1]: After setting up the [publishing configuration](../user-guide/publishing.md).
-
-Like `gradlew`, the `kotlin` wrapper scripts are meant to be committed to your repository, and download everything
-they need on first use. See [Wrapper & provisioning](../cli/provisioning.md).
