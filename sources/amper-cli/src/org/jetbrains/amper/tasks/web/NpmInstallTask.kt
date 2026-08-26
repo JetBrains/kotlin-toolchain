@@ -15,6 +15,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.nodejs.downloadNodeJs
+import org.jetbrains.amper.pnpm.downloadPnpm
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
@@ -87,7 +88,7 @@ class NpmInstallTask(
                 logger.debug("Generated package.json with ${uniqueNpmDependencies.size} npm dependencies at $packageJsonPath")
 
                 val nodeExecutable = downloadNodeJs(userCacheRoot, NODE_JS_VERSION)
-                val pnpmMjs = downloadPnpm(userCacheRoot)
+                val pnpmMjs = downloadPnpm(userCacheRoot, PNPM_VERSION)
 
                 spanBuilder("pnpm install")
                     .use {

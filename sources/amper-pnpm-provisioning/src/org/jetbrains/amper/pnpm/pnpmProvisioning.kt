@@ -2,7 +2,7 @@
  * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package org.jetbrains.amper.tasks.web
+package org.jetbrains.amper.pnpm
 
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.Downloader
@@ -11,9 +11,10 @@ import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import java.nio.file.Path
 
-internal suspend fun downloadPnpm(userCacheRoot: AmperUserCacheRoot): Path {
-    val version = PNPM_VERSION
-
+suspend fun downloadPnpm(
+    userCacheRoot: AmperUserCacheRoot,
+    version: String,
+): Path {
     val osString = when (OsFamily.current) {
         OsFamily.Windows -> "win32"
         OsFamily.Linux -> "linux"
@@ -41,5 +42,3 @@ internal suspend fun downloadPnpm(userCacheRoot: AmperUserCacheRoot): Path {
             "dist/pnpm.mjs"
         )
 }
-
-internal const val PNPM_VERSION = "11.9.0"

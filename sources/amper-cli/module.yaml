@@ -101,6 +101,7 @@ dependencies:
   - com.google.code.findbugs:jsr305:3.0.2
   - //sources/libraries/maven-central-portal-publisher-client
   - //sources/amper-nodejs-provisioning
+  - //sources/amper-pnpm-provisioning
 
 test-dependencies:
   - //sources/test-base

@@ -1,0 +1,10 @@
+product: jvm/lib
+
+description: Node.js provisioning for Amper.
+
+apply:
+  - //sources/common.module-template.yaml
+
+dependencies:
+  - //sources/core
+  - //sources/libraries/system-info

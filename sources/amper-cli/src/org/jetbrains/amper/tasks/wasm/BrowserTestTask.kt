@@ -24,6 +24,7 @@ import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.nodejs.downloadNodeJs
+import org.jetbrains.amper.pnpm.downloadPnpm
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.AllRunSettings
@@ -31,8 +32,8 @@ import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.web.NODE_JS_VERSION
 import org.jetbrains.amper.tasks.web.NpmInstallTask
+import org.jetbrains.amper.tasks.web.PNPM_VERSION
 import org.jetbrains.amper.tasks.web.VENDORS
-import org.jetbrains.amper.tasks.web.downloadPnpm
 import org.jetbrains.amper.teamcity.events.TeamCityMessageProcessor
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -92,7 +93,7 @@ class BrowserTestTask(
                 logger.debug("Opening URL: $url")
 
                 val nodeExecutable = downloadNodeJs(userCacheRoot, NODE_JS_VERSION)
-                val pnpm = downloadPnpm(userCacheRoot)
+                val pnpm = downloadPnpm(userCacheRoot, PNPM_VERSION)
 
                 spanBuilder("wasm-js-browser-test-install-browsers")
                     .setAttribute("pnpm", pnpm.absolutePathString())
