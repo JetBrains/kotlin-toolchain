@@ -1,0 +1,12 @@
+product: jvm/lib
+
+description: Structured processing of teamcity events
+
+apply:
+  - //sources/common.module-template.yaml
+
+dependencies:
+  - //sources/amper-events
+  - //sources/amper-test-events
+  - $libs.teamcity.serviceMessages
+  - $libs.slf4j.api

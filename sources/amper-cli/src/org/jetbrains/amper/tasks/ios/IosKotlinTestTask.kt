@@ -25,11 +25,11 @@ import org.jetbrains.amper.tasks.native.NativeLinkTask
 import org.jetbrains.amper.tasks.native.StructuredNativeTestProcessOutputListener
 import org.jetbrains.amper.tasks.native.swiftpm.parsedLdCallArtifact
 import org.jetbrains.amper.tasks.native.toNativeTestExecutableArgs
+import org.jetbrains.amper.teamcity.events.TeamCityMessageProcessor
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.util.BuildType
-import org.jetbrains.amper.util.TeamCityMessageProcessor
 import org.slf4j.LoggerFactory
 import kotlin.io.path.absolutePathString
 

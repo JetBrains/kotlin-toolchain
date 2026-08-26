@@ -32,11 +32,11 @@ import org.jetbrains.amper.tasks.web.NpmInstallTask
 import org.jetbrains.amper.tasks.web.VENDORS
 import org.jetbrains.amper.tasks.web.downloadNodeJs
 import org.jetbrains.amper.tasks.web.downloadPnpm
+import org.jetbrains.amper.teamcity.events.TeamCityMessageProcessor
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.testevents.TestId
 import org.jetbrains.amper.util.BuildType
-import org.jetbrains.amper.util.TeamCityMessageProcessor
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString

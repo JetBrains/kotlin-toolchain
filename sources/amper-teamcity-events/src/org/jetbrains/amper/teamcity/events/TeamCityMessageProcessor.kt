@@ -2,7 +2,7 @@
  * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package org.jetbrains.amper.util
+package org.jetbrains.amper.teamcity.events
 
 import jetbrains.buildServer.messages.serviceMessages.BaseTestMessage
 import jetbrains.buildServer.messages.serviceMessages.BaseTestSuiteMessage
@@ -35,7 +35,7 @@ import org.jetbrains.amper.testevents.TestStarted as AmperTestStarted
 import org.jetbrains.amper.testevents.TestSuiteFinished as AmperTestSuiteFinished
 import org.jetbrains.amper.testevents.TestSuiteStarted as AmperTestSuiteStarted
 
-internal class TeamCityMessageProcessor(
+class TeamCityMessageProcessor(
     private val eventSink: EventSink<TestEvent>,
     private val onTestFailed: (id: TestId, message: TestFailed) -> Unit = { _, _ -> },
 ) {

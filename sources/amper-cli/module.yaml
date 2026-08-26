@@ -23,6 +23,7 @@ dependencies:
   - //sources/amper-maven-publish
   - //sources/amper-project-templates
   - //sources/amper-swift-pm-resolution-model
+  - //sources/amper-teamcity-events
   - //sources/amper-telemetry
   - //sources/amper-test-events
   - //sources/amper-wrapper

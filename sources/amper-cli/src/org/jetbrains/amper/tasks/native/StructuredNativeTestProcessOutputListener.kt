@@ -5,7 +5,7 @@
 package org.jetbrains.amper.tasks.native
 
 import org.jetbrains.amper.processes.output.ProcessOutputListener
-import org.jetbrains.amper.util.TeamCityMessageProcessor
+import org.jetbrains.amper.teamcity.events.TeamCityMessageProcessor
 
 /**
  * Translates the TeamCity service messages emitted by the Kotlin/Native test runners to Kotlin Toolchain test events.
