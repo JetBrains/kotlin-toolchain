@@ -297,6 +297,10 @@ class JvmTestTask(
                 }
                 FilterMode.Exclude -> "--exclude-classname=${pattern.slashToDollar().wildcardsToRegex()}"
             }
+            is TestFilter.TagExpression -> when (mode) {
+                FilterMode.Include -> "--include-tag=$expression"
+                FilterMode.Exclude -> "--exclude-tag=$expression"
+            }
         }
 
     private fun TestFilter.SpecificTestInclude.toJUnitSelectArgument(forceSelectorAsFilter: Boolean): String {

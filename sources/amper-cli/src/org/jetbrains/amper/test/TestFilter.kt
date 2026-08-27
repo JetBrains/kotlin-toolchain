@@ -70,6 +70,24 @@ sealed class TestFilter {
         val mode: FilterMode,
     ): TestFilter()
 
+    /**
+     * A filter that includes or excludes tests based on the tags they are annotated with.
+     *
+     * This is only supported on the JVM (including Android), and is ignored for native and web tests.
+     */
+    data class TagExpression(
+        /**
+         * A JUnit tag expression, which can be a single tag name, or a boolean expression combining tag names with
+         * the `!`, `&`, and `|` operators (and parentheses for grouping).
+         * See https://docs.junit.org/current/user-guide/#running-tests-tag-expressions
+         */
+        val expression: String,
+        /**
+         * Whether this filter should include or exclude what it matches.
+         */
+        val mode: FilterMode,
+    ): TestFilter()
+
     companion object {
 
         private val logger = LoggerFactory.getLogger(TestFilter::class.java)
@@ -116,6 +134,11 @@ sealed class TestFilter {
             } else {
                 SpecificSuiteInclude(fullyQualifiedName = pattern)
             }
+
+        fun includeOrExcludeTag(tagExpression: String, mode: FilterMode): TestFilter {
+            require(tagExpression.isNotBlank()) { "the tag expression must not be blank" }
+            return TagExpression(expression = tagExpression, mode = mode)
+        }
     }
 }
 

@@ -8,6 +8,9 @@ import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.NativeTestRunSettings
 import org.jetbrains.amper.test.FilterMode
 import org.jetbrains.amper.test.TestFilter
+import org.slf4j.LoggerFactory
+
+private val logger = LoggerFactory.getLogger("nativeTestOptions")
 
 /**
  * Converts these [AllRunSettings] to a list of arguments that will be passed to the Kotlin Native test executable.
@@ -26,10 +29,10 @@ internal fun NativeTestRunSettings.toNativeTestExecutableArgs(): List<String> = 
 }
 
 private fun List<TestFilter>.toTestFilterArg(): String? {
-    if (isEmpty()) {
+    val nativeFilters = mapNotNull { it.toKNativeTestFilter() }
+    if (nativeFilters.isEmpty()) {
         return null
     }
-    val nativeFilters = map { it.toKNativeTestFilter() }
     val includeFilters = nativeFilters.filter { it.mode == FilterMode.Include }.joinToString(":") { it.pattern }
     val excludeFilters = nativeFilters.filter { it.mode == FilterMode.Exclude }.joinToString(":") { it.pattern }
 
@@ -43,9 +46,9 @@ private fun List<TestFilter>.toTestFilterArg(): String? {
 private data class KNativeTestFilter(val pattern: String, val mode: FilterMode)
 
 /**
- * Converts this [TestFilter] to a Kotlin/Native test filter.
+ * Converts this [TestFilter] to a Kotlin/Native test filter, or returns null if it cannot be expressed as one.
  */
-private fun TestFilter.toKNativeTestFilter(): KNativeTestFilter = when (this) {
+private fun TestFilter.toKNativeTestFilter(): KNativeTestFilter? = when (this) {
     is TestFilter.SpecificTestInclude -> KNativeTestFilter(
         pattern = toKotlinNativeFormat(),
         mode = FilterMode.Include,
@@ -58,6 +61,11 @@ private fun TestFilter.toKNativeTestFilter(): KNativeTestFilter = when (this) {
         pattern = "${pattern.replace('/', '.')}.*",
         mode = mode,
     )
+    // Kotlin/Native tests have no notion of tags, so tag filters are simply ignored here.
+    is TestFilter.TagExpression -> {
+        logger.warn("Tag filters are not supported in Kotlin/Native tests")
+        null
+    }
 }
 
 private fun TestFilter.SpecificTestInclude.toKotlinNativeFormat(): String {

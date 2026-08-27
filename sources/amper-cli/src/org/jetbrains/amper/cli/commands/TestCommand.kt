@@ -53,7 +53,7 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
         metavar = "<pattern>",
         help = """
             Only run tests classes or suites matching the given pattern.
-            The option can be repeated to include test classes matching any pattern (OR semantics).
+            The option can be repeated to include test classes matching any of the patterns (OR semantics).
             
             The pattern should be the fully qualified name of a test class or top-level test suite function,
             optionally containing `*` or `?` wildcards to match multiple or a single character, respectively.
@@ -83,6 +83,49 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
         """.trimIndent(),
     )
         .convert { TestFilter.includeOrExcludeSuite(pattern = it, mode = FilterMode.Exclude) }
+        .multiple()
+
+    private val includeTagFilters by option("--include-tag",
+        metavar = "<tag_expression>",
+        help = """
+            Only run tests matching the given tag expression.
+            The option can be repeated to include tests matching any of the expressions (OR semantics).
+
+            The value can be a single tag name, or a boolean expression combining tag names with the `!`, `&`, and `|`
+            operators (with parentheses for grouping). Example: `slow & !flaky`. The special `any()` and `none()` 
+            expressions are also supported, and respectively match tests that have any tag and tests that have no tags.
+            Don't forget to quote your arguments according to the rules of your shell.
+
+            If the `--exclude-tag` option is also provided, tests are run if they match any of the include expressions
+            AND don't match any of the exclude expressions.
+
+            This option only affects JVM and Android tests; it is ignored for native and web tests.
+            
+            To tag a JVM test, use the `org.junit.jupiter.api.Tag` annotation with one or more tag names.
+        """.trimIndent(),
+    )
+        .convert { TestFilter.includeOrExcludeTag(tagExpression = it, mode = FilterMode.Include) }
+        .multiple()
+
+    private val excludeTagFilters by option("--exclude-tag",
+        metavar = "<tag_expression>",
+        help = """
+            Do not run tests matching the given tag expression.
+            The option can be repeated to exclude tests matching any of the expressions.
+
+            The value can be a single tag name, or a boolean expression combining tag names with the `!`, `&`, and `|`
+            operators (with parentheses for grouping). Example: `slow & !flaky`. The special `any()` and `none()` 
+            expressions are also supported, and respectively match tests that have any tag and tests that have no tags.
+
+            If the `--include-tag` option is also provided, tests are run if they match any of the include expressions
+            AND don't match any of the exclude expressions.
+
+            This option only affects JVM and Android tests; it is ignored for native and web tests.
+            
+            To tag a JVM test, use the `org.junit.jupiter.api.Tag` annotation with one or more tag names.
+        """.trimIndent(),
+    )
+        .convert { TestFilter.includeOrExcludeTag(tagExpression = it, mode = FilterMode.Exclude) }
         .multiple()
 
     private val jvmArgs by userJvmArgsOption(
@@ -126,7 +169,13 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
     override fun help(context: Context): String = "Run tests in the project"
 
     override suspend fun run(cliContext: ProjectCliContext, model: Model) {
-        val allTestFilters = includeTestFilters + includeClassFilters + excludeClassFilters
+        val allTestFilters = buildList {
+            addAll(includeTestFilters)
+            addAll(includeClassFilters)
+            addAll(excludeClassFilters)
+            addAll(includeTagFilters)
+            addAll(excludeTagFilters)
+        }
         withBackend(
             cliContext = cliContext,
             model = model,
