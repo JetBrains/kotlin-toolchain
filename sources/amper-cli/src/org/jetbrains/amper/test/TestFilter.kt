@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.test
@@ -36,7 +36,21 @@ sealed class TestFilter {
     ): TestFilter()
 
     /**
-     * A filter that includes or excludes a whole test class or top-level test suite function.
+     * A filter that includes a specific test class or top-level test suite function.
+     */
+    data class SpecificSuiteInclude(
+        /**
+         * The fully qualified name of the class or top-level test suite function.
+         * Nested classes are separated from their containing class using the '/' separator.
+         *
+         * Note: Kotlin identifiers may contain spaces and other symbols like `^$(){}+-=_#%&`.
+         * Therefore, they should be properly escaped when used in regexes.
+         */
+        val fullyQualifiedName: String,
+    ): TestFilter()
+
+    /**
+     * A filter that includes or excludes entire test classes or top-level test suite functions by pattern matching.
      */
     data class SuitePattern(
         /**
@@ -97,7 +111,11 @@ sealed class TestFilter {
         }
 
         fun includeOrExcludeSuite(pattern: String, mode: FilterMode): TestFilter =
-            SuitePattern(pattern = pattern, mode = mode)
+            if (mode == FilterMode.Exclude || "*" in pattern || "?" in pattern) {
+                SuitePattern(pattern = pattern, mode = mode)
+            } else {
+                SpecificSuiteInclude(fullyQualifiedName = pattern)
+            }
     }
 }
 

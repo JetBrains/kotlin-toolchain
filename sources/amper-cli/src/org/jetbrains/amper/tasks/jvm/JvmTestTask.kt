@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.tasks.jvm
 
-import com.github.ajalt.mordant.terminal.Terminal
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
@@ -59,7 +58,6 @@ class JvmTestTask(
     private val taskOutputRoot: TaskOutputRoot,
     private val tempRoot: AmperProjectTempRoot,
     private val buildOutputRoot: AmperBuildOutputRoot,
-    private val terminal: Terminal,
     private val runSettings: JvmTestRunSettings,
     private val incrementalCache: IncrementalCache,
     private val jdkProvider: JdkProvider,
@@ -124,14 +122,8 @@ class JvmTestTask(
             add("--fail-if-no-tests")
             add("--reports-dir=${reportsDir}")
 
-            val filterArguments = runSettings.testFilters.map { it.toJUnitArgument() }
-            addAll(filterArguments)
-            if (filterArguments.isEmpty() ||
-                filterArguments.any { it.startsWith("--include") || it.startsWith("--exclude") }) {
-                for (classesOutputRoot in compileTask.classesOutputRoots) {
-                    add("--scan-class-path=${classesOutputRoot}")
-                }
-            }
+            addAll(runSettings.testFilters.toJUnitSelectorAndFilterArgs(compileTask.classesOutputRoots))
+
             when (runSettings.testResultsFormat) {
                 TestResultsFormat.Pretty -> add("--details=summary") // disable default console tree output, just print the summary
                 TestResultsFormat.TeamCity -> add("--details=none") // TeamCity UI is the way to get the summary
@@ -248,26 +240,80 @@ class JvmTestTask(
         return result.outputFiles
     }
 
-    private fun TestFilter.toJUnitArgument(): String =
-        when (this) {
-            is TestFilter.SpecificTestInclude -> toJUnitSelectArgument()
-            is TestFilter.SuitePattern -> when (mode) {
-                FilterMode.Exclude -> "--exclude-classname=${pattern.slashToDollar().wildcardsToRegex()}"
-                FilterMode.Include -> when {
-                    "*" in pattern || "?" in pattern -> "--include-classname=${pattern.slashToDollar().wildcardsToRegex()}"
-                    // Note: using --select=nested-class:com.example.Enclosing/Nested as specified in the docs doesn't
-                    // work, but using the plain --select-class with a $ sign works fine...
-                    else -> "--select-class=${pattern.slashToDollar()}"
+    private fun List<TestFilter>.toJUnitSelectorAndFilterArgs(classpathRoots: List<Path>): List<String> {
+        val hasExactSelectors = any { it is TestFilter.SpecificTestInclude || it is TestFilter.SpecificSuiteInclude }
+        val hasMethodSelectors = any { it is TestFilter.SpecificTestInclude }
+        val hasIncludePatterns = any { it is TestFilter.SuitePattern && it.mode == FilterMode.Include }
+        val filterArguments = this@toJUnitSelectorAndFilterArgs.map {
+            it.toJUnitArgument(
+                // If there are explicit selectors, the class inclusion patterns would only filter stuff out of these
+                // selectors, but that's not the semantics of our command. We want explicit selectors and class pattern
+                // inclusions to be additive. Therefore, when there are both, we turn the selectors into filters, and
+                // then select the whole classpath with --scan-class-path (see below).
+                forceSelectorAsFilter = hasExactSelectors && hasIncludePatterns,
+                // If there are method selectors and class patterns filters, we will turn the method selectors into
+                // method name filters. Using both method filters and class filters will act as an AND, which means we
+                // will get the intersection instead of the union of the tests and classes (which is our command's
+                // semantics). To mitigate this, we turn the class filter into method filters (with * for the method
+                // name). Within one type of filter, the expressions are combined as OR, and we're fine.
+                forceMethodFilters = hasMethodSelectors && hasIncludePatterns,
+            )
+        }
+        return buildList {
+            addAll(filterArguments)
+            // The --include-*/--exclude-* arguments only narrow down the tests that were discovered, so we need to
+            // give JUnit something to discover in the first place. The --select-* arguments provide this selection,
+            // but if there are none, we need to scan the entire classpath for discovery.
+            if (filterArguments.none { it.startsWith("--select") }) {
+                for (classesOutputRoot in classpathRoots) {
+                    add("--scan-class-path=${classesOutputRoot}")
                 }
             }
         }
+    }
 
-    private fun TestFilter.SpecificTestInclude.toJUnitSelectArgument(): String {
+    private fun TestFilter.toJUnitArgument(
+        forceSelectorAsFilter: Boolean,
+        forceMethodFilters: Boolean,
+    ): String =
+        when (this) {
+            is TestFilter.SpecificTestInclude -> toJUnitSelectArgument(forceSelectorAsFilter)
+            is TestFilter.SpecificSuiteInclude -> if (forceSelectorAsFilter) {
+                if (forceMethodFilters) {
+                    "--include-methodname=${fullyQualifiedName.slashToDollar()}#.*"
+                } else {
+                    "--include-classname=${fullyQualifiedName.slashToDollar()}"
+                }
+            } else {
+                // Note: using --select=nested-class:com.example.Enclosing/Nested as specified in the docs doesn't
+                // work, but using the plain --select-class with a $ sign works fine...
+                "--select-class=${fullyQualifiedName.slashToDollar()}"
+            }
+            is TestFilter.SuitePattern -> when (mode) {
+                FilterMode.Include -> if (forceMethodFilters) {
+                    "--include-methodname=${pattern.slashToDollar().wildcardsToRegex()}#.*"
+                } else {
+                    "--include-classname=${pattern.slashToDollar().wildcardsToRegex()}"
+                }
+                FilterMode.Exclude -> "--exclude-classname=${pattern.slashToDollar().wildcardsToRegex()}"
+            }
+        }
+
+    private fun TestFilter.SpecificTestInclude.toJUnitSelectArgument(forceSelectorAsFilter: Boolean): String {
         // Note: using --select=nested-method:com.example.Enclosing/Nested.myTest as specified in the docs doesn't
         // work, but using the plain --select-method with a $ sign to separate the nested class works fine...
         val nestedClassSuffix = if (nestedClassName != null) "$$nestedClassName" else ""
+        val fqn = "$suiteFqn$nestedClassSuffix#$testName"
         val paramsList = if (paramTypes != null) "(${paramTypes.joinToString(",") { it.slashToDollar() }})" else ""
-        return "--select-method=$suiteFqn$nestedClassSuffix#$testName$paramsList"
+        return if (forceSelectorAsFilter) {
+            // the include filter doesn't support parameters
+            if (paramsList.isNotEmpty()) {
+                logger.warn("Parameter list is ignored when mixing an exact test filter with a class pattern: $fqn")
+            }
+            "--include-methodname=$fqn"
+        } else {
+            "--select-method=$fqn$paramsList"
+        }
     }
 
     private fun String.slashToDollar() = replace('/', '$')

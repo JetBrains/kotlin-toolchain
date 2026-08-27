@@ -42,9 +42,16 @@ private fun List<TestFilter>.toTestFilterArg(): String? {
 
 private data class KNativeTestFilter(val pattern: String, val mode: FilterMode)
 
+/**
+ * Converts this [TestFilter] to a Kotlin/Native test filter.
+ */
 private fun TestFilter.toKNativeTestFilter(): KNativeTestFilter = when (this) {
     is TestFilter.SpecificTestInclude -> KNativeTestFilter(
         pattern = toKotlinNativeFormat(),
+        mode = FilterMode.Include,
+    )
+    is TestFilter.SpecificSuiteInclude -> KNativeTestFilter(
+        pattern = "${fullyQualifiedName.replace('/', '.')}.*",
         mode = FilterMode.Include,
     )
     is TestFilter.SuitePattern -> KNativeTestFilter(

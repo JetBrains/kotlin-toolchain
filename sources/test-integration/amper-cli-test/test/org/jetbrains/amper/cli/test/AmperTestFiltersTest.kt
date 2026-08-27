@@ -17,7 +17,7 @@ import kotlin.test.fail
 class AmperTestFiltersTest : AmperCliTestBase() {
 
     @Test
-    fun `include test single (jvm-cli)`() = runSlowTest {
+    fun `include specific test (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("multiplatform-tests"),
             "test",
@@ -30,20 +30,7 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include test single with parentheses (jvm-cli)`() = runSlowTest {
-        val r = runCli(
-            projectDir = testProject("multiplatform-tests"),
-            "test",
-            "-m",
-            "jvm-cli",
-            "--include-test=com.example.jvmcli.MyClass1Test.test1()",
-        )
-        r.assertJUnitTestCount(expected = 1)
-        r.assertStdoutContainsLine("running MyClass1Test.test1")
-    }
-
-    @Test
-    fun `include test single (shared)`() = runSlowTest {
+    fun `include specific test (kmp)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("multiplatform-tests"),
             "test",
@@ -56,7 +43,20 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include test single with parentheses (shared)`() = runSlowTest {
+    fun `include specific test with empty parentheses (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "jvm-cli",
+            "--include-test=com.example.jvmcli.MyClass1Test.test1()",
+        )
+        r.assertJUnitTestCount(expected = 1)
+        r.assertStdoutContainsLine("running MyClass1Test.test1")
+    }
+
+    @Test
+    fun `include specific test with empty parentheses (kmp)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("multiplatform-tests"),
             "test",
@@ -69,7 +69,20 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include test single with 0 params (jvm-tests-with-params)`() = runSlowTest {
+    fun `include specific test in nested class (kmp)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "shared",
+            "--include-test=com.example.shared.EnclosingClass/NestedClass1.myNestedTest",
+        )
+        r.assertJUnitTestCount(expected = 1)
+        r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 2) // jvm + current platform
+    }
+
+    @Test
+    fun `include specific test overload with 0 params (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("jvm-tests-with-params"),
             "test",
@@ -80,7 +93,7 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include test single with 1 param (jvm-tests-with-params)`() = runSlowTest {
+    fun `include specific test overload with 1 param (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("jvm-tests-with-params"),
             "test",
@@ -91,7 +104,7 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include test single with 2 params (jvm-tests-with-params)`() = runSlowTest {
+    fun `include specific test overload with 2 params (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("jvm-tests-with-params"),
             "test",
@@ -102,7 +115,7 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include test in nested class with nested parameter`() = runSlowTest {
+    fun `include specific test in nested class with nested parameter (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("jvm-tests-with-params"),
             "test",
@@ -113,7 +126,7 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `run all parameterized tests (jvm-tests-with-params)`() = runSlowTest {
+    fun `run all tests with parameterized overloads (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("jvm-tests-with-params"),
             "test",
@@ -126,7 +139,7 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include test multiple (jvm-cli)`() = runSlowTest {
+    fun `include multiple specific tests (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("multiplatform-tests"),
             "test",
@@ -141,7 +154,22 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include class exact single (jvm-cli)`() = runSlowTest {
+    fun `include multiple specific tests (kmp)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "shared",
+            "--include-test=com.example.shared.WorldTest.doTest",
+            "--include-test=com.example.shared.SharedIntegrationTest.integrationTest",
+        )
+        r.assertJUnitTestCount(expected = 2)
+        r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2) // jvm + current platform
+        r.assertStdoutContainsLine("running SharedIntegrationTest.integrationTest", nOccurrences = 2) // jvm + current platform
+    }
+
+    @Test
+    fun `include specific class (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("multiplatform-tests"),
             "test",
@@ -156,7 +184,7 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include class exact single (shared)`() = runSlowTest {
+    fun `include specific class (kmp)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("multiplatform-tests"),
             "test",
@@ -169,7 +197,31 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include class exact multiple (jvm-cli)`() = runSlowTest {
+    fun `include specific nested class (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("jvm-tests-with-params"),
+            "test",
+            "--include-classes=com.example.testswithparams.OverloadsTest/NestedTest",
+        )
+        r.assertJUnitTestCount(expected = 1)
+        r.assertStdoutContainsLine("running OverloadsTest.NestedTest.test(NestedArgument)")
+    }
+
+    @Test
+    fun `include specific nested class (kmp)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "shared",
+            "--include-classes=com.example.shared.EnclosingClass/NestedClass1",
+        )
+        r.assertJUnitTestCount(expected = 1)
+        r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 2) // jvm + current platform
+    }
+
+    @Test
+    fun `include multiple specific classes (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("multiplatform-tests"),
             "test",
@@ -188,30 +240,13 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include exact test and include exact class (jvm-cli)`() = runSlowTest {
+    fun `include class pattern (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("multiplatform-tests"),
             "test",
             "-m",
             "jvm-cli",
-            "--include-test=com.example.jvmcli.MyClass1Test.test2",
-            "--include-classes=com.example.jvmcli.MyClass2Test",
-        )
-        r.assertJUnitTestCount(expected = 4)
-        r.assertStdoutContainsLine("running MyClass1Test.test2")
-        r.assertStdoutContainsLine("running MyClass2Test.test1")
-        r.assertStdoutContainsLine("running MyClass2Test.test2")
-        r.assertStdoutContainsLine("running MyClass2Test.test3")
-    }
-
-    @Test
-    fun `include class pattern (jvm-cli)`() = runSlowTest {
-        val r = runCli(
-            projectDir = testProject("multiplatform-tests"),
-            "test",
-            "-m",
-            "jvm-cli",
-            "--include-classes=com.example.jvmcli.MyClass*Test",
+            "--include-classes=com.example.jvmcli.MyClass*",
         )
         r.assertJUnitTestCount(expected = 6)
         r.assertStdoutContainsLine("running MyClass1Test.test1")
@@ -223,7 +258,7 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include class pattern (shared)`() = runSlowTest {
+    fun `include class pattern (kmp)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("multiplatform-tests"),
             "test",
@@ -235,79 +270,8 @@ class AmperTestFiltersTest : AmperCliTestBase() {
         r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2) // jvm + current platform
     }
 
-    // FIXME this should work. How to make JUnit accept it? It seems it doesn't consider "all tests" by default
     @Test
-    fun `exclude class exact single (jvm-cli)`() = runSlowTest {
-        val r = runCli(
-            projectDir = testProject("multiplatform-tests"),
-            "test",
-            "-m",
-            "jvm-cli",
-            "--exclude-classes=com.example.jvmcli.MyClass2Test",
-            assertEmptyStdErr = false, // some tests print to stderr
-        )
-        r.assertJUnitTestCount(expected = 4)
-        r.assertStdoutContainsLine("output line 1 in JvmIntegrationTest.integrationTest")
-        r.assertStdoutContainsLine("output line 2 in JvmIntegrationTest.integrationTest")
-        r.assertStdoutContainsLine("running MyClass1Test.test1")
-        r.assertStdoutContainsLine("running MyClass1Test.test2")
-        r.assertStdoutContainsLine("running MyClass1Test.test3")
-        assertEquals(listOf(
-            "error line 1 in JvmIntegrationTest.integrationTest",
-            "error line 2 in JvmIntegrationTest.integrationTest",
-        ), r.stderr.trim().lines())
-    }
-
-    @Test
-    fun `include pattern and exclude exact (jvm-cli)`() = runSlowTest {
-        val r = runCli(
-            projectDir = testProject("multiplatform-tests"),
-            "test",
-            "-m",
-            "jvm-cli",
-            "--include-classes=com.example.jvmcli.MyClass*Test",
-            "--exclude-classes=com.example.jvmcli.MyClass2Test",
-        )
-        r.assertJUnitTestCount(expected = 3)
-        r.assertStdoutContainsLine("running MyClass1Test.test1")
-        r.assertStdoutContainsLine("running MyClass1Test.test2")
-        r.assertStdoutContainsLine("running MyClass1Test.test3")
-    }
-
-    @Test
-    fun `include pattern and exclude exact (shared)`() = runSlowTest {
-        val r = runCli(
-            projectDir = testProject("multiplatform-tests"),
-            "test",
-            "-m",
-            "shared",
-            "--include-classes=com.example.shared.*",
-            "--exclude-classes=com.example.shared.SharedIntegrationTest",
-        )
-        r.assertJUnitTestCount(expected = 4)
-        r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2) // jvm + current platform
-        r.assertStdoutContainsLine("running EnclosingClass.enclosingClassTest", nOccurrences = 2) // jvm + current platform
-        r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 2) // jvm + current platform
-        r.assertStdoutContainsLine("running EnclosingClass.NestedClass2.myNestedTest", nOccurrences = 2) // jvm + current platform
-    }
-
-    @Disabled // not supported by JUnit Console Launcher
-    @Test
-    fun `include exact and exclude class (jvm-cli)`() = runSlowTest {
-        val r = runCli(
-            projectDir = testProject("multiplatform-tests"),
-            "test",
-            "-m",
-            "jvm-cli",
-            "--include-test=com.example.jvmcli.MyClass1Test.test2",
-            "--exclude-classes=com.example.jvmcli.MyClass1Test",
-        )
-        r.assertJUnitTestCount(expected = 1)
-        r.assertStdoutContainsLine("running MyClass1Test.test2")
-    }
-
-    @Test
-    fun `include pattern across multiple modules`() = runSlowTest {
+    fun `include class pattern across multiple modules`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("multiplatform-tests"),
             "test",
@@ -329,16 +293,44 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include exact nested class (shared)`() = runSlowTest {
+    fun `include multiple class patterns (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "jvm-cli",
+            "--include-classes=com.example.jvmcli.*Integration*",
+            "--include-classes=com.example.jvmcli.MyClass?Test",
+            assertEmptyStdErr = false, // some tests print to stderr
+        )
+        r.assertJUnitTestCount(expected = 7)
+        r.assertStdoutContainsLine("output line 1 in JvmIntegrationTest.integrationTest")
+        r.assertStdoutContainsLine("output line 2 in JvmIntegrationTest.integrationTest")
+        r.assertStdoutContainsLine("running MyClass1Test.test1")
+        r.assertStdoutContainsLine("running MyClass1Test.test2")
+        r.assertStdoutContainsLine("running MyClass1Test.test3")
+        r.assertStdoutContainsLine("running MyClass2Test.test1")
+        r.assertStdoutContainsLine("running MyClass2Test.test2")
+        r.assertStdoutContainsLine("running MyClass2Test.test3")
+        assertEquals(listOf(
+            "error line 1 in JvmIntegrationTest.integrationTest",
+            "error line 2 in JvmIntegrationTest.integrationTest",
+        ), r.stderr.trim().lines())
+    }
+
+    @Test
+    fun `include multiple class patterns (kmp)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("multiplatform-tests"),
             "test",
             "-m",
             "shared",
-            "--include-classes=com.example.shared.EnclosingClass/NestedClass1",
+            "--include-classes=com.example.shared.W?rld*",
+            "--include-classes=com.example.shared.*Integration*",
         )
-        r.assertJUnitTestCount(expected = 1)
-        r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 2) // jvm + current platform
+        r.assertJUnitTestCount(expected = 2)
+        r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2) // jvm + current platform
+        r.assertStdoutContainsLine("running SharedIntegrationTest.integrationTest", nOccurrences = 2) // jvm + current platform
     }
 
     @Test
@@ -356,20 +348,140 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include exact nested class method (shared)`() = runSlowTest {
+    fun `exclude specific class (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "jvm-cli",
+            "--exclude-classes=com.example.jvmcli.MyClass2Test",
+            assertEmptyStdErr = false, // some tests print to stderr
+        )
+        r.assertJUnitTestCount(expected = 4)
+        r.assertStdoutContainsLine("output line 1 in JvmIntegrationTest.integrationTest")
+        r.assertStdoutContainsLine("output line 2 in JvmIntegrationTest.integrationTest")
+        r.assertStdoutContainsLine("running MyClass1Test.test1")
+        r.assertStdoutContainsLine("running MyClass1Test.test2")
+        r.assertStdoutContainsLine("running MyClass1Test.test3")
+        assertEquals(listOf(
+            "error line 1 in JvmIntegrationTest.integrationTest",
+            "error line 2 in JvmIntegrationTest.integrationTest",
+        ), r.stderr.trim().lines())
+    }
+
+    @Test
+    fun `include specific test and specific class (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "jvm-cli",
+            "--include-test=com.example.jvmcli.MyClass1Test.test2",
+            "--include-classes=com.example.jvmcli.MyClass2Test",
+        )
+        r.assertJUnitTestCount(expected = 4)
+        r.assertStdoutContainsLine("running MyClass1Test.test2")
+        r.assertStdoutContainsLine("running MyClass2Test.test1")
+        r.assertStdoutContainsLine("running MyClass2Test.test2")
+        r.assertStdoutContainsLine("running MyClass2Test.test3")
+    }
+
+    @Test
+    fun `include class pattern and exclude exact class (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "jvm-cli",
+            "--include-classes=com.example.jvmcli.MyClass*Test",
+            "--exclude-classes=com.example.jvmcli.MyClass2Test",
+        )
+        r.assertJUnitTestCount(expected = 3)
+        r.assertStdoutContainsLine("running MyClass1Test.test1")
+        r.assertStdoutContainsLine("running MyClass1Test.test2")
+        r.assertStdoutContainsLine("running MyClass1Test.test3")
+    }
+
+    @Test
+    fun `include class pattern and exclude exact class (kmp)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("multiplatform-tests"),
             "test",
             "-m",
             "shared",
-            "--include-test=com.example.shared.EnclosingClass/NestedClass1.myNestedTest",
+            "--include-classes=com.example.shared.*",
+            "--exclude-classes=com.example.shared.SharedIntegrationTest",
         )
-        r.assertJUnitTestCount(expected = 1)
+        r.assertJUnitTestCount(expected = 4)
+        r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2) // jvm + current platform
+        r.assertStdoutContainsLine("running EnclosingClass.enclosingClassTest", nOccurrences = 2) // jvm + current platform
         r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 2) // jvm + current platform
+        r.assertStdoutContainsLine("running EnclosingClass.NestedClass2.myNestedTest", nOccurrences = 2) // jvm + current platform
     }
 
     @Test
-    fun `jvm exclude test module`() = runSlowTest {
+    fun `include specific test and include class pattern (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "jvm-cli",
+            "--include-test=com.example.jvmcli.MyClass1Test.test2",
+            "--include-classes=com.example.jvmcli.MyClass2*",
+        )
+        r.assertJUnitTestCount(expected = 4)
+        r.assertStdoutContainsLine("running MyClass1Test.test2")
+        r.assertStdoutContainsLine("running MyClass2Test.test1")
+        r.assertStdoutContainsLine("running MyClass2Test.test2")
+        r.assertStdoutContainsLine("running MyClass2Test.test3")
+    }
+
+    @Test
+    fun `include specific test and exclude other specific class (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "jvm-cli",
+            "--include-test=com.example.jvmcli.MyClass1Test.test2",
+            "--exclude-classes=com.example.jvmcli.MyClass2Test",
+        )
+        r.assertJUnitTestCount(expected = 1)
+        r.assertStdoutContainsLine("running MyClass1Test.test2")
+    }
+
+    @Test
+    fun `include specific test and exclude containing specific class (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "jvm-cli",
+            "--include-test=com.example.jvmcli.MyClass1Test.test2",
+            "--exclude-classes=com.example.jvmcli.MyClass1Test",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+        r.assertJUnitTestCount(expected = 0)
+    }
+
+    @Test
+    fun `include specific test and exclude containing class via pattern (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "jvm-cli",
+            "--include-test=com.example.jvmcli.MyClass1Test.test2",
+            "--exclude-classes=com.example.jvmcli.MyClass?Test",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+        r.assertJUnitTestCount(expected = 0)
+    }
+
+    @Test
+    fun `exclude module (jvm)`() = runSlowTest {
         val projectRoot = testProject("jvm-multimodule-tests")
         val result = runCli(projectDir = projectRoot, "test")
 
