@@ -50,6 +50,7 @@ class WasmJsBuildTestTask(
         val loaderMjs = createLoader()
         val scriptLines = scriptLines(loaderMjs.name)
 
+        //language=html
         taskOutputPath.path.resolve(TEST_PAGE_NAME).also { indexHtml ->
             indexHtml.writeText(
                 """
@@ -57,6 +58,7 @@ class WasmJsBuildTestTask(
             |<html>
             |<head>
             |    <meta charset="utf-8">
+            |    <link rel="icon" href="#" />
             |    <title>Kotlin Wasm Tests</title>
             |    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             |</head>
