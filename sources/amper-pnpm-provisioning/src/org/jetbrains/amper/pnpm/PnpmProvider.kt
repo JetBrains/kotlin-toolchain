@@ -11,7 +11,7 @@ import org.jetbrains.amper.core.extract.extractFileToCacheLocation
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.telemetry.use
-import java.nio.file.Path
+import kotlin.io.path.div
 
 class PnpmProvider(
     private val userCacheRoot: AmperUserCacheRoot,
@@ -21,7 +21,7 @@ class PnpmProvider(
 
     suspend fun downloadPnpm(
         version: String,
-    ): Path {
+    ): PnpmDist {
         return tracer.spanBuilder("Provision PNPM $version")
             .use { span ->
                 span.setAttribute("version", version)
@@ -47,10 +47,16 @@ class PnpmProvider(
                     url = "https://github.com/pnpm/pnpm/releases/download/v$version/pnpm-$osString-$archString.$extension",
                     userCacheRoot = userCacheRoot,
                 )
-                extractFileToCacheLocation(archiveFile = archive, amperUserCacheRoot = userCacheRoot)
-                    .resolve(
-                        "dist/pnpm.mjs"
-                    )
+                val distPath = extractFileToCacheLocation(archiveFile = archive, amperUserCacheRoot = userCacheRoot)
+
+                PnpmDist(
+                    distPath,
+                    if (OsFamily.current.isWindows) {
+                        distPath / "pnpm.exe"
+                    } else {
+                        distPath / "pnpm"
+                    },
+                )
             }
     }
 }

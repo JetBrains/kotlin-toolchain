@@ -12,7 +12,6 @@ import org.jetbrains.amper.core.extract.extractFileToCacheLocation
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.telemetry.use
-import java.nio.file.Path
 import kotlin.io.path.div
 
 /**
@@ -26,7 +25,7 @@ class NodeJsProvider(
 
     suspend fun downloadNodeJs(
         version: String,
-    ): Path {
+    ): NodeJsDist {
         return tracer.spanBuilder("Provision Node.JS $version")
             .use { span ->
                 span.setAttribute("version", version)
@@ -55,11 +54,14 @@ class NodeJsProvider(
                     ExtractOptions.STRIP_ROOT,
                 )
 
-                if (OsFamily.current.isWindows) {
-                    distribution / "node.exe"
-                } else {
-                    distribution / "bin" / "node"
-                }
+                NodeJsDist(
+                    distribution,
+                    if (OsFamily.current.isWindows) {
+                        distribution / "node.exe"
+                    } else {
+                        distribution / "bin" / "node"
+                    }
+                )
             }
     }
 }

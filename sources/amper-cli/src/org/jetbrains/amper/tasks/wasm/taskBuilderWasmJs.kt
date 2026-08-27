@@ -141,6 +141,7 @@ fun ProjectTasksBuilder.setupWasmJsTasks() {
                         context.userCacheRoot,
                         context.openTelemetry,
                     ),
+                    taskOutputPath = context.getTaskOutputPath(testTaskName),
                 ),
                 dependsOn = [buildAppTaskName, npmInstallTask]
             )

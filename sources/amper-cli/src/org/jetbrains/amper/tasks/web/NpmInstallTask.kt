@@ -87,16 +87,14 @@ class NpmInstallTask(
 
                 logger.debug("Generated package.json with ${uniqueNpmDependencies.size} npm dependencies at $packageJsonPath")
 
-                val nodeExecutable = nodeJsProvider.downloadNodeJs(NODE_JS_VERSION)
-                val pnpmMjs = pnpmProvider.downloadPnpm(PNPM_VERSION)
+                val pnpm = pnpmProvider.downloadPnpm(PNPM_VERSION).executable
 
                 spanBuilder("pnpm install")
                     .use {
                         val disableUpdateNotify = processRunner.runProcess(
                             workingDir = outputDir,
                             command = [
-                                nodeExecutable.pathString,
-                                pnpmMjs.pathString,
+                                pnpm.pathString,
                                 "config",
                                 "set",
                                 "--location=project",
@@ -119,8 +117,7 @@ class NpmInstallTask(
                         val result = processRunner.runProcess(
                             workingDir = outputDir,
                             command = [
-                                nodeExecutable.pathString,
-                                pnpmMjs.pathString,
+                                pnpm.pathString,
                                 "install"
                             ],
                             span = it,

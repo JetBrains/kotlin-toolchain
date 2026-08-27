@@ -1,6 +1,6 @@
 product: jvm/lib
 
-description: Node.js provisioning for Amper.
+description: pnpm provisioning for the Kotlin Toolchain.
 
 apply:
   - //sources/common.module-template.yaml

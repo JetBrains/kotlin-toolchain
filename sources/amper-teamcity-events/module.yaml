@@ -1,6 +1,6 @@
 product: jvm/lib
 
-description: Structured processing of teamcity events
+description: Structured processing of TeamCity events
 
 apply:
   - //sources/common.module-template.yaml

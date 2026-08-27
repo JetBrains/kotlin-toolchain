@@ -72,6 +72,7 @@ private const val QUIET_PERIOD_MS = 250
 
 private const val POLL_INTERVAL_MS = 50
 
+//language=js
 internal fun browserTestLoaderScript(testModuleFile: String): String = """
     |import * as testModule from './$testModuleFile';
     |
