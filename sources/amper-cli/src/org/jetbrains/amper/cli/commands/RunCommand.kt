@@ -30,6 +30,7 @@ import org.jetbrains.amper.cli.options.moduleOption
 import org.jetbrains.amper.cli.options.userJvmArgsOption
 import org.jetbrains.amper.cli.project.preparePluginsAndReadModel
 import org.jetbrains.amper.cli.terminal.interactiveSelectList
+import org.jetbrains.amper.cli.terminal.promptModuleSelection
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withBackend
 import org.jetbrains.amper.compose.reload.HotReloadDelegate
@@ -90,7 +91,9 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
         """.trimIndent()
     )
 
-    private val jvmMainClass by option("--main-class", help = "The fully-qualified name of the main class to run. This option is only applicable for JVM applications. By default, the main class is read from the module configuration file, or is determined automatically by convention, searching for a main.kt file.")
+    private val jvmMainClass by option("--main-class", help = "The fully-qualified name of the main class to run. " +
+            "This option is only applicable for JVM applications. By default, the main class is read from the module " +
+            "configuration file, or is determined automatically by convention, searching for a main.kt file.")
 
     private val workingDir by option("--working-dir", help = "The working directory for the application run. " +
             "By default, the current directory is used. This option is only applicable for JVM and native desktop " +
@@ -302,6 +305,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
 
     fun Model.selectRunTarget(): RunTarget {
         val moduleToRun = selectSingleRunnableAppModule()
+        checkModuleIsRunnable(moduleToRun)
         val platformToRun = selectPlatformToRun(moduleToRun)
 
         if (composeHotReloadMode && !isComposeEnabledFor(moduleToRun)) {
@@ -325,12 +329,10 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
             if (!terminal.terminalInfo.interactive) {
                 failOnAmbiguousModules(runnableCandidates)
             }
-            return terminal.interactiveSelectList(
-                title = "Multiple modules are available to run, please choose:",
-                items = runnableCandidates,
-                nameSelector = { it.userReadableName },
-                filterable = true,
-            ) ?: throw PrintMessage("No module selected, run operation aborted")
+            return terminal.promptModuleSelection(
+                promptMessage = "Multiple modules are available to run, please choose:",
+                choices = runnableCandidates,
+            )
         }
         return runnableCandidates.single()
     }
@@ -424,6 +426,31 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
         return runnableCandidates
     }
 
+    private fun Model.checkModuleIsRunnable(module: AmperModule) {
+        // It's also OK to run libraries with a custom jvmMainClass (e.g. to test Compose components)
+        if (module.type.isApplication() || jvmMainClass != null && (platform == Platform.JVM || (platform == null && Platform.JVM in module.leafPlatforms))) {
+            return // all good
+        }
+        val applicationModules = modules.filter { it.type.isApplication() }
+        userReadableError {
+            appendLine(
+                "Module '${module.userReadableName}' cannot be run because it is not an " +
+                        "application module (its product type is '${module.type.schemaValue}')."
+            )
+            if (applicationModules.isEmpty()) {
+                appendLine("""
+                    There are actually no application modules in the project. To get something running, first create a module with an application product type.
+                    See the documentation for more info: https://kotlin-toolchain.org/dev/user-guide/product-types
+                """.trimIndent())
+            } else {
+                appendLine("You can instead pick one of the existing application modules of your project:")
+                applicationModules.sortedBy { it.userReadableName }.forEach { module ->
+                    appendLine("  - ${module.userReadableName}")
+                }
+            }
+        }
+    }
+
     private fun failOnAmbiguousModules(runnableCandidates: List<AmperModule>): Nothing {
         val canBeSelectedUsingPlatform = runnableCandidates
             .flatMap { it.leafPlatforms intersect currentHostRunnablePlatforms }
@@ -433,11 +460,13 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
             }
 
         userReadableError {
-            append("There are several matching application modules in the project. Please specify one with the ")
+            append("There are several")
+            if (platform != null || deviceId != null || composeHotReloadMode) {
+                append(" matching")
+            }
+            append(" application modules in the project. Please specify one with the '--module'")
             if (canBeSelectedUsingPlatform && platform == null) {
-                append("'--platform' or '--module'")
-            } else {
-                append("'--module'")
+                append(" or '--platform'")
             }
             appendLine(" option.")
             appendLine()

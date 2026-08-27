@@ -7,6 +7,7 @@ package org.jetbrains.amper.cli.test
 import kotlinx.coroutines.launch
 import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
+import org.jetbrains.amper.cli.test.utils.assertStderrDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
@@ -349,10 +350,67 @@ ARG2: <${argumentsWithSpecialChars[2]}>"""
         )
 
         result.assertStderrContains("""
-            ERROR: Module 'jvm-publish' cannot be run with the 'run' command because it's a library module. Please use an application product type.
-            See the documentation for more info:
-            https://kotlin-toolchain.org/dev/user-guide/product-types
+            ERROR: Module 'jvm-publish' cannot be run because it is not an application module (its product type is 'jvm/lib').
+            There are actually no application modules in the project. To get something running, first create a module with an application product type.
+            See the documentation for more info: https://kotlin-toolchain.org/dev/user-guide/product-types
         """.trimIndent())
+    }
+
+    @Test
+    fun `run fails if the module explicitly selected with --module is not an application`() = runSlowTest {
+        val projectRoot = testProject("multi-module")
+
+        val result = runCli(
+            projectDir = projectRoot,
+            "run", "--module", "shared",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        result.assertStderrContains("""
+            ERROR: Module 'shared' cannot be run because it is not an application module (its product type is 'jvm/lib').
+            You can instead pick one of the existing application modules of your project:
+              - app
+        """.trimIndent())
+    }
+
+    @Test
+    fun `run fails if the module explicitly selected with --module is not an application (no app modules at all)`() = runSlowTest {
+        val projectRoot = testProject("multi-module-libs-only")
+
+        val result = runCli(
+            projectDir = projectRoot,
+            "run", "--module", "lib1",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        result.assertStderrContains("""
+            ERROR: Module 'lib1' cannot be run because it is not an application module (its product type is 'jvm/lib').
+            There are actually no application modules in the project. To get something running, first create a module with an application product type.
+            See the documentation for more info: https://kotlin-toolchain.org/dev/user-guide/product-types
+        """.trimIndent())
+    }
+
+    @Test
+    fun `run reports the non-application module before the unsupported platform`() = runSlowTest {
+        val projectRoot = testProject("multi-module")
+
+        // The 'shared' module is a jvm/lib, and doesn't support linuxX64 either. We want the error about the product
+        // type, because that's the more fundamental problem: choosing another platform would not help.
+        val result = runCli(
+            projectDir = projectRoot,
+            "run", "--module", "shared", "--platform", "linuxX64",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        result.assertStderrContains("""
+            ERROR: Module 'shared' cannot be run because it is not an application module (its product type is 'jvm/lib').
+            You can instead pick one of the existing application modules of your project:
+              - app
+        """.trimIndent())
+        result.assertStderrDoesNotContain("linuxX64")
     }
 
     @Test
@@ -379,7 +437,7 @@ ARG2: <${argumentsWithSpecialChars[2]}>"""
             assertEmptyStdErr = false,
         )
         result2.assertStderrContains("""
-            There are several matching application modules in the project. Please specify one with the '--module' option.
+            There are several application modules in the project. Please specify one with the '--module' option.
             
             Runnable application modules:
               js-app

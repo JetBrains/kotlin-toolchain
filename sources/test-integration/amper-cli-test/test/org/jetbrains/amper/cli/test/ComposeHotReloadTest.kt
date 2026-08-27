@@ -52,7 +52,7 @@ class ComposeHotReloadTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `compose hot reload run wires agent env vars and properties for for jvm-lib`() = runSlowTest {
+    fun `compose hot reload run wires agent env vars and properties for jvm-lib`() = runSlowTest {
         val result = runCli(
             projectDir = testProject("compose-hot-reload-jvm-lib"),
             "run",

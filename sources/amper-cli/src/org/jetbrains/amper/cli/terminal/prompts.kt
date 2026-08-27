@@ -4,10 +4,12 @@
 
 package org.jetbrains.amper.cli.terminal
 
+import com.github.ajalt.clikt.core.PrintMessage
 import com.github.ajalt.mordant.input.interactiveSelectList
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.terminal.prompt
 import com.github.ajalt.mordant.widgets.SelectList
+import org.jetbrains.amper.frontend.AmperModule
 
 /**
  * Displays a list of items and allows the user to select one with the arrow keys and enter.
@@ -58,3 +60,18 @@ internal fun Terminal.promptBoolean(
         else -> null
     }
 }
+
+/**
+ * Prompts the user to select a single module, and returns that module.
+ *
+ * **Important**: make sure to check [com.github.ajalt.mordant.terminal.TerminalInfo.interactive] first.
+ */
+internal fun Terminal.promptModuleSelection(
+    promptMessage: String,
+    choices: List<AmperModule>,
+): AmperModule = interactiveSelectList(
+    title = promptMessage,
+    items = choices,
+    nameSelector = { it.userReadableName },
+    filterable = true,
+) ?: throw PrintMessage("No module selected, operation aborted")
