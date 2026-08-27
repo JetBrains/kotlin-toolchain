@@ -63,4 +63,6 @@ enum class TreeDiagnosticId : DiagnosticId {
     MissingTaskActionType,
     WrongDependencyFormat,
     SwiftPMDependencyIsNotSupported,
+    SwiftPMDependencyInNonApplePlatform,
+    TestOnlySwiftPMDependency,
 }

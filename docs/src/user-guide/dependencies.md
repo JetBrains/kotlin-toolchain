@@ -453,3 +453,108 @@ The effects are the following:
       - $libs.ktor.client.core
     ```
     </div>
+
+## SwiftPM dependencies
+
+[Multiplatform modules](../user-guide/multiplatform.md) with Apple platforms can import Objective-C APIs from
+Objective-C and Swift code using SwiftPM dependencies:
+
+```yaml
+product: ios/app
+
+dependencies:
+  - swiftPackage:
+    repository: "https://github.com/firebase/firebase-ios-sdk.git"
+    version: "12.17.0"
+    products: [ "FirebaseAnalytics" ]
+```
+
+The list of products available in the package can often be found in the Package documentation or in the 
+[Package.swift file](https://github.com/firebase/firebase-ios-sdk/blob/33a468adfdb75b53f05a37e7c886ca7c962b5c17/Package.swift#L43).
+
+SwiftPM integration is based on importing Clang modules using [native interop](../user-guide/advanced/native-interop.md). 
+The import mechanism automatically discovers Clang modules in specified Swift packages and makes all 
+available modules accessible to Kotlin code — similar to how API visibility works in Swift and Objective-C.
+
+Imported Objective-C APIs are contained in namespaces that start with the `swiftPMImport` prefix and end with the module 
+name:
+
+```kotlin
+// app/src/app.kt
+import swiftPMImport.app.FIRAnalytics
+import swiftPMImport.app.FIRApp
+```
+
+### Set platform constraints
+
+Some SwiftPM dependencies may not compile or provide valid APIs for all Apple platforms in your module. For example, the 
+Google Maps SDK currently only supports iOS targets. In this case add the SwiftPM dependency to a specific `dependencies`
+block:
+
+```yaml
+product:
+  type: kmp/lib
+  platforms: [iosSimulatorArm64, iosArm64, macosArm64]
+
+dependencies@ios:
+  - swiftPackage:
+      repository: "https://github.com/googlemaps/ios-maps-sdk.git"
+      version: "10.6.0"
+      products: [ "GoogleMaps" ]
+```
+
+The shorthand notation for the version means a [strict version](https://docs.swift.org/swiftpm/documentation/packagedescription/package/dependency/package(url:exact:)/#discussion) 
+of dependency will apply. Other types of dependencies can be specified using the `type` property:
+```yaml
+  - swiftPackage:
+      repository: "https://github.com/googlemaps/ios-maps-sdk.git"
+      version: 
+        value: "10.6.0" # or branch_foo / revision_sha
+        type: from # or branch / revision
+```
+
+### Importing local Swift packages
+
+The SwiftPM import mechanism also allows importing Swift packages from the local file system.
+
+```yaml
+product: ios/app
+
+dependencies:
+  - localSwiftPackage:
+    path: /path/to/CryptoKitWrapper
+    products: [ "CryptoKitWrapper" ]
+```
+
+Such packages can be useful to wrap APIs only accessible in Swift:
+
+```swift
+// /path/to/CryptoKitWrapper/Sources/CryptoKitWrapper/CryptoKitWrapper.swift
+// CryptoKit is a system library with Swift APIs that are not accessible to Objective-C
+import CryptoKit
+import Foundation
+
+@objc public class CryptoKitWrapper: NSObject {
+    @objc public static func sha256(data: NSData) -> NSString {
+        return SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() as NSString
+    }
+}
+```
+
+and called in Kotlin/Native code:
+
+```kotlin
+// src@apple/sha256.kt
+import kotlinx.cinterop.ExperimentalForeignApi
+import platform.Foundation.NSString
+import platform.Foundation.NSUTF8StringEncoding
+import platform.Foundation.dataUsingEncoding
+import swiftPMImport.lib.CryptoKitWrapper
+
+fun sha256(value: String): String {
+    @OptIn(ExperimentalForeignApi::class)
+    return CryptoKitWrapper.sha256WithData(
+        (value as NSString).dataUsingEncoding(NSUTF8StringEncoding)!!
+    )
+}
+```

@@ -1,0 +1,13 @@
+product:
+  type: kmp/lib
+  platforms: [iosSimulatorArm64, iosArm64, macosArm64]
+
+dependencies@ios:
+  - swiftPackage:
+      repository: "https://github.com/googlemaps/ios-maps-sdk.git"
+      version: "10.6.0"
+      products: [ "GoogleMaps" ]
+
+settings:
+  kotlin:
+    version: "2.4.0"

@@ -12,6 +12,10 @@ let package = Package(
             name: "packageProduct2",
             targets: ["AnotherTarget"]
         ),
+        .library(
+            name: "cppProduct",
+            targets: ["cppTarget"]
+        )
     ],
     targets: [
         .target(
@@ -26,5 +30,8 @@ let package = Package(
         .target(
             name: "AnotherTarget"
         ),
+        .target(
+            name: "cppTarget"
+        )
     ]
 )

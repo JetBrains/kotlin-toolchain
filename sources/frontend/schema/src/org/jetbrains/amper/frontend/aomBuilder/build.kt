@@ -17,6 +17,7 @@ import org.jetbrains.amper.frontend.Notation
 import org.jetbrains.amper.frontend.RemoteSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.VersionCatalog
 import org.jetbrains.amper.frontend.aomBuilder.plugins.buildAndApplyPlugins
+import org.jetbrains.amper.frontend.aomBuilder.swiftpm.diagnoseSwiftPMDependencyInNonApplePlatform
 import org.jetbrains.amper.frontend.api.Trace
 import org.jetbrains.amper.frontend.api.asTrace
 import org.jetbrains.amper.frontend.catalogs.builtInCatalog
@@ -25,7 +26,6 @@ import org.jetbrains.amper.frontend.contexts.DefaultInheritance
 import org.jetbrains.amper.frontend.contexts.MainTestInheritance
 import org.jetbrains.amper.frontend.contexts.PathCtx
 import org.jetbrains.amper.frontend.contexts.PathInheritance
-import org.jetbrains.amper.frontend.contexts.PlatformCtx
 import org.jetbrains.amper.frontend.contexts.plus
 import org.jetbrains.amper.frontend.contexts.tryReadMinimalModule
 import org.jetbrains.amper.frontend.diagnostics.AomModelDiagnosticFactories
@@ -234,6 +234,9 @@ private fun buildAmperModules(
                 module.moduleFile.parent.toNioPath(),
             )
         }
+
+        diagnoseSwiftPMDependencyInNonApplePlatform(moduleFragments = moduleFragments)
+
         val [leaves, testLeaves] = moduleFragments.filterIsInstance<DefaultLeafFragment>().partition { !it.isTest }
 
         module.module.apply {

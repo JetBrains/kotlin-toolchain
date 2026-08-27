@@ -74,13 +74,15 @@ sealed class SwiftPMDependency {
 
         @Serializable
         sealed class Repository {
+            abstract val value: String
+
             @Serializable
             @SerialName("org.jetbrains.kotlin.gradle.plugin.mpp.apple.swiftimport.SwiftPMDependency.Remote.Repository.Id")
-            data class Id(val value: String) : Repository()
+            data class Id(override val value: String) : Repository()
 
             @Serializable
             @SerialName("org.jetbrains.kotlin.gradle.plugin.mpp.apple.swiftimport.SwiftPMDependency.Remote.Repository.Url")
-            data class Url(val value: String) : Repository()
+            data class Url(override val value: String) : Repository()
         }
     }
 

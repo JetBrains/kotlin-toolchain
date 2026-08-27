@@ -61,8 +61,8 @@ Supported dependency types:
 | `- $<catalog.key>`                                                  | Dependency from [a dependency catalog](../user-guide/dependencies.md#library-catalogs).                                                                                              |
 | `- bom: <groupId>:<artifactId>:<version>`                           | Dependency on [a BOM](../user-guide/dependencies.md#using-a-maven-bom).                                                                                                              |
 | `- bom: $<catalog.key>`                                             | Dependency on [a BOM from a dependency catalog](../user-guide/dependencies.md#library-catalogs).                                                                                     |
-| `- swiftPackage: ...`                                               | Dependency on a remote Swift package, only for [iOS apps](../user-guide/product-types/ios-app.md).                                                                                   |
-| `- localSwiftPackage: <path>`                                       | Dependency on a local Swift package, only for [iOS apps](../user-guide/product-types/ios-app.md).                                                                                    |
+| `- swiftPackage: ...`                                               | Dependency on a remote Swift package, only for [multiplatform modules with Apple platforms](../user-guide/dependencies.md#swiftpm-dependencies).                                     |
+| `- localSwiftPackage: ...`                                          | Dependency on a local Swift package, only for [multiplatform modules with Apple platforms](../user-guide/dependencies.md#swiftpm-dependencies).                                      |
 
 Each dependency (except BOM) has the following attributes:
 

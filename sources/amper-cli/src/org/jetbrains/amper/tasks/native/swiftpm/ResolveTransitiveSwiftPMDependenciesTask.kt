@@ -7,6 +7,7 @@ package org.jetbrains.amper.tasks.native.swiftpm
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
+import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
@@ -23,6 +24,7 @@ import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.inputStream
+import kotlin.io.path.notExists
 import kotlin.io.path.outputStream
 
 class SwiftPMDependenciesArtifact(
@@ -54,10 +56,18 @@ class ResolveTransitiveSwiftPMDependenciesTask(
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+        val resolution = transitiveSwiftPMDependenciesResolver.resolve()
+        val missingLocalPackages = resolution.localPackageDependencies.filter {
+            it.absolutePath.notExists()
+        }
+        if (missingLocalPackages.isNotEmpty()) {
+            userReadableError("The following local packages don't exist: ${missingLocalPackages.joinToString(", ") { it.absolutePath.toString() }}")
+        }
+
         artifact.path.parent.createDirectories()
         artifact.path.outputStream().use {
             @OptIn(ExperimentalSerializationApi::class)
-            swiftPMJson.encodeToStream(transitiveSwiftPMDependenciesResolver.resolve(), it)
+            swiftPMJson.encodeToStream(resolution, it)
         }
         return EmptyTaskResult
     }

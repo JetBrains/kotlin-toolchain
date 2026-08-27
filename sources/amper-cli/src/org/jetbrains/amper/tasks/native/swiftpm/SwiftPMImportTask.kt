@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.cli.telemetry.setAmperModule
 import org.jetbrains.amper.cli.userReadableError
@@ -23,6 +24,7 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.PrintToTerminalProcessOutputListener
+import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.pipe.ProcessPipe
 import org.jetbrains.amper.processes.runProcess
@@ -37,6 +39,7 @@ import org.jetbrains.amper.tasks.artifacts.api.ArtifactSelector
 import org.jetbrains.amper.tasks.artifacts.api.ArtifactType
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.ios.IosBuildTask
+import org.jetbrains.amper.tasks.native.NativeCInteropGenerateKlibTask
 import org.jetbrains.amper.tasks.native.swiftpm.GenerateSwiftPMImportPackageTask.Companion.SYNTHETIC_IMPORT_DYLIB
 import org.jetbrains.amper.tasks.native.swiftpm.GenerateSwiftPMImportPackageTask.Companion.SYNTHETIC_IMPORT_TARGET_MAGIC_NAME
 import org.jetbrains.amper.tasks.native.swiftpm.XcodebuildDefFileUtils.DUMP_FILE_ARGS_SEPARATOR
@@ -104,6 +107,9 @@ internal class SwiftPMImportTask(
                 buildOutputRoot = buildOutputRoot,
                 fragment = appleFragment,
                 conventionPath = defFileOutputPath(appleFragment),
+                // Some SwiftPM dependencies import C++ code which requires "skipNonImportableModules" support
+                recommendedKotlinCompilerVersionOnFailingCinterop = ComparableVersion("2.4.0"),
+                macroNamesCollectingMode = NativeCInteropGenerateKlibTask.MacroNamesCollectingMode.LIBCLANGEXT_PARALLEL,
             )
         }
         cinteropDefArtifacts
@@ -182,7 +188,14 @@ internal class SwiftPMImportTask(
                 stdErrPrefix = "SwiftPM import xcodebuild/err",
                 stdoutLoggingLevel = Level.DEBUG,
                 stderrLoggingLevel = Level.DEBUG,
-            ),
+            ) + object : ProcessOutputListener {
+                override fun onStdoutLine(line: String, pid: Long) {
+                    if ("not found in package" in line) {
+                        logger.error(line)
+                    }
+                }
+                override fun onStderrLine(line: String, pid: Long) {}
+            },
         )
 
         coroutineScope {

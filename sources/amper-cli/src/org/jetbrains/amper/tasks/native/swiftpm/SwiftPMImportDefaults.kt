@@ -5,8 +5,8 @@
 package org.jetbrains.amper.tasks.native.swiftpm
 
 object SwiftPMImportDefaults {
-    const val IOS_DEPLOYMENT_TARGET_DEFAULT = "15.0"
+    const val IOS_DEPLOYMENT_TARGET_DEFAULT = "16.0"
     const val MACOS_DEPLOYMENT_TARGET_DEFAULT = "12.0"
     const val WATCHOS_DEPLOYMENT_TARGET_DEFAULT = "9.0"
-    const val TVOS_DEPLOYMENT_TARGET_DEFAULT = "15.0"
+    const val TVOS_DEPLOYMENT_TARGET_DEFAULT = "16.0"
 }

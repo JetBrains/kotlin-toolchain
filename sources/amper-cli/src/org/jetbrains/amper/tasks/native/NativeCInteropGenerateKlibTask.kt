@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.tasks.native
 
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.UserReadableError
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
@@ -62,6 +63,23 @@ internal class NativeCInteropGenerateKlibTask(
         require(platform.isLeaf) { "Expected a leaf platform, got: $platform" }
     }
 
+    enum class MacroNamesCollectingMode {
+        LEGACY,
+        LIBCLANGEXT,
+        LIBCLANGEXT_PARALLEL;
+
+        val value: String
+            get() = when (this) {
+                LEGACY -> "legacy"
+                LIBCLANGEXT -> "libclangext"
+                LIBCLANGEXT_PARALLEL -> "libclangext_parallel"
+            }
+
+        companion object {
+            val OPTION = "-Xmacro-collection-impl"
+        }
+    }
+
     private val leafFragment = module.leafFragments.first { it.platform == platform && !isTest }
 
     private val defFileArtifacts by Selectors.fromMatchingFragments(
@@ -83,20 +101,26 @@ internal class NativeCInteropGenerateKlibTask(
     override suspend fun run(
         dependenciesResult: List<TaskResult>,
     ): TaskResult {
+        class InputDefFile(
+            val path: Path,
+            val recommendedKotlinCompilerVersionOnFailingCinterop: ComparableVersion? = null,
+            val macroNamesCollectingMode: MacroNamesCollectingMode? = null,
+        )
+
         val inputDefFiles = buildList {
             defFileArtifacts.forEach {
-                add(it.path)
+                add(InputDefFile(it.path, it.recommendedKotlinCompilerVersionOnFailingCinterop, it.macroNamesCollectingMode))
             }
             for (fragment in fragments) {
                 val path = fragment.cinteropPath?.takeIf { it.isDirectory() } ?: continue
-                addAll(path.listDirectoryEntries("*.def"))
+                addAll(path.listDirectoryEntries("*.def").map { InputDefFile(it) })
             }
         }
 
         inputDefFiles.distinctBy(
-            selector = { it.nameWithoutExtension },
+            selector = { it.path.nameWithoutExtension },
             onDuplicates = { name, entries ->
-                val conflictingPaths = entries.joinToString { it.absolutePathString() }
+                val conflictingPaths = entries.joinToString { it.path.absolutePathString() }
                 userReadableError("Got multiple cinterop definitions with the name `$name`: $conflictingPaths")
             }
         )
@@ -111,16 +135,17 @@ internal class NativeCInteropGenerateKlibTask(
         val kotlinCompilerVersion = targetLeafFragment.serializableKotlinSettings().compilerVersion
 
         val results = inputDefFiles.mapConcurrently { defFile ->
-            val cinteropName = defFile.nameWithoutExtension
+            val cinteropName = defFile.path.nameWithoutExtension
             try {
-                val includeDir = defFile.parent.resolve("include").takeIf { it.exists() }
+                val includeDir = defFile.path.parent.resolve("include").takeIf { it.exists() }
                 incrementalCache.executeForFiles(
                     key = "${taskName.id.value}-$cinteropName",
                     inputValues = mapOf(
                         "target" to platform.nameForCompiler,
                         "kotlinVersion" to kotlinCompilerVersion,
+                        "macroNamesCollectingMode" to (defFile.macroNamesCollectingMode?.value ?: "none"),
                     ),
-                    inputFiles = listOf(defFile) + listOfNotNull(includeDir),
+                    inputFiles = listOf(defFile.path) + listOfNotNull(includeDir),
                 ) {
                     val outputKlib = outputKlibsDirectoryArtifact.path / module.cinteropKlibFileName(cinteropName)
                     outputKlib.createParentDirectories()
@@ -129,7 +154,7 @@ internal class NativeCInteropGenerateKlibTask(
                         downloadNativeCompiler(kotlinCompilerVersion, userCacheRoot, jdkProvider)
                     val args = buildList {
                         add("-def")
-                        add(defFile.pathString)
+                        add(defFile.path.pathString)
                         add("-target")
                         add(platform.nameForCompiler)
                         add("-o")
@@ -142,6 +167,10 @@ internal class NativeCInteropGenerateKlibTask(
                             add("-compiler-option")
                             add("-I${it.absolutePathString()}")
                         }
+                        if (defFile.macroNamesCollectingMode != null && ComparableVersion(kotlinCompilerVersion) >= ComparableVersion("2.4.20-RC2")) {
+                            add(MacroNamesCollectingMode.OPTION)
+                            add(defFile.macroNamesCollectingMode.value)
+                        }
                     }
 
                     logger.infoNoConsole("Running cinterop '$cinteropName' for platform '${platform.pretty}'...")
@@ -150,8 +179,15 @@ internal class NativeCInteropGenerateKlibTask(
                     [outputKlib]
                 }.single().let { CinteropResult(it) }
             } catch (e: UserReadableError) {
+                val message = buildString {
+                    if (defFile.recommendedKotlinCompilerVersionOnFailingCinterop != null && ComparableVersion(kotlinCompilerVersion) < defFile.recommendedKotlinCompilerVersionOnFailingCinterop) {
+                        appendLine("cinterop '${cinteropName}' should run with Kotlin version ${defFile.recommendedKotlinCompilerVersionOnFailingCinterop} or higher. Please update your Kotlin version.")
+                    }
+                    appendLine(e.message)
+                }
+
                 if (ignorePlatformFailures) {
-                    logger.warn(e.message)
+                    logger.warn(message)
                     CinteropResult(
                         // A marker for the commonizer to include the failed target anyway
                         outputFile = (outputKlibsDirectoryArtifact.path /
@@ -160,7 +196,7 @@ internal class NativeCInteropGenerateKlibTask(
                         isSuccess = false,
                     )
                 } else {
-                    logger.error(e.message)
+                    logger.error(message)
                     CinteropResult(null, isSuccess = false)
                 }
             }

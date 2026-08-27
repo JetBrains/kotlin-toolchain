@@ -8,6 +8,7 @@ import io.opentelemetry.sdk.trace.data.SpanData
 import iosUtils.IOSBaseTest
 import iosUtils.SimulatorManager
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.amper.cli.test.utils.assertErrors
 import org.jetbrains.amper.processes.ProcessLeak
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
@@ -18,6 +19,7 @@ import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.processes.TestReporterProcessOutputListener
 import org.jetbrains.amper.test.spans.SpansTestCollector
 import org.jetbrains.amper.test.spans.spansNamed
+import org.slf4j.event.Level
 import kotlin.collections.mutableListOf
 import kotlin.io.path.appendText
 import kotlin.io.path.div
@@ -278,6 +280,18 @@ open class SwiftPMImportTests : IOSBaseTest() {
     }
 
     @Test
+    fun `smoke test google maps integration`() = runBlocking {
+        val project = copyProjectToTempDir(ProjectSource.Local(Dirs.amperTestProjectsRoot / "swiftpm-integration-tests/google-maps"))
+        runAmper(
+            workingDir = project,
+            args = listOf("build"),
+            environment = baseEnvironmentForWrapper(),
+            assertEmptyStdErr = false,
+        )
+        Unit
+    }
+
+    @Test
     fun `smoke test transitive SwiftPM dependencies`() = runBlocking {
         val project =
             copyProjectToTempDir(ProjectSource.Local(Dirs.amperTestProjectsRoot / "swiftpm-integration-tests/transitive-swiftpm-dependency"))
@@ -504,6 +518,196 @@ open class SwiftPMImportTests : IOSBaseTest() {
     @Test
     fun `test incremental dynamic linkage and test runs on iOS Simulator and macOS`() = runBlocking {
         testIncrementalLinkageAndIncrementalTestRuns("dynamic")
+    }
+
+    @Test
+    fun `test misspecified product name error - prints to log`() = runBlocking {
+        val project = copyProjectToTempDir(ProjectSource.Local(Dirs.amperTestProjectsRoot / "swiftpm-integration-tests/direct-local-swiftpm-dependency"))
+        val moduleFile = project.resolve("module.yaml")
+        moduleFile.writeText(
+            """
+                product: ios/app
+
+                dependencies:
+                  - localSwiftPackage:
+                      path: "packageDependency"
+                      products: [ "nonExistingProduct" ]
+                
+                settings:
+                  kotlin:
+                    version: "2.4.0"
+            """.trimIndent()
+        )
+
+        assertContains(
+            runAmper(
+                workingDir = project,
+                args = listOf("build"),
+                environment = baseEnvironmentForWrapper(),
+                assertEmptyStdErr = false,
+                expectedExitCode = 1,
+            ).stderr,
+            "ERROR product 'nonExistingProduct' required by package 'kotlinmultiplatformlinkedpackagedylib' target 'KotlinMultiplatformLinkedPackageDylib' not found in package 'packageDependency'",
+        )
+    }
+
+    @Test
+    fun `test cinterop versions before and after skipNonImportableModules`() = runBlocking {
+        val project = copyProjectToTempDir(ProjectSource.Local(Dirs.amperTestProjectsRoot / "swiftpm-integration-tests/direct-local-swiftpm-dependency"))
+        val moduleFile = project.resolve("module.yaml")
+        moduleFile.writeText(
+            """
+                product: ios/app
+
+                dependencies:
+                  - localSwiftPackage:
+                      path: "packageDependency"
+                      products: [ "packageProduct", "cppProduct" ]
+                
+                settings:
+                  kotlin:
+                    version: "2.3.0"
+            """.trimIndent()
+        )
+        val preSkipNonImportableModules = runAmper(
+            workingDir = project,
+            args = listOf("build"),
+            environment = baseEnvironmentForWrapper(),
+            assertEmptyStdErr = false,
+            expectedExitCode = 1,
+        )
+        assertContains(
+            preSkipNonImportableModules.stderr,
+            "run with Kotlin version 2.4.0 or higher. Please update your Kotlin version",
+        )
+        assertContains(
+            preSkipNonImportableModules.stderr,
+            "cppTarget/include/foo.h:1:10: fatal error: 'string' file not found",
+        )
+
+        moduleFile.writeText(
+            """
+                product: ios/app
+
+                dependencies:
+                  - localSwiftPackage:
+                      path: "packageDependency"
+                      products: [ "packageProduct", "cppProduct" ]
+                
+                settings:
+                  kotlin:
+                    version: "2.4.0"
+            """.trimIndent()
+        )
+        runAmper(
+            workingDir = project,
+            args = listOf("build"),
+            environment = baseEnvironmentForWrapper(),
+            assertEmptyStdErr = false,
+        )
+        Unit
+    }
+
+    @Test
+    fun `test macro collection mode works`() = runBlocking {
+        val project = copyProjectToTempDir(ProjectSource.Local(Dirs.amperTestProjectsRoot / "swiftpm-integration-tests/direct-local-swiftpm-dependency"))
+        val moduleFile = project.resolve("module.yaml")
+        moduleFile.writeText(
+            """
+                product: ios/app
+
+                dependencies:
+                  - localSwiftPackage:
+                      path: "packageDependency"
+                      products: [ "packageProduct" ]
+                
+                settings:
+                  kotlin:
+                    version: "2.4.20-RC2"
+            """.trimIndent()
+        )
+
+        val result = runAmper(
+            workingDir = project,
+            args = listOf("build"),
+            environment = baseEnvironmentForWrapper(),
+            assertEmptyStdErr = false,
+        )
+        assertContains(
+            result.debugLogs.joinToString("\n") { it.message },
+            "-Xmacro-collection-impl libclangext_parallel",
+        )
+    }
+
+    @Test
+    fun `test test-only SwiftPM dependency diagnostic`() = runBlocking {
+        val project = copyProjectToTempDir(ProjectSource.Local(Dirs.amperTestProjectsRoot / "swiftpm-integration-tests/direct-local-swiftpm-dependency"))
+        val moduleFile = project.resolve("module.yaml")
+        moduleFile.writeText(
+            """
+                product: ios/app
+
+                test-dependencies:
+                  - localSwiftPackage:
+                      path: "packageDependency"
+                      products: [ "packageProduct" ]
+                
+                settings:
+                  kotlin:
+                    version: "2.4.20"
+            """.trimIndent()
+        )
+
+        runAmper(
+            workingDir = project,
+            args = listOf("build"),
+            environment = baseEnvironmentForWrapper(),
+            assertEmptyStdErr = false,
+            expectedExitCode = 1,
+        ).assertErrors(
+            """
+            ${project.pathString}/module.yaml:4:5: Test-only SwiftPM dependencies are not supported yet. Please move SwiftPM dependency to `dependencies`.
+            failed to read Kotlin project model, refer to the errors above
+            """.trimIndent()
+        )
+    }
+
+    @Test
+    fun `test SwiftPM dependency in non Apple platform`() = runBlocking {
+        val project = copyProjectToTempDir(ProjectSource.Local(Dirs.amperTestProjectsRoot / "swiftpm-integration-tests/direct-local-swiftpm-dependency"))
+        val moduleFile = project.resolve("module.yaml")
+        moduleFile.writeText(
+            """
+                product: 
+                  type: kmp/lib
+                  platforms: [iosSimulatorArm64, macosArm64, jvm, js]
+
+                dependencies:
+                  - swiftPackage:
+                      repository: "https://foo.com/nonAppleDependency"
+                      version: "12.14.0"
+                      products: [ "Foo" ]
+                      
+                dependencies@apple:
+                  - localSwiftPackage:
+                      path: "applePlatform"
+                      products: [ "applePlatform" ]
+            """.trimIndent()
+        )
+
+        runAmper(
+            workingDir = project,
+            args = listOf("build"),
+            environment = baseEnvironmentForWrapper(),
+            assertEmptyStdErr = false,
+            expectedExitCode = 1,
+        ).assertErrors(
+            """
+            ${project.pathString}/module.yaml:6:5: SwiftPM dependency https://foo.com/nonAppleDependency in non-Apple platform JS. Please move SwiftPM dependency to `dependencies@apple`.
+            ${project.pathString}/module.yaml:6:5: SwiftPM dependency https://foo.com/nonAppleDependency in non-Apple platform JVM. Please move SwiftPM dependency to `dependencies@apple`.
+            failed to read Kotlin project model, refer to the errors above
+            """.trimIndent()
+        )
     }
 
     private suspend fun testIncrementalLinkageAndIncrementalTestRuns(linkageType: String) {

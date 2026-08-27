@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.tasks.artifacts
 
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
@@ -11,6 +12,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.stdlib.io.path.listDirectoryEntriesIfExistsOrEmpty
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.testSuffix
 import org.jetbrains.amper.tasks.artifacts.api.Artifact
+import org.jetbrains.amper.tasks.native.NativeCInteropGenerateKlibTask
 import java.io.Serializable
 import java.nio.file.Path
 import kotlin.io.path.div
@@ -105,11 +107,19 @@ open class JvmResourcesDirArtifact(
 /**
  * Cinterop .def file.
  */
-open class CinteropDefFileArtifact(
+open class CinteropDefFileArtifact internal constructor(
     buildOutputRoot: AmperBuildOutputRoot,
     fragment: Fragment,
     override val conventionPath: Path? = null,
-) : FragmentScopedArtifact(buildOutputRoot, fragment)
+    internal val recommendedKotlinCompilerVersionOnFailingCinterop: ComparableVersion? = null,
+    internal val macroNamesCollectingMode: NativeCInteropGenerateKlibTask.MacroNamesCollectingMode? = null,
+) : FragmentScopedArtifact(buildOutputRoot, fragment) {
+    constructor(
+        buildOutputRoot: AmperBuildOutputRoot,
+        fragment: Fragment,
+        conventionPath: Path? = null,
+    ) : this(buildOutputRoot, fragment, conventionPath, null)
+}
 
 /**
  * A directory that contains compiled cinterop `.klib` files.
