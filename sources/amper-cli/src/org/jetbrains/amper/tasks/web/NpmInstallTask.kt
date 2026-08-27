@@ -87,37 +87,21 @@ class NpmInstallTask(
 
                 logger.debug("Generated package.json with ${uniqueNpmDependencies.size} npm dependencies at $packageJsonPath")
 
-                val pnpm = pnpmProvider.downloadPnpm(PNPM_VERSION).executable
+                val pnpm = pnpmProvider.downloadPnpm(PNPM_VERSION)
 
                 spanBuilder("pnpm install")
                     .use {
-                        val disableUpdateNotify = processRunner.runProcess(
+                        processRunner.disablePnpmUpdateNotifier(
                             workingDir = outputDir,
-                            command = [
-                                pnpm.pathString,
-                                "config",
-                                "set",
-                                "--location=project",
-                                "updateNotifier",
-                                "false"
-                            ],
+                            pnpm = pnpm,
+                            logger = logger,
                             span = it,
-                            outputMode = ProcessOutputMode.listenAndCaptureStderr(
-                                listener = LoggingProcessOutputListener(logger),
-                            ),
                         )
-
-                        if (disableUpdateNotify.exitCode != 0) {
-                            error(
-                                "pnpm configuration exits with the code ${disableUpdateNotify.exitCode}:\n" +
-                                        disableUpdateNotify.stderr
-                            )
-                        }
 
                         val result = processRunner.runProcess(
                             workingDir = outputDir,
                             command = [
-                                pnpm.pathString,
+                                pnpm.executable.pathString,
                                 "install"
                             ],
                             span = it,

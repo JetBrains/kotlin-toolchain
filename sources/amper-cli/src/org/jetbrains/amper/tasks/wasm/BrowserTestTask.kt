@@ -36,6 +36,7 @@ import org.jetbrains.amper.tasks.web.NODE_JS_VERSION
 import org.jetbrains.amper.tasks.web.NpmInstallTask
 import org.jetbrains.amper.tasks.web.PNPM_VERSION
 import org.jetbrains.amper.tasks.web.VENDORS
+import org.jetbrains.amper.tasks.web.disablePnpmUpdateNotifier
 import org.jetbrains.amper.teamcity.events.TeamCityMessageProcessor
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -130,6 +131,13 @@ class BrowserTestTask(
                 val playwright = taskOutputPath.path.resolve("playwright-project").also {
                     it.createDirectories()
                 }
+
+                processRunner.disablePnpmUpdateNotifier(
+                    workingDir = playwright,
+                    pnpm = pnpm,
+                    logger = logger,
+                    span = span,
+                )
 
                 val installResult = processRunner.runProcess(
                     workingDir = playwright,
