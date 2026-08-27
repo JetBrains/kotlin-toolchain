@@ -6,22 +6,22 @@ package org.jetbrains.amper.tasks.jvm
 
 import nl.adaptivity.xmlutil.core.impl.multiplatform.name
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.core.extract.extractFileToCacheLocation
 import org.jetbrains.amper.engine.PackageTask
+import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.executablejar.writeExecutableJar
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.jar.JarConfig
-import org.jetbrains.amper.jar.ZipInput
+import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.jvm.findEffectiveJvmMainClass
-import org.jetbrains.amper.problems.reporting.ProblemReporter
-import org.jetbrains.amper.tasks.AbstractJarTask
+import org.jetbrains.amper.run.ToolingArtifactsDownloader
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
-import org.jetbrains.amper.tasks.executable.ExecutableJarAssembler
-import org.jetbrains.amper.tasks.executable.ExecutableJarConfig
 import org.jetbrains.amper.util.BuildType
 import java.nio.file.Path
+import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
 
 /**
@@ -33,13 +33,15 @@ class ExecutableJarTask(
     val incrementalCache: IncrementalCache,
     val userCacheRoot: AmperUserCacheRoot,
     private val taskOutputRoot: TaskOutputRoot,
-    private val outputJarName: String = "${module.userReadableName}-jvm-executable.jar"
-) : AbstractJarTask(taskName, incrementalCache), PackageTask {
+) : PackageTask {
 
-    private val assembler = ExecutableJarAssembler(userCacheRoot, incrementalCache)
+    private val artifactsDownloader = ToolingArtifactsDownloader(userCacheRoot, incrementalCache)
 
-    context(_: ProblemReporter)
-    override suspend fun assembleInputDirs(dependenciesResult: List<TaskResult>): List<ZipInput> {
+    context(executionContext: TaskGraphExecutionContext)
+    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+        check(module.type.isApplication()) { "Illegal module type for ${ExecutableJarTask::class.name}: ${module.type}" }
+        val mainClass = module.fragments.filter { !it.isTest }.findEffectiveJvmMainClass()
+
         val compiledClasses = dependenciesResult
             .filterIsInstance<JvmCompileTask.Result>()
             .flatMap { it.classesOutputRoots }
@@ -48,21 +50,26 @@ class ExecutableJarTask(
             .filterIsInstance<JvmRuntimeClasspathTask.Result>()
             .flatMap { it.jvmRuntimeClasspath }
 
-        val config = createExecutableConfig()
-        return with(assembler) { config.prepareJarInputs(compiledClasses, runtimeDependencies) }
+        val springBootLoaderJar = artifactsDownloader.downloadSpringBootLoader()
+        val springBootLoaderJarUnpacked = extractFileToCacheLocation(springBootLoaderJar, userCacheRoot)
+
+        val outputJarPath = taskOutputRoot.path / "${module.userReadableName}-jvm-executable.jar"
+
+        incrementalCache.executeForFiles(
+            key = taskName.id.value,
+            inputValues = mapOf("mainClass" to mainClass.toString()),
+            inputFiles = compiledClasses + runtimeDependencies,
+        ) {
+            outputJarPath.createParentDirectories().writeExecutableJar(
+                compiledClasses,
+                runtimeDependencies,
+                springBootLoaderJarUnpacked,
+                mainClass
+            )
+            [outputJarPath]
+        }
+        return Result(outputJarPath)
     }
-
-    override fun outputJarPath(): Path = taskOutputRoot.path / outputJarName
-
-    override fun jarConfig(): JarConfig = with(assembler) { createExecutableConfig().createJarConfig() }
-
-    private fun createExecutableConfig(): ExecutableJarConfig {
-        require(module.type.isApplication()) { "Illegal module type for ${ExecutableJarTask::class.name}: ${module.type}" }
-        val mainClass = module.fragments.filter { !it.isTest }.findEffectiveJvmMainClass()
-        return ExecutableJarConfig(mainClassName = mainClass, additionalManifestProperties = emptyMap())
-    }
-
-    override fun createResult(jarPath: Path): AbstractJarTask.Result = Result(jarPath)
 
     override val platform: Platform
         get() = Platform.JVM
@@ -73,8 +80,5 @@ class ExecutableJarTask(
     override val format: PackageTask.Format
         get() = PackageTask.Format.ExecutableJar
 
-    class Result(jarPath: Path) : AbstractJarTask.Result(jarPath) {
-        val paths: List<Path>
-            get() = listOf(jarPath)
-    }
+    class Result(val jarPath: Path) : TaskResult
 }

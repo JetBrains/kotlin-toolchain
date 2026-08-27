@@ -59,6 +59,7 @@ modules:
   - sources/libraries/compose-resources
   - sources/libraries/compress
   - sources/libraries/concurrency
+  - sources/libraries/executable-jar
   - sources/libraries/gradle-module-metadata
   - sources/libraries/incremental-cache
   - sources/libraries/jetbrains-jdk-list

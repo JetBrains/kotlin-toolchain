@@ -1,0 +1,10 @@
+product: jvm/lib
+
+description: Utility to create Spring Boot Executable JARs
+
+apply:
+  - //sources/common.module-template.yaml
+
+dependencies:
+  - //sources/libraries/compress
+  - //sources/libraries/stdlib-extended
