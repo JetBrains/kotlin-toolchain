@@ -1,14 +1,14 @@
-# Try Amper with an example project
+# Try Kotlin Toolchain with an example project
 
-We have prepared a number of example projects to help you explore Amper.
+We have prepared a number of example projects to help you explore the Kotlin Toolchain.
 
 You can check them out right here on GitHub, or download a zipped version to open in your IDE.
 
 > [!TIP]
-> Amper is designed with the tooling in mind, and a big part of the UX comes from the IDE support.
-> To make the most out of Amper, we recommend using the latest version of 
+> The Kotlin Toolchain is designed with the tooling in mind, and a big part of the UX comes from the IDE support.
+> To make the most out of the Kotlin Toolchain, we recommend using the latest version of 
 > [IntelliJ IDEA EAP](https://www.jetbrains.com/idea/nextversion/) with the 
-> [Amper plugin](https://plugins.jetbrains.com/plugin/23076-amper).
+> [Kotlin Toolchain plugin](https://plugins.jetbrains.com/plugin/31850-kotlin-toolchain/edit).
 > 
 > If you don't use IntelliJ IDEA, explore the CLI commands you can run using `./kotlin -h` or `./kotlin <command> -h`.
 
