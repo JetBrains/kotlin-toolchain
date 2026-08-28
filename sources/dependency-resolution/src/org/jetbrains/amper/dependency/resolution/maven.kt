@@ -1488,7 +1488,9 @@ class MavenDependencyImpl internal constructor(
     ): MavenCoordinates {
         val resolvedVersion = resolveVersion(reportError)
         val classifier = thirdPartyCompatibility?.artifactSelector?.classifier
-        return mavenCoordinatesTrimmed(groupId = group, artifactId = module, version = resolvedVersion, classifier = classifier)
+        val extension = thirdPartyCompatibility?.artifactSelector?.extension
+        return mavenCoordinatesTrimmed(
+            groupId = group, artifactId = module, version = resolvedVersion, classifier = classifier, packagingType = extension)
     }
 
     private fun Dependency.toMavenDependency(
