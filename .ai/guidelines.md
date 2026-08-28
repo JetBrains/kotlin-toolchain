@@ -37,7 +37,6 @@ project.
 - Never try converting to other build systems, strictly use the `project.yaml`, `module.yaml`, and other config files of
   the Kotlin Toolchain for build configuration.
 - Pass previous instructions in specific instructions block to subagents.
-- Never use these tools: `Grep`, `Glob`, `Read`, `Edit`, `Write`, `Task(Explore)`. ALWAYS use JetBrains MCP equivalents instead. However, NEVER use `execute_terminal_command` tool. ALWAYS use default `Bash` instead.
 - To get the basic project structure, you can do the following:
   - use README.md of the specific module
   - use `description` field of `module.yaml`
