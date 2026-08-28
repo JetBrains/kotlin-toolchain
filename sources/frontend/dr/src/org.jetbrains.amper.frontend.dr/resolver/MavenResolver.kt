@@ -46,8 +46,10 @@ open class MavenResolver(
         scope: ResolutionScope,
         platform: ResolutionPlatform,
         resolveSourceMoniker: String,
+        transitive: Boolean = true,
     ): ResolvedGraph = resolveBomAware(repositories, scope, platform, resolveSourceMoniker,
-        mavenCoordinates = coordinates.map { MavenCoordinatesExt(it) }
+        mavenCoordinates = coordinates.map { MavenCoordinatesExt(it) },
+        transitive = transitive,
     )
 
     /**
@@ -63,12 +65,14 @@ open class MavenResolver(
         resolutionDepth: ResolutionDepth = ResolutionDepth.GRAPH_FULL,
         jvmRelease: JavaVersion? = null,
         mavenCoordinates: List<MavenCoordinatesExt>,
+        transitive: Boolean = true,
     ): ResolvedGraph = spanBuilder("mavenResolve")
         .setAttribute("repositories", repositories.joinToString(" "))
         .setAttribute("user-cache-root", userCacheRoot.path.pathString)
         .setAttribute("scope", scope.name)
         .setAttribute("platform", platform.name)
         .setAttribute("resolutionDepth", resolutionDepth.name)
+        .setAttribute("transitive", transitive)
         .apply { setAttribute("nativeTarget", platform.nativeTarget ?: return@apply) }
         .apply { setAttribute("wasmTarget", platform.wasmTarget ?: return@apply) }
         .use {
@@ -87,7 +91,7 @@ open class MavenResolver(
             )
 
             resolveAndReport(resolveSourceMoniker) {
-               Resolver().resolveDependencies(root)
+               Resolver().resolveDependencies(root, transitive = transitive)
             }
         }
 
