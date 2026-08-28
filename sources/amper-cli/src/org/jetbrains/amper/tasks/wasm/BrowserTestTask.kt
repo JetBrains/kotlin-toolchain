@@ -6,6 +6,7 @@ package org.jetbrains.amper.tasks.wasm
 
 import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Playwright
+import com.microsoft.playwright.PlaywrightException
 import io.ktor.http.*
 import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
@@ -34,6 +35,7 @@ import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.web.NODE_JS_VERSION
 import org.jetbrains.amper.tasks.web.NpmInstallTask
+import org.jetbrains.amper.tasks.web.PLAYWRIGHT_VERSION
 import org.jetbrains.amper.tasks.web.PNPM_VERSION
 import org.jetbrains.amper.tasks.web.VENDORS
 import org.jetbrains.amper.tasks.web.disablePnpmUpdateNotifier
@@ -144,8 +146,7 @@ class BrowserTestTask(
                     command = [
                         pnpmExecutable,
                         "add",
-                        // TODO Is it possible to get the version from libs.versions.toml?
-                        "playwright@1.61.0",
+                        "playwright@$PLAYWRIGHT_VERSION",
                     ],
                     span = span,
                     environment = emptyMap(),
@@ -216,29 +217,33 @@ class BrowserTestTask(
                             }
                         )
 
-                        Playwright.create(createOptions).use { playwright ->
-                            val launchOptions = BrowserType.LaunchOptions()
-                                .setHeadless(true)
-                                .setChannel("chromium")
-                            playwright.chromium().launch(launchOptions).use { browser ->
-                                browser.newPage().use { page ->
-                                    page.setDefaultTimeout(TEST_RUN_TIMEOUT.inWholeMilliseconds.toDouble())
+                        try {
+                            Playwright.create(createOptions).use { playwright ->
+                                val launchOptions = BrowserType.LaunchOptions()
+                                    .setHeadless(true)
+                                    .setChannel("chromium")
+                                playwright.chromium().launch(launchOptions).use { browser ->
+                                    browser.newPage().use { page ->
+                                        page.setDefaultTimeout(TEST_RUN_TIMEOUT.inWholeMilliseconds.toDouble())
 
-                                    page.onConsoleMessage { message ->
-                                        val line = message.text()
-                                        if (line.startsWith(TESTS_FINISHED_MARKER)) {
-                                            finished = true
-                                        } else {
-                                            // kotlin-test for wasm generates random flow id, it breaks nesting
-                                            val lineWithoutFlowId = line.replace(FLOW_ID_REGEX, "")
-                                            teamCityMessageProcessor.parse(lineWithoutFlowId, stderr = false)
+                                        page.onConsoleMessage { message ->
+                                            val line = message.text()
+                                            if (line.startsWith(TESTS_FINISHED_MARKER)) {
+                                                finished = true
+                                            } else {
+                                                // kotlin-test for wasm generates random flow id, it breaks nesting
+                                                val lineWithoutFlowId = line.replace(FLOW_ID_REGEX, "")
+                                                teamCityMessageProcessor.parse(lineWithoutFlowId, stderr = false)
+                                            }
                                         }
-                                    }
 
-                                    page.navigate(url)
-                                    page.waitForCondition { finished }
+                                        page.navigate(url)
+                                        page.waitForCondition { finished }
+                                    }
                                 }
                             }
+                        } catch (e: PlaywrightException) {
+                            userReadableError("Failed to run Kotlin/Wasm $platform tests for module '${module.userReadableName}': $e", e)
                         }
                     }
                 }
