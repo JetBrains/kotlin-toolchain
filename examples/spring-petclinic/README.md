@@ -1,8 +1,8 @@
 # Spring Petclinic
 
-This is the Amper version of the [Spring Petclinic](https://github.com/spring-projects/spring-petclinic) sample project.
+This is the Kotlin Toolchain version of the [Spring Petclinic](https://github.com/spring-projects/spring-petclinic) sample project.
 
-Here are a few commands you can try to experiment with the Amper CLI.
+Here are a few commands you can try to experiment with the Kotlin Toolchain CLI.
 
 Compile the project:
 
