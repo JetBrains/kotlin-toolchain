@@ -7,8 +7,11 @@ package org.jetbrains.amper.tasks.native
 import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.test.FilterMode
 import org.jetbrains.amper.test.TestFilter
+import org.jetbrains.amper.test.tagFiltersWouldMatchUntaggedTests
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class NativeTestOptionsTest {
 
@@ -29,7 +32,7 @@ class NativeTestOptionsTest {
     }
 
     @Test
-    fun `tag filters are ignored`() {
+    fun `tag filters are not translated to ktest_filter`() {
         assertEquals(
             listOf("--ktest_logger=teamcity"),
             nativeArgsWithFilters(
@@ -40,7 +43,7 @@ class NativeTestOptionsTest {
     }
 
     @Test
-    fun `tag filters are ignored but other filters are still applied`() {
+    fun `tag filters are not translated to ktest_filter but other filters are still applied`() {
         assertEquals(
             listOf("--ktest_logger=teamcity", "--ktest_filter=com.example.MyTest.*"),
             nativeArgsWithFilters(
@@ -50,6 +53,78 @@ class NativeTestOptionsTest {
         )
     }
 
+    @Test
+    fun `tests should run when there are no tag filters`() {
+        assertTrue(shouldRunTestsWithFilters())
+        assertTrue(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeSuite(pattern = "com.example.MyTest", mode = FilterMode.Include),
+        ))
+    }
+
+    @Test
+    fun `tests should not run when include tag filters cannot match untagged tests`() {
+        assertFalse(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeTag(tagExpression = "slow", mode = FilterMode.Include),
+        ))
+        assertFalse(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeTag(tagExpression = "slow & !flaky", mode = FilterMode.Include),
+        ))
+        assertFalse(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeTag(tagExpression = "any()", mode = FilterMode.Include),
+        ))
+    }
+
+    @Test
+    fun `tests should run when an include tag filter matches untagged tests`() {
+        assertTrue(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeTag(tagExpression = "!slow", mode = FilterMode.Include),
+        ))
+        assertTrue(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeTag(tagExpression = "none()", mode = FilterMode.Include),
+        ))
+        // include filters are combined with OR semantics, so it's enough for one of them to match
+        assertTrue(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeTag(tagExpression = "slow", mode = FilterMode.Include),
+            TestFilter.includeOrExcludeTag(tagExpression = "!flaky", mode = FilterMode.Include),
+        ))
+    }
+
+    @Test
+    fun `tests should not run when an exclude tag filter matches untagged tests`() {
+        assertFalse(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeTag(tagExpression = "!slow", mode = FilterMode.Exclude),
+        ))
+        assertFalse(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeTag(tagExpression = "none()", mode = FilterMode.Exclude),
+        ))
+        // a test is excluded as soon as it matches one of the exclude filters
+        assertFalse(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeTag(tagExpression = "slow", mode = FilterMode.Exclude),
+            TestFilter.includeOrExcludeTag(tagExpression = "!flaky", mode = FilterMode.Exclude),
+        ))
+    }
+
+    @Test
+    fun `tests should run when exclude tag filters cannot match untagged tests`() {
+        assertTrue(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeTag(tagExpression = "slow", mode = FilterMode.Exclude),
+        ))
+        assertTrue(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeTag(tagExpression = "any()", mode = FilterMode.Exclude),
+        ))
+    }
+
+    @Test
+    fun `exclude tag filters take precedence over include tag filters`() {
+        assertFalse(shouldRunTestsWithFilters(
+            TestFilter.includeOrExcludeTag(tagExpression = "!slow", mode = FilterMode.Include),
+            TestFilter.includeOrExcludeTag(tagExpression = "!flaky", mode = FilterMode.Exclude),
+        ))
+    }
+
     private fun nativeArgsWithFilters(vararg filters: TestFilter): List<String> =
         AllRunSettings(testFilters = filters.toList()).toNativeTestExecutableArgs()
+
+    private fun shouldRunTestsWithFilters(vararg filters: TestFilter): Boolean =
+        filters.toList().tagFiltersWouldMatchUntaggedTests()
 }

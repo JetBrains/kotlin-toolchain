@@ -1,0 +1,6 @@
+product: jvm/lib
+
+description: Parser and evaluator for JUnit tag expressions (as used by the JUnit Platform to filter tests by tag).
+
+apply:
+  - //sources/common.module-template.yaml

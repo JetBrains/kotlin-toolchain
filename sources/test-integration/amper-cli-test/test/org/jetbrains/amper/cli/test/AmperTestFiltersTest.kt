@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.cli.test
 
+import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContainsLine
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
@@ -412,11 +413,13 @@ class AmperTestFiltersTest : AmperCliTestBase() {
             "--include-classes=com.example.shared.*",
             "--exclude-classes=com.example.shared.SharedIntegrationTest",
         )
-        r.assertJUnitTestCount(expected = 4)
+        r.assertJUnitTestCount(expected = 6)
         r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2) // jvm + current platform
         r.assertStdoutContainsLine("running EnclosingClass.enclosingClassTest", nOccurrences = 2) // jvm + current platform
         r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 2) // jvm + current platform
         r.assertStdoutContainsLine("running EnclosingClass.NestedClass2.myNestedTest", nOccurrences = 2) // jvm + current platform
+        r.assertStdoutContainsLine("running JvmTaggedTest.slowJvmTest") // jvm-only test
+        r.assertStdoutContainsLine("running JvmTaggedTest.fastJvmTest") // jvm-only test
     }
 
     @Test
@@ -481,75 +484,197 @@ class AmperTestFiltersTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `include single tag`() = runSlowTest {
+    fun `include single tag (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("jvm-tagged-tests"),
             "test",
             "--include-tag=slow",
         )
-        r.assertJUnitTestCount(expected = 2)
+        r.assertJUnitTestCount(expected = 3)
         r.assertStdoutContainsLine("running TaggedTest.slowTest")
         r.assertStdoutContainsLine("running TaggedTest.slowFlakyTest")
+        r.assertStdoutContainsLine("running OtherTaggedTest.slowTest")
     }
 
     @Test
-    fun `include multiple tags`() = runSlowTest {
+    fun `include multiple tags (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("jvm-tagged-tests"),
             "test",
             "--include-tag=fast",
             "--include-tag=flaky",
         )
-        r.assertJUnitTestCount(expected = 2)
+        r.assertJUnitTestCount(expected = 3)
         r.assertStdoutContainsLine("running TaggedTest.fastTest")
         r.assertStdoutContainsLine("running TaggedTest.slowFlakyTest")
+        r.assertStdoutContainsLine("running OtherTaggedTest.fastTest")
     }
 
     @Test
-    fun `include tag expression`() = runSlowTest {
+    fun `include tag expression (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("jvm-tagged-tests"),
             "test",
             "--include-tag=slow & !flaky",
         )
-        r.assertJUnitTestCount(expected = 1)
+        r.assertJUnitTestCount(expected = 2)
         r.assertStdoutContainsLine("running TaggedTest.slowTest")
+        r.assertStdoutContainsLine("running OtherTaggedTest.slowTest")
     }
 
     @Test
-    fun `exclude tag single (jvm-tagged-tests)`() = runSlowTest {
+    fun `exclude tag single (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("jvm-tagged-tests"),
             "test",
             "--exclude-tag=slow",
         )
-        r.assertJUnitTestCount(expected = 2)
+        r.assertJUnitTestCount(expected = 4)
         r.assertStdoutContainsLine("running TaggedTest.fastTest")
         r.assertStdoutContainsLine("running TaggedTest.untaggedTest")
+        r.assertStdoutContainsLine("running OtherTaggedTest.fastTest")
+        r.assertStdoutContainsLine("running OtherTaggedTest.untaggedTest")
     }
 
     @Test
-    fun `include tag and exclude tag (jvm-tagged-tests)`() = runSlowTest {
+    fun `include tag and exclude tag (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("jvm-tagged-tests"),
             "test",
             "--include-tag=slow",
             "--exclude-tag=flaky",
         )
-        r.assertJUnitTestCount(expected = 1)
+        r.assertJUnitTestCount(expected = 2)
         r.assertStdoutContainsLine("running TaggedTest.slowTest")
+        r.assertStdoutContainsLine("running OtherTaggedTest.slowTest")
     }
 
     @Test
-    fun `include tag and include classes (jvm-tagged-tests)`() = runSlowTest {
+    fun `include tag and include specific class (jvm)`() = runSlowTest {
         val r = runCli(
             projectDir = testProject("jvm-tagged-tests"),
             "test",
             "--include-classes=com.example.taggedtests.TaggedTest",
             "--include-tag=fast",
         )
+        // the tag filter matches tests in both classes, but only the given class is included
         r.assertJUnitTestCount(expected = 1)
         r.assertStdoutContainsLine("running TaggedTest.fastTest")
+    }
+
+    @Test
+    fun `include tag and include class pattern matching multiple classes (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("jvm-tagged-tests"),
+            "test",
+            "--include-classes=com.example.taggedtests.*TaggedTest",
+            "--include-tag=slow",
+        )
+        r.assertJUnitTestCount(expected = 3)
+        r.assertStdoutContainsLine("running TaggedTest.slowTest")
+        r.assertStdoutContainsLine("running TaggedTest.slowFlakyTest")
+        r.assertStdoutContainsLine("running OtherTaggedTest.slowTest")
+    }
+
+    @Test
+    fun `include tag and include multiple specific classes (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("jvm-tagged-tests"),
+            "test",
+            "--include-classes=com.example.taggedtests.TaggedTest",
+            "--include-classes=com.example.taggedtests.OtherTaggedTest",
+            "--include-tag=fast",
+        )
+        r.assertJUnitTestCount(expected = 2)
+        r.assertStdoutContainsLine("running TaggedTest.fastTest")
+        r.assertStdoutContainsLine("running OtherTaggedTest.fastTest")
+    }
+
+    @Test
+    fun `include tag matching only tests in a non-included class (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("jvm-tagged-tests"),
+            "test",
+            // the 'flaky' tag only exists in TaggedTest, so no test matches both filters
+            "--include-classes=com.example.taggedtests.OtherTaggedTest",
+            "--include-tag=flaky",
+            expectedExitCode = 1, // JUnit fails when no test is discovered
+            assertEmptyStdErr = false,
+        )
+        r.assertJUnitTestCount(expected = 0)
+        r.assertStdoutDoesNotContain("running TaggedTest.slowFlakyTest")
+    }
+
+    @Test
+    fun `include tag and exclude specific class (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("jvm-tagged-tests"),
+            "test",
+            "--exclude-classes=com.example.taggedtests.TaggedTest",
+            "--include-tag=slow",
+        )
+        r.assertJUnitTestCount(expected = 1)
+        r.assertStdoutContainsLine("running OtherTaggedTest.slowTest")
+    }
+
+    @Test
+    fun `invalid tag expression is rejected (jvm)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("jvm-tagged-tests"),
+            "test",
+            "--include-tag=slow &",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+        r.assertStderrContains("invalid tag expression 'slow &'")
+    }
+
+    @Test
+    fun `tag filters matching untagged tests still run native tests (kmp)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "shared",
+            // Kotlin/Native tests are all untagged, so they match this filter and must be run
+            "--exclude-tag=slow",
+        )
+        r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2) // jvm + current platform
+        r.assertStdoutContainsLine("running JvmTaggedTest.fastJvmTest") // jvm-only test
+        r.assertStdoutDoesNotContain("running JvmTaggedTest.slowJvmTest")
+    }
+
+    @Test
+    fun `tag filters matching only jvm tests skip native tests (kmp)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "shared",
+            // Kotlin/Native tests are all untagged, so none of them can match this filter, but a JVM test does
+            "--include-tag=slow",
+        )
+        r.assertJUnitTestCount(expected = 1)
+        r.assertStdoutContainsLine("running JvmTaggedTest.slowJvmTest")
+        // the native test executable should not have been run at all
+        r.assertStdoutDoesNotContain("running WorldTest.doTest")
+    }
+
+    @Test
+    fun `tag filters matching no test at all skip native tests (kmp)`() = runSlowTest {
+        val r = runCli(
+            projectDir = testProject("multiplatform-tests"),
+            "test",
+            "-m",
+            "shared",
+            // no test has this tag, and Kotlin/Native tests are all untagged, so nothing can match this filter
+            "--include-tag=flaky",
+            expectedExitCode = 1, // no JVM test matches either, and JUnit fails when no test is discovered
+            assertEmptyStdErr = false,
+        )
+        r.assertJUnitTestCount(expected = 0)
+        // the native test executable should not have been run at all
+        r.assertStdoutDoesNotContain("running WorldTest.doTest")
     }
 
     @Test

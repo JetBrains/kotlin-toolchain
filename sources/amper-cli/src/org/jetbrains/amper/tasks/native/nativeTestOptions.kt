@@ -8,9 +8,6 @@ import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.NativeTestRunSettings
 import org.jetbrains.amper.test.FilterMode
 import org.jetbrains.amper.test.TestFilter
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger("nativeTestOptions")
 
 /**
  * Converts these [AllRunSettings] to a list of arguments that will be passed to the Kotlin Native test executable.
@@ -61,11 +58,10 @@ private fun TestFilter.toKNativeTestFilter(): KNativeTestFilter? = when (this) {
         pattern = "${pattern.replace('/', '.')}.*",
         mode = mode,
     )
-    // Kotlin/Native tests have no notion of tags, so tag filters are simply ignored here.
-    is TestFilter.TagExpression -> {
-        logger.warn("Tag filters are not supported in Kotlin/Native tests")
-        null
-    }
+    // Kotlin/Native tests have no notion of tags, so tag filters cannot be expressed as native test filters.
+    // They are instead taken into account as a whole to decide whether to run the test executable at all,
+    // see shouldRunNativeTests().
+    is TestFilter.TagExpression -> null
 }
 
 private fun TestFilter.SpecificTestInclude.toKotlinNativeFormat(): String {

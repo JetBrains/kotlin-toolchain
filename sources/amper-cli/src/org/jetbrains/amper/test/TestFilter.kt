@@ -4,6 +4,10 @@
 
 package org.jetbrains.amper.test
 
+import org.jetbrains.amper.cli.userReadableError
+import org.jetbrains.amper.junit.tags.JUnitTagExpression
+import org.jetbrains.amper.junit.tags.JUnitTagExpressionSyntaxException
+import org.jetbrains.amper.junit.tags.matches
 import org.slf4j.LoggerFactory
 
 enum class FilterMode {
@@ -73,20 +77,32 @@ sealed class TestFilter {
     /**
      * A filter that includes or excludes tests based on the tags they are annotated with.
      *
-     * This is only supported on the JVM (including Android), and is ignored for native and web tests.
+     * Tags only exist in JVM tests (including Android), so tests of other platforms are all considered untagged.
+     * This also means only JVM tests can be filtered by tag by the test framework itself. For Kotlin/Native tests,
+     * we can only decide whether to run all tests of a module or none of them, depending on whether untagged tests
+     * match this filter (see [wouldMatchUntaggedTest]).
      */
     data class TagExpression(
         /**
          * A JUnit tag expression, which can be a single tag name, or a boolean expression combining tag names with
          * the `!`, `&`, and `|` operators (and parentheses for grouping).
-         * See https://docs.junit.org/current/user-guide/#running-tests-tag-expressions
+         * See https://docs.junit.org/6.1.3/running-tests/tags.html#expressions
          */
         val expression: String,
         /**
          * Whether this filter should include or exclude what it matches.
          */
         val mode: FilterMode,
-    ): TestFilter()
+    ): TestFilter() {
+        /**
+         * The parsed [expression], which allows reasoning about the tests that this filter matches.
+         */
+        val parsedExpression: JUnitTagExpression = try {
+            JUnitTagExpression.parse(expression)
+        } catch (e: JUnitTagExpressionSyntaxException) {
+            userReadableError(e.message, e)
+        }
+    }
 
     companion object {
 
@@ -135,12 +151,32 @@ sealed class TestFilter {
                 SpecificSuiteInclude(fullyQualifiedName = pattern)
             }
 
-        fun includeOrExcludeTag(tagExpression: String, mode: FilterMode): TestFilter {
-            require(tagExpression.isNotBlank()) { "the tag expression must not be blank" }
-            return TagExpression(expression = tagExpression, mode = mode)
-        }
+        fun includeOrExcludeTag(tagExpression: String, mode: FilterMode): TestFilter =
+            // The constructor parses the expression, and thus rejects invalid ones (with a user-friendly message).
+            TagExpression(expression = tagExpression, mode = mode)
     }
 }
+
+/**
+ * Returns whether tests without any tag would be run, considering the tag filters in this list of test filters.
+ *
+ * Following JUnit's behavior for repeated tag options, tests must match at least one of the include expressions
+ * (if any), and must not match any of the exclude expressions.
+ */
+internal fun List<TestFilter>.tagFiltersWouldMatchUntaggedTests(): Boolean {
+    val [includeFilters, excludeFilters] = filterIsInstance<TestFilter.TagExpression>()
+        .partition { it.mode == FilterMode.Include }
+    return (includeFilters.isEmpty() || includeFilters.any { it.wouldMatchUntaggedTest() })
+            && excludeFilters.none { it.wouldMatchUntaggedTest() }
+}
+
+/**
+ * Returns whether a test without any tag would match this [TagExpression].
+ *
+ * This is useful for platforms that have no notion of test tags (all their tests are untagged).
+ */
+private fun TestFilter.TagExpression.wouldMatchUntaggedTest(): Boolean =
+    parsedExpression.matches(tags = [])
 
 internal fun String.wildcardsToRegex(): String {
     val wildcardPattern = this

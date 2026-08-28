@@ -99,7 +99,8 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
             If the `--exclude-tag` option is also provided, tests are run if they match any of the include expressions
             AND don't match any of the exclude expressions.
 
-            This option only affects JVM and Android tests; it is ignored for native and web tests.
+            Only JVM and Android tests can be tagged. Non-JVM tests are therefore all considered untagged: they are run
+            if untagged tests match the given expressions, and skipped otherwise.
             
             To tag a JVM test, use the `org.junit.jupiter.api.Tag` annotation with one or more tag names.
         """.trimIndent(),
@@ -120,7 +121,8 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
             If the `--include-tag` option is also provided, tests are run if they match any of the include expressions
             AND don't match any of the exclude expressions.
 
-            This option only affects JVM and Android tests; it is ignored for native and web tests.
+            Only JVM and Android tests can be tagged. Non-JVM tests are therefore all considered untagged: they are
+            skipped if untagged tests match the given expressions, and run otherwise.
             
             To tag a JVM test, use the `org.junit.jupiter.api.Tag` annotation with one or more tag names.
         """.trimIndent(),

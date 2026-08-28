@@ -29,6 +29,7 @@ import org.jetbrains.amper.teamcity.events.TeamCityMessageProcessor
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
+import org.jetbrains.amper.test.tagFiltersWouldMatchUntaggedTests
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import kotlin.io.path.absolutePathString
@@ -49,6 +50,12 @@ class IosKotlinTestTask(
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+        if (!runSettings.testFilters.tagFiltersWouldMatchUntaggedTests()) {
+            logger.debug("Skipping tests of module '${module.userReadableName}' for platform '${platform.pretty}' " +
+                    "because Kotlin/Native tests are all untagged, and the given tag filters exclude untagged tests")
+            return EmptyTaskResult
+        }
+
         val compileTaskResult = dependenciesResult.requireSingleDependency<NativeLinkTask.Result>()
         val workingDir = module.source.moduleDir
         val executable = compileTaskResult.linkedBinary
