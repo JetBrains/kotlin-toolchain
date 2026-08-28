@@ -946,7 +946,7 @@ class MavenDependencyImpl internal constructor(
 
                     val extension = resolveArtifactExtension(actualPackagingType)
 
-                    // Library published with packaging type equal to 'pom' may or may mot contains actual artifacts.
+                    // Library published with packaging type equal to 'pom' may or may not contain actual artifacts.
                     // We try to resolve the default artifact, but it is OK if it doesn't exist.
                     val isOptional = coordinates.packagingType == null && pomPackagingType.value == "pom"
                     classpathFiles.add(getDependencyFile(dependency, nameWithoutExtension, extension, isOptional = isOptional))
