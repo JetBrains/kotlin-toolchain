@@ -109,16 +109,11 @@ interface MavenDependencyNode : DependencyNode {
 
     override val graphEntryName: String
         get() = if (dependency.version == originalVersion) {
-            dependency.coordinates.toPrettyString(
-                effectivePackagingType = dependency.packaging,
-                hidePomPackagingType = true,
-            )
+            dependency.coordinates.copy(packagingType = null)
+                .toPrettyString()
         } else {
-            getOriginalMavenCoordinates().toPrettyString(
-                overridingVersion = dependency.version,
-                effectivePackagingType = dependency.packaging,
-                hidePomPackagingType = true,
-            )
+            getOriginalMavenCoordinates().copy(packagingType = null)
+                .toPrettyString(overridingVersion = dependency.version)
         }
 
     fun getOriginalMavenCoordinates(): MavenCoordinates = dependency.coordinates.copy(version = originalVersion)
@@ -130,33 +125,29 @@ interface MavenDependencyNode : DependencyNode {
     /**
      * This key is the same as used for the resolving unique [MavenDependencyNode]
      * from the module cache during resolution with one difference:
-     * It contains an effective maven packaging type instead of a declared one.
+     * it contains an empty packaging type instead of a declared one.
      *
-     * This helps to group similar nodes not by declarations but by the actual resolution results.
-     *
-     * Graph could contain two [MavenDependencyNode] referencing different [MavenDependency] that are almost the same
-     * but declare different [MavenDependency.packaging] ("aar" and "null", for instance).
-     * Resolution results of those nodes might be the same in spite of the initially declared difference.
-     * It will happen in the following cases:
-     * - If a dependency was published without Gradle metadata, and packaging type resolved from pom.xml and used for
-     *   maven coordinates with unset field [MavenDependency.packaging] is the same as the one explicitly specified
-     *   for another dependency.
+     * This helps to group similar nodes corresponding to the same dependency with different packaging types.
+     * In the graph such dependencies have the same representation (the same list of dependencies, graphEntryName, etc...),
+     * but are presented with different [MavenDependencyNode] referencing different [MavenDependency]
+     * and might be resolved to different sets of files.
+     * Such nodes don't conflict with each other logically,
+     * their related files (artifacts) are combined when it comes to classpath calculation.
      */
-    fun uniqueResolutionKey(): String =
+    fun groupingGraphEntryKey(): String =
         dependency.coordinates
+            .copy(packagingType = null)
             .uniqueResolutionKey(
                 resolutionConfig = dependency.resolutionConfig,
                 isBom = isBom,
-                overridingPackagingType = dependency.packaging
             )
 }
 
 internal fun MavenCoordinates.uniqueResolutionKey(
     resolutionConfig: ResolutionConfig,
     isBom: Boolean,
-    overridingPackagingType: String? = null
 ) =
-    toPrettyString(effectivePackagingType = overridingPackagingType) +
+    toPrettyString() +
             ":$isBom" +
             "${resolutionConfig.scope}:${resolutionConfig.platforms.joinToString { it.pretty }}"
 
@@ -2599,7 +2590,6 @@ data class MavenCoordinates(
     fun toPrettyString(
         overridingVersion: String? = null,
         effectivePackagingType: String? = packagingType,
-        hidePomPackagingType: Boolean = false,
     ): String {
         return "$groupId:$artifactId" +
                 ":${version.orUnspecified()}" +
@@ -2607,7 +2597,6 @@ data class MavenCoordinates(
                 (if (classifier != null) ":$classifier" else "") +
                 (effectivePackagingType
                     ?.takeIf { resolveArtifactExtension(it) != "jar" } // No need to print default packaging type value
-                    ?.takeIf { !hidePomPackagingType || it != "pom" } // Hiding pom packaging type from output
                     ?.let { "@$it" }
                     ?: "")
     }

@@ -1,5 +1,5 @@
 root
-├─── com.unity3d.ads:unity-ads:4.18.0@aar
+├─── com.unity3d.ads:unity-ads:4.18.0
 │    ├─── androidx.activity:activity-ktx:1.7.1
 │    │    ├─── androidx.activity:activity:1.7.1
 │    │    │    ├─── androidx.annotation:annotation:1.1.0 -> 1.2.0
@@ -30,7 +30,7 @@ root
 │    │    │    │    │    │    ╰─── androidx.lifecycle:lifecycle-livedata:2.6.1 (c)
 │    │    │    │    │    ├─── org.jetbrains.kotlin:kotlin-stdlib:1.8.10 (*)
 │    │    │    │    │    ╰─── androidx.lifecycle:lifecycle-livedata:2.6.1 (c)
-│    │    │    │    ╰─── androidx.versionedparcelable:versionedparcelable:1.1.1@aar
+│    │    │    │    ╰─── androidx.versionedparcelable:versionedparcelable:1.1.1
 │    │    │    │         ├─── androidx.annotation:annotation:1.1.0 -> 1.2.0
 │    │    │    │         ╰─── androidx.collection:collection:1.0.0
 │    │    │    │              ╰─── androidx.annotation:annotation:1.0.0 -> 1.2.0
@@ -105,8 +105,8 @@ root
 │    │    ├─── androidx.work:work-runtime:2.7.0
 │    │    │    ├─── androidx.annotation:annotation-experimental:1.0.0 -> 1.3.0 (*)
 │    │    │    ├─── com.google.guava:listenablefuture:1.0
-│    │    │    ├─── androidx.lifecycle:lifecycle-livedata:2.1.0 -> 2.6.1@aar
-│    │    │    │    ├─── androidx.arch.core:core-runtime:2.1.0@aar
+│    │    │    ├─── androidx.lifecycle:lifecycle-livedata:2.1.0 -> 2.6.1
+│    │    │    │    ├─── androidx.arch.core:core-runtime:2.1.0
 │    │    │    │    │    ├─── androidx.annotation:annotation:1.1.0 -> 1.2.0
 │    │    │    │    │    ╰─── androidx.arch.core:core-common:2.1.0 -> 2.2.0 (*)
 │    │    │    │    ├─── androidx.lifecycle:lifecycle-livedata-core:2.6.1 (*)
@@ -114,71 +114,71 @@ root
 │    │    │    ╰─── androidx.startup:startup-runtime:1.0.0 -> 1.1.1
 │    │    ├─── org.jetbrains.kotlin:kotlin-stdlib:1.5.30 -> 1.8.10 (*)
 │    │    ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0 -> 1.6.4 (*)
-│    ├─── com.google.android.gms:play-services-cronet:18.0.1@aar
-│    │    ├─── com.google.android.gms:play-services-base:18.0.1@aar
+│    ├─── com.google.android.gms:play-services-cronet:18.0.1
+│    │    ├─── com.google.android.gms:play-services-base:18.0.1
 │    │    │    ├─── androidx.collection:collection:1.0.0 (*)
 │    │    │    ├─── androidx.core:core:1.2.0 -> 1.9.0 (*)
-│    │    │    ├─── androidx.fragment:fragment:1.0.0@aar
+│    │    │    ├─── androidx.fragment:fragment:1.0.0
 │    │    │    │    ├─── androidx.core:core:1.0.0 -> 1.9.0 (*)
-│    │    │    │    ├─── androidx.legacy:legacy-support-core-ui:1.0.0@aar
+│    │    │    │    ├─── androidx.legacy:legacy-support-core-ui:1.0.0
 │    │    │    │    │    ├─── androidx.annotation:annotation:1.0.0 -> 1.2.0
 │    │    │    │    │    ├─── androidx.core:core:1.0.0 -> 1.9.0 (*)
-│    │    │    │    │    ├─── androidx.legacy:legacy-support-core-utils:1.0.0@aar
+│    │    │    │    │    ├─── androidx.legacy:legacy-support-core-utils:1.0.0
 │    │    │    │    │    │    ├─── androidx.annotation:annotation:1.0.0 -> 1.2.0
 │    │    │    │    │    │    ├─── androidx.core:core:1.0.0 -> 1.9.0 (*)
-│    │    │    │    │    │    ├─── androidx.documentfile:documentfile:1.0.0@aar
+│    │    │    │    │    │    ├─── androidx.documentfile:documentfile:1.0.0
 │    │    │    │    │    │    │    ╰─── androidx.annotation:annotation:1.0.0 -> 1.2.0
-│    │    │    │    │    │    ├─── androidx.loader:loader:1.0.0@aar
+│    │    │    │    │    │    ├─── androidx.loader:loader:1.0.0
 │    │    │    │    │    │    │    ├─── androidx.annotation:annotation:1.0.0 -> 1.2.0
 │    │    │    │    │    │    │    ├─── androidx.core:core:1.0.0 -> 1.9.0 (*)
-│    │    │    │    │    │    │    ├─── androidx.lifecycle:lifecycle-livedata:2.0.0 -> 2.6.1@aar (*)
+│    │    │    │    │    │    │    ├─── androidx.lifecycle:lifecycle-livedata:2.0.0 -> 2.6.1 (*)
 │    │    │    │    │    │    │    ╰─── androidx.lifecycle:lifecycle-viewmodel:2.0.0 -> 2.6.1 (*)
-│    │    │    │    │    │    ├─── androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+│    │    │    │    │    │    ├─── androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
 │    │    │    │    │    │    │    ╰─── androidx.annotation:annotation:1.0.0 -> 1.2.0
-│    │    │    │    │    │    ╰─── androidx.print:print:1.0.0@aar
+│    │    │    │    │    │    ╰─── androidx.print:print:1.0.0
 │    │    │    │    │    │         ╰─── androidx.annotation:annotation:1.0.0 -> 1.2.0
-│    │    │    │    │    ├─── androidx.customview:customview:1.0.0@aar
+│    │    │    │    │    ├─── androidx.customview:customview:1.0.0
 │    │    │    │    │    │    ├─── androidx.annotation:annotation:1.0.0 -> 1.2.0
 │    │    │    │    │    │    ╰─── androidx.core:core:1.0.0 -> 1.9.0 (*)
-│    │    │    │    │    ├─── androidx.viewpager:viewpager:1.0.0@aar
+│    │    │    │    │    ├─── androidx.viewpager:viewpager:1.0.0
 │    │    │    │    │    │    ├─── androidx.annotation:annotation:1.0.0 -> 1.2.0
 │    │    │    │    │    │    ├─── androidx.core:core:1.0.0 -> 1.9.0 (*)
-│    │    │    │    │    │    ╰─── androidx.customview:customview:1.0.0@aar (*)
-│    │    │    │    │    ├─── androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+│    │    │    │    │    │    ╰─── androidx.customview:customview:1.0.0 (*)
+│    │    │    │    │    ├─── androidx.coordinatorlayout:coordinatorlayout:1.0.0
 │    │    │    │    │    │    ├─── androidx.annotation:annotation:1.0.0 -> 1.2.0
 │    │    │    │    │    │    ├─── androidx.core:core:1.0.0 -> 1.9.0 (*)
-│    │    │    │    │    │    ╰─── androidx.customview:customview:1.0.0@aar (*)
-│    │    │    │    │    ├─── androidx.drawerlayout:drawerlayout:1.0.0@aar
+│    │    │    │    │    │    ╰─── androidx.customview:customview:1.0.0 (*)
+│    │    │    │    │    ├─── androidx.drawerlayout:drawerlayout:1.0.0
 │    │    │    │    │    │    ├─── androidx.annotation:annotation:1.0.0 -> 1.2.0
 │    │    │    │    │    │    ├─── androidx.core:core:1.0.0 -> 1.9.0 (*)
-│    │    │    │    │    │    ╰─── androidx.customview:customview:1.0.0@aar (*)
-│    │    │    │    │    ├─── androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+│    │    │    │    │    │    ╰─── androidx.customview:customview:1.0.0 (*)
+│    │    │    │    │    ├─── androidx.slidingpanelayout:slidingpanelayout:1.0.0
 │    │    │    │    │    │    ├─── androidx.annotation:annotation:1.0.0 -> 1.2.0
 │    │    │    │    │    │    ├─── androidx.core:core:1.0.0 -> 1.9.0 (*)
-│    │    │    │    │    │    ╰─── androidx.customview:customview:1.0.0@aar (*)
-│    │    │    │    │    ├─── androidx.interpolator:interpolator:1.0.0@aar
+│    │    │    │    │    │    ╰─── androidx.customview:customview:1.0.0 (*)
+│    │    │    │    │    ├─── androidx.interpolator:interpolator:1.0.0
 │    │    │    │    │    │    ╰─── androidx.annotation:annotation:1.0.0 -> 1.2.0
-│    │    │    │    │    ├─── androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+│    │    │    │    │    ├─── androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
 │    │    │    │    │    │    ├─── androidx.annotation:annotation:1.0.0 -> 1.2.0
 │    │    │    │    │    │    ├─── androidx.core:core:1.0.0 -> 1.9.0 (*)
-│    │    │    │    │    │    ╰─── androidx.interpolator:interpolator:1.0.0@aar (*)
-│    │    │    │    │    ├─── androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
+│    │    │    │    │    │    ╰─── androidx.interpolator:interpolator:1.0.0 (*)
+│    │    │    │    │    ├─── androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
 │    │    │    │    │    │    ├─── androidx.annotation:annotation:1.0.0 -> 1.2.0
 │    │    │    │    │    │    ╰─── androidx.core:core:1.0.0 -> 1.9.0 (*)
-│    │    │    │    │    ╰─── androidx.cursoradapter:cursoradapter:1.0.0@aar
+│    │    │    │    │    ╰─── androidx.cursoradapter:cursoradapter:1.0.0
 │    │    │    │    │         ╰─── androidx.annotation:annotation:1.0.0 -> 1.2.0
-│    │    │    │    ├─── androidx.legacy:legacy-support-core-utils:1.0.0@aar (*)
+│    │    │    │    ├─── androidx.legacy:legacy-support-core-utils:1.0.0 (*)
 │    │    │    │    ├─── androidx.annotation:annotation:1.0.0 -> 1.2.0
-│    │    │    │    ├─── androidx.loader:loader:1.0.0@aar (*)
+│    │    │    │    ├─── androidx.loader:loader:1.0.0 (*)
 │    │    │    │    ╰─── androidx.lifecycle:lifecycle-viewmodel:2.0.0 -> 2.6.1 (*)
-│    │    │    ├─── com.google.android.gms:play-services-basement:18.0.0@aar
+│    │    │    ├─── com.google.android.gms:play-services-basement:18.0.0
 │    │    │    │    ├─── androidx.collection:collection:1.0.0 (*)
 │    │    │    │    ├─── androidx.core:core:1.2.0 -> 1.9.0 (*)
-│    │    │    │    ╰─── androidx.fragment:fragment:1.0.0@aar (*)
-│    │    │    ╰─── com.google.android.gms:play-services-tasks:18.0.1@aar
-│    │    │         ╰─── com.google.android.gms:play-services-basement:18.0.0@aar (*)
-│    │    ├─── com.google.android.gms:play-services-basement:18.0.0@aar (*)
-│    │    ├─── com.google.android.gms:play-services-tasks:18.0.1@aar (*)
-│    │    ╰─── org.chromium.net:cronet-api:72.3626.96@aar
-│    ╰─── com.unity3d.ads-mediation:adquality-sdk:(,10.0.0) -> 9.9.0@aar
-╰─── com.unity3d.ads-mediation:adquality-sdk:9.9.0@aar
+│    │    │    │    ╰─── androidx.fragment:fragment:1.0.0 (*)
+│    │    │    ╰─── com.google.android.gms:play-services-tasks:18.0.1
+│    │    │         ╰─── com.google.android.gms:play-services-basement:18.0.0 (*)
+│    │    ├─── com.google.android.gms:play-services-basement:18.0.0 (*)
+│    │    ├─── com.google.android.gms:play-services-tasks:18.0.1 (*)
+│    │    ╰─── org.chromium.net:cronet-api:72.3626.96
+│    ╰─── com.unity3d.ads-mediation:adquality-sdk:(,10.0.0) -> 9.9.0
+╰─── com.unity3d.ads-mediation:adquality-sdk:9.9.0

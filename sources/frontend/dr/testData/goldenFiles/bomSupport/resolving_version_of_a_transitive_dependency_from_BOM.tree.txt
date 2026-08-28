@@ -67,7 +67,7 @@ Module app
 │              │              │         │         │         │    │    │    ├─── androidx.concurrent:concurrent-futures:1.0.0 -> 1.1.0
 │              │              │         │         │         │    │    │    │    ├─── androidx.annotation:annotation:1.1.0 -> 1.9.1 (*)
 │              │              │         │         │         │    │    │    │    ╰─── com.google.guava:listenablefuture:1.0
-│              │              │         │         │         │    │    │    ├─── androidx.interpolator:interpolator:1.0.0@aar
+│              │              │         │         │         │    │    │    ├─── androidx.interpolator:interpolator:1.0.0
 │              │              │         │         │         │    │    │    │    ╰─── androidx.annotation:annotation:1.0.0 -> 1.9.1 (*)
 │              │              │         │         │         │    │    │    ├─── androidx.lifecycle:lifecycle-runtime:2.6.2 -> 2.8.7
 │              │              │         │         │         │    │    │    │    ╰─── androidx.lifecycle:lifecycle-runtime-android:2.8.7
@@ -96,7 +96,7 @@ Module app
 │              │              │         │         │         │    │    │    │         ├─── org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3 -> 1.8.1 (*)
 │              │              │         │         │         │    │    │    │         ├─── androidx.lifecycle:lifecycle-process:2.8.7 (c)
 │              │              │         │         │         │    │    │    │         ╰─── androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.7 (c)
-│              │              │         │         │         │    │    │    ├─── androidx.versionedparcelable:versionedparcelable:1.1.1@aar
+│              │              │         │         │         │    │    │    ├─── androidx.versionedparcelable:versionedparcelable:1.1.1
 │              │              │         │         │         │    │    │    │    ├─── androidx.annotation:annotation:1.1.0 -> 1.9.1 (*)
 │              │              │         │         │         │    │    │    │    ╰─── androidx.collection:collection:1.0.0 -> 1.5.0 (*)
 │              │              │         │         │         │    │    │    ├─── org.jetbrains.kotlin:kotlin-stdlib:1.8.22 -> #kotlinVersion (*)
@@ -157,7 +157,7 @@ Module app
 │              │              │         │         │         │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.8.10 -> #kotlinVersion (*)
 │              │              │         │         │         ├─── androidx.annotation:annotation:1.8.1 -> 1.9.1 (*)
 │              │              │         │         │         ├─── androidx.annotation:annotation-experimental:1.4.1 (*)
-│              │              │         │         │         ├─── androidx.autofill:autofill:1.0.0@aar
+│              │              │         │         │         ├─── androidx.autofill:autofill:1.0.0
 │              │              │         │         │         │    ╰─── androidx.core:core:1.1.0 -> 1.13.1 (*)
 │              │              │         │         │         ├─── androidx.collection:collection:1.4.2 -> 1.5.0 (*)
 │              │              │         │         │         ├─── androidx.collection:collection:1.5.0 (*)

@@ -3,7 +3,7 @@ Module jvm-lib-2
 │ - scope = COMPILE
 │ - platforms = [jvm]
 ├─── jvm-lib-2:main:io.grpc:protoc-gen-grpc-java:1.80.0:linux-x86_32@exe
-│    ╰─── io.grpc:protoc-gen-grpc-java:1.80.0:linux-x86_32@exe
+│    ╰─── io.grpc:protoc-gen-grpc-java:1.80.0:linux-x86_32
 ╰─── jvm-lib-2:main:org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion, implicit
      ╰─── org.jetbrains.kotlin:kotlin-stdlib:#kotlinVersion
           ╰─── org.jetbrains:annotations:13.0

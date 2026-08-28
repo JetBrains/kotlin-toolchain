@@ -251,7 +251,7 @@ Module android-app
 │         │    │    │    ├─── androidx.core:core-viewtree:1.0.0
 │         │    │    │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.8.22 -> #kotlinVersion (*)
 │         │    │    │    ├─── androidx.lifecycle:lifecycle-runtime:2.6.2 -> 2.9.4 (*)
-│         │    │    │    ├─── androidx.versionedparcelable:versionedparcelable:1.1.1@aar
+│         │    │    │    ├─── androidx.versionedparcelable:versionedparcelable:1.1.1
 │         │    │    │    │    ├─── androidx.annotation:annotation:1.1.0 -> 1.9.1 (*)
 │         │    │    │    │    ╰─── androidx.collection:collection:1.0.0 -> 1.5.0 (*)
 │         │    │    │    ├─── org.jetbrains.kotlin:kotlin-stdlib:1.8.22 -> #kotlinVersion (*)

@@ -130,7 +130,7 @@ interface DependencyNode {
         // key doesn't include a version on purpose,
         // but different nodes referencing the same MavenDependency result in the same dependencies
         // => add no need to distinguish those while pretty printing
-        val seen = !visited.add(key to ((thisUnwrapped as? MavenDependencyNode)?.uniqueResolutionKey() ?: (thisUnwrapped as? MavenDependencyConstraintNode)?.dependencyConstraint))
+        val seen = !visited.add(key to ((thisUnwrapped as? MavenDependencyNode)?.groupingGraphEntryKey() ?: (thisUnwrapped as? MavenDependencyConstraintNode)?.dependencyConstraint))
         if (seen && children.any { it.shouldBePrinted(allMavenDepsKeys, forMavenNode) }) {
             builder.append(" (*)")
         } else if (thisUnwrapped is MavenDependencyConstraintNode) {

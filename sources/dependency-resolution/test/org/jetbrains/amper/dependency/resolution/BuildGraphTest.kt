@@ -2781,7 +2781,7 @@ class BuildGraphTest : BaseDRTest() {
                         androidx.appcompat:appcompat-resources:1.6.1
                         androidx.arch.core:core-common:2.1.0
                         androidx.arch.core:core-common:2.0.0 -> 2.1.0
-                        androidx.arch.core:core-runtime:2.0.0@aar
+                        androidx.arch.core:core-runtime:2.0.0
                         androidx.collection:collection:1.1.0
                         androidx.collection:collection:1.0.0 -> 1.1.0
                         androidx.core:core:1.9.0
@@ -2790,14 +2790,15 @@ class BuildGraphTest : BaseDRTest() {
                         androidx.core:core:1.0.0 -> 1.9.0
                         androidx.core:core:1.2.0 -> 1.9.0
                         androidx.core:core:1.1.0 -> 1.9.0
-                        androidx.core:core-ktx:1.2.0@aar
-                        androidx.cursoradapter:cursoradapter:1.0.0@aar
-                        androidx.customview:customview:1.0.0@aar
-                        androidx.drawerlayout:drawerlayout:1.0.0@aar
+                        androidx.core:core:1.2.0 -> 1.9.0
+                        androidx.core:core-ktx:1.2.0
+                        androidx.cursoradapter:cursoradapter:1.0.0
+                        androidx.customview:customview:1.0.0
+                        androidx.drawerlayout:drawerlayout:1.0.0
                         androidx.fragment:fragment:1.3.6
-                        androidx.interpolator:interpolator:1.0.0@aar
+                        androidx.interpolator:interpolator:1.0.0
                         androidx.lifecycle:lifecycle-common:2.5.1
-                        androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+                        androidx.lifecycle:lifecycle-livedata:2.0.0
                         androidx.lifecycle:lifecycle-livedata-core:2.3.1 -> 2.5.1
                         androidx.lifecycle:lifecycle-livedata-core:2.5.1
                         androidx.lifecycle:lifecycle-livedata-core:2.0.0 -> 2.5.1
@@ -2808,13 +2809,14 @@ class BuildGraphTest : BaseDRTest() {
                         androidx.lifecycle:lifecycle-viewmodel:2.0.0 -> 2.5.1
                         androidx.lifecycle:lifecycle-viewmodel-savedstate:2.5.1
                         androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1 -> 2.5.1
-                        androidx.loader:loader:1.0.0@aar
+                        androidx.loader:loader:1.0.0
                         androidx.savedstate:savedstate:1.2.0
                         androidx.savedstate:savedstate:1.1.0 -> 1.2.0
-                        androidx.vectordrawable:vectordrawable:1.1.0@aar
-                        androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
-                        androidx.versionedparcelable:versionedparcelable:1.1.1@aar
-                        androidx.viewpager:viewpager:1.0.0@aar
+                        androidx.vectordrawable:vectordrawable:1.1.0
+                        androidx.vectordrawable:vectordrawable:1.1.0
+                        androidx.vectordrawable:vectordrawable-animated:1.1.0
+                        androidx.versionedparcelable:versionedparcelable:1.1.1
+                        androidx.viewpager:viewpager:1.0.0
                         org.jetbrains.kotlin:kotlin-stdlib:1.7.10
                         org.jetbrains.kotlin:kotlin-stdlib:1.6.20 -> 1.7.10
                         org.jetbrains.kotlin:kotlin-stdlib:1.6.21 -> 1.7.10

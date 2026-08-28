@@ -1,2 +1,2 @@
 root
-╰─── com.mohamedrejeb.calf:calf-cupertino-icons-iosarm64:0.13.0:kotlin_resources@kotlin_resources.zip
+╰─── com.mohamedrejeb.calf:calf-cupertino-icons-iosarm64:0.13.0:kotlin_resources
