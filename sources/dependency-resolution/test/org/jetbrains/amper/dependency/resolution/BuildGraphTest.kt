@@ -454,6 +454,23 @@ class BuildGraphTest : BaseDRTest() {
     }
 
     /**
+     * This test checks that artifact published with Gradle module metadata
+     * and at the same time with non-empty classifier and non-standard extension
+     * is successfully resolved by dependency resolution via coordinates specifying those parameters as
+     * classifier and packaging type.
+     */
+    @Test
+    fun `com_mohamedrejeb_calf calf-cupertino-icons-iosarm64 0_13_0 kotlin_resources artifact`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            dependency = ["com.mohamedrejeb.calf:calf-cupertino-icons-iosarm64:0.13.0:kotlin_resources@kotlin_resources.zip"],
+            platform = setOf(ResolutionPlatform.IOS_ARM64),
+            transitive = false,
+        )
+        downloadAndAssertFiles(testInfo, root, verifyMessages = true)
+    }
+
+    /**
      * This test checks that spaces in the beginning and at the end of coordinates
      * of transitive dependencies are correctly processed (ignored).
      *

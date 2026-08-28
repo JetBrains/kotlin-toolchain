@@ -137,6 +137,7 @@ abstract class BaseDRTest {
         filterMessages: List<Message>.() -> List<Message> = { defaultFilterMessages() },
         openTelemetry: OpenTelemetry? = null,
         jdkVersion: JavaVersion? = null,
+        transitive: Boolean = true,
     ): DependencyNodeHolderWithContext {
         val goldenFile = goldenFileOsArchAware("${testInfo.nameToGoldenFile()}.tree.txt")
         return withActualDump(goldenFile) {
@@ -154,6 +155,7 @@ abstract class BaseDRTest {
                 filterMessages,
                 openTelemetry,
                 jdkVersion,
+                transitive,
             )
         }
     }

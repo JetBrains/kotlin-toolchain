@@ -110,13 +110,13 @@ interface MavenDependencyNode : DependencyNode {
     override val graphEntryName: String
         get() = if (dependency.version == originalVersion) {
             dependency.coordinates.toPrettyString(
-                effectivePackagingType = dependency.mavenPackaging,
+                effectivePackagingType = dependency.packaging,
                 hidePomPackagingType = true,
             )
         } else {
             getOriginalMavenCoordinates().toPrettyString(
                 overridingVersion = dependency.version,
-                effectivePackagingType = dependency.mavenPackaging,
+                effectivePackagingType = dependency.packaging,
                 hidePomPackagingType = true,
             )
         }
@@ -135,21 +135,19 @@ interface MavenDependencyNode : DependencyNode {
      * This helps to group similar nodes not by declarations but by the actual resolution results.
      *
      * Graph could contain two [MavenDependencyNode] referencing different [MavenDependency] that are almost the same
-     * but declare different [MavenDependency.mavenPackaging] ("aar" and "null", for instance).
+     * but declare different [MavenDependency.packaging] ("aar" and "null", for instance).
      * Resolution results of those nodes might be the same in spite of the initially declared difference.
      * It will happen in the following cases:
-     * - If a dependency was published with Gradle metadata. In this case [MavenDependency.mavenPackaging] is ignored,
-     *   resolution is performed based on Gradle metadata descriptor only.
      * - If a dependency was published without Gradle metadata, and packaging type resolved from pom.xml and used for
-     *   maven coordinates with unset field [MavenDependency.mavenPackaging] is the same as the one explicitly specified
+     *   maven coordinates with unset field [MavenDependency.packaging] is the same as the one explicitly specified
      *   for another dependency.
      */
-    fun uniqueResolutionKey() =
+    fun uniqueResolutionKey(): String =
         dependency.coordinates
             .uniqueResolutionKey(
                 resolutionConfig = dependency.resolutionConfig,
                 isBom = isBom,
-                overridingPackagingType = dependency.mavenPackaging
+                overridingPackagingType = dependency.packaging
             )
 }
 
@@ -651,7 +649,7 @@ val KmpPlatforms = Key<Set<ResolutionPlatform>>("KmpPlatforms")
 
 interface MavenDependency {
     val coordinates: MavenCoordinates
-    val mavenPackaging: String?
+    val packaging: String?
     val resolutionConfig: ResolutionConfig
     val messages: List<Message>
     val state: ResolutionState
@@ -680,7 +678,7 @@ interface MavenDependency {
                 // 1. register plain
                 val mavenDependencyPlain = MavenDependencyPlain(
                     coordinates,
-                    mavenPackaging,
+                    packaging,
                     messages,
                     files(true).map { DependencyFilePlain(it) },
                     pomPath?.absolutePathString(),
@@ -703,12 +701,14 @@ val MavenDependency.version
     get() = coordinates.version
 val MavenDependency.classifier
     get() = coordinates.classifier
+val MavenDependency.packagingType
+    get() = coordinates.packagingType
 
 @Serializable
 @SerialName("MD")
 class MavenDependencyPlain internal constructor (
     override val coordinates: MavenCoordinates,
-    override val mavenPackaging: String? = null,
+    override val packaging: String? = null,
     override val messages: List<Message> = emptyList(),
     val files: List<DependencyFilePlain>,
     private val pomPathAsString: String? = null,
@@ -727,7 +727,7 @@ class MavenDependencyPlain internal constructor (
         return if (withSources) files else files.filterNot { it.isDocumentation }
     }
 
-    override fun toString() = coordinates.toPrettyString(effectivePackagingType = mavenPackaging)
+    override fun toString() = coordinates.toPrettyString(effectivePackagingType = packaging)
 }
 
 @Serializable(with = MavenDependencyReference.Serializer::class)
@@ -790,17 +790,15 @@ class MavenDependencyImpl internal constructor(
     private var pomPackagingType: PomPackagingType? = null
 
     /**
-     * If resolution is performed using pom.xml,
-     * this field contains the actual packaging type used for resolving dependency.
-     *
-     * It contains either dependency type taken from a dependency declaration if it is explicitly specified,
-     * or is taken from the value of the packaging element of the pom.xml.
-     * If both are unspecified, the default value 'jar' is used.
+     * Contains either:
+     * - a packaging type explicitly specified by dependency coordinates.
+     * - `null` - if none is specified in coordinates, and dependency is resolved via Gradle metadata,
+     * - the actual packaging type used for resolving dependency if resolution is performed using pom.xml,
+     *   packaging type is determined as:
+     *     - the value of the packaging element of the pom.xml.
+     *     - 'jar' if it is not specified in the pom.xml.
      */
-    override val mavenPackaging: String? get() = pomPackagingType?.let {
-        coordinates.packagingType
-            ?: it.value
-    }
+    override val packaging: String? get() = coordinates.packagingType ?: pomPackagingType?.value
 
     @Volatile
     var children: List<MavenDependencyImpl> = emptyList()
@@ -909,21 +907,34 @@ class MavenDependencyImpl internal constructor(
                 val classpathFiles = mutableListOf<DependencyFileImpl>()
                 val documentationAndMetadataFiles = mutableListOf<DependencyFileImpl>()
 
-                variants
-                    .map { it as Variant }
-                    .let {
-                        val areSourcesMissing = it.documentationOnly.isEmpty()
-                        it.forEach { variant ->
-                            val isDocumentationOrMetadata = variant.isDocumentationOrMetadata
-                            val targetList = if (isDocumentationOrMetadata) documentationAndMetadataFiles else classpathFiles
-                            variant.files.forEach {
-                                targetList.add(getDependencyFile(dependency, it, isDocumentation = isDocumentationOrMetadata))
-                                if (!isDocumentationOrMetadata && areSourcesMissing) {
-                                    documentationAndMetadataFiles.add(getAutoAddedSourcesDependencyFile())
+                variants.takeIf { it.isNotEmpty() }?.let {
+                    // Resolution is performed based on Gradle metadata (single-platform or BOM)
+                    if (!isBom && (classifier != null || packagingType != null)) {
+                        // Either classifier or packaging type are explicitly declared,
+                        // file URL is reconstructed from coordinates, files belonging to selected variants are ignored.
+                        val isDocumentationOrMetadata = classifier == "sources" || classifier == "javadoc"
+                        val targetList = if (isDocumentationOrMetadata) documentationAndMetadataFiles else classpathFiles
+                        val nameWithoutExtension = getNameWithoutExtension(dependency)
+                        val actualPackagingType = coordinates.packagingType ?: "jar"
+                        val extension = resolveArtifactExtension(actualPackagingType)
+                        targetList.add(getDependencyFile(dependency, nameWithoutExtension, extension, isDocumentation = isDocumentationOrMetadata))
+                    } else {
+                        it.map { it as Variant }
+                        .let {
+                            val areSourcesMissing = it.documentationOnly.isEmpty()
+                            it.forEach { variant ->
+                                val isDocumentationOrMetadata = variant.isDocumentationOrMetadata
+                                val targetList = if (isDocumentationOrMetadata) documentationAndMetadataFiles else classpathFiles
+                                variant.files.forEach {
+                                    targetList.add(getDependencyFile(dependency, it, isDocumentation = isDocumentationOrMetadata))
+                                    if (!isDocumentationOrMetadata && areSourcesMissing) {
+                                        documentationAndMetadataFiles.add(getAutoAddedSourcesDependencyFile())
+                                    }
                                 }
                             }
                         }
                     }
+                }
 
                 pomPackagingType?.let {
                     if (coordinates.packagingType == "pom" || isBom) {
@@ -986,7 +997,7 @@ class MavenDependencyImpl internal constructor(
             }
         }
 
-    override fun toString(): String = coordinates.toPrettyString(effectivePackagingType = mavenPackaging)
+    override fun toString(): String = coordinates.toPrettyString(effectivePackagingType = packaging)
 
     suspend fun resolveChildren(
         context: Context,
@@ -1239,7 +1250,7 @@ class MavenDependencyImpl internal constructor(
                     }
 
                 // BOM declared in Gradle metadata as a dependency of type 'platform' can depend on other BOMs
-                variants.flatMap {
+                validVariants.flatMap {
                     // resolve transitive BOM dependencies even if isTransitive is set to false,
                     // because BOM sequence is an atomic thing that ia intended to be applied to the graph as a whole thing.
                     it.dependencies(context, level, diagnosticsReporter)
@@ -2367,7 +2378,7 @@ class MavenDependencyImpl internal constructor(
 
         state = getTargetState(level, transitive)
 
-        if (mavenPackaging == "jar" && !isSpecialKmpLibrary()) {
+        if (packaging == "jar" && !isSpecialKmpLibrary()) {
             // effective packaging type is 'jar'
             val nonJvmPlatforms =
                 context.settings.platforms.filter { it != ResolutionPlatform.JVM && it != ResolutionPlatform.ANDROID }
