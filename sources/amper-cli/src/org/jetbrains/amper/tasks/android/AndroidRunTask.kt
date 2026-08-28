@@ -14,6 +14,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.OnDiskSkin
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.utils.StdLogger
 import kotlinx.coroutines.delay
@@ -192,22 +193,24 @@ class AndroidRunTask(
                 ?: run {
                     // create a new one
                     avdManager.createAvd(
-                        /* avdFolder = */ avdPath.resolve("amper-$androidTarget.avd"),
-                        /* avdName = */ "amper-$androidTarget",
-                        /* systemImage = */ systemImage,
-                        /* skin = */ null,
-                        /* sdcard = */ null,
-                        /* hardwareConfig = */ mutableMapOf(
+                        avdFolder = avdPath.resolve("amper-$androidTarget.avd"),
+                        avdName = "amper-$androidTarget",
+                        systemImage = systemImage,
+                        skin = androidSdkPath.resolve("skins/pixel_9")
+                            .takeIf { it.exists() }
+                            ?.let(::OnDiskSkin),
+                        sdcard = null,
+                        hardwareConfig = mutableMapOf(
                             "hw.lcd.width" to "1080",
-                            "hw.lcd.height" to "1920",
+                            "hw.lcd.height" to "2424",
                             "hw.lcd.density" to "420",
                         ),
-                        /* userSettings = */ mutableMapOf(),
-                        /* bootProps = */ mutableMapOf(),
-                        /* environment = */ mutableMapOf(),
-                        /* deviceHasPlayStore = */ true,
-                        /* removePrevious = */ true,
-                        /* editExisting = */ true,
+                        userSettings = mutableMapOf(),
+                        bootProps = mutableMapOf(),
+                        environment = mutableMapOf(),
+                        deviceHasPlayStore = true,
+                        removePrevious = true,
+                        editExisting = true,
                     )
                 }
             runEmulator(emulatorExecutable, avd.name)
