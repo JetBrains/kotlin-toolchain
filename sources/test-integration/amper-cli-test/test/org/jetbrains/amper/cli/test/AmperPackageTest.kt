@@ -6,9 +6,11 @@ package org.jetbrains.amper.cli.test
 
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.jetbrains.amper.stdlib.hashing.sha256String
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class AmperPackageTest : AmperCliTestBase() {
@@ -20,5 +22,25 @@ class AmperPackageTest : AmperCliTestBase() {
         assertTrue("Executable jar file should exist after packaging") {
             (result.getTaskOutputPath(":spring-boot:executableJarJvm") / "spring-boot-jvm-executable.jar").exists()
         }
+    }
+
+    @Test
+    fun `package command produces the same executable jar after clean`() = runSlowTest {
+        val projectDir = testProject("spring-boot")
+
+        suspend fun buildAndHashExecutableJar(): String {
+            val result = runCli(projectDir = projectDir, "package")
+            return (result.getTaskOutputPath(":spring-boot:executableJarJvm") / "spring-boot-jvm-executable.jar")
+                .sha256String()
+        }
+
+        val hash1 = buildAndHashExecutableJar()
+        val hash2 = buildAndHashExecutableJar()
+        assertEquals(hash1, hash2, "Executable JAR should be identical on cache hit")
+
+        runCli(projectDir = projectDir, "clean")
+
+        val hash3 = buildAndHashExecutableJar()
+        assertEquals(hash3, hash2, "Executable JAR should be identical after clean")
     }
 }

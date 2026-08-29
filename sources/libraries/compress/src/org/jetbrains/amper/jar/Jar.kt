@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.jar
@@ -7,12 +7,12 @@ package org.jetbrains.amper.jar
 import kotlinx.serialization.Serializable
 import java.nio.file.Path
 import java.util.jar.Attributes
+import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
+import java.util.zip.ZipEntry
 import kotlin.io.path.outputStream
 
-// TODO support signing?
-// TODO support for Zip64 to allow many many classes?
 @Serializable
 data class JarConfig(
     /**
@@ -24,11 +24,9 @@ data class JarConfig(
      * This is necessary to create executable jars.
      */
     val mainClassFqn: String? = null,
-
     /**
      * Additional manifest properties
      */
-
     val manifestProperties: Map<String, String> = mapOf(),
 )
 
@@ -36,10 +34,25 @@ data class JarConfig(
  * Same as [writeZip] but with JAR-specific config.
  */
 fun Path.writeJar(inputs: List<ZipInput>, config: JarConfig) {
-    val manifest = createManifest(config)
-    JarOutputStream(outputStream().buffered(), manifest).use { out ->
+    JarOutputStream(outputStream().buffered()).use { out ->
+        // We write the manifest entry by hand (instead of using the JarOutputStream constructor overload) to control
+        // the timestamps of that file (for reproducibility)
+        out.writeManifestEntry(config)
         out.writeZip(inputs, config.zipConfig)
     }
+}
+
+private fun JarOutputStream.writeManifestEntry(config: JarConfig) {
+    val manifest = createManifest(config)
+    val entry = ZipEntry(JarFile.MANIFEST_NAME)
+    if (!config.zipConfig.preserveFileTimestamps) {
+        entry.creationTime = FixedFileTime
+        entry.lastAccessTime = FixedFileTime
+        entry.lastModifiedTime = FixedFileTime
+    }
+    putNextEntry(entry)
+    manifest.write(this)
+    closeEntry()
 }
 
 private fun createManifest(config: JarConfig): Manifest = Manifest().apply {

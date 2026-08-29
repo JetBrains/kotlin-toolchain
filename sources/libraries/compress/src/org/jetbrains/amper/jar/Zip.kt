@@ -7,6 +7,7 @@ package org.jetbrains.amper.jar
 import kotlinx.serialization.Serializable
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.attribute.FileTime
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipEntry.STORED
@@ -21,17 +22,22 @@ import kotlin.io.path.readAttributes
 import kotlin.io.path.relativeTo
 import kotlin.io.path.walk
 
+internal val FixedFileTime = FileTime.fromMillis(0L)
+
 @Serializable
 data class ZipConfig(
     /**
      * Ensures the files are written to the archive in a consistent order that's independent of the file system or OS,
      * typically by sorting the file paths alphabetically.
-     * This must be enabled in order to get reproducible archives.
+     *
+     * This must be kept enabled in order to get reproducible archives.
      */
     val reproducibleFileOrder: Boolean = true,
     /**
-     * Copies the original file timestamps (creation, last access, last modification) to the zip entries.
-     * This must be disabled in order to get reproducible archives.
+     * Whether to copy the original file timestamps (creation, last access, last modification) to the zip entries.
+     *
+     * When disabled (the default), the file timestamps are set to a fixed value (epoch 0).
+     * This must be kept disabled in order to get reproducible archives.
      */
     val preserveFileTimestamps: Boolean = false,
     /**
@@ -178,6 +184,10 @@ private fun ZipOutputStream.writeZipEntry(entryName: String, file: Path, config:
         zipEntry.creationTime = fileAttributes.creationTime()
         zipEntry.lastAccessTime = fileAttributes.lastAccessTime()
         zipEntry.lastModifiedTime = fileAttributes.lastModifiedTime()
+    } else {
+        zipEntry.creationTime = FixedFileTime
+        zipEntry.lastAccessTime = FixedFileTime
+        zipEntry.lastModifiedTime = FixedFileTime
     }
 
     putNextEntry(zipEntry)
