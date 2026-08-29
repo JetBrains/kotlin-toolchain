@@ -51,7 +51,7 @@ fun buildSdkmanArchive(
         AmperWrappers.generate(
             targetDir = binDir,
             amperVersion = AmperBuild.mavenVersion,
-            amperDistTgzSha256 = distribution.cliTgz.readBytes().sha256String(),
+            amperDistTgzSha256 = distribution.cliTgz.sha256String(),
         )
         (rootDir / "license").writeBytes(licenseFile.readBytes())
 

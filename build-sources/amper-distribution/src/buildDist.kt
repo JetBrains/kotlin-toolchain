@@ -58,7 +58,7 @@ fun buildDist(
     val wrappers = AmperWrappers.generate(
         targetDir = distribution.wrappersDir.createDirectories(),
         amperVersion = AmperBuild.mavenVersion,
-        amperDistTgzSha256 = cliTgz.readBytes().sha256String(),
+        amperDistTgzSha256 = cliTgz.sha256String(),
     )
 
     AmperWrappers.generateInstallers(

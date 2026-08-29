@@ -4,8 +4,9 @@
 
 package org.jetbrains.amper.dependency.resolution
 
-import org.jetbrains.gradle.module.metadata.format.Variant
+import org.jetbrains.amper.stdlib.hashing.hash
 import org.jetbrains.amper.test.runTestWithMdc
+import org.jetbrains.gradle.module.metadata.format.Variant
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import java.util.*
@@ -35,7 +36,7 @@ class GradleLocalRepositoryTest {
         var path = gradleLocalRepository.guessPath(node, "${getNameWithoutExtension(node)}.jar")
         assertNull(path)
 
-        val sha1 = computeHash("sha1", randomString().toByteArray())
+        val sha1 = randomString().hash("sha1").toHexString()
 
         val baseDir = gradleLocalPath / "org.jetbrains.kotlin/kotlin-test/1.9.10/$sha1"
         baseDir.createDirectories()
@@ -50,7 +51,7 @@ class GradleLocalRepositoryTest {
 
     @Test
     fun `guess path with variant`() = runTestWithMdc {
-        val sha1 = computeHash("sha1", randomString().toByteArray())
+        val sha1 = randomString().hash("sha1").toHexString()
         val node = kotlinTest().also {
             it.variants = listOf(
                 Variant(
@@ -78,8 +79,7 @@ class GradleLocalRepositoryTest {
 
     @Test
     fun `get path`() {
-        val bytes = randomString().toByteArray()
-        val sha1 = computeHash("sha1", bytes)
+        val sha1 = randomString().hash("sha1").toHexString()
         val path = gradleLocalRepository.getPath(kotlinTest(), "${getNameWithoutExtension(kotlinTest())}.jar", sha1)
         assertEquals(
             "org.jetbrains.kotlin/kotlin-test/1.9.10/$sha1/kotlin-test-1.9.10.jar",

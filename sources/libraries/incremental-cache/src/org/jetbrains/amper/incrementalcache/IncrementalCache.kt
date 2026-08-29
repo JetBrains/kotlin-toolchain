@@ -13,6 +13,7 @@ import org.jetbrains.amper.concurrency.FineGrainedFileMutexGroup
 import org.jetbrains.amper.concurrency.withDoubleLock
 import org.jetbrains.amper.incrementalcache.DynamicInputsTracker.Companion.withDynamicInputsTracker
 import org.jetbrains.amper.incrementalcache.IncrementalCache.Change.ChangeType
+import org.jetbrains.amper.stdlib.hashing.hash
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.setMapAttribute
 import org.jetbrains.amper.telemetry.use
@@ -188,10 +189,7 @@ class IncrementalCache(
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    private fun shortHash(key: String): String = MessageDigest.getInstance("MD5")
-        .digest(key.encodeToByteArray())
-        .toHexString()
-        .take(10)
+    private fun shortHash(key: String): String = key.hash("MD5").toHexString().take(10)
 
     private fun Span.addResult(result: ExecutionResult, dynamicInputsState: DynamicInputsState) {
         setListAttribute("output-files", result.outputFiles.map { it.pathString }.sorted())

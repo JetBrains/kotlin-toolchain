@@ -56,7 +56,7 @@ class SdkmanArchiveTest {
                 )
                 assertContains(
                     zip.readText(entries.getValue("$rootDirectory/bin/kotlin")),
-                    cliTgz.readBytes().sha256String(),
+                    cliTgz.sha256String(),
                 )
             }
         } finally {

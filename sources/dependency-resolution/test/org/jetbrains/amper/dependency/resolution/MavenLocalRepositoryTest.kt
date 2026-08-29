@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.dependency.resolution
 
+import org.jetbrains.amper.stdlib.hashing.hash
 import org.jetbrains.amper.test.runTestWithMdc
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
@@ -36,7 +37,7 @@ class MavenLocalRepositoryTest {
 
     @Test
     fun `get path`() {
-        val sha1 = computeHash("sha1", randomString().toByteArray())
+        val sha1 = randomString().hash("sha1").toHexString()
         val path = mavenLocalRepository.getPath(kotlinTest(), "${getNameWithoutExtension(kotlinTest())}.jar", sha1)
         assertEquals(
             "org/jetbrains/kotlin/kotlin-test/1.9.10/kotlin-test-1.9.10.jar",

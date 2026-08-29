@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.dependency.resolution
@@ -7,6 +7,7 @@ package org.jetbrains.amper.dependency.resolution
 import org.jetbrains.amper.dependency.resolution.diagnostics.PlatformsAreNotSupported
 import org.jetbrains.amper.dependency.resolution.diagnostics.Severity
 import org.jetbrains.amper.dependency.resolution.diagnostics.detailedMessage
+import org.jetbrains.amper.stdlib.hashing.hash
 import org.jetbrains.amper.test.dr.toMavenNode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -21,7 +22,6 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.name
-import kotlin.io.path.readBytes
 import kotlin.io.path.readText
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -527,7 +527,7 @@ class DependencyFileTest: BaseDRTest() {
                 val sha1 = sourceSetFile.parent.resolve("${sourceSetFile.name}.sha1")
                 assertTrue(sha1.exists(), "sha1 hash file is not found, it should be stored near the file for further validation")
 
-                val calculatedHash = computeHash("sha1", sourceSetFile.readBytes())
+                val calculatedHash = sourceSetFile.hash("sha1").toHexString()
                 val storedHash = sha1.readText()
                 assertEquals(calculatedHash, storedHash, "Wrong sha1 hash was stored")
             }

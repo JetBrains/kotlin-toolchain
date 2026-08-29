@@ -108,7 +108,7 @@ object AmperWrappers {
             ).generate(
                 targetDir = targetDir,
                 macroSubstitutions = commonMacros + mapOf(
-                    "KOTLIN_CLI_WRAPPER_SHA256" to wrappers.wrapperSh.readBytes().sha256String(),
+                    "KOTLIN_CLI_WRAPPER_SHA256" to wrappers.wrapperSh.sha256String(),
                 ),
             )
         }
@@ -119,7 +119,7 @@ object AmperWrappers {
             ).generate(
                 targetDir = targetDir,
                 macroSubstitutions = commonMacros + mapOf(
-                    "KOTLIN_CLI_WRAPPER_SHA256" to wrappers.wrapperBat.readBytes().sha256String(),
+                    "KOTLIN_CLI_WRAPPER_SHA256" to wrappers.wrapperBat.sha256String(),
                 ),
             )
         }

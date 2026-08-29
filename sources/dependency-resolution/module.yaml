@@ -29,6 +29,7 @@ dependencies:
 
 test-dependencies:
   - //sources/test-base
+  - //sources/libraries/stdlib-extended
   - $libs.opentelemetry.sdkTesting
   - $libs.system.stubs.jupiter
 

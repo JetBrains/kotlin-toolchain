@@ -57,7 +57,7 @@ fun generateLocalDemoBrewFormula(
           desc "Global Kotlin wrapper script"
           homepage "https://kotlin-toolchain.org"
           url "file:///${archive.absolutePathString()}"
-          sha256 "${archive.readBytes().sha256String()}"
+          sha256 "${archive.sha256String()}"
           version "${version}+debug-${System.currentTimeMillis()}"
           license "Apache-2.0"
 

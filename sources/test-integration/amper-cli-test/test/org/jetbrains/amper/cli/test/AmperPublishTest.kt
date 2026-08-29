@@ -18,13 +18,13 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.core.extract.extractZip
 import org.jetbrains.amper.frontend.schema.Checksum
 import org.jetbrains.amper.frontend.schema.DefaultVersions
+import org.jetbrains.amper.stdlib.hashing.hash
 import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.server.Request
 import org.jetbrains.amper.test.server.RequestHistory
 import org.jetbrains.amper.test.server.withFileServer
 import org.junit.jupiter.api.TestReporter
 import java.nio.file.Path
-import java.security.MessageDigest
 import java.util.*
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.copyToRecursively
@@ -36,7 +36,6 @@ import kotlin.io.path.extension
 import kotlin.io.path.inputStream
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
-import kotlin.io.path.readBytes
 import kotlin.io.path.readText
 import kotlin.io.path.walk
 import kotlin.io.path.writeText
@@ -466,9 +465,7 @@ class AmperPublishTest : AmperCliTestBase() {
                     val extension = checksum.name.lowercase().replace("-", "")
                     val checksumFile = artifact.resolveSibling("${artifact.name}.$extension")
                     if (checksumFile.exists()) {
-                        val expected = MessageDigest.getInstance(checksum.algorithmName)
-                            .digest(artifact.readBytes())
-                            .toHexString()
+                        val expected = artifact.hash(checksum.algorithmName).toHexString()
                         if (checksumFile.readText().trim() != expected) {
                             add("Invalid $extension checksum for file: ${artifact.name}")
                         }

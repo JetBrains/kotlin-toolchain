@@ -10,6 +10,7 @@ apply:
 dependencies:
   - //sources/libraries/concurrency
   - //sources/libraries/nio-filechannels
+  - //sources/libraries/stdlib-extended
   - //sources/libraries/telemetry: exported # OpenTelemetry is in the API
   - $libs.kotlinx.coroutines.core
   - $libs.slf4j.api
