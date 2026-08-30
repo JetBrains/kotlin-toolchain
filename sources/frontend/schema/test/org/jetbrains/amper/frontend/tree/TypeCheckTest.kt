@@ -16,13 +16,17 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertInstanceOf
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.pathString
 
 class TypeCheckTest {
     private val stringType = SchemaType.StringType()
-    private val mainClassStringType = SchemaType.StringType(semantics = SchemaType.StringType.Semantics.JvmMainClass)
+    private val mainClassStringType = SchemaType.StringType(semantics = SchemaType.StringType.Semantics.JvmMainClass, canBeBlank = false)
     private val nullableStringType = SchemaType.StringType(isMarkedNullable = true)
+    private val nonBlankStringType = SchemaType.StringType(canBeBlank = false)
     private val intType = SchemaType.IntType()
     private val booleanType = SchemaType.BooleanType()
     private val pathType = SchemaType.PathType()
@@ -93,6 +97,25 @@ class TypeCheckTest {
         assertFalse(mainClassStringType.isAssignableFrom(pathType))
         assertFalse(mainClassStringType.isAssignableFrom(enumType))
         assertFalse(mainClassStringType.isAssignableFrom(intType))
+    }
+
+    @Test
+    fun `isAssignableFrom - non-blank string types`() {
+        assertTrue(nonBlankStringType.isAssignableFrom(nonBlankStringType))
+        assertFalse(nonBlankStringType.isAssignableFrom(stringType))
+        assertTrue(stringType.isAssignableFrom(nonBlankStringType))
+
+        val nullableNonBlankStringType = nonBlankStringType.copy(isMarkedNullable = true)
+        assertTrue(nullableNonBlankStringType.isAssignableFrom(nonBlankStringType))
+        assertFalse(nonBlankStringType.isAssignableFrom(nullableNonBlankStringType))
+    }
+
+    @Test
+    fun `isAssignableFrom - conversions to non-blank string`() {
+        // Paths, enums, and integers always convert to non-blank strings
+        assertTrue(nonBlankStringType.isAssignableFrom(pathType))
+        assertTrue(nonBlankStringType.isAssignableFrom(intType))
+        assertTrue(nonBlankStringType.isAssignableFrom(SchemaType.EnumType(DeclarationOfEnumAllOpenPreset)))
     }
 
     @Test
@@ -197,6 +220,30 @@ class TypeCheckTest {
     }
 
     @Test
+    fun `cast - conversion empty path to string`() {
+        val emptyPathNode = PathNode(Path(""), DefaultTrace, EmptyContexts)
+
+        assertEquals("", assertInstanceOf<StringNode>(stringType.cast(emptyPathNode)).value)
+
+        // An empty path denotes the current directory, and the converted string must stay non-blank
+        assertEquals(".", assertInstanceOf<StringNode>(nonBlankStringType.cast(emptyPathNode)).value)
+    }
+
+    @ParameterizedTest
+    // Actual spaces or tabs are not allowed, but some other special whitespace chars are
+    @ValueSource(strings = [
+        "\u00A0", // SPACE SEPARATOR
+        "\u2007", // LINE SEPARATOR
+        "\u202F", // PARAGRAPH SEPARATOR
+    ])
+    fun `cast - conversion blank path to string`(blankStr: String) {
+        val blankPathNode = PathNode(Path(blankStr), DefaultTrace, EmptyContexts)
+
+        assertEquals(blankStr, assertInstanceOf<StringNode>(stringType.cast(blankPathNode)).value)
+        assertEquals(".${File.separatorChar}$blankStr", assertInstanceOf<StringNode>(nonBlankStringType.cast(blankPathNode)).value)
+    }
+
+    @Test
     fun `cast - conversion enum to string`() {
         val enumNode = EnumNode("Spring", DeclarationOfEnumAllOpenPreset, DefaultTrace, EmptyContexts)
         
@@ -218,6 +265,43 @@ class TypeCheckTest {
 
         assertNull(stringType.cast(intNode, allowStringConversion = false))
         assertNull(mainClassStringType.cast(intNode))
+    }
+
+    @Test
+    fun `cast - non-blank string type checks the actual value`() {
+        val nonBlankNode = StringNode("hello", null, DefaultTrace, EmptyContexts)
+        assertSame(nonBlankNode, nonBlankStringType.cast(nonBlankNode))
+
+        assertNull(nonBlankStringType.cast(StringNode("", null, DefaultTrace, EmptyContexts)))
+        assertNull(nonBlankStringType.cast(StringNode(" \t ", null, DefaultTrace, EmptyContexts)))
+    }
+
+    @Test
+    fun `cast - conversions to non-blank string`() {
+        val intNode = IntNode(123, DefaultTrace, EmptyContexts)
+        assertEquals("123", assertInstanceOf<StringNode>(nonBlankStringType.cast(intNode)).value)
+
+        val enumNode = EnumNode("Spring", DeclarationOfEnumAllOpenPreset, DefaultTrace, EmptyContexts)
+        assertEquals("spring", assertInstanceOf<StringNode>(nonBlankStringType.cast(enumNode)).value)
+
+        val path = Path("/some/path")
+        val pathNode = PathNode(path, DefaultTrace, EmptyContexts)
+        assertEquals(path.pathString, assertInstanceOf<StringNode>(nonBlankStringType.cast(pathNode)).value)
+    }
+
+    @Test
+    fun `cast - non-blank string type with nodes that have no value yet`() {
+        // Nodes without an actual value can only be checked at the type level
+        assertNull(nonBlankStringType.cast(ErrorNode(stringType, DefaultTrace, EmptyContexts)))
+
+        val refNode = ReferenceNode(["foo".ts], stringType, transform = null, DefaultTrace, EmptyContexts)
+        assertNull(nonBlankStringType.cast(refNode))
+
+        val errorNode = ErrorNode(nonBlankStringType, DefaultTrace, EmptyContexts)
+        assertSame(errorNode, nonBlankStringType.cast(errorNode))
+
+        val nonBlankRefNode = ReferenceNode(["foo".ts], nonBlankStringType, null, DefaultTrace, EmptyContexts)
+        assertSame(nonBlankRefNode, nonBlankStringType.cast(nonBlankRefNode))
     }
 
     @Test

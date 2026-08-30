@@ -10,6 +10,7 @@ import org.jetbrains.amper.frontend.SchemaEnum
 import org.jetbrains.amper.frontend.api.CustomSchemaDeclaration
 import org.jetbrains.amper.frontend.api.HiddenFromCompletion
 import org.jetbrains.amper.frontend.api.Misnomers
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.PlatformAgnostic
 import org.jetbrains.amper.frontend.api.PlatformSpecific
 import org.jetbrains.amper.frontend.api.ProductTypeSpecific
@@ -99,6 +100,7 @@ class ComposeSettings : SchemaNode() {
     val enabled by value(default = false)
 
     @SchemaDoc("The Compose plugin version")
+    @NotBlank
     val version by value(DefaultVersions.compose)
 
     @SchemaDoc("Compose Resources settings")
@@ -137,6 +139,7 @@ class ComposeExperimentalSettings: SchemaNode() {
 
 class ComposeExperimentalHotReloadSettings: SchemaNode() {
     @SchemaDoc("The version of the Compose Hot Reload toolchain to use.")
+    @NotBlank
     val version by value(default = DefaultVersions.composeHotReload)
 }
 
@@ -154,6 +157,7 @@ class KtorSettings: SchemaNode() {
     val enabled by value(default = false)
 
     @SchemaDoc("The Ktor version used for the BOM and in the generated library catalog entries")
+    @NotBlank
     val version by value(default = DefaultVersions.ktor)
 
     @SchemaDoc("Whether to apply the Ktor BOM or not")
@@ -167,6 +171,7 @@ class SpringBootSettings: SchemaNode() {
     val enabled by value(default = false)
 
     @SchemaDoc("The Spring Boot version, which is used for the BOM and in the generated library catalog entries")
+    @NotBlank
     val version by value(default = DefaultVersions.springBoot)
 
     @SchemaDoc("Whether to apply the spring-boot-dependencies BOM or not")
@@ -180,6 +185,7 @@ class LombokSettings: SchemaNode() {
     val enabled by value(default = false)
 
     @SchemaDoc("The version of Lombok to use for the runtime library and the annotation processor")
+    @NotBlank
     val version by value(default = DefaultVersions.lombok)
 }
 

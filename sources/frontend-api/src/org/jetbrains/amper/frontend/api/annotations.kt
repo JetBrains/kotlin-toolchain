@@ -238,6 +238,20 @@ annotation class CustomSchemaDeclaration(
 )
 
 /**
+ * Requires the value of this property to be non-blank (not empty, and not just whitespace).
+ *
+ * Only applicable to string properties, that is, properties of type [String], [TraceableString], or a value class
+ * wrapping any of those. Applying it to a property of any other type fails the schema generation.
+ *
+ * Blank values are reported as errors. When using the typed model, such properties are never blank, even when parsed
+ * from invalid files. Invalid values are replaced by with the default value of the property, if it has one.
+ * A property without a default prevents the enclosing object creation entirely.
+ */
+@Target(AnnotationTarget.PROPERTY)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class NotBlank
+
+/**
  * Marks the property as deprecated.
  * If it's used by the user (has non-default trace), then it's going to be diagnosed.
  */

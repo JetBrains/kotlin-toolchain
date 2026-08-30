@@ -39,6 +39,10 @@ sealed interface SchemaType {
         override val isMarkedNullable: Boolean = false,
         val knownValues: Set<String>? = null,
         val semantics: Semantics? = null,
+        /**
+         * Whether values of this type may be blank (empty, or just whitespace).
+         */
+        val canBeBlank: Boolean = true,
     ) : ScalarType, StringInterpolatableType {
         enum class Semantics {
             /**

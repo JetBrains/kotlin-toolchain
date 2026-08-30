@@ -33,23 +33,40 @@ internal fun parseScalar(scalar: YamlValue.Scalar, type: SchemaType.ScalarType):
         }
         else -> intNode(scalar, int)
     }
-    is SchemaType.StringType -> {
-        val semanticsCheckPassed =
-            when (type.semantics) {
-                SchemaType.StringType.Semantics.JvmMainClass,
-                SchemaType.StringType.Semantics.PluginSettingsClass,
-                SchemaType.StringType.Semantics.MavenPlexusConfigXml,
-                SchemaType.StringType.Semantics.TaskName,
-                null -> true
-            }
-        if (semanticsCheckPassed) {
-            stringNode(scalar, type.semantics, scalar.textValue)
-        } else {
-            errorNode(scalar, type)
-        }
-    }
+    is SchemaType.StringType -> parseString(scalar, type)
     is SchemaType.EnumType -> parseEnum(scalar, type)
     is SchemaType.PathType -> parsePath(scalar)
+}
+
+/**
+ * Parses the given [scalar] as a string of the given [type].
+ *
+ * Like any other invalid value, blank values of a type that [cannot be blank][SchemaType.StringType.canBeBlank] are
+ * replaced with an [errorNode], so the corresponding property falls back to its default value (if any).
+ */
+context(_: Contexts, _: ProblemReporter)
+private fun parseString(scalar: YamlValue.Scalar, type: SchemaType.StringType): TreeNode {
+    if (!type.canBeBlank && scalar.textValue.isBlank()) {
+        reportParsing(
+            scalar, TreeDiagnosticId.BlankValueNotAllowed, "validation.types.unexpected.blank.value",
+            type = BuildProblemType.TypeMismatch,
+        )
+        return errorNode(scalar, type)
+    }
+    // Always true here, but this makes sure we don't forget proper validation
+    // if a new semantics type is added and needs it.
+    val semanticsCheckPassed = when (type.semantics) {
+        SchemaType.StringType.Semantics.JvmMainClass,
+        SchemaType.StringType.Semantics.PluginSettingsClass,
+        SchemaType.StringType.Semantics.MavenPlexusConfigXml,
+        SchemaType.StringType.Semantics.TaskName,
+        null -> true
+    }
+    return if (semanticsCheckPassed) {
+        stringNode(scalar, type.semantics, scalar.textValue)
+    } else {
+        errorNode(scalar, type)
+    }
 }
 
 context(_: Contexts, config: ParsingConfig, _: ProblemReporter)

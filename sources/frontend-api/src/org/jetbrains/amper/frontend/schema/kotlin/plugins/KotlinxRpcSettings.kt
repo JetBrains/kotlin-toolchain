@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend.schema.kotlin.plugins
 
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.SchemaDoc
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.Shorthand
@@ -18,6 +19,7 @@ class KotlinxRpcSettings : SchemaNode() {
     val applyBom by value(true)
 
     @SchemaDoc("The version of kotlinx.rpc to use")
+    @NotBlank
     val version by value(DefaultVersions.kotlinxRpc)
 
     @SchemaDoc("Controls `@Rpc` [annotation type-safety](https://github.com/Kotlin/kotlinx-rpc/pull/240) " +

@@ -116,13 +116,13 @@ private fun parseFile(
     }
     val value = documents.first() // Safe - at least one document is always present
         .topLevelValue ?: return null
-    val resultNode = parseNode(YamlValue(value, tag = null), type)
-    diagnoseTestOnlySwiftPMDependencies(resultNode)
+    val parsedNode = parseNode(YamlValue(value, tag = null), type)
+    diagnoseTestOnlySwiftPMDependencies(parsedNode)
     if (config.reportUnknownProperties) {
-        diagnoseUnknownProperties(resultNode)
+        diagnoseUnknownProperties(parsedNode)
     }
-    diagnoseDeprecatedProperties(resultNode)
-    return resultNode as? MappingNode?
+    diagnoseDeprecatedProperties(parsedNode)
+    return parsedNode as? MappingNode?
 }
 
 enum class ReferencesParsingMode {

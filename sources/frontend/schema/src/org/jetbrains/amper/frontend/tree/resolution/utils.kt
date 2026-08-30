@@ -86,7 +86,7 @@ fun TreeNode.inferPossibleExpectedTypeBestEffort(
         is BooleanNode -> SchemaType.BooleanType
         is IntNode -> SchemaType.IntType
         is PathNode -> SchemaType.PathType
-        is StringNode -> SchemaType.StringType(semantics = semantics)
+        is StringNode -> SchemaType.StringType(semantics = semantics, canBeBlank = value.isBlank())
         is ListNode -> SchemaType.ListType(
             elementType = children.mapTo(mutableSetOf(), TreeNode::inferPossibleExpectedTypeBestEffort).singleOrNull()
                 ?: SchemaType.UndefinedType

@@ -8,6 +8,7 @@ import org.jetbrains.amper.frontend.api.CanBeReferenced
 import org.jetbrains.amper.frontend.api.DeprecatedSchema
 import org.jetbrains.amper.frontend.api.KnownIntValues
 import org.jetbrains.amper.frontend.api.Misnomers
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.ProductTypeSpecific
 import org.jetbrains.amper.frontend.api.SchemaDoc
 import org.jetbrains.amper.frontend.api.SchemaNode
@@ -87,6 +88,7 @@ class AndroidSettings : SchemaNode() {
     // The default should be at least as high as the minimal version supported by the AGP we use:
     // https://developer.android.com/build/releases/gradle-plugin (see SDK Build Tools Minimum version field)
     @SchemaDoc("Version of [SDK Build Tools](https://developer.android.com/tools/releases/build-tools) to use.")
+    @NotBlank
     val buildToolsVersion by value(DefaultVersions.androidBuildTools)
 }
 

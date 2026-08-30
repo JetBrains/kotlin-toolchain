@@ -31,6 +31,7 @@ import org.jetbrains.amper.frontend.api.HiddenFromCompletion
 import org.jetbrains.amper.frontend.api.IgnoreForSchema
 import org.jetbrains.amper.frontend.api.Misnomers
 import org.jetbrains.amper.frontend.api.ModifierAware
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.PathMark
 import org.jetbrains.amper.frontend.api.PlatformAgnostic
 import org.jetbrains.amper.frontend.api.PlatformSpecific
@@ -151,6 +152,14 @@ internal fun <T : SchemaNode> parseAndGenerateSchemaNode(clazz: KClass<T>): Pars
                         it.messageBundleId,
                         it.isError,
                     )
+                }
+                // The requirement itself is part of the property's string type (see `schemaTypeExpression`),
+                // we only validate that the annotation is applicable here.
+                if (prop.hasAnnotation<NotBlank>()) {
+                    check(parsedType.descriptor is ParsedTypeDescriptor.String) {
+                        "${clazz.qualifiedName}::${prop.name}: @${NotBlank::class.simpleName} is only " +
+                                "applicable to string properties, but this one is of type ${prop.returnType}"
+                    }
                 }
             }
             add("),\n")

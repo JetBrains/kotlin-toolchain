@@ -9,59 +9,27 @@ import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.frontend.InMemoryVersionCatalog
 import org.jetbrains.amper.frontend.VersionCatalog
 import org.jetbrains.amper.frontend.api.BuiltinCatalogTrace
-import org.jetbrains.amper.frontend.api.DefaultTrace
 import org.jetbrains.amper.frontend.api.SchemaValueDelegate
 import org.jetbrains.amper.frontend.api.TraceableString
 import org.jetbrains.amper.frontend.api.TraceableVersion
 import org.jetbrains.amper.frontend.api.TransformedValueTrace
-import org.jetbrains.amper.frontend.asBuildProblemSource
-import org.jetbrains.amper.frontend.diagnostics.FrontendDiagnosticId
-import org.jetbrains.amper.frontend.reportBundleError
-import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.frontend.schema.Settings
 import org.jetbrains.amper.frontend.types.generated.*
-import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.system.info.SystemInfo
 
-context(problemReporter: ProblemReporter)
 internal fun Settings.builtInCatalog(): VersionCatalog = BuiltInCatalog(
-    kotlinVersion = kotlin.versionDelegate.asTraceableVersion(DefaultVersions.kotlin),
-    dataframeVersion = kotlin.dataframe.versionDelegate.asTraceableVersion(DefaultVersions.dataframe)
-        .takeIf { kotlin.dataframe.enabled },
-    serializationVersion = kotlin.serialization.versionDelegate.asTraceableVersion(DefaultVersions.kotlinxSerialization)
+    kotlinVersion = kotlin.versionDelegate.asTraceableVersion(),
+    dataframeVersion = kotlin.dataframe.versionDelegate.asTraceableVersion().takeIf { kotlin.dataframe.enabled },
+    serializationVersion = kotlin.serialization.versionDelegate.asTraceableVersion()
         .takeIf { kotlin.serialization.enabled },
-    rpcVersion = kotlin.rpc.versionDelegate.asTraceableVersion(DefaultVersions.kotlinxRpc)
-        .takeIf { kotlin.rpc.enabled },
-    composeVersion = compose.versionDelegate.asTraceableVersion(DefaultVersions.compose)
-        .takeIf { compose.enabled },
-    ktorVersion = ktor.versionDelegate.asTraceableVersion(DefaultVersions.ktor)
-        .takeIf { ktor.enabled },
-    springBootVersion = springBoot.versionDelegate.asTraceableVersion(DefaultVersions.springBoot)
-        .takeIf { springBoot.enabled },
-    composeHotReloadVersion = compose.experimental.hotReload.versionDelegate
-        .asTraceableVersion(DefaultVersions.composeHotReload),
+    rpcVersion = kotlin.rpc.versionDelegate.asTraceableVersion().takeIf { kotlin.rpc.enabled },
+    composeVersion = compose.versionDelegate.asTraceableVersion().takeIf { compose.enabled },
+    ktorVersion = ktor.versionDelegate.asTraceableVersion().takeIf { ktor.enabled },
+    springBootVersion = springBoot.versionDelegate.asTraceableVersion().takeIf { springBoot.enabled },
+    composeHotReloadVersion = compose.experimental.hotReload.versionDelegate.asTraceableVersion(),
 )
 
-context(problemReporter: ProblemReporter)
-private fun SchemaValueDelegate<String>.asTraceableVersion(fallbackVersion: String): TraceableVersion {
-    // we validate the version only for emptiness because maven artifacts allow any string as a version
-    //  that's why we cannot provide a precise validation for non-empty strings
-    return if (value.isNotEmpty()) {
-        TraceableVersion(value, trace)
-    } else {
-        problemReporter.reportBundleError(
-            source = trace.asBuildProblemSource(),
-            diagnosticId = FrontendDiagnosticId.VersionCannotBeEmpty,
-            messageKey = "empty.version.string",
-        )
-        // TODO instead of this fallback, we could add a general @NonEmpty validation up front, so the schema
-        //  instantiator deals with it before creating invalid schema elements. Invalid values are already replaced
-        //  with their defaults for best effort handling, so we should end up with the same result, but without any
-        //  special handling here, and the trace will be a real default.
-        // fallback to avoid double errors
-        TraceableVersion(fallbackVersion, trace = DefaultTrace)
-    }
-}
+private fun SchemaValueDelegate<String>.asTraceableVersion(): TraceableVersion = TraceableVersion(value, trace)
 
 private class BuiltInCatalog(
     kotlinVersion: TraceableVersion,

@@ -1,0 +1,21 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, android]
+
+settings:
+  android:
+    buildToolsVersion: <![Error] Blank value is unexpected here!>"  "<!>
+  compose:
+    enabled: true
+    version: <![Error] Blank value is unexpected here!>"  "<!>
+    experimental:
+      hotReload:
+        version: <![Error] Blank value is unexpected here!>"   "<!>
+  ktor:
+    enabled: true
+    version: <![Error] Blank value is unexpected here!>"  "<!>
+  kotlin:
+    version: <![Error] Blank value is unexpected here!>"	"<!> # This is a tab
+    serialization:
+      enabled: true
+      version: <![Error] Blank value is unexpected here!>"    "<!>

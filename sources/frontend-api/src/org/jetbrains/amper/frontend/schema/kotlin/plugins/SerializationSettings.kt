@@ -6,6 +6,7 @@ package org.jetbrains.amper.frontend.schema.kotlin.plugins
 
 import org.jetbrains.amper.frontend.api.CanBeReferenced
 import org.jetbrains.amper.frontend.api.KnownStringValues
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.SchemaDoc
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.Shorthand
@@ -39,5 +40,6 @@ class SerializationSettings : SchemaNode() {
     val format by nullableValue<String>(default = null)
 
     @SchemaDoc("The version of the kotlinx.serialization core and format libraries to use.")
+    @NotBlank
     val version by value(default = DefaultVersions.kotlinxSerialization)
 }

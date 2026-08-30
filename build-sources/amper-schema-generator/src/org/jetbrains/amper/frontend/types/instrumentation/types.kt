@@ -10,6 +10,7 @@ import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.amper.frontend.api.CustomSchemaDeclaration
 import org.jetbrains.amper.frontend.api.KnownIntValues
 import org.jetbrains.amper.frontend.api.KnownStringValues
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.StringSemantics
 import org.jetbrains.amper.frontend.api.TraceableValue
@@ -20,6 +21,7 @@ import kotlin.reflect.KAnnotatedElement
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.withNullability
 
@@ -187,6 +189,7 @@ internal fun schemaTypeExpression(
     String::class -> {
         val knownValues = annotated?.findAnnotation<KnownStringValues>()?.values
         val semantics = annotated?.findAnnotation<StringSemantics>()?.value
+        val notBlank = annotated?.hasAnnotation<NotBlank>() == true
         val expression = CodeBlock.builder().apply {
             add("%T(%L", SchemaType.StringType::class, type.isMarkedNullable)
             if (knownValues != null) {
@@ -197,6 +200,7 @@ internal fun schemaTypeExpression(
             if (semantics != null) {
                 add(", semantics = %T.%N", SchemaType.StringType.Semantics::class, semantics.name)
             }
+            add(", canBeBlank = %L", !notBlank)
             add(")")
         }.build()
         ParsedType(

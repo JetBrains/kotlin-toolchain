@@ -66,7 +66,16 @@ enum class FrontendDiagnosticId : DiagnosticId {
     UnresolvedModuleDependency,
     UnresolvedTemplate,
     UnsupportedLayout,
-    @Deprecated(message = "The corresponding diagnostic no longer exists, remove the support.")
+    @Deprecated(
+        message = "The corresponding diagnostic no longer exists, remove the support.",
+        level = DeprecationLevel.ERROR,
+    )
     UselessSetting,
+    @Deprecated(
+        message = "Blank versions are now reported as TreeDiagnosticId.BlankValueNotAllowed, " +
+                "via the @NotBlank annotation on the version properties.",
+        level = DeprecationLevel.ERROR,
+        replaceWith = ReplaceWith("BlankValueNotAllowed", imports = ["org.jetbrains.amper.frontend.tree.TreeDiagnosticId.BlankValueNotAllowed"])
+    )
     VersionCannotBeEmpty,
 }

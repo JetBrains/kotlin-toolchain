@@ -13,6 +13,7 @@ import org.jetbrains.amper.frontend.api.DeprecatedSchema
 import org.jetbrains.amper.frontend.api.EnumOrderSensitive
 import org.jetbrains.amper.frontend.api.EnumValueFilter
 import org.jetbrains.amper.frontend.api.Misnomers
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.PlatformAgnostic
 import org.jetbrains.amper.frontend.api.PlatformSpecific
 import org.jetbrains.amper.frontend.api.SchemaDoc
@@ -61,6 +62,7 @@ class KotlinSettings : SchemaNode() {
     @PlatformAgnostic
     @Misnomers("compiler")
     @SchemaDoc("The version of the Kotlin compiler and standard library to use")
+    @NotBlank
     val version by value(DefaultVersions.kotlin)
 
     @CanBeReferenced  // by apiVersion

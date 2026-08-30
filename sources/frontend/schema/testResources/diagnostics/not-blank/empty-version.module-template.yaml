@@ -1,0 +1,4 @@
+settings:
+  compose:
+    enabled: true
+    version: ""

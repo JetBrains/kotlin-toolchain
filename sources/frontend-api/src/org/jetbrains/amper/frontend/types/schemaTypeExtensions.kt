@@ -35,7 +35,12 @@ fun SchemaType.render(
         }
         is SchemaType.IntType -> append("integer")
         is SchemaType.PathType -> append("path")
-        is SchemaType.StringType -> append(semantics.render())
+        is SchemaType.StringType -> {
+            if (!canBeBlank) {
+                append("non-blank ")
+            }
+            append(semantics.render())
+        }
         is SchemaType.ListType -> append("sequence [${elementType.render(false)}]")
         is SchemaType.MapType -> append("mapping {${keyType.render(false)} : ${valueType.render(false)}}")
         is SchemaType.EnumType -> {

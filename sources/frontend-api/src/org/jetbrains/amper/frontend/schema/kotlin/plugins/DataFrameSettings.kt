@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend.schema.kotlin.plugins
 
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.SchemaDoc
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.Shorthand
@@ -15,5 +16,6 @@ class DataFrameSettings : SchemaNode() {
     val enabled by value(default = false)
 
     @SchemaDoc("The version of the Kotlin DataFrame library to use.")
+    @NotBlank
     val version by value(DefaultVersions.dataframe)
 }

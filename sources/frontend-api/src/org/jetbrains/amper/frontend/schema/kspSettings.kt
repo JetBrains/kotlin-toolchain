@@ -5,6 +5,7 @@
 package org.jetbrains.amper.frontend.schema
 
 import org.jetbrains.amper.frontend.api.Misnomers
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.PlatformAgnostic
 import org.jetbrains.amper.frontend.api.SchemaDoc
 import org.jetbrains.amper.frontend.api.SchemaNode
@@ -14,6 +15,7 @@ class KspSettings : SchemaNode() {
 
     @PlatformAgnostic
     @SchemaDoc("The version of KSP to use")
+    @NotBlank
     val version by value(DefaultVersions.ksp)
 
     @SchemaDoc("The list of KSP processors to use. Each item can be a path to a local module, a catalog reference, or maven coordinates.")
