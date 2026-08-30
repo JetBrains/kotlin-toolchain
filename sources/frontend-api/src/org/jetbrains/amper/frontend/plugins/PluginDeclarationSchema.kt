@@ -5,6 +5,7 @@
 package org.jetbrains.amper.frontend.plugins
 
 import org.jetbrains.amper.frontend.api.DeprecatedSchema
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.SchemaDoc
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.StringSemantics
@@ -18,6 +19,7 @@ import org.jetbrains.amper.plugins.schema.model.PluginData
 class PluginDeclarationSchema : SchemaNode() {
     @SchemaDoc("Plugin id that is going to be used to refer to the plugin in the configuration files. " +
             "Module name is used by default.")
+    @NotBlank
     val id by value<PluginData.Id>() // Defaults to the module name, is set on the tree level later.
 
     @DeprecatedSchema("plugin.description.should.be.top.level", isError = false)
@@ -32,5 +34,6 @@ class PluginDeclarationSchema : SchemaNode() {
     @SchemaDoc("Fully qualified name of the @Configurable-annotated interface to be used as plugin configuration. " +
             "This interface can't come from a dependency, it must be declared in the source directory.")
     @StringSemantics(Semantics.PluginSettingsClass)
+    @NotBlank
     val settingsClass by nullableValue<String>()
 }

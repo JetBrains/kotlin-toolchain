@@ -8,6 +8,7 @@ import org.jetbrains.amper.frontend.SchemaEnum
 import org.jetbrains.amper.frontend.api.CanBeReferenced
 import org.jetbrains.amper.frontend.api.KnownIntValues
 import org.jetbrains.amper.frontend.api.Misnomers
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.PlatformAgnostic
 import org.jetbrains.amper.frontend.api.ProductTypeSpecific
 import org.jetbrains.amper.frontend.api.SchemaDoc
@@ -80,6 +81,7 @@ class JvmSettings : SchemaNode() {
     @SchemaDoc("(Only for `jvm/app` [product type]($userGuideUrl/product-types)). The fully-qualified name of the class used to run the application")
     @ProductTypeSpecific(ProductType.JVM_APP)
     @StringSemantics(Semantics.JvmMainClass)
+    @NotBlank
     val mainClass by nullableValue<String>()
 
     @PlatformAgnostic

@@ -12,7 +12,7 @@ import org.jetbrains.amper.frontend.api.TraceableString
 class JvmTestSettings : SchemaNode() {
 
     @SchemaDoc("The JUnit platform version to use to run the tests.")
-    @NotBlank("blank.version.string")
+    @NotBlank
     val junitPlatformVersion by value(default = DefaultVersions.junitPlatform)
 
     @SchemaDoc("Pass JVM system properties to set for the test process.")

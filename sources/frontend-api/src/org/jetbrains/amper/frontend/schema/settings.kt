@@ -121,6 +121,7 @@ class ComposeResourcesSettings : SchemaNode() {
         "The name of the Kotlin object on which all the resource accessors are generated. `Res` by default. " +
                 "Can be customized to avoid name clashes when using resources from multiple modules."
     )
+    @NotBlank
     val nameOfResClass by value(default = "Res")
 
     @SchemaDoc(
@@ -147,6 +148,7 @@ class NativeSettings : SchemaNode() {
 
     // TODO other options from NativeApplicationPart
     @SchemaDoc("The fully-qualified name of the application's entry point function")
+    @NotBlank
     val entryPoint by nullableValue<String>()
 }
 

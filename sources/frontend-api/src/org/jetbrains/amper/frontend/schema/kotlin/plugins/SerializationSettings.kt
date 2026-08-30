@@ -37,6 +37,7 @@ class SerializationSettings : SchemaNode() {
             "Prefer using the built-in catalog dependencies for this, as it gives control over the 'scope' and " +
             "'exported' properties.")
     @KnownStringValues("json", "json-io", "json-okio", "hocon", "protobuf", "cbor", "properties", "none")
+    @NotBlank
     val format by nullableValue<String>(default = null)
 
     @SchemaDoc("The version of the kotlinx.serialization core and format libraries to use.")

@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend.schema.kotlin.plugins
 
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.SchemaDoc
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.TraceableString
@@ -14,6 +15,7 @@ class ThirdPartyCompilerPlugin : SchemaNode() {
             "It is defined by the `pluginId` property in the `CommandLineProcessor` implementation of the plugin. " +
             "If the plugin is also implemented as a Gradle plugin, its ID can also be found in " +
             "`getCompilerPluginId()` in the corresponding `KotlinCompilerPluginSupportPlugin` subclass.")
+    @NotBlank
     val id by value<String>()
 
     @SchemaDoc("The compiler plugin dependency, in the form of `groupId:artifactId:version` Maven coordinates, or " +
