@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.jdk.provisioning
@@ -97,4 +97,7 @@ internal fun Path.findValidJdkHomeDir(): Path {
     error("Couldn't find a valid JDK home in $this")
 }
 
-private fun Path.containsJdkBinaries(): Boolean = resolve("bin/javac").exists() || resolve("bin/javac.exe").exists()
+/**
+ * Returns whether this directory contains JDK binaries (`bin/javac` or `bin/javac.exe`).
+ */
+internal fun Path.containsJdkBinaries(): Boolean = resolve("bin/javac").exists() || resolve("bin/javac.exe").exists()

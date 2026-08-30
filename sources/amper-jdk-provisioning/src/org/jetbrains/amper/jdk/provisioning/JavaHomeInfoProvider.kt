@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.jdk.provisioning
@@ -79,7 +79,7 @@ internal class JavaHomeInfoProvider(
             // that the user didn't know that their real JDK home is nested, and just pointed at the root. Let's check
             // for this situation before complaining about the missing 'release'.
             val messageId = if (javaHomePath.findValidJdkHomeDir() != javaHomePath) {
-                "java.home.invalid.jdk.dir"
+                "java.home.invalid.real.jdk.is.nested"
             } else {
                 "java.home.no.release.file"
             }
@@ -92,6 +92,11 @@ internal class JavaHomeInfoProvider(
             }
         } catch (e: InvalidReleaseInfoException) {
             problemReporter.reportMessage(InvalidJavaHome(javaHomeEnv, "java.home.invalid.release.file", e.message))
+            return JavaHomeInfo.Invalid
+        }
+        // Make sure it's not just a JRE
+        if (!javaHomePath.containsJdkBinaries()) {
+            problemReporter.reportMessage(InvalidJavaHome(javaHomeEnv, "java.home.invalid.missing.javac", javaHomeEnv))
             return JavaHomeInfo.Invalid
         }
         return JavaHomeInfo.Valid(javaHomePath, releaseInfo)

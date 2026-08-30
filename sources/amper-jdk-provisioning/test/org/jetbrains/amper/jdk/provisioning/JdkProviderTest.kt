@@ -21,8 +21,13 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension
+import java.nio.file.Path
+import kotlin.io.path.createDirectories
+import kotlin.io.path.createFile
 import kotlin.io.path.div
 import kotlin.io.path.exists
+import kotlin.io.path.pathString
+import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -181,23 +186,74 @@ class JdkProviderTest {
     @Test
     fun provisionJdk_reportsInvalidJavaHome(environmentVariables: EnvironmentVariables) =
         runTestWithMdc(timeout = 10.minutes) {
-            val invalidPath = "not-a-valid-path"
-            environmentVariables["JAVA_HOME"] = invalidPath
-            val collectingProblemReporter = CollectingProblemReporter()
-            with(collectingProblemReporter) {
-                createTestJdkProvider().getJdk(
-                    criteria = JdkProvisioningCriteria(majorVersion = 21),
-                    selectionMode = JdkSelectionMode.javaHome,
-                )
-            }
-            val problems = collectingProblemReporter.problems
-            assertEquals(1, problems.size, "Expected a single problem about the invalid JAVA_HOME, got ${problems.size}:\n" +
-                    problems.joinToString("\n") { it.message })
-            val problem = problems.single()
-            assertIs<InvalidJavaHome>(problem)
-            assertEquals("not-a-valid-path", problem.javaHomeValue)
-            assertEquals("`JAVA_HOME` is set to a path that does not exist: not-a-valid-path", problem.message)
+            assertJavaHomeRejected(
+                environmentVariables = environmentVariables,
+                javaHome = "not-a-valid-path",
+                expectedProblemMessage = "`JAVA_HOME` is set to a path that does not exist: not-a-valid-path",
+            )
         }
+
+    /**
+     * A JRE has a `release` file and a `bin/java` executable, but no `bin/javac`, so it cannot be used to compile.
+     */
+    @ExtendWith(SystemStubsExtension::class)
+    @Test
+    fun provisionJdk_reportsJavaHomePointingToJre(environmentVariables: EnvironmentVariables) =
+        runTestWithMdc(timeout = 1.minutes) {
+            val jreHome = createFakeJreHome(majorVersion = 21)
+            assertJavaHomeRejected(
+                environmentVariables = environmentVariables,
+                javaHome = jreHome.pathString,
+                expectedProblemMessage = "`JAVA_HOME` does not point to a valid JDK, `bin/javac(.exe)` is missing. " +
+                        "Maybe the path points to a JRE instead: ${jreHome.pathString}",
+            )
+        }
+
+    /**
+     * Creates a directory that looks like a JRE home: it has a valid `release` file and a `bin/java` executable, but
+     * no `bin/javac` executable.
+     */
+    private fun createFakeJreHome(majorVersion: Int): Path {
+        val jreHome = (tempDirExtension.path / "fake-jre").createDirectories()
+        (jreHome / "bin").createDirectories().resolve("java").createFile()
+        (jreHome / "release").writeText(
+            """
+                IMPLEMENTOR="Eclipse Adoptium"
+                JAVA_VERSION="$majorVersion.0.1"
+            """.trimIndent()
+        )
+        return jreHome
+    }
+
+    /**
+     * Asserts that the JDK in the given [javaHome] is rejected with a single problem with the given
+     * [expectedProblemMessage], and that no JDK can be provided in [JdkSelectionMode.javaHome] mode.
+     */
+    private suspend fun assertJavaHomeRejected(
+        environmentVariables: EnvironmentVariables,
+        javaHome: String,
+        expectedProblemMessage: String,
+    ) {
+        environmentVariables["JAVA_HOME"] = javaHome
+        val collectingProblemReporter = CollectingProblemReporter()
+        val jdkResult = with(collectingProblemReporter) {
+            createTestJdkProvider().getJdk(
+                criteria = JdkProvisioningCriteria(majorVersion = 21),
+                selectionMode = JdkSelectionMode.javaHome,
+            )
+        }
+        val problems = collectingProblemReporter.problems
+        assertEquals(1, problems.size, "Expected a single problem about the invalid JAVA_HOME, got ${problems.size}:\n" +
+                problems.joinToString("\n") { it.message })
+        val problem = problems.single()
+        assertIs<InvalidJavaHome>(problem)
+        assertEquals(javaHome, problem.javaHomeValue)
+        assertEquals(expectedProblemMessage, problem.message)
+        assertEquals(
+            JdkResult.Failure("JDK selection mode is set to `javaHome` but `JAVA_HOME` is invalid"),
+            jdkResult,
+        )
+    }
 
     @Test
     fun provisionJdk_failsWithNoResults() = runTestWithMdc(timeout = 3.minutes) {
