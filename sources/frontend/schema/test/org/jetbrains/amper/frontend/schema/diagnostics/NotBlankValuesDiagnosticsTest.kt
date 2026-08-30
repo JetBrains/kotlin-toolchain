@@ -44,6 +44,11 @@ class NotBlankValuesDiagnosticsTest : FrontendTestCaseBase(Path("testResources")
         diagnosticsTest("blank-publishing") { it.assertAllBlankValueProblems(expectedCount = 9) }
     }
 
+    @Test
+    fun `blank android settings`() {
+        diagnosticsTest("blank-android-settings") { it.assertAllBlankValueProblems(expectedCount = 4) }
+    }
+
     private fun List<BuildProblem>.assertAllBlankValueProblems(expectedCount: Int) {
         assertEquals(
             expected = List(expectedCount) { TreeDiagnosticId.BlankValueNotAllowed },

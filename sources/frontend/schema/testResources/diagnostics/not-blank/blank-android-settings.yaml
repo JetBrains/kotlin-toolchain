@@ -1,0 +1,8 @@
+product: android/app
+
+settings:
+  android:
+    namespace: <![Error] Blank value is unexpected here!>""<!>
+    applicationId: <![Error] Blank value is unexpected here!>""<!>
+    versionName: <![Error] Blank value is unexpected here!>" "<!>
+    buildToolsVersion: <![Error] Blank value is unexpected here!>""<!>

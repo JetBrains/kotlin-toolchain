@@ -54,11 +54,13 @@ class AndroidSettings : SchemaNode() {
     @Misnomers("packageName")
     @SchemaDoc("A Kotlin or Java package name for the generated `R` and `BuildConfig` classes. " +
             "[Read more](https://developer.android.com/build/configure-app-module#set-namespace)")
+    @NotBlank
     val namespace by value("org.example.namespace")
 
     @SchemaDoc("The ID for the application on a device and in the Google Play Store. " +
             "[Read more](https://developer.android.com/build/configure-app-module#set-namespace)")
     @ProductTypeSpecific(ProductType.ANDROID_APP)
+    @NotBlank
     val applicationId by referenceValue(::namespace)
 
     @SchemaDoc("Application signing settings. " +
@@ -74,6 +76,7 @@ class AndroidSettings : SchemaNode() {
     @SchemaDoc("Version name. " +
             "[Read more](https://developer.android.com/studio/publish/versioning#versioningsettings)")
     @ProductTypeSpecific(ProductType.ANDROID_APP)
+    @NotBlank
     val versionName by value("unspecified")
 
     @Misnomers("packagingOptions")
