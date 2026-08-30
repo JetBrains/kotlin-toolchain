@@ -18,6 +18,7 @@ import kotlin.io.path.absolute
 import kotlin.io.path.div
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -38,6 +39,15 @@ internal class NotBlankFallbackTest : FrontendTestCaseBase(Path("testResources")
         assertEquals(DefaultVersions.composeHotReload, settings.compose.experimental.hotReload.version)
         assertEquals(DefaultVersions.ktor, settings.ktor.version)
         assertEquals(DefaultVersions.kotlinxSerialization, settings.kotlin.serialization.version)
+    }
+
+    @Test
+    fun `blank optional values fall back to null`() {
+        val settings = readSingleModule("blank-publishing").fragments.first().settings
+
+        assertNull(settings.publishing.pom.name)
+        assertNull(settings.publishing.pom.url)
+        assertNull(settings.publishing.group)
     }
 
     @Test

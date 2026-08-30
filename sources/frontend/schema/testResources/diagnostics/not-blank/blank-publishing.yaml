@@ -1,0 +1,20 @@
+product: jvm/lib
+
+settings:
+  publishing:
+    enabled: true
+    group: <![Error] Blank value is unexpected here!>""<!>
+    version: <![Error] Blank value is unexpected here!>""<!>
+    artifactId: <![Error] Blank value is unexpected here!>""<!>
+    pom:
+      name: <![Error] Blank value is unexpected here!>""<!>
+      description: " "
+      url: <![Error] Blank value is unexpected here!>""<!>
+      licenses:
+        - name: <![Error] Blank value is unexpected here!>""<!>
+          url: <![Error] Blank value is unexpected here!>""<!>
+      scm:
+        url: <![Error] Blank value is unexpected here!>""<!>
+      developers:
+        - name: <![Error] Blank value is unexpected here!>""<!>
+          email: ""

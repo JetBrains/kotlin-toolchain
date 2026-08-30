@@ -39,6 +39,11 @@ class NotBlankValuesDiagnosticsTest : FrontendTestCaseBase(Path("testResources")
         diagnosticsTest("blank-repository") { it.assertAllBlankValueProblems(expectedCount = 2) }
     }
 
+    @Test
+    fun `blank publishing settings`() {
+        diagnosticsTest("blank-publishing") { it.assertAllBlankValueProblems(expectedCount = 9) }
+    }
+
     private fun List<BuildProblem>.assertAllBlankValueProblems(expectedCount: Int) {
         assertEquals(
             expected = List(expectedCount) { TreeDiagnosticId.BlankValueNotAllowed },

@@ -8,6 +8,7 @@ import org.jetbrains.amper.frontend.SchemaEnum
 import org.jetbrains.amper.frontend.api.DeprecatedSchema
 import org.jetbrains.amper.frontend.api.KnownStringValues
 import org.jetbrains.amper.frontend.api.Misnomers
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.SchemaDoc
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.Shorthand
@@ -22,15 +23,18 @@ class PublishingSettings : SchemaNode() {
     val enabled by value(default = false)
 
     @SchemaDoc("Group ID of the published Maven artifact")
+    @NotBlank
     val group by nullableValue<String>()
 
     @SchemaDoc("Version of the published Maven artifact")
+    @NotBlank
     val version by nullableValue<String>()
 
     @Misnomers("name")
     @SchemaDoc("Base artifact ID of the published Maven artifacts (for multiplatform libraries, a suffix may be " +
             "appended to distinguish artifacts from different platforms)")
     @Suppress("DEPRECATION_ERROR") // it's the only allowed usage for the transition
+    @NotBlank
     val artifactId by referenceValue(::name)
 
     @SchemaDoc("Obsolete, use 'artifactId' instead.")
@@ -110,6 +114,7 @@ enum class PublishingMode(override val schemaValue: String) : SchemaEnum {
 class PomSettings : SchemaNode() {
 
     @SchemaDoc("A user-readable name for this module. Defaults to the Kotlin module name.")
+    @NotBlank
     val name by nullableValue<String>()
 
     @SchemaDoc("A description for this module. Defaults to the Kotlin module description.")
@@ -119,6 +124,7 @@ class PomSettings : SchemaNode() {
         "The URL to the module's homepage in the POM metadata. Required for Maven Central publication.\n\n" +
                 "Note: this is usually the same for the whole project, thus configured in a common template."
     )
+    @NotBlank
     val url by nullableValue<String>()
 
     @SchemaDoc(
@@ -159,6 +165,7 @@ class LicenseInfo : SchemaNode() {
         "Eclipse Public License 2.0",
         "The Unlicense",
     )
+    @NotBlank
     val name by value<String>()
 
     @SchemaDoc(
@@ -176,6 +183,7 @@ class LicenseInfo : SchemaNode() {
         "https://www.eclipse.org/legal/epl-2.0/",
         "https://unlicense.org/",
     )
+    @NotBlank
     val url by value<String>()
 }
 
@@ -201,6 +209,7 @@ class ScmInfo : SchemaNode() {
                 "Required for Maven Central publication.\n\n" +
                 "Example: `https://github.com/spring-projects/spring-boot.git`"
     )
+    @NotBlank
     val url by nullableValue<String>()
 
     @SchemaDoc(
@@ -230,6 +239,7 @@ class DeveloperInfo : SchemaNode() {
 
     @Shorthand // this is the only requirement for Maven Central, so it's worth it as a shorthand
     @SchemaDoc("The full name of this developer. Required for Maven Central publication.")
+    @NotBlank
     val name by value<String>()
 
     @SchemaDoc("The URL to this developer's website.")
