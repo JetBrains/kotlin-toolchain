@@ -1,0 +1,6 @@
+product: jvm/lib
+
+repositories:
+  - url: <![Error] Blank value is unexpected here!>""<!>
+  - url: https://example.com/repo
+    id: <![Error] Blank value is unexpected here!>"  "<!>

@@ -11,6 +11,7 @@ import org.jetbrains.amper.frontend.api.CanBeReferenced
 import org.jetbrains.amper.frontend.api.HiddenFromCompletion
 import org.jetbrains.amper.frontend.api.Misnomers
 import org.jetbrains.amper.frontend.api.ModifierAware
+import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.PlatformAgnostic
 import org.jetbrains.amper.frontend.api.ProductTypeSpecific
 import org.jetbrains.amper.frontend.api.SchemaDoc
@@ -89,9 +90,11 @@ class Repository : SchemaNode() {
     @CanBeReferenced  // by id
     @Shorthand
     @SchemaDoc("The url of the repository")
+    @NotBlank
     val url by value<String>()
 
     @SchemaDoc("The ID of the repository, used to reference it. Defaults to the repository url")
+    @NotBlank
     val id by referenceValue(::url)
 
     @SchemaDoc("Credentials to connect to this repository")
@@ -109,9 +112,11 @@ class Repository : SchemaNode() {
         val file by value<Path>()
 
         @SchemaDoc("A key in the file that holds the username")
+        @NotBlank
         val usernameKey by value<String>()
 
         @SchemaDoc("A key in the file that holds the password")
+        @NotBlank
         val passwordKey by value<String>()
     }
 

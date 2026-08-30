@@ -40,6 +40,18 @@ internal class NotBlankFallbackTest : FrontendTestCaseBase(Path("testResources")
         assertEquals(DefaultVersions.kotlinxSerialization, settings.kotlin.serialization.version)
     }
 
+    @Test
+    fun `objects with a blank required property are dropped from lists`() {
+        // The first repository has a blank url, which is required and has no default, so the whole repository is
+        // dropped, exactly like it would be for any other invalid value. The second one only has a blank `id`,
+        // which falls back to its default (the url).
+        val repositories = readSingleModule("blank-repository").mavenResolveRepositories
+
+        assertTrue(repositories.none { it.url.isBlank() }, "Blank-url repository should be dropped: $repositories")
+        val declaredRepo = repositories.single { it.url == "https://example.com/repo" }
+        assertEquals("https://example.com/repo", declaredRepo.id, "Blank id should fall back to the url default")
+    }
+
     private fun readSingleModule(caseName: String): AmperModule {
         val problemReporter = CollectingProblemReporter()
         val pathResolver = TestFrontendPathResolver()
