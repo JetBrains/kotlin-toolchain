@@ -44,7 +44,7 @@ internal class ShowDependenciesCommand: AmperModelAwareCommand(name = "dependenc
         moduleOptionHelp = """
             The module to show the dependencies of (run the `show modules` command to get the modules list).
             This option can be repeated to show the dependencies of several modules.
-            If unspecified, you will be prompted to choose one or more modules.
+            If unspecified, you will be prompted to choose a module.
 
             See also `$AllModulesOptionName` if you want to show dependencies for all modules in the project.
         """.trimIndent(),

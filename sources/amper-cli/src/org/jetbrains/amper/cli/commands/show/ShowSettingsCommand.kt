@@ -26,7 +26,7 @@ internal class ShowSettingsCommand : AmperModelAwareCommand(name = "settings") {
         moduleOptionHelp = """
             The module to show the settings of (run the `show modules` command to get the modules list).
             This option can be repeated to show settings for several modules.
-            If unspecified, you will be prompted to choose one or more modules.
+            If unspecified, you will be prompted to choose a module.
 
             See also `$AllModulesOptionName` if you want to show settings for all modules in the project.
         """.trimIndent(),
