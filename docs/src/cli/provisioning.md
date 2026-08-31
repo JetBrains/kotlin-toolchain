@@ -27,9 +27,9 @@ immediately delegate to it.
 ## Project-local version detection
 
 The wrapper script is the source of truth for the version of the Kotlin Toolchain used in your project. 
-A globally installed wrapper (for instance, installed [via SDKMAN or the installer script](index.md#installation)) doesn't blindly use its own 
-version. When run, it searches the current directory and its ancestors for a project (a directory with a `project.yaml` or
-`module.yaml` file) containing its own `kotlin` wrapper script.
+A globally installed Kotlin CLI (for instance, installed [via SDKMAN or the installer script](index.md#installation)) 
+doesn't blindly use its own version. When run, it searches the current directory and its ancestors for a project 
+(a directory with a `project.yaml` or `module.yaml` file) containing its own `kotlin` wrapper script.
 If it finds one, it reads the Kotlin Toolchain version and distribution checksum from that wrapper and uses them
 instead of its own, so the project is built with the version it declares.
 

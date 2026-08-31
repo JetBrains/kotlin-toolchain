@@ -44,11 +44,12 @@ You can learn more about the basic concepts of the Kotlin Toolchain in the [user
 
 ## Conversion
 
-Here is how the general workflow looks like:
+Here is an overview of what this guide walks you through:
 
+0. Add the `kotlin`/`kotlin.bat` wrappers
 1. Create a `project.yaml` file listing your modules
-2. Create templates for shared configuration
-3. Create local plugins for more complex logic
+2. Create Kotlin Toolchain templates from your Gradle convention plugins / `subprojects { ... }` blocks
+3. Create local plugins if you have more complex logic
 4. Convert your subprojects into modules (creating `module.yaml` files), applying the templates and plugins created above
 5. Move the source files to the Kotlin Toolchain layout (or if you only have JVM modules, you can use the 
    [Maven-like layout](../user-guide/advanced/maven-like-layout.md))
@@ -57,7 +58,26 @@ Here is how the general workflow looks like:
 
 Let's dive in!
 
-### Step 1: The project file
+### Step 1: Install the Kotlin CLI wrappers
+
+Like `gradlew`/`gradlew.bat`, the `kotlin`/`kotlin.bat` wrapper scripts are meant to be committed to your repository, 
+and they download everything they need on first use. See [Wrapper & provisioning](../cli/provisioning.md).
+
+On your machine, we recommend [installing the Kotlin CLI "globally"](../cli/index.md#installation) (outside your project) to make it easier to create or
+migrate projects. You can then generate the wrappers using:
+
+```shell
+kotlin update --create
+```
+
+!!! note "The wrapper is the source of truth"
+
+    When you use the globally-installed Kotlin CLI, it
+    [picks up the correct Kotlin Toolchain version](../cli/provisioning.md#project-local-version-detection) to use from your
+    local `kotlin`/`kotlin.bat` wrapper.
+    The IDE also needs the wrapper as a source of truth for the version to use, so they are required.
+
+### Step 2: The project file
 
 Create a `project.yaml` at the root of your project, next to `setting.gradle(.kts)`.
 
@@ -91,7 +111,7 @@ modules:
     That said, we still recommend using `project.yaml` for consistency with other projects, and because this file
     might become necessary for other reasons (like declaring local plugins).
 
-### Step 2: Create templates for shared configuration
+### Step 3: Create templates for shared configuration
 
 In Gradle, the common configuration shared between subprojects is usually placed in 
 [convention plugins](https://docs.gradle.org/current/userguide/implementing_gradle_plugins_convention.html) 
@@ -112,14 +132,14 @@ For details about how to convert which parts of your convention plugins or build
 You can place templates anywhere in your project tree, but it's easier to choose a single place to put all of them, 
 like a `templates` directory at the root of your project.
 
-### Step 3: Convert custom plugins to Kotlin Toolchain plugins
+### Step 4: Convert custom plugins to Kotlin Toolchain plugins
 
 If you have more complex custom logic in your project — custom tasks, code generation, verification —, check if their 
 functionality already exists in the Kotlin Toolchain as a built-in feature.
 If not, you'll need to decide whether you want to set it aside, or convert it to a 
 [Kotlin Toolchain plugin](../user-guide/plugins/overview.md).
 
-### Step 4: Migrate your subprojects
+### Step 5: Migrate your subprojects
 
 Each `build.gradle(.kts)` file needs to be translated to a `module.yaml` file.
 
@@ -168,7 +188,7 @@ apply:
 
 See the [Migration reference](#migration-reference) below to see how to convert other parts of your `build.gradle(.kts)`.
 
-### Step 5: Source sets and file layout
+### Step 6: Source sets and file layout
 
 Gradle organizes code into _source sets_. The Kotlin Toolchain has a similar approach, but the directories have different
 names (and no per-language subdirectories):
@@ -218,12 +238,12 @@ aliases:
 Per-source-set dependencies map to qualified dependency sections: the `commonMain` dependencies go to
 `dependencies:`, the `jvmMain` ones to `dependencies@jvm:`, and the `commonTest` ones to `test-dependencies:`.
 
-### Step 6: Verify
+### Step 7: Verify
 
 Check that everything is in order by running `kotlin build` (to compile and link everything) and `kotlin test` to run the 
 tests. If everything is green, you can start cleaning up.
 
-### Step 7: Cleanup
+### Step 8: Cleanup
 
 If you have a version catalog, move your `gradle/libs.versions.toml` to the root of the project. The Kotlin Toolchain 
 supports both locations, but the Gradle location is only supported to ease the migration. We recommend placing it at the 
@@ -233,21 +253,21 @@ You can now remove your Gradle wrapper and configuration files.
 
 ## Everyday commands
 
-| Gradle                            | The Kotlin Toolchain                |
-|-----------------------------------|-------------------------------------|
-| `./gradlew build`                 | `./kotlin build`                    |
-| `./gradlew test`                  | `./kotlin test`                     |
-| `./gradlew :app:test`             | `./kotlin test -m app`              |
-| `./gradlew run`                   | `./kotlin run`                      |
-| `./gradlew :app:dependencies`     | `./kotlin show dependencies -m app` |
-| `./gradlew tasks`                 | `./kotlin show tasks`               |
-| `./gradlew publishToMavenLocal`   | `./kotlin publish mavenLocal`[^1]   |
-| `./gradlew clean`                 | `./kotlin clean`                    |
+| Gradle                          | The Kotlin Toolchain                               |
+|---------------------------------|----------------------------------------------------|
+| `./gradlew build`               | `kotlin build`                                   |
+| `./gradlew run`                 | `kotlin run`                                     |
+| `./gradlew test`                | `kotlin test`                                    |
+| `./gradlew :app:test`           | `kotlin test -m app`                             |
+| `./gradlew :app:dependencies`   | `kotlin show dependencies -m app`                |
+| `./gradlew tasks`               | `kotlin --help` or `kotlin show commands`[^1]|
+| `./gradlew publishToMavenLocal` | `kotlin publish mavenLocal`[^2]                  |
+| `./gradlew clean`               | `kotlin clean`                                   |
+| `./gradlew stop`                | The Kotlin Toolchain doesn't have a daemon to stop |
 
-[^1]: After setting up the [publishing configuration](../user-guide/publishing.md).
-
-Like `gradlew`, the `kotlin` wrapper scripts are meant to be committed to your repository, and download everything
-they need on first use. See [Wrapper & provisioning](../cli/provisioning.md).
+[^1]: The tasks in the Kotlin toolchain are internal. What you want to run is commands instead. You can use
+`kotlin --help` to learn about built-in commands, or run `kotlin show commands` to show the custom commands from plugins.
+[^2]: After setting up the [publishing configuration](../user-guide/publishing.md).
 
 ## Migration reference
 
