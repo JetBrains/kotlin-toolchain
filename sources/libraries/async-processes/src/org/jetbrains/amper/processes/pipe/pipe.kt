@@ -49,7 +49,7 @@ class ProcessPipe(
         }
         override fun onStderrLine(line: String, pid: Long) = Unit
 
-        override fun onProcessTerminated(exitCode: Int, pid: Long) {
+        override fun onStreamsFlushed(exitCode: Int, pid: Long) {
             outputLinesChannel.close()
         }
     }

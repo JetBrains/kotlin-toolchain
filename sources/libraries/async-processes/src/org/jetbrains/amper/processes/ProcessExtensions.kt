@@ -54,24 +54,28 @@ internal val DefaultGracePeriod = 3.seconds
  * reading the whole stream if the result is meant to be discarded anyway.
  */
 // NOT PUBLIC ON PURPOSE, please check the KDoc - the caller is responsible for too many things
-internal suspend fun Process.awaitListening(outputListener: ProcessOutputListener): Int = coroutineScope {
+internal suspend fun Process.awaitListening(outputListener: ProcessOutputListener): Int {
     val pid = pid()
-    launch {
-        inputStream.consumeLinesBlockingCancellable {
-            outputListener.onStdoutLine(it, pid)
+    val exitCode = coroutineScope {
+        launch {
+            inputStream.consumeLinesBlockingCancellable {
+                outputListener.onStdoutLine(it, pid)
+            }
         }
-    }
-    launch {
-        errorStream.consumeLinesBlockingCancellable {
-            outputListener.onStderrLine(it, pid)
+        launch {
+            errorStream.consumeLinesBlockingCancellable {
+                outputListener.onStderrLine(it, pid)
+            }
         }
-    }
 
-    // This is async: onExit() runs on the ForkJoinPool so it doesn't hold the current thread.
-    // This is why we only really need 2 threads in the current dispatcher (to consume stdout and stderr).
-    onExit().await().exitValue().also { exitCode ->
-        outputListener.onProcessTerminated(exitCode, pid)
+        // This is async: onExit() runs on the ForkJoinPool so it doesn't hold the current thread.
+        // This is why we only really need 2 threads in the current dispatcher (to consume stdout and stderr).
+        onExit().await().exitValue().also { exitCode ->
+            outputListener.onProcessTerminated(exitCode, pid)
+        }
     }
+    outputListener.onStreamsFlushed(exitCode, pid)
+    return exitCode
 }
 
 /**
