@@ -11,8 +11,8 @@ import io.opentelemetry.sdk.OpenTelemetrySdk
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
+import org.jetbrains.amper.stdlib.runtime.runOnJvmShutdown
 import java.io.OutputStream
-import kotlin.concurrent.thread
 
 object TelemetrySetup {
 
@@ -36,12 +36,12 @@ object TelemetrySetup {
     }
 
     fun closeTelemetryOnShutdown(openTelemetry: OpenTelemetrySdk, handleShutdownError: (Throwable) -> Unit) {
-        Runtime.getRuntime().addShutdownHook(thread(start = false) {
+        runOnJvmShutdown {
             try {
                 openTelemetry.close()
             } catch (t: Throwable) {
                 handleShutdownError(t)
             }
-        })
+        }
     }
 }

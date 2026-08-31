@@ -5,6 +5,7 @@
 package org.jetbrains.amper.cli.widgets
 
 import com.github.ajalt.mordant.terminal.Terminal
+import org.jetbrains.amper.stdlib.runtime.runOnJvmShutdown
 
 /**
  * Manages terminal cursor visibility safely.
@@ -39,12 +40,13 @@ private class InteractiveTerminalCursorManager(
         if (isHidden != true) {
             terminal.cursor.hide(showOnExit = false /* we manage it ourselves */)
             isHidden = true
-            if (showHook == null) {
-                showHook = Thread {
-                    synchronized(StateHolder) { isShutdown = true }
-                    terminal.cursor.show()
-                }.also(Runtime.getRuntime()::addShutdownHook)
+        }
+        if (!resetHookSet) {
+            runOnJvmShutdown {
+                synchronized(StateHolder) { isShutdown = true }
+                terminal.cursor.show()
             }
+            resetHookSet = true
         }
     }
 
@@ -54,15 +56,13 @@ private class InteractiveTerminalCursorManager(
         if (isHidden != false) {
             terminal.cursor.show()
             isHidden = false
-            showHook?.let(Runtime.getRuntime()::removeShutdownHook)
-            showHook = null
         }
     }
 
     private companion object StateHolder {
         private var isHidden: Boolean? = null
         private var isShutdown = false
-        private var showHook: Thread? = null
+        private var resetHookSet: Boolean = false
     }
 }
 

@@ -14,7 +14,6 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.path
-import com.github.ajalt.mordant.terminal.prompt
 import com.github.ajalt.mordant.terminal.success
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -29,6 +28,7 @@ import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.processes.startLongLivedProcess
+import org.jetbrains.amper.stdlib.runtime.runOnJvmShutdown
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -52,7 +52,6 @@ import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.fileAttributesViewOrNull
-import kotlin.io.path.fileSize
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isSameFileAs
 import kotlin.io.path.moveTo
@@ -312,7 +311,7 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
         // If some cleanup at the end of the update command takes unusually long, we don't want to risk a race and try
         // to replace kotlin.bat while it's still running. For this reason, we try to schedule this external process as
         // close as possible to the termination of the update command's JVM, which is why we do it in a shutdown hook.
-        Runtime.getRuntime().addShutdownHook(Thread {
+        runOnJvmShutdown {
             startLongLivedProcess(
                 // The 'ping' here is used to sleep 1 second.
                 // The 'timeout' command only works in interactive consoles (thus fails in our case); 'ping' is reliable.
@@ -320,7 +319,7 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
                 // file lookup, and also might be mapped to ::1 (IPv6) which might make ping fail or behave differently.
                 command = listOf("cmd", "/c", "ping -n 2 127.0.0.1 & copy /y ${source.absolute().quotedForCmd()} ${target.absolute().quotedForCmd()}")
             )
-        })
+        }
     }
 
     private fun Path.quotedForCmd(): String {

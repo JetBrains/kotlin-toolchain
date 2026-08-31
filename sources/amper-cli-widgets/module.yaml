@@ -7,6 +7,7 @@ apply:
 dependencies:
   - //sources/amper-events
   - //sources/amper-test-events
+  - //sources/libraries/stdlib-extended
   - $libs.kotlinx.coroutines.core
   - $libs.mordant
   - $libs.clikt.markdown

@@ -10,6 +10,7 @@ apply:
 
 dependencies:
   - //sources/amper-build-info
+  - //sources/libraries/stdlib-extended
   - //sources/libraries/telemetry
   - $libs.kotlinx.coroutines.core
   - $libs.slf4j.api

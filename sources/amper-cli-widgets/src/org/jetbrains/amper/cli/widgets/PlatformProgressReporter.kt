@@ -6,6 +6,7 @@ package org.jetbrains.amper.cli.widgets
 
 import com.github.ajalt.mordant.terminal.Terminal
 import org.jetbrains.amper.cli.widgets.PlatformProgressReporter.Progress
+import org.jetbrains.amper.stdlib.runtime.runOnJvmShutdown
 import kotlin.math.roundToInt
 
 /**
@@ -93,23 +94,19 @@ private class PlatformProgressReporterImpl(
             doUpdate(state)
             currentState = state
 
-            if (state is Progress.Hidden) {
-                resetHook?.let(Runtime.getRuntime()::removeShutdownHook)
-                resetHook = null
-            } else {
-                if (resetHook == null) {
-                    resetHook = Thread {
-                        synchronized(StateHolder) { isShutdown = true }
-                        doUpdate(Progress.Hidden)
-                    }.also(Runtime.getRuntime()::addShutdownHook)
+            if (!resetHookSet && state !is Progress.Hidden) {
+                runOnJvmShutdown {
+                    synchronized(StateHolder) { isShutdown = true }
+                    doUpdate(Progress.Hidden)
                 }
+                resetHookSet = true
             }
         }
     }
 
     private fun doUpdate(state: Progress) {
         // We print directly bypassing `terminal.rawPrint` here,
-        //  as using the later leads to unexpected newlines in the TUI.
+        //  as using the latter leads to unexpected newlines in the TUI.
         //  TODO: figure out why/report issue?
         @Suppress("ReplacePrintlnWithLogging")
         print("${OSC}9;4;${codeOf(state)}$ST")
@@ -131,7 +128,7 @@ private class PlatformProgressReporterImpl(
     private companion object StateHolder {
         private var currentState: Progress? = null
         private var isShutdown = false
-        private var resetHook: Thread? = null
+        private var resetHookSet = false
     }
 }
 

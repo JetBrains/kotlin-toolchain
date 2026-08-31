@@ -22,6 +22,7 @@ import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
+import org.jetbrains.amper.stdlib.runtime.runOnJvmShutdown
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.test.Dirs
@@ -33,7 +34,6 @@ import java.net.ServerSocket
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.concurrent.thread
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.io.path.absolutePathString
@@ -304,13 +304,13 @@ class AndroidTools(
 
     private fun registerAdbShutdownOnExit() {
         shutdownHookRegistered = true
-        Runtime.getRuntime().addShutdownHook(thread(start = false) {
+        runOnJvmShutdown {
             // We cannot use async-process helpers while the JVM is shutting down, because they are automatically
             // cleaned up on JVM exit, so it would immediately fail.
             // This is why we use a plain ProcessBuilder here.
             @Suppress("SSBasedInspection")
             ProcessBuilder(adbExe.pathString, "kill-server").inheritIO().start()
-        })
+        }
     }
 
     private suspend fun runAndroidSdkProcess(

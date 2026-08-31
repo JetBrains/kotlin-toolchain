@@ -1,11 +1,11 @@
 /*
- * Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.processes
 
 import org.gradle.tooling.internal.consumer.ConnectorServices
-import kotlin.concurrent.thread
+import org.jetbrains.amper.stdlib.runtime.runOnJvmShutdown
 
 /**
  * Forcibly tells Gradle Tooling API to free resources (shutdown daemons, etc.) at the process end.
@@ -15,15 +15,9 @@ object GradleDaemonShutdownHook {
     const val NO_DAEMON_ENV = "AMPER_NO_GRADLE_DAEMON"
 
     private val hookPrimed by lazy {
-        Runtime.getRuntime().addShutdownHook(thread(
-            start = false,
-        ) {
-            try {
-                ConnectorServices.close()
-            } catch (e: RuntimeException) {
-                e.printStackTrace()
-            }
-        })
+        runOnJvmShutdown {
+            ConnectorServices.close()
+        }
     }
 
     fun setupIfNeeded() {
