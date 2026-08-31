@@ -14,16 +14,20 @@ internal fun List<TestFilter>.toTestFilterArg(): String? {
     val filters = mapNotNull { it.toKotlinWasmJsTestFilter() }
     val includeFilters = filters
         .filter { it.mode == FilterMode.Include }
-        .joinToString(separator = " ", prefix = "--include ") { it.pattern }
+        .joinToString(",") { it.pattern }
     val excludeFilters = filters
         .filter { it.mode == FilterMode.Exclude }
-        .joinToString(separator = " ", prefix = "--exclude ") { it.pattern }
+        .joinToString(",") { it.pattern }
 
-    return when {
-        excludeFilters.isEmpty() -> {
-            includeFilters
+    return buildString {
+        if (includeFilters.isNotEmpty()) {
+            append("--include")
+            append(includeFilters)
         }
-        else -> "$includeFilters $excludeFilters"
+        if (excludeFilters.isNotEmpty()) {
+            append("--exclude")
+            append(excludeFilters)
+        }
     }
 }
 
