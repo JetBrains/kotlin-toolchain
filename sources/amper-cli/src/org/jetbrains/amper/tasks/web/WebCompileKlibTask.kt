@@ -180,7 +180,7 @@ internal abstract class WebCompileKlibTask(
 
             terminal.printCompilationSuccess(module, platform, isTest)
 
-            return@execute IncrementalCache.ExecutionResult(listOf(artifact))
+            return@execute IncrementalCache.ExecutionResult([artifact])
         }.outputFiles.singleOrNull()
 
         return Result(

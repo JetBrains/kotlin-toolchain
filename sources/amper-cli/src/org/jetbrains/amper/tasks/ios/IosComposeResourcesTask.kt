@@ -66,7 +66,7 @@ class IosComposeResourcesTask(
                 origins = externalArchives.externalComposeResources(userCacheRoot) + moduleOrigins,
                 outputDir = outputPath,
             )
-            IncrementalCache.ExecutionResult(listOf(outputPath))
+            IncrementalCache.ExecutionResult([outputPath])
         }
 
         return Result(composeResourcesDirectory = outputPath)

@@ -223,7 +223,7 @@ internal class NativeLinkTask(
 
             nativeCompiler.compile(processRunner, args, tempRoot, module)
 
-            return@execute IncrementalCache.ExecutionResult(listOf(artifactPath))
+            return@execute IncrementalCache.ExecutionResult([artifactPath])
         }.outputFiles.single()
 
         return Result(

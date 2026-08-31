@@ -75,7 +75,7 @@ class ComposeResourcesArchiveTask(
             archivePath.deleteIfExists()
             archivePath.createParentDirectories()
             archivePath.writeZip(inputs = [ZipInput(path = mergedDir, destPathInArchive = Path(""))], ZipConfig())
-            IncrementalCache.ExecutionResult(listOf(archivePath))
+            IncrementalCache.ExecutionResult([archivePath])
         }
 
         return Result(platform = platform, archivePath = archivePath)

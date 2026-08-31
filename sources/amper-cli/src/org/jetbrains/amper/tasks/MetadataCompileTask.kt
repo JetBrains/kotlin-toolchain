@@ -218,7 +218,7 @@ internal class MetadataCompileTask(
                 logger.debug("No sources were found for ${fragment.identificationPhrase()}, skipping compilation")
             }
 
-            return@execute IncrementalCache.ExecutionResult(listOf(taskOutputRoot.path.toAbsolutePath()))
+            return@execute IncrementalCache.ExecutionResult([taskOutputRoot.path.toAbsolutePath()])
         }
 
         return Result(
@@ -405,7 +405,7 @@ internal class MetadataCompileTask(
                 logger.debug("No sources were found for ${fragment.identificationPhrase()}, skipping compilation")
             }
 
-            return@execute IncrementalCache.ExecutionResult(listOf(taskOutputRoot.path.toAbsolutePath()))
+            return@execute IncrementalCache.ExecutionResult([taskOutputRoot.path.toAbsolutePath()])
         }
 
         return Result(

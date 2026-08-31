@@ -170,7 +170,7 @@ class IncrementalCacheTest {
             val result1 = incrementalCache.execute(key = "1", inputValues = emptyMap(), inputFiles = emptyList()) {
                 output.writeText("1")
                 executionsCount.incrementAndGet()
-                IncrementalCache.ExecutionResult(listOf(output))
+                IncrementalCache.ExecutionResult([output])
             }
             assertEquals(listOf(output), result1.outputFiles)
             assertFalse(result1.loadedFromCache)
@@ -180,7 +180,7 @@ class IncrementalCacheTest {
             val result2 = incrementalCache.execute(key = "1", inputValues = emptyMap(), inputFiles = emptyList()) {
                 output.writeText("2")
                 executionsCount.incrementAndGet()
-                IncrementalCache.ExecutionResult(listOf(output))
+                IncrementalCache.ExecutionResult([output])
             }
             assertEquals(listOf(output), result2.outputFiles)
             assertTrue(result2.loadedFromCache)
@@ -192,9 +192,9 @@ class IncrementalCacheTest {
             val result3 = incrementalCache.execute(key = "1", inputValues = emptyMap(), inputFiles = emptyList()) {
                 output.writeText("3")
                 executionsCount.incrementAndGet()
-                IncrementalCache.ExecutionResult(listOf(output))
+                IncrementalCache.ExecutionResult([output])
             }
-            assertEquals(listOf(output), result3.outputFiles)
+            assertEquals([output], result3.outputFiles)
             assertFalse(result3.loadedFromCache)
             assertEquals("3", output.readText())
         }
@@ -221,7 +221,7 @@ class IncrementalCacheTest {
         assertFailsWith(NoSuchFileException::class) {
             runBlocking {
                 incrementalCache.execute(key = "1", inputValues = emptyMap(), inputFiles = emptyList()) {
-                    IncrementalCache.ExecutionResult(listOf(tempDir.resolve("1.out")))
+                    IncrementalCache.ExecutionResult([tempDir.resolve("1.out")])
                 }
             }
         }
