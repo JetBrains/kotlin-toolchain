@@ -14,6 +14,7 @@ After installation, the `kotlin` command will be available on your `PATH`.
 ### via SDKMAN
 
 ```shell
+sdk update
 sdk install kotlintoolchain
 ```
 

@@ -23,6 +23,7 @@ applications with a simple declarative configuration.
 <div class="method-label">via SDKMAN</div>
 
 ```shell
+sdk update
 sdk install kotlintoolchain
 ```
 
