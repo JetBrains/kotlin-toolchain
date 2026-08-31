@@ -3,7 +3,7 @@ product:
   platforms: [ linuxArm64, linuxX64 ]
 
 dependencies:
-  - ../shared
+  - //shared
 
 settings:
   native:

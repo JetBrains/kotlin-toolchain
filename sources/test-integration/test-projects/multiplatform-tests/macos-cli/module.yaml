@@ -3,7 +3,7 @@ product:
   platforms: [ macosArm64 ]
 
 dependencies:
-  - ../shared
+  - //shared
 
 settings:
   native:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.tasks.wasm
@@ -42,6 +42,7 @@ import org.jetbrains.amper.tasks.web.disablePnpmUpdateNotifier
 import org.jetbrains.amper.teamcity.events.TeamCityMessageProcessor
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
+import org.jetbrains.amper.test.tagFiltersWouldMatchUntaggedTests
 import org.jetbrains.amper.testevents.TestId
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
@@ -71,6 +72,11 @@ class BrowserTestTask(
     override suspend fun run(
         dependenciesResult: List<TaskResult>,
     ): TaskResult {
+        if (!runSettings.testFilters.tagFiltersWouldMatchUntaggedTests()) {
+            logger.debug("Skipping tests of module '${module.userReadableName}' for platform '${platform.pretty}' " +
+                    "because Kotlin/Wasm tests are all untagged, and the given tag filters exclude untagged tests")
+            return EmptyTaskResult
+        }
         val builtApp = dependenciesResult.requireSingleDependency<WasmJsBuildTaskBase.Result>().appPath
             ?: return EmptyTaskResult
         val nodeModulesPath = dependenciesResult.requireSingleDependency<NpmInstallTask.Result>().nodeModulesPath
