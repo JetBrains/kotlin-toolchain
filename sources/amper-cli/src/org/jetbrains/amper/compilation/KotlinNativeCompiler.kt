@@ -21,8 +21,8 @@ import org.jetbrains.amper.kotlin.native.KonanDistribution
 import org.jetbrains.amper.kotlin.native.downloadAndExtractKotlinNative
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
-import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.ProcessResult
+import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.jetbrains.amper.telemetry.setListAttribute
@@ -58,6 +58,7 @@ class KotlinNativeCompiler(
         private val logger = LoggerFactory.getLogger(KotlinNativeCompiler::class.java)
     }
 
+    context(_: ProblemReporter)
     suspend fun compile(
         processRunner: ProcessRunner,
         args: List<String>,
@@ -72,50 +73,74 @@ class KotlinNativeCompiler(
                 logger.debug("konanc ${ShellQuoting.quoteArgumentsPosixShellWay(args)}")
 
                 withKotlinCompilerArgFile(args, tempRoot) { argFile ->
-                    val result = runNativeCompilerCommandImpl(
+                    runNativeCompilerCommand(
+                        span = span,
+                        moniker = "native compilation",
+                        module = module,
                         processRunner = processRunner,
                         programArgs = listOf("konanc", "@${argFile}"),
-                        argsMode = ArgsMode.ArgFile(tempRoot = tempRoot)
+                        argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
                     )
-                    processNativeCompilerCommandResult(span, result, "native compilation")
                 }
             }
     }
 
+    context(_: ProblemReporter)
     suspend fun cinterop(
         processRunner: ProcessRunner,
         args: List<String>,
+        module: AmperModule,
     ) {
         spanBuilder("cinterop")
             .setListAttribute("args", args)
             .setAttribute("version", konanDistribution.kotlinVersion)
             .use { span ->
                 logger.debug("cinterop ${ShellQuoting.quoteArgumentsPosixShellWay(args)}")
-                val result = runNativeCompilerCommandImpl(
+                runNativeCompilerCommand(
+                    span = span,
+                    moniker = "cinterop",
+                    module = module,
                     processRunner = processRunner,
                     programArgs = listOf("cinterop") + args,
                     argsMode = ArgsMode.CommandLine,
                 )
-                processNativeCompilerCommandResult(span, result, "cinterop")
             }
     }
 
-    private fun processNativeCompilerCommandResult(
+    context(problemReporter: ProblemReporter)
+    private suspend fun runNativeCompilerCommand(
         span: Span,
-        result: ProcessResult.WithStderr,
-        moniker: String
+        moniker: String,
+        module: AmperModule,
+        processRunner: ProcessRunner,
+        programArgs: List<String>,
+        argsMode: ArgsMode,
     ) {
+        val outputListener = ProblemReportingCompilerOutputListener(
+            reporter = problemReporter,
+            moduleName = module.userReadableName,
+            workingDir = konanDistribution.homeDir,
+            logger = logger,
+        )
+        val result = runNativeCompilerCommandImpl(
+            processRunner = processRunner,
+            programArgs = programArgs,
+            argsMode = argsMode,
+            outputListener = outputListener,
+        )
+
         // TODO this is redundant with the java span of the external process run. Ideally, we
         //  should extract higher-level information from the raw output and use that in this span.
         span.setProcessResultAttributes(result)
 
         if (result.exitCode != 0) {
-            val errors = result.stderr
-                .lines()
-                .filter { it.startsWith("error: ") || it.startsWith("exception: ") }
-                .joinToString("\n")
-            val errorsPart = if (errors.isNotEmpty()) ":\n\n$errors" else ""
-            userReadableError("$moniker failed$errorsPart")
+            val errorCount = outputListener.errorCount
+            if (errorCount > 0) {
+                val errorsWord = if (errorCount == 1) "error" else "errors"
+                userReadableError("$moniker failed with $errorCount $errorsWord (see above)")
+            } else {
+                userReadableError("$moniker failed with exit code ${result.exitCode} (see the logs above)")
+            }
         }
     }
 
@@ -123,7 +148,8 @@ class KotlinNativeCompiler(
         processRunner: ProcessRunner,
         programArgs: List<String>,
         argsMode: ArgsMode,
-    ): ProcessResult.WithStderr {
+        outputListener: ProcessOutputListener,
+    ): ProcessResult {
         // We call konanc via java because the konanc command line doesn't support spaces in paths:
         // https://youtrack.jetbrains.com/issue/KT-66952
 
@@ -151,7 +177,7 @@ class KotlinNativeCompiler(
                     add("--enable-native-access=ALL-UNNAMED")
                 }
             },
-            outputMode = ProcessOutputMode.listenAndCaptureStderr(LoggingProcessOutputListener(logger)),
+            outputMode = ProcessOutputMode.listen(outputListener),
         )
     }
 }

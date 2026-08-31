@@ -1,0 +1,10 @@
+product:
+  type: kmp/lib
+  platforms: [ mingwX64, linuxX64, linuxArm64, macosArm64 ]
+
+settings:
+  kotlin:
+    version: 2.4.10
+    freeCompilerArgs:
+      # To get a global compiler warning without any source location
+      - -Xfoo-bar

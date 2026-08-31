@@ -145,7 +145,7 @@ internal class NativeCInteropGenerateKlibTask(
                     }
 
                     logger.infoNoConsole("Running cinterop '$cinteropName' for platform '${platform.pretty}'...")
-                    nativeCompiler.cinterop(processRunner, args)
+                    nativeCompiler.cinterop(processRunner, args, module)
 
                     [outputKlib]
                 }.single().let { CinteropResult(it) }

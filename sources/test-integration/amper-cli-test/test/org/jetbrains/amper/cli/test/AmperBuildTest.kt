@@ -346,6 +346,38 @@ class AmperBuildTest : AmperCliTestBase() {
     }
 
     @Test
+    fun `kotlin native warnings are reported structurally`() = runSlowTest {
+        // we'll have a Build Tools API variant when it's ready and we use it for some higher version of Kotlin
+        val projectContext = testProject("native-diagnostics-warnings-from-cli")
+        val result = runCli(projectDir = projectContext, "build")
+        val filePath = Path("src/main.kt").pathString
+
+        // Messages without a source location are reported as global problems
+        result.assertStdoutContains("WARNING: flag is not supported by this version of the compiler: -Xfoo-bar")
+
+        // The same file is compiled once per native platform, but the warning must only be reported once
+        result.assertStdoutContains("""
+           |    ╭─ WARNING: 'fun oldFun(): Unit' is deprecated. Use newFun() instead.
+           |    │ → $filePath:11:5 (native-diagnostics-warnings-from-cli)
+           |    │
+           | 11 │     oldFun()
+           |    │     ⌃⌃⌃⌃⌃⌃
+           |    ╰─
+        """.trimMargin(), expectedOccurrences = 1)
+
+        // The range of this warning spans lines 16 to 18, but the CLI compiler only prints the first line of the
+        // snippet, so we can only highlight that first line (unlike compilations through the Build Tools API).
+        result.assertStdoutContains("""
+           |    ╭─ WARNING: expression is unused.
+           |    │ → $filePath:16:5 (native-diagnostics-warnings-from-cli)
+           |    │
+           | 16 │     ""${'"'}
+           |    │     ⌃⌃⌃
+           |    ╰─
+        """.trimMargin())
+    }
+
+    @Test
     fun `kotlin warnings are replayed from incremental cache`() = runSlowTest {
         val projectContext = testProject("kotlin-diagnostics-warnings")
         val filePath = Path("src/main.kt").pathString

@@ -1,0 +1,6 @@
+product: jvm/lib
+
+description: Parser for the messages printed by the Kotlin CLI compilers (kotlinc, konanc, cinterop)
+
+apply:
+  - //sources/common.module-template.yaml

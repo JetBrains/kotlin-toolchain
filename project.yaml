@@ -63,6 +63,7 @@ modules:
   - sources/libraries/gradle-module-metadata
   - sources/libraries/incremental-cache
   - sources/libraries/jetbrains-jdk-list
+  - sources/libraries/kotlin-compiler-messages
   - sources/libraries/kotlin-native-rules
   - sources/libraries/kotlin-project-structure-metadata
   - sources/libraries/kotlin-tooling-metadata

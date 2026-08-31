@@ -38,6 +38,7 @@ dependencies:
   - //sources/libraries/executable-jar
   - //sources/libraries/gradle-module-metadata
   - //sources/libraries/incremental-cache
+  - //sources/libraries/kotlin-compiler-messages
   - //sources/libraries/kotlin-project-structure-metadata
   - //sources/libraries/kotlin-tooling-metadata
   - //sources/libraries/maven-central-configuration
