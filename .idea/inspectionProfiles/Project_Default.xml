@@ -60,7 +60,7 @@
               <list>
                 <InspectionPattern>
                   <option name="regExp" value="\blistOf\(\)" />
-                  <option name="_fileType" value="UNKNOWN" />
+                  <option name="_fileType" value="Kotlin" />
                   <option name="searchContext" value="ANY" />
                   <option name="replacement" value="emptyList()" />
                 </InspectionPattern>
