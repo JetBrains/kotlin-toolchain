@@ -32,7 +32,6 @@ fun ProjectTasksBuilder.setupIosTasks() {
                 task = IosKotlinTestTask(
                     taskName = CommonTaskType.Test.getTaskName(module, platform, isTest = false, buildType),
                     module = module,
-                    terminal = context.terminal,
                     runSettings = runSettings,
                     platform = platform,
                     buildType = buildType,
@@ -45,12 +44,21 @@ fun ProjectTasksBuilder.setupIosTasks() {
     allModules()
         .filterModuleType { it == ProductType.IOS_APP }
         .withEach {
+            val manageXcodeProjectTaskName = ModuleTaskTypes.ManageXCodeProject.getTaskName(module)
             tasks.registerTask(
                 task = ManageXCodeProjectTask(
-                    taskName = ModuleTaskTypes.ManageXCodeProject.getTaskName(module),
+                    taskName = manageXcodeProjectTaskName,
                     module = module,
                     terminal = context.terminal,
                 ),
+            )
+            tasks.registerTask(
+                task = PrepareIOSPlatformTask(
+                    taskName = ModuleTaskTypes.PrepareIosPlatform.getTaskName(module),
+                    terminal = context.terminal,
+                    module = module,
+                ),
+                dependsOn = manageXcodeProjectTaskName,
             )
         }
 
@@ -107,27 +115,44 @@ fun ProjectTasksBuilder.setupIosTasks() {
                     terminal = context.terminal,
                     buildSettingsResolution = xcodeBuildSettingsResolution,
                 ),
-                dependsOn = listOf(
+                dependsOn = [
                     preBuildTaskName,
                     // This goes here instead of pre-build because if the build is run from xcode, then managing the
                     // project won't help much anyway.
-                    ModuleTaskTypes.ManageXCodeProject.getTaskName(module)
-                ),
+                    ModuleTaskTypes.ManageXCodeProject.getTaskName(module),
+                    ModuleTaskTypes.PrepareIosPlatform.getTaskName(module),
+                ],
             )
 
-            val runTaskName = IosTaskType.RunIosApp.getTaskName(module, platform, isTest = false, buildType)
+            val prepareDeviceForRunTaskName = IosTaskType.PrepareDeviceForRun
+                .getTaskName(module, platform, isTest = false, buildType)
+            tasks.registerTask(
+                task = IosPrepareDeviceForRunTask(
+                    taskName = prepareDeviceForRunTaskName,
+                    platform = platform,
+                    processRunner = context.processRunner,
+                    buildType = buildType,
+                    buildSettingsResolution = xcodeBuildSettingsResolution,
+                    runSettings = runSettings,
+                ),
+                dependsOn = listOfNotNull(
+                    buildTaskName,
+                    xcodeBuildSettingsResolution.taskDependency(module),
+                    ModuleTaskTypes.PrepareIosPlatform.getTaskName(module),
+                )
+            )
             tasks.registerTask(
                 task = IosRunTask(
-                    taskName = runTaskName,
+                    taskName = IosTaskType.RunIosApp.getTaskName(module, platform, isTest = false, buildType),
                     platform = platform,
                     buildType = buildType,
                     module = module,
-                    runSettings = runSettings,
-                    taskOutputPath = context.getTaskOutputPath(runTaskName),
                     processRunner = context.processRunner,
-                    buildSettingsResolution = xcodeBuildSettingsResolution,
+                    terminal = context.terminal,
                 ),
-                dependsOn = listOfNotNull(buildTaskName, xcodeBuildSettingsResolution.taskDependency(module))
+                dependsOn = [
+                    prepareDeviceForRunTaskName,
+                ]
             )
         }
 }
@@ -139,6 +164,7 @@ internal enum class IosTaskType(
     Framework("framework", "linking iOS framework"),
     BuildIosApp("buildIosApp", "building iOS app"),
     RunIosApp("runIosApp", "running iOS app"),
+    PrepareDeviceForRun("prepareIosDevice", "preparing to run iOS app"),
     PrepareComposeResources("prepareComposeResourcesForIos", "copying iOS compose resources"),
     PreBuildIosApp("preBuildIosApp", "preparing for xcodebuild")
 }

@@ -47,13 +47,6 @@ import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.ComposeHotReloadSettings
 import org.jetbrains.amper.tasks.compose.isComposeEnabledFor
 import org.jetbrains.amper.util.currentHostRunnablePlatforms
-import kotlin.collections.filter
-import kotlin.collections.forEach
-import kotlin.collections.ifEmpty
-import kotlin.collections.joinToString
-import kotlin.collections.single
-import kotlin.collections.sortedBy
-import kotlin.collections.toSet
 import kotlin.io.path.Path
 
 internal class RunCommand : AmperProjectAwareCommand(name = "run") {
@@ -189,12 +182,6 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
             userReadableError(
                 "Platform '${platform.pretty}' does not support device selection with --device-id. " +
                         "Please remove the option or choose another platform."
-            )
-        }
-        if (deviceId == null && platform.requiresPhysicalDeviceSelection) {
-            userReadableError(
-                "Platform '${platform.pretty}' requires selecting a physical device. " +
-                        "Please provide the --device-id option or choose another platform."
             )
         }
     }
@@ -399,7 +386,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
             userReadableError("Code compiled for the '${platform!!.pretty}' platform cannot be run from the current host")
         }
 
-        val runnableCandidatesIgnoringDeviceSelection = appModulesMatchingCommand
+        return appModulesMatchingCommand
             .filter { it.canBeRunFromCurrentHost() }
             .ifEmpty {
                 userReadableError(
@@ -407,23 +394,6 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                             "Runnable platforms on this host: ${formatPlatforms(currentHostRunnablePlatforms)}",
                 )
             }
-        val runnableCandidates = runnableCandidatesIgnoringDeviceSelection
-            .filter { deviceId != null || !it.requiresPhysicalDeviceToRunFromCurrentHost() }
-            .ifEmpty {
-                if (runnableCandidatesIgnoringDeviceSelection.size > 1) {
-                    userReadableError(
-                        "All runnable application modules in the project require selecting a physical device with " +
-                                "'--device-id'."
-                    )
-                } else {
-                    userReadableError(
-                        "The only runnable application module " +
-                                "'${runnableCandidatesIgnoringDeviceSelection.single().userReadableName}' requires " +
-                                "selecting a physical device with '--device-id'."
-                    )
-                }
-            }
-        return runnableCandidates
     }
 
     private fun Model.checkModuleIsRunnable(module: AmperModule) {
@@ -502,7 +472,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
             return explicitPlatform
         }
 
-        val runnablePlatformsIgnoringDeviceId = (moduleToRun.leafPlatforms intersect currentHostRunnablePlatforms)
+        val runnablePlatforms = (moduleToRun.leafPlatforms intersect currentHostRunnablePlatforms)
             .ifEmpty {
                 userReadableError(
                     "None of the platforms of module '${moduleToRun.userReadableName}' can be run from " +
@@ -518,10 +488,10 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                 )
             }
 
-        val effectivelyRunnablePlatforms = runnablePlatformsIgnoringDeviceId
+        val effectivelyRunnablePlatforms = runnablePlatforms
             .filterIf(deviceId != null) { it.supportsDeviceSelection }
             .ifEmpty {
-                val platformsAreFiltered = runnablePlatformsIgnoringDeviceId.size < moduleToRun.leafPlatforms.size
+                val platformsAreFiltered = runnablePlatforms.size < moduleToRun.leafPlatforms.size
                 userReadableError {
                     this.append("No platforms of module '${moduleToRun.userReadableName}'")
                     if (platformsAreFiltered) {
@@ -531,16 +501,9 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                     this.appendLine()
                     this.appendLine("Current platforms: ${formatModulePlatforms(moduleToRun)}")
                     if (platformsAreFiltered) {
-                        this.appendLine("Runnable on this host: ${formatPlatforms(runnablePlatformsIgnoringDeviceId)}")
+                        this.appendLine("Runnable on this host: ${formatPlatforms(runnablePlatforms)}")
                     }
                 }
-            }
-            .filterIf(deviceId == null) { !it.requiresPhysicalDeviceSelection }
-            .ifEmpty {
-                userReadableError(
-                    "Please select a physical device with --device-id to run module " +
-                            "'${moduleToRun.userReadableName}'."
-                )
             }
         if (effectivelyRunnablePlatforms.size > 1) {
             // special case where there is definitely a preference to avoid Rosetta
@@ -551,18 +514,24 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                 return Platform.MACOS_ARM64
             }
 
+            // special case where we prefer to run an iOS simulator instead of a physical device by default
+            if (effectivelyRunnablePlatforms.all { it.isDescendantOf(Platform.IOS) }
+                && Platform.IOS_SIMULATOR_ARM64 in effectivelyRunnablePlatforms
+                && deviceId == null
+            ) {
+                return Platform.IOS_SIMULATOR_ARM64
+            }
+
             // TODO discriminate iosArm64 vs iosSimulatorArm64 based on --device-id if provided?
             //   It feels a bit stupid to ask the user to choose one of these platforms if they specified the exact
             //   device they wanted to run. We could find the type of device it is using xcrun.
 
             if (!terminal.terminalInfo.interactive) {
-                // we still list runnablePlatformsIgnoringDeviceId in the error, because we don't know if the user will
-                // add --device-id in the next try
                 userReadableError("""
                     Multiple platforms are available to run in module '${moduleToRun.userReadableName}'.
                     Please specify one with '--platform' argument.
     
-                    Runnable on this host: ${formatPlatforms(runnablePlatformsIgnoringDeviceId)}
+                    Runnable on this host: ${formatPlatforms(runnablePlatforms)}
                 """.trimIndent())
             }
             return terminal.interactiveSelectList(
@@ -584,11 +553,5 @@ private fun AmperModule.canBeRunFromCurrentHost(): Boolean = leafPlatforms.any {
 
 private fun AmperModule.supportsDeviceIdSelection(): Boolean = leafPlatforms.any { it.supportsDeviceSelection }
 
-private fun AmperModule.requiresPhysicalDeviceToRunFromCurrentHost(): Boolean =
-    (leafPlatforms intersect currentHostRunnablePlatforms).all { it.requiresPhysicalDeviceSelection }
-
 private val Platform.supportsDeviceSelection: Boolean
     get() = this == Platform.ANDROID || isDescendantOf(Platform.IOS)
-
-private val Platform.requiresPhysicalDeviceSelection: Boolean
-    get() = isAppleDevice

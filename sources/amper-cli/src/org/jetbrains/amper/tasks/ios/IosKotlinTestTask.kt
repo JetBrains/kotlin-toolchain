@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.tasks.ios
 
-import com.github.ajalt.mordant.terminal.Terminal
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.telemetry.setProcessResultAttributes
 import org.jetbrains.amper.cli.userReadableError
@@ -37,7 +36,6 @@ import kotlin.io.path.absolutePathString
 class IosKotlinTestTask(
     override val taskName: TaskName,
     override val module: AmperModule,
-    private val terminal: Terminal,
     private val runSettings: NativeTestRunSettings,
     override val platform: Platform,
     override val buildType: BuildType,
@@ -63,14 +61,16 @@ class IosKotlinTestTask(
             logger.debug("No test binary was found for ${platform.pretty}, skipping test run")
             return EmptyTaskResult
         }
-        val chosenDevice = processRunner.pickBestDevice() ?: error("No available device")
+        // FIXME: Introduce a build-service-like thing that manages the simulator
+        //  including the new provisioning logic if there are no simulators available.
+        val chosenDevice = processRunner.selectBestIosSimulator() ?: error("No available device")
 
-        DeviceLock.withLock(hash = chosenDevice.deviceId.hashCode()) {
+        DeviceLock.withLock(hash = chosenDevice.value.hashCode()) {
             val spawnTestsCommand = listOf(
                 XCRUN_EXECUTABLE,
                 "simctl",
                 "spawn",
-                chosenDevice.deviceId,
+                chosenDevice.value,
                 executable.absolutePathString(),
                 "--",
             ) + runSettings.toNativeTestExecutableArgs()
@@ -79,7 +79,9 @@ class IosKotlinTestTask(
                 .setAttribute("executable", spawnTestsCommand.first())
                 .setListAttribute("args", spawnTestsCommand.drop(1))
                 .use { span ->
-                    processRunner.bootAndWaitSimulator(chosenDevice)
+                    if (!processRunner.isSimulatorBooted(chosenDevice)) {
+                        processRunner.bootAndWaitSimulator(chosenDevice)
+                    }
 
                     val swiftPMSearchPaths = swiftPMImportParsedLdCall?.parsedLdCall?.dyldEnvSearchPaths(
                         isSimctlCall = true
@@ -101,7 +103,7 @@ class IosKotlinTestTask(
                                     "'${module.userReadableName}' with exit code ${result.exitCode} (see errors above)"
                         )
                     }
-                    processRunner.shutdownDevice(chosenDevice.deviceId)
+                    processRunner.shutdownDevice(chosenDevice)
                     EmptyTaskResult
                 }
         }

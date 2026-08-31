@@ -19,11 +19,6 @@ enum class Platform(
     override val parent: Platform? = null,
     override val isLeaf: Boolean = false,
     override val outdated: Boolean = false,
-    /**
-     * Whether this platform represents an Apple simulator (as opposed to a physical device).
-     * See https://kotlinlang.org/docs/native-target-support.html for more details about native targets.
-     */
-    val isAppleDevice: Boolean = false,
 ) : SchemaEnum, Context {
     COMMON,
 
@@ -49,20 +44,20 @@ enum class Platform(
     MACOS_ARM64(MACOS, isLeaf = true),
 
     TVOS(APPLE),
-    TVOS_ARM64(TVOS, isLeaf = true, isAppleDevice = true),
-    TVOS_X64(TVOS, isLeaf = true, outdated = true, isAppleDevice = false), // deprecated in Kotlin 2.3.20, soon unsupported by Apple
-    TVOS_SIMULATOR_ARM64(TVOS, isLeaf = true, isAppleDevice = false),
+    TVOS_ARM64(TVOS, isLeaf = true),
+    TVOS_X64(TVOS, isLeaf = true, outdated = true), // deprecated in Kotlin 2.3.20, soon unsupported by Apple
+    TVOS_SIMULATOR_ARM64(TVOS, isLeaf = true),
 
     IOS(APPLE),
-    IOS_ARM64(IOS, isLeaf = true, isAppleDevice = true),
-    IOS_SIMULATOR_ARM64(IOS, isLeaf = true, isAppleDevice = false),
-    IOS_X64(IOS, isLeaf = true, isAppleDevice = false),
+    IOS_ARM64(IOS, isLeaf = true),
+    IOS_SIMULATOR_ARM64(IOS, isLeaf = true),
+    IOS_X64(IOS, isLeaf = true),
 
     WATCHOS(APPLE),
-    WATCHOS_ARM64(WATCHOS, isLeaf = true, isAppleDevice = true),
-    WATCHOS_ARM32(WATCHOS, isLeaf = true, isAppleDevice = true, outdated = true), // Is planned to be removed in Kotlin 2.5.0, unsupported by Apple since Xcode 27 (KT-78078)
-    WATCHOS_DEVICE_ARM64(WATCHOS, isLeaf = true, isAppleDevice = true),
-    WATCHOS_SIMULATOR_ARM64(WATCHOS, isLeaf = true, isAppleDevice = false),
+    WATCHOS_ARM64(WATCHOS, isLeaf = true),
+    WATCHOS_ARM32(WATCHOS, isLeaf = true, outdated = true), // Is planned to be removed in Kotlin 2.5.0, unsupported by Apple since Xcode 27 (KT-78078)
+    WATCHOS_DEVICE_ARM64(WATCHOS, isLeaf = true),
+    WATCHOS_SIMULATOR_ARM64(WATCHOS, isLeaf = true),
 
     MINGW(NATIVE),
     MINGW_X64(MINGW, isLeaf = true),

@@ -32,6 +32,8 @@ import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
+import org.jetbrains.amper.tasks.native.swiftpm.clangArch
+import org.jetbrains.amper.tasks.native.swiftpm.xcodebuildPlatform
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -81,7 +83,7 @@ class IosBuildTask(
             this += "xcodebuild"
             this += "-project"; this += module.xcodeProjectPath.absolutePathString()
             this += "-scheme"; this += IosConventions.SCHEME_NAME
-            this += "-destination"; this += "generic/platform=${platform.toXcodePlatformTitle()}"
+            this += "-destination"; this += "generic/platform=${platform.xcodebuildPlatform.destination}"
             this += "-configuration"; this += buildType.name
             this += "-derivedDataPath"; this += derivedDataPath.pathString
             this += "${BuildSettingNames.OBJROOT}=${objRootPath.pathString}"
@@ -89,7 +91,7 @@ class IosBuildTask(
             this += "KOTLIN_CLI_WRAPPER_PATH=${ProjectCliContext.wrapperScriptPath.absolutePathString()}"
             if (platform.isIosSimulator) {
                 // Constrain built architectures to avoid universal simulator build
-                this +="${BuildSettingNames.ARCHS}=${platform.architecture}"
+                this +="${BuildSettingNames.ARCHS}=${platform.clangArch}"
             }
             val hasTeamId = !settings.developmentTeam.isNullOrBlank()
             val isSigningDisabled = settings.codeSigningAllowed == "NO"
@@ -155,7 +157,7 @@ class IosBuildTask(
         }
 
         return Result(
-            appPath = symRootPath / "${buildType.name}-${platform.sdk}" / "${settings.productName}.app",
+            appPath = symRootPath / "${buildType.name}-${platform.xcodebuildPlatform.sdk}" / "${settings.productName}.app",
         )
     }
 

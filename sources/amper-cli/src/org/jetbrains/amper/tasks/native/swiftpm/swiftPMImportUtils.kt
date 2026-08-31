@@ -9,46 +9,34 @@ import org.jetbrains.amper.frontend.LocalSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.RemoteSwiftPMDependencyNotation
 
-data class XcodebuildPlatform(
+@Suppress("EnumEntryName")
+enum class XcodebuildPlatform(
     val destination: String,
     val sdk: String,
-)
+) {
+    iOS("iOS", sdk = "iphoneos"),
+    `iOS Simulator`("iOS Simulator", sdk = "iphonesimulator"),
+    macOS("macOS", sdk = "macosx"),
+    `watchOS Simulator`("watchOS Simulator", sdk = "watchsimulator"),
+    watchOS("watchOS", sdk = "watchos"),
+    `tvOS Simulator`("tvOS Simulator", sdk = "appletvsimulator"),
+    tvOS("tvOS", sdk = "appletvos"),
+}
 
 internal val Platform.xcodebuildPlatform: XcodebuildPlatform
     get() = when (this) {
         Platform.IOS_X64,
-        Platform.IOS_SIMULATOR_ARM64 -> XcodebuildPlatform(
-            destination = "iOS Simulator",
-            sdk = "iphonesimulator",
-        )
-        Platform.IOS_ARM64 -> XcodebuildPlatform(
-            destination = "iOS",
-            sdk = "iphoneos",
-        )
+        Platform.IOS_SIMULATOR_ARM64 -> XcodebuildPlatform.`iOS Simulator`
+        Platform.IOS_ARM64 -> XcodebuildPlatform.iOS
         Platform.MACOS_ARM64,
-        Platform.MACOS_X64 -> XcodebuildPlatform(
-            destination = "macOS",
-            sdk = "macosx",
-        )
-        Platform.WATCHOS_SIMULATOR_ARM64 -> XcodebuildPlatform(
-            destination = "watchOS Simulator",
-            sdk = "watchsimulator",
-        )
+        Platform.MACOS_X64 -> XcodebuildPlatform.macOS
+        Platform.WATCHOS_SIMULATOR_ARM64 -> XcodebuildPlatform.`watchOS Simulator`
         Platform.WATCHOS_ARM32,
         Platform.WATCHOS_ARM64,
-        Platform.WATCHOS_DEVICE_ARM64 -> XcodebuildPlatform(
-            destination = "watchOS",
-            sdk = "watchos",
-        )
+        Platform.WATCHOS_DEVICE_ARM64 -> XcodebuildPlatform.watchOS
         Platform.TVOS_X64,
-        Platform.TVOS_SIMULATOR_ARM64 -> XcodebuildPlatform(
-            destination = "tvOS Simulator",
-            sdk = "appletvsimulator",
-        )
-        Platform.TVOS_ARM64 -> XcodebuildPlatform(
-            destination = "tvOS",
-            sdk = "appletvos",
-        )
+        Platform.TVOS_SIMULATOR_ARM64 -> XcodebuildPlatform.`tvOS Simulator`
+        Platform.TVOS_ARM64 -> XcodebuildPlatform.tvOS
 
         Platform.COMMON,
         Platform.JVM,

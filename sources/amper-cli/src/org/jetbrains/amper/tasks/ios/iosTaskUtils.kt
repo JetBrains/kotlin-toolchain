@@ -14,30 +14,10 @@ import com.jetbrains.cidr.xcode.model.XCBuildConfiguration
 import com.jetbrains.cidr.xcode.plist.Plist
 import org.jetbrains.amper.frontend.Platform
 
-internal const val IOS_PLATFORM_NAME = "iOS"
-internal const val IOS_SIMULATOR_PLATFORM_NAME = "iOS Simulator"
-
-internal fun Platform.toXcodePlatformTitle() = if (isIosSimulator) IOS_SIMULATOR_PLATFORM_NAME else IOS_PLATFORM_NAME
-
 internal val Platform.isIosSimulator
     get() = when(this) {
         Platform.IOS_X64, Platform.IOS_SIMULATOR_ARM64 -> true
         else -> false
-    }
-
-internal val Platform.architecture
-    get() = when (this) {
-        Platform.IOS_ARM64 -> "arm64"
-        Platform.IOS_X64 -> "x86_64"
-        Platform.IOS_SIMULATOR_ARM64 -> "arm64"
-        else -> error("Cannot determine apple architecture for $this")
-    }
-
-internal val Platform.sdk
-    get() = when (this) {
-        Platform.IOS_ARM64 -> "iphoneos"
-        Platform.IOS_SIMULATOR_ARM64, Platform.IOS_X64 -> "iphonesimulator"
-        else -> error("Cannot determine apple platform for $this")
     }
 
 internal fun Map<String, *>.toPlist(): Plist = Plist().also { plist ->

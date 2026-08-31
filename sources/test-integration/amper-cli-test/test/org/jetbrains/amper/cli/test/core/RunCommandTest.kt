@@ -583,35 +583,6 @@ ARG2: <${argumentsWithSpecialChars[2]}>"""
         runCli(projectDir = projectRoot, "run") // just check that it runs without error
     }
 
-    @MacOnly
-    @Test
-    fun `run fails if --device-id is not provided and only physical targets are present`() = runSlowTest {
-        val projectRoot = testProject("ios/device-only")
-
-        val result = runCli(
-            projectDir = projectRoot,
-            "run",
-            expectedExitCode = 1,
-            assertEmptyStdErr = false,
-        )
-
-        result.assertStderrContains("ERROR: Please select a physical device with --device-id to run module 'device-only'.")
-    }
-
-    @Test
-    fun `run fails if --device-id is not provided and a physical target is specified`() = runSlowTest {
-        val projectRoot = testProject("ios/device-only")
-
-        val result = runCli(
-            projectDir = projectRoot,
-            "run", "--platform=iosArm64",
-            expectedExitCode = 1,
-            assertEmptyStdErr = false,
-        )
-
-        result.assertStderrContains("ERROR: Platform 'iosArm64' requires selecting a physical device. " +
-                "Please provide the --device-id option or choose another platform.")
-    }
 
     @Test
     fun `run fails if --device-id is provided but no mobile app modules are present (single module)`() = runSlowTest {

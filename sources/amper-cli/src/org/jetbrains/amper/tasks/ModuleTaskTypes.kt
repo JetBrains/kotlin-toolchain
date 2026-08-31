@@ -75,6 +75,11 @@ sealed class ModuleTaskTypes(
         operationMoniker = "analyzing local SwiftPM dependencies",
     )
 
+    data object PrepareIosPlatform : ModuleTaskTypes(
+        internalName = "downloadIosPlatform",
+        operationMoniker = "preparing iOS platform",
+    )
+
     // ***** Publish *****
 
     data object PrepareMavenPublishables : ModuleTaskTypes(
