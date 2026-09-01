@@ -5,8 +5,10 @@
 
 import iosUtils.IOSBaseTest
 import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
+@Tag("ios-simulator")
 class RuniOSExternalProjectsStandalone : IOSBaseTest() {
 
     @Test
@@ -29,6 +31,7 @@ class RuniOSExternalProjectsStandalone : IOSBaseTest() {
         bundleIdentifier = "swiftonlytodo",
     )
 
+    @Tag("external-test-project")
     @Test
     @Disabled("Temporarily disabled due to linking issues")
     fun kotlinConfApp() = runIosAppTests(

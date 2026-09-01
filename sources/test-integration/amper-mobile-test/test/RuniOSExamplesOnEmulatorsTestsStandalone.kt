@@ -5,9 +5,11 @@
 
 import org.jetbrains.amper.processes.ProcessLeak
 import org.jetbrains.amper.test.Dirs
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import kotlin.io.path.div
 
+@Tag("ios-simulator")
 @ProcessLeak
 class RuniOSExamplesOnEmulatorsTestsStandalone : swiftpm.SwiftPMImportTests() {
 

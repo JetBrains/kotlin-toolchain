@@ -4,29 +4,12 @@
 
 
 import androidUtils.AndroidBaseTest
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
+@Tag("android-emulator")
+@Tag("external-test-project")
 class RunAndroidExternalProjectsStandalone : AndroidBaseTest() {
-
-    @Test
-    fun kmptexterAppTest() = runInstrumentedTests(
-        projectSource = testProject("kmptxter"),
-        applicationId = "com.river.kmptxter",
-    )
-
-    @Test
-    fun toDoListApp() = runInstrumentedTests(
-        projectSource = testProject("todolistlite"),
-        applicationId = "org.jetbrains.todo",
-        androidAppModuleName = "android-app",
-    )
-
-    @Test
-    fun recipeApp() = runInstrumentedTests(
-        projectSource = testProject("recipeapp"),
-        applicationId = "com.recipeapp",
-        androidAppModuleName = "android-app",
-    )
 
     @Test
     fun kotlinConfApp() = runInstrumentedTests(
