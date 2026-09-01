@@ -1,0 +1,22 @@
+product:
+  type: kmp/lib
+  # A single platform is enough: the 'jvm' target belongs to both the common and the jvm fragments,
+  # which is what used to duplicate implicit dependencies in the published POM (see KTC-5797).
+  platforms: [jvm]
+
+description: A test multiplatform library with Kotlinx Serialization enabled
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: false
+    publish: true
+
+settings:
+  kotlin:
+    serialization: enabled
+  publishing:
+    enabled: true
+    group: "amper.test.kmp-publish-serialization"
+    version: "2.2"
+    artifactId: artifactName

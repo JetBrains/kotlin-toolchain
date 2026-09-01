@@ -432,6 +432,32 @@ class AmperPublishTest : AmperCliTestBase() {
     }
 
     @Test
+    fun `publish to maven local - kmp lib with serialization`() = runSlowTest {
+        val mavenLocalForTest = createTempMavenLocalDir()
+        val groupDir = mavenLocalForTest.resolve("amper/test/kmp-publish-serialization")
+
+        runCli(
+            projectDir = testProject("kmp-publish-serialization"),
+            "publish", "mavenLocal",
+            amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
+        )
+
+        // The implicit kotlinx-serialization-core dependency is added to every fragment the jvm target belongs to
+        // (here: common and jvm), but the platform POM flattens them and must declare it only once (see KTC-5797).
+        val pomRelativePath = "artifactName-jvm/2.2/artifactName-jvm-2.2.pom"
+        val pom = (groupDir / pomRelativePath).readText()
+        val declaredArtifactIds = Regex("<artifactId>(kotlinx-serialization-core[^<]*)</artifactId>")
+            .findAll(pom)
+            .map { it.groupValues[1] }
+            .toList()
+        assertEquals(
+            listOf("kotlinx-serialization-core-jvm"),
+            declaredArtifactIds,
+            "Unexpected dependencies in $pomRelativePath:\n$pom",
+        )
+    }
+
+    @Test
     fun `prepare maven central bundle (multiplatform)`() = runSlowTest {
         val openPgpApi = BcOpenPGPApi()
         val testPgpKey = openPgpApi.generateKey().signOnlyKey().build()

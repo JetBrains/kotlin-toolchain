@@ -102,13 +102,16 @@ private fun getDependencies(
         val fragment = module.singleProductionFragmentOrNull(platform)
             ?: error("Cannot generate pom for module '${module.userReadableName}': expected a single fragment for platform $platform")
 
-        // FIXME [distinct] can be error prone here, because we (I guess) have no guarantees about [externalDependencies] equality.
         val [bomDependencies, regularDependencies] = fragment.ancestralPath()
             .flatMap { it.externalDependencies }
-            .distinct()
             .partition { it is BomDependency }
-        val bomPomDependencies = bomDependencies.mapNotNull { it.toPomDependency(platform, publicationCoordsOverrides) }
-        val regularPomDependencies = regularDependencies.mapNotNull { it.toPomDependency(platform, publicationCoordsOverrides) }
+
+        val bomPomDependencies = bomDependencies
+            .mapNotNull { it.toPomDependency(platform, publicationCoordsOverrides) }
+            .distinctBy { it.managementKey }
+        val regularPomDependencies = regularDependencies
+            .mapNotNull { it.toPomDependency(platform, publicationCoordsOverrides) }
+            .distinctBy { it.managementKey }
 
         val dependencyManagement = if (bomDependencies.isNotEmpty()) {
             DependencyManagement().apply { dependencies.addAll(bomPomDependencies) }
