@@ -12,6 +12,7 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
+import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
@@ -110,51 +111,73 @@ class FetchPackageTask(
         syntheticImportProjectRoot: Path,
         swiftPMDependenciesCheckout: Path,
     ) {
-        val result = runProcess(
-            workingDir = syntheticImportProjectRoot,
-            configureEnvironment = {
-                val environmentToFilter = listOf("SDKROOT")
-                environmentToFilter.forEach { key ->
-                    if (it.containsKey(key)) {
-                        it.remove(key)
-                    }
-                }
-            },
-            command = [
-                "/usr/bin/swift",
-                "package",
-                "--scratch-path", swiftPMDependenciesCheckout.pathString,
-                "resolve",
-            ],
-            outputMode = ProcessOutputMode.listen(
-                LoggingProcessOutputListener(
-                    logger,
-                    "SwiftPM import fetch: ",
-                    stdoutLoggingLevel = Level.DEBUG,
-                    stderrLoggingLevel = Level.DEBUG,
-                ) + object : ProcessOutputListener {
-                    override fun onStdoutLine(line: String, pid: Long) {
-                        // SwiftPM doesn't output logs to stdout
-                    }
-
-                    override fun onStderrLine(line: String, pid: Long) {
-                        printErrorLine(line)
-                    }
-
-                    private fun printErrorLine(line: String) {
-                        val trimmedLine = line.trim()
-                        val errors = listOf("error:", "fatal:")
-                        if (errors.any { trimmedLine.startsWith(it) }) {
-                            logger.error(line)
-                        }
-                        val warnings = listOf("warning:")
-                        if (warnings.any { trimmedLine.startsWith(it) }) {
-                            logger.warn(line)
+        var result: ProcessResult
+        var retryCount = 0
+        do {
+            var raceDownloadFailureHappened = false
+            result = runProcess(
+                workingDir = syntheticImportProjectRoot,
+                configureEnvironment = {
+                    val environmentToFilter = listOf("SDKROOT")
+                    environmentToFilter.forEach { key ->
+                        if (it.containsKey(key)) {
+                            it.remove(key)
                         }
                     }
-                }
+                },
+                command = [
+                    "/usr/bin/swift",
+                    "package",
+                    "--scratch-path", swiftPMDependenciesCheckout.pathString,
+                    "resolve",
+                ],
+                outputMode = ProcessOutputMode.listen(
+                    LoggingProcessOutputListener(
+                        logger,
+                        "SwiftPM import fetch: ",
+                        stdoutLoggingLevel = Level.DEBUG,
+                        stderrLoggingLevel = Level.DEBUG,
+                    ) + object : ProcessOutputListener {
+                        override fun onStdoutLine(line: String, pid: Long) {
+                            // SwiftPM doesn't output logs to stdout
+                        }
+
+                        override fun onStderrLine(line: String, pid: Long) {
+                            printErrorLine(line)
+                        }
+
+                        private fun printErrorLine(line: String) {
+                            val trimmedLine = line.trim()
+                            val errors = listOf("error:", "fatal:")
+                            if (errors.any { trimmedLine.startsWith(it) }) {
+                                if ("already exists in file system" in trimmedLine) {
+                                    raceDownloadFailureHappened = true
+                                }
+                                logger.error(line)
+                            }
+                            val warnings = listOf("warning:")
+                            if (warnings.any { trimmedLine.startsWith(it) }) {
+                                logger.warn(line)
+                            }
+                        }
+                    }
+                )
             )
-        )
+            if (result.exitCode == 0) {
+                // Good path, exit cleanly
+                return
+            }
+            if (raceDownloadFailureHappened) {
+                // There is a flaky issue inside swiftPM resolve itself
+                // See https://github.com/swiftlang/swift-package-manager/issues/10138
+                logger.warn("Retrying fetching SwiftPM dependencies")
+                retryCount++
+            } else {
+                // No flaky failure detected, no sense in retrying, abort immediately
+                break
+            }
+        } while (retryCount < MAX_SPM_FETCH_RETRY_COUNT)
+
         if (result.exitCode != 0) {
             userReadableError("SwiftPM fetch failed, see errors above")
         }
@@ -162,3 +185,5 @@ class FetchPackageTask(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 }
+
+private const val MAX_SPM_FETCH_RETRY_COUNT = 5
