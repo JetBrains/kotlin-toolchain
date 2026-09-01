@@ -19,10 +19,10 @@ import java.nio.file.Path
 internal const val TEST_PAGE_NAME = "test.html"
 
 /**
- * The name of the URL query parameter that carries the kotlin-test filter arguments (e.g. `--include`/`--exclude`)
- * to the test page running in a browser.
+ * The name of the repeatable URL query parameter that carries each kotlin-test filter argument
+ * (e.g. `--include`/`--exclude`) to the test page running in a browser.
  */
-internal const val TEST_FILTER_QUERY_PARAM = "kotlin-test-filter"
+internal const val KOTLIN_TEST_ARG_QUERY_PARAM = "kotlin-test-arg"
 
 internal fun CoroutineScope.setupServer(
     port: Int,
@@ -76,11 +76,11 @@ private const val POLL_INTERVAL_MS = 50
 internal fun browserTestLoaderScript(testModuleFile: String): String = """
     |import * as testModule from './$testModuleFile';
     |
-    |// Read the '$TEST_FILTER_QUERY_PARAM' query parameter and expose it to the Kotlin test framework via
+    |// Read the '$KOTLIN_TEST_ARG_QUERY_PARAM' query parameters and expose them to the Kotlin test framework via
     |// globalThis.arguments, so that the test runner picks up the --include/--exclude filters.
-    |const testFilter = new URLSearchParams(globalThis.location.search).get('$TEST_FILTER_QUERY_PARAM');
-    |if (testFilter) {
-    |    globalThis.arguments = testFilter.split(' ').filter(arg => arg.length > 0);
+    |const kotlinTestArgs = new URLSearchParams(globalThis.location.search).getAll('$KOTLIN_TEST_ARG_QUERY_PARAM');
+    |if (kotlinTestArgs) {
+    |    globalThis.arguments = kotlinTestArgs;
     |}
     |
     |const suiteStartedPrefix = '##teamcity[testSuiteStarted';

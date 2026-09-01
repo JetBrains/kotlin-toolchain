@@ -11,12 +11,12 @@ import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStderrDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
+import org.jetbrains.amper.cli.test.utils.nativePlatformName
 import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.system.info.Arch
-import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.test.LinuxOnly
 import org.jetbrains.amper.test.MacOnly
@@ -233,20 +233,6 @@ ARG2: <${argumentsWithSpecialChars[2]}>"""
         val currentHome = System.getProperty("user.home")
         val result = runCli(projectRoot, "run", "--platform=$platform", "--working-dir=$currentHome")
         result.assertStdoutContains("workingDir=$currentHome")
-    }
-
-    private fun SystemInfo.nativePlatformName(): String = when (family) {
-        OsFamily.FreeBSD,
-        OsFamily.Solaris,
-        OsFamily.Linux -> when (arch) {
-            Arch.X64 -> "linuxX64"
-            Arch.Arm64 -> "linuxArm64"
-        }
-        OsFamily.MacOs -> when (arch) {
-            Arch.X64 -> "macosX64"
-            Arch.Arm64 -> "macosArm64"
-        }
-        OsFamily.Windows -> "mingwX64"
     }
 
     @Test

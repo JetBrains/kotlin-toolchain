@@ -7,6 +7,9 @@ package org.jetbrains.amper.cli.test.utils
 import io.opentelemetry.api.common.AttributeKey
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
+import org.jetbrains.amper.system.info.Arch
+import org.jetbrains.amper.system.info.OsFamily
+import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.runTestWithMdc
 import org.jetbrains.amper.test.spans.assertHasAttribute
@@ -21,6 +24,23 @@ fun runSlowTest(testBody: suspend TestScope.() -> Unit): TestResult = runTestWit
     timeout = 15.minutes,
     testBody = testBody,
 )
+
+/**
+ * The name of the Kotlin/Native leaf platform matching this host system, as accepted by the `--platform` CLI option.
+ */
+internal fun SystemInfo.nativePlatformName(): String = when (family) {
+    OsFamily.FreeBSD,
+    OsFamily.Solaris,
+    OsFamily.Linux -> when (arch) {
+        Arch.X64 -> "linuxX64"
+        Arch.Arm64 -> "linuxArm64"
+    }
+    OsFamily.MacOs -> when (arch) {
+        Arch.X64 -> "macosX64"
+        Arch.Arm64 -> "macosArm64"
+    }
+    OsFamily.Windows -> "mingwX64"
+}
 
 // FIXME this should never be needed, because task output paths should be internal.
 //  User-visible artifacts should be placed in user-visible directories (use some convention).

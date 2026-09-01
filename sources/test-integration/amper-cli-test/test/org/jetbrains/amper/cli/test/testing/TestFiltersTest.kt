@@ -9,7 +9,9 @@ import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContainsLine
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
+import org.jetbrains.amper.cli.test.utils.nativePlatformName
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.test.AmperCliResult
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
@@ -98,6 +100,8 @@ class TestFiltersTest : CliTestBase() {
             )
             r.assertJUnitTestCount(expected = 1)
             r.assertStdoutContainsLine("running OverloadsTest.test()")
+            r.assertStdoutDoesNotContain("running OverloadsTest.test(TestInfo)")
+            r.assertStdoutDoesNotContain("running OverloadsTest.test(TestInfo, TestReporter)")
         }
 
         @Test
@@ -108,7 +112,9 @@ class TestFiltersTest : CliTestBase() {
                 "--include-test=com.example.testswithparams.OverloadsTest.test(org.junit.jupiter.api.TestInfo)",
             )
             r.assertJUnitTestCount(expected = 1)
+            r.assertStdoutDoesNotContain("running OverloadsTest.test()")
             r.assertStdoutContainsLine("running OverloadsTest.test(TestInfo)")
+            r.assertStdoutDoesNotContain("running OverloadsTest.test(TestInfo, TestReporter)")
         }
 
         @Test
@@ -119,6 +125,8 @@ class TestFiltersTest : CliTestBase() {
                 "--include-test=com.example.testswithparams.OverloadsTest.test(org.junit.jupiter.api.TestInfo,org.junit.jupiter.api.TestReporter)",
             )
             r.assertJUnitTestCount(expected = 1)
+            r.assertStdoutDoesNotContain("running OverloadsTest.test()")
+            r.assertStdoutDoesNotContain("running OverloadsTest.test(TestInfo)")
             r.assertStdoutContainsLine("running OverloadsTest.test(TestInfo, TestReporter)")
         }
 
@@ -175,6 +183,7 @@ class TestFiltersTest : CliTestBase() {
             // jvm + wasmJs + host platform = 3 occurrences
             r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 3)
             r.assertStdoutContainsLine("running SharedIntegrationTest.integrationTest", nOccurrences = 3)
+            r.assertStdoutDoesNotContain("running EnclosingClass.enclosingClassTest")
         }
     }
 
@@ -206,6 +215,8 @@ class TestFiltersTest : CliTestBase() {
             )
             r.assertJUnitTestCount(expected = 1)
             r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 3) // jvm + wasmJs + host platform
+            r.assertStdoutDoesNotContain("running EnclosingClass.enclosingClassTest")
+            r.assertStdoutDoesNotContain("running SharedIntegrationTest.integrationTest")
         }
 
         @Test
@@ -231,6 +242,8 @@ class TestFiltersTest : CliTestBase() {
             r.assertJUnitTestCount(expected = 1)
             // jvm + wasmJs + host platform = 3 occurrences
             r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 3)
+            r.assertStdoutDoesNotContain("running EnclosingClass.enclosingClassTest")
+            r.assertStdoutDoesNotContain("running SharedIntegrationTest.integrationTest")
         }
 
         @Test
@@ -250,6 +263,7 @@ class TestFiltersTest : CliTestBase() {
             r.assertStdoutContainsLine("running MyClass2Test.test1")
             r.assertStdoutContainsLine("running MyClass2Test.test2")
             r.assertStdoutContainsLine("running MyClass2Test.test3")
+            r.assertStdoutDoesNotContain("output line 1 in JvmIntegrationTest.integrationTest")
         }
 
         @Test
@@ -306,6 +320,8 @@ class TestFiltersTest : CliTestBase() {
             )
             r.assertJUnitTestCount(expected = 1)
             r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 3) // jvm + wasmJs + host platform
+            r.assertStdoutDoesNotContain("running EnclosingClass.enclosingClassTest")
+            r.assertStdoutDoesNotContain("running SharedIntegrationTest.integrationTest")
         }
 
         @Test
@@ -367,17 +383,90 @@ class TestFiltersTest : CliTestBase() {
                 "test",
                 "-m",
                 "shared",
-                "--include-classes=com.example.shared.W?rld*",
+                // we only test '*', not '?', because wasmJS doesn't support it. It's covered in other tests
+                "--include-classes=com.example.shared.W*rld*",
                 "--include-classes=com.example.shared.*Integration*",
             )
             r.assertJUnitTestCount(expected = 2)
             // jvm + wasmJs + host platform = 3 occurrences
             r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 3)
             r.assertStdoutContainsLine("running SharedIntegrationTest.integrationTest", nOccurrences = 3)
+            r.assertStdoutDoesNotContain("running EnclosingClass.enclosingClassTest")
         }
 
         @Test
-        fun `include nested class pattern (shared)`() = runSlowTest {
+        fun `include multiple class patterns with single-char wildcard (kmp, non-wasm platforms)`() = runSlowTest {
+            val r = runCli(
+                projectDir = testProject("multiplatform-tests"),
+                "test",
+                "-m",
+                "shared",
+                // Kotlin/Wasm doesn't support '?' in test filters, so we only select the JVM and native platforms here
+                "--platform=jvm",
+                "--platform=${SystemInfo.CurrentHost.nativePlatformName()}",
+                "--include-classes=com.example.shared.W?rld*",
+                "--include-classes=com.example.shared.*Integration*",
+            )
+            r.assertJUnitTestCount(expected = 2)
+            // jvm + host platform = 2 occurrences
+            r.assertStdoutContainsLine("running WorldTest.doTest", nOccurrences = 2)
+            r.assertStdoutContainsLine("running SharedIntegrationTest.integrationTest", nOccurrences = 2)
+            r.assertStdoutDoesNotContain("running EnclosingClass.enclosingClassTest")
+        }
+
+        @Test
+        fun `single-char wildcard in include class pattern is rejected (wasmJs)`() = runSlowTest {
+            val r = runCli(
+                projectDir = testProject("multiplatform-tests"),
+                "test",
+                "-m",
+                "shared",
+                "--platform=wasmJs",
+                "--include-classes=com.example.shared.W?rld*",
+                expectedExitCode = 1,
+                assertEmptyStdErr = false,
+            )
+            r.assertStderrContains("Kotlin/Wasm tests don't support '?' in test filters, use '*' instead")
+            r.assertStdoutDoesNotContain("running WorldTest.doTest")
+        }
+
+        @Test
+        fun `single-char wildcard in exclude class pattern is rejected (wasmJs)`() = runSlowTest {
+            val r = runCli(
+                projectDir = testProject("multiplatform-tests"),
+                "test",
+                "-m",
+                "shared",
+                "--platform=wasmJs",
+                "--exclude-classes=com.example.shared.*Integration?est",
+                expectedExitCode = 1,
+                assertEmptyStdErr = false,
+            )
+            r.assertStderrContains("Kotlin/Wasm tests don't support '?' in test filters, use '*' instead")
+            r.assertStdoutDoesNotContain("running WorldTest.doTest")
+        }
+
+        @Test
+        fun `include class pattern starting with uppercase is rejected (wasmJs)`() = runSlowTest {
+            val r = runCli(
+                projectDir = testProject("multiplatform-tests"),
+                "test",
+                "-m",
+                "shared",
+                "--platform=wasmJs",
+                "--include-classes=World*",
+                expectedExitCode = 1,
+                assertEmptyStdErr = false,
+            )
+            r.assertStderrContains("""
+                ERROR: Kotlin/Wasm tests don't support pattern filters starting with an uppercase letter: 'World*'.
+                Prepend with '*' if it's acceptable to match other prefixes.
+            """.trimIndent())
+            r.assertStdoutDoesNotContain("running WorldTest.doTest")
+        }
+
+        @Test
+        fun `include nested class pattern (kmp)`() = runSlowTest {
             val r = runCli(
                 projectDir = testProject("multiplatform-tests"),
                 "test",
@@ -389,6 +478,9 @@ class TestFiltersTest : CliTestBase() {
             // jvm + wasmJs + host platform = 3 occurrences
             r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 3)
             r.assertStdoutContainsLine("running EnclosingClass.NestedClass2.myNestedTest", nOccurrences = 3)
+            r.assertStdoutDoesNotContain("running EnclosingClass.enclosingClassTest")
+            r.assertStdoutDoesNotContain("running WorldTest.doTest")
+            r.assertStdoutDoesNotContain("running SharedIntegrationTest.integrationTest")
         }
     }
 
@@ -405,7 +497,9 @@ class TestFiltersTest : CliTestBase() {
                 "--include-classes=com.example.jvmcli.MyClass2Test",
             )
             r.assertJUnitTestCount(expected = 4)
+            r.assertStdoutDoesNotContain("running MyClass1Test.test1")
             r.assertStdoutContainsLine("running MyClass1Test.test2")
+            r.assertStdoutDoesNotContain("running MyClass1Test.test3")
             r.assertStdoutContainsLine("running MyClass2Test.test1")
             r.assertStdoutContainsLine("running MyClass2Test.test2")
             r.assertStdoutContainsLine("running MyClass2Test.test3")
@@ -425,6 +519,9 @@ class TestFiltersTest : CliTestBase() {
             r.assertStdoutContainsLine("running MyClass1Test.test1")
             r.assertStdoutContainsLine("running MyClass1Test.test2")
             r.assertStdoutContainsLine("running MyClass1Test.test3")
+            r.assertStdoutDoesNotContain("running MyClass2Test.test1")
+            r.assertStdoutDoesNotContain("running MyClass2Test.test2")
+            r.assertStdoutDoesNotContain("running MyClass2Test.test3")
         }
 
         @Test
@@ -443,6 +540,7 @@ class TestFiltersTest : CliTestBase() {
             r.assertStdoutContainsLine("running EnclosingClass.enclosingClassTest", nOccurrences = 3)
             r.assertStdoutContainsLine("running EnclosingClass.NestedClass1.myNestedTest", nOccurrences = 3)
             r.assertStdoutContainsLine("running EnclosingClass.NestedClass2.myNestedTest", nOccurrences = 3)
+            r.assertStdoutDoesNotContain("running SharedIntegrationTest.integrationTest")
             r.assertStdoutContainsLine("running JvmTaggedTest.slowJvmTest") // jvm-only test
             r.assertStdoutContainsLine("running JvmTaggedTest.fastJvmTest") // jvm-only test
         }

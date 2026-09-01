@@ -94,13 +94,13 @@ class BrowserTestTask(
             }.startSuspend(wait = false)
 
             try {
-                val testFilterParameter = runSettings.testFilters.toTestFilterArg()?.let {
-                    parametersOf(TEST_FILTER_QUERY_PARAM, it)
-                }
-
                 val url = server.engine.getUrl(
                     segment = TEST_PAGE_NAME,
-                    parameters = testFilterParameter ?: Parameters.Empty,
+                    parameters = parameters {
+                        runSettings.testFilters.toTestFilterArgs().forEach {
+                            append(KOTLIN_TEST_ARG_QUERY_PARAM, it)
+                        }
+                    },
                 )
 
                 logger.debug("Opening URL: $url")
