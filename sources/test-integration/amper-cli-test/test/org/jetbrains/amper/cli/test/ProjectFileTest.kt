@@ -5,6 +5,7 @@
 package org.jetbrains.amper.cli.test
 
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
+import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertWarnings
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.AmperCliResult
@@ -84,7 +85,7 @@ class ProjectFileTest : AmperCliTestBase() {
         LocalAmperPublication.setupWrappersIn(projectDir)
         val r = runCli(
             projectDir = projectDir,
-            "show", "tasks",
+            "show", "modules",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
         )
@@ -211,7 +212,7 @@ class ProjectFileTest : AmperCliTestBase() {
         val explicitRoot = testProject("invalid-project-root")
         val r = runCli(
             projectDir = explicitRoot,
-            "show", "tasks", "--project-dir=${explicitRoot.pathString}",
+            "show", "modules", "--project-dir=${explicitRoot.pathString}",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
         )
@@ -221,15 +222,10 @@ class ProjectFileTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `project module list alphabetic order`() = runSlowTest {
+    fun `project module list alphabetical order with special chars`() = runSlowTest {
         val explicitRoot = testProject("project-modules-sorted-alphabetically")
-        val r = runCli(
-            projectDir = explicitRoot,
-            "show", "tasks",
-        )
-        assertFalse(r.stdout.contains("It is recommended to sort the `modules` list alphabetically")) {
-            "Expected no warning about unsorted module list"
-        }
+        val r = runCli(projectDir = explicitRoot, "show", "modules")
+        r.assertStdoutDoesNotContain("It is recommended to sort the `modules` list alphabetically")
     }
 
     private fun assertModulesList(modulesCommandResult: AmperCliResult, expectedModules: List<String>) =

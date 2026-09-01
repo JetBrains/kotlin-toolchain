@@ -20,56 +20,19 @@ import kotlin.test.assertTrue
 class SmokeTest : AmperCliTestBase() {
 
     @Test
-    fun `amper help works`() = runSlowTest {
+    fun `help works`() = runSlowTest {
         runCli(newEmptyProjectDir(setupWrappers = true), "--help")
     }
 
     @Test
-    fun smoke() = runSlowTest {
-        runCli(testProject("jvm-kotlin-test-smoke"), "show", "tasks")
-    }
-
-    @Test
-    fun `graceful failure on unknown task name`() = runSlowTest {
-        val r = runCli(
-            projectDir = testProject("jvm-kotlin-test-smoke"),
-            "task", "unknown",
-            expectedExitCode = 1,
-            assertEmptyStdErr = false,
-        )
-
-        val errorMessage = "ERROR: Task 'unknown' was not found in the project"
-
-        assertTrue("Expected stderr to contain the message: '$errorMessage'") {
-            errorMessage in r.stderr
-        }
-    }
-
-    @Test
-    fun `graceful failure on unknown task name with suggestions`() = runSlowTest {
-        val r = runCli(
-            projectDir = testProject("jvm-kotlin-test-smoke"),
-            "task", "compile",
-            expectedExitCode = 1,
-            assertEmptyStdErr = false,
-        )
-
-        val errorMessage = """
-            ERROR: Task 'compile' was not found in the project, maybe you meant one of:
-               :jvm-kotlin-test-smoke:compileJvm
-               :jvm-kotlin-test-smoke:compileJvmTest
-        """.trimIndent()
-
-        assertTrue("Expected stderr to contain the message:\n$errorMessage\n\nActual stderr:\n${r.stderr}") {
-            errorMessage in r.stderr
-        }
+    fun `build and test`() = runSlowTest {
+        runCli(testProject("jvm-kotlin-test-smoke"), "build")
+        runCli(testProject("jvm-kotlin-test-smoke"), "test")
     }
 
     @Test
     fun `jvm-default-compiler-settings`() = runSlowTest {
         val projectRoot = testProject("jvm-default-compiler-settings")
-        val tasksResult = runCli(projectDir = projectRoot, "show", "tasks")
-        tasksResult.assertHasTasks(jvmAppTasks + jvmTestTasks)
 
         val runResult = runCli(projectDir = projectRoot, "run")
         // testing some default compiler arguments
@@ -84,8 +47,6 @@ class SmokeTest : AmperCliTestBase() {
     @Test
     fun `jvm-explicit-compiler-settings`() = runSlowTest {
         val projectRoot = testProject("jvm-explicit-compiler-settings")
-        val tasksResult = runCli(projectDir = projectRoot, "show", "tasks")
-        tasksResult.assertHasTasks(jvmAppTasks + jvmTestTasks)
 
         val runResult = runCli(projectDir = projectRoot, "run")
         with(runResult.readTelemetrySpans()) {
@@ -107,11 +68,8 @@ class SmokeTest : AmperCliTestBase() {
     }
 
     @Test
-    fun `multi-module`() = runSlowTest {
+    fun `multi-module can run`() = runSlowTest {
         val projectRoot = testProject("multi-module")
-        val tasksResult = runCli(projectDir = projectRoot, "show", "tasks")
-        tasksResult.assertHasTasks(jvmAppTasks, module = "app")
-        tasksResult.assertHasTasks(jvmBaseTasks + jvmTestTasks, module = "shared")
 
         val runResult = runCli(projectDir = projectRoot, "run")
         with(runResult.readTelemetrySpans()) {
@@ -122,21 +80,5 @@ class SmokeTest : AmperCliTestBase() {
 
         val testResult = runCli(projectDir = projectRoot, "test")
         testResult.assertStdoutContains("Test run finished after")
-    }
-}
-
-private val jvmBaseTasks = listOf("compileJvm", "resolveDependenciesJvm")
-private val jvmTestTasks = listOf("compileJvmTest", "resolveDependenciesJvmTest")
-private val jvmAppTasks = jvmBaseTasks + listOf("runJvm")
-
-private fun AmperCliResult.assertHasTasks(expectedTasks: Iterable<String>, module: String? = null) {
-    val taskNames = stdout.lines()
-        .filter { it.trim().startsWith("task :") }
-        .map { it.trim().removePrefix("task ").substringBefore(" -> ") }
-    expectedTasks.forEach { task ->
-        val expected = ":${module ?: projectDir.name}:$task"
-        assertTrue("Task named '$expected' should be present, but found only:\n" + taskNames.joinToString("\n")) {
-            taskNames.contains(expected)
-        }
     }
 }

@@ -92,23 +92,8 @@ class ExampleProjectsTest : AmperCliTestBase() {
     @Test
     @MacOnly
     fun `compose-multiplatform`() = runSlowTest {
-        val tasksResult = runCli(
-            projectDir = exampleProject("compose-multiplatform"),
-            "show", "tasks",
-            configureAndroidHome = true,
-        )
-        with(tasksResult) {
-            (jvmBaseTasks + jvmTestTasks + iosLibraryTasksWithoutX64 + androidTestTasks).forEach {
-                assertContains(stdout, ":shared:$it")
-            }
-            androidGlobalTasks.forEach { assertContains(stdout, it) }
-            androidAppTasks.forEach { assertContains(stdout, ":android-app:$it") }
-            jvmAppTasks.forEach { assertContains(stdout, ":jvm-app:$it") }
-            iosAppTasksWithoutX64.forEach { assertContains(stdout, ":ios-app:$it") }
-        }
-
         val buildResult = runCli(
-            projectDir = tasksResult.projectDir,
+            projectDir = exampleProject("compose-multiplatform"),
             "build",
             configureAndroidHome = true,
             assertEmptyStdErr = false,
@@ -175,10 +160,6 @@ class ExampleProjectsTest : AmperCliTestBase() {
     @Test
     fun `compose-desktop`() = runSlowTest {
         val projectRoot = exampleProject("compose-desktop")
-        with(runCli(projectRoot, "show", "tasks")) {
-            jvmAppTasks.forEach { assertContains(stdout, ":compose-desktop:$it") }
-        }
-
         val result = runCli(projectRoot, "build")
         result.readTelemetrySpans().assertKotlinJvmCompilationSpan {
             hasCompilerArgumentStartingWith("-Xplugin=")
@@ -188,9 +169,6 @@ class ExampleProjectsTest : AmperCliTestBase() {
     @Test
     fun jvm() = runSlowTest {
         val projectRoot = exampleProject("jvm")
-        with(runCli(projectRoot, "show", "tasks")) {
-            jvmAppTasks.forEach { assertContains(stdout, ":jvm:$it") }
-        }
 
         val result = runCli(projectRoot, "run")
         assertContains(result.stdout, "Hello, World!")
@@ -217,21 +195,12 @@ class ExampleProjectsTest : AmperCliTestBase() {
     @Test
     fun `compose-android`() = runSlowTest {
         val projectRoot = exampleProject("compose-android")
-        val result1 = runCli(
-            projectDir = projectRoot,
-            "show",
-            "tasks",
-            configureAndroidHome = true,
-        )
-        androidGlobalTasks.forEach { assertContains(result1.stdout, it) }
-        androidAppTasks.forEach { assertContains(result1.stdout, ":compose-android:$it") }
-
-        val result2 = runCli(
+        val result = runCli(
             projectDir = projectRoot,
             "build", "--variant=debug", "--variant=release",
             configureAndroidHome = true,
         )
-        result2.readTelemetrySpans().kotlinJvmCompilationSpans.assertTimes(2) // debug + release
+        result.readTelemetrySpans().kotlinJvmCompilationSpans.assertTimes(2) // debug + release
     }
 
     @Test
@@ -258,69 +227,3 @@ class ExampleProjectsTest : AmperCliTestBase() {
         }
     }
 }
-
-private val jvmBaseTasks = listOf("compileJvm", "resolveDependenciesJvm")
-private val jvmTestTasks = listOf("compileJvmTest", "resolveDependenciesJvmTest")
-private val jvmAppTasks = jvmBaseTasks + listOf("runJvm")
-
-private val iosLibraryTasks = listOf(
-    "compileIosArm64",
-    "compileIosSimulatorArm64",
-    "compileIosX64",
-)
-
-private val iosAppTasks = iosLibraryTasks + listOf(
-    "frameworkIosArm64",
-    "frameworkIosSimulatorArm64",
-    "frameworkIosX64",
-
-    "buildIosAppIosArm64",
-    "buildIosAppIosSimulatorArm64",
-    "buildIosAppIosX64",
-
-    "runIosAppIosSimulatorArm64",
-    "runIosAppIosX64",
-
-    "testIosSimulatorArm64",
-    "testIosX64",
-)
-
-private val iosLibraryTasksWithoutX64 = listOf(
-    "compileIosArm64",
-    "compileIosSimulatorArm64",
-)
-
-private val iosAppTasksWithoutX64 = iosLibraryTasksWithoutX64 + listOf(
-    "frameworkIosArm64",
-    "frameworkIosSimulatorArm64",
-    "buildIosAppIosArm64",
-    "buildIosAppIosSimulatorArm64",
-    "runIosAppIosSimulatorArm64",
-    "testIosSimulatorArm64",
-)
-
-private val androidTestTasks = listOf(
-    "compileAndroidTestDebug",
-    "compileAndroidTestRelease",
-)
-
-private val androidGlobalTasks = [
-    "installEmulator",
-    "installPlatformTools",
-]
-
-private val androidBaseTasks = listOf(
-    "compileAndroidDebug",
-    "compileAndroidRelease",
-    "installPlatformAndroid",
-    "buildAndroidDebug",
-    "buildAndroidRelease",
-    "prepareAndroidDebug",
-    "prepareAndroidRelease",
-    "resolveDependenciesAndroid",
-)
-
-private val androidAppTasks = androidBaseTasks + listOf(
-    "runAndroidDebug",
-    "runAndroidRelease",
-)
