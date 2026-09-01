@@ -302,7 +302,6 @@ class ResolveExternalDependenciesTask(
                         reportConflictingMavenDependencyDeclarations(
                             module = module,
                             publicationCoordsOverrides = outputValue.coordinateOverridesForPublishing,
-                            problemReporter = problemReporter,
                             platform = resolutionPlatform.toPlatform(),
                         )
                     ) {

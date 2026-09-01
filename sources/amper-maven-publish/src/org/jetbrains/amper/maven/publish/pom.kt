@@ -130,10 +130,10 @@ private fun getDependencies(
  *
  * @return whether at least one conflict was reported
  */
+context(problemReporter: ProblemReporter)
 fun reportConflictingMavenDependencyDeclarations(
     module: AmperModule,
     publicationCoordsOverrides: PublicationCoordinatesOverrides,
-    problemReporter: ProblemReporter,
     platform: Platform? = null,
 ): Boolean {
     val conflicts = module.leafFragments
