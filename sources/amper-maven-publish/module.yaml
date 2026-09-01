@@ -9,6 +9,7 @@ dependencies:
   - //sources/dependency-resolution: exported
   - //sources/frontend-api: exported
   - //sources/frontend/dr
+  - //sources/frontend/schema
   - //sources/libraries/maven-central-configuration
   - $libs.maven.core: exported # exported for MavenRepositorySystem
   - $libs.maven.model: exported # exported for writePom(Model)

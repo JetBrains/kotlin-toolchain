@@ -477,6 +477,40 @@ class AmperPublishTest : AmperCliTestBase() {
     }
 
     @Test
+    fun `publish rejects conflicting effective Maven dependency variants`() = runSlowTest {
+        val projectDir = testProject("kmp-publish-serialization")
+        val moduleYaml = projectDir / "module.yaml"
+        val moduleContent = moduleYaml.readText()
+        val jvmOnlyModuleContent = moduleContent.replace(
+            "platforms: [jvm, iosArm64, iosX64]",
+            "platforms: [jvm]",
+        )
+        check(jvmOnlyModuleContent != moduleContent) { "Expected the test project to declare JVM and iOS platforms" }
+        moduleYaml.writeText(
+            jvmOnlyModuleContent.trimEnd() + "\n\n" +
+                """
+                dependencies@jvm:
+                  - org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:${DefaultVersions.kotlinxSerialization}: exported
+                """.trimIndent() + "\n"
+        )
+
+        val result = runCli(
+            projectDir = projectDir,
+            "publish", "mavenLocal",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+            amperJvmArgs = [mavenRepoLocalJvmArg(createTempMavenLocalDir())],
+        )
+
+        result.assertStderrContains(
+            "Maven dependency `org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:jar` has conflicting " +
+                    "declarations for fragment `jvm`",
+        )
+        result.assertStderrContains("scope `compile`")
+        result.assertStderrContains("scope `runtime`")
+    }
+
+    @Test
     fun `prepare maven central bundle (multiplatform)`() = runSlowTest {
         val openPgpApi = BcOpenPGPApi()
         val testPgpKey = openPgpApi.generateKey().signOnlyKey().build()

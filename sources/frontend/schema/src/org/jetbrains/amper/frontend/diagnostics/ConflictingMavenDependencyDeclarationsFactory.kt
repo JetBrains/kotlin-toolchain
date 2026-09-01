@@ -7,7 +7,6 @@ package org.jetbrains.amper.frontend.diagnostics
 import com.intellij.psi.PsiElement
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.BomDependency
-import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.MavenDependency
 import org.jetbrains.amper.frontend.MavenDependencyBase
 import org.jetbrains.amper.frontend.SchemaBundle
@@ -43,7 +42,15 @@ object ConflictingMavenDependencyDeclarationsFactory : AomSingleModuleDiagnostic
                         reportedPlaces.add(declaration.dependency.trace)
                     ) {
                         problemReporter.reportMessage(
-                            ConflictingMavenDependencyDeclarations(declaration, existingDeclaration, leafFragment)
+                            ConflictingMavenDependencyDeclarations(
+                                dependency = declaration.dependency,
+                                managementKey = declaration.dependency.managementKey.toString(),
+                                leafFragmentName = leafFragment.name,
+                                version = declaration.publicationSemantics.version,
+                                scope = declaration.publicationSemantics.scope.displayName,
+                                conflictingVersion = existingDeclaration.publicationSemantics.version,
+                                conflictingScope = existingDeclaration.publicationSemantics.scope.displayName,
+                            )
                         )
                     }
                 }
@@ -111,14 +118,15 @@ private val MavenDependencyBase.publicationScope: MavenPublicationScope
         }
     }
 
-private class ConflictingMavenDependencyDeclarations(
-    private val declaration: MavenDependencyDeclaration,
-    private val conflictingDeclaration: MavenDependencyDeclaration,
-    private val leafFragment: Fragment,
+class ConflictingMavenDependencyDeclarations(
+    private val dependency: MavenDependencyBase,
+    private val managementKey: String,
+    private val leafFragmentName: String,
+    private val version: String?,
+    private val scope: String,
+    private val conflictingVersion: String?,
+    private val conflictingScope: String,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.InconsistentConfiguration) {
-
-    private val dependency: MavenDependencyBase = declaration.dependency
-
     override val element: PsiElement
         get() = dependency.extractPsiElement()
 
@@ -127,11 +135,11 @@ private class ConflictingMavenDependencyDeclarations(
     override val message: @Nls String
         get() = SchemaBundle.message(
             "maven.dependency.has.conflicting.declarations",
-            dependency.managementKey,
-            leafFragment.name,
-            declaration.publicationSemantics.version ?: "unspecified",
-            declaration.publicationSemantics.scope.displayName,
-            conflictingDeclaration.publicationSemantics.version ?: "unspecified",
-            conflictingDeclaration.publicationSemantics.scope.displayName,
+            managementKey,
+            leafFragmentName,
+            version ?: "unspecified",
+            scope,
+            conflictingVersion ?: "unspecified",
+            conflictingScope,
         )
 }

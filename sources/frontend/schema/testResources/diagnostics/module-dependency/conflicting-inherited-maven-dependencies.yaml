@@ -11,8 +11,8 @@ dependencies:
   - org.example:different-type:1.0@zip
 
 dependencies@jvm:
-  - <![Error] Maven dependency `org.example:scope-conflict:jar` has conflicting declarations for fragment `jvm`: version `1.0`, scope `runtime` and version `1.0`, scope `compile`!>org.example:scope-conflict:1.0<!>
-  - <![Error] Maven dependency `org.example:version-conflict:jar` has conflicting declarations for fragment `jvm`: version `2.0`, scope `runtime` and version `1.0`, scope `runtime`!>org.example:version-conflict:2.0@jar<!>
+  - <![Error] Maven dependency `org.example:scope-conflict:jar` has conflicting declarations for fragment `jvm`: version `1.0`, scope `runtime` and version `1.0`, scope `compile`. Declare the dependency only once in the nearest common fragment, or use the same version and published Maven scope in all declarations.!>org.example:scope-conflict:1.0<!>
+  - <![Error] Maven dependency `org.example:version-conflict:jar` has conflicting declarations for fragment `jvm`: version `2.0`, scope `runtime` and version `1.0`, scope `runtime`. Declare the dependency only once in the nearest common fragment, or use the same version and published Maven scope in all declarations.!>org.example:version-conflict:2.0@jar<!>
   - org.example:same-semantics:1.0
   - org.example:same-published-scope:1.0:
       scope: compile-only
