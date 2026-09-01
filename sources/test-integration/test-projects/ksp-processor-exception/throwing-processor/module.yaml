@@ -1,0 +1,4 @@
+product: jvm/lib
+
+dependencies:
+  - com.google.devtools.ksp:symbol-processing-api:2.3.7: compile-only

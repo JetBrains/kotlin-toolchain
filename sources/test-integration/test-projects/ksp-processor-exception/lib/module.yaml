@@ -1,0 +1,9 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, linuxX64]
+
+test-settings:
+  kotlin:
+    ksp:
+      processors:
+        - //throwing-processor

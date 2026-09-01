@@ -121,6 +121,9 @@ plugins:
           - //sources/extensibility/amper-extensibility-api
           - //sources/extensibility/amper-extensibility-sdk-stub
         includeIfFileNameContains: [ amper-extensibility ]
+      "ksp-launcher":
+        classpath: [ //sources/amper-ksp-launcher ]
+        includeIfFileNameContains: [ "amper-ksp-launcher" ]
     embedClasspathAsResources:
       classpath: [ //sources/amper-junit-listeners ]
       resourceDirName: "junit-listeners"

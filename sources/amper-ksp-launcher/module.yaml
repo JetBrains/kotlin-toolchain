@@ -1,0 +1,10 @@
+product: jvm/lib
+
+description: |
+  This is a proxy launcher for the KSP CLI to work around the hanging issue.
+  See https://github.com/google/ksp/issues/3120 for more info.
+
+apply:
+  - //sources/common.module-template.yaml
+
+# Doesn't contain any additional external dependencies, so we don't break the KSP classpath.

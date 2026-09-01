@@ -19,6 +19,7 @@ modules:
   - sources/amper-junit-event-protocol
   - sources/amper-junit-listeners
   - sources/amper-kotlin-native
+  - sources/amper-ksp-launcher
   - sources/amper-libraries-for-idea
   - sources/amper-maven-converter
   - sources/amper-maven-plugin-download

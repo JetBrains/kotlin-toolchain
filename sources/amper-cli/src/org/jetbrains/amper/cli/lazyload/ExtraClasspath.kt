@@ -24,6 +24,7 @@ internal enum class ExtraClasspath(private val classpathName: String) {
     PLUGINS_PROCESSOR(classpathName = "plugins-processor"),
     EXTENSIBILITY_API(classpathName = "extensibility-api"),
     AMPER_JIC_RUNNER(classpathName = "amper-jic-runner"),
+    KSP_LAUNCHER(classpathName = "ksp-launcher"),
     ANDROID_INTEGRATION_GRADLE_PLUGIN(classpathName = "android-integration-gradle-plugin"),
     KOTLIN_BUILD_TOOLS_COMPAT(classpathName = "kotlin-build-tools-compat");
 

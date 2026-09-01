@@ -6,6 +6,7 @@ package org.jetbrains.amper.ksp
 
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
+import org.jetbrains.amper.cli.lazyload.ExtraClasspath
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.jdk.provisioning.majorVersion
@@ -55,9 +56,9 @@ internal class Ksp(
         val result = processRunner.runJava(
             jdk = jdk,
             workingDir = workingDir,
-            mainClass = compilationType.kspMainClassFqn,
-            classpath = kspImplJars,
-            programArgs = args,
+            mainClass = "org.jetbrains.amper.ksp.launcher.KspLauncher",
+            classpath = ExtraClasspath.KSP_LAUNCHER.findJarsInDistribution() + kspImplJars,
+            programArgs = [compilationType.kspMainClassFqn] + args,
             argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
             outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger, prefix = "[ksp] ")),
             // KSP uses some Unsafe APIs inside (because it depends on AA, thus IntelliJ)
