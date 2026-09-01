@@ -25,4 +25,5 @@ val AomSingleModuleDiagnosticFactories: List<AomSingleModuleDiagnosticFactory> =
     MavenCentralRequirementsCheckingFactory,
     KeystoreMustExistFactory,
     ModuleDependencyDoesntHaveNeededPlatformsFactory,
+    SwiftPMDependencyInNonApplePlatformFactory,
 )

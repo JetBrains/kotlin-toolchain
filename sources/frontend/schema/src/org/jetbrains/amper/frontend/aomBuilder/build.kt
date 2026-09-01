@@ -17,7 +17,6 @@ import org.jetbrains.amper.frontend.Notation
 import org.jetbrains.amper.frontend.RemoteSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.VersionCatalog
 import org.jetbrains.amper.frontend.aomBuilder.plugins.buildAndApplyPlugins
-import org.jetbrains.amper.frontend.aomBuilder.swiftpm.diagnoseSwiftPMDependencyInNonApplePlatform
 import org.jetbrains.amper.frontend.api.Trace
 import org.jetbrains.amper.frontend.api.asTrace
 import org.jetbrains.amper.frontend.catalogs.builtInCatalog
@@ -234,8 +233,6 @@ private fun buildAmperModules(
                 module.moduleFile.parent.toNioPath(),
             )
         }
-
-        diagnoseSwiftPMDependencyInNonApplePlatform(moduleFragments = moduleFragments)
 
         val [leaves, testLeaves] = moduleFragments.filterIsInstance<DefaultLeafFragment>().partition { !it.isTest }
 

@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.frontend.tree.reading
 
-import org.jetbrains.amper.frontend.aomBuilder.swiftpm.diagnoseTestOnlySwiftPMDependency
 import org.jetbrains.amper.frontend.contexts.Contexts
 import org.jetbrains.amper.frontend.schema.SchemaMavenCoordinates
 import org.jetbrains.amper.frontend.tree.TreeDiagnosticId
@@ -27,7 +26,7 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
  * Try to derive the concrete type from the value based on the rules for the given [type]
  * and then call the corresponded concrete parsing routine with the derived type.
  */
-context(contexts: Contexts, _: ParsingConfig, reporter: ProblemReporter)
+context(_: Contexts, _: ParsingConfig, reporter: ProblemReporter)
 internal fun parseVariant(
     value: YamlValue,
     type: SchemaType.VariantType,
@@ -35,14 +34,8 @@ internal fun parseVariant(
     // Do not parse directly, delegate to another branch for composability and DRY
     DeclarationOfVariantDependency -> when (inferDependencyType(value, isScoped = true)) {
         Bom -> parseObject(value, type.checkSubType(DeclarationOfBomDependency))
-        LocalSwiftPackage -> {
-            diagnoseTestOnlySwiftPMDependency(value)
-            parseObject(value, type.checkSubType(DeclarationOfLocalSwiftPMDependencySchema))
-        }
-        SwiftPackage -> {
-            diagnoseTestOnlySwiftPMDependency(value)
-            parseObject(value, type.checkSubType(DeclarationOfRemoteSwiftPMDependencySchema))
-        }
+        LocalSwiftPackage -> parseObject(value, type.checkSubType(DeclarationOfLocalSwiftPMDependencySchema))
+        SwiftPackage -> parseObject(value, type.checkSubType(DeclarationOfRemoteSwiftPMDependencySchema))
         Failed -> {
             reportParsing(
                 value,
