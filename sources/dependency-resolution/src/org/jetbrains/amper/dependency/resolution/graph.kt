@@ -630,7 +630,7 @@ class DependencyGraphContextSerializer: KSerializer<DependencyGraphContext> {
                         }
                         3 -> {
                             allResolutionConfigs =
-                                decodeSerializableElement(descriptor, 2, allResolutionConfigsSerializer).toMutableMap()
+                                decodeSerializableElement(descriptor, 3, allResolutionConfigsSerializer).toMutableMap()
                         }
                         CompositeDecoder.DECODE_DONE -> break
                         else -> error("Unexpected index: $index")
