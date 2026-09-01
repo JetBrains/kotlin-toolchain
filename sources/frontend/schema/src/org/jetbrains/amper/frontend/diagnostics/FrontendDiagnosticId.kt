@@ -21,6 +21,7 @@ enum class FrontendDiagnosticId : DiagnosticId {
     ComposeMaterial3UnknownVersionMapping,
     ComposeHotReloadVersionMismatch,
     ComposeVersionWithoutCompose,
+    ConflictingMavenDependencyDeclarations,
     CredentialsFileDoesNotExist,
     CredentialsFileDoesNotHaveKey,
     DependencyResolutionProblem,

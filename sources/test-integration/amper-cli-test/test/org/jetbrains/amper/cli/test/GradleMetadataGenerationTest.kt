@@ -95,29 +95,6 @@ class GradleMetadataGenerationTest : AmperCliTestBase() {
     }
 
     @Test
-    @MacOnly
-    fun `serialization dependency is deduplicated in common metadata`() = runSlowTest {
-        runCli(
-            projectDir = testProject("multiplatform-library-template-main"),
-            "task",
-            ":edgeCase_serialization:prepareMavenPublishables",
-        )
-
-        val publishablesDir = tempRoot / "build" / "tasks" / "_edgeCase_serialization_prepareMavenPublishables"
-        val metadataFile = publishablesDir / "serialization-1.0.0.module"
-        val metadataApiElements = metadataFile.readPGradleModuleMetadata().variants
-            .single { it.name == "metadataApiElements" }
-        val serializationDependencies = metadataApiElements.dependencies.filter {
-            it.group == "org.jetbrains.kotlinx" && it.module == "kotlinx-serialization-core"
-        }
-        assertEquals(
-            1,
-            serializationDependencies.size,
-            "The common Gradle metadata must declare kotlinx-serialization-core exactly once: $serializationDependencies",
-        )
-    }
-
-    @Test
     fun `pure jvm library`(testInfo: TestInfo) = runSlowTest {
         runCli(projectDir = testProject("multiplatform-library-template-main"),
             "task",

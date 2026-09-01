@@ -1,0 +1,27 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, iosArm64]
+
+dependencies:
+  - org.example:scope-conflict:1.0: exported
+  - org.example:version-conflict:1.0
+  - org.example:same-semantics:1.0
+  - org.example:same-published-scope:1.0: exported
+  - org.example:different-classifier:1.0:common
+  - org.example:different-type:1.0@zip
+
+dependencies@jvm:
+  - <![Error] Maven dependency `org.example:scope-conflict:jar` has conflicting declarations for fragment `jvm`: version `1.0`, scope `runtime` and version `1.0`, scope `compile`!>org.example:scope-conflict:1.0<!>
+  - <![Error] Maven dependency `org.example:version-conflict:jar` has conflicting declarations for fragment `jvm`: version `2.0`, scope `runtime` and version `1.0`, scope `runtime`!>org.example:version-conflict:2.0@jar<!>
+  - org.example:same-semantics:1.0
+  - org.example:same-published-scope:1.0:
+      scope: compile-only
+      exported: true
+  - org.example:different-classifier:1.0:jvm
+  - org.example:different-type:1.0@tar
+
+settings:
+  publishing:
+    enabled: true
+    group: org.example
+    version: 1.0

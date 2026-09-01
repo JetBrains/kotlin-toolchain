@@ -5,6 +5,7 @@
 package org.jetbrains.amper.cli.test
 
 import com.sun.net.httpserver.BasicAuthenticator
+import kotlinx.serialization.json.Json
 import org.bouncycastle.openpgp.api.OpenPGPCertificate
 import org.bouncycastle.openpgp.api.bc.BcOpenPGPApi
 import org.jetbrains.amper.cli.test.utils.assertContainsRelativeFiles
@@ -19,10 +20,12 @@ import org.jetbrains.amper.core.extract.extractZip
 import org.jetbrains.amper.frontend.schema.Checksum
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.stdlib.hashing.hash
+import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.server.Request
 import org.jetbrains.amper.test.server.RequestHistory
 import org.jetbrains.amper.test.server.withFileServer
+import org.jetbrains.gradle.module.metadata.format.Module
 import org.junit.jupiter.api.TestReporter
 import java.nio.file.Path
 import java.util.*
@@ -432,6 +435,7 @@ class AmperPublishTest : AmperCliTestBase() {
     }
 
     @Test
+    @MacOnly
     fun `publish to maven local - kmp lib with serialization`() = runSlowTest {
         val mavenLocalForTest = createTempMavenLocalDir()
         val groupDir = mavenLocalForTest.resolve("amper/test/kmp-publish-serialization")
@@ -439,7 +443,7 @@ class AmperPublishTest : AmperCliTestBase() {
         runCli(
             projectDir = testProject("kmp-publish-serialization"),
             "publish", "mavenLocal",
-            amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
+            amperJvmArgs = [mavenRepoLocalJvmArg(mavenLocalForTest)],
         )
 
         // The implicit kotlinx-serialization-core dependency is added to every fragment the jvm target belongs to
@@ -451,9 +455,24 @@ class AmperPublishTest : AmperCliTestBase() {
             .map { it.groupValues[1] }
             .toList()
         assertEquals(
-            listOf("kotlinx-serialization-core-jvm"),
+            ["kotlinx-serialization-core-jvm"],
             declaredArtifactIds,
             "Unexpected dependencies in $pomRelativePath:\n$pom",
+        )
+
+        // The common Gradle module metadata combines the dependencies of all metadata fragments. Those fragments
+        // contain equivalent implicit serialization dependencies with different traces, which must collapse to one.
+        val gradleMetadataRelativePath = "artifactName/2.2/artifactName-2.2.module"
+        val gradleMetadataText = (groupDir / gradleMetadataRelativePath).readText()
+        val gradleMetadata: Module = Json.decodeFromString(gradleMetadataText)
+        val declaredSerializationDependencies = gradleMetadata.variants
+            .single { it.name == "metadataApiElements" }
+            .dependencies
+            .filter { it.group == "org.jetbrains.kotlinx" && it.module == "kotlinx-serialization-core" }
+        assertEquals(
+            1,
+            declaredSerializationDependencies.size,
+            "Unexpected dependencies in $gradleMetadataRelativePath: $declaredSerializationDependencies",
         )
     }
 
