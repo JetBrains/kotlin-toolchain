@@ -3,6 +3,7 @@ modules:
   - edgeCase_jvmPlusAndroid
   - edgeCase_kmpSinglePlatform
   - edgeCase_noSources
+  - edgeCase_serialization
   - edgeCase_wasmJsPlusWasmWasi
   - library
   - libraryCinterop
@@ -10,4 +11,3 @@ modules:
   - linuxWindowsShared
   - nativePlatform
   - nativeShared
-
