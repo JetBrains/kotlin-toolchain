@@ -402,46 +402,46 @@ class DependencyGraphContext(
     /**
      * The transient fields below provide instant access to cached values by index.
      * It is assumed that indexes used for serialization match the indexes of serialized Map
+     *
+     * Every index is kept in sync incrementally by the corresponding `register*` method:
+     * an entry is appended at the very position that is handed out as its index.
+     * Rebuilding an index from the map keys is a fallback for the case when the map was filled in bulk,
+     * bypassing the `register*` methods (namely, on graph deserialization,
+     * see [DependencyGraphContextSerializer.deserialize]).
+     * Rebuilding on every registration would be quadratic in the number of graph entries,
+     * which is prohibitively slow for large projects (AMPER-5235).
      */
     @Transient
-    var allDependencyNodesList: List<SerializableDependencyNode> = emptyList()
-        get() {
-            if (field.size != allDependencyNodes.size) {
-                field = allDependencyNodes.keys.toList()
-            }
-            return field
-        }
-        private set
+    private val allDependencyNodesIndex: MutableList<SerializableDependencyNode> = mutableListOf()
+    val allDependencyNodesList: List<SerializableDependencyNode>
+        get() = allDependencyNodesIndex.resyncedWith(allDependencyNodes)
 
     @Transient
-    var mavenDependenciesList: List<MavenDependencyPlain> = emptyList()
-        get() {
-            if (field.size != allMavenDependencies.size) {
-                field = allMavenDependencies.keys.toList()
-            }
-            return field
-        }
-        private set
+    private val mavenDependenciesIndex: MutableList<MavenDependencyPlain> = mutableListOf()
+    val mavenDependenciesList: List<MavenDependencyPlain>
+        get() = mavenDependenciesIndex.resyncedWith(allMavenDependencies)
 
     @Transient
-    var mavenDependenciesConstraintsList: List<MavenDependencyConstraint> = emptyList()
-        get() {
-            if (field.size != allMavenDependencyConstraints.size) {
-                field = allMavenDependencyConstraints.keys.toList()
-            }
-            return field
-        }
-        private set
+    private val mavenDependenciesConstraintsIndex: MutableList<MavenDependencyConstraintPlain> = mutableListOf()
+    val mavenDependenciesConstraintsList: List<MavenDependencyConstraint>
+        get() = mavenDependenciesConstraintsIndex.resyncedWith(allMavenDependencyConstraints)
 
     @Transient
-    var allResolutionConfigsList: List<ResolutionConfigPlain> = emptyList()
-        get() {
-            if (field.size != allResolutionConfigs.size) {
-                field = allResolutionConfigs.keys.toList()
-            }
-            return field
+    private val allResolutionConfigsIndex: MutableList<ResolutionConfigPlain> = mutableListOf()
+    val allResolutionConfigsList: List<ResolutionConfigPlain>
+        get() = allResolutionConfigsIndex.resyncedWith(allResolutionConfigs)
+
+    /**
+     * Rebuilds this index from the keys of [source] if the two have gone out of sync,
+     * which only happens when [source] was filled without going through a `register*` method.
+     */
+    private fun <T> MutableList<T>.resyncedWith(source: Map<T, Int>): MutableList<T> {
+        if (size != source.size) {
+            clear()
+            addAll(source.keys)
         }
-        private set
+        return this
+    }
 
     fun <Node: DependencyNode, NodePlain: SerializableDependencyNode> registerSerializableDependencyNodeWithParent(
         node: Node, nodePlain: NodePlain, parent: DependencyNodeReference?
@@ -461,6 +461,7 @@ class DependencyGraphContext(
         }
 
         val refIndex = allDependencyNodeReferences.size
+        allDependencyNodesIndex.resyncedWith(allDependencyNodes).add(nodePlain)
         allDependencyNodes[nodePlain] = refIndex
 
         val reference = DependencyNodeReference(refIndex)
@@ -474,6 +475,7 @@ class DependencyGraphContext(
         if (allMavenDependencies[nodePlain] != null) error("Reference for node $mavenDependency is already registered")
 
         val refIndex = allMavenDependencyReferences.size
+        mavenDependenciesIndex.resyncedWith(allMavenDependencies).add(nodePlain)
         allMavenDependencies[nodePlain] = refIndex
 
         val reference = MavenDependencyReference(refIndex)
@@ -487,6 +489,7 @@ class DependencyGraphContext(
         if (allMavenDependencyConstraints[nodePlain] != null) error("Reference for node $constraint is already registered")
 
         val refIndex = allMavenDependencyConstraintReferences.size
+        mavenDependenciesConstraintsIndex.resyncedWith(allMavenDependencyConstraints).add(nodePlain)
         allMavenDependencyConstraints[nodePlain] = refIndex
 
         val reference = MavenDependencyConstraintReference(refIndex)
@@ -500,6 +503,7 @@ class DependencyGraphContext(
         if (allResolutionConfigs[nodePlain] != null) error("Reference for the resolution config $resolutionConfig is already registered")
 
         val refIndex = allResolutionConfigReferences.size
+        allResolutionConfigsIndex.resyncedWith(allResolutionConfigs).add(nodePlain)
         allResolutionConfigs[nodePlain] = refIndex
 
         val reference = ResolutionConfigReference(refIndex)
