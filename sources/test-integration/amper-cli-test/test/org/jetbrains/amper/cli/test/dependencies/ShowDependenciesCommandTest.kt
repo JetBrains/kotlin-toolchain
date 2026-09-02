@@ -9,9 +9,11 @@ import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.golden.GoldFileTest
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
 import kotlin.test.Test
 
+@Tag("cli-test-group-dependencies")
 class ShowDependenciesCommandTest : CliTestBase() {
 
     private fun AmperCliResult.checkGold(caseName: String) = GoldFileTest(

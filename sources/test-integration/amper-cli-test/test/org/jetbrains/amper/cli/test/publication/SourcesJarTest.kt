@@ -8,6 +8,7 @@ import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.frontend.Platform
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.nio.file.LinkOption
@@ -20,6 +21,7 @@ import kotlin.io.path.pathString
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@Tag("cli-test-group-publication")
 class SourcesJarTest : CliTestBase() {
 
     companion object {

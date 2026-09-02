@@ -17,6 +17,7 @@ import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.TempDirTestClassExtension
 import org.jetbrains.amper.test.WindowsOnly
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -25,6 +26,7 @@ import kotlin.io.path.exists
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
+@Tag("cli-test-group-publication")
 class KmpPublicationTest : CliTestBase() {
 
     @BeforeEach

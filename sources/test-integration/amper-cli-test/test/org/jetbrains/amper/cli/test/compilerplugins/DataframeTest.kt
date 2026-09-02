@@ -7,8 +7,10 @@ package org.jetbrains.amper.cli.test.compilerplugins
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 
+@Tag("cli-test-group-compilerplugins")
 class DataframeTest : CliTestBase() {
 
     @Test

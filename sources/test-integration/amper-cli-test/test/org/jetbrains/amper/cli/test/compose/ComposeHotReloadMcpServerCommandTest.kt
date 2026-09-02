@@ -21,6 +21,7 @@ import org.jetbrains.compose.reload.core.getOrThrow
 import org.jetbrains.compose.reload.orchestration.OrchestrationMessage
 import org.jetbrains.compose.reload.orchestration.OrchestrationServer
 import org.jetbrains.compose.reload.orchestration.asFlow
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
 import kotlin.io.path.createParentDirectories
@@ -29,6 +30,7 @@ import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 
+@Tag("cli-test-group-compose")
 @OptIn(DelicateHotReloadApi::class)
 class ComposeHotReloadMcpServerCommandTest : CliTestBase() {
     @Test

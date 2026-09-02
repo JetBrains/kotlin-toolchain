@@ -16,6 +16,7 @@ import org.jetbrains.amper.test.MacOrLinuxOnly
 import org.jetbrains.amper.test.TempDirExtension
 import org.jetbrains.amper.test.WindowsOnly
 import org.junit.jupiter.api.Assumptions
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.nio.file.attribute.PosixFilePermission
@@ -30,6 +31,8 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@Tag("slow")
+@Tag("cli-test-group-infra")
 class AmperInstallerTest : AmperCliWithWrapperTestBase() {
     @RegisterExtension
     private val tempDirExtension = TempDirExtension()

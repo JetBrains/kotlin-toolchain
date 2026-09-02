@@ -16,6 +16,7 @@ import org.jetbrains.amper.problems.reporting.NoopProblemReporter
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.LinuxOnly
 import org.jetbrains.amper.test.MacOnly
+import org.junit.jupiter.api.Tag
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
@@ -24,6 +25,7 @@ import kotlin.io.path.relativeTo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@Tag("cli-test-group-native")
 class CinteropTest : CliTestBase() {
     @Test
     @MacOnly

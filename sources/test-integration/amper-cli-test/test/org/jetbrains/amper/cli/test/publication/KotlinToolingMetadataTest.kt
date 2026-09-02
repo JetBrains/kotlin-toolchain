@@ -8,6 +8,7 @@ import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.Dirs
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
 import kotlin.io.path.div
@@ -28,6 +29,7 @@ import kotlin.test.assertFalse
  * what KGP produces so that the consumers of this file keep working. The few remaining deviations are documented in
  * the tests below.
  */
+@Tag("cli-test-group-publication")
 class KotlinToolingMetadataTest : CliTestBase() {
 
     private val testGoldenFilesRoot: Path =

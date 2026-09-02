@@ -11,6 +11,7 @@ import org.jetbrains.amper.telemetry.getListAttribute
 import org.jetbrains.amper.test.spans.SpansTestCollector
 import org.jetbrains.amper.test.spans.spansNamed
 import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertTrue
@@ -22,6 +23,7 @@ import kotlin.test.assertTrue
  * Note: asserting that stderr is empty makes no sense in this case because when there is no X11 the agent writes to
  * stderr about it.
  */
+@Tag("cli-test-group-compose")
 class ComposeHotReloadTest : CliTestBase() {
 
     @Test

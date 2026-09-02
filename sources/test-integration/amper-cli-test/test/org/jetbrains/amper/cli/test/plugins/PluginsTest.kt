@@ -17,6 +17,7 @@ import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.assertEqualsIgnoreLineSeparator
 import org.jetbrains.amper.test.normalizeLineSeparators
+import org.junit.jupiter.api.Tag
 import org.slf4j.event.Level
 import java.io.File
 import java.nio.file.Path
@@ -27,6 +28,7 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertNotEquals
 
+@Tag("cli-test-group-plugins")
 class PluginsTest : CliTestBase() {
     @Test
     fun `single plugin - contributes source file when enabled`() = runSlowTest {

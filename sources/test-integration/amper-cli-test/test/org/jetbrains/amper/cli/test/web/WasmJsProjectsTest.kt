@@ -10,6 +10,7 @@ import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.AmperCliResult
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
 import kotlin.io.path.readText
@@ -18,6 +19,7 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
+@Tag("cli-test-group-web")
 class WasmJsProjectsTest : CliTestBase() {
 
     @Test

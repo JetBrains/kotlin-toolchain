@@ -20,6 +20,7 @@ import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.Dirs
 import org.jf.dexlib2.DexFileFactory
 import org.jf.dexlib2.Opcodes
+import org.junit.jupiter.api.Tag
 import java.nio.file.Path
 import kotlin.collections.iterator
 import kotlin.io.path.PathWalkOption
@@ -40,6 +41,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
+@Tag("cli-test-group-android")
 class AndroidProjectsTest : CliTestBase() {
 
     @Test

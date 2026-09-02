@@ -12,11 +12,13 @@ import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.AmperCliResult
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.fail
 import kotlin.text.get
 
+@Tag("cli-test-group-testing")
 class TestFiltersTest : CliTestBase() {
 
     @Nested

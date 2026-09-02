@@ -11,12 +11,14 @@ import org.jetbrains.amper.cli.test.utils.assertWarnings
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.LocalAmperPublication
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.div
 import kotlin.io.path.pathString
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
+@Tag("cli-test-group-infra")
 class ProjectFileTest : CliTestBase() {
 
     @Test

@@ -12,6 +12,7 @@ import org.jetbrains.amper.swiftpm.SwiftPMDependencies
 import org.jetbrains.amper.swiftpm.SwiftPMDependency
 import org.jetbrains.amper.swiftpm.TransitiveSwiftPMMetadata
 import org.jetbrains.amper.test.runTestWithMdc
+import org.junit.jupiter.api.Tag
 import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -23,6 +24,7 @@ import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@Tag("cli-test-group-native")
 class SwiftPMResolutionTest : CliTestBase() {
 
     @Test

@@ -8,8 +8,10 @@ import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
+@Tag("cli-test-group-compilerplugins")
 class KotlinxRpcTest : CliTestBase() {
 
     @Test

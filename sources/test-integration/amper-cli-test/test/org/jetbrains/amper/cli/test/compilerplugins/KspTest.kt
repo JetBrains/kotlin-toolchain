@@ -15,6 +15,7 @@ import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.runTestWithMdc
+import org.junit.jupiter.api.Tag
 import java.nio.file.Path
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
@@ -27,6 +28,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
+@Tag("cli-test-group-compilerplugins")
 class KspTest: CliTestBase() {
 
     @Test

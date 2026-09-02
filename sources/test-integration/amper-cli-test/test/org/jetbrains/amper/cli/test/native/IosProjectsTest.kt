@@ -23,6 +23,7 @@ import org.jetbrains.amper.test.LocalAmperPublication
 import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.spans.FilteredSpans
 import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Tag
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.copyToRecursively
@@ -40,6 +41,7 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import kotlin.test.expect
 
+@Tag("cli-test-group-native")
 @MacOnly
 class IosProjectsTest : CliTestBase() {
 

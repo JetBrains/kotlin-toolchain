@@ -9,9 +9,11 @@ import org.jetbrains.amper.cli.test.utils.assertErrors
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@Tag("cli-test-group-plugins")
 class DoCommandTest : CliTestBase() {
     @Test
     fun `do command - unique name`() = runSlowTest {

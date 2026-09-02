@@ -7,9 +7,11 @@ package org.jetbrains.amper.cli.test.infra
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.runTestWithMdc
+import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
 
+@Tag("cli-test-group-infra")
 class KtcBootstrapTest : CliTestBase() {
 
     @Test

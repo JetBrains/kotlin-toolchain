@@ -9,6 +9,7 @@ import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStderrDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.div
@@ -18,6 +19,7 @@ import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
+@Tag("cli-test-group-compilerplugins")
 class AnnotationProcessingTest : CliTestBase() {
 
     @Test

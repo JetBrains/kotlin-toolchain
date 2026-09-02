@@ -8,12 +8,14 @@ import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.stdlib.hashing.sha256String
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@Tag("cli-test-group-core")
 class PackageCommandTest : CliTestBase() {
 
     @Test

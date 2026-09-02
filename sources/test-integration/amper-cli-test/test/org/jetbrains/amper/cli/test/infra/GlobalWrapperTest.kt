@@ -19,6 +19,7 @@ import org.jetbrains.amper.wrapper.AmperWrapperData
 import org.jetbrains.amper.wrapper.AmperWrappers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.nio.file.Path
@@ -28,6 +29,7 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
 import kotlin.io.path.writeText
 
+@Tag("cli-test-group-infra")
 class GlobalWrapperTest : CliTestBase() {
 
     @RegisterExtension

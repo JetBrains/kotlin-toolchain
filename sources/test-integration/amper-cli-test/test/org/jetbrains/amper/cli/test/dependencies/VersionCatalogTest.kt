@@ -9,9 +9,11 @@ import org.jetbrains.amper.cli.test.utils.assertErrors
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.div
 import kotlin.test.Test
 
+@Tag("cli-test-group-dependencies")
 class VersionCatalogTest : CliTestBase() {
 
     @Test

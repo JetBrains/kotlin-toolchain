@@ -6,9 +6,11 @@ package org.jetbrains.amper.cli.test.tools
 
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
+@Tag("cli-test-group-tools")
 class ToolJdkCommandTest : CliTestBase() {
 
     @Test

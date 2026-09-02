@@ -16,12 +16,14 @@ import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.WindowsOnly
 import org.jetbrains.amper.test.spans.spansNamed
 import org.junit.jupiter.api.Assumptions
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.readText
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
+@Tag("cli-test-group-testing")
 class TestCommandTest : CliTestBase() {
 
     @Test

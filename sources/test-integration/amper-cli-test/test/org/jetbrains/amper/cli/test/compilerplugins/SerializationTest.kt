@@ -13,8 +13,10 @@ import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.test.spans.assertHasAttribute
 import org.jetbrains.amper.test.spans.spansNamed
 import org.jetbrains.amper.test.spans.withAttribute
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
+@Tag("cli-test-group-compilerplugins")
 class SerializationTest: CliTestBase() {
 
     @Test

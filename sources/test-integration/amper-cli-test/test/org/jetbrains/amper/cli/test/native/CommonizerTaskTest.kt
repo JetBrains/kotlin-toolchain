@@ -11,6 +11,7 @@ import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.kotlin.native.downloadAndExtractKotlinNative
 import org.jetbrains.amper.test.MacOnly
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
 import java.nio.file.Path
@@ -22,6 +23,7 @@ import kotlin.io.path.name
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@Tag("cli-test-group-native")
 class CommonizerTaskTest: CliTestBase() {
 
     @Test

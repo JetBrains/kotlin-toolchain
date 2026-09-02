@@ -14,6 +14,7 @@ import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.condition.OS
 import kotlin.test.Test
 
@@ -27,6 +28,7 @@ private val ENL = if (OS.current() == OS.WINDOWS) "|r|n" else "|n"
  */
 private val NL = System.lineSeparator()
 
+@Tag("cli-test-group-testing")
 class AmperTestFormatTest : CliTestBase() {
 
     @Nested

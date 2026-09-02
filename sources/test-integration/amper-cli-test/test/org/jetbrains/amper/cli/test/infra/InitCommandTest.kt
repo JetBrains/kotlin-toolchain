@@ -10,6 +10,7 @@ import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.LocalAmperPublication
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
@@ -20,6 +21,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@Tag("cli-test-group-infra")
 class InitCommandTest : CliTestBase() {
 
     @Test

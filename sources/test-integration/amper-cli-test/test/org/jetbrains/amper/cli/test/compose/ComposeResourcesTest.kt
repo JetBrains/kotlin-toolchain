@@ -7,12 +7,14 @@ package org.jetbrains.amper.cli.test.compose
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.MacOnly
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
+@Tag("cli-test-group-compose")
 class ComposeResourcesTest : CliTestBase() {
 
     @Test

@@ -20,6 +20,7 @@ import org.jetbrains.amper.test.spans.assertKotlinJvmCompilationSpan
 import org.jetbrains.amper.test.spans.kotlinJvmCompilationSpans
 import org.jetbrains.amper.test.spans.kotlinNativeCompilationSpans
 import org.jetbrains.amper.test.spans.withAmperModule
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.nio.file.Path
@@ -33,6 +34,7 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertTrue
 
+@Tag("cli-test-group-smoke")
 class ExampleProjectsTest : CliTestBase() {
 
     private fun exampleProject(name: String): Path = copyProjectToTempDir(Dirs.examplesRoot.resolve(name)).also {

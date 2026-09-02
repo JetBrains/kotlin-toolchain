@@ -19,6 +19,7 @@ import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.spans.assertEachKotlinNativeCompilationSpan
 import org.jetbrains.amper.test.spans.kotlinJvmCompilationSpans
 import org.jetbrains.amper.test.spans.withAmperModule
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import java.io.File
@@ -47,6 +48,7 @@ import kotlin.test.assertTrue
 @Target(AnnotationTarget.FUNCTION)
 private annotation class RunWithAndWithoutJic
 
+@Tag("cli-test-group-core")
 class AmperBuildTest : CliTestBase() {
 
     @RunWithAndWithoutJic

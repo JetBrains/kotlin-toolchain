@@ -11,6 +11,7 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.LocalAmperPublication
+import org.junit.jupiter.api.Tag
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.copyToRecursively
@@ -29,6 +30,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
+@Tag("cli-test-group-core")
 class JavaBuildTest : CliTestBase() {
 
     @Test

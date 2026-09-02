@@ -15,6 +15,7 @@ import org.jetbrains.amper.test.WindowsOnly
 import org.jetbrains.amper.test.spans.assertEachKotlinJvmCompilationSpan
 import org.jetbrains.amper.test.spans.assertEachKotlinNativeCompilationSpan
 import org.jetbrains.amper.test.spans.assertKotlinJvmCompilationSpan
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import kotlin.io.path.name
@@ -24,6 +25,7 @@ import kotlin.io.path.writeText
 
 data class CustomVersionCombination(val kotlinCompiler: String, val jdk: Int)
 
+@Tag("cli-test-group-core")
 class KotlinVersionTest : CliTestBase() {
 
     companion object {

@@ -8,8 +8,10 @@ import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
+@Tag("cli-test-group-core")
 class TypoTest : CliTestBase() {
 
     @Test

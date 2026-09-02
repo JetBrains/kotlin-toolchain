@@ -7,8 +7,10 @@ package org.jetbrains.amper.cli.test.dependencies
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
+@Tag("cli-test-group-dependencies")
 class DependencyResolutionTest : CliTestBase() {
 
     @Test

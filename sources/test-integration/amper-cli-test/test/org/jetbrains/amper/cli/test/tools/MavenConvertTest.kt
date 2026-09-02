@@ -12,6 +12,7 @@ import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.test.assertEqualsIgnoreLineSeparator
 import org.jetbrains.amper.test.processes.checkExitCodeIsZero
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 import kotlin.io.path.exists
@@ -25,6 +26,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
+@Tag("cli-test-group-tools")
 class MavenConvertTest : CliTestBase() {
     @Test
     fun `spring-boot`() = runSlowTest {

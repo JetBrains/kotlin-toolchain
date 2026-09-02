@@ -28,6 +28,7 @@ import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
 
+@Tag("slow")
 abstract class CliTestBase : AmperCliWithWrapperTestBase() {
     @RegisterExtension
     private val tempDirExtension = TempDirExtension()

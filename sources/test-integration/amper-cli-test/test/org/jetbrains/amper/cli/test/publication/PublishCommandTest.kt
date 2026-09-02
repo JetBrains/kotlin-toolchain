@@ -24,6 +24,7 @@ import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.server.Request
 import org.jetbrains.amper.test.server.RequestHistory
 import org.jetbrains.amper.test.server.withFileServer
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestReporter
 import java.nio.file.Path
 import java.util.*
@@ -45,6 +46,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
+@Tag("cli-test-group-publication")
 class PublishCommandTest : CliTestBase() {
 
     private fun createTempMavenLocalDir(): Path = tempRoot.resolve(".m2.test").also { it.createDirectories() }

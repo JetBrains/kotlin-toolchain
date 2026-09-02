@@ -9,6 +9,7 @@ import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.MacOnly
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
@@ -16,6 +17,7 @@ import kotlin.io.path.div
 import kotlin.io.path.writeText
 import kotlin.test.Test
 
+@Tag("cli-test-group-publication")
 class KotlinModuleMetadataTest : CliTestBase() {
 
     val testGoldenFilesRoot: Path = Dirs.amperSourcesRoot.resolve("test-integration/amper-cli-test/testResources/metadata")

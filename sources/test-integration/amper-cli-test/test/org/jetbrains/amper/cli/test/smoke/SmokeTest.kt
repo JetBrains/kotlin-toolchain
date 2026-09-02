@@ -12,8 +12,10 @@ import org.jetbrains.amper.test.spans.assertJavaCompilationSpan
 import org.jetbrains.amper.test.spans.assertKotlinJvmCompilationSpan
 import org.jetbrains.amper.test.spans.kotlinJvmCompilationSpans
 import org.jetbrains.amper.test.spans.withAmperModule
+import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 
+@Tag("cli-test-group-smoke")
 class SmokeTest : CliTestBase() {
 
     @Test

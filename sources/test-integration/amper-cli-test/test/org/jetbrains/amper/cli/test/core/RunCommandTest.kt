@@ -27,6 +27,7 @@ import org.jetbrains.amper.test.spans.kotlinJvmCompilationSpans
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assumptions.assumeFalse
 import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Tag
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -36,6 +37,7 @@ import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertContains
 
+@Tag("cli-test-group-core")
 class RunCommandTest : CliTestBase() {
 
     private val specialCmdChars = "&()[]{}^=;!'+,`~"

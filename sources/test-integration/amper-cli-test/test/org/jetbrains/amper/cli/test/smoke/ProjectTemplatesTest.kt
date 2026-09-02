@@ -16,6 +16,7 @@ import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.spans.SpansTestCollector
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
 import kotlin.io.path.div
 import kotlin.io.path.isDirectory
@@ -28,6 +29,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.test.expect
 
+@Tag("cli-test-group-smoke")
 class ProjectTemplatesTest : CliTestBase() {
     // Please add as many checks as possible to template tests
 

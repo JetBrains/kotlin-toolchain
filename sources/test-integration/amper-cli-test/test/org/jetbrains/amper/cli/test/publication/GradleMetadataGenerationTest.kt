@@ -11,6 +11,7 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.gradle.module.metadata.format.Module
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Files
 import java.nio.file.Path
@@ -20,6 +21,7 @@ import kotlin.io.path.readText
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@Tag("cli-test-group-publication")
 class GradleMetadataGenerationTest : CliTestBase() {
 
     val testGoldenFilesRoot: Path = Dirs.amperSourcesRoot.resolve("test-integration/amper-cli-test/testResources/gradleMetadata")

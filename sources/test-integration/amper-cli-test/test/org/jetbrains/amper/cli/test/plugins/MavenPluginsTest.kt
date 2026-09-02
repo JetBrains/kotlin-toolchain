@@ -11,6 +11,7 @@ import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.OS
 import org.slf4j.event.Level
@@ -25,6 +26,7 @@ import kotlin.io.path.readText
 import kotlin.test.Test
 import kotlin.test.assertContains
 
+@Tag("cli-test-group-plugins")
 class MavenPluginsTest : CliTestBase() {
     @Test
     fun `surefire plugin test goal exists as task`() = runSlowTest {
