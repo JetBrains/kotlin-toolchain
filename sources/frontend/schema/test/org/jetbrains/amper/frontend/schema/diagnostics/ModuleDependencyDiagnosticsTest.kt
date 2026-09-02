@@ -12,6 +12,11 @@ import kotlin.test.Test
 
 class ModuleDependencyDiagnosticsTest : FrontendTestCaseBase(Path("testResources") / "diagnostics" / "module-dependency") {
     @Test
+    fun `conflicting inherited Maven dependencies`() {
+        diagnosticsTest("conflicting-inherited-maven-dependencies")
+    }
+
+    @Test
     fun `product with unsupported type`() {
         diagnosticsTest(
             "needed-platforms/module",

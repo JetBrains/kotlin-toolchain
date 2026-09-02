@@ -8,6 +8,7 @@ package org.jetbrains.amper.tasks
 
 import kotlinx.serialization.Serializable
 import org.jetbrains.amper.CliReportingMavenResolver
+import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.logging.withoutConsoleLogging
 import org.jetbrains.amper.cli.telemetry.setAmperModule
 import org.jetbrains.amper.cli.telemetry.setFragments
@@ -28,12 +29,14 @@ import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.frontend.dr.resolver.getExternalDependencies
 import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.internalSettings
+import org.jetbrains.amper.frontend.isPublishingEnabled
 import org.jetbrains.amper.frontend.testInternalSettings
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.ResultWithSerializable
 import org.jetbrains.amper.incrementalcache.execute
 import org.jetbrains.amper.maven.publish.PublicationCoordinatesOverride
 import org.jetbrains.amper.maven.publish.PublicationCoordinatesOverrides
+import org.jetbrains.amper.maven.publish.reportConflictingMavenDependencyDeclarations
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.serialization.paths.SerializablePath
 import org.jetbrains.amper.tasks.CommonTaskUtils.userReadableList
@@ -292,7 +295,22 @@ class ResolveExternalDependenciesTask(
 
                     // todo (AB) : output should contain placeholder for every module (in a correct place in the list!!!
                     // todo (AB) : It might be replaced with the path to compiled module later in order to form complete correctly ordered classpath)
-                    result.outputValue
+                    val outputValue = result.outputValue
+                    if (
+                        !isTest &&
+                        module.isPublishingEnabled() &&
+                        reportConflictingMavenDependencyDeclarations(
+                            module = module,
+                            publicationCoordsOverrides = outputValue.coordinateOverridesForPublishing,
+                            platform = resolutionPlatform.toPlatform(),
+                        )
+                    ) {
+                        userReadableError(
+                            "Unable to resolve dependencies for the Maven publication of module " +
+                                    "'${module.userReadableName}', see the errors above."
+                        )
+                    }
+                    outputValue
                 }
         }
 

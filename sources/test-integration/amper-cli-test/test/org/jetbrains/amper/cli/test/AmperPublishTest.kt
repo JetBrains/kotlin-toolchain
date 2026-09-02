@@ -5,6 +5,7 @@
 package org.jetbrains.amper.cli.test
 
 import com.sun.net.httpserver.BasicAuthenticator
+import kotlinx.serialization.json.Json
 import org.bouncycastle.openpgp.api.OpenPGPCertificate
 import org.bouncycastle.openpgp.api.bc.BcOpenPGPApi
 import org.jetbrains.amper.cli.test.utils.assertContainsRelativeFiles
@@ -19,10 +20,12 @@ import org.jetbrains.amper.core.extract.extractZip
 import org.jetbrains.amper.frontend.schema.Checksum
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.stdlib.hashing.hash
+import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.server.Request
 import org.jetbrains.amper.test.server.RequestHistory
 import org.jetbrains.amper.test.server.withFileServer
+import org.jetbrains.gradle.module.metadata.format.Module
 import org.junit.jupiter.api.TestReporter
 import java.nio.file.Path
 import java.util.*
@@ -429,6 +432,82 @@ class AmperPublishTest : AmperCliTestBase() {
             invalidSignatures.isEmpty(),
             "Invalid signatures:\n${invalidSignatures.joinToString("\n") { " - ${it.name}" }}",
         )
+    }
+
+    @Test
+    @MacOnly
+    fun `publish to maven local - kmp lib with serialization`() = runSlowTest {
+        val mavenLocalForTest = createTempMavenLocalDir()
+        val groupDir = mavenLocalForTest.resolve("amper/test/kmp-publish-serialization")
+
+        runCli(
+            projectDir = testProject("kmp-publish-serialization"),
+            "publish", "mavenLocal",
+            amperJvmArgs = [mavenRepoLocalJvmArg(mavenLocalForTest)],
+        )
+
+        // The implicit kotlinx-serialization-core dependency is added to every fragment the jvm target belongs to
+        // (here: common and jvm), but the platform POM flattens them and must declare it only once (see KTC-5797).
+        val pomRelativePath = "artifactName-jvm/2.2/artifactName-jvm-2.2.pom"
+        val pom = (groupDir / pomRelativePath).readText()
+        val declaredArtifactIds = Regex("<artifactId>(kotlinx-serialization-core[^<]*)</artifactId>")
+            .findAll(pom)
+            .map { it.groupValues[1] }
+            .toList()
+        assertEquals(
+            ["kotlinx-serialization-core-jvm"],
+            declaredArtifactIds,
+            "Unexpected dependencies in $pomRelativePath:\n$pom",
+        )
+
+        // The common Gradle module metadata combines the dependencies of all metadata fragments. Those fragments
+        // contain equivalent implicit serialization dependencies with different traces, which must collapse to one.
+        val gradleMetadataRelativePath = "artifactName/2.2/artifactName-2.2.module"
+        val gradleMetadataText = (groupDir / gradleMetadataRelativePath).readText()
+        val gradleMetadata: Module = Json.decodeFromString(gradleMetadataText)
+        val declaredSerializationDependencies = gradleMetadata.variants
+            .single { it.name == "metadataApiElements" }
+            .dependencies
+            .filter { it.group == "org.jetbrains.kotlinx" && it.module == "kotlinx-serialization-core" }
+        assertEquals(
+            1,
+            declaredSerializationDependencies.size,
+            "Unexpected dependencies in $gradleMetadataRelativePath: $declaredSerializationDependencies",
+        )
+    }
+
+    @Test
+    fun `publish rejects conflicting effective Maven dependency variants`() = runSlowTest {
+        val projectDir = testProject("kmp-publish-serialization")
+        val moduleYaml = projectDir / "module.yaml"
+        val moduleContent = moduleYaml.readText()
+        val jvmOnlyModuleContent = moduleContent.replace(
+            "platforms: [jvm, iosArm64, iosX64]",
+            "platforms: [jvm]",
+        )
+        check(jvmOnlyModuleContent != moduleContent) { "Expected the test project to declare JVM and iOS platforms" }
+        moduleYaml.writeText(
+            jvmOnlyModuleContent.trimEnd() + "\n\n" +
+                """
+                dependencies@jvm:
+                  - org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:${DefaultVersions.kotlinxSerialization}: exported
+                """.trimIndent() + "\n"
+        )
+
+        val result = runCli(
+            projectDir = projectDir,
+            "publish", "mavenLocal",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+            amperJvmArgs = [mavenRepoLocalJvmArg(createTempMavenLocalDir())],
+        )
+
+        result.assertStderrContains(
+            "Maven dependency `org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:jar` has conflicting " +
+                    "declarations for fragment `jvm`",
+        )
+        result.assertStderrContains("scope `compile`")
+        result.assertStderrContains("scope `runtime`")
     }
 
     @Test

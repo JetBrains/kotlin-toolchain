@@ -95,9 +95,10 @@ private fun allMetadataVariant(
     val fragments = module.allMetadataFragments().ifEmpty { [module.rootFragment] }
     val dependencies = fragments
         .flatMap { it.classPathForApiMetadata() }
-        .distinct()
         // Dependencies in Gradle module metadata of KMP project are declared in terms of common libraries root coordinates.
+        // Deduplicate after this conversion because notation equality includes source traces.
         .mapNotNull { it.toVariantDependency(Platform.COMMON) }
+        .distinct()
         .toList()
 
     // Passing Platform.COMMON because

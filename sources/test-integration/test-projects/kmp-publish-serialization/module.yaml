@@ -1,0 +1,20 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, iosArm64, iosX64]
+
+description: A test multiplatform library with Kotlinx Serialization enabled
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: false
+    publish: true
+
+settings:
+  kotlin:
+    serialization: enabled
+  publishing:
+    enabled: true
+    group: "amper.test.kmp-publish-serialization"
+    version: "2.2"
+    artifactId: artifactName

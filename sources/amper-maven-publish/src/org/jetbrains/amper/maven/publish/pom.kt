@@ -22,10 +22,12 @@ import org.jetbrains.amper.frontend.Notation
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.RemoteSwiftPMDependencyNotation
 import org.jetbrains.amper.frontend.ancestralPath
+import org.jetbrains.amper.frontend.diagnostics.ConflictingMavenDependencyDeclarations
 import org.jetbrains.amper.frontend.dr.resolver.toDrMavenCoordinates
 import org.jetbrains.amper.frontend.schema.DeveloperInfo
 import org.jetbrains.amper.frontend.schema.LicenseInfo
 import org.jetbrains.amper.frontend.schema.ScmInfo
+import org.jetbrains.amper.problems.reporting.ProblemReporter
 import java.nio.file.Path
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
@@ -102,13 +104,16 @@ private fun getDependencies(
         val fragment = module.singleProductionFragmentOrNull(platform)
             ?: error("Cannot generate pom for module '${module.userReadableName}': expected a single fragment for platform $platform")
 
-        // FIXME [distinct] can be error prone here, because we (I guess) have no guarantees about [externalDependencies] equality.
         val [bomDependencies, regularDependencies] = fragment.ancestralPath()
             .flatMap { it.externalDependencies }
-            .distinct()
             .partition { it is BomDependency }
-        val bomPomDependencies = bomDependencies.mapNotNull { it.toPomDependency(platform, publicationCoordsOverrides) }
-        val regularPomDependencies = regularDependencies.mapNotNull { it.toPomDependency(platform, publicationCoordsOverrides) }
+
+        val bomPomDependencies = bomDependencies
+            .mapNotNull { it.toPomDependency(platform, publicationCoordsOverrides) }
+            .distinctBy { it.managementKey }
+        val regularPomDependencies = regularDependencies
+            .mapNotNull { it.toPomDependency(platform, publicationCoordsOverrides) }
+            .distinctBy { it.managementKey }
 
         val dependencyManagement = if (bomDependencies.isNotEmpty()) {
             DependencyManagement().apply { dependencies.addAll(bomPomDependencies) }
@@ -116,6 +121,98 @@ private fun getDependencies(
 
         regularPomDependencies to dependencyManagement
     }
+
+/**
+ * Reports dependencies that collapse to the same Maven management key after platform variant selection, but would
+ * publish different versions or scopes. The check must use the converted POM dependencies because, for example,
+ * `kotlinx-coroutines-core` and `kotlinx-coroutines-core-jvm` have different declared coordinates but the same
+ * effective coordinates in a JVM POM.
+ *
+ * @return whether at least one conflict was reported
+ */
+context(problemReporter: ProblemReporter)
+fun reportConflictingMavenDependencyDeclarations(
+    module: AmperModule,
+    publicationCoordsOverrides: PublicationCoordinatesOverrides,
+    platform: Platform? = null,
+): Boolean {
+    val conflicts = module.leafFragments
+        .filter { !it.isTest && (platform == null || it.platform == platform) }
+        .flatMap { leafFragment ->
+            leafFragment.ancestralPath()
+                .flatMap { it.externalDependencies }
+                .filterIsInstance<MavenDependencyBase>()
+                .map { dependency ->
+                    val pomDependency = dependency.toPomDependency(leafFragment.platform, publicationCoordsOverrides)
+                    PublishedMavenDependencyDeclaration(
+                        source = dependency,
+                        dependency = pomDependency,
+                        key = PublishedMavenDependencyKey(
+                            managementKey = pomDependency.managementKey,
+                            isBom = dependency is BomDependency,
+                        ),
+                    )
+                }
+                .groupBy { it.key }
+                .mapNotNull { [key, declarations] ->
+                    val distinctDeclarations = declarations.distinctBy { it.semantics }
+                    if (distinctDeclarations.size < 2) {
+                        null
+                    } else {
+                        ConflictingPublishedMavenDependency(
+                            managementKey = key.managementKey,
+                            leafFragmentName = leafFragment.name,
+                            declarations = distinctDeclarations,
+                        )
+                    }
+                }
+        }
+
+    for (conflict in conflicts) {
+        val declaration = conflict.declarations[0]
+        val conflictingDeclaration = conflict.declarations[1]
+        problemReporter.reportMessage(
+            ConflictingMavenDependencyDeclarations(
+                dependency = declaration.source,
+                managementKey = conflict.managementKey,
+                leafFragmentName = conflict.leafFragmentName,
+                version = declaration.semantics.version,
+                scope = declaration.semantics.scope,
+                conflictingVersion = conflictingDeclaration.semantics.version,
+                conflictingScope = conflictingDeclaration.semantics.scope,
+            )
+        )
+    }
+    return conflicts.isNotEmpty()
+}
+
+private data class PublishedMavenDependencyKey(
+    val managementKey: String,
+    // BOMs and regular dependencies are written to separate POM sections and are deduplicated separately.
+    val isBom: Boolean,
+)
+
+private data class PublishedMavenDependencyDeclaration(
+    val source: MavenDependencyBase,
+    val dependency: Dependency,
+    val key: PublishedMavenDependencyKey,
+) {
+    val semantics = PublishedMavenDependencySemantics(
+        version = dependency.version,
+        scope = dependency.scope,
+    )
+}
+
+private data class PublishedMavenDependencySemantics(
+    val version: String?,
+    val scope: String,
+)
+
+private data class ConflictingPublishedMavenDependency(
+    val managementKey: String,
+    val leafFragmentName: String,
+    val declarations: List<PublishedMavenDependencyDeclaration>,
+)
 
 private fun generatePomModel(
     module: AmperModule,
