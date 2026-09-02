@@ -25,7 +25,7 @@ import org.jetbrains.amper.telemetry.use
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration.Companion.milliseconds
 
-private const val MAVEN_CENTRAL_REPOSITORY_ID = "mavenCentral"
+internal const val MAVEN_CENTRAL_REPOSITORY_ID = "mavenCentral"
 
 class MavenCentralPublishTask(
     override val taskName: TaskName,

@@ -31,6 +31,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.plugins.CustomCommandFromPlugin
+import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.stdlib.collections.filterIf
@@ -52,6 +53,7 @@ import org.jetbrains.amper.tasks.ios.IosTaskType
 import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.tasks.jvm.JvmCompileTask
 import org.jetbrains.amper.tasks.jvm.JvmHotRunTask
+import org.jetbrains.amper.tasks.publication.MAVEN_CENTRAL_REPOSITORY_ID
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.useWithoutCoroutines
 import org.jetbrains.amper.util.BuildType
@@ -242,17 +244,31 @@ class AmperBackend(
     suspend fun runTasks(tasks: Set<TaskId>): Map<TaskId, TaskResult> = taskExecutor.runTasksAndReportOnFailure(tasks)
 
     suspend fun publish(modules: Collection<AmperModule>, repositoryId: String) {
-        for (module in modules) {
-            if (module.mavenPublishRepositories.none { it.id == repositoryId }) {
-                if (module.mavenResolveRepositories.any { it.id == repositoryId }) {
-                    // TODO: Include trace info here?
-                    userReadableError(
-                        "Cannot publish to repository '${repositoryId}' because it's not marked as publishable. " +
-                                "Please check your configuration and make sure that `publish: true` " +
-                                "is set for this repository."
-                    )
-                } else {
-                    userReadableError("Module '${module.userReadableName}' does not have repository with id '$repositoryId'")
+        if (repositoryId == MAVEN_CENTRAL_REPOSITORY_ID) {
+            val nonPublishableModules = modules.filterNot { it.publishingSettings.mavenCentral.enabled }
+            if (nonPublishableModules.isNotEmpty()) {
+                userReadableError {
+                    val moduleOrModules = if (nonPublishableModules.size > 1) "modules" else "module"
+                    appendLine("The following $moduleOrModules cannot be published to Maven Central because " +
+                            "`settings.publishing.mavenCentral` is not enabled:")
+                    nonPublishableModules.forEach {
+                        appendLine("  - ${it.userReadableName}")
+                    }
+                }
+            }
+        } else {
+            for (module in modules) {
+                if (module.mavenPublishRepositories.none { it.id == repositoryId }) {
+                    if (module.mavenResolveRepositories.any { it.id == repositoryId }) {
+                        // TODO: Include trace info here?
+                        userReadableError(
+                            "Cannot publish to repository '${repositoryId}' because it's not marked as publishable. " +
+                                    "Please check your configuration and make sure that `publish: true` " +
+                                    "is set for this repository."
+                        )
+                    } else {
+                        userReadableError("Module '${module.userReadableName}' does not have repository with id '$repositoryId'")
+                    }
                 }
             }
         }
