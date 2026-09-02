@@ -1,0 +1,15 @@
+[versions]
+# Keep in sync with the versions the Kotlin Toolchain uses by default (see DefaultVersions.kt), so that this project
+# consumes the publications of the Amper modules with the very same Kotlin/Compose versions they were built with.
+kotlin = "2.4.10"
+compose = "1.11.1"
+
+[libraries]
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose" }
+compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose" }
+
+[plugins]
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
