@@ -41,7 +41,7 @@ class IosComposeResourcesTask(
         leafFragment = leafFragment,
         userCacheRoot = userCacheRoot,
         incrementalCache = incrementalCache,
-        quantifier = Quantifier.AtLeastOne,
+        quantifier = Quantifier.AnyOrNone,
     )
 
     context(executionContext: TaskGraphExecutionContext)

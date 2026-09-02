@@ -115,10 +115,32 @@ class ComposeResourcesTest : CliTestBase() {
     @Test
     @MacOnly
     fun `compose resources demo build (ios)`() = runSlowTest {
-        runCli(
+        val result = runCli(
             projectDir = testProject("compose-resources-demo"),
             "build", "--platform=iosSimulatorArm64",
             assertEmptyStdErr = false,  // xcodebuild prints a bunch of warnings (unrelated to resources) for now :(
+        )
+
+        // xcodebuild is run with SYMROOT pointing at the 'bin' directory of the build task's output
+        val appBundle = result.getTaskOutputPath(":app-ios:buildIosAppIosSimulatorArm64Debug") /
+                "bin" / "Debug-iphonesimulator" / "app-ios.app"
+        val bundledResources = appBundle / "compose-resources" / "composeResources" / "com.example.gen"
+        assertFileExists(bundledResources / "drawable" / "land.webp")
+        assertEquals("iOS refinement", (bundledResources / "files" / "refined-text.txt").readText())
+    }
+
+    @Test
+    fun `dependency compose resources task is registered for compose-disabled ios app`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("compose-resources-demo"),
+            "show", "tasks",
+        )
+
+        assertContains(result.stdout, "task :app-ios:prepareComposeResourcesForIosIosArm64")
+        assertContains(
+            result.stdout,
+            "task :app-ios:preBuildIosAppIosArm64Debug -> " +
+                    ":app-ios:prepareComposeResourcesForIosIosArm64",
         )
     }
 

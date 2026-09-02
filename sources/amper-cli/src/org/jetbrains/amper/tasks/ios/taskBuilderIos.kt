@@ -12,7 +12,6 @@ import org.jetbrains.amper.tasks.ModuleTaskTypes
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
 import org.jetbrains.amper.tasks.TaskNameFactory
-import org.jetbrains.amper.tasks.compose.isComposeEnabledFor
 import org.jetbrains.amper.tasks.getTaskName
 
 /**
@@ -65,7 +64,6 @@ fun ProjectTasksBuilder.setupIosTasks() {
     allModules()
         .alsoPlatforms(Platform.IOS)
         .filterModuleType { it == ProductType.IOS_APP }
-        .filter { isComposeEnabledFor(it.module) }
         .withEach {
             val taskName = IosTaskType.PrepareComposeResources.getTaskName(module, platform)
             tasks.registerTask(
@@ -94,12 +92,10 @@ fun ProjectTasksBuilder.setupIosTasks() {
                     module = module,
                     taskName = preBuildTaskName,
                 ),
-                dependsOn = buildList {
-                    if (isComposeEnabledFor(module)) {
-                        add(IosTaskType.PrepareComposeResources.getTaskName(module, platform))
-                    }
-                    add(IosTaskType.Framework.getTaskName(module, platform, isTest = false, buildType))
-                },
+                dependsOn = listOf(
+                    IosTaskType.PrepareComposeResources.getTaskName(module, platform),
+                    IosTaskType.Framework.getTaskName(module, platform, isTest = false, buildType),
+                ),
             )
 
             val buildTaskName = IosTaskType.BuildIosApp.getTaskName(module, platform, isTest = false, buildType)

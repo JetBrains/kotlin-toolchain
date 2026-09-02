@@ -3,7 +3,3 @@ product:
 
 dependencies:
   - ../shared
-
-settings:
-  compose:
-    enabled: true
