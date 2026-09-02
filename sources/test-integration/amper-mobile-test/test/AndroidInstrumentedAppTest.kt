@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import kotlin.io.path.div
 
 @Tag("android-emulator")
-class RunAndroidExamplesOnEmulatorsTestsStandalone : AndroidBaseTest() {
+class AndroidInstrumentedAppTest : AndroidBaseTest() {
 
     private val androidTestProjectsPath = Dirs.amperTestProjectsRoot / "android"
 

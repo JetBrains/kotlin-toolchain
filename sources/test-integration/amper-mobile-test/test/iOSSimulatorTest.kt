@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
 @Tag("ios-simulator")
-class RuniOSExternalProjectsStandalone : IOSBaseTest() {
+class iOSSimulatorTest : IOSBaseTest() {
 
     @Test
     fun toDoListApp() = runIosAppTests(

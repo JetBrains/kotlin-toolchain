@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 
 @Tag("android-emulator")
 @Tag("external-test-project")
-class RunAndroidExternalProjectsStandalone : AndroidBaseTest() {
+class AndroidInstrumentedExternalAppTest : AndroidBaseTest() {
 
     @Test
     fun kotlinConfApp() = runInstrumentedTests(

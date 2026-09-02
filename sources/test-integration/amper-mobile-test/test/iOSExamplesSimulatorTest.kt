@@ -11,7 +11,7 @@ import kotlin.io.path.div
 
 @Tag("ios-simulator")
 @ProcessLeak
-class RuniOSExamplesOnEmulatorsTestsStandalone : swiftpm.SwiftPMImportTests() {
+class iOSExamplesSimulatorTest : swiftpm.SwiftPMImportTests() {
 
     @Test
     fun composeiOSAppStandalone() = runIosAppTests(
