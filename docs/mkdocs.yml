@@ -34,6 +34,7 @@ theme:
     - navigation.instant # to use XHR instead of reloading the page when following links
     - navigation.instant.preview # to show a preview tooltip when hovering links to other pages
     - navigation.tabs # turns the top-level navigation sections into tabs in the header bar
+    - navigation.tabs.sticky # keeps the tabs bar visible when scrolling down instead of collapsing it
     - navigation.top # adds a back-to-top button when scrolling up after scrolling down on a page
     - navigation.tracking # updates the URL bar with anchors as the user scrolls
     - search.highlight # highlights the search term in the target page when clicking a search result
