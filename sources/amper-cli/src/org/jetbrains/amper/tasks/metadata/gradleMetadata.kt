@@ -112,9 +112,12 @@ private fun allMetadataVariant(
     val fragments = module.allMetadataFragments().ifEmpty { [module.rootFragment] }
     val dependencies = fragments
         .flatMap { it.classPathForApiMetadata() }
-        .distinct()
         // Dependencies in Gradle module metadata of KMP project are declared in terms of common libraries root coordinates.
         .mapNotNull { it.toVariantDependency(Platform.COMMON) }
+        // Shared fragments overlap ('ios' refines 'apple' refines 'native' refines 'common'), so the same library is
+        // reached through several of them, and distinct notations may map to the very same published coordinates.
+        // KGP declares such a dependency once, and so must we.
+        .distinct()
         .toList()
 
     // Passing Platform.COMMON because

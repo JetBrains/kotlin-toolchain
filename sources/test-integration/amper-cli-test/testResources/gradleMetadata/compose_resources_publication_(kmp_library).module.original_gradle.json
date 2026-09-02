@@ -1,0 +1,187 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.example",
+    "module": "library",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.1.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "metadataApiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.10"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "library-metadata-1.0.0.jar",
+          "url": "library-1.0.0.jar",
+          "size": 3345,
+          "sha512": "aaf6b232ac4a46ad9252b31b125c6a958012bf2bad0ec486782ef63f660052947e72255ac39223e86493d7899a970a847b01d33f7b0175312523d213dc5993ac",
+          "sha256": "2a6c611ec2667a2fe8a84b8f35c0bcca857370f34358f8af5420b4f18bb458a7",
+          "sha1": "031acf2380de09d061ef662ad10949dd5c724612",
+          "md5": "b408ddb45ef28d10266e7d364de03541"
+        }
+      ]
+    },
+    {
+      "name": "metadataSourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "files": [
+        {
+          "name": "library-kotlin-1.0.0-sources.jar",
+          "url": "library-1.0.0-sources.jar",
+          "size": 2188,
+          "sha512": "28652cbf9f1a61cb5ffe89509b5038a616a86c893785dc5a9919f063a08c4745c42f162f8897581930f37e65e3cf7b8e8c02adddf39727ac6a1c93893779a120",
+          "sha256": "9864ed6f0f92e77ffe8c106e81b1ae4ae2f28fe746fe47b251f7cbeb1d88db11",
+          "sha1": "e5a769064afd36da8c8d8776008cf597565d6f5f",
+          "md5": "6f5ad443cbedeed69b63c30c2acb8141"
+        }
+      ]
+    },
+    {
+      "name": "jvmApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "available-at": {
+        "url": "../../library-jvm/1.0.0/library-jvm-1.0.0.module",
+        "group": "org.example",
+        "module": "library-jvm",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "jvmRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "available-at": {
+        "url": "../../library-jvm/1.0.0/library-jvm-1.0.0.module",
+        "group": "org.example",
+        "module": "library-jvm",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "jvmSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "available-at": {
+        "url": "../../library-jvm/1.0.0/library-jvm-1.0.0.module",
+        "group": "org.example",
+        "module": "library-jvm",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "wasmJsApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "available-at": {
+        "url": "../../library-wasm-js/1.0.0/library-wasm-js-1.0.0.module",
+        "group": "org.example",
+        "module": "library-wasm-js",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "wasmJsRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "available-at": {
+        "url": "../../library-wasm-js/1.0.0/library-wasm-js-1.0.0.module",
+        "group": "org.example",
+        "module": "library-wasm-js",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "wasmJsSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "available-at": {
+        "url": "../../library-wasm-js/1.0.0/library-wasm-js-1.0.0.module",
+        "group": "org.example",
+        "module": "library-wasm-js",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "wasmJsResourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.libraryelements": "kotlin-multiplatformresourcesjs",
+        "org.gradle.usage": "kotlin-multiplatformresourcesjs",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "available-at": {
+        "url": "../../library-wasm-js/1.0.0/library-wasm-js-1.0.0.module",
+        "group": "org.example",
+        "module": "library-wasm-js",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}

@@ -57,34 +57,6 @@
           "version": {
             "requires": "1.11.1"
           }
-        },
-        {
-          "group": "org.jetbrains.compose.runtime",
-          "module": "runtime",
-          "version": {
-            "requires": "1.11.1"
-          }
-        },
-        {
-          "group": "org.jetbrains.compose.components",
-          "module": "components-resources",
-          "version": {
-            "requires": "1.11.1"
-          }
-        },
-        {
-          "group": "org.jetbrains.compose.runtime",
-          "module": "runtime",
-          "version": {
-            "requires": "1.11.1"
-          }
-        },
-        {
-          "group": "org.jetbrains.compose.components",
-          "module": "components-resources",
-          "version": {
-            "requires": "1.11.1"
-          }
         }
       ],
       "files": [
