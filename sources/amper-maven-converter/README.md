@@ -40,6 +40,6 @@ process (without transitive dependencies)).
 
 ## Testing
 
-Integration tests related with it are located in `org.jetbrains.amper.cli.test.MavenConvertTest` in the module
+Integration tests related with it are located in `org.jetbrains.amper.cli.test.tools.MavenConvertTest` in the module
 `amper-cli-test`.
 

@@ -1,0 +1,35 @@
+/*
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package org.jetbrains.amper.cli.test.compilerplugins
+
+import org.jetbrains.amper.cli.test.CliTestBase
+import org.jetbrains.amper.cli.test.utils.assertStdoutContains
+import org.jetbrains.amper.cli.test.utils.runSlowTest
+import kotlin.test.Test
+
+class CompilerPluginsTest : CliTestBase() {
+
+    @Test
+    fun koin() = runSlowTest {
+        val projectRoot = testProject("compiler-plugin-koin")
+        val result = runCli(projectDir = projectRoot, "run")
+        result.assertStdoutContains("Hello 'Alice' (alice@example.com)!")
+    }
+
+    @Test
+    fun koin_test() = runSlowTest {
+        val projectRoot = testProject("compiler-plugin-koin")
+        // need -XX:+EnableDynamicAgentLoading to remove the bytebuddy warning and have empty stderr
+        // need -Xshare:off to remove the warning about class data sharing not being usable (caused by the agent AFAIU)
+        runCli(projectDir = projectRoot, "test", "--jvm-args=-XX:+EnableDynamicAgentLoading", "--jvm-args=-Xshare:off")
+    }
+
+    @Test
+    fun metro() = runSlowTest {
+        val projectRoot = testProject("compiler-plugin-metro")
+        val result = runCli(projectDir = projectRoot, "run")
+        result.assertStdoutContains("Hourly forecast")
+    }
+}
