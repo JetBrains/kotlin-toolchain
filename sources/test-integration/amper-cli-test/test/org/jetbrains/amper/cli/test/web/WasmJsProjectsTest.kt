@@ -192,6 +192,65 @@ class WasmJsProjectsTest : CliTestBase() {
         ) { externalFont.readText().trim() == shadowingContent }
     }
 
+    @Test
+    fun `wasm js app compose with skiko 0 151 0 and compose 1 12 0`() = runSlowTest {
+        val projectDir = testProject("wasm-js-app-with-compose")
+
+        (projectDir / "module.yaml").writeText(
+            """
+            product: wasm-js/app
+
+            repositories:
+              - https://packages.jetbrains.team/maven/p/cmp/dev/
+
+            dependencies:
+              - ${'$'}compose.foundation
+              - ${'$'}compose.material3
+              - org.jetbrains.skiko:skiko-wasm-js:0.151.0
+
+            settings:
+              compose:
+                enabled: true
+                version: 1.12.0
+            """.trimIndent()
+        )
+
+        val result = runCli(
+            projectDir = projectDir,
+            "build",
+        )
+
+        result.checkComposeApplication()
+    }
+
+    @Test
+    fun `wasm js app compose with skiko 0 150 1 and compose 1 12 0`() = runSlowTest {
+        val projectDir = testProject("wasm-js-app-with-compose")
+
+        (projectDir / "module.yaml").writeText(
+            """
+            product: wasm-js/app
+
+            dependencies:
+              - ${'$'}compose.foundation
+              - ${'$'}compose.material3
+              - org.jetbrains.skiko:skiko-wasm-js:0.150.1
+
+            settings:
+              compose:
+                enabled: true
+                version: 1.12.0
+            """.trimIndent()
+        )
+
+        val result = runCli(
+            projectDir = projectDir,
+            "build",
+        )
+
+        result.checkComposeApplication()
+    }
+
     private fun AmperCliResult.checkComposeApplication() {
 
         val buildWasmJs = getTaskOutputPath(":wasm-js-app-with-compose:buildWasmJsAppWasmJsDebug")

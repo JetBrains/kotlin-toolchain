@@ -4,7 +4,9 @@
 
 package org.jetbrains.amper.tasks.wasm
 
+import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.nodejs.NodeJsProvider
 import org.jetbrains.amper.pnpm.PnpmProvider
 import org.jetbrains.amper.tasks.CommonTaskType
@@ -16,7 +18,7 @@ import org.jetbrains.amper.tasks.getTaskName
 import org.jetbrains.amper.tasks.web.NpmInstallTask
 import org.jetbrains.amper.tasks.web.WebTaskType
 
-fun ProjectTasksBuilder.setupWasmJsTasks() {
+fun ProjectTasksBuilder.setupWasmJsTasks(moduleDependenciesMap: Map<AmperModule, ModuleDependencies>) {
     setupWasmTasks(
         Platform.WASM_JS,
         ::WasmJsCompileKlibTask,
@@ -73,6 +75,7 @@ fun ProjectTasksBuilder.setupWasmJsTasks() {
                     tempRoot = context.projectTempRoot,
                     incrementalCache = context.incrementalCache,
                     userCacheRoot = context.userCacheRoot,
+                    moduleDependencies = moduleDependenciesMap.getValue(this.module),
                 ),
                 dependsOn = [
                     linkAppTaskName,
@@ -116,6 +119,7 @@ fun ProjectTasksBuilder.setupWasmJsTasks() {
                     tempRoot = context.projectTempRoot,
                     incrementalCache = context.incrementalCache,
                     userCacheRoot = context.userCacheRoot,
+                    moduleDependencies = moduleDependenciesMap.getValue(this.module),
                 ),
                 dependsOn = [
                     linkAppTaskName,

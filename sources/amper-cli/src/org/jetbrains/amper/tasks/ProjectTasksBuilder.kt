@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.tasks
 
+import io.opentelemetry.api.GlobalOpenTelemetry
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.engine.TaskGraph
@@ -12,6 +13,8 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.isParentOf
 import org.jetbrains.amper.frontend.project.getTaskOutputRoot
 import org.jetbrains.amper.frontend.schema.ProductType
@@ -59,13 +62,18 @@ class ProjectTasksBuilder(
     val tasks = TaskGraphBuilder()
 
     fun build(): TaskGraph {
-        setupCommonTasks()
+        val moduleDependenciesMap = with(ModuleDependencies) {
+            val resolutionSettings = AmperResolutionSettings(context.userCacheRoot, context.incrementalCache, GlobalOpenTelemetry.get())
+            model.moduleDependencies(resolutionSettings).associateBy { it.module }
+        }
+
+        setupCommonTasks(moduleDependenciesMap)
         setupJvmTasks()
         setupMavenCompatibilityTasks()
         setupAndroidTasks()
         setupNativeTasks()
         setupSwiftPMTasks()
-        setupWasmJsTasks()
+        setupWasmJsTasks(moduleDependenciesMap)
         setupWasmWasiTasks()
         setupJsTasks()
         setupIosTasks()

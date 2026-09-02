@@ -10,6 +10,7 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.web.VENDORS
@@ -30,6 +31,7 @@ class WasmJsBuildTask(
     tempRoot: AmperProjectTempRoot,
     incrementalCache: IncrementalCache,
     userCacheRoot: AmperUserCacheRoot,
+    moduleDependencies: ModuleDependencies,
 ) : WasmJsBuildTaskBase(
     platform,
     module,
@@ -39,6 +41,7 @@ class WasmJsBuildTask(
     tempRoot,
     incrementalCache,
     userCacheRoot,
+    moduleDependencies,
 ) {
     override val isTest: Boolean
         get() = false

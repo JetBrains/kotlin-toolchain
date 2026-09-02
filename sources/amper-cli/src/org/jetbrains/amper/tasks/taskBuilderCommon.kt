@@ -4,15 +4,12 @@
 
 package org.jetbrains.amper.tasks
 
-import io.opentelemetry.api.GlobalOpenTelemetry
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
-import org.jetbrains.amper.frontend.LocalModuleDependency
 import org.jetbrains.amper.frontend.ModuleTasksPart
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.PublicationRepository
 import org.jetbrains.amper.frontend.TaskId
-import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.isPublishingEnabled
 import org.jetbrains.amper.frontend.publishingSettings
@@ -59,11 +56,7 @@ internal enum class CommonFragmentTaskType(
     CompileMetadata("compileMetadata", "compiling Kotlin metadata"),
 }
 
-fun ProjectTasksBuilder.setupCommonTasks() {
-    val moduleDependenciesMap = with(ModuleDependencies) {
-        val resolutionSettings = AmperResolutionSettings(context.userCacheRoot, context.incrementalCache, GlobalOpenTelemetry.get())
-        model.moduleDependencies(resolutionSettings).associateBy { it.module }
-    }
+fun ProjectTasksBuilder.setupCommonTasks(moduleDependenciesMap: Map<AmperModule, ModuleDependencies>) {
     allModules()
         .alsoPlatforms()
         .alsoTests()
