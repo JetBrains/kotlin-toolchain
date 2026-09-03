@@ -7,11 +7,9 @@ package org.jetbrains.amper.concurrency
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.yield
 import java.io.IOException
-import java.nio.channels.AsynchronousCloseException
 import java.nio.channels.ClosedChannelException
 import java.nio.channels.FileChannel
 import java.nio.channels.FileLock
@@ -22,6 +20,7 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -138,8 +137,9 @@ suspend fun <T> FileMutexGroup.getOrComputeWithDoubleLock(
  * If a [FileChannel] cannot be opened because of access errors, the open operation is retried several times.
  * This is to remediate the fact that sometimes the path stays inaccessible for a short time after being removed.
  *
- * This function blocks until the file can be locked or the current coroutine is canceled, whichever comes first.
- * If a "resource deadlock avoided" exception is thrown, this function suspends and retries several times.
+ * This function suspends until the file can be locked or the current coroutine is canceled, whichever comes first.
+ * There is no time limit: waiting for a lock is never considered an error, no matter how long the current holder
+ * keeps it.
  *
  * If the given [options] contain [StandardOpenOption.CREATE] or [StandardOpenOption.CREATE_NEW], this function
  * guarantees that the file is present when locked. It is safe to delete the file concurrently in this case: this
@@ -170,7 +170,7 @@ private suspend inline fun <T> Path.withFileChannelLock(vararg options: OpenOpti
         }
         lockFileChannel.use { fileChannel ->
             val fileLock = try {
-                fileChannel.lockWithRetry()
+                fileChannel.acquireExclusiveLock()
             } catch (e: NoSuchFileException) {
                 val fileCreatedByOpen = options.any {
                     it == StandardOpenOption.CREATE || it == StandardOpenOption.CREATE_NEW
@@ -180,7 +180,7 @@ private suspend inline fun <T> Path.withFileChannelLock(vararg options: OpenOpti
                     // In this case, NoSuchFileException means the file was deleted between the channel opening and the
                     // locking attempt. We should re-open the channel (to re-create the file) and try locking again.
                     // This is consistent with the behavior we would get if the deletion happened just before open() or
-                    // just after lockWithRetry() (instead of between them).
+                    // just after acquireExclusiveLock() (instead of between them).
                     yield() // cooperate with other coroutines before retrying
                     return@use // TODO use 'continue' when moving to Kotlin 2.2
                 } else {
@@ -198,28 +198,37 @@ private suspend inline fun <T> Path.withFileChannelLock(vararg options: OpenOpti
 }
 
 /**
- * Acquires an exclusive lock on this channel's file, retrying in case of the exception "Resource deadlock avoided".
- * See the "Why retry?" section below for more details.
+ * Acquires an exclusive lock on this channel's file, polling with [FileChannel.tryLock] until the lock is available.
+ * See the "Why poll instead of waiting?" section below for the reason why we don't simply use [FileChannel.lock].
  *
- * This function blocks until the file can be locked or the current coroutine is canceled, whichever comes first.
- * If a "resource deadlock avoided" exception is thrown, this function suspends and retries several times.
+ * This function suspends until the file can be locked or the current coroutine is canceled, whichever comes first.
+ *
+ * Every new attempt is made after a longer delay than the previous one, up to [MAX_LOCK_POLL_INTERVAL]. Failures of
+ * the lock attempt itself are not retried: they are thrown as-is, because some of them are recoverable in a way that
+ * only the caller knows about (a deleted lock file, for instance).
  *
  * File locks are held on behalf of the entire Java virtual machine. They are not suitable for controlling access to a
  * file by multiple threads within the same virtual machine.
  *
- * ### Why retry?
+ * ### Why poll instead of waiting?
  *
- * The "Resource deadlock avoided" exception is an error coming from the OS itself when it thinks it detects deadlocks.
- * The problem is that this check is at the level of processes and doesn't know about threads. So, if 2 processes both
- * lock the same 2 files at the same time, but each in different threads, the system will think there is a deadlock even
- * when there isn't:
+ * [FileChannel.lock] waits for the lock in the OS itself, which detects deadlocks and reports them as the
+ * "Resource deadlock avoided" error. The problem is that this detection is at the level of processes and doesn't know
+ * about threads, so 2 processes that each hold a lock in one thread while waiting for another lock in a different
+ * thread look like a deadlock to the OS, even when there is none:
  * * Process 1, thread A, acquires lock on file A.
  * * Process 2, thread B, acquires lock on file B.
- * * Process 1, thread B, tries to lock file B and blocks.
+ * * Process 1, thread B, tries to lock file B and waits.
  * * Process 2, thread A, tries to lock file A and fails with the exception "Resource deadlock avoided".
  *
- * Since we can't really prevent this, our best bet is just to retry a few times to see if the locks are eventually
- * released. If not, we can finally rethrow the exception.
+ * Nothing tells such a spurious report apart from a real deadlock, and it keeps coming back for as long as the
+ * situation lasts, so waiting through it means calling [FileChannel.lock] in a loop: polling anyway, with an error to
+ * interpret on every iteration.
+ *
+ * [FileChannel.tryLock] doesn't wait in the OS, so the OS has no wait graph to inspect and never reports such
+ * deadlocks. Polling it gives a wait that we control, and that ends only when the lock is acquired or the caller is
+ * canceled. The price is a polling delay instead of being woken up by the OS, and the fact that a real deadlock is no
+ * longer detected: it results in an indefinite wait instead of an error.
  *
  * @throws ClosedChannelException If this channel is closed
  * @throws AsynchronousCloseException If another thread closes this channel while the invoking thread is blocked in
@@ -230,23 +239,18 @@ private suspend inline fun <T> Path.withFileChannelLock(vararg options: OpenOpti
  * @throws NonWritableChannelException If this channel was not opened for writing
  * @throws IOException If some other I/O error occurs
  */
-private suspend fun FileChannel.lockWithRetry(): FileLock? =
-    withRetry(
-        retryOnException = { it is IOException && it.isOsResourceDeadlockDetected() },
-    ) {
-        runInterruptible {
-            lock()
-        }
+private suspend fun FileChannel.acquireExclusiveLock(): FileLock {
+    var pollInterval = INITIAL_LOCK_POLL_INTERVAL
+    while (true) {
+        tryLock()?.let { return it }
+        // the jitter avoids convoys of processes polling in lockstep
+        delay(pollInterval * Random.nextDouble(0.5, 1.0))
+        pollInterval = minOf(pollInterval * 2, MAX_LOCK_POLL_INTERVAL)
     }
-
-/**
- * Whether this exception is the special error the OS throws when detecting a deadlock between processes.
- */
-private fun IOException.isOsResourceDeadlockDetected(): Boolean {
-    val m = message ?: return false
-    return m.contains("Resource deadlock avoided", ignoreCase = true)
-            || m.contains("Resource deadlock would occur", ignoreCase = true)
 }
+
+private val INITIAL_LOCK_POLL_INTERVAL = 5.milliseconds
+private val MAX_LOCK_POLL_INTERVAL = 200.milliseconds
 
 // todo (AB): 10 seconds is not enough
 suspend fun <T> withRetry(
