@@ -11,7 +11,7 @@ import org.jetbrains.amper.buildinfo.AmperBuild
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-private const val AmperUserAgent = "KotlinToolchain/${AmperBuild.majorAndMinorVersion} (mailto:kotlin-toolchain-team@jetbrains.com)"
+private const val AmperUserAgent = "KotlinToolchain/${AmperBuild.userAgentVersion} (mailto:kotlin-toolchain-team@jetbrains.com)"
 
 /**
  * A shared [HttpClient] instance used in various places for basic HTTP.
