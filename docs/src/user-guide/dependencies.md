@@ -464,9 +464,9 @@ product: ios/app
 
 dependencies:
   - swiftPackage:
-    repository: "https://github.com/firebase/firebase-ios-sdk.git"
-    version: "12.17.0"
-    products: [ "FirebaseAnalytics" ]
+      repository: "https://github.com/firebase/firebase-ios-sdk.git"
+      version: "12.17.0"
+      products: [ "FirebaseAnalytics" ]
 ```
 
 The list of products available in the package can often be found in the Package documentation or in the 
@@ -522,8 +522,8 @@ product: ios/app
 
 dependencies:
   - localSwiftPackage:
-    path: /path/to/CryptoKitWrapper
-    products: [ "CryptoKitWrapper" ]
+      path: /path/to/CryptoKitWrapper
+      products: [ "CryptoKitWrapper" ]
 ```
 
 Such packages can be useful to wrap APIs only accessible in Swift:
