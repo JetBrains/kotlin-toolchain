@@ -176,7 +176,7 @@ internal fun documentationUrl(version: String): String {
 
 internal fun extractVersionForUserAgent(version: String): String {
     return if (isSnapshot(version))
-        version
+        "LOCAL-SNAPSHOT"
     else {
         val majorAndMinorVersion = extractMajorAndMinorVersion(version)
         val patchVersionSuffix = extractPatchVersion(version)?.let { ".$it" } ?: ""
