@@ -70,9 +70,10 @@ private fun generateBuildInfoFile(
 ): FileSpec {
     val instantClass = ClassName("kotlin.time", "Instant")
 
-    val isDevVersion = version.contains("-dev-")
-    val isSnapshot = version.contains("-SNAPSHOT")
+    val isDevVersion = isDevVersion(version)
+    val isSnapshot = isSnapshot(version)
     val majorAndMinorVersion = extractMajorAndMinorVersion(version)
+    val userAgentVersion = extractVersionForUserAgent(version)
     val docUrl = documentationUrl(version)
 
     val buildInfoObject = TypeSpec.objectBuilder(classSimpleName)
@@ -88,6 +89,13 @@ private fun generateBuildInfoFile(
                 .addModifiers(KModifier.CONST)
                 .initializer("%S", majorAndMinorVersion)
                 .addKdoc("The first two components of the version (e.g., \"0.9\" from \"0.9.1\").")
+                .build()
+        )
+        .addProperty(
+            PropertySpec.builder("userAgentVersion", String::class)
+                .addModifiers(KModifier.CONST)
+                .initializer("%S", userAgentVersion)
+                .addKdoc("The version of the Kotlin Toolchain as seen in User Agent used for downloading external artifacts.")
                 .build()
         )
         .addProperty(
@@ -153,11 +161,28 @@ private fun generateBuildInfoFile(
 internal fun extractMajorAndMinorVersion(version: String): String =
     version.split("-")[0].split(".").take(2).joinToString(".")
 
+internal fun extractPatchVersion(version: String): String? =
+    version.split("-")[0].split(".").getOrNull(2)
+
+private fun isDevVersion(version: String): Boolean = version.contains("-dev-")
+private fun isSnapshot(version: String): Boolean = version.contains("-SNAPSHOT")
+
 internal fun documentationUrl(version: String): String {
-    val isDevVersion = version.contains("-dev-")
-    val isSnapshot = version.contains("-SNAPSHOT")
+    val isDevVersion = isDevVersion(version)
+    val isSnapshot = isSnapshot(version)
     val majorAndMinorVersion = extractMajorAndMinorVersion(version)
     return if (isDevVersion || isSnapshot) "https://kotlin-toolchain.org/dev" else "https://kotlin-toolchain.org/$majorAndMinorVersion"
+}
+
+internal fun extractVersionForUserAgent(version: String): String {
+    return if (isSnapshot(version))
+        version
+    else {
+        val majorAndMinorVersion = extractMajorAndMinorVersion(version)
+        val patchVersionSuffix = extractPatchVersion(version)?.let { ".$it" } ?: ""
+        val devVersionSuffix = if(isDevVersion(version)) "-dev" else ""
+        "$majorAndMinorVersion$patchVersionSuffix$devVersionSuffix"
+    }
 }
 
 private fun writeContentIfChanged(file: Path, content: ByteArray) {
