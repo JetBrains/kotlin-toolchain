@@ -84,7 +84,6 @@ private fun springBootDefaultsTree(
         }
         jvm {
             storeParameterNames(true)
-            runtimeClasspathMode(DependencyMode.CLASSES)
         }
     }
 }
