@@ -76,9 +76,11 @@ internal class KlibToolCommand : AmperSubcommand(name = "klib") {
         val cmd = listOf(klibExecutable.pathString) + klibArguments
         val result = runProcess(
             command = CommandLineUtils.quoteCommandLineForCurrentPlatform(cmd),
-            // The klib tool is a script that needs a JVM to run. We don't want to rely on the ambient JAVA_HOME
-            // (which may be unset or point to an unsuitable JDK), so we use the JDK provisioned by the toolchain.
-            environment = mapOf("JAVA_HOME" to jdk.homeDir.pathString),
+            configureEnvironment = {
+                // The klib tool is a script that needs a JVM to run. We don't want to rely on the ambient JAVA_HOME
+                // (which may be unset or point to an unsuitable JDK), so we use the JDK provisioned by the toolchain.
+                put("JAVA_HOME", jdk.homeDir.pathString)
+            },
             outputMode = ProcessOutputMode.Inherit,
             input = ProcessInput.Inherit,
         )

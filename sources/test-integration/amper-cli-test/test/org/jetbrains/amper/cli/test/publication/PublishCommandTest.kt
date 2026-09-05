@@ -236,7 +236,7 @@ class PublishCommandTest : CliTestBase() {
             projectDir = testProject("jvm-publish-with-signing"),
             "publish", "mavenLocal",
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
-            environment = mapOf("KOTLIN_TOOLCHAIN_SIGNING_KEY" to testPgpKey.toAsciiArmoredString()),
+            configureEnvironment = { put("KOTLIN_TOOLCHAIN_SIGNING_KEY", testPgpKey.toAsciiArmoredString()) },
         )
 
         groupDir.assertContainsRelativeFiles(
@@ -279,7 +279,7 @@ class PublishCommandTest : CliTestBase() {
         val result = runCli(
             projectDir = testProject("jvm-publish-with-signing"),
             "package", "--format=maven-central-bundle",
-            environment = mapOf("KOTLIN_TOOLCHAIN_SIGNING_KEY" to testPgpKey.toAsciiArmoredString()),
+            configureEnvironment = { put("KOTLIN_TOOLCHAIN_SIGNING_KEY", testPgpKey.toAsciiArmoredString()) },
         )
 
         val zipBundle = result
@@ -338,7 +338,7 @@ class PublishCommandTest : CliTestBase() {
         val result = runCli(
             projectDir = testProject("jvm-publish-all-checksums"),
             "package", "--format=maven-central-bundle",
-            environment = mapOf("KOTLIN_TOOLCHAIN_SIGNING_KEY" to testPgpKey.toAsciiArmoredString()),
+            configureEnvironment = { put("KOTLIN_TOOLCHAIN_SIGNING_KEY", testPgpKey.toAsciiArmoredString()) },
         )
 
         val zipBundle = result
@@ -411,7 +411,7 @@ class PublishCommandTest : CliTestBase() {
             projectDir = testProject("kmp-publish-with-signing"),
             "publish", "mavenLocal",
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
-            environment = mapOf("KOTLIN_TOOLCHAIN_SIGNING_KEY" to testPgpKey.toAsciiArmoredString()),
+            configureEnvironment = { put("KOTLIN_TOOLCHAIN_SIGNING_KEY", testPgpKey.toAsciiArmoredString()) },
         )
 
         // Checksums are not published to a plain Maven repository (Aether regenerates them), but signatures are.
@@ -443,7 +443,7 @@ class PublishCommandTest : CliTestBase() {
         val result = runCli(
             projectDir = testProject("kmp-publish-with-signing"),
             "package", "--format=maven-central-bundle",
-            environment = mapOf("KOTLIN_TOOLCHAIN_SIGNING_KEY" to testPgpKey.toAsciiArmoredString()),
+            configureEnvironment = { put("KOTLIN_TOOLCHAIN_SIGNING_KEY", testPgpKey.toAsciiArmoredString()) },
         )
 
         val zipBundle = result

@@ -176,10 +176,6 @@ class JvmTestTask(
         // the project root is a somewhat safe choice.
         val workingDirectory = module.source.moduleDir
 
-        val environment = jvmTestSettings.extraEnvironment
-            .map { [k, v] -> k.value to v.value }
-            .toMap()
-
         return spanBuilder("junit-platform-console-standalone")
             .setAttribute("junit-platform-console-standalone", junitConsole.pathString)
             .setAttribute("working-dir", workingDirectory.pathString)
@@ -198,7 +194,11 @@ class JvmTestTask(
                     programArgs = listOf("execute") + junitArgs,
                     argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
                     jvmArgs = finalJvmArgs,
-                    environment = environment,
+                    configureEnvironment = {
+                        jvmTestSettings.extraEnvironment.forEach { [traceableKey, traceableValue] ->
+                            put(traceableKey.value, traceableValue.value)
+                        }
+                    },
                     outputMode = ProcessOutputMode.listen(StructuredJUnitProcessOutputListener(
                         eventSink = executionContext.eventSink,
                     )),

@@ -15,6 +15,9 @@ import java.nio.file.Path
  * Runs Gradle in the given [projectDir] with the given [args] using the Gradle Tooling API.
  *
  * The output is reported using the given [TestReporter], using [cmdName] in the prefix.
+ *
+ * By default, the Gradle process inherits the environment of the current process. Use [configureEnvironment] to add,
+ * remove, or change environment variables from the environment map.
  */
 fun runGradle(
     projectDir: Path,
@@ -22,7 +25,7 @@ fun runGradle(
     cmdName: String = "gradle",
     testReporter: TestReporter,
     gradleVersion: String? = null,
-    additionalEnv: Map<String, String> = emptyMap(),
+    configureEnvironment: MutableMap<String, String>.() -> Unit = {},
 ) {
     GradleConnector.newConnector()
         .useGradleUserHomeDir(Dirs.sharedGradleHome.toFile())
@@ -40,7 +43,7 @@ fun runGradle(
                 .withArguments(*args.toTypedArray())
                 .setStandardOutput(testReporter.out(linePrefix = "[$cmdName out] "))
                 .setStandardError(testReporter.out(linePrefix = "[$cmdName err] "))
-                .setEnvironmentVariables(System.getenv() + additionalEnv)
+                .setEnvironmentVariables(System.getenv().toMutableMap().apply(configureEnvironment))
                 .run()
         }
 }

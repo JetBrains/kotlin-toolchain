@@ -100,6 +100,10 @@ abstract class AmperCliWithWrapperTestBase {
      * This function uses the OS-specific wrapper script located in [workingDir] by default, or the given
      * [customAmperScriptPath] if non-null.
      *
+     * By default, the child process inherits the environment of the current process (with some test-specific
+     * additions). Use [configureEnvironment] to add, remove, or change environment variables from the environment map.
+     *
+     * @param buildDir the build directory of this run, if it is not the default and is not defined in [args]
      * @param bootstrapCacheDir the location where the Amper script should download the Amper distribution and JRE
      * @param javaHomeMode defines how the test Amper process should see `JAVA_HOME`.
      * @param amperJavaHomeMode defines how the test Amper process should get its JRE.
@@ -108,7 +112,8 @@ abstract class AmperCliWithWrapperTestBase {
     protected suspend fun runAmper(
         workingDir: Path,
         args: List<String>,
-        environment: Map<String, String> = emptyMap(),
+        configureEnvironment: MutableMap<String, String>.() -> Unit = {},
+        buildDir: Path? = null,
         expectedExitCode: Int? = 0,
         assertEmptyStdErr: Boolean = true,
         bootstrapCacheDir: Path? = null,
@@ -148,41 +153,33 @@ abstract class AmperCliWithWrapperTestBase {
                 workingDir = workingDir,
                 // proper quotes/escaping, workaround for the time-old bug https://bugs.openjdk.org/browse/JDK-8131908
                 command = CommandLineUtil.toCommandLine(wrapper.absolutePathString(), args, currentPlatformForIJ),
-                environment = buildMap {
+                configureEnvironment = {
                     putAll(baseEnvironmentForWrapper())
 
                     // Override (and add to) the base env
                     bootstrapCacheDir?.let {
                         this["KOTLIN_CLI_BOOTSTRAP_CACHE_DIR"] = it.pathString
                     }
-
-                    when (javaHomeMode) {
-                        is JavaHomeMode.Inherit -> {} // do nothing and just get whatever is there
-                        // explicit reset (cannot call remove because we don't have the actual env from ProcessBuilder here)
-                        is JavaHomeMode.ForceUnset -> this["JAVA_HOME"] = ""
-                        is JavaHomeMode.Custom -> this["JAVA_HOME"] = javaHomeMode.jreHomePath.pathString
+                    buildDir?.let {
+                        this["AMPER_BUILD_DIR"] = it.pathString
                     }
 
-                    when (amperJavaHomeMode) {
-                        is JavaHomeMode.Inherit -> {} // do nothing and just get whatever is there
-                        // explicit reset (cannot call remove because we don't have the actual env from ProcessBuilder here)
-                        is JavaHomeMode.ForceUnset -> this["KOTLIN_CLI_JAVA_HOME"] = ""
-                        is JavaHomeMode.Custom -> this["KOTLIN_CLI_JAVA_HOME"] = amperJavaHomeMode.jreHomePath.pathString
-                    }
+                    setJavaHomeVar("JAVA_HOME", javaHomeMode)
+                    setJavaHomeVar("KOTLIN_CLI_JAVA_HOME", amperJavaHomeMode)
 
                     this["KOTLIN_CLI_JAVA_OPTIONS"] = extraJvmArgs.joinToString(" ")
-                    putAll(environment)
+                    configureEnvironment()
                 },
                 input = stdin,
                 outputMode = ProcessOutputMode.listenAndCapture(listener = outputListener),
             )
         }
 
-        val buildDir = workingDir / findBuildDirRelativePath(args, environment)
+        val effectiveBuildDir = workingDir / (buildDir ?: findBuildDirRelativePath(args))
         val amperResult = AmperCliResult(
             projectDir = workingDir,
-            buildDir = buildDir,
-            logsDir = logsDirForExecution(buildDir, amperWrapperPid = result.pid),
+            buildDir = effectiveBuildDir,
+            logsDir = logsDirForExecution(effectiveBuildDir, amperWrapperPid = result.pid),
             pid = result.pid,
             exitCode = result.exitCode,
             stdout = result.stdout,
@@ -241,19 +238,13 @@ abstract class AmperCliWithWrapperTestBase {
         return amperResult
     }
 
-    private fun findBuildDirRelativePath(args: List<String>, env: Map<String, String>): Path {
-        val buildOutputEnv = env["AMPER_BUILD_DIR"]
-        if (!buildOutputEnv.isNullOrBlank()) {
-            return Path(buildOutputEnv)
-        }
-        return findArgumentValue(args, "--build-dir")
+    private fun findBuildDirRelativePath(args: List<String>): Path =
+        findArgumentValue(args, "--build-dir")
             ?: findArgumentValue(args, "--build-output-root")
             ?: Path("build")
-    }
 
     private fun findArgumentValue(args: List<String>, argName: String): Path? {
         val buildOutputArgIndex = args.indexOf(argName)
-        @Suppress("ReplaceManualRangeWithIndicesCalls") // this range shouldn't be replaced (KTIJ-37692)
         if (buildOutputArgIndex in 0..<args.lastIndex) {
             return Path(args[buildOutputArgIndex + 1])
         }
@@ -306,7 +297,7 @@ sealed class JavaHomeMode {
      */
     data object Inherit : JavaHomeMode()
     /**
-     * Explicitly reset `JAVA_HOME`/`KOTLIN_CLI_JAVA_HOME` (make it empty) even if the caller's environment contains it
+     * Explicitly unset `JAVA_HOME`/`KOTLIN_CLI_JAVA_HOME` even if the caller's environment contains it
      * (for example, when running tests with Amper itself).
      * This forces the test Amper process to download the JRE to the `KOTLIN_CLI_BOOTSTRAP_CACHE_DIR` if not present there.
      */
@@ -315,6 +306,17 @@ sealed class JavaHomeMode {
      * Use the given [jreHomePath] as JRE home for the test Amper process.
      */
     data class Custom(val jreHomePath: Path) : JavaHomeMode()
+}
+
+/**
+ * Sets the env var [name] in this environment according to the given [mode].
+ */
+private fun MutableMap<String, String>.setJavaHomeVar(name: String, mode: JavaHomeMode) {
+    when (mode) {
+        is JavaHomeMode.Inherit -> {} // do nothing and just leave whatever is there
+        is JavaHomeMode.ForceUnset -> remove(name)
+        is JavaHomeMode.Custom -> put(name, mode.jreHomePath.pathString)
+    }
 }
 
 data class AmperCliResult(

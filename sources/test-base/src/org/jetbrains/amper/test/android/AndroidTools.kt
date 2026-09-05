@@ -93,21 +93,24 @@ class AndroidTools(
     }
 
     /**
-     * Returns a map defining Android-specific environment variables corresponding to these [AndroidTools] setup.
+     * Configures the given [environment] map for Android CLI tools to match these [AndroidTools] setup.
      * This doesn't include `JAVA_HOME`, only `ANDROID_*` variables.
      */
     // See https://developer.android.com/tools/variables
-    fun environment(): Map<String, String> = mapOf(
-        "ANDROID_HOME" to androidSdkHome.absolutePathString(),
-        "ANDROID_USER_HOME" to androidUserHome.absolutePathString(),
-        // ANDROID_HOME and ANDROID_USER_HOME should be sufficient if everything else is set to default values.
-        // However, the outside environment running the tests might have set more precise env vars (overrides).
-        // This could interfere with our test config, so we need to override them here again.
-        "ANDROID_SDK_ROOT" to androidSdkHome.absolutePathString(),
-        "ANDROID_SDK_HOME" to androidUserHomeParent.absolutePathString(),
-        "ANDROID_EMULATOR_HOME" to androidUserHome.absolutePathString(),
-        "ANDROID_AVD_HOME" to (androidUserHome / "avd").absolutePathString(),
-    )
+    fun configureEnvironment(environment: MutableMap<String, String>) {
+        environment["ANDROID_HOME"] = androidSdkHome.absolutePathString()
+        environment["ANDROID_USER_HOME"] = androidUserHome.absolutePathString()
+
+        // ANDROID_HOME and ANDROID_USER_HOME are sufficient if everything else is set to default values.
+        // However, the outside environment running the tests might have overridden those variables, which could
+        // interfere with our test config, so we need to override them back to the defaults based on our custom home.
+        environment["ANDROID_EMULATOR_HOME"] = androidUserHome.absolutePathString()
+        environment["ANDROID_AVD_HOME"] = (androidUserHome / "avd").absolutePathString()
+
+        // Obsolete vars that could be in the environment and mess with the tests
+        environment.remove("ANDROID_SDK_ROOT")
+        environment.remove("ANDROID_SDK_HOME")
+    }
 
     private fun findCmdlineToolScript(name: String): Path {
         val possibleBinDirs = listOf(
@@ -250,14 +253,12 @@ class AndroidTools(
                 "-no-audio", // audio isn't needed
                 "-wipe-data", // start fresh each time we launch the test suite
             ),
-            environment = environment() + mapOf(
-                "JAVA_HOME" to javaHome.pathString,
+            configureEnvironment = {
+                configureEnvironment(this)
+                put("JAVA_HOME", javaHome.pathString)
                 // apparently, the emulator needs to have these tools on the PATH
-                "PATH" to envPathWithPrepended(
-                    androidSdkHome / "emulator",
-                    androidSdkHome / "platform-tools",
-                ),
-            ),
+                put("PATH", envPathWithPrepended(androidSdkHome / "emulator", androidSdkHome / "platform-tools"))
+            },
             // we can't ignore stdout because some startup errors are printed there (e.g. absence of window)
             outputMode = ProcessOutputMode.listen(PrefixPrintOutputListener("emulator")),
         )
@@ -337,7 +338,10 @@ class AndroidTools(
         outputListener: ProcessOutputListener,
     ): ProcessResult.WithOutputs = runProcess(
         command = listOf(executable.pathString) + args,
-        environment = environment() + mapOf("JAVA_HOME" to javaHome.pathString),
+        configureEnvironment = {
+            configureEnvironment(this)
+            put("JAVA_HOME", javaHome.pathString)
+        },
         input = input,
         outputMode = ProcessOutputMode.listenAndCapture(listener = outputListener),
     )

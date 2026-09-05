@@ -237,10 +237,10 @@ class AndroidRunTask(
                 add(avdName)
             },
             workingDir = emulatorExecutable.parent,
-            environment = mapOf(
-                "ANDROID_AVD_HOME" to avdPath.toString(),
-                "ANDROID_HOME" to androidSdkPath.toString(),
-            )
+            configureEnvironment = {
+                put("ANDROID_AVD_HOME", avdPath.toString())
+                put("ANDROID_HOME", androidSdkPath.toString())
+            },
         )
     }
 

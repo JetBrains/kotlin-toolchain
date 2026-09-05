@@ -84,7 +84,7 @@ class NativeTestTask(
                     workingDir = workingDir,
                     command = command,
                     span = span,
-                    environment = swiftPMSearchPaths,
+                    configureEnvironment = { putAll(swiftPMSearchPaths) },
                     outputMode = ProcessOutputMode.listen(StructuredNativeTestProcessOutputListener(
                         teamCityMessageProcessor = TeamCityMessageProcessor(executionContext.eventSink),
                     )),

@@ -214,30 +214,15 @@ internal class SwiftPMImportTask(
             val xcodebuildResult = runProcess(
                 workingDir = syntheticImportProjectRoot,
                 command = args,
-                configureEnvironment = { env ->
-                    env.putAll(
-                        mapOf(
-                            XcodebuildDefFileUtils.KOTLIN_CLANG_ARGS_DUMP_FILE_ENV to clangArgsDump.pathString,
-                            XcodebuildDefFileUtils.KOTLIN_LD_ARGS_DUMP_FILE_ENV to ldArgsDump.pathString,
-                        )
-                    )
-                    val environmentToFilter = listOf(
-                        "EMBED_PACKAGE_RESOURCE_BUNDLE_NAMES",
-                        "ENABLE_DEBUG_DYLIB",
-                        "EXECUTABLE_BLANK_INJECTION_DYLIB_PATH",
-                        "EXECUTABLE_DEBUG_DYLIB_INSTALL_NAME",
-                        "EXECUTABLE_DEBUG_DYLIB_PATH"
-                    )
-                    environmentToFilter.forEach {
-                        if (env.containsKey(it)) {
-                            env.remove(it)
-                        }
-                    }
-                    env.keys.filter {
-                        it.startsWith("OTHER_") || it.startsWith("ASSETCATALOG_")
-                    }.forEach {
-                        env.remove(it)
-                    }
+                configureEnvironment = {
+                    put(XcodebuildDefFileUtils.KOTLIN_CLANG_ARGS_DUMP_FILE_ENV, clangArgsDump.pathString)
+                    put(XcodebuildDefFileUtils.KOTLIN_LD_ARGS_DUMP_FILE_ENV, ldArgsDump.pathString)
+                    remove("EMBED_PACKAGE_RESOURCE_BUNDLE_NAMES")
+                    remove("ENABLE_DEBUG_DYLIB")
+                    remove("EXECUTABLE_BLANK_INJECTION_DYLIB_PATH")
+                    remove("EXECUTABLE_DEBUG_DYLIB_INSTALL_NAME")
+                    remove("EXECUTABLE_DEBUG_DYLIB_PATH")
+                    keys.removeAll { it.startsWith("OTHER_") || it.startsWith("ASSETCATALOG_") }
                 },
                 outputMode = pipe,
             )

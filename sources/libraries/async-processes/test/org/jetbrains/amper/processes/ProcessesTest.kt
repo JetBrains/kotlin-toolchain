@@ -125,12 +125,66 @@ class ProcessesTest {
     fun `runProcess should transfer custom env`() = runBlocking(Dispatchers.IO) {
         val result = runProcess(
             command = echoEnv("MY_ENV"),
-            environment = mapOf("MY_ENV" to "env_value"),
+            configureEnvironment = { put("MY_ENV", "env_value") },
             outputMode = ProcessOutputMode.capture(),
         )
         result.assertZeroExitCode()
         assertEquals("env_value", result.stdout.trim())
         assertEquals("", result.stderr)
+    }
+
+    @Test
+    fun `runProcess should inherit the current environment by default`() = runBlocking(Dispatchers.IO) {
+        val (name, value) = someInheritedEnvVar()
+        val result = runProcess(
+            command = echoEnv(name),
+            outputMode = ProcessOutputMode.capture(),
+        )
+        result.assertZeroExitCode()
+        assertEquals(value, result.stdout.trim(), "The inherited env var $name should be visible in the child process")
+    }
+
+    @Test
+    fun `runProcess should allow removing inherited env vars in the environment builder`() = runBlocking(Dispatchers.IO) {
+        val (name) = someInheritedEnvVar()
+        val result = runProcess(
+            command = echoEnv(name),
+            configureEnvironment = { remove(name) },
+            outputMode = ProcessOutputMode.capture(),
+        )
+        result.assertZeroExitCode()
+        assertEquals("", result.stdout.trim(), "The env var $name should have been removed from the child environment")
+    }
+
+    // Removing entries through the 'keys' view is not supported by all Map implementations, and the environment we
+    // expose to the builder is a live view on ProcessBuilder's environment. Some callers rely on this (bulk removals).
+    @Test
+    fun `runProcess should allow removing inherited env vars through the keys view`() = runBlocking(Dispatchers.IO) {
+        val (name) = someInheritedEnvVar()
+        val result = runProcess(
+            command = echoEnv(name),
+            configureEnvironment = { keys.removeAll { it == name } },
+            outputMode = ProcessOutputMode.capture(),
+        )
+        result.assertZeroExitCode()
+        assertEquals("", result.stdout.trim(), "The env var $name should have been removed from the child environment")
+    }
+
+    @Test
+    fun `runProcess should expose the inherited environment to the environment builder`() = runBlocking(Dispatchers.IO) {
+        val (name, value) = someInheritedEnvVar()
+        val seenByBuilder = mutableMapOf<String, String>()
+        val result = runProcess(
+            command = echoEnv("MY_ENV"),
+            configureEnvironment = {
+                seenByBuilder.putAll(this)
+                put("MY_ENV", "env_value")
+            },
+            outputMode = ProcessOutputMode.capture(),
+        )
+        result.assertZeroExitCode()
+        assertEquals("env_value", result.stdout.trim())
+        assertEquals(value, seenByBuilder[name], "The builder should see the inherited env var $name")
     }
 
     @Test
@@ -236,6 +290,23 @@ private fun sleep(seconds: Int): List<String> = shell(
     shCommand = "sleep $seconds",
     psCommand = "Start-Sleep -Seconds $seconds",
 )
+
+private class EnvVar(val name: String, val value: String)
+
+/**
+ * Returns an env var of the current process that is safe to echo from a shell (so its value can be compared as-is)
+ * and safe to remove (unlike PATH, which is used to resolve the shell executable itself on Windows).
+ */
+private fun someInheritedEnvVar(): EnvVar {
+    val validName = Regex("[A-Za-z_][A-Za-z0-9_]*")
+    val validValue = Regex("[A-Za-z0-9_/.:+=-]+") // no whitespace nor glob chars, so shells don't alter the value
+    val entry = System.getenv().entries
+        .firstOrNull {
+            !it.key.equals("PATH", ignoreCase = true) && validName.matches(it.key) && validValue.matches(it.value)
+        }
+        ?: fail("Cannot find any shell-safe env var in the environment of the current process")
+    return EnvVar(name = entry.key, value = entry.value)
+}
 
 private fun echoEnv(envVarName: String) = shell(
     shCommand = "echo \$$envVarName",

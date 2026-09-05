@@ -98,7 +98,7 @@ abstract class CliTestBase : AmperCliWithWrapperTestBase() {
         amperJvmArgs: List<String> = emptyList(),
         amperJavaHomeMode: JavaHomeMode = JavaHomeMode.ForceUnset,
         configureAndroidHome: Boolean = false,
-        environment: Map<String, String> = emptyMap(),
+        configureEnvironment: MutableMap<String, String>.() -> Unit = {},
         wrapperMode: WrapperMode = WrapperMode.Local,
         buildOutputRoot: Path = tempRoot.resolve("build"),
     ): AmperCliResult {
@@ -119,20 +119,20 @@ abstract class CliTestBase : AmperCliWithWrapperTestBase() {
             addAll(args)
         }
 
+        val androidTools = if (configureAndroidHome) AndroidTools.prepareForTests() else null
+
         val result = runAmper(
             workingDir = projectDir,
             args = effectiveArgs,
-            environment = buildMap {
-                if (configureAndroidHome) {
-                    putAll(AndroidTools.prepareForTests().environment())
-                }
-                put("AMPER_BUILD_DIR", buildOutputRoot.pathString)
+            configureEnvironment = {
+                androidTools?.configureEnvironment(this)
                 put("AMPER_NO_GRADLE_DAEMON", "1")
                 if (wrapperMode == WrapperMode.GlobalIntrinsicVersion) {
                     put("KOTLIN_CLI_WRAPPER_ALWAYS_USE_INTRINSIC_VERSION", "1")
                 }
-                putAll(environment)
+                configureEnvironment()
             },
+            buildDir = buildOutputRoot,
             bootstrapCacheDir = Dirs.userCacheRoot,
             expectedExitCode = expectedExitCode,
             assertEmptyStdErr = assertEmptyStdErr,
@@ -187,7 +187,7 @@ abstract class CliTestBase : AmperCliWithWrapperTestBase() {
             *buildArgs,
             action,
         ),
-        environment = baseEnvironmentForWrapper(),
+        configureEnvironment = { putAll(baseEnvironmentForWrapper()) },
         outputMode = ProcessOutputMode.listenAndCapture(TestReporterProcessOutputListener("xcodebuild", testReporter)),
     )
 

@@ -136,13 +136,9 @@ class ComputeLocalPackageInputsTask(
         val result = runProcess(
             workingDir = path,
             command = ["swift", "package", "describe", "--type", "json"],
-            configureEnvironment = { env ->
-                env.keys.filter {
-                    // Swift CLIs try to compile the manifest for iphonesimulator... with these envs
-                    it.startsWith("SDK")
-                }.forEach {
-                    env.remove(it)
-                }
+            configureEnvironment = {
+                // Swift CLIs try to compile the manifest for iphonesimulator... with these envs
+                keys.removeAll { it.startsWith("SDK") }
             },
             outputMode = ProcessOutputMode.listenAndCapture(
                 LoggingProcessOutputListener(

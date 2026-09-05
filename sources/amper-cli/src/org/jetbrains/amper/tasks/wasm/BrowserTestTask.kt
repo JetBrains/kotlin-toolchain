@@ -155,7 +155,6 @@ class BrowserTestTask(
                         "playwright@$PLAYWRIGHT_VERSION",
                     ],
                     span = span,
-                    environment = emptyMap(),
                     outputMode = ProcessOutputMode.listenAndCaptureStderr(
                         listener = LoggingProcessOutputListener(
                             logger,
@@ -180,7 +179,6 @@ class BrowserTestTask(
                         "--no-shell",
                     ],
                     span = span,
-                    environment = emptyMap(),
                     outputMode = ProcessOutputMode.listenAndCaptureStderr(
                         listener = LoggingProcessOutputListener(logger),
                     ),

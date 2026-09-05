@@ -141,9 +141,9 @@ class IosBuildTask(
                         workingDir = workingDir,
                         command = xcodebuildArgs,
                         span = span,
-                        environment = mapOf(
-                            IosPreBuildTask.Result.ENV_JSON_NAME to Json.encodeToString(prebuildResult),
-                        ),
+                        configureEnvironment = {
+                            put(IosPreBuildTask.Result.ENV_JSON_NAME, Json.encodeToString(prebuildResult))
+                        },
                         outputMode = pipe,
                     )
 

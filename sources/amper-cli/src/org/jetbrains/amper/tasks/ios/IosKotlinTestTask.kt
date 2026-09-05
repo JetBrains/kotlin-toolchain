@@ -91,7 +91,7 @@ class IosKotlinTestTask(
                         workingDir = workingDir,
                         command = spawnTestsCommand,
                         span = span,
-                        environment = swiftPMSearchPaths,
+                        configureEnvironment = { putAll(swiftPMSearchPaths) },
                         outputMode = ProcessOutputMode.listen(StructuredNativeTestProcessOutputListener(
                             teamCityMessageProcessor = TeamCityMessageProcessor(executionContext.eventSink),
                         )),

@@ -46,6 +46,9 @@ sealed class ArgsMode {
 
 /**
  * Runs a Java program with the runtime of this [Jdk].
+ *
+ * By default, the child process inherits the environment of the current process. Use [configureEnvironment] to add,
+ * remove, or change environment variables from the environment map.
  */
 suspend fun <R : ProcessResult> ProcessRunner.runJava(
     jdk: Jdk,
@@ -55,7 +58,7 @@ suspend fun <R : ProcessResult> ProcessRunner.runJava(
     programArgs: List<String>,
     argsMode: ArgsMode,
     jvmArgs: List<String> = emptyList(),
-    environment: Map<String, String> = emptyMap(),
+    configureEnvironment: MutableMap<String, String>.() -> Unit = {},
     outputMode: ProcessOutputMode<R>,
     input: ProcessInput = ProcessInput.Inherit,
 ): R {
@@ -79,7 +82,6 @@ suspend fun <R : ProcessResult> ProcessRunner.runJava(
         .setAttribute("jdk-source", jdk.source)
         .setListAttribute("program-args", programArgs)
         .setListAttribute("jvm-args", jvmArgs)
-        .setMapAttribute("env-vars", environment)
         .setAttribute("classpath", classpathStr)
         .setAttribute("main-class", mainClass)
         .use { span ->
@@ -88,7 +90,7 @@ suspend fun <R : ProcessResult> ProcessRunner.runJava(
                     workingDir = workingDir,
                     command = listOf(jdk.javaExecutable.pathString) + effectiveArgs,
                     span = span,
-                    environment = environment,
+                    configureEnvironment = configureEnvironment,
                     input = input,
                     outputMode = outputMode,
                 )

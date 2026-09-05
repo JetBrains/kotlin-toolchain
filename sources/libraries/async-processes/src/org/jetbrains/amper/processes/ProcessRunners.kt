@@ -28,11 +28,14 @@ import kotlin.contracts.contract
  *
  * If the JVM is terminated gracefully (Ctrl+C / SIGINT), this function **requests the process destruction** but doesn't
  * wait for its completion (we mustn't block the JVM shutdown).
+ *
+ * By default, the child process inherits the environment of the current process. Use [configureEnvironment] to add,
+ * remove, or change environment variables from the environment map.
  */
 suspend fun <R : ProcessResult> runProcess(
     workingDir: Path? = null,
     command: List<String>,
-    configureEnvironment: (MutableMap<String, String>) -> (Unit),
+    configureEnvironment: MutableMap<String, String>.() -> Unit = {},
     outputMode: ProcessOutputMode<R>,
     input: ProcessInput = ProcessInput.Inherit,
     onStart: (pid: Long) -> Unit = {},
@@ -40,24 +43,8 @@ suspend fun <R : ProcessResult> runProcess(
     contract {
         callsInPlace(onStart, InvocationKind.EXACTLY_ONCE)
     }
-    return process(workingDir, command, configureEnvironment).run(outputMode, input, onStart)
+    return processBuilder(workingDir, command, configureEnvironment).run(outputMode, input, onStart)
 }
-
-suspend fun <R : ProcessResult> runProcess(
-    workingDir: Path? = null,
-    command: List<String>,
-    environment: Map<String, String> = emptyMap(),
-    outputMode: ProcessOutputMode<R>,
-    input: ProcessInput = ProcessInput.Inherit,
-    onStart: (pid: Long) -> Unit = {},
-): R = runProcess(
-    workingDir,
-    command,
-    { it.putAll(environment) },
-    outputMode,
-    input,
-    onStart
-)
 
 @RequiresOptIn("Using this API causes the child process to leak and outlive the execution of the current JVM. " +
         "Make sure you understand the consequences before opting in. " +
@@ -71,6 +58,9 @@ annotation class ProcessLeak
  * intention is to start a long-lived process that survives across executions of this program.
  * In any other case, please prefer other functions that handle coroutines and process lifecycle.
  *
+ * By default, the child process inherits the environment of the current process. Use [configureEnvironment] to add,
+ * remove, or change environment variables from the environment map.
+ *
  * @return the started process's PID. This function doesn't return the [Process] object intentionally, because there
  * should be another way to interact with a long-lived process (some kind of IPC).
  */
@@ -78,13 +68,13 @@ annotation class ProcessLeak
 fun startLongLivedProcess(
     workingDir: Path? = null,
     command: List<String>,
-    environment: Map<String, String> = emptyMap(),
+    configureEnvironment: MutableMap<String, String>.() -> Unit = {},
     redirectErrorStream: Boolean = false,
 ): Long { // NOT the Process, intentionally, because there must be some other way to interact with long-lived processes
-    return process(
+    return processBuilder(
         workingDir = workingDir,
         command = command,
-        environment = environment
+        configureEnvironment = configureEnvironment,
     )
         .redirectErrorStream(redirectErrorStream)
         .redirectOutput(ProcessBuilder.Redirect.DISCARD)
@@ -97,24 +87,14 @@ fun startLongLivedProcess(
         .pid()
 }
 
-private fun process(
+private fun processBuilder(
     workingDir: Path? = null,
     command: List<String>,
-    environment: Map<String, String>,
-): ProcessBuilder = process(
-    workingDir = workingDir,
-    command = command,
-    configureEnvironment = { it.putAll(environment) }
-)
-
-private fun process(
-    workingDir: Path? = null,
-    command: List<String>,
-    configureEnvironment: (MutableMap<String, String>) -> (Unit) = {},
+    configureEnvironment: MutableMap<String, String>.() -> Unit = {},
 ): ProcessBuilder {
     require(command.isNotEmpty()) { "Cannot start a process with an empty command line" }
 
     return ProcessBuilder(command)
         .directory(workingDir?.toFile())
-        .also { configureEnvironment(it.environment()) }
+        .also { it.environment().configureEnvironment() }
 }

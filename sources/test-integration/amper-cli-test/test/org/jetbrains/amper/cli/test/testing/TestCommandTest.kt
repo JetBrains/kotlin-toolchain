@@ -260,12 +260,6 @@ class TestCommandTest : CliTestBase() {
     @Test
     fun `jvm test with environment variables`() = runSlowTest {
         val result = runCli(testProject("jvm-kotlin-test-envvars"), "test")
-
-        val span = result.readTelemetrySpans().spansNamed("java-exec").assertSingle()
-        assertEquals(
-            listOf("MY_TEST_ENV_FROM_SETTINGS=hello-from-settings"),
-            span.getListAttribute("env-vars")
-        )
         result.assertStdoutContains("1 tests successful")
     }
 

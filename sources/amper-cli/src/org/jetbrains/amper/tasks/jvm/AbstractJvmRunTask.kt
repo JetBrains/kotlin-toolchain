@@ -46,8 +46,6 @@ abstract class AbstractJvmRunTask(
     override val platform = Platform.JVM
     protected val fragments = module.fragments.filter { !it.isTest && it.platforms.contains(Platform.JVM) }
 
-    protected open fun getEnvironment(dependenciesResult: List<TaskResult>): Map<String, String> = emptyMap()
-
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
         val result = processRunner.runJava(
@@ -58,7 +56,6 @@ abstract class AbstractJvmRunTask(
             programArgs = runSettings.programArgs,
             argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
             jvmArgs = getJvmArgs(dependenciesResult),
-            environment = getEnvironment(dependenciesResult),
             outputMode = ProcessOutputMode.Inherit, // safe because the progress widget is hidden for run tasks
             input = ProcessInput.Inherit,
         )

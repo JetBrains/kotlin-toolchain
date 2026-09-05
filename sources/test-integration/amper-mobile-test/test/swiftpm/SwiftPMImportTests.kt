@@ -52,7 +52,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         runAmper(
             workingDir = project,
             args = listOf("ide-integration", "manage-xcode"),
-            environment = baseEnvironmentForWrapper(),
         )
 
         moduleFile.writeText(
@@ -81,7 +80,7 @@ open class SwiftPMImportTests : IOSBaseTest() {
                 "-derivedDataPath", ddPath.pathString,
                 "ARCHS=arm64",
             ),
-            environment = baseEnvironmentForWrapper(),
+            configureEnvironment = { putAll(baseEnvironmentForWrapper()) },
             outputMode = ProcessOutputMode.listenAndCapture(TestReporterProcessOutputListener("xcodebuild", testReporter)),
         )
 
@@ -146,7 +145,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         runAmper(
             workingDir = project,
             args = listOf("build"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
         )
         Unit
@@ -170,7 +168,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         runAmper(
             workingDir = project,
             args = listOf("ide-integration", "manage-xcode"),
-            environment = baseEnvironmentForWrapper(),
         )
 
         moduleFile.writeText(
@@ -191,7 +188,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         runAmper(
             workingDir = project,
             args = listOf("build"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
         )
         Unit
@@ -203,7 +199,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         runAmper(
             workingDir = project,
             args = listOf("ide-integration", "manage-xcode"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
         )
 
@@ -218,7 +213,7 @@ open class SwiftPMImportTests : IOSBaseTest() {
                 "-derivedDataPath", ddPath.pathString,
                 "ARCHS=arm64",
             ),
-            environment = baseEnvironmentForWrapper(),
+            configureEnvironment = { putAll(baseEnvironmentForWrapper()) },
             outputMode = ProcessOutputMode.listen(TestReporterProcessOutputListener("xcodebuild", testReporter)),
         )
         assertEquals(0, xcodebuildResult.exitCode)
@@ -229,7 +224,9 @@ open class SwiftPMImportTests : IOSBaseTest() {
         val klibDump = runAmper(
             workingDir = project,
             args = listOf("tool", "klib", "--kotlin-version=2.4.0", "dump-metadata-signatures", inputKlib.pathString),
-            environment = baseEnvironmentForWrapper(),
+            configureEnvironment = {
+                baseEnvironmentForWrapper()
+            },
             // the klib tool may print diagnostics to stderr
             assertEmptyStdErr = false,
         )
@@ -280,7 +277,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         runAmper(
             workingDir = project,
             args = listOf("build"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
         )
         Unit
@@ -293,7 +289,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         runAmper(
             workingDir = project,
             args = listOf("ide-integration", "manage-xcode"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
         )
 
@@ -308,7 +303,7 @@ open class SwiftPMImportTests : IOSBaseTest() {
                 "-derivedDataPath", ddPath.pathString,
                 "ARCHS=arm64",
             ),
-            environment = baseEnvironmentForWrapper(),
+            configureEnvironment = { putAll(baseEnvironmentForWrapper()) },
             outputMode = ProcessOutputMode.listen(TestReporterProcessOutputListener("xcodebuild", testReporter)),
         )
         assertEquals(0, xcodebuildResult.exitCode)
@@ -370,7 +365,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         val initialRun = runAmper(
             workingDir = project,
             args = listOf("task", ":app:swiftPMImportIphoneos"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
         )
         initialRun.withTelemetrySpans {
@@ -383,7 +377,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         val noChangesIncrementalRun = runAmper(
             workingDir = project,
             args = listOf("--log-level=debug", "task", ":app:swiftPMImportIphoneos"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
         )
         noChangesIncrementalRun.withTelemetrySpans {
@@ -399,7 +392,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         val sourceChangeIncrementalRun = runAmper(
             workingDir = project,
             args = listOf("--log-level=debug", "task", ":app:swiftPMImportIphoneos"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
         )
         sourceChangeIncrementalRun.withTelemetrySpans {
@@ -415,7 +407,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         val manifestChangeIncrementalRun = runAmper(
             workingDir = project,
             args = listOf("--log-level=debug", "task", ":app:swiftPMImportIphoneos"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
         )
         manifestChangeIncrementalRun.withTelemetrySpans {
@@ -439,7 +430,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
             val klibDump = runAmper(
                 workingDir = project,
                 args = listOf("tool", "klib", "--kotlin-version=2.4.0", "dump-metadata-signatures", inputKlib.pathString),
-                environment = baseEnvironmentForWrapper(),
                 // the klib tool may print diagnostics to stderr
                 assertEmptyStdErr = false,
             )
@@ -534,7 +524,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
             runAmper(
                 workingDir = project,
                 args = listOf("build"),
-                environment = baseEnvironmentForWrapper(),
                 assertEmptyStdErr = false,
                 expectedExitCode = 1,
             ).stderr,
@@ -563,7 +552,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         val preSkipNonImportableModules = runAmper(
             workingDir = project,
             args = listOf("build"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
             expectedExitCode = 1,
         )
@@ -593,7 +581,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         runAmper(
             workingDir = project,
             args = listOf("build"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
         )
         Unit
@@ -621,7 +608,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         val result = runAmper(
             workingDir = project,
             args = listOf("build"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
         )
         assertContains(
@@ -652,7 +638,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         runAmper(
             workingDir = project,
             args = listOf("build"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
             expectedExitCode = 1,
         ).assertErrors(
@@ -689,7 +674,6 @@ open class SwiftPMImportTests : IOSBaseTest() {
         runAmper(
             workingDir = project,
             args = listOf("build"),
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
             expectedExitCode = 1,
         ).assertErrors(
@@ -709,11 +693,11 @@ open class SwiftPMImportTests : IOSBaseTest() {
         runAmper(
             workingDir = project,
             args = listOf("--log-level=debug", "test"),
-            environment = baseEnvironmentForWrapper() + mapOf(
-                "LINKAGE_TYPE" to linkageType,
-                "EXPECTED_OUTPUT" to initialExpectedOutput,
-                "SIMCTL_CHILD_EXPECTED_OUTPUT" to initialExpectedOutput,
-            ),
+            configureEnvironment = {
+                put("LINKAGE_TYPE", linkageType)
+                put("EXPECTED_OUTPUT", initialExpectedOutput)
+                put("SIMCTL_CHILD_EXPECTED_OUTPUT", initialExpectedOutput)
+            },
             assertEmptyStdErr = false,
         )
 
@@ -725,11 +709,11 @@ open class SwiftPMImportTests : IOSBaseTest() {
         runAmper(
             workingDir = project,
             args = listOf("--log-level=debug", "test"),
-            environment = baseEnvironmentForWrapper() + mapOf(
-                "LINKAGE_TYPE" to linkageType,
-                "EXPECTED_OUTPUT" to finalExpectedOutput,
-                "SIMCTL_CHILD_EXPECTED_OUTPUT" to finalExpectedOutput,
-            ),
+            configureEnvironment = {
+                put("LINKAGE_TYPE", linkageType)
+                put("EXPECTED_OUTPUT", finalExpectedOutput)
+                put("SIMCTL_CHILD_EXPECTED_OUTPUT", finalExpectedOutput)
+            },
             assertEmptyStdErr = false,
         )
     }

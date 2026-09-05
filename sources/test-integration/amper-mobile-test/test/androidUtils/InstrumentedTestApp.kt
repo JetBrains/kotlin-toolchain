@@ -26,12 +26,13 @@ object InstrumentedTestApp  {
      * Assembles the APKs of the test app: the host APK and the APK containing the instrumented tests themselves.
      */
     suspend fun assemble(testReporter: TestReporter): TestAppApks {
+        val androidTools = AndroidTools.prepareForTests()
         runGradle(
             projectDir = testAppProject,
             args = listOf("assembleDebug", "createDebugAndroidTestApk"),
             cmdName = "gradle (test-apk)",
             testReporter = testReporter,
-            additionalEnv = AndroidTools.prepareForTests().environment(),
+            configureEnvironment = { androidTools.configureEnvironment(this) },
             gradleVersion = "9.1.0",
         )
 

@@ -40,6 +40,9 @@ class ProcessRunner(
      *
      * If a [span] is provided, extra attributes are added to it about the process result (exit code, stdout, stderr).
      *
+     * By default, the child process inherits the environment of the current process. Use [configureEnvironment] to
+     * add, remove, or change environment variables from the environment map.
+     *
      * If this function is canceled before the process has terminated, it kills the process (first normally, then
      * forcibly), and cleans the stream readers. If the process is not killable and hangs, this function will also hang
      * instead of returning (otherwise the zombie process could leak).
@@ -53,19 +56,13 @@ class ProcessRunner(
         workingDir: Path,
         command: List<String>,
         span: Span? = null,
-        environment: Map<String, String> = emptyMap(),
+        configureEnvironment: MutableMap<String, String>.() -> Unit = {},
         outputMode: ProcessOutputMode<R>,
         input: ProcessInput = ProcessInput.Inherit,
     ): R {
         logger.debug("[cmd] ${ShellQuoting.quoteArgumentsPosixShellWay(command.toList())}")
 
         val result = withContext(Dispatchers.IO) {
-            val environmentWithTelemetry = buildMap {
-                put(OTEL_PARENT_CONTEXT_ENV_VAR, ChildProcessTelemetry.createSerializedParentContextData())
-                put(OTEL_FOLDER_ENV_VAR, telemetryDir.pathString)
-                putAll(environment)
-            }
-
             org.jetbrains.amper.processes.runProcess(
                 workingDir = workingDir,
                 // Why quoteCommandLineForCurrentPlatform:
@@ -74,7 +71,11 @@ class ProcessRunner(
                 // see, e.g., https://bugs.openjdk.org/browse/JDK-8131908
                 // this code is mostly tested by AmperBackendTest.simple multiplatform cli on jvm
                 command = CommandLineUtils.quoteCommandLineForCurrentPlatform(command),
-                environment = environmentWithTelemetry,
+                configureEnvironment = {
+                    put(OTEL_PARENT_CONTEXT_ENV_VAR, ChildProcessTelemetry.createSerializedParentContextData())
+                    put(OTEL_FOLDER_ENV_VAR, telemetryDir.pathString)
+                    configureEnvironment()
+                },
                 input = input,
                 outputMode = outputMode,
             )

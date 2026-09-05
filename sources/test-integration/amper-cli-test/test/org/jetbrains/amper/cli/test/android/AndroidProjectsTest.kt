@@ -137,7 +137,7 @@ class AndroidProjectsTest : CliTestBase() {
             projectDir = testProject("android/simple"),
             "build",
             configureAndroidHome = false,
-            environment = mapOf("ANDROID_HOME" to androidSdkHome.absolutePathString()),
+            configureEnvironment = { put("ANDROID_HOME", androidSdkHome.absolutePathString()) },
             expectedExitCode = 1,
             assertEmptyStdErr = false,
         )

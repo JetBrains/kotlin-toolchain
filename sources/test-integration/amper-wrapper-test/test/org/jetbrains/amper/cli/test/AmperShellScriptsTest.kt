@@ -130,7 +130,7 @@ class AmperShellScriptsTest : AmperCliWithWrapperTestBase() {
             bootstrapCacheDir = bootstrapCacheDir,
             // We want to test the proper download of the JRE to the bootstrap dir, so we have to unset this
             amperJavaHomeMode = JavaHomeMode.ForceUnset,
-            environment = mapOf("KOTLIN_CLI_NO_WELCOME_BANNER" to "1"),
+            configureEnvironment = { put("KOTLIN_CLI_NO_WELCOME_BANNER", "1") },
         )
         assertFalse("Process output must NOT contain welcome banner even the first time when disabled. Output:\n${result1.stdout}") {
             result1.stdout.contains("Welcome")

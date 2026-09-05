@@ -115,9 +115,10 @@ open class AndroidBaseTest : TestBase() {
         runAmper(
             workingDir = projectDir,
             args = listOf("task", ":$moduleName:buildAndroidDebug"),
-            environment = androidTools.environment() + mapOf(
-                "AMPER_NO_GRADLE_DAEMON" to "1", // ensures we don't leak the daemon
-            ),
+            configureEnvironment = {
+                androidTools.configureEnvironment(this)
+                put("AMPER_NO_GRADLE_DAEMON", "1") // ensures we don't leak the daemon
+            },
         )
         // internal Amper convention based on the task name
         return projectDir / "build/tasks/_${moduleName}_buildAndroidDebug/gradle-project-debug.apk"

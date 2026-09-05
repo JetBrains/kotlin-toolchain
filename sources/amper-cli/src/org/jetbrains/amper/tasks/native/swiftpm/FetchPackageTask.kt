@@ -117,14 +117,7 @@ class FetchPackageTask(
             var raceDownloadFailureHappened = false
             result = runProcess(
                 workingDir = syntheticImportProjectRoot,
-                configureEnvironment = {
-                    val environmentToFilter = listOf("SDKROOT")
-                    environmentToFilter.forEach { key ->
-                        if (it.containsKey(key)) {
-                            it.remove(key)
-                        }
-                    }
-                },
+                configureEnvironment = { remove("SDKROOT") },
                 command = [
                     "/usr/bin/swift",
                     "package",

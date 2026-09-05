@@ -63,8 +63,6 @@ open class IOSBaseTest : TestBase() {
         runAmper(
             workingDir = projectRootDir,
             args = listOf("build", "-m", moduleName, "-p", "iosSimulatorArm64"),
-            // xcode will in turn call Amper with this env
-            environment = baseEnvironmentForWrapper(),
             assertEmptyStdErr = false,
         )
         return projectRootDir / "build/tasks/_${moduleName}_buildIosAppIosSimulatorArm64Debug/bin/Debug-iphonesimulator"

@@ -227,9 +227,9 @@ class SwiftPMResolutionTest : CliTestBase() {
         runCli(
             projectDir = projectPath,
             "task", ":${moduleName}:dumpSwiftPMDependencyResolution",
-            environment = mapOf(
-                "SWIFTPM_RESOLUTION_DUMP_PATH" to dumpPath.pathString,
-            ),
+            configureEnvironment = {
+                put("SWIFTPM_RESOLUTION_DUMP_PATH", dumpPath.pathString)
+            },
             amperJvmArgs = mavenLocal,
         )
         return dumpPath.inputStream().use {
