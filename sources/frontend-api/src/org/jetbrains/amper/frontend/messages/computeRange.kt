@@ -4,7 +4,7 @@
 
 package org.jetbrains.amper.frontend.messages
 
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.findDocument
 import org.jetbrains.amper.frontend.getLineAndColumnRangeInDocument
@@ -23,7 +23,7 @@ fun FileWithRangesBuildProblemSource.computeRange(): LineAndColumnRange {
 
     val document = when (this) {
         is PsiBuildProblemSource -> psiElement.containingFile.viewProvider.document
-        else -> runReadAction {  // Fixme: do this via FrontendPathResolver?
+        else -> runReadActionBlocking {  // Fixme: do this via FrontendPathResolver?
             VirtualFileManager.getInstance().findFileByNioPath(file)
         }?.findDocument()
     }
