@@ -9,17 +9,23 @@ import org.jetbrains.amper.cli.test.utils.assertFileExists
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
+import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.AmperCliResult
+import org.jetbrains.amper.test.spans.spansNamed
 import org.junit.jupiter.api.Tag
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
+import kotlin.io.path.exists
+import kotlin.io.path.extension
 import kotlin.io.path.fileSize
 import kotlin.io.path.readText
+import kotlin.io.path.walk
 import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @Tag("cli-test-group-web")
@@ -263,6 +269,52 @@ class WasmJsProjectsTest : CliTestBase() {
 
         result.assertStderrContains("An error occurred on the page while running Kotlin/Wasm")
         result.assertStderrContains("Intentional page error from the test module")
+    }
+
+    @Test
+    fun `wasm js app without sources`() = runSlowTest {
+        val projectDir = newEmptyProjectDir(setupWrappers = true)
+        (projectDir / "module.yaml").writeText(
+            """
+            product: wasm-js/app
+            """.trimIndent()
+        )
+
+        val buildResult = runCli(
+            projectDir = projectDir,
+            "build",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        assertContains(
+            buildResult.stderr,
+            "Unable to link WASM application: there are no sources in fragments [common, wasmJs, web] of module 'new'.",
+        )
+
+        buildResult.readTelemetrySpans().spansNamed("kotlin-wasm_js-compilation").assertNone()
+        buildResult.readTelemetrySpans().spansNamed("kotlin-wasm_js-link").assertNone()
+
+        val buildWasmFiles = buildResult.buildDir
+            .walk()
+            .filter { it.extension in setOf("wasm", "klib") }
+            .toList()
+
+        assertTrue(
+            buildWasmFiles.isEmpty(),
+            "Expected no compiled or linked wasm/klib artifacts, but found: $buildWasmFiles"
+        )
+
+        val testResult = runCli(
+            projectDir = projectDir,
+            "test",
+        )
+
+        testResult.readTelemetrySpans().spansNamed("kotlin-wasm_js-compilation").assertNone()
+        testResult.readTelemetrySpans().spansNamed("kotlin-wasm_js-link").assertNone()
+
+        val testReports = testResult.buildDir / "reports"
+        assertFalse(testReports.exists(), "Expected no test reports when tests are skipped, but found: $testReports")
     }
 
     private fun AmperCliResult.checkComposeApplication() {

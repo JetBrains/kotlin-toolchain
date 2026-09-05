@@ -117,13 +117,16 @@ internal abstract class WebLinkTask(
             .firstOrNull { it.taskId == compileKLibTaskId }
             ?.compiledKlib
 
-        if (includeArtifact == null && isTest) {
-            // We may skip linking for test specifically if there's no compiled code in the fragments.
-            // Libraries are of no interest here because they can't contain any tests
-            logger.debug("No test code was found compiled for ${fragments.identificationPhrase()}, skipping linking")
-            return Result(
-                linkedBinary = null,
-            )
+        if (includeArtifact == null) {
+            if (isTest) {
+                logger.debug("No compiled code was found for ${fragments.identificationPhrase()}, skipping linking")
+                return Result(
+                    linkedBinary = null,
+                )
+            }
+
+            userReadableError("Unable to link WASM application: there are no sources in ${fragments.identificationPhrase()}.\n" +
+                              "In 'wasm/app' modules, the main() function has to be in the module's own sources – it cannot be provided by dependencies.")
         }
 
         val compileKLibDependencies = dependenciesResult
