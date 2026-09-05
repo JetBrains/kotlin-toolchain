@@ -80,7 +80,7 @@ class IosKotlinTestTask(
                 .setListAttribute("args", spawnTestsCommand.drop(1))
                 .use { span ->
                     if (!processRunner.isSimulatorBooted(chosenDevice)) {
-                        processRunner.bootAndWaitSimulator(chosenDevice)
+                        processRunner.bootAndWaitSimulator(chosenDevice, failIfAlreadyBooted = false)
                     }
 
                     val swiftPMSearchPaths = swiftPMImportParsedLdCall?.parsedLdCall?.dyldEnvSearchPaths(

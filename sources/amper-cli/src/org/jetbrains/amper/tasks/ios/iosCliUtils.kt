@@ -82,6 +82,7 @@ suspend fun ProcessRunner.isSimulatorBooted(
 suspend fun ProcessRunner.bootAndWaitSimulator(
     deviceId: XcodeDeviceId,
     forceShowWindow: Boolean = false,
+    failIfAlreadyBooted: Boolean = false,
 ) {
     if (forceShowWindow) {
         // The `open` command works without any errors/warnings regardless of the simulator boot status.
@@ -98,7 +99,9 @@ suspend fun ProcessRunner.bootAndWaitSimulator(
         )
     }
 
-    SimCtl.boot(deviceId.value)
+    SimCtl.boot(deviceId.value, failIfAlreadyBooted)
+
+    // we could also use `simctl bootstatus -b` which boots and waits on its own
     repeat(20) {
         if (isSimulatorBooted(deviceId)) {
             return  // Success
@@ -180,19 +183,24 @@ private fun <T : DeviceCandidate> selectBestIosDevice(
 
 private abstract class Xcrun {
     context(_: ProcessRunner)
-    protected suspend fun xcrun(vararg args: String): ProcessResult =
-        xcrun(*args, outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)))
+    protected suspend fun xcrun(vararg args: String, checkNonZeroExitCode: Boolean = true): ProcessResult.WithStderr =
+        xcrun(
+            *args,
+            outputMode = ProcessOutputMode.listenAndCaptureStderr(LoggingProcessOutputListener(logger)),
+            checkNonZeroExitCode = checkNonZeroExitCode,
+        )
 
     context(processRunner: ProcessRunner)
     protected suspend fun <R : ProcessResult> xcrun(
         vararg args: String,
         outputMode: ProcessOutputMode<R>,
+        checkNonZeroExitCode: Boolean = true,
     ): R = processRunner.runProcess(
         workingDir = Path("."),
         command = listOf(XCRUN_EXECUTABLE) + args,
         outputMode = outputMode,
     ).also {
-        if (it.exitCode != 0) {
+        if (checkNonZeroExitCode && it.exitCode != 0) {
             userReadableError("xcrun `${args.contentToString()}` failed with exit code ${it.exitCode}")
         }
     }
@@ -280,7 +288,21 @@ private object SimCtl : Xcrun() {
     ).stdout.trim()
 
     context(_: ProcessRunner)
-    suspend fun boot(deviceId: String) = xcrun("simctl", "boot", deviceId)
+    suspend fun boot(deviceId: String, failIfAlreadyBooted: Boolean = false) {
+        val result = xcrun("simctl", "boot", deviceId, checkNonZeroExitCode = false)
+        if ("Unable to boot device in current state: Booted" in result.stderr) {
+            if (failIfAlreadyBooted) {
+                userReadableError("Simulator for device ID $deviceId is already booted")
+            } else {
+                return
+            }
+        }
+        if (result.exitCode != 0) {
+            userReadableError("Failed to boot simulator: command `${result.command.joinToString(" ")}` failed with " +
+                    "exit code ${result.exitCode}")
+        }
+        return
+    }
 
     context(_: ProcessRunner)
     suspend fun install(deviceId: String, appPath: Path) = xcrun("simctl", "install", deviceId, appPath.pathString)
