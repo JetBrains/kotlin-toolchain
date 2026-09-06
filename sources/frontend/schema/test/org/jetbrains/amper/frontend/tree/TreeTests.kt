@@ -20,12 +20,14 @@ import org.jetbrains.amper.frontend.types.SchemaTypingContext
 import org.jetbrains.amper.plugins.schema.model.PluginData
 import org.jetbrains.amper.plugins.schema.model.PluginSettingsSearchResult
 import org.jetbrains.amper.plugins.schema.model.SourceLocation
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@Tag("gold-file")
 class TreeTests : FrontendTestCaseBase(Path(".") / "testResources" / "valueTree") {
 
     @Test

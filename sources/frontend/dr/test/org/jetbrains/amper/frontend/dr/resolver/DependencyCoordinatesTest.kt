@@ -5,11 +5,13 @@
 package org.jetbrains.amper.frontend.dr.resolver
 
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
 import kotlin.io.path.div
 
+@Tag("gold-file")
 class DependencyCoordinatesTest: BaseModuleDrTest() {
 
     override val testGoldenFilesRoot: Path = super.testGoldenFilesRoot / "mavenCoordinates"

@@ -7,12 +7,14 @@ package org.jetbrains.amper.frontend.dr.resolver
 import org.jetbrains.amper.dependency.resolution.DependencyGraph.Companion.toGraph
 import org.jetbrains.amper.dependency.resolution.DependencyNode
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
 import kotlin.reflect.KClass
 import kotlin.test.assertSame
 
+@Tag("gold-file")
 class GraphOptimizationsTest : BaseModuleDrTest() {
 
     override val testGoldenFilesRoot: Path

@@ -9,12 +9,14 @@ import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
 import org.jetbrains.amper.frontend.helpers.diagnosticsTest
 import org.jetbrains.amper.frontend.helpers.readProjectContextWithTestFrontendResolver
 import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.io.path.relativeTo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@Tag("gold-file")
 class RequiredValuesTest : FrontendTestCaseBase(Path("testResources") / "required-values") {
     @Test
     fun `invalid platforms`() {

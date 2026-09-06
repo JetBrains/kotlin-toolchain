@@ -6,11 +6,13 @@ package org.jetbrains.amper.frontend.schema.diagnostics
 
 import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
 import org.jetbrains.amper.frontend.helpers.diagnosticsTest
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import kotlin.io.path.Path
 import kotlin.io.path.div
 
+@Tag("gold-file")
 class JvmReleaseLowerThanDependenciesDiagnosticTest : FrontendTestCaseBase(Path("testResources") / "diagnostics" / "jvm-release-mismatch") {
 
     @ParameterizedTest

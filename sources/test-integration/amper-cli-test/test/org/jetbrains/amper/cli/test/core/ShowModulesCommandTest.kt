@@ -13,6 +13,7 @@ import kotlin.io.path.Path
 import kotlin.test.Test
 
 @Tag("cli-test-group-core")
+@Tag("gold-file")
 class ShowModulesCommandTest : CliTestBase() {
 
     private fun AmperCliResult.checkGold(caseName: String) = GoldFileTest(

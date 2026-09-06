@@ -9,11 +9,13 @@ import org.jetbrains.amper.frontend.helpers.TestSystemInfo
 import org.jetbrains.amper.frontend.helpers.aomTest
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.test.Ignore
 import kotlin.test.Test
 
+@Tag("gold-file")
 internal class ParserKtTest : FrontendTestCaseBase(Path("testResources") / "parser") {
 
     @Test

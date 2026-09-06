@@ -8,6 +8,7 @@ import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
 import org.jetbrains.amper.frontend.helpers.diagnosticsTest
 import org.jetbrains.amper.frontend.tree.TreeDiagnosticId
 import org.jetbrains.amper.problems.reporting.BuildProblem
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.test.Test
@@ -16,6 +17,7 @@ import kotlin.test.assertEquals
 /**
  * Tests for the diagnostic backing [org.jetbrains.amper.frontend.api.NotBlank].
  */
+@Tag("gold-file")
 class NotBlankValuesDiagnosticsTest : FrontendTestCaseBase(Path("testResources") / "diagnostics" / "not-blank") {
 
     @Test

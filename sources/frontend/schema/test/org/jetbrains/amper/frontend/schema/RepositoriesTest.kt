@@ -7,10 +7,12 @@ package org.jetbrains.amper.frontend.schema
 import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
 import org.jetbrains.amper.frontend.helpers.aomTest
 import org.jetbrains.amper.frontend.helpers.diagnosticsTest
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.test.Test
 
+@Tag("gold-file")
 internal class RepositoriesTest : FrontendTestCaseBase(Path("testResources") / "repositories") {
 
     @Test

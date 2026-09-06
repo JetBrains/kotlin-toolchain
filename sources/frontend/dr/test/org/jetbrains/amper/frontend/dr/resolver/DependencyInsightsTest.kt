@@ -12,6 +12,7 @@ import org.jetbrains.amper.dependency.resolution.group
 import org.jetbrains.amper.dependency.resolution.module
 import org.jetbrains.amper.dependency.resolution.originalVersion
 import org.jetbrains.amper.dependency.resolution.resolvedVersion
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
@@ -21,6 +22,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@Tag("gold-file")
 open class DependencyInsightsTest : AbstractDependencyInsightsTest() {
     override val testGoldenFilesRoot: Path = super.testGoldenFilesRoot / "dependencyInsights"
 

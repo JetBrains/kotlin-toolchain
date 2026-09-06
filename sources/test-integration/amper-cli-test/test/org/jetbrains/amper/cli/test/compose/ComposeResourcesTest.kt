@@ -186,6 +186,7 @@ class ComposeResourcesTest : CliTestBase() {
      * metadata variant, for every platform that doesn't pack its resources into the main artifact.
      */
     @Test
+    @Tag("gold-file")
     fun `compose resources publication (kmp library)`(testInfo: TestInfo) = runSlowTest {
         val result = runCli(
             projectDir = testProject("compose-resources-publication"),
@@ -218,6 +219,7 @@ class ComposeResourcesTest : CliTestBase() {
      * is what KGP does too), and it carries the native target attributes.
      */
     @Test
+    @Tag("gold-file")
     @MacOnly
     fun `compose resources publication (native)`(testInfo: TestInfo) = runSlowTest {
         val result = runCli(

@@ -141,6 +141,7 @@ class KotlinModuleMetadataTest : CliTestBase() {
      * To ensure the compatibility with the KGP consumer, the golden file should be kept unchanged.
      */
     @Test
+    @Tag("gold-file")
     @MacOnly
     fun `assemble kotlin project structure descriptor of libraryCinterop module`(testInfo: TestInfo) = runSlowTest {
         runCli(projectDir = testProject("multiplatform-library-template-main"),
@@ -169,6 +170,7 @@ class KotlinModuleMetadataTest : CliTestBase() {
      * To ensure the compatibility with the KGP consumer, the golden file should be kept unchanged.
      */
     @Test
+    @Tag("gold-file")
     @MacOnly
     fun `assemble kotlin project structure descriptor of libraryNested module`(testInfo: TestInfo) = runSlowTest {
         runCli(projectDir = testProject("multiplatform-library-template-main"),

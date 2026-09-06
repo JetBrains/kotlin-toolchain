@@ -166,6 +166,7 @@ class MavenConvertTest : CliTestBase() {
     }
 
     @Test
+    @Tag("gold-file")
     fun `spring-petclinic`() = runSlowTest {
         val projectRoot = testProject("maven-convert/spring-petclinic")
 
@@ -549,6 +550,7 @@ class MavenConvertTest : CliTestBase() {
     }
 
     @Test
+    @Tag("gold-file")
     fun `duplicate-executions`() = runSlowTest {
         val projectRoot = testProject("maven-convert/duplicate-executions")
 

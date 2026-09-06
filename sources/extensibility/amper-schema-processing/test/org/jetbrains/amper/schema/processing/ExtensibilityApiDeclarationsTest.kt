@@ -10,6 +10,7 @@ import org.jetbrains.amper.plugins.schema.model.PluginDeclarationsRequest
 import org.jetbrains.amper.plugins.schema.model.withoutOrigin
 import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.normalizeLineSeparators
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.deleteIfExists
@@ -20,6 +21,7 @@ import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@Tag("gold-file")
 class ExtensibilityApiDeclarationsTest {
     private val extensibilityApiSrc = Path("../amper-extensibility-api/src").absolute().normalize()
     private val request = PluginDeclarationsRequest.Request(

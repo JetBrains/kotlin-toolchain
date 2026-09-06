@@ -14,6 +14,7 @@ import kotlin.io.path.Path
 import kotlin.test.Test
 
 @Tag("cli-test-group-dependencies")
+@Tag("gold-file")
 class ShowDependenciesCommandTest : CliTestBase() {
 
     private fun AmperCliResult.checkGold(caseName: String) = GoldFileTest(

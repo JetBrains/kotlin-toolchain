@@ -9,6 +9,7 @@ import org.jetbrains.amper.dependency.resolution.MavenDependencyNode
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.test.dr.toMavenCoordinates
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
 import kotlin.io.path.div
@@ -30,6 +31,7 @@ import kotlin.test.assertNotNull
  *    It will be fixed in the nearest future (as soon as Amper IDE plugin started calling
  *    CLI for running application instead of reusing module classpath from the Workspace model)
  */
+@Tag("gold-file")
 class ModuleDependenciesGraphMultiplatformTest : BaseModuleDrTest() {
     override val testGoldenFilesRoot: Path = super.testGoldenFilesRoot / "moduleDependenciesGraphMultiplatform"
 

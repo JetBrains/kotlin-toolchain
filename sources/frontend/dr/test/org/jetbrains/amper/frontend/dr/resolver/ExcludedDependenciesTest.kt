@@ -8,6 +8,7 @@ import org.jetbrains.amper.dependency.resolution.IncrementalCacheUsage
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.test.runTestRespectingDelays
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
@@ -16,6 +17,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.io.path.div
 import kotlin.test.Test
 
+@Tag("gold-file")
 class ExcludedDependenciesTest: BaseModuleDrTest() {
 
     override val testGoldenFilesRoot: Path = super.testGoldenFilesRoot / "excludedDependencies"

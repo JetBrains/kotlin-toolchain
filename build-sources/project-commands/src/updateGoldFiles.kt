@@ -4,10 +4,7 @@
 
 @file:Suppress("ReplacePrintlnWithLogging")
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.jetbrains.amper.plugins.ExecutionAvoidance
 import org.jetbrains.amper.plugins.Input
 import org.jetbrains.amper.plugins.TaskAction
@@ -45,78 +42,74 @@ private class AmperGoldUpdater(
     private val testResourcesDir = schemaModuleDir / "testResources"
     private val testResourcePathRegex = Regex("(${Regex.escape(testResourcesDir.absolutePathString())})[^),\"'\n\r]*")
 
+    /**
+     * The modules containing tests tagged with `gold-file`.
+     *
+     * The tag alone is not enough to select them: the `test` command requires an explicit module selection when
+     * test filters are used, and fails on modules that have no test matching the filters.
+     */
+    // TODO remove this once KTC-4234 is implemented (we will be able to rely solely on the gold-file tag)
+    private val goldFileTestModules = [
+        "schema",
+        "dr",
+        "amper-cli-test",
+        "amper-schema-processing",
+        "amper-schema-processor",
+    ]
+
+    /**
+     * The directories under which the gold files of [goldFileTestModules] (and their `.tmp` counterparts) live.
+     */
+    private val goldFilesRoots = [
+        "sources/frontend/schema",
+        "sources/frontend/dr",
+        "sources/test-integration/amper-cli-test",
+        "sources/extensibility/amper-schema-processing",
+        "sources/extensibility/amper-schema-processor",
+        // contains the shadow schema sources generated from the extensibility API declarations
+        "sources/frontend-api",
+    ].map { amperRootDir / it }
+
     suspend fun updateGoldFiles() {
-        withContext(Dispatchers.IO) {
-            launch { updateDrGoldFiles(amperRootDir) }
-            launch { updateSchemaGoldFiles(amperRootDir) }
-            launch { updateCliGoldFiles(amperRootDir) }
-            launch { updatePluginGoldFiles(amperRootDir) }
-        }
-    }
-
-    private suspend fun updateDrGoldFiles(amperRootDir: Path) {
-        updateGoldFilesUntilSuccess(
-            sectionName = "dr module",
-            goldFilesRoots = listOf(amperRootDir / "sources/frontend/dr"),
-        ) {
-            runAmperCli(amperRootDir, "test", "-m", "dr")
-        }
-    }
-
-    private suspend fun updateSchemaGoldFiles(amperRootDir: Path) {
-        updateGoldFilesUntilSuccess(
-            sectionName = "schema module",
-            goldFilesRoots = listOf(schemaModuleDir),
-        ) {
-            runAmperCli(amperRootDir, "test", "-m", "schema")
-        }
-    }
-
-    private suspend fun updateCliGoldFiles(amperRootDir: Path) {
-        updateGoldFilesUntilSuccess(
-            sectionName = "amper-cli-test module",
-            goldFilesRoots = listOf(amperRootDir / "sources/test-integration/amper-cli-test"),
-        ) {
-            runAmperCli(amperRootDir, "test", "-m", "amper-cli-test", "--include-classes=*.ShowSettingsCommandTest", "--include-classes=*.ShowDependenciesCommandTest")
-        }
-    }
-
-    private suspend fun updatePluginGoldFiles(amperRootDir: Path) {
-        updateGoldFilesUntilSuccess(
-            sectionName = "amper-cli-test module",
-            goldFilesRoots = listOf(
-                amperRootDir / "sources/extensibility/amper-schema-processing",
-                amperRootDir / "sources/frontend-api",
-            ),
-        ) {
-            runAmperCli(amperRootDir, "test", "-m", "amper-schema-processing")
-        }
-    }
-
-    private inline fun updateGoldFilesUntilSuccess(sectionName: String, goldFilesRoots: List<Path>, runTests: () -> ProcessResult) {
-        println("=== Updating $sectionName gold files ===")
+        println("=== Updating gold files ===")
         repeat(maxAttempts) { attemptIndex ->
             val attemptNumber = attemptIndex + 1
-            println("Attempt $attemptNumber/$maxAttempts: running tests...")
-            val exitCode = runTests().exitCode
-            if (exitCode == 0) {
-                println("Tests passed for $sectionName.")
+            println("Attempt $attemptNumber/$maxAttempts: running gold file tests...")
+            if (runGoldFileTests().exitCode == 0) {
+                println("All gold file tests passed.")
                 println()
                 return
             }
 
             val updatedFilesCount = updateTmpFilesUnder(goldFilesRoots)
             if (updatedFilesCount == 0) {
-                println("Tests failed for $sectionName, but no .tmp files were found.")
+                println("Gold file tests failed, but no .tmp files were found.")
                 println("Retrying is pointless here because gold files didn't change, please check the test failure.")
                 return
-            } else {
-                println("Updated $updatedFilesCount gold file(s) for $sectionName.")
             }
+            println("Updated $updatedFilesCount gold file(s).")
             println()
         }
 
-        error("Failed to update $sectionName gold files after $maxAttempts attempts.")
+        error("Failed to update gold files after $maxAttempts attempts.")
+    }
+
+    private suspend fun runGoldFileTests(): ProcessResult = runAmperCli(
+        args = buildList {
+            add("test")
+            addAll(goldFileTestModules.map { "--include-module=$it" })
+            add("--include-tag=gold-file")
+        }
+    )
+
+    private suspend fun runAmperCli(args: List<String>): ProcessResult {
+        val isWindows = System.getProperty("os.name").startsWith("Win", ignoreCase = true)
+        val amperScript = amperRootDir.resolve(if (isWindows) "kotlin.bat" else "kotlin")
+        return runProcess(
+            command = listOf(amperScript.pathString) + args,
+            outputMode = ProcessOutputMode.Inherit,
+            input = ProcessInput.Inherit,
+        )
     }
 
     private fun updateTmpFilesUnder(roots: List<Path>): Int {
@@ -130,16 +123,6 @@ private class AmperGoldUpdater(
                 updatedFilesCount++
             }
         return updatedFilesCount
-    }
-
-    private suspend fun runAmperCli(amperRootDir: Path, vararg args: String): ProcessResult {
-        val isWindows = System.getProperty("os.name").startsWith("Win", ignoreCase = true)
-        val amperScript = amperRootDir.resolve(if (isWindows) "kotlin.bat" else "kotlin")
-        return runProcess(
-            command = listOf(amperScript.pathString) + args,
-            outputMode = ProcessOutputMode.Inherit,
-            input = ProcessInput.Inherit,
-        )
     }
 
     private fun updateGoldFileFor(tmpResultFile: Path) {

@@ -15,6 +15,7 @@ import org.jetbrains.amper.dependency.resolution.diagnostics.Severity
 import org.jetbrains.amper.dependency.resolution.diagnostics.UnableToDownloadChecksums
 import org.jetbrains.amper.dependency.resolution.diagnostics.UnableToDownloadFile
 import org.jetbrains.amper.test.dr.toMavenNode
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
 import kotlin.io.path.div
@@ -26,6 +27,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
+@Tag("gold-file")
 class BuildGraphTest : BaseDRTest() {
     override val testDataPath: Path = super.testDataPath / "buildGraph"
 

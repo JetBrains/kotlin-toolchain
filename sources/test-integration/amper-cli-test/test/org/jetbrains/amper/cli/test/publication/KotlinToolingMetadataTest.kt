@@ -30,6 +30,7 @@ import kotlin.test.assertFalse
  * the tests below.
  */
 @Tag("cli-test-group-publication")
+@Tag("gold-file")
 class KotlinToolingMetadataTest : CliTestBase() {
 
     private val testGoldenFilesRoot: Path =

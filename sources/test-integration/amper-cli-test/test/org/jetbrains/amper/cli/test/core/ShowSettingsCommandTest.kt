@@ -14,6 +14,7 @@ import kotlin.io.path.Path
 import kotlin.test.Test
 
 @Tag("cli-test-group-core")
+@Tag("gold-file")
 class ShowSettingsCommandTest : CliTestBase() {
 
     private fun AmperCliResult.checkGold(caseName: String) = GoldFileTest(

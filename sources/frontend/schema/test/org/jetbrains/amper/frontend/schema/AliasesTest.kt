@@ -6,10 +6,12 @@ package org.jetbrains.amper.frontend.schema
 
 import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
 import org.jetbrains.amper.frontend.helpers.aomTest
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import kotlin.io.path.Path
 import kotlin.io.path.div
 
+@Tag("gold-file")
 class AliasesTest : FrontendTestCaseBase(Path("testResources") / "parser" / "aliases") {
     @Test
     fun `regular alias`() {

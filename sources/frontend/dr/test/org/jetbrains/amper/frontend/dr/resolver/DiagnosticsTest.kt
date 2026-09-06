@@ -23,6 +23,7 @@ import org.jetbrains.amper.problems.reporting.FileWithRangesBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.LineAndColumn
 import org.jetbrains.amper.problems.reporting.LineAndColumnRange
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.assertInstanceOf
@@ -39,6 +40,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@Tag("gold-file")
 class DiagnosticsTest : AbstractDependencyInsightsTest() {
 
     override val testGoldenFilesRoot: Path

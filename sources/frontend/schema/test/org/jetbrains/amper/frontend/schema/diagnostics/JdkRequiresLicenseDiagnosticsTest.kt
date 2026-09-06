@@ -6,9 +6,11 @@ package org.jetbrains.amper.frontend.schema.diagnostics
 
 import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
 import org.jetbrains.amper.frontend.helpers.diagnosticsTest
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
 import kotlin.test.Test
 
+@Tag("gold-file")
 class JdkRequiresLicenseDiagnosticsTest : FrontendTestCaseBase(Path("testResources/diagnostics")) {
 
     @Test

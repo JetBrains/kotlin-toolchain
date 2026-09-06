@@ -8,10 +8,12 @@ import org.jetbrains.amper.frontend.catalogs.parseGradleVersionCatalog
 import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
 import org.jetbrains.amper.frontend.helpers.aomTest
 import org.jetbrains.amper.frontend.helpers.diagnosticsTest
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.test.Test
 
+@Tag("gold-file")
 internal class VersionCatalogTest : FrontendTestCaseBase(Path("testResources") / "catalogs") {
 
     @Test

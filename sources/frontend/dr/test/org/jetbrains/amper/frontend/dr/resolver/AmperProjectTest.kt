@@ -10,6 +10,7 @@ import org.jetbrains.amper.frontend.dr.resolver.diagnostics.reporters.ModuleDepe
 import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.test.Dirs
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import org.slf4j.LoggerFactory
@@ -31,6 +32,7 @@ import kotlin.test.fail
 
 private val logger = LoggerFactory.getLogger(AmperProjectDependenciesTest::class.java)
 
+@Tag("gold-file")
 class AmperProjectDependenciesTest: AbstractDependencyInsightsTest() {
 
     override val testGoldenFilesRoot: Path get() = super.testGoldenFilesRoot.resolve("amper")

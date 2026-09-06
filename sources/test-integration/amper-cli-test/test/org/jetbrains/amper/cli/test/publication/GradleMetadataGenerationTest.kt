@@ -19,6 +19,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @Tag("cli-test-group-publication")
+@Tag("gold-file")
 class GradleMetadataGenerationTest : CliTestBase() {
 
     @Test

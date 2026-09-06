@@ -21,6 +21,7 @@ import org.jetbrains.amper.dependency.resolution.group
 import org.jetbrains.amper.dependency.resolution.isOrphan
 import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.runTestWithMdc
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import org.reflections.Reflections
@@ -37,6 +38,7 @@ class GraphSerializationTest: BaseModuleDrTest() {
     val json = GraphJson.json
 
     @Test
+    @Tag("gold-file")
     fun serializationTestJava(testInfo: TestInfo) = runSlowModuleDependenciesTest(checkIncrementalCache = false) {
         val aom = getTestProjectModel("jvm-transitive-dependencies", testDataRoot)
 
@@ -52,6 +54,7 @@ class GraphSerializationTest: BaseModuleDrTest() {
     }
 
     @Test
+    @Tag("gold-file")
     fun serializationTestKmp(testInfo: TestInfo) = runSlowModuleDependenciesTest(checkIncrementalCache = false) {
         val aom = getTestProjectModel("compose-multiplatform", testDataRoot)
 
@@ -72,6 +75,7 @@ class GraphSerializationTest: BaseModuleDrTest() {
     }
 
     @Test
+    @Tag("gold-file")
     fun serializationTestInvalidDependencies(testInfo: TestInfo) = runSlowModuleDependenciesTest(checkIncrementalCache = false) {
         val aom = getTestProjectModel("jvm-unresolved-dependencies", testDataRoot)
 

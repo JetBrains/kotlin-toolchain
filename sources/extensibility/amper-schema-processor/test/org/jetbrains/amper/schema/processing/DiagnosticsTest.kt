@@ -4,9 +4,11 @@
 
 package org.jetbrains.amper.schema.processing
 
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import kotlin.io.path.Path
 
+@Tag("gold-file")
 class DiagnosticsTest : SchemaProcessorTestBase() {
 
     @Test

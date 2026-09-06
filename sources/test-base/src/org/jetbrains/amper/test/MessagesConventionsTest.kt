@@ -4,11 +4,13 @@
 
 package org.jetbrains.amper.test
 
+import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.test.Test
 
+@Tag("gold-file")
 abstract class MessagesConventionsTest(private val bundleName: String) {
     @Test
     fun messagesAreSortedAlphabetically() {

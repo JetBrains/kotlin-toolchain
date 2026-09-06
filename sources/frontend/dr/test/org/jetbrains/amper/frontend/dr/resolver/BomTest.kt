@@ -8,6 +8,7 @@ import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.UnspecifiedDependencyVersion
 import org.jetbrains.amper.dependency.resolution.diagnostics.Severity
 import org.jetbrains.amper.frontend.schema.DefaultVersions
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
@@ -102,6 +103,7 @@ class BomTest: BaseModuleDrTest() {
      * Version of an exported direct dependency is resolved from BOM if it was left unspecified.
      */
     @Test
+    @Tag("gold-file")
     fun `resolving version of an exported direct dependency from BOM`(testInfo: TestInfo) = runModuleDependenciesTest {
         val aom = getTestProjectModel("jvm-bom-support-exported", testDataRoot)
 
@@ -132,6 +134,7 @@ class BomTest: BaseModuleDrTest() {
      * directly declared along with the dependency on 'io.github.dokar3:sonner:0.3.8' itself.
      */
     @Test
+    @Tag("gold-file")
     fun `resolving version of a transitive dependency from BOM`(testInfo: TestInfo) = runModuleDependenciesTest {
         val aom = getTestProjectModel("jvm-bom-support-unspecified-transitive", testDataRoot)
 
@@ -161,6 +164,7 @@ class BomTest: BaseModuleDrTest() {
      * and DR reports a corresponding error.
      */
     @Test
+    @Tag("gold-file")
     fun `reporting unspecified version of a transitive dependency`(testInfo: TestInfo) = runModuleDependenciesTest {
         val aom = getTestProjectModel("jvm-unspecified-transitive", testDataRoot)
 

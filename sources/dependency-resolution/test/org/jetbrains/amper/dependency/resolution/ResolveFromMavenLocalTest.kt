@@ -11,6 +11,7 @@ import org.jetbrains.amper.dependency.resolution.metadata.xml.parseMetadata
 import org.jetbrains.amper.dependency.resolution.metadata.xml.serialize
 import org.jetbrains.amper.test.dr.toMavenCoordinates
 import org.jetbrains.amper.test.dr.toMavenNode
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.assertNotNull
@@ -34,6 +35,7 @@ import kotlin.test.assertContains
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+@Tag("gold-file")
 class ResolveFromMavenLocalTest : BaseDRTest() {
 
     override val testDataPath: Path = super.testDataPath / "mavenLocal" / "goldenFiles"

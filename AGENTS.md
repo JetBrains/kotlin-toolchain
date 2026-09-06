@@ -28,6 +28,8 @@ project.
 * When changing anything in the frontend schema, update golden test files by running: `./kotlin do updateGoldFiles`
 * When updating user-visible default versions, do it in `build-sources/project-commands/module.yaml`, and run
   `./kotlin do updateGoldFiles`
+* Tests asserting against golden files are marked with the `@Tag("gold-file")` JUnit tag.
+  Add this tag to any new golden-file test. It allows `./kotlin do updateGoldFiles` to run tests based on those tags.
 
 ## Specific instructions
 

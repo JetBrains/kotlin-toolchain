@@ -7,12 +7,14 @@ package org.jetbrains.amper.frontend.schema
 import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
 import org.jetbrains.amper.frontend.helpers.diagnosticsTest
 import org.jetbrains.amper.frontend.tree.reading.maven.MavenCoordinatesParsingProblem
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.fail
 import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@Tag("gold-file")
 class ParsingErrorsTest : FrontendTestCaseBase(Path("testResources") / "parsing-errors") {
     @Test
     fun `unexpected value type`() {

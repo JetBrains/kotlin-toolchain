@@ -54,6 +54,7 @@ class PluginsTest : CliTestBase() {
     }
 
     @Test
+    @Tag("gold-file")
     fun `distribution plugin`() = runSlowTest {
         val testProjectSourcesDir = testProject("extensibility/distribution")
         val r1 = runCli(
@@ -723,6 +724,7 @@ class PluginsTest : CliTestBase() {
     }
 
     @Test
+    @Tag("gold-file")
     fun `parametrized dependencies`() = runSlowTest {
         val testProject = testProject("extensibility/parametrized-dependencies")
         val result = runCli(
