@@ -45,11 +45,6 @@ sealed class ModuleTaskTypes(
         operationMoniker = "dumping SwiftPM dependency resolution",
     )
 
-    data object DumpKlib : ModuleTaskTypes(
-        internalName = "dumpKlib",
-        operationMoniker = "dumping klib signatures",
-    )
-
     data object ImportSwiftPMDependenciesPackageGen : ModuleTaskTypes(
         internalName = "internalSwiftPMImportPackageGen",
         operationMoniker = "generating SwiftPM import package",

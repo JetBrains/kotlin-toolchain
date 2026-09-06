@@ -26,7 +26,6 @@ import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
 import kotlin.io.path.readText
-import kotlin.io.path.useLines
 import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -227,25 +226,21 @@ open class SwiftPMImportTests : IOSBaseTest() {
         val inputKlib = project.resolve("build/generated/firebase/iosSimulatorArm64/cinterop/firebase-cinterop-firebase_swiftPMImport.klib")
         assert(inputKlib.exists())
 
-        val outputDump = project.resolve("outputDump")
-        runAmper(
+        val klibDump = runAmper(
             workingDir = project,
-            args = listOf("task", ":firebase:dumpKlib"),
-            environment = baseEnvironmentForWrapper() + mapOf(
-                "INPUT_KLIB" to inputKlib.pathString,
-                "OUTPUT_DUMP" to outputDump.pathString,
-            ),
+            args = listOf("tool", "klib", "--kotlin-version=2.4.0", "dump-metadata-signatures", inputKlib.pathString),
+            environment = baseEnvironmentForWrapper(),
+            // the klib tool may print diagnostics to stderr
+            assertEmptyStdErr = false,
         )
 
         val firebaseApis = expectedFirebaseApis.mapValues { mutableListOf<String>() }.toMutableMap()
 
-        outputDump.useLines { lines ->
-            lines.forEach { line ->
-                firebaseApis.keys.firstOrNull {
-                    it in line
-                }?.let {
-                    firebaseApis[it]?.add(line)
-                }
+        klibDump.stdout.lines().forEach { line ->
+            firebaseApis.keys.firstOrNull {
+                it in line
+            }?.let {
+                firebaseApis[it]?.add(line)
             }
         }
 
@@ -437,22 +432,18 @@ open class SwiftPMImportTests : IOSBaseTest() {
 
         suspend fun dumpImportedClasses(): List<String> {
             val inputKlib = project.resolve("build/generated/direct-local-swiftpm-dependency/iosSimulatorArm64/cinterop/direct-local-swiftpm-dependency-cinterop-direct-local-swiftpm-dependency_swiftPMImport.klib")
-            val outputDump = project.resolve("outputDump")
             runAmper(
                 workingDir = project,
                 args = listOf("build"),
             )
-            runAmper(
+            val klibDump = runAmper(
                 workingDir = project,
-                args = listOf("task", ":direct-local-swiftpm-dependency:dumpKlib"),
-                environment = baseEnvironmentForWrapper() + mapOf(
-                    "INPUT_KLIB" to inputKlib.pathString,
-                    "OUTPUT_DUMP" to outputDump.pathString,
-                ),
+                args = listOf("tool", "klib", "--kotlin-version=2.4.0", "dump-metadata-signatures", inputKlib.pathString),
+                environment = baseEnvironmentForWrapper(),
+                // the klib tool may print diagnostics to stderr
+                assertEmptyStdErr = false,
             )
-            return outputDump.useLines {
-                it.filter { "<init>" in it }.toList()
-            }
+            return klibDump.stdout.lines().filter { "<init>" in it }
         }
 
         project.resolve("module.yaml").writeText(

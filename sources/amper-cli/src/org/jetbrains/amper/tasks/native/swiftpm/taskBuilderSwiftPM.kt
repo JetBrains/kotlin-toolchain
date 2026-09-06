@@ -37,14 +37,6 @@ fun ProjectTasksBuilder.setupSwiftPMTasks() {
                     taskName = ModuleTaskTypes.DumpSwiftPMDependencyResolution.getTaskName(module),
                 )
             )
-            tasks.registerTask(
-                task = DumpKlibSignaturesTask(
-                    module = module,
-                    userCacheRoot = context.userCacheRoot,
-                    taskName = ModuleTaskTypes.DumpKlib.getTaskName(module),
-                    terminal = context.terminal,
-                )
-            )
 
             val internalPackageGenTaskName = ModuleTaskTypes.ImportSwiftPMDependenciesPackageGen.getTaskName(module)
             tasks.registerTask(

@@ -230,6 +230,12 @@ fun AmperModule.shouldPublishSourcesJars() = publishingSettings.publishSources
 fun AmperModule.isArtifactSigningEnabled() = publishingSettings.signArtifacts
 
 /**
+ * Returns the Kotlin version for this module's production code.
+ */
+// We don't have to go through all fragments, the Kotlin version is platform-agnostic.
+val AmperModule.kotlinVersion: String get() = fragments.first { !it.isTest }.settings.kotlin.version
+
+/**
  * Returns the JDK settings for this module's production code.
  */
 // We don't have to go through all fragments, the JdkSettings are platform-agnostic.
