@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.api.TraceableString
+import org.jetbrains.amper.frontend.schema.kotlin.ExplicitApiMode
 import org.jetbrains.amper.frontend.schema.kotlin.KotlinVersion
 
 @Serializable // makes it convenient to include in the input properties of the incremental cache state
@@ -25,6 +26,7 @@ internal data class KotlinUserSettings(
     val compileIncrementally: Boolean,
     val allWarningsAsErrors: Boolean,
     val suppressWarnings: Boolean,
+    val explicitApi: ExplicitApiMode,
     val debug: Boolean?,
     val optimization: Boolean?,
     val verbose: Boolean,
@@ -81,6 +83,9 @@ internal fun Fragment.serializableKotlinSettings(): KotlinUserSettings = KotlinU
     compileIncrementally = settings.kotlin.compileIncrementally,
     allWarningsAsErrors = settings.kotlin.allWarningsAsErrors,
     suppressWarnings = settings.kotlin.suppressWarnings,
+    // The explicit API mode is deliberately ignored for test sources: other modules cannot depend on them, so they
+    // have no public API to speak of. This spares users from disabling the mode in their test-settings.
+    explicitApi = if (isTest) ExplicitApiMode.Disable else settings.kotlin.explicitApi,
     debug = settings.kotlin.debug,
     optimization = settings.kotlin.optimization, // only valid for native anyway
     verbose = settings.kotlin.verbose,

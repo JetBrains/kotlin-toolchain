@@ -16,7 +16,8 @@ import org.jetbrains.amper.test.LocalAmperPublication
 import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.spans.assertJavaCompilationSpan
-import org.jetbrains.amper.test.spans.assertKotlinJvmCompilationSpan
+import org.jetbrains.amper.test.spans.assertSingleKotlinJvmCompilationSpan
+import org.jetbrains.amper.test.spans.assertSingleKotlinCompilation
 import org.jetbrains.amper.test.spans.kotlinJvmCompilationSpans
 import org.jetbrains.amper.test.spans.kotlinNativeCompilationSpans
 import org.jetbrains.amper.test.spans.withAmperModule
@@ -164,7 +165,7 @@ class ExampleProjectsTest : CliTestBase() {
     fun `compose-desktop`() = runSlowTest {
         val projectRoot = exampleProject("compose-desktop")
         val result = runCli(projectRoot, "build")
-        result.readTelemetrySpans().assertKotlinJvmCompilationSpan {
+        result.readTelemetrySpans().assertSingleKotlinJvmCompilationSpan {
             hasCompilerArgumentStartingWith("-Xplugin=")
         }
     }
@@ -178,7 +179,7 @@ class ExampleProjectsTest : CliTestBase() {
 
         result.withTelemetrySpans {
             // testing some default compiler arguments
-            assertKotlinJvmCompilationSpan {
+            assertSingleKotlinJvmCompilationSpan {
                 doesNotHaveCompilerArgument("-language-version")
                 doesNotHaveCompilerArgument("-api-version")
                 hasCompilerArgument("-Xjdk-release=25")

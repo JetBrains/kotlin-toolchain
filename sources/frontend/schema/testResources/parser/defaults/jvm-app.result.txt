@@ -102,6 +102,7 @@ Fragments:
           version: <default> 1.0.0-rc01
         }
         debug: <default> null
+        explicitApi: <default> disable
         freeCompilerArgs: <default> null
         jsPlainObjects: <default> {
           enabled: <default> false
@@ -299,6 +300,7 @@ Fragments:
           version: <default> 1.0.0-rc01
         }
         debug: <default> null
+        explicitApi: <default> disable
         freeCompilerArgs: <default> null
         jsPlainObjects: <default> {
           enabled: <default> false

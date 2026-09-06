@@ -62,3 +62,5 @@ val SpansTestCollector.kotlinNativeCompilationSpans: FilteredSpans
     get() = spansNamed("konanc")
 
 fun FilteredSpans.withAmperModule(name: String) = withAttribute(amperModuleKey, name)
+
+fun FilteredSpans.withFragment(name: String) = withAttribute(fragmentsKey, [name])

@@ -43,6 +43,7 @@ settings@jvm:
     dataframe:
       enabled: false  # default
       version: 1.0.0-rc01  # default
+    explicitApi: disable  # default
     freeCompilerArgs: null  # default
     ksp:
       processorOptions: {}  # default

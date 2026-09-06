@@ -17,8 +17,11 @@ import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.spans.assertEachKotlinNativeCompilationSpan
+import org.jetbrains.amper.test.spans.assertSingleKotlinCompilation
+import org.jetbrains.amper.test.spans.assertSingleKotlinJvmCompilationSpan
 import org.jetbrains.amper.test.spans.kotlinJvmCompilationSpans
 import org.jetbrains.amper.test.spans.withAmperModule
+import org.jetbrains.amper.test.spans.withFragment
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -80,6 +83,94 @@ class AmperBuildTest : CliTestBase() {
             projectDir = testProject("ktc-5395"),
             "build", "--platform=linuxX64",
         )
+    }
+
+    @Test
+    fun `explicit api mode is applied to production sources but ignored for test sources`() = runSlowTest {
+        val result = runCli(projectDir = testProject("jvm-explicit-api"), "build")
+
+        with(result.readTelemetrySpans()) {
+            kotlinJvmCompilationSpans.withFragment("main").assertSingleKotlinCompilation {
+                hasCompilerArgument("-Xexplicit-api=strict")
+            }
+            kotlinJvmCompilationSpans.withFragment("test").assertSingleKotlinCompilation {
+                doesNotHaveCompilerArgument("-Xexplicit-api")
+            }
+        }
+    }
+
+    @Test
+    fun `explicit api mode strict reports violations as errors`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("jvm-explicit-api-violations"),
+            "build",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        result.readTelemetrySpans().assertSingleKotlinJvmCompilationSpan {
+            hasCompilerArgument("-Xexplicit-api=strict")
+        }
+        explicitApiViolationDiagnostics(severity = "ERROR").forEach { result.assertStderrContains(it) }
+    }
+
+    @Test
+    fun `explicit api mode warning reports violations as warnings`() = runSlowTest {
+        val projectDir = testProject("jvm-explicit-api-violations")
+        projectDir.resolve("module.yaml").replaceInText("explicitApi: strict", "explicitApi: warning")
+
+        val result = runCli(projectDir = projectDir, "build")
+
+        result.readTelemetrySpans().assertSingleKotlinJvmCompilationSpan {
+            hasCompilerArgument("-Xexplicit-api=warning")
+        }
+        explicitApiViolationDiagnostics(severity = "WARNING").forEach { result.assertStdoutContains(it) }
+    }
+
+    @Test
+    fun `explicit api mode disable doesn't add any compiler option`() = runSlowTest {
+        val projectDir = testProject("jvm-explicit-api-violations")
+        projectDir.resolve("module.yaml").replaceInText("explicitApi: strict", "explicitApi: disable")
+
+        val result = runCli(projectDir = projectDir, "build")
+
+        result.readTelemetrySpans().assertSingleKotlinJvmCompilationSpan {
+            doesNotHaveCompilerArgument("-Xexplicit-api")
+        }
+    }
+
+    /**
+     * The diagnostics expected for the violations of the `jvm-explicit-api-violations` test project, reported with the
+     * given [severity].
+     */
+    private fun explicitApiViolationDiagnostics(severity: String): List<String> {
+        val filePath = Path("src/lib.kt").pathString
+        return [
+            """
+               |    ╭─ $severity: Visibility must be specified in explicit API mode.
+               |    │ → $filePath:3:1 (jvm-explicit-api-violations)
+               |    │
+               |  3 │ class Lib {
+               |    │ ⌃⌃⌃⌃⌃⌃⌃⌃⌃
+               |    ╰─
+            """.trimMargin(),
+            """
+               |    ╭─ $severity: Visibility must be specified in explicit API mode.
+               |    │ → $filePath:4:5 (jvm-explicit-api-violations)
+               |    │
+               |  4 │     fun greeting() = "Hello, World!"
+               |    │     ⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃⌃
+               |    ╰─
+            """.trimMargin(),
+            """
+               |    ╭─ $severity: Return type must be specified in explicit API mode.
+               |    │ → $filePath:4:9 (jvm-explicit-api-violations)
+               |    │
+               |  4 │     fun greeting() = "Hello, World!"
+               |    │         ⌃⌃⌃⌃⌃⌃⌃⌃
+               |    ╰─
+            """.trimMargin(),
+        ]
     }
 
     @Test

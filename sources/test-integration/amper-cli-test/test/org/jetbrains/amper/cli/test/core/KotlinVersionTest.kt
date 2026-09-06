@@ -14,7 +14,7 @@ import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.test.WindowsOnly
 import org.jetbrains.amper.test.spans.assertEachKotlinJvmCompilationSpan
 import org.jetbrains.amper.test.spans.assertEachKotlinNativeCompilationSpan
-import org.jetbrains.amper.test.spans.assertKotlinJvmCompilationSpan
+import org.jetbrains.amper.test.spans.assertSingleKotlinJvmCompilationSpan
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -57,7 +57,7 @@ class KotlinVersionTest : CliTestBase() {
         )
         val result = runCli(projectDir = projectDir, "run")
 
-        result.readTelemetrySpans().assertKotlinJvmCompilationSpan {
+        result.readTelemetrySpans().assertSingleKotlinJvmCompilationSpan {
             doesNotHaveCompilerArgument("-language-version")
             doesNotHaveCompilerArgument("-api-version")
             hasAmperModule("kotlin-jvm-helloworld-custom-version")
@@ -73,7 +73,7 @@ class KotlinVersionTest : CliTestBase() {
 
         val result = runCli(projectDir = projectDir, "run")
 
-        result.readTelemetrySpans().assertKotlinJvmCompilationSpan {
+        result.readTelemetrySpans().assertSingleKotlinJvmCompilationSpan {
             hasCompilerArgument("-language-version=$languageVersion")
             hasAmperModule("jvm-custom-language-version")
         }

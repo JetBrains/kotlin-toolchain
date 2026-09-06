@@ -9,7 +9,7 @@ import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.spans.assertJavaCompilationSpan
-import org.jetbrains.amper.test.spans.assertKotlinJvmCompilationSpan
+import org.jetbrains.amper.test.spans.assertSingleKotlinJvmCompilationSpan
 import org.jetbrains.amper.test.spans.kotlinJvmCompilationSpans
 import org.jetbrains.amper.test.spans.withAmperModule
 import org.junit.jupiter.api.Tag
@@ -35,7 +35,7 @@ class SmokeTest : CliTestBase() {
 
         val runResult = runCli(projectDir = projectRoot, "run")
         // testing some default compiler arguments
-        runResult.readTelemetrySpans().assertKotlinJvmCompilationSpan {
+        runResult.readTelemetrySpans().assertSingleKotlinJvmCompilationSpan {
             doesNotHaveCompilerArgument("-language-version")
             doesNotHaveCompilerArgument("-api-version")
             hasCompilerArgument("-Xjdk-release=25")
@@ -49,7 +49,7 @@ class SmokeTest : CliTestBase() {
 
         val runResult = runCli(projectDir = projectRoot, "run")
         with(runResult.readTelemetrySpans()) {
-            assertKotlinJvmCompilationSpan {
+            assertSingleKotlinJvmCompilationSpan {
                 hasCompilerArgument("-language-version=2.2")
                 hasCompilerArgument("-java-parameters")
                 hasCompilerArgument("-verbose")

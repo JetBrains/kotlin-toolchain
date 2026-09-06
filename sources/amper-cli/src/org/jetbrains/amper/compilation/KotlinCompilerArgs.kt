@@ -92,6 +92,9 @@ private fun kotlinCommonCompilerArgs(
     if (kotlinUserSettings.progressiveMode) {
         add("-progressive")
     }
+    kotlinUserSettings.explicitApi.compilerOptionValue?.let { explicitApi ->
+        add("-Xexplicit-api=$explicitApi")
+    }
     kotlinUserSettings.optIns.forEach {
         add("-opt-in=$it")
     }

@@ -11,6 +11,8 @@ import kotlin.test.fail
 
 val amperModuleKey: AttributeKey<String> = AttributeKey.stringKey("amper-module")
 
+val fragmentsKey: AttributeKey<List<String>> = AttributeKey.stringArrayKey("fragments")
+
 fun SpanData.assertHasModule(moduleName: String) {
     assertHasAttribute(amperModuleKey, moduleName)
 }
@@ -21,9 +23,15 @@ fun <T> SpanData.assertHasAttribute(key: AttributeKey<T>, value: T) {
     assertEquals(value, actualValue, "Wrong value for attribute '$key' in span $name: expected '$value' but was '$actualValue'")
 }
 
-fun SpansTestCollector.assertKotlinJvmCompilationSpan(assertions: CompilationSpanAssertions.() -> Unit = {}) {
-    val kotlinSpan = kotlinJvmCompilationSpans.assertSingle()
-    CompilationSpanAssertions(kotlinSpan, "compiler-args").assertions()
+fun SpansTestCollector.assertSingleKotlinJvmCompilationSpan(assertions: CompilationSpanAssertions.() -> Unit = {}) {
+    kotlinJvmCompilationSpans.assertSingleKotlinCompilation(assertions)
+}
+
+/**
+ * Asserts things about the single Kotlin compilation span matching the filters of these [FilteredSpans].
+ */
+fun FilteredSpans.assertSingleKotlinCompilation(assertions: CompilationSpanAssertions.() -> Unit = {}) {
+    CompilationSpanAssertions(assertSingle(), "compiler-args").assertions()
 }
 
 fun SpansTestCollector.assertEachKotlinJvmCompilationSpan(assertions: CompilationSpanAssertions.() -> Unit = {}) {

@@ -57,6 +57,27 @@ enum class KotlinVersion(override val schemaValue: String, override val outdated
     companion object Index : EnumMap<KotlinVersion, String>(KotlinVersion::values, KotlinVersion::schemaValue)
 }
 
+/**
+ * The [explicit API mode](https://kotlinlang.org/docs/whatsnew14.html#explicit-api-mode-for-library-authors) of the
+ * Kotlin compiler, which enforces explicit visibility modifiers and explicit return types in the public API.
+ */
+enum class ExplicitApiMode(
+    override val schemaValue: String,
+    val compilerOptionValue: String?,
+) : SchemaEnum {
+    @SchemaDoc("Report an error when a public declaration lacks an explicit visibility modifier or return type.")
+    Strict(schemaValue = "strict", compilerOptionValue = "strict"),
+
+    @SchemaDoc("Report a warning when a public declaration lacks an explicit visibility modifier or return type.")
+    Warning(schemaValue = "warning", compilerOptionValue = "warning"),
+
+    @SchemaDoc("Don't check public declarations for explicit visibility modifiers and return types.")
+    Disable(schemaValue = "disable", compilerOptionValue = null),
+    ;
+
+    override fun toString(): String = schemaValue
+}
+
 class KotlinSettings : SchemaNode() {
 
     @PlatformAgnostic
@@ -104,6 +125,13 @@ class KotlinSettings : SchemaNode() {
     @Misnomers("nowarn")
     @SchemaDoc("Suppress the compiler from displaying warnings during compilation")
     val suppressWarnings by value(false)
+
+    @Misnomers("explicitApiMode")
+    @SchemaDoc("Configures the [explicit API mode](https://kotlinlang.org/docs/whatsnew14.html#explicit-api-mode-for-library-authors), " +
+            "which requires explicit visibility modifiers and explicit return types in the public API. " +
+            "This setting is ignored for test sources, because other modules cannot depend on them. " +
+            "Possible values: `strict` to report violations as errors, `warning` to report only warnings, `disable` to disable the checks entirely.")
+    val explicitApi by value(ExplicitApiMode.Disable)
 
     @SchemaDoc("Enables verbose logging output which includes details of the compilation process")
     val verbose by value(false)

@@ -65,6 +65,7 @@ settings@android:
     dataframe:
       enabled: false  # default
       version: 1.0.0-rc01  # default
+    explicitApi: disable  # default
     freeCompilerArgs: null  # default
     ksp:
       processorOptions: {}  # default
@@ -174,6 +175,7 @@ settings@jvm:
     dataframe:
       enabled: false  # default
       version: 1.0.0-rc01  # default
+    explicitApi: disable  # default
     freeCompilerArgs: null  # default
     ksp:
       processorOptions: {}  # default
@@ -277,6 +279,7 @@ settings@iosArm64+iosSimulatorArm64:
     dataframe:
       enabled: false  # default
       version: 1.0.0-rc01  # default
+    explicitApi: disable  # default
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
@@ -400,6 +403,7 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
     dataframe:
       enabled: false  # default
       version: 1.0.0-rc01  # default
+    explicitApi: disable  # default
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
@@ -516,6 +520,7 @@ settings@jvm:
     dataframe:
       enabled: false  # default
       version: 1.0.0-rc01  # default
+    explicitApi: disable  # default
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
@@ -644,6 +649,7 @@ settings@android:
     dataframe:
       enabled: false  # default
       version: 1.0.0-rc01  # default
+    explicitApi: disable  # default
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
@@ -748,6 +754,7 @@ settings@iosArm64:
     dataframe:
       enabled: false  # default
       version: 1.0.0-rc01  # default
+    explicitApi: disable  # default
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
@@ -849,6 +856,7 @@ settings@iosSimulatorArm64:
     dataframe:
       enabled: false  # default
       version: 1.0.0-rc01  # default
+    explicitApi: disable  # default
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
