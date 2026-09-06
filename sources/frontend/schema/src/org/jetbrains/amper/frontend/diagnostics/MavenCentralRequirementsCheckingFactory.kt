@@ -75,7 +75,9 @@ object MavenCentralRequirementsCheckingFactory : AomSingleModuleDiagnosticFactor
         }
 
         val missingProperties = mutableSetOf<MissingProperty>()
-        if (module.description == null) {
+        // The POM description falls back to the module description, so it's sufficient to set either of them.
+        // We report the module description, because it's the one we recommend setting (it's used in other places too).
+        if (module.description == null && module.publishingSettings.pom.description == null) {
             missingProperties.add(MissingProperty("description", module.commonModuleNode.descriptionDelegate))
         }
         if (module.publishingSettings.group == null) {

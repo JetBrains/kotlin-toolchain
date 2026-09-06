@@ -25,4 +25,9 @@ class MavenCentralRequirementsDiagnosticsTest : FrontendTestCaseBase(Path("testR
     fun `explicit checksums list missing required`() {
         diagnosticsTest(caseName = "overridden-checksums-missing-required")
     }
+
+    @Test
+    fun `module description not required if pom description is set`() {
+        diagnosticsTest(caseName = "pom-description-set")
+    }
 }

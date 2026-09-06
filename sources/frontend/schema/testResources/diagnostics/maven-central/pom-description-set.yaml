@@ -1,0 +1,20 @@
+product: jvm/lib
+
+settings:
+  publishing:
+    enabled: true
+    group: com.example
+    artifactId: my-library
+    version: 1.0.0
+    mavenCentral: enabled
+    publishSources: true
+    signArtifacts: true
+    pom:
+      description: My nice module
+      url: https://example.org
+      scm: https://git.example.org
+      licenses:
+        - name: MIT
+          url: https://opensource.org/licenses/MIT
+      developers:
+        - John Doe

@@ -144,12 +144,12 @@ You can satisfy all of these requirements with a little bit of configuration:
 ```yaml
 product: jvm/lib
 
-description: A meaningful description for this specific module
+description: A meaningful description for this specific module #(1)!
 
 settings:
   publishing:
     enabled: true
-    group: com.example #(1)!
+    group: com.example #(2)!
     version: 1.0.0
     # artifactId is optional, and defaults to your module's name
     mavenCentral: enabled
@@ -157,7 +157,7 @@ settings:
     publishSources: true
     pom:
       url: https://example.com
-      scm: https://github.com/my-org/example.git #(2)!
+      scm: https://github.com/my-org/example.git #(3)!
       developers:
         - name: Joffrey Bion
       licenses:
@@ -165,9 +165,12 @@ settings:
           url: https://opensource.org/license/mit
 ```
 
-1. The `group` should correspond to the `groupId` of your Maven Central
+1. The module `description` is used as the POM description by default.
+   If you need a different text in the POM, set `settings.publishing.pom.description` instead (in that case the module
+   `description` is not required for Maven Central publication).
+2. The `group` should correspond to the `groupId` of your Maven Central
    [namespace](https://central.sonatype.org/register/namespace/)
-2. This is a shorthand for `pom.scm.url`.
+3. This is a shorthand for `pom.scm.url`.
    The `pom.scm.connection` and `pom.scm.developerConnection` are automatically derived from it using the value `scm:git:$url`.
    If this default doesn't work for you, you can set these properties explicitly to any value.
 
