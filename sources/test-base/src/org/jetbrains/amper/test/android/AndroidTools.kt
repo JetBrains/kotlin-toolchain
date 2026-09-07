@@ -15,6 +15,7 @@ import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkResult
 import org.jetbrains.amper.concurrency.FileMutexGroup
 import org.jetbrains.amper.concurrency.withDoubleLock
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.problems.reporting.NoopProblemReporter
 import org.jetbrains.amper.processes.ProcessInput
@@ -300,6 +301,22 @@ class AndroidTools(
             registerAdbShutdownOnExit()
         }
         return runAndroidSdkProcess(adbExe, *command, outputListener = outputListener)
+    }
+
+    /**
+     * Runs the given AAPT2 [command].
+     *
+     * The exit code and entire output is captured in the returned [ProcessResult].
+     */
+    suspend fun aapt2(vararg command: String): ProcessResult.WithOutputs {
+        (val location) = context(NoopProblemReporter) {
+            sdkProvider.provision(AndroidSdkPackageRequest.BuildTools(DefaultVersions.androidBuildTools)).getOrFail()
+        }
+        return runAndroidSdkProcess(
+            location / "aapt2$binExtension",
+            *command,
+            outputListener = PrefixPrintOutputListener("aapt2"),
+        )
     }
 
     private fun registerAdbShutdownOnExit() {

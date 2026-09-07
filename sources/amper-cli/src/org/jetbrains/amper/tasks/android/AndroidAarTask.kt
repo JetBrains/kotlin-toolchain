@@ -10,6 +10,7 @@ import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
+import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jar.ZipInput
@@ -78,11 +79,19 @@ internal class AndroidAarTask(
             additionalAssets.forEach { result -> result.assetsRoots.forEach { add(it.path) } }
             add(jarResult.jarPath)
         }
+        val androidSettings = module.fragments
+            .filterIsInstance<LeafFragment>()
+            // There should be only single leaf Android main fragment
+            .single { !it.isTest && Platform.ANDROID in it.platforms }
+            .settings
+            .android
         val inputValues = mapOf(
             "outputPath" to outputAarPath.pathString,
             "requiredPackagingDirs" to Json.encodeToString(
                 additionalAssets.map { result -> result.assetsRoots.map { it.path.pathString } }
             ),
+            "minSdk" to androidSettings.minSdk.toString(),
+            "targetSdk" to androidSettings.targetSdk.toString(),
         )
         incrementalCache.execute(taskName.id.value, inputValues, inputFiles) {
             outputAarPath.deleteIfExists()
@@ -93,8 +102,13 @@ internal class AndroidAarTask(
                 val manifestStubFile = tempDir / "AndroidManifest.xml"
                 // TODO: Use a user-provided Manifest if any? Require it? Require `namespace` to be set for libraries?
                 manifestStubFile.writeText(
-                    """<?xml version="1.0" encoding="utf-8"?>
-                        |<manifest package="${internalPackageNameFor(module)}" />""".trimMargin()
+                    //language=xml
+                    """
+                        <?xml version="1.0" encoding="utf-8"?>
+                        <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="${internalPackageNameFor(module)}">
+                            <uses-sdk android:minSdkVersion="${androidSettings.minSdk}" android:targetSdkVersion="${androidSettings.targetSdk}" />
+                        </manifest>
+                    """.trimIndent()
                 )
                 val assetsDir = Path("assets")
                 outputAarPath.writeZip(

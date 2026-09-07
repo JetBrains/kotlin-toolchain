@@ -18,11 +18,12 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.core.extract.extractZip
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.Dirs
+import org.jetbrains.amper.test.android.AndroidTools
+import org.jetbrains.amper.test.processes.checkExitCodeIsZero
 import org.jf.dexlib2.DexFileFactory
 import org.jf.dexlib2.Opcodes
 import org.junit.jupiter.api.Tag
 import java.nio.file.Path
-import kotlin.collections.iterator
 import kotlin.io.path.PathWalkOption
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -369,6 +370,29 @@ class AndroidProjectsTest : CliTestBase() {
             "task", taskName,
             configureAndroidHome = true,
         )
+    }
+
+    // KTC-5434
+    @Test
+    fun `Android APK does not contain legacy storage or phone permissions`() = runSlowTest {
+        val taskName = ":simple:buildAndroidDebug"
+        val result = runCli(
+            projectDir = testProject("android/simple"),
+            "task", taskName,
+            configureAndroidHome = true,
+        )
+        val apkPath = result.getArtifactPath(taskName)
+        val permissions = AndroidTools.prepareForTests()
+            .aapt2("dump", "permissions", apkPath.toString())
+            .checkExitCodeIsZero().stdout
+
+        [
+            "android.permission.WRITE_EXTERNAL_STORAGE",
+            "android.permission.READ_EXTERNAL_STORAGE",
+            "android.permission.READ_PHONE_STATE",
+        ].forEach { permission ->
+            assertTrue(permission !in permissions, "$permission must not be declared by the APK")
+        }
     }
 
     @AfterTest
