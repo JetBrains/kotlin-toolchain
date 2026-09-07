@@ -191,10 +191,13 @@ class AndroidRunTask(
                 .validAvds
                 .firstOrNull { it.androidVersion.canRun(androidVersion) }
                 ?: run {
-                    // create a new one
+                    val systemImageVersion = systemImage.androidVersion.apiStringWithoutExtension
+                    // Create a new one
+                    // NB: Skin + AVD name + hardware config should match the phone specifications
+                    // See Device Manager for specifications
                     avdManager.createAvd(
-                        avdFolder = avdPath.resolve("amper-$androidTarget.avd"),
-                        avdName = "amper-$androidTarget",
+                        avdFolder = avdPath.resolve("Pixel-9-$systemImageVersion-ktc.avd"),
+                        avdName = "Pixel 9 API $systemImageVersion",
                         systemImage = systemImage,
                         skin = androidSdkPath.resolve("skins/pixel_9")
                             .takeIf { it.exists() }
