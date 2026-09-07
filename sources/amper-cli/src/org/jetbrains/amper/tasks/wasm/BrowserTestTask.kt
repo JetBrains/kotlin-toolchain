@@ -243,6 +243,15 @@ class BrowserTestTask(
                                             }
                                         }
 
+                                        page.onPageError {
+                                            userReadableError(
+                                                """
+                                                    An error occurred on the page while running Kotlin/Wasm $platform tests for module '${module.userReadableName}':
+                                                    $it
+                                                """.trimIndent()
+                                            )
+                                        }
+
                                         page.navigate(url)
                                         page.waitForCondition { finished }
                                     }

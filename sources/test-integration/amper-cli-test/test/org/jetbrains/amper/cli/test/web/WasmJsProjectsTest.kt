@@ -6,6 +6,7 @@ package org.jetbrains.amper.cli.test.web
 
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertFileExists
+import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
@@ -249,6 +250,19 @@ class WasmJsProjectsTest : CliTestBase() {
         )
 
         result.checkComposeApplication()
+    }
+
+    @Test
+    fun `wasm js app tests should fail on a page error`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("wasm-js-app-with-page-error"),
+            "test",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        result.assertStderrContains("An error occurred on the page while running Kotlin/Wasm")
+        result.assertStderrContains("Intentional page error from the test module")
     }
 
     private fun AmperCliResult.checkComposeApplication() {
