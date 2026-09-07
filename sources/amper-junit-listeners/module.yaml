@@ -6,6 +6,7 @@ apply:
   - //sources/common.module-template.yaml
   - //sources/used-in-user-tests.module-template.yaml
 
+# Avoid adding dependencies here, they end up on the user's test classpath
 dependencies:
   - //sources/amper-junit-event-protocol
   - $libs.junit5.platform.engine: compile-only

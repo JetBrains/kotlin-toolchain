@@ -5,3 +5,5 @@ description: Dependency-free protocol used for passing JUnit events to the CLI.
 apply:
   - //sources/common.module-template.yaml
   - //sources/used-in-user-tests.module-template.yaml
+
+# Avoid dependencies here, they end up on the user's test classpath
