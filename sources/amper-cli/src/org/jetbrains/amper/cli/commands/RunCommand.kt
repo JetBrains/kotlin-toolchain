@@ -11,9 +11,11 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.nullableFlag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
+import com.github.ajalt.mordant.markdown.Markdown
 import kotlinx.coroutines.Deferred
 import org.jetbrains.amper.cli.UserReadableError
 import org.jetbrains.amper.cli.apprun.RunTarget
@@ -95,12 +97,39 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
         .path(mustExist = true, canBeFile = false, canBeDir = true)
         .default(Path("."))
 
-    private val composeHotReloadMode by option(COMPOSE_HOT_RELOAD_OPTION_NAME, help = "Enable Compose Hot Reload " +
-            "mode for Compose Multiplatform applications (for desktop applications and libraries which have jvm platform). " +
-            "This mode makes the application reloadable while running, which significantly reduces the development round-trip" +
-            " to see code changes in action. \n\n" +
-            "Note: in this mode, the Java runtime is overridden to the JetBrains Runtime, which is required for Compose Hot Reload to work.")
-        .flag()
+    // Can be removed after 0.14
+    private val oldComposeHotReload by option("--compose-hot-reload-mode", hidden = true)
+        .nullableFlag()
+
+    private val composeHotReloadMode by option(
+        COMPOSE_HOT_RELOAD_OPTION_NAME,
+        help = "Enable Compose Hot Reload " +
+                "for Compose Multiplatform applications (for desktop applications and libraries which have JVM platform). " +
+                "This mode makes the application reloadable while running, which significantly reduces the development round-trip" +
+                " to see code changes in action. \n\n" +
+                "Note: in this mode, the Java runtime is overridden to the JetBrains Runtime, which is required for Compose Hot Reload to work."
+    )
+        .nullableFlag("--no-compose-hot-reload")
+
+    /**
+     * Whether the Compose Hot Reload should be used for compatible module + platform runs.
+     *
+     * By default, we prefer using Compose Hot Reload for JVM Compose applications when possible as it provides
+     * faster development loop.
+     */
+    private val composeHotReloadPreferred get() = composeHotReloadMode ?: oldComposeHotReload ?: true
+
+    /**
+     * Whether the option for Compose Hot Reload was the user's intent.
+     */
+    private val composeHotReloadConfiguredExplicitly get() = composeHotReloadMode != null || oldComposeHotReload != null
+
+    /**
+     * Whether the enabling of Compose Hot Reload was user's intent.
+     *
+     * When true, only module and platforms compatible with Compose Hot Reload are considered as candidates.
+     */
+    private val composeHotReloadEnabledExplicitly get() = composeHotReloadPreferred && composeHotReloadConfiguredExplicitly
 
     // TODO: Introduce "no filesystem watching" opt-out for compose hot reload as IDE can do it itself?
 
@@ -151,11 +180,25 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
     """.trimIndent()
 
     override suspend fun run(cliContext: ProjectCliContext) {
+        if (oldComposeHotReload != null) {
+            logger.warn("Use $COMPOSE_HOT_RELOAD_OPTION_NAME for enabling Compose Hot Reload instead")
+        }
+
         platform?.also { checkPlatformOptionConsistency(it) }
 
         val model = cliContext.preparePluginsAndReadModel()
         val target = model.selectRunTarget()
-        if (composeHotReloadMode) {
+        val runWithComposeHotReload = if (composeHotReloadConfiguredExplicitly) {
+            composeHotReloadPreferred
+        } else {
+            target.platform == Platform.JVM && isComposeEnabledFor(target.module)
+        }
+
+        if (runWithComposeHotReload) {
+            if (!composeHotReloadConfiguredExplicitly) {
+                terminal.print(terminal.theme.info("💡 Tip: "))
+                terminal.println(Markdown("Running with Compose Hot Reload. Use `--no-compose-hot-reload` to disable it."))
+            }
             // If the configuration doesn't actually support hot-reload,
             // it will be diagnosed and the error will be thrown.
             HotReloadLoop.run(HotReloadDelegateImpl(cliContext, target))
@@ -172,10 +215,10 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
      * This function fails if the command line is incorrect and would never work on any machine, in any project.
      */
     private fun checkPlatformOptionConsistency(platform: Platform) {
-        if (composeHotReloadMode && platform != Platform.JVM) {
+        if (composeHotReloadEnabledExplicitly && platform != Platform.JVM) {
             userReadableError(
                 "Compose Hot Reload only supports the JVM platform and cannot work with '${platform.pretty}'. " +
-                        "Please remove the '--compose-hot-reload-mode' or the '--platform' option."
+                        "Please remove the '$COMPOSE_HOT_RELOAD_OPTION_NAME' or the '--platform' option."
             )
         }
         if (deviceId != null && !platform.supportsDeviceSelection) {
@@ -295,7 +338,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
         checkModuleIsRunnable(moduleToRun)
         val platformToRun = selectPlatformToRun(moduleToRun)
 
-        if (composeHotReloadMode && !isComposeEnabledFor(moduleToRun)) {
+        if (composeHotReloadEnabledExplicitly && !isComposeEnabledFor(moduleToRun)) {
             userReadableError("Compose must be enabled to use Compose Hot Reload mode")
         }
         if (jvmArgs.isNotEmpty() && platformToRun != Platform.JVM) {
@@ -318,11 +361,25 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
             }
             return terminal.promptModuleSelection(
                 promptMessage = "Multiple modules are available to run, please choose:",
-                choices = runnableCandidates,
+                choices = runnableCandidates
+                    .sortedBy { it.userReadableName }
+                    .run {
+                        // To have JVM/Compose options on top
+                        if (composeHotReloadPreferred) sortedByDescending { it.isJvmComposeApp() } else this
+                    },
+                nameSelector = { module ->
+                    if (composeHotReloadPreferred && module.isJvmComposeApp()) {
+                        "${module.userReadableName} (with Hot Reload 🔥)"
+                    } else {
+                        module.userReadableName
+                    }
+                }
             )
         }
         return runnableCandidates.single()
     }
+
+    private fun AmperModule.isJvmComposeApp(): Boolean = type == ProductType.JVM_APP && isComposeEnabledFor(this)
 
     /**
      * Finds all potentially runnable modules matching the CLI options: hot reload mode, device ID, platform, etc.
@@ -336,7 +393,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                 userReadableError("There are no application modules in the project, nothing to run")
             }
         val appModulesMatchingCommand = appModules
-            .filterIf(composeHotReloadMode) { it.type == ProductType.JVM_APP && isComposeEnabledFor(it) }
+            .filterIf(composeHotReloadEnabledExplicitly) { it.isJvmComposeApp() }
             .ifEmpty {
                 userReadableError(
                     "There are no Compose JVM application modules in the project, and only those support Compose Hot Reload.\n\n" +
@@ -359,12 +416,12 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                 userReadableError {
                     // Note that platform can't be null here (otherwise we would not have filtered out the last modules)
                     append("There are no application modules in the project that support the '${platform?.pretty}' platform")
-                    // The double "and" might be awkward if both --device-id and --compose-hot-reload-mode are passed,
+                    // The double "and" might be awkward if both --device-id and --compose-hot-reload are passed,
                     // but it's technically correct, and will realistically never happen, so let's not complicate.
                     if (deviceId != null) {
                         append(" and device selection with --device-id")
                     }
-                    if (composeHotReloadMode) {
+                    if (composeHotReloadEnabledExplicitly) {
                         append(" and Compose Hot Reload")
                     }
                     appendLine(".")
@@ -431,7 +488,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
 
         userReadableError {
             append("There are several")
-            if (platform != null || deviceId != null || composeHotReloadMode) {
+            if (platform != null || deviceId != null || composeHotReloadEnabledExplicitly) {
                 append(" matching")
             }
             append(" application modules in the project. Please specify one with the '--module'")
@@ -480,11 +537,11 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                             "Current platforms: ${formatModulePlatforms(moduleToRun)}"
                 )
             }
-            .filterIf(composeHotReloadMode) { it == Platform.JVM }
+            .filterIf(composeHotReloadEnabledExplicitly) { it == Platform.JVM }
             .ifEmpty {
                 userReadableError(
                     "Module '${moduleToRun.userReadableName}' doesn't support Compose Hot Reload because it's not a " +
-                            "JVM application. Please remove the --compose-hot-reload-mode option."
+                            "JVM application. Please remove the $COMPOSE_HOT_RELOAD_OPTION_NAME option."
                 )
             }
 
@@ -545,7 +602,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
     }
 
     companion object {
-        const val COMPOSE_HOT_RELOAD_OPTION_NAME = "--compose-hot-reload-mode"
+        const val COMPOSE_HOT_RELOAD_OPTION_NAME = "--compose-hot-reload"
     }
 }
 

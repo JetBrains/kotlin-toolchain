@@ -69,9 +69,10 @@ internal fun Terminal.promptBoolean(
 internal fun Terminal.promptModuleSelection(
     promptMessage: String,
     choices: List<AmperModule>,
+    nameSelector: (AmperModule) -> String = { it.userReadableName },
 ): AmperModule = interactiveSelectList(
     title = promptMessage,
     items = choices,
-    nameSelector = { it.userReadableName },
+    nameSelector = nameSelector,
     filterable = true,
 ) ?: throw PrintMessage("No module selected, operation aborted")

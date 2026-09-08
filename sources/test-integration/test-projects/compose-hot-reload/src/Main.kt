@@ -5,11 +5,5 @@
 package test
 
 fun main() {
-    val env = System.getenv()
-
-    val lines = buildList {
-        add("compose.reload.devToolsEnabled=" + System.getProperty("compose.reload.devToolsEnabled"))
-    }
-
-    lines.forEach { println(it) }
+    println("compose.reload.devToolsEnabled=" + System.getProperty("compose.reload.devToolsEnabled"))
 }

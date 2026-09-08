@@ -171,10 +171,10 @@ feedback loop during UI development.
 === ":octicons-terminal-16: CLI"
 
     To run your application with Compose Hot Reload from the [command line](../../cli/index.md), use the
-    `--compose-hot-reload-mode` flag:
+    `--compose-hot-reload` flag:
     
     ```shell
-    ./kotlin run --compose-hot-reload-mode
+    ./kotlin run --compose-hot-reload
     ```
 
     !!! warning "No file-system watch"

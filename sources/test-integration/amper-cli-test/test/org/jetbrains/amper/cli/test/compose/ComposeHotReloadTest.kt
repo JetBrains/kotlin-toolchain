@@ -5,6 +5,8 @@ package org.jetbrains.amper.cli.test.compose
 
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
+import org.jetbrains.amper.cli.test.utils.assertStdoutContains
+import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.telemetry.getListAttribute
@@ -31,11 +33,45 @@ class ComposeHotReloadTest : CliTestBase() {
         val result = runCli(
             projectDir = testProject("compose-hot-reload"),
             "run",
-            "--compose-hot-reload-mode",
+            "--compose-hot-reload",
             assertEmptyStdErr = false,
         )
 
         result.readTelemetrySpans().assertHotReloadJavaExecSpan()
+    }
+
+    @Test
+    fun `compose hot reload is enabled by default for JVM apps with compose`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("compose-hot-reload"),
+            "run",
+            assertEmptyStdErr = false,
+        )
+
+        result.readTelemetrySpans().assertHotReloadJavaExecSpan()
+        result.assertStdoutContains("💡 Tip: Running with Compose Hot Reload. Use --no-compose-hot-reload to disable it.")
+    }
+
+    @Test
+    fun `compose hot reload is not enabled for JVM apps without compose`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("jvm-app-without-compose"),
+            "run",
+        )
+        result.assertStdoutDoesNotContain("💡 Tip: Running with Compose Hot Reload. Use --no-compose-hot-reload to disable it.")
+        result.assertStdoutContains("compose.reload.devToolsEnabled=null")
+    }
+
+    @Test
+    fun `no compose hot reload runs jvm app normally`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("compose-hot-reload"),
+            "run",
+            "--no-compose-hot-reload",
+            assertEmptyStdErr = false,
+        )
+
+        result.assertStdoutContains("compose.reload.devToolsEnabled=null")
     }
 
     @Test
@@ -47,7 +83,7 @@ class ComposeHotReloadTest : CliTestBase() {
             "compose-hot-reload-lib",
             "--main-class",
             "MainKt",
-            "--compose-hot-reload-mode",
+            "--compose-hot-reload",
             assertEmptyStdErr = false,
         )
 
@@ -63,7 +99,7 @@ class ComposeHotReloadTest : CliTestBase() {
             "compose-hot-reload-jvm-lib",
             "--main-class",
             "MainKt",
-            "--compose-hot-reload-mode",
+            "--compose-hot-reload",
             assertEmptyStdErr = false,
         )
 
@@ -75,7 +111,7 @@ class ComposeHotReloadTest : CliTestBase() {
         val result = runCli(
             projectDir = testProject("jvm-run-print-systemprop"),
             "run",
-            "--compose-hot-reload-mode",
+            "--compose-hot-reload",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
         )
@@ -89,13 +125,13 @@ class ComposeHotReloadTest : CliTestBase() {
             projectDir = testProject("compose-resources-demo"),
             "run",
             "-m", "app-android",
-            "--compose-hot-reload-mode",
+            "--compose-hot-reload",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
         )
 
         result.assertStderrContains("Module 'app-android' doesn't support Compose Hot Reload because it's not a JVM " +
-                "application. Please remove the --compose-hot-reload-mode option.")
+                "application. Please remove the --compose-hot-reload option.")
     }
 
     @Test
@@ -104,14 +140,14 @@ class ComposeHotReloadTest : CliTestBase() {
             projectDir = testProject("compose-resources-demo"),
             "run",
             "--platform=android",
-            "--compose-hot-reload-mode",
+            "--compose-hot-reload",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
         )
 
         result.assertStderrContains(
             "ERROR: Compose Hot Reload only supports the JVM platform and cannot work with 'android'. " +
-                    "Please remove the '--compose-hot-reload-mode' or the '--platform' option.",
+                    "Please remove the '--compose-hot-reload' or the '--platform' option.",
         )
     }
 
@@ -121,7 +157,7 @@ class ComposeHotReloadTest : CliTestBase() {
         val result = runCli(
             projectDir = testProject("compose-resources-demo"),
             "run",
-            "--compose-hot-reload-mode",
+            "--compose-hot-reload",
         )
 
         result.readTelemetrySpans().assertHotReloadJavaExecSpan()
