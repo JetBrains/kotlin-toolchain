@@ -4,14 +4,22 @@
 
 package org.jetbrains.amper.test
 
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.minus
+import kotlinx.datetime.todayIn
 import org.jetbrains.amper.dependency.resolution.LocalM2RepositoryFinder
-import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.test.Dirs.persistentCaches
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.exists
+import kotlin.io.path.listDirectoryEntries
+import kotlin.time.Clock
 
 object Dirs {
 
@@ -61,14 +69,27 @@ object Dirs {
     private val persistentCaches: Path by lazy {
         // Always run tests in a directory with a space in the name, tests quoting in a lot of places
         val dir = if (TeamCityHelper.isUnderTeamCity) {
-            // We add the OS + arch to avoid problems in case the cache is shared between different types of machines.
-            // Example: the incremental cache contains paths in Windows style on Windows, and unix style on other OSes.
-            TeamCityHelper.persistentCacheDirectory / "amper build" / SystemInfo.CurrentHost.familyArch
+            println("Persistent cache directory entries:")
+            println(TeamCityHelper.persistentCacheDirectory.listDirectoryEntries().joinToString("\n") { " - $it" })
+            // We use the date of last Tuesday (or today if it's a Tuesday) to use a fresh cache every week.
+            // This avoids accumulating things forever, and also tests regularly on clean caches.
+            // The persistent cache's top-level directories are automatically cleaned up when space is needed, starting
+            // from the least recently updated.
+            TeamCityHelper.persistentCacheDirectory / "amper build ${lastTuesday().format(LocalDate.Formats.ISO)}"
         } else {
             amperBuildOutputRoot / "shared test caches"
         }
 
         dir.createDirectories()
+    }
+
+    /**
+     * Returns the [LocalDate] representing last Tuesday, or today if we're Tuesday.
+     */
+    private fun lastTuesday(): LocalDate {
+        val today = Clock.System.todayIn(TimeZone.UTC)
+        val daysSinceLastTuesday = (today.dayOfWeek.ordinal - DayOfWeek.TUESDAY.ordinal + 7).rem(7)
+        return today.minus(DatePeriod(days = daysSinceLastTuesday))
     }
 
     /**

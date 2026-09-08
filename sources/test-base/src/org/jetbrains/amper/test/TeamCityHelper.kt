@@ -60,7 +60,15 @@ object TeamCityHelper {
         get() = (tempDirectory / buildId).createDirectories()
 
     /**
-     * A directory that persists across TeamCity builds. Use with caution, as it contains files from previous builds.
+     * A directory that persists on the agent across TeamCity builds and agent restarts.
+     * This is provided by the [caches-cleanup](https://github.com/JetBrains/teamcity-caches-cleanup-plugin) plugin.
+     *
+     * Use with caution, as it contains files from previous builds.
+     *
+     * ### Cleanup policy
+     *
+     * The contents are automatically cleaned up as disk space is needed.
+     * Top-level folders will be deleted one by one based on last update time, until enough space is free.
      */
     val persistentCacheDirectory: Path
         get() {
