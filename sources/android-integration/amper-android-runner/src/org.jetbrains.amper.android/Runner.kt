@@ -13,6 +13,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.model.GradleProject
+import org.gradle.util.GradleVersion
 import java.io.BufferedOutputStream
 import java.net.URI
 import java.nio.file.Path
@@ -32,10 +33,20 @@ private const val DEBUG_JVM_AGENT = "-agentlib:jdwp=transport=dt_socket,server=y
 
 /**
  * Overrides the Gradle distribution the Tooling API downloads for Android builds.
- * Point it at a mirror (e.g. https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-8.14.3-bin.zip)
+ * Point it at a mirror (e.g. https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-{{version}}-bin.zip)
  * when services.gradle.org is unreachable. When unset, Gradle uses its default distribution URL.
+ *
+ * Use the `{{version}}` placeholder to define where to insert the required Gradle version.
  */
 private const val GRADLE_DISTRIBUTION_URL_ENV = "KOTLIN_TOOLCHAIN_GRADLE_DISTRIBUTION_URL"
+
+private val gradleDistributionUri by lazy {
+    System.getenv(GRADLE_DISTRIBUTION_URL_ENV)
+        ?.takeIf { it.isNotBlank() }
+        ?.let {
+            URI(it.replace("{{version}}", GradleVersion.current().version))
+        }
+}
 
 private fun <T : ConfigurableLauncher<T>> T.addDebugJvmArgumentsIf(debug: Boolean): T =
     if (debug) addJvmArguments(DEBUG_JVM_AGENT) else this
@@ -77,9 +88,7 @@ fun runAndroidBuild(
         .newConnector()
         .forProjectDirectory(settingsGradlePath.parent.toFile())
         .apply {
-            System.getenv(GRADLE_DISTRIBUTION_URL_ENV)
-                ?.takeIf { it.isNotBlank() }
-                ?.let { useDistribution(URI(it)) }
+            gradleDistributionUri?.let { useDistribution(it) }
         }
         .connect()
         .use { connection ->
