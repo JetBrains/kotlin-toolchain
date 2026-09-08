@@ -75,6 +75,9 @@ internal data class NativeCompilerCaches(
  * * when neither dependency caching nor incremental compilation is requested
  * * when a path involved in caching contains whitespace on a Linux host (see [cacheBuilderSupports])
  *
+ * Compilers that crash while caching dependencies (due to KT-88316) only get the distribution's prebuilt caches, see
+ * [autoCacheableRootsFor].
+ *
  * This is aligned with the conditions used by the Kotlin Gradle Plugin in `KotlinNativeLink`.
  */
 internal fun nativeCompilerCachesFor(
@@ -84,6 +87,7 @@ internal fun nativeCompilerCachesFor(
     compilationType: KotlinCompilationType,
     optimizationEnabled: Boolean,
     dependencyCacheRoots: List<Path>,
+    emptyAutoCacheRoot: Path,
     compileIncrementally: Boolean,
     incrementalCacheDir: Path,
 ): NativeCompilerCaches? {
@@ -103,9 +107,40 @@ internal fun nativeCompilerCachesFor(
     if (!cacheBuilderSupports(cachePaths, system, konanDistribution.kotlinVersion)) return null
 
     return NativeCompilerCaches(
-        autoCacheableFrom = dependencyCacheRoots,
+        autoCacheableFrom = autoCacheableRootsFor(konanDistribution, dependencyCacheRoots, emptyAutoCacheRoot),
         incrementalCacheDir = incrementalCacheDir.takeIf { compileIncrementally },
     )
+}
+
+/**
+ * The first Kotlin version that can cache external dependencies without crashing.
+ * See https://youtrack.jetbrains.com/issue/KT-88316
+ * TODO KT-88316 cache dependencies unconditionally once the minimum supported Kotlin version reaches 2.4.20-RC2.
+ */
+private val MinKotlinVersionForCachingDependencies = ComparableVersion("2.4.20-RC2")
+
+/**
+ * Returns the roots to cache external dependencies from, given the compiler of [konanDistribution] that will run.
+ *
+ * Compilers older than [MinKotlinVersionForCachingDependencies] only get [emptyAutoCacheRoot]: no klib is eligible
+ * for caching under an empty directory, so nothing is ever cached, but the mere presence of the option makes the
+ * compiler use the caches prebuilt in its distribution (the standard library and the platform libraries).
+ */
+private fun autoCacheableRootsFor(
+    konanDistribution: KonanDistribution,
+    dependencyCacheRoots: List<Path>,
+    emptyAutoCacheRoot: Path,
+): List<Path> {
+    if (dependencyCacheRoots.isEmpty()) return []
+    if (ComparableVersion(konanDistribution.kotlinVersion) >= MinKotlinVersionForCachingDependencies) {
+        return dependencyCacheRoots
+    }
+
+    logger.debug(
+        "Only using the prebuilt Kotlin/Native caches, because caching dependencies might crash the Kotlin {} compiler " +
+                "(see https://youtrack.jetbrains.com/issue/KT-88316)", konanDistribution.kotlinVersion,
+    )
+    return [emptyAutoCacheRoot]
 }
 
 /**

@@ -27,6 +27,7 @@ class NativeCompilerCachesTest {
 
     private val dependencyRoot = Path("/home/me/.cache/JetBrains/Kotlin")
     private val icDir = Path("/project/build/kotlin-native-ic-cache/link-task")
+    private val emptyRoot = Path("/tmp/amper/empty-native-auto-cache-root")
 
     @Test
     fun `dependency caching only passes the auto-cache roots`() {
@@ -156,6 +157,7 @@ class NativeCompilerCachesTest {
                 incrementalCacheDir = Path("/home/me/my project/build/kotlin-native-ic-cache"),
                 target = Platform.LINUX_X64,
                 system = linuxHost,
+                kotlinVersion = "2.2.0",
             )
         )
     }
@@ -168,6 +170,7 @@ class NativeCompilerCachesTest {
                 compileIncrementally = false,
                 target = Platform.LINUX_X64,
                 system = linuxHost,
+                kotlinVersion = "2.2.0",
             )
         )
     }
@@ -181,6 +184,7 @@ class NativeCompilerCachesTest {
                 distributionHome = createTempDirectory("konan dist with spaces"),
                 target = Platform.LINUX_X64,
                 system = linuxHost,
+                kotlinVersion = "2.2.0",
             )
         )
     }
@@ -226,12 +230,11 @@ class NativeCompilerCachesTest {
 
     @Test
     fun `whitespace in paths is not a problem for a compiler that supports it on Linux`() {
-        // The fix for KT-86824 is available in 2.4.20-Beta2.
-        val icDirWithSpaces = Path("/home/me/my project/build/kotlin-native-ic-cache")
+        // The fix for KT-86824 is available in 2.4.20-Beta2. That version still can't build caches (KT-88316), so
+        // getting the prebuilt ones instead of null is what shows that the whitespace check didn't reject it.
         val caches = cachesFor(
-            dependencyRoots = [],
+            dependencyRoots = [Path("/home/my user/.cache/JetBrains/Kotlin")],
             compileIncrementally = true,
-            incrementalCacheDir = icDirWithSpaces,
             target = Platform.LINUX_X64,
             system = linuxHost,
             kotlinVersion = "2.4.20-Beta2",
@@ -239,8 +242,9 @@ class NativeCompilerCachesTest {
 
         assertEquals(
             [
+                "-Xauto-cache-from=${emptyRoot.pathString()}",
                 "-Xenable-incremental-compilation",
-                "-Xic-cache-dir=${icDirWithSpaces.pathString()}",
+                "-Xic-cache-dir=${icDir.pathString()}",
             ],
             caches?.compilerArgs(),
         )
@@ -259,6 +263,63 @@ class NativeCompilerCachesTest {
         )
     }
 
+    @Test
+    fun `dependencies are not cached with a compiler that crashes on caching them`() {
+        // Caching dependencies crashes the compiler (KT-88316), but the distribution's prebuilt caches need no
+        // caching, and incremental compilation is left alone.
+        val caches = cachesFor(
+            dependencyRoots = [dependencyRoot],
+            compileIncrementally = true,
+            kotlinVersion = "2.4.10",
+        )
+
+        assertEquals(
+            [
+                // the empty root: nothing is cached from it, it only unlocks the distribution's prebuilt caches
+                "-Xauto-cache-from=${emptyRoot.pathString()}",
+                "-Xenable-incremental-compilation",
+                "-Xic-cache-dir=${icDir.pathString()}",
+            ],
+            caches?.compilerArgs(),
+        )
+    }
+
+    @Test
+    fun `no auto-cache root at all when dependency caching is off and the compiler crashes on caching them`() {
+        // Prebuilt caches are caches of dependencies, so they must not be used when the user opted out of those.
+        val caches = cachesFor(
+            dependencyRoots = [],
+            compileIncrementally = true,
+            kotlinVersion = "2.4.10",
+        )
+
+        assertEquals(
+            [
+                "-Xenable-incremental-compilation",
+                "-Xic-cache-dir=${icDir.pathString()}",
+            ],
+            caches?.compilerArgs(),
+        )
+    }
+
+    @Test
+    fun `dependencies are cached from the first compiler version that survives caching them`() {
+        val caches = cachesFor(
+            dependencyRoots = [dependencyRoot],
+            compileIncrementally = true,
+            kotlinVersion = "2.4.20-RC2",
+        )
+
+        assertEquals(
+            [
+                "-Xauto-cache-from=${dependencyRoot.pathString()}",
+                "-Xenable-incremental-compilation",
+                "-Xic-cache-dir=${icDir.pathString()}",
+            ],
+            caches?.compilerArgs(),
+        )
+    }
+
     private fun cachesFor(
         dependencyRoots: List<Path>,
         compileIncrementally: Boolean,
@@ -268,7 +329,7 @@ class NativeCompilerCachesTest {
         system: SystemInfo = macOsArm64Host,
         incrementalCacheDir: Path = icDir,
         distributionHome: Path = createTempDirectory("konan-dist"),
-        kotlinVersion: String = "2.2.0",
+        kotlinVersion: String = "2.4.20-RC2",
     ): NativeCompilerCaches? = nativeCompilerCachesFor(
         konanDistribution = testDistribution(distributionHome, kotlinVersion),
         target = target,
@@ -276,6 +337,7 @@ class NativeCompilerCachesTest {
         compilationType = compilationType,
         optimizationEnabled = optimizationEnabled,
         dependencyCacheRoots = dependencyRoots,
+        emptyAutoCacheRoot = emptyRoot,
         compileIncrementally = compileIncrementally,
         incrementalCacheDir = incrementalCacheDir,
     )
@@ -296,6 +358,7 @@ class NativeCompilerCachesTest {
             optInCacheableTargets =
             """.trimIndent()
         )
+        (home / "klib" / "cache").createDirectories() // where a real distribution ships its prebuilt caches
         return KonanDistribution(homeDir = home, kotlinVersion = kotlinVersion)
     }
 

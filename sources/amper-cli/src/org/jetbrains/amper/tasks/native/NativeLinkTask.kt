@@ -279,6 +279,7 @@ internal class NativeLinkTask(
         compilationType = compilationType,
         optimizationEnabled = kotlinUserSettings.optimizationEnabled(buildType),
         dependencyCacheRoots = dependencyCacheRoots,
+        emptyAutoCacheRoot = createEmptyAutoCacheRoot(),
         // Incremental compilation might work without caching the external dependencies.
         // Unlike in KGP, incremental compilation is switched ON by default for Kotlin >= 2.4.0,
         // see [KotlinSettings.compileIncrementally]
@@ -286,6 +287,16 @@ internal class NativeLinkTask(
         // The directory is managed by the compiler and is not a part of the incremental cache inputs
         incrementalCacheDir = nativeIcCacheDir,
     )
+
+    /**
+     * Creates and returns a directory that is guaranteed to contain no klibs.
+     *
+     * The compiler requires auto-cache roots to exist, and this one must stay empty: it is only ever passed to
+     * enable the caches prebuilt in the Kotlin/Native distribution, without making any klib eligible for caching
+     * (see the KT-88316 workaround in [nativeCompilerCachesFor]).
+     */
+    private fun createEmptyAutoCacheRoot(): Path =
+        tempRoot.path.resolve("empty-native-auto-cache-root").createDirectories()
 
     /**
      * Ensures that:
