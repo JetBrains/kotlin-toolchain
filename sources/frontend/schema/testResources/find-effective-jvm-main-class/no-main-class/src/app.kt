@@ -1,0 +1,1 @@
+fun app() = Unit

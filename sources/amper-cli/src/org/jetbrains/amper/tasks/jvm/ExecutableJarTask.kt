@@ -13,9 +13,9 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.executablejar.writeExecutableJar
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.findEffectiveJvmMainClass
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
-import org.jetbrains.amper.jvm.findEffectiveJvmMainClass
 import org.jetbrains.amper.run.ToolingArtifactsDownloader
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult

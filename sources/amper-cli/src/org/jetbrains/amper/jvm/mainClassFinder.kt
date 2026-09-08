@@ -6,13 +6,8 @@ package org.jetbrains.amper.jvm
 
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.frontend.Fragment
-import java.nio.file.Path
-import kotlin.io.path.PathWalkOption
-import kotlin.io.path.isDirectory
-import kotlin.io.path.name
+import org.jetbrains.amper.frontend.findEffectiveJvmMainClass
 import kotlin.io.path.pathString
-import kotlin.io.path.readText
-import kotlin.io.path.walk
 
 /**
  * Finds the fully qualified name of the JVM main class for these fragments.
@@ -38,50 +33,3 @@ internal fun List<Fragment>.getEffectiveJvmMainClass(): String {
     }
     return effectiveMainClass
 }
-
-/**
- * Finds the fully qualified name of the JVM main class for these fragments.
- *
- * This function first looks for an explicit main class in the user settings.
- * If not found, the sources are inspected to find the main class based on the Amper naming convention.
- * If not found either, this function returns null.
- */
-internal fun List<Fragment>.findEffectiveJvmMainClass(): String? {
-    // TODO replace with unanimous setting getter
-    val explicitMainClass = firstNotNullOfOrNull { it.settings.jvm.mainClass }
-    if (explicitMainClass != null) {
-        return explicitMainClass
-    }
-
-    // TODO what if several fragments have main.kt?
-    return firstNotNullOfOrNull { it.findConventionalEntryPoint() }
-}
-
-/**
- * Finds the fist source file named `main.kt` (ignoring case), if any, and returns the corresponding fqn.
- * This is the convention defined in Amper documentation.
- */
-private fun Fragment.findConventionalEntryPoint(): String? {
-    for (sourceRoot in sourceRoots) {
-        if (!sourceRoot.isDirectory()) {
-            continue
-        }
-
-        val firstMainKtFile = sourceRoot.walk(PathWalkOption.BREADTH_FIRST)
-            .firstOrNull { it.name.equals("main.kt", ignoreCase = true) }
-
-        if (firstMainKtFile == null) {
-            continue
-        }
-
-        val pkg = firstMainKtFile.readPackageName()
-        val prefix = if (pkg != null) "${pkg}." else ""
-
-        return "${prefix}MainKt"
-    }
-    return null
-}
-
-private val packageRegex = "^package\\s+([\\w.]+)".toRegex(RegexOption.MULTILINE)
-
-private fun Path.readPackageName(): String? = packageRegex.find(readText())?.groupValues?.get(1)?.trim()
