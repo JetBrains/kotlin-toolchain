@@ -43,6 +43,7 @@ if "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
     goto fail
 )
 
+set KOTLIN_FROM_SOURCES=true
 set AMPER_BUILD_DIR=build-from-sources
 set KOTLIN_CLI_WRAPPER_PATH=%~f0
 rem We use busybox here because it doesn't reinterpret the user-passed command-line arguments (that we pass via %*).

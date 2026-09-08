@@ -90,7 +90,8 @@ internal abstract class AmperSubcommand(name: String) : SuspendingCliktCommand(n
     private fun checkWrapperVersionConsistency(projectRoot: AmperProjectRoot) {
         val projectWrapperVersion = AmperWrapperData.parseFromProjectRoot(projectRoot.path)?.version ?: return
 
-        if (projectWrapperVersion != AmperBuild.mavenVersion) {
+        val runningFromSources = System.getenv("KOTLIN_FROM_SOURCES")?.toBooleanStrictOrNull()
+        if (projectWrapperVersion != AmperBuild.mavenVersion && runningFromSources != true) {
             logger.warn(
                 "Running Kotlin CLI version (${AmperBuild.mavenVersion}) is different from " +
                         "the project wrapper version (${projectWrapperVersion}). " +

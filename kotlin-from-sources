@@ -91,6 +91,7 @@ fi
 
 launcher_script="$script_dir/build/tasks/_amper-cli_buildUnpacked@amper-distribution/dist/bin/launcher.sh"
 
+KOTLIN_FROM_SOURCES=true \
 KOTLIN_CLI_WRAPPER_PATH="$(realpath "$0")" \
 AMPER_BUILD_DIR=build-from-sources \
 exec /bin/sh "$launcher_script" "$@"
