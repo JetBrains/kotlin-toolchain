@@ -22,6 +22,7 @@ import kotlin.test.assertNull
 class NativeCompilerCachesTest {
 
     private val macOsArm64Host = TestSystemInfo(OsFamily.MacOs, Arch.Arm64)
+    private val linuxHost = TestSystemInfo(OsFamily.Linux, Arch.X64)
     private val windowsHost = TestSystemInfo(OsFamily.Windows, Arch.X64)
 
     private val dependencyRoot = Path("/home/me/.cache/JetBrains/Kotlin")
@@ -145,6 +146,119 @@ class NativeCompilerCachesTest {
         )
     }
 
+    @Test
+    fun `no caches on a Linux if incremental cache dir contains whitespace and kotlin version has no fix yet`() {
+        // The Kotlin/Native cache builder invokes 'ar' through /bin/sh without quoting the paths.
+        assertNull(
+            cachesFor(
+                dependencyRoots = [],
+                compileIncrementally = true,
+                incrementalCacheDir = Path("/home/me/my project/build/kotlin-native-ic-cache"),
+                target = Platform.LINUX_X64,
+                system = linuxHost,
+            )
+        )
+    }
+
+    @Test
+    fun `no caches on a Linux if a dependency root contains whitespace and kotlin version has no fix yet`() {
+        assertNull(
+            cachesFor(
+                dependencyRoots = [Path("/home/my user/.cache/JetBrains/Kotlin")],
+                compileIncrementally = false,
+                target = Platform.LINUX_X64,
+                system = linuxHost,
+            )
+        )
+    }
+
+    @Test
+    fun `no caches on a Linux if the distribution path contains whitespace and kotlin version has no fix yet`() {
+        assertNull(
+            cachesFor(
+                dependencyRoots = [dependencyRoot],
+                compileIncrementally = true,
+                distributionHome = createTempDirectory("konan dist with spaces"),
+                target = Platform.LINUX_X64,
+                system = linuxHost,
+            )
+        )
+    }
+
+    @Test
+    fun `whitespace in the incremental cache dir is only a problem on Linux`() {
+        // Only the Linux toolchain uses 'ar' archive scripts, the Apple one handles such paths just fine.
+        val icDirWithSpaces = Path("/Users/me/my project/build/kotlin-native-ic-cache")
+        val caches = cachesFor(
+            dependencyRoots = [],
+            compileIncrementally = true,
+            incrementalCacheDir = icDirWithSpaces,
+        )
+
+        assertEquals(
+            [
+                "-Xenable-incremental-compilation",
+                "-Xic-cache-dir=${icDirWithSpaces.pathString()}",
+            ],
+            caches?.compilerArgs(),
+        )
+    }
+
+    @Test
+    fun `caches are used on a Linux host when no path contains whitespace`() {
+        // Guards against the whitespace checks disabling caches on Linux altogether.
+        val caches = cachesFor(
+            dependencyRoots = [dependencyRoot],
+            compileIncrementally = true,
+            target = Platform.LINUX_X64,
+            system = linuxHost,
+        )
+
+        assertEquals(
+            [
+                "-Xauto-cache-from=${dependencyRoot.pathString()}",
+                "-Xenable-incremental-compilation",
+                "-Xic-cache-dir=${icDir.pathString()}",
+            ],
+            caches?.compilerArgs(),
+        )
+    }
+
+    @Test
+    fun `whitespace in paths is not a problem for a compiler that supports it on Linux`() {
+        // The fix for KT-86824 is available in 2.4.20-Beta2.
+        val icDirWithSpaces = Path("/home/me/my project/build/kotlin-native-ic-cache")
+        val caches = cachesFor(
+            dependencyRoots = [],
+            compileIncrementally = true,
+            incrementalCacheDir = icDirWithSpaces,
+            target = Platform.LINUX_X64,
+            system = linuxHost,
+            kotlinVersion = "2.4.20-Beta2",
+        )
+
+        assertEquals(
+            [
+                "-Xenable-incremental-compilation",
+                "-Xic-cache-dir=${icDirWithSpaces.pathString()}",
+            ],
+            caches?.compilerArgs(),
+        )
+    }
+
+    @Test
+    fun `earlier pre-releases of the fixed compiler version are still affected on Linux`() {
+        assertNull(
+            cachesFor(
+                dependencyRoots = [Path("/home/my user/.cache/JetBrains/Kotlin")],
+                compileIncrementally = false,
+                target = Platform.LINUX_X64,
+                system = linuxHost,
+                kotlinVersion = "2.4.20-Beta1",
+            )
+        )
+    }
+
     private fun cachesFor(
         dependencyRoots: List<Path>,
         compileIncrementally: Boolean,
@@ -152,33 +266,37 @@ class NativeCompilerCachesTest {
         compilationType: KotlinCompilationType = KotlinCompilationType.BINARY,
         target: Platform = Platform.MACOS_ARM64,
         system: SystemInfo = macOsArm64Host,
+        incrementalCacheDir: Path = icDir,
+        distributionHome: Path = createTempDirectory("konan-dist"),
+        kotlinVersion: String = "2.2.0",
     ): NativeCompilerCaches? = nativeCompilerCachesFor(
-        konanDistribution = testDistribution(),
+        konanDistribution = testDistribution(distributionHome, kotlinVersion),
         target = target,
         system = system,
         compilationType = compilationType,
         optimizationEnabled = optimizationEnabled,
         dependencyCacheRoots = dependencyRoots,
         compileIncrementally = compileIncrementally,
-        incrementalCacheDir = icDir,
+        incrementalCacheDir = incrementalCacheDir,
     )
 
     /**
      * A distribution advertising the same cacheable targets as the real Kotlin/Native 2.4.10 distribution.
      */
-    private fun testDistribution(): KonanDistribution {
-        val home = createTempDirectory("konan-dist")
+    private fun testDistribution(home: Path, kotlinVersion: String): KonanDistribution {
         ((home / "konan").createDirectories() / "konan.properties").writeText(
             """
             cacheableTargets.macos_arm64 = \
               macos_arm64 \
               ios_simulator_arm64 \
               ios_arm64
+            cacheableTargets.linux_x64 = \
+              linux_x64
             cacheableTargets.mingw_x64 =
             optInCacheableTargets =
             """.trimIndent()
         )
-        return KonanDistribution(homeDir = home, kotlinVersion = "2.4.0")
+        return KonanDistribution(homeDir = home, kotlinVersion = kotlinVersion)
     }
 
     private fun Path.pathString() = toString()

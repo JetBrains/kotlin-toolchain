@@ -34,7 +34,6 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.kotlin.native.KonanDistribution
 import org.jetbrains.amper.stdlib.io.path.clean
-import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
@@ -277,7 +276,6 @@ internal class NativeLinkTask(
     ): NativeCompilerCaches? = nativeCompilerCachesFor(
         konanDistribution = konanDistribution,
         target = platform,
-        system = SystemInfo.CurrentHost,
         compilationType = compilationType,
         optimizationEnabled = kotlinUserSettings.optimizationEnabled(buildType),
         dependencyCacheRoots = dependencyCacheRoots,
