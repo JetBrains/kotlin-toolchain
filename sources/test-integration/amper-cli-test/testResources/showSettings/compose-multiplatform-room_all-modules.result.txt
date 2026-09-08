@@ -283,8 +283,7 @@ settings@iosArm64+iosSimulatorArm64:
     freeCompilerArgs:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
-      processorOptions:
-        "room.schemaLocation": ./generated-db-schema/ios  # module.yaml
+      processorOptions: {}  # default
       processors:
         - artifactId: room3-compiler  # from $libs.androidx.room3.compiler @ libs.versions.toml
           classifier: null  # default
@@ -759,7 +758,7 @@ settings@iosArm64:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
       processorOptions:
-        "room.schemaLocation": ./generated-db-schema/ios  # module.yaml
+        "room.schemaLocation": ./generated-db-schema/iosArm64  # module.yaml
       processors:
         - artifactId: room3-compiler  # from $libs.androidx.room3.compiler @ libs.versions.toml
           classifier: null  # default
@@ -861,7 +860,7 @@ settings@iosSimulatorArm64:
       - -Xexpect-actual-classes  # module.yaml
     ksp:
       processorOptions:
-        "room.schemaLocation": ./generated-db-schema/ios  # module.yaml
+        "room.schemaLocation": ./generated-db-schema/iosSimulatorArm64  # module.yaml
       processors:
         - artifactId: room3-compiler  # from $libs.androidx.room3.compiler @ libs.versions.toml
           classifier: null  # default

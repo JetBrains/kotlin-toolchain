@@ -28,8 +28,13 @@ settings@android:
     ksp:
       processorOptions:
         room.schemaLocation: ./generated-db-schema/android
-settings@ios:
+settings@iosArm64:
   kotlin:
     ksp:
       processorOptions:
-        room.schemaLocation: ./generated-db-schema/ios
+        room.schemaLocation: ./generated-db-schema/iosArm64
+settings@iosSimulatorArm64:
+  kotlin:
+    ksp:
+      processorOptions:
+        room.schemaLocation: ./generated-db-schema/iosSimulatorArm64

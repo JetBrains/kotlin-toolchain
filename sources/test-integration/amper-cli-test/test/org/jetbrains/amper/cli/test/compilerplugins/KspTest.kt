@@ -329,7 +329,8 @@ class KspTest: CliTestBase() {
             )
             generatedSchemaPath.assertContainsRelativeFiles(
                 "android/AppDatabase/1.json",
-                "ios/AppDatabase/1.json",
+                "iosArm64/AppDatabase/1.json",
+                "iosSimulatorArm64/AppDatabase/1.json",
                 "jvm/AppDatabase/1.json",
             )
         } else {
