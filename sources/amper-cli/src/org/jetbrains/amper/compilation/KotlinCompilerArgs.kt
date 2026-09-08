@@ -223,6 +223,12 @@ internal fun selectKotlinNativeCompilerTarget(
 private fun Platform.supportsKlibCompilationFrom(system: SystemInfo): Boolean =
     !isDescendantOf(Platform.APPLE) || system.family.isMac
 
+/**
+ * Whether the Kotlin/Native compiler should apply global optimizations for the given [buildType].
+ */
+internal fun KotlinUserSettings.optimizationEnabled(buildType: BuildType): Boolean =
+    optimization ?: (buildType == BuildType.Release)
+
 context(task: BuildTask)
 internal fun kotlinNativeCompilerArgs(
     buildType: BuildType,
@@ -242,12 +248,14 @@ internal fun kotlinNativeCompilerArgs(
     friendPaths: List<Path> = [],
     refinesPaths: List<Path> = [],
     metadataManifestFile: Path? = null,
-    otherLinkerOpts: List<String> = emptyList()
+    otherLinkerOpts: List<String> = emptyList(),
+    // Only link (second-stage) compilations can use caches, it should null in all other cases.
+    nativeCaches: NativeCompilerCaches? = null,
 ): List<String> = buildList {
     if (kotlinUserSettings.debug ?: (buildType == BuildType.Debug)) {
         add("-g")
     }
-    if (kotlinUserSettings.optimization ?: (buildType == BuildType.Release)) {
+    if (kotlinUserSettings.optimizationEnabled(buildType)) {
         add("-opt")
     }
     (otherLinkerOpts + kotlinUserSettings.linkerOptions).forEach { opt ->
@@ -325,6 +333,15 @@ internal fun kotlinNativeCompilerArgs(
 
     exportedLibraryPaths.forEach {
         add("-Xexport-library=${it.pathString}")
+    }
+
+    // Before the common args (and therefore before the user's free compiler args) on purpose: the cache directory
+    // options are single-valued, so a user explicitly passing one of them still wins.
+    if (nativeCaches != null) {
+        require(compilationType != KotlinCompilationType.LIBRARY) {
+            "Compiler caches are only applicable to link compilations, but the compilation type is $compilationType"
+        }
+        addAll(nativeCaches.compilerArgs())
     }
 
     // Common args last, because they contain free compiler args

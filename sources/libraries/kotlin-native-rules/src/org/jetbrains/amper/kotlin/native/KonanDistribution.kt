@@ -6,9 +6,11 @@ package org.jetbrains.amper.kotlin.native
 
 import java.net.URLEncoder
 import java.nio.file.Path
+import java.util.Properties
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.extension
+import kotlin.io.path.inputStream
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 
@@ -55,6 +57,34 @@ data class KonanDistribution(val homeDir: Path, val kotlinVersion: String) {
 
     val commonizerCache: NativeDistributionCommonizerCache by lazy {
         NativeDistributionCommonizerCache(commonizedRoot)
+    }
+
+    /**
+     * The root directory of the Kotlin/Native compiler caches for this distribution.
+     *
+     * It includes prebuilt caches for the standard library and the platform libraries (in sibling directories with a `-system` suffix)
+     * as well as the caches the compiler builds for external dependencies.
+     *
+     * Note that this is inside the distribution itself, so the caches are automatically scoped per compiler
+     * version (a location shared by several compiler versions would have been continuously rebuilt).
+     */
+    val compilerCachesRoot: Path
+        get() = klibDir / "cache"
+
+    /**
+     * The parsed `konan.properties` of this distribution, which describes the capabilities of the bundled compiler
+     * (including which targets support compiler caches).
+     *
+     * Missing or unreadable properties result in an empty set of properties rather than a failure: the callers
+     * treat capabilities as "unsupported" when they are not advertised.
+     */
+    internal val konanProperties: Properties by lazy {
+        val file = homeDir / "konan" / "konan.properties"
+        Properties().apply {
+            if (file.exists()) {
+                file.inputStream().buffered().use { load(it) }
+            }
+        }
     }
 
     /**

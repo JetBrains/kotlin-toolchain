@@ -29,6 +29,7 @@ internal data class KotlinUserSettings(
     val explicitApi: ExplicitApiMode,
     val debug: Boolean?,
     val optimization: Boolean?,
+    val nativeCompilerCaches: Boolean,
     val verbose: Boolean,
     val progressiveMode: Boolean,
     val linkerOptions: List<String>,
@@ -88,6 +89,7 @@ internal fun Fragment.serializableKotlinSettings(): KotlinUserSettings = KotlinU
     explicitApi = if (isTest) ExplicitApiMode.Disable else settings.kotlin.explicitApi,
     debug = settings.kotlin.debug,
     optimization = settings.kotlin.optimization, // only valid for native anyway
+    nativeCompilerCaches = settings.kotlin.nativeCompilerCaches, // only valid for native anyway
     verbose = settings.kotlin.verbose,
     progressiveMode = settings.kotlin.progressiveMode,
     linkerOptions = settings.kotlin.linkerOptions?.values().orEmpty(),

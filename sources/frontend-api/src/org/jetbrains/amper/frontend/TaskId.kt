@@ -16,6 +16,12 @@ value class TaskId(val value: String) {
         require(value.isNotBlank())
     }
 
+    /**
+     * Sanitized representation of this task ID that can be used as a single directory name.
+     */
+    val directoryName: String
+        get() = value.replace(":", "_")
+
     companion object {
         fun moduleTask(module: AmperModule, internalName: String) =
             TaskId(":${module.userReadableName}:$internalName")

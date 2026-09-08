@@ -10,5 +10,5 @@ import kotlin.io.path.div
 
 
 fun AmperProjectContext.getTaskOutputRoot(taskId: TaskId): Path {
-    return projectBuildDir / "tasks" / taskId.value.replace(":", "_")
+    return projectBuildDir / "tasks" / taskId.directoryName
 }

@@ -11,9 +11,13 @@ import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.KotlinCompilationType
+import org.jetbrains.amper.compilation.KotlinUserSettings
+import org.jetbrains.amper.compilation.NativeCompilerCaches
 import org.jetbrains.amper.compilation.downloadCompilerPlugins
 import org.jetbrains.amper.compilation.downloadNativeCompiler
 import org.jetbrains.amper.compilation.kotlinNativeCompilerArgs
+import org.jetbrains.amper.compilation.nativeCompilerCachesFor
+import org.jetbrains.amper.compilation.optimizationEnabled
 import org.jetbrains.amper.compilation.serializableKotlinSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.core.AmperUserCacheRoot
@@ -28,16 +32,16 @@ import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
+import org.jetbrains.amper.kotlin.native.KonanDistribution
 import org.jetbrains.amper.stdlib.io.path.clean
+import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.CinteropKlibsArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
-import org.jetbrains.amper.tasks.artifacts.api.Artifact
 import org.jetbrains.amper.tasks.artifacts.api.ArtifactSelector
-import org.jetbrains.amper.tasks.artifacts.api.ArtifactType
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.identificationPhrase
 import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
@@ -47,6 +51,8 @@ import org.jetbrains.amper.tasks.native.swiftpm.parsedLdCallArtifact
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import kotlin.io.path.createDirectories
+import kotlin.io.path.deleteRecursively
 import kotlin.io.path.pathString
 
 internal class NativeLinkTask(
@@ -54,6 +60,9 @@ internal class NativeLinkTask(
     override val platform: Platform,
     private val userCacheRoot: AmperUserCacheRoot,
     private val taskOutputRoot: TaskOutputRoot,
+     // The directory holding the Kotlin/Native per-file incremental caches for this binary.
+     // It should be outside [taskOutputRoot], it is a compiler-managed state rather than something this task produces.
+    private val nativeIcCacheDir: Path,
     private val incrementalCache: IncrementalCache,
     override val taskName: TaskName,
     private val tempRoot: AmperProjectTempRoot,
@@ -164,6 +173,9 @@ internal class NativeLinkTask(
             mapOf("bundleId" to frameworkBundleId)
         } else emptyMap()
 
+        val dependencyCacheRoots =
+            if (kotlinUserSettings.nativeCompilerCaches) externalKlibRoots() else []
+
         val inputFiles = listOfNotNull(includeArtifact, swiftPMImportParsedLdCall?.path) + compiledKLibs
         val artifact = incrementalCache.execute(
             key = taskName.id.value,
@@ -172,6 +184,13 @@ internal class NativeLinkTask(
                 "entry.point" to (entryPoint ?: ""),
                 "task.output.root" to taskOutputRoot.path.pathString,
                 "binary.options" to Json.encodeToString(binaryOptions),
+                // The contents of the cache directories are *not* inputs of this task: they are
+                // compiler-managed state, and a warm cache must not make this task out of date. Only the compiler
+                // arguments we derive from them are.
+                "native.caches" to Json.encodeToString(
+                    dependencyCacheRoots.map { it.pathString } +
+                            listOfNotNull(nativeIcCacheDir.pathString.takeIf { kotlinUserSettings.compileIncrementally })
+                ),
             ),
             inputFiles = inputFiles,
         ) {
@@ -202,6 +221,13 @@ internal class NativeLinkTask(
             )
             val swiftPMLinkerOpts = swiftPMImportParsedLdCall?.parsedLdCall?.ldArgsForExecutable ?: emptyList()
 
+            val nativeCaches = nativeCachesFor(
+                konanDistribution = nativeCompiler.konanDistribution,
+                kotlinUserSettings = kotlinUserSettings,
+                dependencyCacheRoots = dependencyCacheRoots,
+            )
+            prepareIcCacheDir(nativeCaches?.incrementalCacheDir, kotlinUserSettings.compileIncrementally)
+
             val args = kotlinNativeCompilerArgs(
                 buildType = buildType,
                 kotlinUserSettings = kotlinUserSettings,
@@ -219,6 +245,7 @@ internal class NativeLinkTask(
                 compilationType = compilationType,
                 include = includeArtifact,
                 otherLinkerOpts = swiftPMLinkerOpts,
+                nativeCaches = nativeCaches,
             )
 
             nativeCompiler.compile(processRunner, args, tempRoot, module)
@@ -229,6 +256,50 @@ internal class NativeLinkTask(
         return Result(
             linkedBinary = artifact,
         )
+    }
+
+    /**
+     * The roots under which the klibs of external dependencies can be found, and which are therefore worth letting
+     * the compiler cache automatically (`mavenLocal` is not added to the list on purpose).
+     */
+    private fun externalKlibRoots(): List<Path> = [userCacheRoot.path]
+
+    /**
+     * Returns the Kotlin/Native compiler caches to use for this link compilation, or null if caches cannot or should
+     * not be used.
+     * The [konanDistribution] is the one of the compiler that will run,
+     * and [dependencyCacheRoots] are the roots to cache external dependencies from (empty if dependency caching is disabled).
+     */
+    private fun nativeCachesFor(
+        konanDistribution: KonanDistribution,
+        kotlinUserSettings: KotlinUserSettings,
+        dependencyCacheRoots: List<Path>,
+    ): NativeCompilerCaches? = nativeCompilerCachesFor(
+        konanDistribution = konanDistribution,
+        target = platform,
+        system = SystemInfo.CurrentHost,
+        compilationType = compilationType,
+        optimizationEnabled = kotlinUserSettings.optimizationEnabled(buildType),
+        dependencyCacheRoots = dependencyCacheRoots,
+        // Incremental compilation might work without caching the external dependencies.
+        // Unlike in KGP, incremental compilation is switched ON by default for Kotlin >= 2.4.0,
+        // see [KotlinSettings.compileIncrementally]
+        compileIncrementally = kotlinUserSettings.compileIncrementally,
+        // The directory is managed by the compiler and is not a part of the incremental cache inputs
+        incrementalCacheDir = nativeIcCacheDir,
+    )
+
+    /**
+     * Ensures that:
+     * - a directory passed to the compiler exists.
+     * - If incremental compilation is off, a later re-enabling should start from clean caches.
+     */
+    private fun prepareIcCacheDir(icCacheDir: Path?, compileIncrementally: Boolean) {
+        if (icCacheDir != null) {
+            icCacheDir.createDirectories()
+        } else if (!compileIncrementally) {
+            nativeIcCacheDir.deleteRecursively()
+        }
     }
 
     class Result(

@@ -153,6 +153,14 @@ class KotlinSettings : SchemaNode() {
     @PlatformSpecific(Platform.NATIVE)
     val optimization by nullableValue<Boolean>()
 
+    @SchemaDoc("(Only for [native targets](https://kotlinlang.org/docs/native-target-support.html)) " +
+            "Enables reusing the compiled native code of external dependencies across builds, which makes linking " +
+            "binaries significantly faster. Only used for debug (non-optimized) binaries, and only for targets " +
+            "whose compiler supports it.")
+    @PlatformSpecific(Platform.NATIVE)
+    @Misnomers("caches", "cacheKind")
+    val nativeCompilerCaches by value(default = true)
+
     @SchemaDoc("Enables the [progressive mode for the compiler](https://kotlinlang.org/docs/compiler-reference.html#progressive)")
     val progressiveMode by value(false)
 
