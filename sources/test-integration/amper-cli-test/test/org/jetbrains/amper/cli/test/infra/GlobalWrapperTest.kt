@@ -18,7 +18,6 @@ import org.jetbrains.amper.test.TempDirExtension
 import org.jetbrains.amper.wrapper.AmperWrapperData
 import org.jetbrains.amper.wrapper.AmperWrappers
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -51,7 +50,6 @@ class GlobalWrapperTest : CliTestBase() {
         }
     }
 
-    @Disabled // FIXME AMPER-5342 restore this test once we migrate the project to the new wrappers
     @Test
     fun `global wrapper properly detects local version at root`() = runSlowTest {
         AmperWrappers.generate(
@@ -68,7 +66,7 @@ class GlobalWrapperTest : CliTestBase() {
             wrapperMode = WrapperMode.Global,
         )
 
-        result.assertStdoutContains("JetBrains Amper version ${hostWrapperInfo.version}")
+        result.assertStdoutContains("Kotlin Toolchain version ${hostWrapperInfo.version}")
         result.assertStdoutDoesNotContain(AmperBuild.mavenVersion)
     }
 
@@ -90,7 +88,6 @@ class GlobalWrapperTest : CliTestBase() {
         result.assertStdoutDoesNotContain(hostWrapperInfo.version)
     }
 
-    @Disabled // FIXME AMPER-5342 restore this test once we migrate the project to the new wrappers
     @Test
     fun `global wrapper properly detects local version at nested dir`() = runSlowTest {
         AmperWrappers.generate(
@@ -107,7 +104,7 @@ class GlobalWrapperTest : CliTestBase() {
             wrapperMode = WrapperMode.Global,
         )
 
-        result.assertStdoutContains("JetBrains Amper version ${hostWrapperInfo.version}")
+        result.assertStdoutContains("Kotlin Toolchain version ${hostWrapperInfo.version}")
         result.assertStdoutDoesNotContain(AmperBuild.mavenVersion)
     }
 
