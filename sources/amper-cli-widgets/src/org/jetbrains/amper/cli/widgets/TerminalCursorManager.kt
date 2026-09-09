@@ -44,7 +44,15 @@ private class InteractiveTerminalCursorManager(
         if (!resetHookSet) {
             runOnJvmShutdown {
                 synchronized(StateHolder) { isShutdown = true }
-                terminal.cursor.show()
+                try {
+                    terminal.cursor.show()
+                } catch (_: IllegalStateException) {
+                    // If someone somewhere (maybe in Mordant's own code) called `cursor.hide(showOnExit = true)`,
+                    // Mordant's own shutdown hook was registered. In this case, our call to `show()` here will try to
+                    // remove this shutdown hook. But since we're already inside the execution of a shutdown hook, this
+                    // will necessarily fail with 'IllegalStateException: Shutdown in progress'.
+                    // We account for this here.
+                }
             }
             resetHookSet = true
         }
