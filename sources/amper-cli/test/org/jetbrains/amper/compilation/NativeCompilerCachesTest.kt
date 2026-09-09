@@ -358,7 +358,6 @@ class NativeCompilerCachesTest {
             optInCacheableTargets =
             """.trimIndent()
         )
-        (home / "klib" / "cache").createDirectories() // where a real distribution ships its prebuilt caches
         return KonanDistribution(homeDir = home, kotlinVersion = kotlinVersion)
     }
 
