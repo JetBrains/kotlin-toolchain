@@ -13,7 +13,9 @@ import org.jetbrains.amper.cli.test.utils.konancSpans
 import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.cli.test.utils.withTelemetrySpans
+import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.test.AmperCliResult
+import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.spans.FilteredSpans
 import org.junit.jupiter.api.Tag
@@ -24,6 +26,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.isRegularFile
+import kotlin.io.path.name
 import kotlin.io.path.pathString
 import kotlin.io.path.readText
 import kotlin.io.path.relativeTo
@@ -44,6 +47,38 @@ import kotlin.test.fail
 @Tag("cli-test-group-native")
 class NativeCompilerCachesTest : CliTestBase() {
 
+    /**
+     * The oldest Kotlin version whose compiler can build dependency caches without crashing (KT-88316), and thus the
+     * oldest one for which Kotlin Toolchain enables the caches at all.
+     *
+     * TODO KT-88316 drop this pinning once [DefaultVersions.kotlin] reaches this version.
+     */
+    private val kotlinVersionSupportingCaches = "2.4.20-RC2"
+
+    /**
+     * Pins the Kotlin version of every module to [kotlinVersionSupportingCaches], and adds the given extra
+     * `settings.kotlin` [entries] to the module under test.
+     */
+    private fun withCacheableKotlin(vararg entries: String): (Path) -> Unit = { projectDir ->
+        projectDir.walk().filter { it.name == "module.yaml" }.forEach { moduleFile ->
+            val extraEntries = if (moduleFile.parent?.name == "macos-cli") entries else emptyArray()
+            moduleFile.addKotlinSettings("version: $kotlinVersionSupportingCaches", *extraEntries)
+        }
+    }
+
+    /**
+     * Appends the given `settings.kotlin` [entries] to this module file, creating the `settings` block if needed.
+     */
+    private fun Path.addKotlinSettings(vararg entries: String) {
+        val hasSettingsBlock = readText().lineSequence().any { it.startsWith("settings:") }
+        val lines = buildList {
+            if (!hasSettingsBlock) add("settings:")
+            add("  kotlin:")
+            entries.forEach { add("    $it") }
+        }
+        appendText(lines.joinToString(separator = "\n", prefix = "\n", postfix = "\n"))
+    }
+
     @Test
     @MacOnly
     fun `debug binaries are linked with dependency caches and incremental compilation`() = runSlowTest {
@@ -52,6 +87,7 @@ class NativeCompilerCachesTest : CliTestBase() {
             projectDir = testProject("simple-multiplatform-cli"),
             "build", "-p", "macosArm64", "-m", "macos-cli",
             buildOutputRoot = buildOutputRoot,
+            modifyProjectBeforeRun = withCacheableKotlin(),
         )
 
         result.withTelemetrySpans {
@@ -87,6 +123,7 @@ class NativeCompilerCachesTest : CliTestBase() {
         val result = runCli(
             projectDir = testProject("simple-multiplatform-cli"),
             "build", "-p", "macosArm64", "-m", "macos-cli",
+            modifyProjectBeforeRun = withCacheableKotlin(),
         )
 
         result.withTelemetrySpans {
@@ -107,6 +144,7 @@ class NativeCompilerCachesTest : CliTestBase() {
         val result = runCli(
             projectDir = testProject("simple-multiplatform-cli"),
             "build", "-p", "macosArm64", "-m", "macos-cli", "-v", "release",
+            modifyProjectBeforeRun = withCacheableKotlin(),
         )
 
         result.withTelemetrySpans {
@@ -126,11 +164,10 @@ class NativeCompilerCachesTest : CliTestBase() {
         val result = runCli(
             projectDir = testProject("simple-multiplatform-cli"),
             "build", "-p", "macosArm64", "-m", "macos-cli",
-            modifyProjectBeforeRun = { projectDir ->
-                (projectDir / "macos-cli" / "module.yaml").appendText(
-                    "\n  kotlin:\n    nativeCompilerCaches: false\n    compileIncrementally: false\n"
-                )
-            },
+            modifyProjectBeforeRun = withCacheableKotlin(
+                "nativeCompilerCaches: false",
+                "compileIncrementally: false",
+            ),
         )
 
         result.withTelemetrySpans {
@@ -140,30 +177,44 @@ class NativeCompilerCachesTest : CliTestBase() {
 
     @Test
     @MacOnly
-    fun `incremental linking works without dependency caching`() = runSlowTest {
-        // The two settings are independent: the compiler enables its cache machinery for either of them, so
-        // disabling dependency caching must not silently disable incremental linking as well.
+    fun `no incremental linking without dependency caching`() = runSlowTest {
+        // Without an auto-cache root, the compiler caches every dependency per file in the incremental cache dir
+        // instead of monolithically in the shared one. Those caches are private to this binary and much larger, so
+        // incremental linking is not worth it on its own and must be off as well.
         val result = runCli(
             projectDir = testProject("simple-multiplatform-cli"),
             "build", "-p", "macosArm64", "-m", "macos-cli",
-            modifyProjectBeforeRun = { projectDir ->
-                (projectDir / "macos-cli" / "module.yaml").appendText(
-                    "\n  kotlin:\n    nativeCompilerCaches: false\n    compileIncrementally: true\n"
-                )
-            },
+            modifyProjectBeforeRun = withCacheableKotlin(
+                "nativeCompilerCaches: false",
+                "compileIncrementally: true",
+            ),
+        )
+
+        result.withTelemetrySpans {
+            assertNoCacheArgs(konancSpans.linkingMainBinary().assertSingle().compilerArgs())
+        }
+    }
+
+    @Test
+    @MacOnly
+    fun `the local maven repository is cacheable`() = runSlowTest {
+        // Klibs left outside the auto-cache roots are not excluded from caching, they are cached per file in the
+        // per-binary incremental cache dir instead, so every klib location must be declared as a root.
+        val result = runCli(
+            projectDir = testProject("simple-multiplatform-cli"),
+            "build", "-p", "macosArm64", "-m", "macos-cli",
+            modifyProjectBeforeRun = withCacheableKotlin(),
         )
 
         result.withTelemetrySpans {
             val linkArgs = konancSpans.linkingMainBinary().assertSingle().compilerArgs()
+            val cacheableRoots = linkArgs.filter { it.startsWith("-Xauto-cache-from=") }
+                .map { Path(it.removePrefix("-Xauto-cache-from=")) }
 
-            assertTrue("-Xenable-incremental-compilation" in linkArgs, "Expected incremental linking:\n$linkArgs")
             assertTrue(
-                linkArgs.any { it.startsWith("-Xic-cache-dir=") },
-                "Expected an incremental cache directory:\n$linkArgs",
-            )
-            assertTrue(
-                linkArgs.none { it.startsWith("-Xauto-cache-from=") },
-                "Dependency caching should be off:\n$linkArgs",
+                Dirs.m2repository in cacheableRoots,
+                "Expected the local maven repository ${Dirs.m2repository} among the cacheable roots, but got:" +
+                        "\n$cacheableRoots",
             )
         }
     }
@@ -182,6 +233,7 @@ class NativeCompilerCachesTest : CliTestBase() {
             projectDir = projectDir,
             "run", "--module=macos-cli",
             buildOutputRoot = buildOutputRoot,
+            modifyProjectBeforeRun = withCacheableKotlin(),
         )
         firstRun.assertStdoutContains("Multiplatform CLI 12: Mac World")
 

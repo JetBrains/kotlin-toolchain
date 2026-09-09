@@ -29,9 +29,13 @@ internal data class NativeCompilerCaches(
     /**
      * The root directories under which klibs are eligible for automatic caching.
      *
-     * The compiler caches the klibs it finds under these roots and reuses those caches across compilations (and
-     * across projects). Only *external* dependencies belong here: klibs compiled from project sources are handled
+     * The compiler caches klibs found under these roots and reuses machine-wide: across compilations and
+     * across projects. Only *external* dependencies belong here: klibs compiled from project sources are handled
      * by [incrementalCacheDir] instead.
+     *
+     * Every location that external klibs may come from must be listed, because the compiler caches the klibs it
+     * finds outside these roots *per file* in [incrementalCacheDir] instead, which is dramatically more expensive
+     * (see [nativeCompilerCachesFor]).
      *
      * The caches themselves are not written here. They go to the compiler's own cache directory, which is inside
      * the Kotlin/Native distribution (see [org.jetbrains.amper.kotlin.native.KonanDistribution.compilerCachesRoot]).
@@ -72,13 +76,17 @@ internal data class NativeCompilerCaches(
  *   compilations.
  * * when optimizations are enabled, because the compiler ignores all caches "with global optimizations"
  * * when the Kotlin/Native distribution doesn't advertise cache support for [target] on this host
- * * when neither dependency caching nor incremental compilation is requested
+ * * when [dependencyCacheRoots] is empty, which also rules out incremental compilation (see below)
+ * * when the compiler might crash while caching dependencies (see [canCacheDependencies])
  * * when a path involved in caching contains whitespace on a Linux host (see [cacheBuilderSupports])
  *
- * Compilers that crash while caching dependencies (due to KT-88316) only get the distribution's prebuilt caches, see
- * [autoCacheableRootsFor].
+ * Incremental compilation is strictly tied to native dependencies caching. The compiler builds a *per-file* cache for
+ * every klib that is not under one of the [dependencyCacheRoots], and stores it in [incrementalCacheDir]. Those
+ * per-file caches are private to a single binary, and are orders of magnitude larger than the shared monolithic ones.
+ * For klibs that embed a big native library: a Skiko cache measures 76 MB monolithic against ~17 GB per file. So
+ * incremental compilation of this stage is only ever enabled together with dependency caching.
  *
- * This is aligned with the conditions used by the Kotlin Gradle Plugin in `KotlinNativeLink`.
+ * The remaining conditions are aligned with those used by the Kotlin Gradle Plugin in `KotlinNativeLink`.
  */
 internal fun nativeCompilerCachesFor(
     konanDistribution: KonanDistribution,
@@ -87,13 +95,13 @@ internal fun nativeCompilerCachesFor(
     compilationType: KotlinCompilationType,
     optimizationEnabled: Boolean,
     dependencyCacheRoots: List<Path>,
-    emptyAutoCacheRoot: Path,
     compileIncrementally: Boolean,
     incrementalCacheDir: Path,
 ): NativeCompilerCaches? {
     if (compilationType == KotlinCompilationType.LIBRARY) return null
     if (optimizationEnabled) return null
-    if (dependencyCacheRoots.isEmpty() && !compileIncrementally) return null
+    if (dependencyCacheRoots.isEmpty()) return null
+    if (!canCacheDependencies(konanDistribution.kotlinVersion)) return null
 
     val host = konanHostPlatform(system) ?: return null
     if (!konanDistribution.supportsCompilerCachesFor(target = target.toKonanPlatform(), host = host)) return null
@@ -107,7 +115,7 @@ internal fun nativeCompilerCachesFor(
     if (!cacheBuilderSupports(cachePaths, system, konanDistribution.kotlinVersion)) return null
 
     return NativeCompilerCaches(
-        autoCacheableFrom = autoCacheableRootsFor(konanDistribution, dependencyCacheRoots, emptyAutoCacheRoot),
+        autoCacheableFrom = dependencyCacheRoots,
         incrementalCacheDir = incrementalCacheDir.takeIf { compileIncrementally },
     )
 }
@@ -120,27 +128,16 @@ internal fun nativeCompilerCachesFor(
 private val MinKotlinVersionForCachingDependencies = ComparableVersion("2.4.20-RC2")
 
 /**
- * Returns the roots to cache external dependencies from, given the compiler of [konanDistribution] that will run.
- *
- * Compilers older than [MinKotlinVersionForCachingDependencies] only get [emptyAutoCacheRoot]: no klib is eligible
- * for caching under an empty directory, so nothing is ever cached, but the mere presence of the option makes the
- * compiler use the caches prebuilt in its distribution (the standard library and the platform libraries).
+ * Whether the compiler of the given [kotlinVersion] can build caches for external dependencies without crashing.
  */
-private fun autoCacheableRootsFor(
-    konanDistribution: KonanDistribution,
-    dependencyCacheRoots: List<Path>,
-    emptyAutoCacheRoot: Path,
-): List<Path> {
-    if (dependencyCacheRoots.isEmpty()) return []
-    if (ComparableVersion(konanDistribution.kotlinVersion) >= MinKotlinVersionForCachingDependencies) {
-        return dependencyCacheRoots
-    }
+private fun canCacheDependencies(kotlinVersion: String): Boolean {
+    if (ComparableVersion(kotlinVersion) >= MinKotlinVersionForCachingDependencies) return true
 
     logger.debug(
-        "Only using the prebuilt Kotlin/Native caches, because caching dependencies might crash the Kotlin {} compiler " +
-                "(see https://youtrack.jetbrains.com/issue/KT-88316)", konanDistribution.kotlinVersion,
+        "Disabling the Kotlin/Native compiler caches, because caching dependencies might crash the Kotlin {} compiler " +
+                "(see https://youtrack.jetbrains.com/issue/KT-88316)", kotlinVersion,
     )
-    return [emptyAutoCacheRoot]
+    return false
 }
 
 /**
@@ -156,7 +153,11 @@ private val MinKotlinVersionSupportingSpacesOnLinux = ComparableVersion("2.4.20-
  * Whether the Kotlin/Native cache builder of the given [kotlinVersion] can handle the given [paths] on a host with
  * the given [system].
  *
- * TODO KT-86824 remove this workaround once we require Kotlin >= 2.4.2
+ * Note: no version currently reaches this check without passing it, because [MinKotlinVersionForCachingDependencies]
+ * is higher than [MinKotlinVersionSupportingSpacesOnLinux]. This is kept for the case where the former is lowered
+ * after a backport of the KT-88316 fix.
+ *
+ * TODO KT-86824 remove this workaround once we require Kotlin >= 2.4.20
  */
 private fun cacheBuilderSupports(paths: List<Path>, system: SystemInfo, kotlinVersion: String): Boolean {
     if (system.family != OsFamily.Linux) return true

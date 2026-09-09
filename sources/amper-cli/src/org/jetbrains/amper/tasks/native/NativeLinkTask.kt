@@ -21,6 +21,7 @@ import org.jetbrains.amper.compilation.optimizationEnabled
 import org.jetbrains.amper.compilation.serializableKotlinSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.dependency.resolution.MavenLocalRepository
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
@@ -53,6 +54,7 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
+import kotlin.io.path.isDirectory
 import kotlin.io.path.pathString
 
 internal class NativeLinkTask(
@@ -265,9 +267,21 @@ internal class NativeLinkTask(
 
     /**
      * The roots under which the klibs of external dependencies can be found, and which are therefore worth letting
-     * the compiler cache automatically (`mavenLocal` is not added to the list on purpose).
+     * the compiler cache automatically.
+     *
+     * The local Maven repository is part of this list, despite not being a cache of ours.
+     * Leaving a klib location out doesn't exclude those klibs from caching,
+     * it only downgrades them to the per-file caches of [nativeIcCacheDir],
+     * which are private to this binary and can be orders of magnitude larger (see [nativeCompilerCachesFor]).
+     * That `mavenLocal` artifacts are mutable is not a problem here: the compiler keys every cache entry by the
+     * content fingerprint of the klib and of its dependencies, so a republished klib gets a fresh entry instead of a
+     * stale hit.
      */
-    private fun externalKlibRoots(): List<Path> = [userCacheRoot.path]
+    private fun externalKlibRoots(): List<Path> = listOfNotNull(
+        userCacheRoot.path,
+        // The compiler fails the compilation when it is given an auto-cache root that doesn't exist.
+        MavenLocalRepository.Default.repository.takeIf { it.isDirectory() },
+    )
 
     /**
      * Returns the Kotlin/Native compiler caches to use for this link compilation, or null if caches cannot or should
@@ -285,24 +299,13 @@ internal class NativeLinkTask(
         compilationType = compilationType,
         optimizationEnabled = kotlinUserSettings.optimizationEnabled(buildType),
         dependencyCacheRoots = dependencyCacheRoots,
-        emptyAutoCacheRoot = createEmptyAutoCacheRoot(),
-        // Incremental compilation might work without caching the external dependencies.
+        // Only taken into account when the dependencies are cacheable, see [nativeCompilerCachesFor].
         // Unlike in KGP, incremental compilation is switched ON by default for Kotlin >= 2.4.0,
         // see [KotlinSettings.compileIncrementally]
         compileIncrementally = kotlinUserSettings.compileIncrementally,
         // The directory is managed by the compiler and is not a part of the incremental cache inputs
         incrementalCacheDir = nativeIcCacheDir,
     )
-
-    /**
-     * Creates and returns a directory that is guaranteed to contain no klibs.
-     *
-     * The compiler requires auto-cache roots to exist, and this one must stay empty: it is only ever passed to
-     * enable the caches prebuilt in the Kotlin/Native distribution, without making any klib eligible for caching
-     * (see the KT-88316 workaround in [nativeCompilerCachesFor]).
-     */
-    private fun createEmptyAutoCacheRoot(): Path =
-        tempRoot.path.resolve("empty-native-auto-cache-root").createDirectories()
 
     /**
      * Cleans the outputs of the previous run, keeping the given [icCacheDir] (if any) so the compiler can update the
