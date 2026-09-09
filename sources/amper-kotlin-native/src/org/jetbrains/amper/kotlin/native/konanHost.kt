@@ -23,7 +23,8 @@ fun konanHostPlatform(system: SystemInfo = SystemInfo.CurrentHost): KonanPlatfor
     }
     OsFamily.Linux -> when (system.arch) {
         Arch.X64 -> Platform.LINUX_X64
-        Arch.Arm64 -> Platform.LINUX_ARM64
+        // linuxArm64 is only supported as a target, see https://youtrack.jetbrains.com/issue/KT-36871
+        Arch.Arm64 -> null
     }
     OsFamily.Windows -> when (system.arch) {
         Arch.X64 -> Platform.MINGW_X64
