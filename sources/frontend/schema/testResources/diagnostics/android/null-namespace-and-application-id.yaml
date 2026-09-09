@@ -1,0 +1,6 @@
+product: <![Error] Android applications require setting `android.namespace` set!>android/app<!>
+
+settings:
+  android:
+    namespace: <![Error] Android setting `namespace` cannot be set to null!>null<!>
+    applicationId: <![Error] Android setting `applicationId` cannot be set to null!>null<!>

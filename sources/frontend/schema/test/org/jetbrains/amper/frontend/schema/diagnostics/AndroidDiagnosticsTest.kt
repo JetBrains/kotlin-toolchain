@@ -37,4 +37,14 @@ class AndroidDiagnosticsTest : FrontendTestCaseBase(Path("testResources") / "dia
     fun `test namespace is required for Android applications`() {
         diagnosticsTest("missing-namespace")
     }
+
+    @Test
+    fun `test namespace and application ID cannot be null`() {
+        diagnosticsTest("null-namespace-and-application-id")
+    }
+
+    @Test
+    fun `test namespace cannot be null in Android libraries`() {
+        diagnosticsTest("null-namespace-in-library")
+    }
 }

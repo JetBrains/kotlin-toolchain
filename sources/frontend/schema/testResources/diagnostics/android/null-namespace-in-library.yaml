@@ -1,0 +1,7 @@
+product:
+  type: kmp/lib
+  platforms: [jvm, android]
+
+settings:
+  android:
+    namespace: <![Error] Android setting `namespace` cannot be set to null!>null<!>
