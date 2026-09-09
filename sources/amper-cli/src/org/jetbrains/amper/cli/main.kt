@@ -132,7 +132,7 @@ private fun printInternalError(e: Exception) {
     } else {
         // we avoid showing a scary stacktrace in the terminal, but we still provide it in the logs
         printRedToStderr("\nInternal error: $e\n\nPlease check the build logs for the full stacktrace, " +
-                "and if possible file a bug report at https://youtrack.jetbrains.com/newIssue?project=AMPER")
+                "and if possible file a bug report at https://youtrack.jetbrains.com/newIssue?project=KTC")
     }
     withoutConsoleLogging {
         logger.error("Internal error:", e)
