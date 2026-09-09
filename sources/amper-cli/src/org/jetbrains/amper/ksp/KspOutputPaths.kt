@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.ksp
@@ -18,6 +18,18 @@ class KspOutputPaths(
      * The directory to place all KSP caches.
      */
     val cachesDir: Path,
+    /**
+     * The directory to use as `java.io.tmpdir` in the KSP process.
+     *
+     * Processors can have transitive dependencies that don't rely on KSP caches, and instead use the JVM-provided temp
+     * directory to store their files. Since we run KSP in parallel for multiple Kotlin platforms with quite similar
+     * configs, using the same temp dir might create problems for libraries that were not written with multi-process
+     * safety in mind.
+     *
+     * This setting allows customizing the path to the temp directory that the KSP JVM should see, and can be used to
+     * set isolated temp dirs.
+     */
+    val jvmTempDir: Path,
     /**
      * The output directory for generated Kotlin sources.
      */

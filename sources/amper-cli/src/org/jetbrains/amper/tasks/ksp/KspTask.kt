@@ -62,6 +62,7 @@ import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.IOException
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.exists
@@ -153,6 +154,11 @@ internal class KspTask(
             // compilation (so, jvm/jvmMain, jvm/jvmTest, ...). In our case, each KSP task is already per platform and
             // per compilation (jvm/linuxX64/... + main/test), so we can use the task output root as a base for caches.
             cachesDir = taskOutputRoot.path / "ksp-cache",
+            // Same reasoning as for the caches: one KSP task per platform and per compilation, so the task output root
+            // gives each KSP process a temp dir of its own. This avoids issues with misbehaving libraries like the
+            // sqlite-jdbc driver.
+            // See KTC-5866 (and https://github.com/xerial/sqlite-jdbc/issues/1140#issuecomment-5600601414).
+            jvmTempDir = taskOutputRoot.path / "jvm-temp",
             // For outputs, we need to follow the conventions so the IDE can import files seamlessly
             kotlinSourcesDir = generatedKotlinSourceDir.path,
             javaSourcesDir = generatedJavaSourceDir.path,
@@ -248,6 +254,15 @@ internal class KspTask(
 
         incrementalCache.executeForFiles("${taskName.id.value}-run-ksp", configuration, inputFiles) {
             kspOutputPaths.outputDirs.forEach { it.clean() }
+            try {
+                kspOutputPaths.jvmTempDir.clean()
+            } catch (e: IOException) {
+                // Deleting leftovers is only hygiene: this dir is used by a single KSP process at a time, so anything
+                // in here is from a previous run, and its owner is long gone. This is why failures must not fail the
+                // build: on Windows, files that a dead process left behind can still be locked for a while (by an
+                // antivirus scan, for instance).
+                logger.debug("Failed to clean the KSP JVM temp dir", e)
+            }
             if (sources.isEmpty()) {
                 logger.debug("No sources were found for ${fragments.identificationPhrase()}, skipping KSP")
             } else {
@@ -257,6 +272,7 @@ internal class KspTask(
                     processorClasspath = kspProcessorClasspath,
                     config = kspConfig,
                     tempRoot = tempRoot,
+                    jvmTempDir = kspOutputPaths.jvmTempDir,
                 )
             }
             kspOutputPaths.outputDirs

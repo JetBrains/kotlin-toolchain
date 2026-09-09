@@ -16,7 +16,11 @@ import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.io.IOException
 import java.nio.file.Path
+import kotlin.io.path.createDirectories
+import kotlin.io.path.deleteRecursively
+import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.pathString
 import kotlin.io.path.relativeTo
 
@@ -38,6 +42,7 @@ internal class Ksp(
         processorClasspath: List<Path>,
         config: KspConfig,
         tempRoot: AmperProjectTempRoot,
+        jvmTempDir: Path,
     ) {
         val workingDir = config.projectBaseDir
 
@@ -61,11 +66,17 @@ internal class Ksp(
             programArgs = [compilationType.kspMainClassFqn] + args,
             argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
             outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger, prefix = "[ksp] ")),
-            // KSP uses some Unsafe APIs inside (because it depends on AA, thus IntelliJ)
-            // Since Java 25, we need to explicitly allow them.
-            // They should eventually fix the actual usage inside. This is tracked over there:
-            // https://github.com/google/ksp/issues/2753
             jvmArgs = buildList {
+                // Processors are third-party code, and some of them leave files in the JVM-provided temp dir or delete
+                // files they don't own.
+                // Giving each KSP process its own temp dir avoids interference between concurrent KSP processes
+                // (see the doc of KspOutputPaths.jvmTempDir).
+                add("-Djava.io.tmpdir=${jvmTempDir.createDirectories().pathString}")
+
+                // KSP uses some Unsafe APIs inside (because it depends on AA, thus IntelliJ)
+                // Since Java 25, we need to explicitly allow them.
+                // They should eventually fix the actual usage inside. This is tracked over there:
+                // https://github.com/google/ksp/issues/2753
                 if (jdk.majorVersion >= 25) {
                     add("--enable-native-access=ALL-UNNAMED")
                     add("--sun-misc-unsafe-memory-access=allow")
