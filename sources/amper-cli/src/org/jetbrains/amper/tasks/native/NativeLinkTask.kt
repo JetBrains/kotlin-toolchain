@@ -34,6 +34,7 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.kotlin.native.KonanDistribution
 import org.jetbrains.amper.stdlib.io.path.clean
+import org.jetbrains.amper.stdlib.io.path.cleanDirectoryExcept
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
@@ -51,7 +52,7 @@ import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
-import kotlin.io.path.deleteRecursively
+import kotlin.io.path.div
 import kotlin.io.path.pathString
 
 internal class NativeLinkTask(
@@ -59,9 +60,6 @@ internal class NativeLinkTask(
     override val platform: Platform,
     private val userCacheRoot: AmperUserCacheRoot,
     private val taskOutputRoot: TaskOutputRoot,
-     // The directory holding the Kotlin/Native per-file incremental caches for this binary.
-     // It should be outside [taskOutputRoot], it is a compiler-managed state rather than something this task produces.
-    private val nativeIcCacheDir: Path,
     private val incrementalCache: IncrementalCache,
     override val taskName: TaskName,
     private val tempRoot: AmperProjectTempRoot,
@@ -87,6 +85,16 @@ internal class NativeLinkTask(
         require(platform.isDescendantOf(Platform.NATIVE))
         require(compilationType != KotlinCompilationType.LIBRARY)
     }
+
+    /**
+     * The directory holding the Kotlin/Native per-file incremental caches for this binary.
+     * It is reused between task executions.
+     *
+     * Note: These caches are for the project's own code (unlike the caches of external dependencies, which the compiler
+     * shares machine-wide).
+     */
+    private val nativeIcCacheDir: Path
+        get() = taskOutputRoot.path / "kotlin-native-ic-cache"
 
     private val cinteropKlibs by Selectors.fromModuleWithDependencies(
         type = CinteropKlibsArtifact::class,
@@ -193,8 +201,6 @@ internal class NativeLinkTask(
             ),
             inputFiles = inputFiles,
         ) {
-            taskOutputRoot.path.clean()
-
             if (isTest) {
                 logger.debug("Linking native test executable for module '${module.userReadableName}' on platform '${platform.pretty}'...")
             } else {
@@ -225,7 +231,7 @@ internal class NativeLinkTask(
                 kotlinUserSettings = kotlinUserSettings,
                 dependencyCacheRoots = dependencyCacheRoots,
             )
-            prepareIcCacheDir(nativeCaches?.incrementalCacheDir, kotlinUserSettings.compileIncrementally)
+            prepareOutputDir(icCacheDir = nativeCaches?.incrementalCacheDir)
 
             val args = kotlinNativeCompilerArgs(
                 buildType = buildType,
@@ -299,15 +305,19 @@ internal class NativeLinkTask(
         tempRoot.path.resolve("empty-native-auto-cache-root").createDirectories()
 
     /**
-     * Ensures that:
-     * - a directory passed to the compiler exists.
-     * - If incremental compilation is off, a later re-enabling should start from clean caches.
+     * Cleans the outputs of the previous run, keeping the given [icCacheDir] (if any) so the compiler can update the
+     * incremental caches instead of rebuilding them from scratch. The [icCacheDir] is also created if missing,
+     * because the compiler requires it to exist.
+     *
+     * When incremental compilation is not used in this run, the caches are wiped along with the rest of the outputs,
+     * so that enabling it again later starts from a clean state.
      */
-    private fun prepareIcCacheDir(icCacheDir: Path?, compileIncrementally: Boolean) {
-        if (icCacheDir != null) {
+    private fun prepareOutputDir(icCacheDir: Path?) {
+        if (icCacheDir == null) {
+            taskOutputRoot.path.clean()
+        } else {
+            cleanDirectoryExcept(taskOutputRoot.path, keepPaths = [icCacheDir])
             icCacheDir.createDirectories()
-        } else if (!compileIncrementally) {
-            nativeIcCacheDir.deleteRecursively()
         }
     }
 

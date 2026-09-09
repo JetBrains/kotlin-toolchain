@@ -8,13 +8,17 @@ import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.sdk.trace.data.SpanData
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
+import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.konancSpans
+import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.cli.test.utils.withTelemetrySpans
+import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.spans.FilteredSpans
 import org.junit.jupiter.api.Tag
 import java.nio.file.Path
+import kotlin.io.path.Path
 import kotlin.io.path.appendText
 import kotlin.io.path.exists
 import kotlin.io.path.getLastModifiedTime
@@ -29,6 +33,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 /**
  * Tests for the Kotlin/Native compiler caches (KTC-5422).
@@ -64,8 +69,15 @@ class NativeCompilerCachesTest : CliTestBase() {
             )
         }
 
-        val icCacheDir = buildOutputRoot / "kotlin-native-ic-cache"
+        val icCacheDir = result.icCacheDirOfMainLink()
         assertTrue(icCacheDir.exists(), "Expected the incremental caches to be created in $icCacheDir")
+        // The caches are an implementation detail of the link task, so they live in its own output directory
+        // (which therefore cannot be wiped wholesale when re-linking incrementally).
+        assertEquals(
+            result.getTaskOutputPath(":macos-cli:linkMacosArm64Debug"),
+            icCacheDir.parent,
+            "Expected the incremental caches in the output directory of the link task",
+        )
     }
 
     @Test
@@ -173,7 +185,7 @@ class NativeCompilerCachesTest : CliTestBase() {
         )
         firstRun.assertStdoutContains("Multiplatform CLI 12: Mac World")
 
-        val icCacheDir = buildOutputRoot / "kotlin-native-ic-cache"
+        val icCacheDir = firstRun.icCacheDirOfMainLink()
         val coldRunCacheState = icCacheDir.fileStates()
 
         val secondRun = runCli(
@@ -227,6 +239,16 @@ class NativeCompilerCachesTest : CliTestBase() {
             },
             "Expected no cache arguments at all, but got:\n$linkArgs",
         )
+    }
+
+    /**
+     * The directory that the compiler was given for the incremental caches when linking the main binary.
+     */
+    private fun AmperCliResult.icCacheDirOfMainLink(): Path {
+        val linkArgs = readTelemetrySpans().konancSpans.linkingMainBinary().assertSingle().compilerArgs()
+        val icCacheDirArg = linkArgs.singleOrNull { it.startsWith("-Xic-cache-dir=") }
+            ?: fail("Expected a single incremental cache directory in the main link, but got:\n$linkArgs")
+        return Path(icCacheDirArg.removePrefix("-Xic-cache-dir="))
     }
 
     /**

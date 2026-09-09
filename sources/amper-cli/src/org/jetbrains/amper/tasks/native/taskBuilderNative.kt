@@ -4,10 +4,8 @@
 
 package org.jetbrains.amper.tasks.native
 
-import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
-import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.fragmentsTargeting
@@ -22,21 +20,9 @@ import org.jetbrains.amper.tasks.getModuleDependencies
 import org.jetbrains.amper.tasks.getTaskName
 import org.jetbrains.amper.tasks.ios.IosTaskType
 import org.jetbrains.amper.util.BuildType
-import java.nio.file.Path
-import kotlin.io.path.div
 
 private fun isIosApp(platform: Platform, module: AmperModule) =
     platform.isDescendantOf(Platform.IOS) && module.type.isApplication()
-
-/**
- * The directory for the Kotlin/Native per-file incremental caches of the binary produced by [linkTaskName].
- *
- * These caches are for the project's own code, so they are project-local (unlike the caches of external
- * dependencies, which the compiler shares machine-wide). They are kept out of the task output directory because
- * that one is wiped on every run of the link task.
- */
-private fun ProjectCliContext.getNativeIcCachePath(linkTaskName: TaskName): Path =
-    buildOutputRoot.path / "kotlin-native-ic-cache" / linkTaskName.id.directoryName
 
 fun ProjectTasksBuilder.setupNativeTasks() {
     tasks.registerTask(
@@ -126,7 +112,6 @@ fun ProjectTasksBuilder.setupNativeTasks() {
                         platform = platform,
                         userCacheRoot = context.userCacheRoot,
                         taskOutputRoot = context.getTaskOutputPath(linkTaskName),
-                        nativeIcCacheDir = context.getNativeIcCachePath(linkTaskName),
                         incrementalCache = context.incrementalCache,
                         taskName = linkTaskName,
                         tempRoot = context.projectTempRoot,
