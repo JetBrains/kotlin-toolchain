@@ -32,4 +32,9 @@ class AndroidDiagnosticsTest : FrontendTestCaseBase(Path("testResources") / "dia
     fun `test setting cannot be applied to android library`() {
         diagnosticsTest("signing-in-libraries")
     }
+
+    @Test
+    fun `test namespace is required for Android applications`() {
+        diagnosticsTest("missing-namespace")
+    }
 }

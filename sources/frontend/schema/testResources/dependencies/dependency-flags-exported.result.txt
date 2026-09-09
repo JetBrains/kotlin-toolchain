@@ -11,6 +11,11 @@ Fragments:
       src
     Fragment dependencies:
     Settings: {
+      android: {
+        applicationId: <default> com.example.app
+        namespace: com.example.app
+        targetSdk: <default> 37
+      }
     }
 
   test
@@ -27,6 +32,11 @@ Fragments:
     Fragment dependencies:
       main (FRIEND)
     Settings: {
+      android: {
+        applicationId: <default> com.example.app
+        namespace: com.example.app
+        targetSdk: <default> 37
+      }
     }
 
 Artifacts:

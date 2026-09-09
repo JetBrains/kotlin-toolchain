@@ -16,6 +16,7 @@ enum class FrontendDiagnosticId : DiagnosticId {
     AliasIsEmpty,
     AliasUsesNonLeafPlatform,
     AliasUsesUndeclaredPlatform,
+    AndroidApplicationNamespaceMissing,
     AndroidVersionShouldBeAtLeastMinSdk,
     AndroidVersionTooOld,
     ComposeMaterial3UnknownVersionMapping,

@@ -2,4 +2,5 @@ product: android/app
 
 settings:
   android:
+    namespace: com.example.app
     compileSdk: 37

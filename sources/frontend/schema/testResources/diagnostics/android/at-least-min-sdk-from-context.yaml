@@ -2,6 +2,7 @@ product: android/app
 
 settings:
   android:
+    namespace: org.example.app
     minSdk: 30
 
 test-settings:

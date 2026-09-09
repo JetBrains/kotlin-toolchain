@@ -10,7 +10,7 @@ Fragments:
       common (REFINE)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -19,7 +19,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -211,7 +211,7 @@ Fragments:
       android (FRIEND)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -220,7 +220,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -408,7 +408,7 @@ Fragments:
       native (REFINE)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -417,7 +417,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -608,7 +608,7 @@ Fragments:
       apple (FRIEND)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -617,7 +617,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -804,7 +804,7 @@ Fragments:
     Fragment dependencies:
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -813,7 +813,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -1003,7 +1003,7 @@ Fragments:
       common (FRIEND)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -1012,7 +1012,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -1200,7 +1200,7 @@ Fragments:
       apple (REFINE)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -1209,7 +1209,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -1397,7 +1397,7 @@ Fragments:
       ios (REFINE)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -1406,7 +1406,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -1597,7 +1597,7 @@ Fragments:
       iosArm64 (FRIEND)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -1606,7 +1606,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -1797,7 +1797,7 @@ Fragments:
       ios (FRIEND)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -1806,7 +1806,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -1994,7 +1994,7 @@ Fragments:
       ios (REFINE)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -2003,7 +2003,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -2194,7 +2194,7 @@ Fragments:
       iosX64 (FRIEND)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -2203,7 +2203,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -2391,7 +2391,7 @@ Fragments:
       common (REFINE)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -2400,7 +2400,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -2590,7 +2590,7 @@ Fragments:
       jvm (FRIEND)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -2599,7 +2599,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -2787,7 +2787,7 @@ Fragments:
       common (REFINE)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -2796,7 +2796,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -2987,7 +2987,7 @@ Fragments:
       native (FRIEND)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -2996,7 +2996,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -3184,7 +3184,7 @@ Fragments:
       web (REFINE)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -3193,7 +3193,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -3384,7 +3384,7 @@ Fragments:
       wasmJs (FRIEND)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -3393,7 +3393,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -3581,7 +3581,7 @@ Fragments:
       common (REFINE)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -3590,7 +3590,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -3781,7 +3781,7 @@ Fragments:
       web (FRIEND)
     Settings: {
       android: <default> {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -3790,7 +3790,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: <default> null
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]

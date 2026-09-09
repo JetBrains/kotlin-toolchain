@@ -5,3 +5,7 @@ dependencies:
   - androidx.appcompat:appcompat:1.6.1: exported
   - androidx.core:core-ktx:1.9.0:
       exported: true
+
+settings:
+  android:
+    namespace: com.example.app

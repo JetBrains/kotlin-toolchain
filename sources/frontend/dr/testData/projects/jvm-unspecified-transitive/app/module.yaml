@@ -5,3 +5,7 @@ product: android/app
 dependencies:
   - io.github.dokar3:sonner:0.3.8
 
+settings:
+  android:
+    namespace: com.example.app
+

@@ -3,3 +3,7 @@ product: android/app
 dependencies:
   - ../shared
   - androidx.activity:activity-compose:1.7.2
+
+settings:
+  android:
+    namespace: com.example.app

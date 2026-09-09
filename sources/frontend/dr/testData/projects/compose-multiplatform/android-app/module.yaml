@@ -5,4 +5,6 @@ dependencies:
   - androidx.activity:activity-compose:1.7.2
 
 settings:
+  android:
+    namespace: com.example.app
   compose: enabled

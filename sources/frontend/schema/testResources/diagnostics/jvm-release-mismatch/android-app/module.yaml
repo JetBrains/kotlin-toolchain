@@ -4,3 +4,7 @@ dependencies:
   - ../lib-a
   - ../lib-b
   - <![Warning] Module `android-app` uses JVM release 25 (default) but depends on module `lib-c` with a higher JVM release 26!>../lib-c<!>
+
+settings:
+  android:
+    namespace: com.example.app

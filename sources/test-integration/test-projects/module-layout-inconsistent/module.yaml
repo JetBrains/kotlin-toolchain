@@ -1,3 +1,7 @@
 product: android/app
 
 layout: maven-like
+
+settings:
+  android:
+    namespace: com.example.app

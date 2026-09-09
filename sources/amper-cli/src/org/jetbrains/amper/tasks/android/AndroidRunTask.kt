@@ -103,8 +103,11 @@ class AndroidRunTask(
         val activityName = findActivityToLaunch(androidFragment) ?: userReadableError("Could not find activity to launch")
 
         val outputReceiver = CollectingOutputReceiver()
+        val applicationId = checkNotNull(androidFragment.settings.android.applicationId) {
+            "Application ID should've been set for the module ${module.userReadableName} and verified by the frontend"
+        }
         device.executeShellCommand(
-            "am start -a android.intent.action.MAIN -n ${androidFragment.settings.android.applicationId}/$activityName",
+            "am start -a android.intent.action.MAIN -n $applicationId/$activityName",
             outputReceiver
         )
 

@@ -6,6 +6,7 @@ dependencies:
 
 settings:
   android:
+    namespace: com.example.app
     compileSdk: 32
   compose:
     enabled: true

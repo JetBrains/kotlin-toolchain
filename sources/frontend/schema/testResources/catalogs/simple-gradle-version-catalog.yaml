@@ -9,3 +9,7 @@ dependencies:
   - $libs.my.lib.with.underscores
   - $libs.my.lib.without.version
   - bom: $libs.my.bom
+
+settings:
+  android:
+    namespace: com.example.app

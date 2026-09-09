@@ -12,6 +12,8 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.schema.ProductType
+import org.jetbrains.amper.frontend.schema.effectiveNamespace
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jar.ZipInput
 import org.jetbrains.amper.jar.writeZip
@@ -85,13 +87,23 @@ internal class AndroidAarTask(
             .single { !it.isTest && Platform.ANDROID in it.platforms }
             .settings
             .android
+        val namespace =  if (module.type == ProductType.ANDROID_APP) {
+            // The main manifest for Android application will be passed and merged via AGP, so the AAR built
+            // for the application is purely the implementation detail.
+            // To be sure that the namespace doesn't clash with the APK manifest, we use the mangled namespace
+            // which should guarantee the uniqueness inside the project.
+            "${androidSettings.namespace}.ktc.mangled.p${androidSettings.namespace.hashCode().absoluteValue}"
+        } else {
+            androidSettings.effectiveNamespace(module)
+        }
         val inputValues = mapOf(
             "outputPath" to outputAarPath.pathString,
             "requiredPackagingDirs" to Json.encodeToString(
                 additionalAssets.map { result -> result.assetsRoots.map { it.path.pathString } }
             ),
-            "minSdk" to androidSettings.minSdk.toString(),
-            "targetSdk" to androidSettings.targetSdk.toString(),
+            "android.minSdk" to androidSettings.minSdk.toString(),
+            "android.targetSdk" to androidSettings.targetSdk.toString(),
+            "android.namespace" to namespace,
         )
         incrementalCache.execute(taskName.id.value, inputValues, inputFiles) {
             outputAarPath.deleteIfExists()
@@ -105,7 +117,7 @@ internal class AndroidAarTask(
                     //language=xml
                     """
                         <?xml version="1.0" encoding="utf-8"?>
-                        <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="${internalPackageNameFor(module)}">
+                        <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="$namespace">
                             <uses-sdk android:minSdkVersion="${androidSettings.minSdk}" android:targetSdkVersion="${androidSettings.targetSdk}" />
                         </manifest>
                     """.trimIndent()
@@ -151,10 +163,4 @@ internal class AndroidAarTask(
         override val classpathElementType: ClasspathElementType
             get() = ClasspathElementType.TransformedDependencies
     }
-}
-
-// Meh, but does the trick, as AARs are purely implementation detail for now.
-private fun internalPackageNameFor(module: AmperModule): String {
-    // The main purpose is to be unique for the module and respect android package name rules.
-    return "org.jetbrains.amper.internal.p${module.userReadableName.hashCode().absoluteValue}"
 }

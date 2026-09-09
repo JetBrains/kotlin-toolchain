@@ -31,6 +31,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.aomBuilder.readProjectModel
 import org.jetbrains.amper.frontend.project.AmperProjectContext
 import org.jetbrains.amper.frontend.schema.ProductType
+import org.jetbrains.amper.frontend.schema.effectiveNamespace
 import org.jetbrains.amper.frontend.schema.keyAlias
 import org.jetbrains.amper.frontend.schema.keyPassword
 import org.jetbrains.amper.frontend.schema.storeFile
@@ -195,10 +196,12 @@ class AmperAndroidIntegrationProjectPlugin @Inject constructor(private val probl
             versionCode = androidSettings.versionCode
             versionName = androidSettings.versionName
             if (module.type == ProductType.ANDROID_APP) {
-                applicationId = androidSettings.applicationId
+                applicationId = checkNotNull(androidSettings.applicationId) {
+                    "Application ID must have been specified for the module ${module.userReadableName} and verified by the frontend"
+                }
             }
         }
-        androidExtension.namespace = androidSettings.namespace
+        androidExtension.namespace = androidSettings.effectiveNamespace(module)
 
         androidExtension.packaging.resources {
             val resourcePackaging = androidSettings.resourcePackaging

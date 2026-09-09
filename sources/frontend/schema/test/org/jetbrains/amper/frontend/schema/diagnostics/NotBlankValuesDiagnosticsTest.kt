@@ -48,7 +48,7 @@ class NotBlankValuesDiagnosticsTest : FrontendTestCaseBase(Path("testResources")
 
     @Test
     fun `blank android settings`() {
-        diagnosticsTest("blank-android-settings") { it.assertAllBlankValueProblems(expectedCount = 4) }
+        diagnosticsTest("blank-android-settings")
     }
 
     private fun List<BuildProblem>.assertAllBlankValueProblems(expectedCount: Int) {

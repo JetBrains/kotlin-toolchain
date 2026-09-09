@@ -5,5 +5,7 @@ dependencies:
   - androidx.activity:activity-compose:1.13.0
 
 settings:
+  android:
+    namespace: com.example.app
   compose: enabled
   junit: junit-4

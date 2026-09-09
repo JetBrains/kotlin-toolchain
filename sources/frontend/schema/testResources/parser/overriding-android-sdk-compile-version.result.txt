@@ -9,11 +9,12 @@ Fragments:
     Fragment dependencies:
     Settings: {
       android: {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> com.example.app
         compileSdk: {
           apiLevel: 27
         }
         minSdk: 30
+        namespace: com.example.app
         targetSdk: <default> 27
       }
     }
@@ -30,11 +31,12 @@ Fragments:
       main (FRIEND)
     Settings: {
       android: {
-        applicationId: <default> org.example.namespace
+        applicationId: <default> com.example.app
         compileSdk: {
           apiLevel: 27
         }
         minSdk: 30
+        namespace: com.example.app
         targetSdk: <default> 27
       }
     }

@@ -37,6 +37,8 @@ Use `settings.compose.enabled` to enable Compose:
       - $compose.material3
     
     settings:
+      android:
+        namespace: com.example.app
       compose: enabled # (2)!
     ```
 

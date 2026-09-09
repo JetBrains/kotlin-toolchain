@@ -2,5 +2,6 @@ product: android/app
 
 settings:
   android:
+    namespace: com.example.app
     minSdk: 30
     compileSdk: 27

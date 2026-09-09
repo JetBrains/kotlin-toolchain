@@ -26,6 +26,8 @@ dependencies:
   - bom: $ktor.bom
 
 settings:
+  android:
+    namespace: com.example.app
   compose:
     enabled: true
   ktor:

@@ -8,8 +8,8 @@ Fragments:
       src
     Fragment dependencies:
     Settings: {
-      android: <default> {
-        applicationId: <default> org.example.namespace
+      android: {
+        applicationId: <default> com.example.app
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -18,7 +18,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: com.example.app
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -208,8 +208,8 @@ Fragments:
     Fragment dependencies:
       main (FRIEND)
     Settings: {
-      android: <default> {
-        applicationId: <default> org.example.namespace
+      android: {
+        applicationId: <default> com.example.app
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -218,7 +218,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: <default> org.example.namespace
+        namespace: com.example.app
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]

@@ -2,3 +2,7 @@ product: android/app
 
 dependencies:
   - ../bridge
+
+settings:
+  android:
+    namespace: com.example.app

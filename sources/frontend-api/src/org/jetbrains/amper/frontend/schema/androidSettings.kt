@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend.schema
 
+import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.api.CanBeReferenced
 import org.jetbrains.amper.frontend.api.DeprecatedSchema
 import org.jetbrains.amper.frontend.api.KnownIntValues
@@ -16,6 +17,7 @@ import org.jetbrains.amper.frontend.api.Shorthand
 import org.jetbrains.amper.frontend.api.TraceableString
 import java.util.*
 import kotlin.io.path.Path
+import kotlin.math.absoluteValue
 
 @JvmInline
 value class AndroidVersion(val versionNumber: Int): Comparable<AndroidVersion> {
@@ -50,12 +52,16 @@ class AndroidSettings : SchemaNode() {
             "[Read more](https://developer.android.com/reference/tools/gradle-api/com/android/build/api/dsl/CommonExtension#compileSdk())")
     val compileSdk: AndroidCompileSdkVersion by nested()
 
+    /**
+     * NB: in cases where the non-null namespace is expected, use [effectiveNamespace]
+     * (as long as the model doesn't have any errors reported).
+     */
     @CanBeReferenced // by applicationId
     @Misnomers("packageName")
     @SchemaDoc("A Kotlin or Java package name for the generated `R` and `BuildConfig` classes. " +
             "[Read more](https://developer.android.com/build/configure-app-module#set-namespace)")
     @NotBlank
-    val namespace by value("org.example.namespace")
+    val namespace by nullableValue<String>()
 
     @SchemaDoc("The ID for the application on a device and in the Google Play Store. " +
             "[Read more](https://developer.android.com/build/configure-app-module#set-namespace)")
@@ -163,4 +169,18 @@ class AndroidJavaResourcesPackagingSettings : SchemaNode() {
             "only the first java resource found with that path gets packaged in the APK.<br>" +
             "Example: '**/*.version', 'META-INF/*.kotlin_module', etc.")
     val pickFirsts by value<List<TraceableString>>(default = emptyList())
+}
+
+/**
+ * The namespace that will be used for the Android part of the module.
+ *
+ * Should be used only if there were no errors reported regarding the namespace.
+ */
+fun AndroidSettings.effectiveNamespace(module: AmperModule): String {
+    return namespace
+        // Fallback to a generated namespace is required to simplify the restriction in case when the
+        // Android library is used solely for sharing the code and is not intended to be published
+        // or expose any Android resources.
+        // The main purpose is to be unique for the module in the project and respect Android package name rules.
+        ?: "org.jetbrains.ktc.mangled.p${module.userReadableName.hashCode().absoluteValue}"
 }

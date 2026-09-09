@@ -2,7 +2,7 @@ Module: android-app
 
 settings@android:
   android:
-    applicationId: org.example.namespace  # default, from ${namespace}
+    applicationId: com.example.app  # default, from ${namespace} @ module.yaml
     buildToolsVersion: 37.0.0  # default
     compileSdk:
       apiLevel: 37  # default
@@ -10,7 +10,7 @@ settings@android:
       sdkExtension: null  # default
     maxSdk: null  # default
     minSdk: 24  # default
-    namespace: org.example.namespace  # default
+    namespace: com.example.app  # module.yaml
     parcelize:
       additionalAnnotations: []  # default
       enabled: false  # default
@@ -354,7 +354,7 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
       sdkExtension: null  # default
     maxSdk: null  # default
     minSdk: 24  # default
-    namespace: org.example.namespace  # default
+    namespace: null  # default
     parcelize:
       additionalAnnotations: []  # default
       enabled: false  # default
@@ -602,7 +602,7 @@ settings@android:
       sdkExtension: null  # default
     maxSdk: null  # default
     minSdk: 24  # default
-    namespace: org.example.namespace  # default
+    namespace: null  # default
     parcelize:
       additionalAnnotations: []  # default
       enabled: false  # default

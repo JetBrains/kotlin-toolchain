@@ -407,6 +407,8 @@ dependencies:
   - //shared
 
 settings:
+  android:
+    namespace: com.example.app
   compose:
     enabled: true
 ```
@@ -601,6 +603,10 @@ product: android/app
 apply:
   - //compose.module-template.yaml
   - //app.module-template.yaml
+
+settings:
+  android:
+    namespace: com.example.app
 ```
 
 ```yaml title="ios-app/module.yaml"

@@ -5,3 +5,7 @@ apply:
 
 dependencies:
   - ../shared
+
+settings:
+  android:
+    namespace: com.example.app
