@@ -45,10 +45,9 @@ internal data class NativeCompilerCaches(
      */
     val autoCacheableFrom: List<Path>,
     /**
-     * The directory for the per-file incremental caches of the klibs compiled from this project's sources, or null
-     * if incremental compilation of the second stage is disabled.
+     * The directory for the per-file incremental caches of the klibs compiled from this project's sources.
      */
-    val incrementalCacheDir: Path?,
+    val incrementalCacheDir: Path,
 ) {
     fun compilerArgs(): List<String> = buildList {
         autoCacheableFrom.forEach {
@@ -58,11 +57,9 @@ internal data class NativeCompilerCaches(
         //  to 4 (kotlin.native.parallelThreads). The compiler itself defaults to 1, so cache population is
         //  single-threaded here. We already run link tasks in parallel, so the right value needs measuring first.
         //  add("-Xbackend-threads=$backendThreads")
-        if (incrementalCacheDir != null) {
-            // The compiler requires both of these arguments together, and fails when only one is present.
-            add("-Xenable-incremental-compilation")
-            add("-Xic-cache-dir=${incrementalCacheDir.pathString}")
-        }
+        // The compiler requires both of these arguments together, and fails when only one is present.
+        add("-Xenable-incremental-compilation")
+        add("-Xic-cache-dir=${incrementalCacheDir.pathString}")
     }
 }
 
@@ -76,15 +73,14 @@ internal data class NativeCompilerCaches(
  *   compilations.
  * * when optimizations are enabled, because the compiler ignores all caches "with global optimizations"
  * * when the Kotlin/Native distribution doesn't advertise cache support for [target] on this host
- * * when [dependencyCacheRoots] is empty, which also rules out incremental compilation (see below)
+ * * when [dependencyCacheRoots] is empty, which is how the caller disables the caches entirely
  * * when the compiler might crash while caching dependencies (see [canCacheDependencies])
  * * when a path involved in caching contains whitespace on a Linux host (see [cacheBuilderSupports])
  *
- * Incremental compilation is strictly tied to native dependencies caching. The compiler builds a *per-file* cache for
- * every klib that is not under one of the [dependencyCacheRoots], and stores it in [incrementalCacheDir]. Those
- * per-file caches are private to a single binary, and are orders of magnitude larger than the shared monolithic ones.
- * For klibs that embed a big native library: a Skiko cache measures 76 MB monolithic against ~17 GB per file. So
- * incremental compilation of this stage is only ever enabled together with dependency caching.
+ * Caching the dependencies and incremental linking are two tiers of the same compiler feature and
+ * are therefore enabled together. The compiler builds a *per-file* cache for every klib that is not under one of the
+ * [dependencyCacheRoots], and stores it in [incrementalCacheDir]. Those per-file caches are private to a single
+ * binary and could me orders of magnitude larger than the shared monolithic ones.
  *
  * The remaining conditions are aligned with those used by the Kotlin Gradle Plugin in `KotlinNativeLink`.
  */
@@ -95,7 +91,6 @@ internal fun nativeCompilerCachesFor(
     compilationType: KotlinCompilationType,
     optimizationEnabled: Boolean,
     dependencyCacheRoots: List<Path>,
-    compileIncrementally: Boolean,
     incrementalCacheDir: Path,
 ): NativeCompilerCaches? {
     if (compilationType == KotlinCompilationType.LIBRARY) return null
@@ -107,16 +102,12 @@ internal fun nativeCompilerCachesFor(
     if (!konanDistribution.supportsCompilerCachesFor(target = target.toKonanPlatform(), host = host)) return null
 
     // The paths the cache builder reads the klibs from and writes the caches to.
-    val cachePaths = buildList {
-        addAll(dependencyCacheRoots)
-        add(konanDistribution.homeDir)
-        if (compileIncrementally) add(incrementalCacheDir)
-    }
+    val cachePaths = dependencyCacheRoots + konanDistribution.homeDir + incrementalCacheDir
     if (!cacheBuilderSupports(cachePaths, system, konanDistribution.kotlinVersion)) return null
 
     return NativeCompilerCaches(
         autoCacheableFrom = dependencyCacheRoots,
-        incrementalCacheDir = incrementalCacheDir.takeIf { compileIncrementally },
+        incrementalCacheDir = incrementalCacheDir,
     )
 }
 

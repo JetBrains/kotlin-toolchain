@@ -29,43 +29,10 @@ class NativeCompilerCachesTest {
     private val icDir = Path("/project/build/kotlin-native-ic-cache/link-task")
 
     @Test
-    fun `dependency caching only passes the auto-cache roots`() {
-        val caches = cachesFor(dependencyRoots = [dependencyRoot], compileIncrementally = false)
-
-        assertEquals(
-            ["-Xauto-cache-from=${dependencyRoot.pathString()}"],
-            caches?.compilerArgs(),
-        )
-    }
-
-    @Test
-    fun `every dependency root is passed separately`() {
-        val otherRoot = Path("/opt/shared-klibs")
-        val caches = cachesFor(dependencyRoots = [dependencyRoot, otherRoot], compileIncrementally = false)
-
-        assertEquals(
-            [
-                "-Xauto-cache-from=${dependencyRoot.pathString()}",
-                "-Xauto-cache-from=${otherRoot.pathString()}",
-            ],
-            caches?.compilerArgs(),
-        )
-    }
-
-    @Test
-    fun `no caches for incremental compilation without dependency caching`() {
-        // The compiler caches every klib that is not under an auto-cache root per file, in the (per-binary)
-        // incremental cache dir. Those per-file caches might be orders of magnitude larger than the shared monolithic
-        // ones and are repeated by all tasks processing them,
-        // so incremental linking is only worth enabling together with dependency caching.
-        assertNull(cachesFor(dependencyRoots = [], compileIncrementally = true))
-    }
-
-    @Test
-    fun `dependency caching and incremental compilation can be combined`() {
+    fun `enabled caches pass both the auto-cache roots and the incremental cache dir`() {
         // The compiler rejects the incremental arguments when only one of the two is present, so the enabling flag
         // and the cache dir must never be split.
-        val caches = cachesFor(dependencyRoots = [dependencyRoot], compileIncrementally = true)
+        val caches = cachesFor(dependencyRoots = [dependencyRoot])
 
         assertEquals(
             [
@@ -78,8 +45,28 @@ class NativeCompilerCachesTest {
     }
 
     @Test
-    fun `no caches when nothing is enabled`() {
-        assertNull(cachesFor(dependencyRoots = [], compileIncrementally = false))
+    fun `every dependency root is passed separately`() {
+        val otherRoot = Path("/opt/shared-klibs")
+        val caches = cachesFor(dependencyRoots = [dependencyRoot, otherRoot])
+
+        assertEquals(
+            [
+                "-Xauto-cache-from=${dependencyRoot.pathString()}",
+                "-Xauto-cache-from=${otherRoot.pathString()}",
+                "-Xenable-incremental-compilation",
+                "-Xic-cache-dir=${icDir.pathString()}",
+            ],
+            caches?.compilerArgs(),
+        )
+    }
+
+    @Test
+    fun `no caches when they are disabled for this fragment`() {
+        // The link task passes no dependency root at all in that case. Caching only the project's own klibs is not
+        // an option: the compiler would cache every dependency per file in the (per-binary) incremental cache dir,
+        // and those per-file caches might be orders of magnitude larger than the shared monolithic ones, repeated
+        // by every task that links them.
+        assertNull(cachesFor(dependencyRoots = []))
     }
 
     @Test
@@ -88,7 +75,6 @@ class NativeCompilerCachesTest {
         assertNull(
             cachesFor(
                 dependencyRoots = [dependencyRoot],
-                compileIncrementally = true,
                 optimizationEnabled = true,
             )
         )
@@ -101,7 +87,6 @@ class NativeCompilerCachesTest {
         assertNull(
             cachesFor(
                 dependencyRoots = [dependencyRoot],
-                compileIncrementally = true,
                 compilationType = KotlinCompilationType.LIBRARY,
             )
         )
@@ -111,12 +96,18 @@ class NativeCompilerCachesTest {
     fun `caches are used for iOS frameworks`() {
         val caches = cachesFor(
             dependencyRoots = [dependencyRoot],
-            compileIncrementally = false,
             target = Platform.IOS_SIMULATOR_ARM64,
             compilationType = KotlinCompilationType.IOS_FRAMEWORK,
         )
 
-        assertEquals(["-Xauto-cache-from=${dependencyRoot.pathString()}"], caches?.compilerArgs())
+        assertEquals(
+            [
+                "-Xauto-cache-from=${dependencyRoot.pathString()}",
+                "-Xenable-incremental-compilation",
+                "-Xic-cache-dir=${icDir.pathString()}",
+            ],
+            caches?.compilerArgs(),
+        )
     }
 
     @Test
@@ -125,7 +116,6 @@ class NativeCompilerCachesTest {
         assertNull(
             cachesFor(
                 dependencyRoots = [dependencyRoot],
-                compileIncrementally = true,
                 target = Platform.LINUX_X64,
             )
         )
@@ -136,7 +126,6 @@ class NativeCompilerCachesTest {
         assertNull(
             cachesFor(
                 dependencyRoots = [dependencyRoot],
-                compileIncrementally = true,
                 target = Platform.MINGW_X64,
                 system = windowsHost,
             )
@@ -149,7 +138,6 @@ class NativeCompilerCachesTest {
         assertNull(
             cachesFor(
                 dependencyRoots = [dependencyRoot],
-                compileIncrementally = true,
                 incrementalCacheDir = Path("/home/me/my project/build/kotlin-native-ic-cache"),
                 target = Platform.LINUX_X64,
                 system = linuxHost,
@@ -163,7 +151,6 @@ class NativeCompilerCachesTest {
         assertNull(
             cachesFor(
                 dependencyRoots = [Path("/home/my user/.cache/JetBrains/Kotlin")],
-                compileIncrementally = false,
                 target = Platform.LINUX_X64,
                 system = linuxHost,
                 kotlinVersion = "2.2.0",
@@ -176,7 +163,6 @@ class NativeCompilerCachesTest {
         assertNull(
             cachesFor(
                 dependencyRoots = [dependencyRoot],
-                compileIncrementally = true,
                 distributionHome = createTempDirectory("konan dist with spaces"),
                 target = Platform.LINUX_X64,
                 system = linuxHost,
@@ -191,7 +177,6 @@ class NativeCompilerCachesTest {
         val icDirWithSpaces = Path("/Users/me/my project/build/kotlin-native-ic-cache")
         val caches = cachesFor(
             dependencyRoots = [dependencyRoot],
-            compileIncrementally = true,
             incrementalCacheDir = icDirWithSpaces,
         )
 
@@ -210,7 +195,6 @@ class NativeCompilerCachesTest {
         // Guards against the whitespace checks disabling caches on Linux altogether.
         val caches = cachesFor(
             dependencyRoots = [dependencyRoot],
-            compileIncrementally = true,
             target = Platform.LINUX_X64,
             system = linuxHost,
         )
@@ -233,7 +217,6 @@ class NativeCompilerCachesTest {
         val rootWithSpaces = Path("/home/my user/.cache/JetBrains/Kotlin")
         val caches = cachesFor(
             dependencyRoots = [rootWithSpaces],
-            compileIncrementally = true,
             target = Platform.LINUX_X64,
             system = linuxHost,
             kotlinVersion = "2.4.20-RC2",
@@ -256,7 +239,6 @@ class NativeCompilerCachesTest {
         assertNull(
             cachesFor(
                 dependencyRoots = [Path("/home/my user/.cache/JetBrains/Kotlin")],
-                compileIncrementally = false,
                 target = Platform.LINUX_X64,
                 system = linuxHost,
                 kotlinVersion = "2.4.20-Beta1",
@@ -272,7 +254,6 @@ class NativeCompilerCachesTest {
         assertNull(
             cachesFor(
                 dependencyRoots = [dependencyRoot],
-                compileIncrementally = true,
                 kotlinVersion = "2.4.10",
             )
         )
@@ -283,7 +264,6 @@ class NativeCompilerCachesTest {
         assertNull(
             cachesFor(
                 dependencyRoots = [dependencyRoot],
-                compileIncrementally = false,
                 kotlinVersion = "2.4.10",
             )
         )
@@ -293,7 +273,6 @@ class NativeCompilerCachesTest {
     fun `dependencies are cached from the first compiler version that survives caching them`() {
         val caches = cachesFor(
             dependencyRoots = [dependencyRoot],
-            compileIncrementally = true,
             kotlinVersion = "2.4.20-RC2",
         )
 
@@ -309,7 +288,6 @@ class NativeCompilerCachesTest {
 
     private fun cachesFor(
         dependencyRoots: List<Path>,
-        compileIncrementally: Boolean,
         optimizationEnabled: Boolean = false,
         compilationType: KotlinCompilationType = KotlinCompilationType.BINARY,
         target: Platform = Platform.MACOS_ARM64,
@@ -324,7 +302,6 @@ class NativeCompilerCachesTest {
         compilationType = compilationType,
         optimizationEnabled = optimizationEnabled,
         dependencyCacheRoots = dependencyRoots,
-        compileIncrementally = compileIncrementally,
         incrementalCacheDir = incrementalCacheDir,
     )
 

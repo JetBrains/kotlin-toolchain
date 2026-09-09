@@ -118,7 +118,6 @@ Fragments:
         languageFeatures: <default> null
         languageVersion: <default> null
         linkerOptions: <default> null
-        nativeCompilerCaches: <default> true
         noArg: <default> {
           annotations: <default> null
           enabled: <default> false
@@ -318,7 +317,6 @@ Fragments:
         languageFeatures: <default> null
         languageVersion: <default> null
         linkerOptions: <default> null
-        nativeCompilerCaches: <default> true
         noArg: <default> {
           annotations: <default> null
           enabled: <default> false

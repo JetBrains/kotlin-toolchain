@@ -183,7 +183,13 @@ internal class NativeLinkTask(
         } else emptyMap()
 
         val dependencyCacheRoots =
-            if (kotlinUserSettings.nativeCompilerCaches) externalKlibRoots() else []
+            if (kotlinUserSettings.compileIncrementally) externalKlibRoots() else []
+
+        // The contents of the cache directories are *not* inputs of this task: they are compiler-managed state, and
+        // a warm cache must not make this task out of date. Only the compiler arguments we derive from them are.
+        val nativeCachePaths =
+            if (dependencyCacheRoots.isEmpty()) []
+            else dependencyCacheRoots.map { it.pathString } + nativeIcCacheDir.pathString
 
         val inputFiles = listOfNotNull(includeArtifact, swiftPMImportParsedLdCall?.path) + compiledKLibs
         val artifact = incrementalCache.execute(
@@ -193,13 +199,7 @@ internal class NativeLinkTask(
                 "entry.point" to (entryPoint ?: ""),
                 "task.output.root" to taskOutputRoot.path.pathString,
                 "binary.options" to Json.encodeToString(binaryOptions),
-                // The contents of the cache directories are *not* inputs of this task: they are
-                // compiler-managed state, and a warm cache must not make this task out of date. Only the compiler
-                // arguments we derive from them are.
-                "native.caches" to Json.encodeToString(
-                    dependencyCacheRoots.map { it.pathString } +
-                            listOfNotNull(nativeIcCacheDir.pathString.takeIf { kotlinUserSettings.compileIncrementally })
-                ),
+                "native.caches" to Json.encodeToString(nativeCachePaths),
             ),
             inputFiles = inputFiles,
         ) {
@@ -286,8 +286,8 @@ internal class NativeLinkTask(
     /**
      * Returns the Kotlin/Native compiler caches to use for this link compilation, or null if caches cannot or should
      * not be used.
-     * The [konanDistribution] is the one of the compiler that will run,
-     * and [dependencyCacheRoots] are the roots to cache external dependencies from (empty if dependency caching is disabled).
+     * The [konanDistribution] is the one of the compiler that will run, and [dependencyCacheRoots] are the roots to
+     * cache external dependencies from (empty when the caches are disabled for this fragment).
      */
     private fun nativeCachesFor(
         konanDistribution: KonanDistribution,
@@ -299,10 +299,6 @@ internal class NativeLinkTask(
         compilationType = compilationType,
         optimizationEnabled = kotlinUserSettings.optimizationEnabled(buildType),
         dependencyCacheRoots = dependencyCacheRoots,
-        // Only taken into account when the dependencies are cacheable, see [nativeCompilerCachesFor].
-        // Unlike in KGP, incremental compilation is switched ON by default for Kotlin >= 2.4.0,
-        // see [KotlinSettings.compileIncrementally]
-        compileIncrementally = kotlinUserSettings.compileIncrementally,
         // The directory is managed by the compiler and is not a part of the incremental cache inputs
         incrementalCacheDir = nativeIcCacheDir,
     )

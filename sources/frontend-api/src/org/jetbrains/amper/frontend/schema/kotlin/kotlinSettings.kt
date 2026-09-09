@@ -105,12 +105,13 @@ class KotlinSettings : SchemaNode() {
         }
     }
 
-    @PlatformAgnostic
     @Misnomers("avoidance", "compilation")
     @SchemaDoc("Whether Kotlin code should be compiled incrementally (only recompile what's necessary depending " +
             "on the changes). For [native targets](https://kotlinlang.org/docs/native-target-support.html), this " +
-            "currently only affects the linking of binaries: compilation to klibs is always done as a whole. It " +
-            "also requires `nativeCompilerCaches`, which provides the caches that incremental linking builds upon.")
+            "enables the Kotlin/Native compiler caches, which also make linking significantly faster by reusing " +
+            "the compiled native code of external dependencies across builds. Note that it currently only affects " +
+            "the linking of native binaries (compilation to klibs is always done as a whole), and only debug " +
+            "(non-optimized) binaries for targets whose compiler supports caching. ")
     val compileIncrementally by referenceValue(
         property = ::version,
         description = "enabled for Kotlin compiler >= 2.4.0",
@@ -155,15 +156,6 @@ class KotlinSettings : SchemaNode() {
             "Enabled in release variants by default.")
     @PlatformSpecific(Platform.NATIVE)
     val optimization by nullableValue<Boolean>()
-
-    @SchemaDoc("(Only for [native targets](https://kotlinlang.org/docs/native-target-support.html)) " +
-            "Enables reusing the compiled native code of external dependencies across builds, which makes linking " +
-            "binaries significantly faster. Disabling this also disables the incremental linking of native " +
-            "binaries, which relies on the same caches. Only used for debug (non-optimized) binaries, and only " +
-            "for targets whose compiler supports it.")
-    @PlatformSpecific(Platform.NATIVE)
-    @Misnomers("caches", "cacheKind")
-    val nativeCompilerCaches by value(default = true)
 
     @SchemaDoc("Enables the [progressive mode for the compiler](https://kotlinlang.org/docs/compiler-reference.html#progressive)")
     val progressiveMode by value(false)

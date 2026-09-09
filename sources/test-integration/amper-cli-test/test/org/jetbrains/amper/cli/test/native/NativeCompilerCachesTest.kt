@@ -160,14 +160,14 @@ class NativeCompilerCachesTest : CliTestBase() {
 
     @Test
     @MacOnly
-    fun `both settings off means no caches at all`() = runSlowTest {
+    fun `disabled incremental compilation means no caches at all`() = runSlowTest {
+        // Both cache tiers are disabled together: caching only the project's own klibs would make the compiler
+        // cache every dependency per file in the (per-binary) incremental cache dir, which is far more expensive
+        // than the shared monolithic caches it replaces.
         val result = runCli(
             projectDir = testProject("simple-multiplatform-cli"),
             "build", "-p", "macosArm64", "-m", "macos-cli",
-            modifyProjectBeforeRun = withCacheableKotlin(
-                "nativeCompilerCaches: false",
-                "compileIncrementally: false",
-            ),
+            modifyProjectBeforeRun = withCacheableKotlin("compileIncrementally: false"),
         )
 
         result.withTelemetrySpans {
@@ -177,17 +177,17 @@ class NativeCompilerCachesTest : CliTestBase() {
 
     @Test
     @MacOnly
-    fun `no incremental linking without dependency caching`() = runSlowTest {
-        // Without an auto-cache root, the compiler caches every dependency per file in the incremental cache dir
-        // instead of monolithically in the shared one. Those caches are private to this binary and much larger, so
-        // incremental linking is not worth it on its own and must be off as well.
+    fun `incremental compilation can be disabled for native platforms only`() = runSlowTest {
+        // The setting is not platform-agnostic, so the native caches can be turned off without giving up the
+        // incremental compilation of the other platforms of the same module.
         val result = runCli(
             projectDir = testProject("simple-multiplatform-cli"),
             "build", "-p", "macosArm64", "-m", "macos-cli",
-            modifyProjectBeforeRun = withCacheableKotlin(
-                "nativeCompilerCaches: false",
-                "compileIncrementally: true",
-            ),
+            modifyProjectBeforeRun = { projectDir ->
+                withCacheableKotlin()(projectDir)
+                (projectDir / "macos-cli" / "module.yaml")
+                    .appendText("\nsettings@native:\n  kotlin:\n    compileIncrementally: false\n")
+            },
         )
 
         result.withTelemetrySpans {

@@ -249,7 +249,7 @@ internal fun kotlinNativeCompilerArgs(
     refinesPaths: List<Path> = [],
     metadataManifestFile: Path? = null,
     otherLinkerOpts: List<String> = emptyList(),
-    // Only link (second-stage) compilations can use caches, it should null in all other cases.
+    // Only link (second-stage) compilations can use caches, it should be null in all other cases.
     nativeCaches: NativeCompilerCaches? = null,
 ): List<String> = buildList {
     if (kotlinUserSettings.debug ?: (buildType == BuildType.Debug)) {
