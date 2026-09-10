@@ -7,10 +7,6 @@ package org.jetbrains.amper.tasks.native.swiftpm
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.dr.resolver.swiftpm.directSwiftPMDependencies
 import org.jetbrains.amper.swiftpm.SwiftPMImportMetadata
-import org.jetbrains.amper.tasks.native.swiftpm.SwiftPMImportDefaults.IOS_DEPLOYMENT_TARGET_DEFAULT
-import org.jetbrains.amper.tasks.native.swiftpm.SwiftPMImportDefaults.MACOS_DEPLOYMENT_TARGET_DEFAULT
-import org.jetbrains.amper.tasks.native.swiftpm.SwiftPMImportDefaults.TVOS_DEPLOYMENT_TARGET_DEFAULT
-import org.jetbrains.amper.tasks.native.swiftpm.SwiftPMImportDefaults.WATCHOS_DEPLOYMENT_TARGET_DEFAULT
 
 /**
  * The Maven classifier under which the SwiftPM metadata of a library is published.
@@ -24,13 +20,8 @@ internal const val SWIFTPM_METADATA_CLASSIFIER = "swiftpm-metadata"
 internal const val SWIFTPM_METADATA_EXTENSION = "json"
 
 /**
- * The SwiftPM metadata that this module must publish so that its consumers know which SwiftPM packages they have to
- * fetch and link, or null if this module declares no SwiftPM dependency (in which case nothing is published, exactly
- * like in Gradle builds).
- *
- * Only the SwiftPM dependencies declared by this module are published: the ones of its own dependencies are published
- * by those dependencies, and consumers gather them by walking their whole dependency graph (this is what
- * [TransitiveSwiftPMDependenciesResolver] does on our side).
+ * The SwiftPM metadata describing SwiftPM packages this module directly depends on
+ * (`null` if this module declares no SwiftPM dependency).
  */
 internal fun AmperModule.swiftPMImportMetadataForPublication(): SwiftPMImportMetadata? {
     val dependencies = directSwiftPMDependencies().map { it.swiftPMDependency }.toSet()
@@ -38,16 +29,16 @@ internal fun AmperModule.swiftPMImportMetadataForPublication(): SwiftPMImportMet
 
     return SwiftPMImportMetadata(
         // Consumers use these to know which of their own targets this metadata applies to. They are KonanTarget names,
-        // like in the KGP publication, and not Kotlin Toolchain platform names.
+        // like in the KGP publication (not Kotlin Toolchain platform names).
         konanTargets = leafAppleFragments().map { it.platform.konanTargetName() }.sorted().toSet(),
-        /**
-         * In the Gradle implementation these versions are specified in the DSL, published by the project and
-         * are eventually consumed. Values are hardcoded for now, see the same FIXME in [TransitiveSwiftPMDependenciesResolver].
-         */
-        iosDeploymentVersion = IOS_DEPLOYMENT_TARGET_DEFAULT,
-        macosDeploymentVersion = MACOS_DEPLOYMENT_TARGET_DEFAULT,
-        watchosDeploymentVersion = WATCHOS_DEPLOYMENT_TARGET_DEFAULT,
-        tvosDeploymentVersion = TVOS_DEPLOYMENT_TARGET_DEFAULT,
+        // Only deployment targets that the library declares explicitly belong here. KGP publishes null unless the
+        // user sets them in its DSL and treats its own deNfaults as a consumer-side fallback. Consumers raise their
+        // minimum to the maximum of the published values, so publishing our build-time defaults would silently bump
+        // the minimum OS version of every consumer. Kotlin Toolchain has no DSL for these yet, so nothing to declare.
+        iosDeploymentVersion = null,
+        macosDeploymentVersion = null,
+        watchosDeploymentVersion = null,
+        tvosDeploymentVersion = null,
         isModulesDiscoveryEnabled = true,
         dependencies = dependencies,
     )

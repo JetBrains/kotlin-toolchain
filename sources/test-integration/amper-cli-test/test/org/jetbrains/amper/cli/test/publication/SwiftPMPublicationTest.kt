@@ -5,6 +5,8 @@
 package org.jetbrains.amper.cli.test.publication
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.jsonObject
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
@@ -19,6 +21,7 @@ import kotlin.io.path.readText
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 /**
  * A library that declares direct SwiftPM dependencies must publish them, so that its consumers know which SwiftPM
@@ -72,6 +75,24 @@ class SwiftPMPublicationTest : CliTestBase() {
 
         // Targets are named after KonanTarget, like in the KGP publication.
         assertEquals(setOf("ios_arm64", "ios_simulator_arm64", "macos_arm64"), metadata.konanTargets)
+
+        // Deployment targets are only published when the library declares them, which Kotlin Toolchain cannot do yet.
+        // Consumers raise their own minimum to the maximum of the published values, so publishing the defaults we use
+        // when building would bump the minimum OS version of every consumer.
+        assertNull(metadata.iosDeploymentVersion)
+        assertNull(metadata.macosDeploymentVersion)
+        assertNull(metadata.watchosDeploymentVersion)
+        assertNull(metadata.tvosDeploymentVersion)
+
+        // The nulls must be written out explicitly: these keys have no default in KGP's model, so kotlinx treats them
+        // as required, and omitting them makes KGP consumers fail to read the file at all.
+        val rawMetadata = Json.parseToJsonElement(metadataFile.readText()).jsonObject
+        val deploymentVersionKeys = listOf("ios", "macos", "watchos", "tvos").map { "${it}DeploymentVersion" }
+        assertEquals(
+            deploymentVersionKeys.associateWith { JsonNull },
+            deploymentVersionKeys.associateWith { rawMetadata[it] },
+            "The deployment version keys must be present and null in $metadataFile:\n$rawMetadata",
+        )
 
         // The package declared in the common fragment applies to all Apple targets of this module, so its product is
         // unconstrained, while the one declared in the 'ios' fragment carries the iOS platform constraint.

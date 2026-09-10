@@ -87,6 +87,7 @@ sealed class SwiftPMDependency {
     }
 
     @Serializable
+    @SerialName("org.jetbrains.kotlin.gradle.plugin.mpp.apple.swiftimport.SwiftPMDependency.Local")
     data class Local(
         val absolutePath: SerializablePath,
         override val products: List<Product>,

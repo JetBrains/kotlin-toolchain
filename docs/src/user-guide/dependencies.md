@@ -569,7 +569,8 @@ same format as the one published by the Kotlin Gradle Plugin.
 Only the SwiftPM dependencies declared by the library itself are published. The ones declared by their own dependencies 
 are published by those dependencies and are collected by walking the whole dependency graph.
 
-!!! warning "Local Swift packages don't travel well"
-    [Local Swift packages](#importing-local-swift-packages) are published as absolute paths, so consumers can only
-    resolve them if the package is available at the very same path on their machine. Prefer remote packages in
+!!! warning "Local Swift packages travel as absolute paths"
+    [Local Swift packages](#importing-local-swift-packages) are published as the absolute path they had on the
+    publishing machine, so consumers can only resolve them if the package sits at that very same path on their own
+    machine. Otherwise their build fails, reporting the paths that could not be found. Prefer remote packages in
     published libraries.

@@ -27,10 +27,6 @@ import org.jetbrains.amper.swiftpm.TransitiveSwiftPMMetadata
 import org.jetbrains.amper.swiftpm.swiftPMJson
 import org.jetbrains.amper.tasks.ModuleSequenceCtx
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
-import org.jetbrains.amper.tasks.native.swiftpm.SwiftPMImportDefaults.IOS_DEPLOYMENT_TARGET_DEFAULT
-import org.jetbrains.amper.tasks.native.swiftpm.SwiftPMImportDefaults.MACOS_DEPLOYMENT_TARGET_DEFAULT
-import org.jetbrains.amper.tasks.native.swiftpm.SwiftPMImportDefaults.TVOS_DEPLOYMENT_TARGET_DEFAULT
-import org.jetbrains.amper.tasks.native.swiftpm.SwiftPMImportDefaults.WATCHOS_DEPLOYMENT_TARGET_DEFAULT
 import kotlin.io.path.inputStream
 
 context(builder: ProjectTasksBuilder)
@@ -75,15 +71,17 @@ class TransitiveSwiftPMDependenciesResolver(
                     .map { it.platform.konanTargetName() }
                     .toSet(),
                 /**
-                 * In Gradle implementation these versions are specified in the DSL, published by the project and
-                 * are eventually consumed. We agreed to hardcode defaults for now and decide what to do there later:
+                 * Only deployment targets that a module declares explicitly belong here, and Kotlin Toolchain has no
+                 * DSL for them yet (in Gradle they come from the DSL and are null when unset). Package generation
+                 * already falls back to [SwiftPMImportDefaults], so repeating those defaults here would claim a
+                 * minimum OS version that the module never asked for. Options once we need this:
                  * - We could derive these from the Xcode project as they should be aligned
-                 * - Or we could introduce a DSL to tweak these and then we have to do something here
+                 * - Or we could introduce a DSL to tweak these, and then we have to do something here
                  */
-                iosDeploymentVersion = IOS_DEPLOYMENT_TARGET_DEFAULT,
-                macosDeploymentVersion = MACOS_DEPLOYMENT_TARGET_DEFAULT,
-                watchosDeploymentVersion = WATCHOS_DEPLOYMENT_TARGET_DEFAULT,
-                tvosDeploymentVersion = TVOS_DEPLOYMENT_TARGET_DEFAULT,
+                iosDeploymentVersion = null,
+                macosDeploymentVersion = null,
+                watchosDeploymentVersion = null,
+                tvosDeploymentVersion = null,
                 isModulesDiscoveryEnabled = true,
                 // We patch it below
                 emptySet()

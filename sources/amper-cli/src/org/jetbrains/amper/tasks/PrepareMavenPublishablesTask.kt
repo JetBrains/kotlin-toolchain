@@ -38,6 +38,7 @@ import org.jetbrains.amper.serialization.paths.SerializablePath
 import org.jetbrains.amper.stdlib.hashing.hash
 import org.jetbrains.amper.swiftpm.SwiftPMImportMetadata
 import org.jetbrains.amper.swiftpm.swiftPMJson
+import org.jetbrains.amper.swiftpm.swiftPMPublicationJson
 import org.jetbrains.amper.tasks.android.AndroidAarTask
 import org.jetbrains.amper.tasks.compose.ComposeResourcesArchiveTask
 import org.jetbrains.amper.tasks.jvm.JvmClassesJarTask
@@ -229,7 +230,7 @@ class PrepareMavenPublishablesTask(
         val coords = coordsPerPlatform.getValue(Platform.COMMON).copy(classifier = SWIFTPM_METADATA_CLASSIFIER)
         val metadataFile = taskOutputRoot.path.resolve(coords.mavenFileName(SWIFTPM_METADATA_EXTENSION))
         withContext(Dispatchers.IO) {
-            metadataFile.writeText(swiftPMJson.encodeToString(swiftPMMetadata))
+            metadataFile.writeText(swiftPMPublicationJson.encodeToString(swiftPMMetadata))
         }
         return metadataFile.toMavenPublishable(coords, extension = SWIFTPM_METADATA_EXTENSION)
     }
