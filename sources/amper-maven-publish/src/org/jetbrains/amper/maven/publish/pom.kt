@@ -119,6 +119,12 @@ private fun getDependencies(
         regularPomDependencies to dependencyManagement
     }
 
+/**
+ * Convert dependency notations to maven dependencies.
+ * If a dependency with the same coordinates is met several times for different scopes, then
+ * if scopes could be merged [mergedScope] only one of them is taken with merged scope, otherwise
+ * all met dependencies are taken as is.
+ */
 private fun List<Notation>.toDependencies(
     platform: Platform,
     publicationCoordsOverrides: PublicationCoordinatesOverrides,
@@ -146,8 +152,14 @@ private fun List<Notation>.toDependencies(
 private class DependencyWithCoordinates(val dependency: Dependency, val coordinates: MavenCoordinates)
 
 private fun List<Dependency>.mergedScope(): String? {
-    val scopes = this.map { it.scope }
-    return if (scopes.contains("compile")) {
+    val scopes = this.map { it.scope }.distinct()
+
+    return if (scopes.size == 1) {
+        scopes.single()
+    } else if (scopes.contains("import")) {
+        // can't merge import with anything else
+        null
+    } else if (scopes.contains("compile")) {
         "compile"
     } else if (scopes.contains("runtime") && scopes.contains("provided")) {
         "compile"

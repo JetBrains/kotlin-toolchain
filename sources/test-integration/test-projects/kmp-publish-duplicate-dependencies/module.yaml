@@ -1,0 +1,38 @@
+# In this module, some dependencies end up declared several times in the ancestral path of the jvm fragment (in the
+# common fragment and in the jvm fragment), explicitly or implicitly, and with different scopes.
+# Each of them must appear only once in the generated pom.xml, with the merged scope (see KTC-5797).
+product:
+  type: kmp/lib
+  platforms: [jvm]
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: false
+    publish: true
+
+dependencies:
+  # Gradle's implementation => Maven scope 'runtime'
+  - $kotlin.serialization.cbor
+  # Gradle's compileOnly => Maven scope 'provided'
+  - $kotlin.serialization.protobuf:
+      scope: compile-only
+
+dependencies@jvm:
+  # The same dependency as in the common fragment, but exported here => 'runtime' + 'compile' = 'compile'
+  - $kotlin.serialization.cbor: exported
+  # The same dependency as in the common fragment, but runtime-only here => 'provided' + 'runtime' = 'compile'
+  - $kotlin.serialization.protobuf:
+      scope: runtime-only
+
+settings:
+  kotlin:
+    # This implicitly adds kotlinx-serialization-core AND kotlinx-serialization-json to every fragment.
+    # Neither of them is declared explicitly, so the implicit dependencies are added to both the common and the jvm
+    # fragments, and each of them must still appear only once in the pom.xml.
+    serialization: json
+  publishing:
+    enabled: true
+    group: "amper.test.kmp-publish-duplicate-dependencies"
+    version: "1.0"
+    artifactId: artifactName

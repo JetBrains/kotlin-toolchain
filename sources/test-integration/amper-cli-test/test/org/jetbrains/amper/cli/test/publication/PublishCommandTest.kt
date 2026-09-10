@@ -777,6 +777,82 @@ class PublishCommandTest : CliTestBase() {
         """.trimIndent(), pom.readText().trim())
     }
 
+    /**
+     * This test checks that a dependency declared several times with different scopes is represented with a
+     * single dependency element in the generated pom.xml
+     *
+     * A dependency may be declared several times in the ancestral path of a leaf fragment: once in the common
+     * fragment and once in the leaf fragment, either explicitly (with different scopes) or implicitly (implicit
+     * dependencies such as the kotlinx-serialization ones are added to every fragment).
+     * All these declarations must be merged into a single dependency element with the merged scope (see KTC-5797).
+     */
+    @Test
+    fun `publish to maven local (dependencies declared several times with different scopes)`() = runSlowTest {
+        val mavenLocalForTest = createTempMavenLocalDir()
+        val groupDir = mavenLocalForTest.resolve("amper/test/kmp-publish-duplicate-dependencies")
+
+        runCli(
+            projectDir = testProject("kmp-publish-duplicate-dependencies"),
+            "publish", "mavenLocal",
+            amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
+        )
+
+        println("=== JVM MODULE METADATA ===")
+        println((groupDir / "artifactName-jvm/1.0/artifactName-jvm-1.0.module").readText())
+        println("=== ROOT MODULE METADATA ===")
+        println((groupDir / "artifactName/1.0/artifactName-1.0.module").readText())
+
+        val pom = groupDir / "artifactName-jvm/1.0/artifactName-jvm-1.0.pom"
+        assertEquals(expected = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+              <!-- This module was also published with a richer model, Gradle metadata, -->
+              <!-- which should be used instead. Do not delete the following line which -->
+              <!-- is to indicate to Gradle or any Gradle module metadata file consumer -->
+              <!-- that they should prefer consuming it instead. -->
+              <!-- do_not_remove: published-with-gradle-metadata -->
+              <modelVersion>4.0.0</modelVersion>
+              <groupId>amper.test.kmp-publish-duplicate-dependencies</groupId>
+              <artifactId>artifactName-jvm</artifactId>
+              <version>1.0</version>
+              <name>kmp-publish-duplicate-dependencies</name>
+              <dependencies>
+                <dependency>
+                  <groupId>org.jetbrains.kotlinx</groupId>
+                  <artifactId>kotlinx-serialization-cbor-jvm</artifactId>
+                  <version>${DefaultVersions.kotlinxSerialization}</version>
+                  <scope>compile</scope>
+                </dependency>
+                <dependency>
+                  <groupId>org.jetbrains.kotlinx</groupId>
+                  <artifactId>kotlinx-serialization-protobuf-jvm</artifactId>
+                  <version>${DefaultVersions.kotlinxSerialization}</version>
+                  <scope>compile</scope>
+                </dependency>
+                <dependency>
+                  <groupId>org.jetbrains.kotlin</groupId>
+                  <artifactId>kotlin-stdlib</artifactId>
+                  <version>${DefaultVersions.kotlin}</version>
+                  <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                  <groupId>org.jetbrains.kotlinx</groupId>
+                  <artifactId>kotlinx-serialization-core-jvm</artifactId>
+                  <version>${DefaultVersions.kotlinxSerialization}</version>
+                  <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                  <groupId>org.jetbrains.kotlinx</groupId>
+                  <artifactId>kotlinx-serialization-json-jvm</artifactId>
+                  <version>${DefaultVersions.kotlinxSerialization}</version>
+                  <scope>runtime</scope>
+                </dependency>
+              </dependencies>
+            </project>
+        """.trimIndent(), pom.readText().trim())
+    }
+
     @Test
     fun `consume RELEASE version of dependency from maven local (jvm multi-module)`() = runSlowTest {
         val mavenLocalForTest = createTempMavenLocalDir()
