@@ -20,6 +20,7 @@ sealed class Usage(override val value: String) : AttributeValue {
             KotlinMetadata.value -> KotlinMetadata
             KotlinMultiplatformResources.value -> KotlinMultiplatformResources
             KotlinMultiplatformResourcesJs.value -> KotlinMultiplatformResourcesJs
+            SwiftPMDependenciesMetadata.value -> SwiftPMDependenciesMetadata
             else -> Other(value)
         }
 
@@ -62,6 +63,12 @@ sealed class Usage(override val value: String) : AttributeValue {
      * KMP resources of a JS or a Wasm target, see [kmpResourcesUsage].
      */
     object KotlinMultiplatformResourcesJs : Usage("kotlin-multiplatformresourcesjs")
+
+    /**
+     * The SwiftPM metadata a library publishes to declare the SwiftPM packages its consumers have to fetch and link.
+     * The value follows the KGP convention and thus doesn't respect the usual kebab-case naming of usages.
+     */
+    object SwiftPMDependenciesMetadata : Usage("swiftPMDependenciesMetadata")
 
     class Other(value: String) : Usage(value)
 

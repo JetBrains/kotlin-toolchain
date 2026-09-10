@@ -104,8 +104,10 @@ internal fun Notation.toVariantDependency(
 ): Dependency? = when (this) {
     is MavenDependencyBase -> toVariantDependency(platform, overrides)
     is LocalModuleDependency -> toVariantDependency(platform)
+    // SwiftPM dependencies are not Maven dependencies: they are published in their own metadata variant instead,
+    // see the 'swiftPMDependenciesMetadataElements' variant of the root publication.
     is LocalSwiftPMDependencyNotation,
-    is RemoteSwiftPMDependencyNotation -> null // FIXME: Support SwiftPM metadata variant publication
+    is RemoteSwiftPMDependencyNotation -> null
     is DefaultScopedNotation -> error("Dependency type ${this::class.simpleName} is not supported for .module publication")
 }
 

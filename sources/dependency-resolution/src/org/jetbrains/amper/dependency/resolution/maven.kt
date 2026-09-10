@@ -1307,7 +1307,7 @@ class MavenDependencyImpl internal constructor(
                 // [KTC-4474] Supporting JVM dependencies in jvm+android fragments.
                 || context.settings.platforms == setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID))
             {
-                val swiftPMMetadata = moduleMetadata.variants.firstOrNull { it.getAttributeValue(Usage)?.value == "swiftPMDependenciesMetadata" }
+                val swiftPMMetadata = moduleMetadata.variants.firstOrNull { it.getAttributeValue(Usage) == Usage.SwiftPMDependenciesMetadata }
                 if (swiftPMMetadata != null) {
                     swiftPMDependenciesMetadata = getDependencyFile(this, swiftPMMetadata.files.single(), false)
                 }

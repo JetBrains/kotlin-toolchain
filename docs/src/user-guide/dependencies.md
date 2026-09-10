@@ -558,3 +558,18 @@ fun sha256(value: String): String {
     )
 }
 ```
+
+### Publishing libraries with SwiftPM dependencies
+
+When a [published library](publishing.md) declares SwiftPM dependencies, they are published alongside its artifacts so
+that consumers of the library know which Swift packages they have to fetch and link. Nothing needs to be configured for
+this: the SwiftPM dependencies of the library are described in an additional `-swiftpm-metadata.json` artifact, in the
+same format as the one published by the Kotlin Gradle Plugin.
+
+Only the SwiftPM dependencies declared by the library itself are published. The ones declared by their own dependencies 
+are published by those dependencies and are collected by walking the whole dependency graph.
+
+!!! warning "Local Swift packages don't travel well"
+    [Local Swift packages](#importing-local-swift-packages) are published as absolute paths, so consumers can only
+    resolve them if the package is available at the very same path on their machine. Prefer remote packages in
+    published libraries.

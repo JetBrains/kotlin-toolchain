@@ -36,6 +36,8 @@ import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.amper.maven.publish.writePomFor
 import org.jetbrains.amper.serialization.paths.SerializablePath
 import org.jetbrains.amper.stdlib.hashing.hash
+import org.jetbrains.amper.swiftpm.SwiftPMImportMetadata
+import org.jetbrains.amper.swiftpm.swiftPMJson
 import org.jetbrains.amper.tasks.android.AndroidAarTask
 import org.jetbrains.amper.tasks.compose.ComposeResourcesArchiveTask
 import org.jetbrains.amper.tasks.jvm.JvmClassesJarTask
@@ -50,6 +52,9 @@ import org.jetbrains.amper.tasks.metadata.kotlinToolingMetadataFor
 import org.jetbrains.amper.tasks.metadata.readKlibAbiVersion
 import org.jetbrains.amper.tasks.native.NativeCInteropGenerateKlibTask
 import org.jetbrains.amper.tasks.native.NativeCompileKlibTask
+import org.jetbrains.amper.tasks.native.swiftpm.SWIFTPM_METADATA_CLASSIFIER
+import org.jetbrains.amper.tasks.native.swiftpm.SWIFTPM_METADATA_EXTENSION
+import org.jetbrains.amper.tasks.native.swiftpm.swiftPMImportMetadataForPublication
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
 import org.jetbrains.kotlin.tooling.metadata.KOTLIN_TOOLING_METADATA_CLASSIFIER
 import org.jetbrains.kotlin.tooling.metadata.KotlinToolingMetadata
@@ -96,6 +101,12 @@ class PrepareMavenPublishablesTask(
             )
         } else null
 
+        // SwiftPM dependencies can only be declared for Apple platforms, which only multiplatform libraries support,
+        // so the SwiftPM metadata is always part of the root publication.
+        val swiftPMMetadata = if (module.isMultiplatformPublication()) {
+            module.swiftPMImportMetadataForPublication()
+        } else null
+
         val publishables = incrementalCache.executeForSerializable<List<MavenPublishable>>(
             key = taskName.id.value,
             inputValues = mapOf(
@@ -108,6 +119,7 @@ class PrepareMavenPublishablesTask(
                 "checksums" to module.publishingSettings.checksums.joinToString(),
                 "publishSources" to module.publishingSettings.publishSources.toString(),
                 "toolingMetadata" to toolingMetadata?.let { Json.encodeToString(it) }.orEmpty(),
+                "swiftPMMetadata" to swiftPMMetadata?.let { swiftPMJson.encodeToString(it) }.orEmpty(),
             ),
             inputFiles = modulePublishablesFromOtherTasks.map { it.path },
         ) {
@@ -128,6 +140,9 @@ class PrepareMavenPublishablesTask(
             meaningfulPublishables.addAll(poms)
             meaningfulPublishables.addAll(modulePublishablesFromOtherTasks)
             toolingMetadata?.let { meaningfulPublishables.add(generateToolingMetadataPublishable(it, coordsPerPlatform)) }
+            val swiftPMMetadataPublishable = swiftPMMetadata
+                ?.let { generateSwiftPMMetadataPublishable(it, coordsPerPlatform) }
+                ?.also { meaningfulPublishables.add(it) }
 
             val checksumsToPublish = module.publishingSettings.checksums
             val checksumPublishables = mutableMapOf<String, List<MavenPublishable>>()
@@ -138,7 +153,7 @@ class PrepareMavenPublishablesTask(
                 .toMap()
             )
 
-            generateGradleMetadata(checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks, depsCoordinatesOverrides)
+            generateGradleMetadata(checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks, depsCoordinatesOverrides, swiftPMMetadataPublishable)
                 .also {
                     meaningfulPublishables.addAll(it)
                     checksumPublishables.putAll(
@@ -200,18 +215,38 @@ class PrepareMavenPublishablesTask(
         return toolingMetadataFile.toMavenPublishable(coords)
     }
 
+    /**
+     * Writes the SwiftPM metadata of this library and returns it as an artifact of the root publication, with the
+     * classifier and extension that its consumers expect.
+     *
+     * Contrary to the tooling metadata, this artifact is also exposed in a dedicated Gradle metadata variant, exactly
+     * like in Gradle publications, which is how consumers discover it.
+     */
+    private suspend fun generateSwiftPMMetadataPublishable(
+        swiftPMMetadata: SwiftPMImportMetadata,
+        coordsPerPlatform: Map<Platform, MavenCoordinates>,
+    ): MavenPublishable {
+        val coords = coordsPerPlatform.getValue(Platform.COMMON).copy(classifier = SWIFTPM_METADATA_CLASSIFIER)
+        val metadataFile = taskOutputRoot.path.resolve(coords.mavenFileName(SWIFTPM_METADATA_EXTENSION))
+        withContext(Dispatchers.IO) {
+            metadataFile.writeText(swiftPMJson.encodeToString(swiftPMMetadata))
+        }
+        return metadataFile.toMavenPublishable(coords, extension = SWIFTPM_METADATA_EXTENSION)
+    }
+
     private suspend fun generateGradleMetadata(
         checksumPublishables: Map<String, List<MavenPublishable>>,
         coordsPerPlatform: Map<Platform, MavenCoordinates>,
         modulePublishablesFromOtherTasks: List<MavenPublishable>,
         overrides: PublicationCoordinatesOverrides,
+        swiftPMMetadata: MavenPublishable?,
     ): List<MavenPublishable> = buildList {
         addAll(
             generateGradleMetadataForLeafPlatforms(
                 checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks, overrides
             )
         )
-        generateCommonGradleMetadata(checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks)
+        generateCommonGradleMetadata(checksumPublishables, coordsPerPlatform, modulePublishablesFromOtherTasks, swiftPMMetadata)
             ?.also { add(it) }
     }
 
@@ -250,6 +285,7 @@ class PrepareMavenPublishablesTask(
         checksumPublishables: Map<String, List<MavenPublishable>>,
         coordsPerPlatform: Map<Platform, MavenCoordinates>,
         modulePublishablesFromOtherTasks: List<MavenPublishable>,
+        swiftPMMetadata: MavenPublishable?,
     ): MavenPublishable? {
         if (!module.isMultiplatformPublication()) return null
 
@@ -266,6 +302,7 @@ class PrepareMavenPublishablesTask(
             platformsWithKmpResources = coordsPerPlatform
                 .filterValues { modulePublishablesFromOtherTasks.findKmpResourcesArchiveFor(it) != null }
                 .keys,
+            swiftPMMetadata = swiftPMMetadata,
         )
         val allMetadataGradleModulePublishable =
             allMetadataGradleModuleFile.toMavenPublishable(coordsPerPlatform[Platform.COMMON]!!)

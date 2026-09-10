@@ -1,0 +1,30 @@
+# A library that declares SwiftPM dependencies.
+# It has no sources: they play no role in the SwiftPM metadata publication, and skipping their compilation makes the
+# publication of this Apple library much faster.
+product:
+  type: kmp/lib
+  platforms: [ iosArm64, iosSimulatorArm64, macosArm64 ]
+
+dependencies:
+  - swiftPackage:
+      repository:
+        value: "https://foo/bar/baz.git"
+      version:
+        value: "1.0.0"
+      products: [ "Baz" ]
+
+dependencies@ios:
+  - swiftPackage:
+      repository:
+        value: "https://foo/bar/ios-only.git"
+      version:
+        value: "2.0.0"
+        type: exact
+      products: [ "IosOnly" ]
+
+settings:
+  publishing:
+    group: org.jetbrains.kotlintoolchain.swiftpm.sample
+    artifactId: swiftPMPublication
+    version: 1.0.0
+    enabled: true

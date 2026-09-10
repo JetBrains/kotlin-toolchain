@@ -30,6 +30,7 @@ import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.amper.tasks.MavenPublishable
 import org.jetbrains.amper.tasks.mavenFileName
 import org.jetbrains.amper.tasks.native.cinteropName
+import org.jetbrains.amper.tasks.native.swiftpm.SWIFTPM_METADATA_EXTENSION
 import org.jetbrains.amper.tasks.rootFragment
 import org.jetbrains.gradle.module.metadata.format.AvailableAt
 import org.jetbrains.gradle.module.metadata.format.Component
@@ -71,6 +72,7 @@ internal suspend fun generateCommonGradleModuleMetadata(
     allMetadataSourcesJarPath: Path?,
     checksums: Map<String, List<MavenPublishable>>,
     platformsWithKmpResources: Set<Platform>,
+    swiftPMMetadata: MavenPublishable?,
 ): Path {
     val leafPlatformVariants: List<GradleVariant> = module.leafFragments
         .filterNot { it.isTest }
@@ -99,10 +101,39 @@ internal suspend fun generateCommonGradleModuleMetadata(
         }
     }
 
-    val variants = allMetadataVariants + leafPlatformVariants
+    val swiftPMVariants = listOfNotNull(swiftPMMetadata?.let { swiftPMDependenciesMetadataVariant(it, checksums) })
+
+    val variants = allMetadataVariants + swiftPMVariants + leafPlatformVariants
 
     return generateGradleModuleFile(variants, Platform.COMMON, module, outputDir)
 }
+
+/**
+ * The Gradle metadata variant that exposes the SwiftPM metadata of this library, as it must appear in the root
+ * publication. Follows the KGP convention.
+ */
+private fun swiftPMDependenciesMetadataVariant(
+    swiftPMMetadata: MavenPublishable,
+    checksums: Map<String, List<MavenPublishable>>,
+): GradleVariant = GradleVariant(
+    name = "swiftPMDependenciesMetadataElements",
+    attributes = mapOf(
+        Category.name to Category.Library.value,
+        Usage.name to Usage.SwiftPMDependenciesMetadata.value,
+    ),
+    files = [
+        File(
+            // Contrary to the other variants, KGP doesn't give this file a name based on the module and version.
+            name = Usage.SwiftPMDependenciesMetadata.value,
+            url = swiftPMMetadata.coordinates.mavenFileName(SWIFTPM_METADATA_EXTENSION),
+            size = swiftPMMetadata.path.fileSize(),
+            sha512 = getCheckSumFor(swiftPMMetadata.path, "sha512", checksums),
+            sha256 = getCheckSumFor(swiftPMMetadata.path, "sha256", checksums),
+            sha1 = getCheckSumFor(swiftPMMetadata.path, "sha1", checksums),
+            md5 = getCheckSumFor(swiftPMMetadata.path, "md5", checksums),
+        )
+    ],
+)
 
 private fun allMetadataVariant(
     module: AmperModule,

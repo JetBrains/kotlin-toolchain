@@ -70,10 +70,10 @@ class TransitiveSwiftPMDependenciesResolver(
                  * FIXME: These are necessary for implicit constraints, e.g. an ios-only module consumes SwiftPM
                  * dependency and this module is then consumed by the module with macOS targets. Finish implementing
                  * these.
-                 *
-                 * These also need to be in sync with Gradle implementation where we use KonanTarget names.
                  */
-                konanTargets = amperModuleByName[it.key]!!.leafAppleFragments().map { it.platform.toString() }.toSet(),
+                konanTargets = amperModuleByName[it.key]!!.leafAppleFragments()
+                    .map { it.platform.konanTargetName() }
+                    .toSet(),
                 /**
                  * In Gradle implementation these versions are specified in the DSL, published by the project and
                  * are eventually consumed. We agreed to hardcode defaults for now and decide what to do there later:
