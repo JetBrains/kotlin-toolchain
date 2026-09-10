@@ -64,7 +64,7 @@ class AndroidSettings : SchemaNode() {
     val namespace by nullableValue<String>()
 
     @SchemaDoc("The ID for the application on a device and in the Google Play Store. " +
-            "[Read more](https://developer.android.com/build/configure-app-module#set-namespace)")
+            "[Read more](https://developer.android.com/build/configure-app-module#set-application-id)")
     @ProductTypeSpecific(ProductType.ANDROID_APP)
     @NotBlank
     val applicationId by referenceValue(::namespace)
