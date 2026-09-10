@@ -11,6 +11,7 @@ import org.apache.maven.model.Model
 import org.apache.maven.model.Scm
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer
 import org.codehaus.plexus.util.xml.XmlStreamWriter
+import org.jetbrains.amper.dependency.resolution.MavenCoordinates
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.BomDependency
 import org.jetbrains.amper.frontend.DefaultScopedNotation
@@ -107,15 +108,26 @@ private fun getDependencies(
             .flatMap { it.externalDependencies }
             .distinct()
             .partition { it is BomDependency }
-        val bomPomDependencies = bomDependencies.mapNotNull { it.toPomDependency(platform, publicationCoordsOverrides) }
-        val regularPomDependencies = regularDependencies.mapNotNull { it.toPomDependency(platform, publicationCoordsOverrides) }
 
-        val dependencyManagement = if (bomDependencies.isNotEmpty()) {
+        val bomPomDependencies = bomDependencies.toDependencies(platform, publicationCoordsOverrides)
+        val regularPomDependencies = regularDependencies.toDependencies(platform, publicationCoordsOverrides)
+
+        val dependencyManagement = if (bomPomDependencies.isNotEmpty()) {
             DependencyManagement().apply { dependencies.addAll(bomPomDependencies) }
         } else null
 
         regularPomDependencies to dependencyManagement
     }
+
+private fun List<Notation>.toDependencies(
+    platform: Platform,
+    publicationCoordsOverrides: PublicationCoordinatesOverrides,
+): List<Dependency> =
+    mapNotNull { notation ->
+        notation.toPomDependency(platform, publicationCoordsOverrides)
+            ?.let { it to it.toMavenCoordinates() }
+    }.distinctBy { it.second to it.first.scope }
+        .map { it.first }
 
 private fun generatePomModel(
     module: AmperModule,
@@ -214,6 +226,14 @@ private fun LocalModuleDependency.toPomDependency(platform: Platform): Dependenc
     dependency.scope = mavenScopeName()
     return dependency
 }
+
+private fun Dependency.toMavenCoordinates() = MavenCoordinates(
+    groupId = groupId,
+    artifactId = artifactId,
+    version = version,
+    classifier = classifier,
+    packagingType = type
+)
 
 private fun AmperModule.singleProductionFragmentOrNull(platform: Platform) = if (platform == Platform.COMMON) {
     fragments.singleOrNull { !it.isTest && it.fragmentDependencies.isEmpty() }   
