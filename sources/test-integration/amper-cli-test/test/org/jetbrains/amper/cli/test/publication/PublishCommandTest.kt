@@ -24,6 +24,7 @@ import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.server.Request
 import org.jetbrains.amper.test.server.RequestHistory
 import org.jetbrains.amper.test.server.withFileServer
+import org.jetbrains.gradle.module.metadata.format.parseMetadata
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestReporter
 import java.nio.file.Path
@@ -797,11 +798,6 @@ class PublishCommandTest : CliTestBase() {
             amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
         )
 
-        println("=== JVM MODULE METADATA ===")
-        println((groupDir / "artifactName-jvm/1.0/artifactName-jvm-1.0.module").readText())
-        println("=== ROOT MODULE METADATA ===")
-        println((groupDir / "artifactName/1.0/artifactName-1.0.module").readText())
-
         val pom = groupDir / "artifactName-jvm/1.0/artifactName-jvm-1.0.pom"
         assertEquals(expected = """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -851,7 +847,35 @@ class PublishCommandTest : CliTestBase() {
               </dependencies>
             </project>
         """.trimIndent(), pom.readText().trim())
+
+        // The Gradle module metadata must not declare such a dependency several times either.
+        // Note that it doesn't need merged scopes, because it has one variant per scope.
+        val jvmModuleFile = groupDir / "artifactName-jvm/1.0/artifactName-jvm-1.0.module"
+        assertEquals(
+            expected = mapOf(
+                "jvmApiElements-published" to listOf(
+                    "org.jetbrains.kotlinx:kotlinx-serialization-cbor:${DefaultVersions.kotlinxSerialization}",
+                ),
+                "jvmRuntimeElements-published" to listOf(
+                    "org.jetbrains.kotlinx:kotlinx-serialization-cbor:${DefaultVersions.kotlinxSerialization}",
+                    "org.jetbrains.kotlinx:kotlinx-serialization-protobuf:${DefaultVersions.kotlinxSerialization}",
+                    "org.jetbrains.kotlin:kotlin-stdlib:${DefaultVersions.kotlin}",
+                    "org.jetbrains.kotlinx:kotlinx-serialization-core:${DefaultVersions.kotlinxSerialization}",
+                    "org.jetbrains.kotlinx:kotlinx-serialization-json:${DefaultVersions.kotlinxSerialization}",
+                ),
+            ),
+            actual = jvmModuleFile.dependenciesPerVariant(),
+        )
     }
+
+    /**
+     * Reads the Gradle module metadata file at this [Path], and returns the dependencies declared by each of its
+     * variants, in the form `group:module:version`, keyed by variant name.
+     */
+    private fun Path.dependenciesPerVariant(): Map<String, List<String>> =
+        readText().parseMetadata().variants.associate { variant ->
+            variant.name to variant.dependencies.map { "${it.group}:${it.module}:${it.version?.requires}" }
+        }
 
     @Test
     fun `consume RELEASE version of dependency from maven local (jvm multi-module)`() = runSlowTest {

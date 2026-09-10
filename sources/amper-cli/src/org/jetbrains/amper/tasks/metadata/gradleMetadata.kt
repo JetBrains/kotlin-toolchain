@@ -446,8 +446,10 @@ private fun LeafFragment.toVariantDependencies(
         platform to overrides
 
     return dependenciesAvailableForConsumer(scope = scope)
-        .distinct()
         .mapNotNull { it.toVariantDependency(dependencyPlatform, dependencyOverrides) }
+        // The same dependency may be declared in several fragments of the ancestral path of this fragment (with
+        // different scopes, or implicitly), and distinct notations may map to the very same published coordinates.
+        .distinct()
         .toList()
 }
 
