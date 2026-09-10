@@ -30,9 +30,9 @@ internal fun AmperModule.swiftPMImportMetadataForPublication(): SwiftPMImportMet
     return SwiftPMImportMetadata(
         // Consumers use these to know which of their own targets this metadata applies to. They are KonanTarget names,
         // like in the KGP publication (not Kotlin Toolchain platform names).
-        konanTargets = leafAppleFragments().map { it.platform.konanTargetName() }.sorted().toSet(),
+        konanTargets = leafAppleFragments().map { it.platform.konanTargetName() }.toSet(),
         // Only deployment targets that the library declares explicitly belong here. KGP publishes null unless the
-        // user sets them in its DSL and treats its own deNfaults as a consumer-side fallback. Consumers raise their
+        // user sets them in its DSL and treats its own defaults as a consumer-side fallback. Consumers raise their
         // minimum to the maximum of the published values, so publishing our build-time defaults would silently bump
         // the minimum OS version of every consumer. Kotlin Toolchain has no DSL for these yet, so nothing to declare.
         iosDeploymentVersion = null,

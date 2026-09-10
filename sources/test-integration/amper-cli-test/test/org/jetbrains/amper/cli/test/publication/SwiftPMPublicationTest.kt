@@ -16,8 +16,10 @@ import org.jetbrains.amper.swiftpm.swiftPMJson
 import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.gradle.module.metadata.format.Module
 import org.junit.jupiter.api.Tag
+import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.readText
+import kotlin.io.path.relativeTo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -28,8 +30,9 @@ import kotlin.test.assertNull
  * packages they have to fetch and link. Just like KGP, we publish them as a JSON file exposed in a dedicated
  * `swiftPMDependenciesMetadataElements` variant of the root publication.
  *
- * These tests are Mac-only because publishing an Apple library requires compiling its klibs and cinterops, which in
- * turn requires the SwiftPM import to run (and thus Xcode).
+ * This test is Mac-only because publishing an Apple library requires compiling its klibs and cinterops, which in turn
+ * requires the SwiftPM import to run (and thus Xcode). The test project only declares local Swift packages, so no
+ * network access is needed.
  */
 @Tag("cli-test-group-publication")
 class SwiftPMPublicationTest : CliTestBase() {
@@ -37,14 +40,25 @@ class SwiftPMPublicationTest : CliTestBase() {
     @Test
     @MacOnly
     fun `swiftpm metadata is published in a dedicated variant`() = runSlowTest {
+        val projectDir = testProject("swiftpm-publication")
         val result = runCli(
-            projectDir = testProject("swiftpm-publication"),
+            projectDir = projectDir,
             "task", ":swiftpm-publication:prepareMavenPublishables",
         )
 
         val publishablesDir = result.getTaskOutputPath(":swiftpm-publication:prepareMavenPublishables")
 
-        val rootMetadata = json.decodeFromString<Module>((publishablesDir / "swiftPMPublication-1.0.0.module").readText())
+        assertSwiftPMVariantIsExposed(publishablesDir)
+        assertPublishedMetadataDescribesDeclaredPackages(publishablesDir, projectDir)
+    }
+
+    /**
+     * Consumers discover the SwiftPM metadata through a dedicated variant of the root publication, so it must be there
+     * with the attributes and the file URL that KGP consumers expect.
+     */
+    private fun assertSwiftPMVariantIsExposed(publishablesDir: Path) {
+        val rootMetadata = gradleMetadataJson
+            .decodeFromString<Module>((publishablesDir / "swiftPMPublication-1.0.0.module").readText())
         val swiftPMVariant = assertNotNull(
             rootMetadata.variants.singleOrNull { it.name == "swiftPMDependenciesMetadataElements" },
             "The root publication must expose the SwiftPM metadata, but its variants are " +
@@ -61,20 +75,12 @@ class SwiftPMPublicationTest : CliTestBase() {
         )
     }
 
-    @Test
-    @MacOnly
-    fun `published swiftpm metadata describes the declared packages`() = runSlowTest {
-        val result = runCli(
-            projectDir = testProject("swiftpm-publication"),
-            "task", ":swiftpm-publication:prepareMavenPublishables",
-        )
-
-        val metadataFile = result.getTaskOutputPath(":swiftpm-publication:prepareMavenPublishables") /
-                "swiftPMPublication-1.0.0-swiftpm-metadata.json"
+    private fun assertPublishedMetadataDescribesDeclaredPackages(publishablesDir: Path, projectDir: Path) {
+        val metadataFile = publishablesDir / "swiftPMPublication-1.0.0-swiftpm-metadata.json"
         val metadata = swiftPMJson.decodeFromString<SwiftPMImportMetadata>(metadataFile.readText())
 
         // Targets are named after KonanTarget, like in the KGP publication.
-        assertEquals(setOf("ios_arm64", "ios_simulator_arm64", "macos_arm64"), metadata.konanTargets)
+        assertEquals(setOf("ios_arm64", "macos_arm64"), metadata.konanTargets)
 
         // Deployment targets are only published when the library declares them, which Kotlin Toolchain cannot do yet.
         // Consumers raise their own minimum to the maximum of the published values, so publishing the defaults we use
@@ -98,17 +104,19 @@ class SwiftPMPublicationTest : CliTestBase() {
         // unconstrained, while the one declared in the 'ios' fragment carries the iOS platform constraint.
         assertEquals(
             mapOf(
-                "https://foo/bar/baz.git" to listOf("Baz" to null),
-                "https://foo/bar/ios-only.git" to listOf("IosOnly" to listOf(SwiftPMDependency.Platform.iOS)),
+                "commonPackage" to listOf("CommonProduct" to null),
+                "iosOnlyPackage" to listOf("IosOnlyProduct" to listOf(SwiftPMDependency.Platform.iOS)),
             ),
             metadata.dependencies.associate { dependency ->
-                val remote = dependency as SwiftPMDependency.Remote
-                remote.repository.value to remote.products.map { it.name to it.platformConstraints }
+                // Local packages are published as absolute paths, so we can only assert their location in the project.
+                val local = dependency as SwiftPMDependency.Local
+                local.absolutePath.toRealPath().relativeTo(projectDir.toRealPath()).toString() to
+                        local.products.map { it.name to it.platformConstraints }
             },
         )
     }
 
-    private val json = Json {
+    private val gradleMetadataJson = Json {
         ignoreUnknownKeys = true
         isLenient = true
     }

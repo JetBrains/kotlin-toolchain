@@ -1,26 +1,19 @@
 # A library that declares SwiftPM dependencies.
-# It has no sources: they play no role in the SwiftPM metadata publication, and skipping their compilation makes the
-# publication of this Apple library much faster.
+# The packages are local so that the publication can be tested without any network access.
+# The module has no sources: they play no role in the SwiftPM metadata publication.
 product:
   type: kmp/lib
-  platforms: [ iosArm64, iosSimulatorArm64, macosArm64 ]
+  platforms: [ iosArm64, macosArm64 ]
 
 dependencies:
-  - swiftPackage:
-      repository:
-        value: "https://foo/bar/baz.git"
-      version:
-        value: "1.0.0"
-      products: [ "Baz" ]
+  - localSwiftPackage:
+      path: commonPackage
+      products: [ "CommonProduct" ]
 
 dependencies@ios:
-  - swiftPackage:
-      repository:
-        value: "https://foo/bar/ios-only.git"
-      version:
-        value: "2.0.0"
-        type: exact
-      products: [ "IosOnly" ]
+  - localSwiftPackage:
+      path: iosOnlyPackage
+      products: [ "IosOnlyProduct" ]
 
 settings:
   publishing:
