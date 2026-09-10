@@ -1,0 +1,13 @@
+# Consumes the library published by the 'swiftpm-publication' test project to check that the SwiftPM packages that
+# library declares reaches its consumers.
+# See original_gradle/README.md for the equivalent Gradle project, used to check that KGP consumes our publication.
+product:
+  type: kmp/lib
+  # A single platform, because the SwiftPM metadata of a dependency is only resolved in a single-platform context.
+  platforms: [ iosArm64 ]
+
+dependencies:
+  - org.jetbrains.kotlintoolchain.swiftpm.sample:swiftPMPublication:1.0.0
+
+repositories:
+  - mavenLocal

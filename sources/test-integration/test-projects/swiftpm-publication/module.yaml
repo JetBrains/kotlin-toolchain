@@ -1,6 +1,6 @@
 # A library that declares SwiftPM dependencies.
 # The packages are local so that the publication can be tested without any network access.
-# The module has no sources: they play no role in the SwiftPM metadata publication.
+# See original_gradle/README.md for the equivalent Gradle project, used to compare the publication with KGP's.
 product:
   type: kmp/lib
   platforms: [ iosArm64, macosArm64 ]
@@ -14,6 +14,11 @@ dependencies@ios:
   - localSwiftPackage:
       path: iosOnlyPackage
       products: [ "IosOnlyProduct" ]
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    publish: true
 
 settings:
   publishing:

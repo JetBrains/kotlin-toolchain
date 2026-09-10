@@ -1,0 +1,187 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.jetbrains.kotlintoolchain.swiftpm.sample",
+    "module": "swiftPMPublication",
+    "version": "1.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.1.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "metadataApiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.10"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "swiftPMPublication-metadata-1.0.0.jar",
+          "url": "swiftPMPublication-1.0.0.jar",
+          "size": 736,
+          "sha512": "30fa7fa988fc18b5b096d865399e917faa866426ef8060449bc89949154c73f9ed6242027dcde6bbe03a524db2c2b28abd5afc91dc2d1aa3deb4d3d871a01cf2",
+          "sha256": "d19dc65688b6b56f3af9ea72308a87bf27530b134239b4fe94f7f050fe5072b4",
+          "sha1": "db0f76966afb1bc81cae449dd2596993cfcd5017",
+          "md5": "696647cae26f97ffce13382f7d0e27d8"
+        }
+      ]
+    },
+    {
+      "name": "metadataSourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "files": [
+        {
+          "name": "swiftPMPublication-kotlin-1.0.0-sources.jar",
+          "url": "swiftPMPublication-1.0.0-sources.jar",
+          "size": 739,
+          "sha512": "8e966b8801bb00920b25d146b6335180923d790e6c6045c668a2fe137e6a9163e748a060f263a931003803e62ffa2f65e23d9deba791250ef0e4bff581445fbb",
+          "sha256": "10fac81349031f5b2daf1e90bda843e922dc84e5e8372541e23d3aa871fb1e0e",
+          "sha1": "3af274e63be8f5284fd73d0de4750b7cdc94ad60",
+          "md5": "b0838aad6fc46b5b1a45ced761f05dec"
+        }
+      ]
+    },
+    {
+      "name": "swiftPMDependenciesMetadataElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.usage": "swiftPMDependenciesMetadata"
+      },
+      "files": [
+        {
+          "name": "swiftPMDependenciesMetadata",
+          "url": "swiftPMPublication-1.0.0-swiftpm-metadata.json",
+          "size": 1091,
+          "sha512": "d988fdfdcc9930140c5c7cfbc4a367e5c73c42b8b1b20d0e45b0ba044730ad111bcf2dc4787aa044826c6343d00d642a39df0b46fdaad88bcd11fa9f296f541f",
+          "sha256": "dd4197dfb59d89835dad7da57dd002db0a7049a6ceb0e9b9100715b3db915578",
+          "sha1": "38e723ed2737b472b5fb7e527b00cc24b171f32d",
+          "md5": "926286d6d392394d9b00c1b49ea80b03"
+        }
+      ]
+    },
+    {
+      "name": "iosArm64ApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "ios_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../swiftPMPublication-iosarm64/1.0.0/swiftPMPublication-iosarm64-1.0.0.module",
+        "group": "org.jetbrains.kotlintoolchain.swiftpm.sample",
+        "module": "swiftPMPublication-iosarm64",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "iosArm64SourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.native.target": "ios_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../swiftPMPublication-iosarm64/1.0.0/swiftPMPublication-iosarm64-1.0.0.module",
+        "group": "org.jetbrains.kotlintoolchain.swiftpm.sample",
+        "module": "swiftPMPublication-iosarm64",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "iosArm64MetadataElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.native.target": "ios_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../swiftPMPublication-iosarm64/1.0.0/swiftPMPublication-iosarm64-1.0.0.module",
+        "group": "org.jetbrains.kotlintoolchain.swiftpm.sample",
+        "module": "swiftPMPublication-iosarm64",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "macosArm64ApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "macos_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../swiftPMPublication-macosarm64/1.0.0/swiftPMPublication-macosarm64-1.0.0.module",
+        "group": "org.jetbrains.kotlintoolchain.swiftpm.sample",
+        "module": "swiftPMPublication-macosarm64",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "macosArm64SourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.native.target": "macos_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../swiftPMPublication-macosarm64/1.0.0/swiftPMPublication-macosarm64-1.0.0.module",
+        "group": "org.jetbrains.kotlintoolchain.swiftpm.sample",
+        "module": "swiftPMPublication-macosarm64",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "name": "macosArm64MetadataElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.native.target": "macos_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../swiftPMPublication-macosarm64/1.0.0/swiftPMPublication-macosarm64-1.0.0.module",
+        "group": "org.jetbrains.kotlintoolchain.swiftpm.sample",
+        "module": "swiftPMPublication-macosarm64",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+[versions]
+# Keep in sync with the version the Kotlin Toolchain uses by default (see DefaultVersions.kt), so that the publication
+# of this Gradle project and the one of the Amper module next to it can be compared meaningfully.
+kotlin = "2.4.10"
+
+[plugins]
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

@@ -1,0 +1,43 @@
+{
+  "konanTargets": [
+    "macos_arm64",
+    "ios_arm64"
+  ],
+  "iosDeploymentVersion": null,
+  "macosDeploymentVersion": null,
+  "watchosDeploymentVersion": null,
+  "tvosDeploymentVersion": null,
+  "isModulesDiscoveryEnabled": true,
+  "dependencies": [
+    {
+      "type": "org.jetbrains.kotlin.gradle.plugin.mpp.apple.swiftimport.SwiftPMDependency.Local",
+      "absolutePath": "<project-dir>/commonPackage",
+      "products": [
+        {
+          "name": "CommonProduct",
+          "cinteropClangModules": [],
+          "platformConstraints": null
+        }
+      ],
+      "cinteropClangModules": [],
+      "packageName": "commonPackage",
+      "traits": []
+    },
+    {
+      "type": "org.jetbrains.kotlin.gradle.plugin.mpp.apple.swiftimport.SwiftPMDependency.Local",
+      "absolutePath": "<project-dir>/iosOnlyPackage",
+      "products": [
+        {
+          "name": "IosOnlyProduct",
+          "cinteropClangModules": [],
+          "platformConstraints": [
+            "iOS"
+          ]
+        }
+      ],
+      "cinteropClangModules": [],
+      "packageName": "iosOnlyPackage",
+      "traits": []
+    }
+  ]
+}

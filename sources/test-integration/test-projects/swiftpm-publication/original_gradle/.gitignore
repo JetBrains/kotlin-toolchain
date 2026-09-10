@@ -1,0 +1,16 @@
+*.iml
+.gradle
+.idea
+.DS_Store
+build
+captures
+.externalNativeBuild
+.cxx
+local.properties
+xcuserdata
+.kotlin
+#So we don't accidentally commit our private keys
+*.gpg
+# KGP's SwiftPM lock-file bucket. It would hold a Package.resolved worth committing if this project depended on remote
+# Swift packages, but all of them are local here, so it only ever contains generated synthetic packages.
+.swiftpm-locks

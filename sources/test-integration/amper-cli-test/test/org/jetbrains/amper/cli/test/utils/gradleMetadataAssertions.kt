@@ -5,6 +5,10 @@
 package org.jetbrains.amper.cli.test.utils
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.gradle.module.metadata.format.Module
 import org.junit.jupiter.api.TestInfo
@@ -13,6 +17,7 @@ import kotlin.io.path.deleteIfExists
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.name
+import kotlin.io.path.pathString
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.test.fail
@@ -27,19 +32,49 @@ private val goldenFilesRoot: Path = Dirs.amperSourcesRoot /
         "test-integration/amper-cli-test/testResources/gradleMetadata"
 
 /**
+ * The placeholder that replaces the absolute path of the test project in the sanitized metadata.
+ */
+private const val PROJECT_DIR_PLACEHOLDER = "<project-dir>"
+
+/**
  * Asserts that the Gradle module metadata generated at [actualFile] is the one described by the reference file named
  * `<name of the current test method>.[expectedFileNameSuffix]` in the `testResources/gradleMetadata` directory.
- *
- * On failure, the generated metadata is left next to the reference file with an extra `.tmp` extension, so that it can
- * be reviewed and promoted to the new reference (this is the convention of the other gold file tests, see the
- * `updateGoldFiles` project command).
  */
 internal fun assertGradleMetadataEquals(expectedFileNameSuffix: String, actualFile: Path, testInfo: TestInfo) {
+    assertSanitizedMetadataEquals(expectedFileNameSuffix, actualFile.sanitizedGradleMetadata(), testInfo)
+}
+
+/**
+ * Asserts that the SwiftPM metadata published at [actualFile] is the one described by the reference file named
+ * `<name of the current test method>.[expectedFileNameSuffix]` in the `testResources/gradleMetadata` directory.
+ *
+ * Local Swift packages are published as the absolute path they had on the publishing machine, so the paths pointing
+ * inside [projectDir] (the copy of the test project) are replaced by [PROJECT_DIR_PLACEHOLDER].
+ */
+internal fun assertSwiftPMMetadataEquals(
+    expectedFileNameSuffix: String,
+    actualFile: Path,
+    projectDir: Path,
+    testInfo: TestInfo,
+) {
+    assertSanitizedMetadataEquals(expectedFileNameSuffix, actualFile.sanitizedSwiftPMMetadata(projectDir), testInfo)
+}
+
+/**
+ * On failure, the [sanitizedActualMetadata] is left next to the reference file with an extra `.tmp` extension, so that
+ * it can be reviewed and promoted to the new reference (this is the convention of the other gold file tests, see the
+ * `updateGoldFiles` project command).
+ */
+private fun assertSanitizedMetadataEquals(
+    expectedFileNameSuffix: String,
+    sanitizedActualMetadata: String,
+    testInfo: TestInfo,
+) {
     val testName = testInfo.testMethod.get().name.replace(" ", "_")
     val goldenFile = goldenFilesRoot / "$testName.$expectedFileNameSuffix"
 
     val actualFileForReview = goldenFile.resolveSibling("${goldenFile.name}.tmp")
-    actualFileForReview.writeText(actualFile.sanitizedGradleMetadata())
+    actualFileForReview.writeText(sanitizedActualMetadata)
 
     if (!goldenFile.exists()) {
         fail("The reference file ${goldenFile.name} doesn't exist. If the metadata generated in " +
@@ -50,7 +85,32 @@ internal fun assertGradleMetadataEquals(expectedFileNameSuffix: String, actualFi
 }
 
 /**
- * Reads this Gradle module metadata file, and returns its contents with the volatile parts replaced by placeholders.
+ * Reads this SwiftPM metadata file, and returns its contents with the paths of the local Swift packages of
+ * [projectDir] replaced by [PROJECT_DIR_PLACEHOLDER].
+ *
+ * The metadata is re-serialized as a [JsonElement] and not as a model class on purpose: keys contained by the published file
+ *  are part of what the reference file has to capture (KGP consumers need the deployment version keys to be
+ * presented even when they are null), and a model would silently normalize that.
+ */
+private fun Path.sanitizedSwiftPMMetadata(projectDir: Path): String {
+    // The test project is copied to a temp directory, which may itself be behind a symlink, so both forms may appear.
+    val projectDirPaths = setOf(projectDir.pathString, projectDir.toRealPath().pathString)
+    return json.encodeToString(Json.parseToJsonElement(readText()).withoutProjectDir(projectDirPaths))
+}
+
+private fun JsonElement.withoutProjectDir(projectDirPaths: Set<String>): JsonElement = when (this) {
+    is JsonObject -> JsonObject(mapValues { it.value.withoutProjectDir(projectDirPaths) })
+    is JsonArray -> JsonArray(map { it.withoutProjectDir(projectDirPaths) })
+    // Note: JsonNull is a JsonPrimitive that is not a string, so it is left untouched here.
+    is JsonPrimitive -> if (isString) {
+        JsonPrimitive(projectDirPaths.fold(content) { path, projectDirPath ->
+            path.replace(projectDirPath, PROJECT_DIR_PLACEHOLDER)
+        })
+    } else this
+}
+
+/**
+ * Reads this Gradle module metadata file and returns its contents with the volatile parts replaced by placeholders.
  * The checksums and sizes of the published files depend on the environment, so they can't be asserted as such.
  */
 private fun Path.sanitizedGradleMetadata(): String {

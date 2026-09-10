@@ -1,0 +1,57 @@
+{
+  "konanTargets": [
+    "ios_arm64",
+    "macos_arm64"
+  ],
+  "iosDeploymentVersion": null,
+  "macosDeploymentVersion": null,
+  "watchosDeploymentVersion": null,
+  "tvosDeploymentVersion": null,
+  "isModulesDiscoveryEnabled": true,
+  "dependencies": [
+    {
+      "type": "org.jetbrains.kotlin.gradle.plugin.mpp.apple.swiftimport.SwiftPMDependency.Local",
+      "absolutePath": "/Users/alexeybarsov/Sources/amper/sources/test-integration/test-projects/swiftpm-publication/commonPackage",
+      "products": [
+        {
+          "name": "CommonProduct",
+          "cinteropClangModules": [],
+          "platformConstraints": null
+        }
+      ],
+      "cinteropClangModules": [
+        {
+          "name": "CommonProduct",
+          "platformConstraints": null
+        }
+      ],
+      "packageName": "commonPackage",
+      "traits": []
+    },
+    {
+      "type": "org.jetbrains.kotlin.gradle.plugin.mpp.apple.swiftimport.SwiftPMDependency.Local",
+      "absolutePath": "/Users/alexeybarsov/Sources/amper/sources/test-integration/test-projects/swiftpm-publication/iosOnlyPackage",
+      "products": [
+        {
+          "name": "IosOnlyProduct",
+          "cinteropClangModules": [
+            "IosOnlyProduct"
+          ],
+          "platformConstraints": [
+            "iOS"
+          ]
+        }
+      ],
+      "cinteropClangModules": [
+        {
+          "name": "IosOnlyProduct",
+          "platformConstraints": [
+            "iOS"
+          ]
+        }
+      ],
+      "packageName": "iosOnlyPackage",
+      "traits": []
+    }
+  ]
+}
