@@ -125,9 +125,40 @@ private fun List<Notation>.toDependencies(
 ): List<Dependency> =
     mapNotNull { notation ->
         notation.toPomDependency(platform, publicationCoordsOverrides)
-            ?.let { it to it.toMavenCoordinates() }
-    }.distinctBy { it.second to it.first.scope }
-        .map { it.first }
+            ?.let { DependencyWithCoordinates(it, it.toMavenCoordinates()) }
+    }.distinctBy { it.coordinates to it.dependency.scope }
+        // grouping by coordinates, dependencies inside the group might have different scopes
+        .groupBy { it.coordinates }
+        .flatMap {
+            if (it.value.size == 1)
+                [it.value.single()]
+            else {
+                val mergedScope = it.value.map { dep -> dep.dependency }.mergedScope()
+                if (mergedScope != null) {
+                    [it.value.first().also { it.dependency.scope = mergedScope }]
+                } else {
+                    it.value
+                }
+            }
+        }
+        .map { it.dependency }
+
+private class DependencyWithCoordinates(val dependency: Dependency, val coordinates: MavenCoordinates)
+
+private fun List<Dependency>.mergedScope(): String? {
+    val scopes = this.map { it.scope }
+    return if (scopes.contains("compile")) {
+        "compile"
+    } else if (scopes.contains("runtime") && scopes.contains("provided")) {
+        "compile"
+    } else if (scopes.contains("runtime")) {
+        "runtime"
+    } else if (scopes.contains("provided")) {
+        "provided"
+    } else {
+        null
+    }
+}
 
 private fun generatePomModel(
     module: AmperModule,
