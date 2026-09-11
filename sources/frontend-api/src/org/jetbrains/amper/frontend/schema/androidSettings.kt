@@ -15,6 +15,7 @@ import org.jetbrains.amper.frontend.api.SchemaDoc
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.Shorthand
 import org.jetbrains.amper.frontend.api.TraceableString
+import org.jetbrains.amper.frontend.publishingSettings
 import java.util.*
 import kotlin.io.path.Path
 import kotlin.math.absoluteValue
@@ -170,7 +171,6 @@ class AndroidJavaResourcesPackagingSettings : SchemaNode() {
             "Example: '**/*.version', 'META-INF/*.kotlin_module', etc.")
     val pickFirsts by value<List<TraceableString>>(default = emptyList())
 }
-
 /**
  * The namespace that will be used for the Android part of the module.
  *
@@ -178,9 +178,35 @@ class AndroidJavaResourcesPackagingSettings : SchemaNode() {
  */
 fun AndroidSettings.effectiveNamespace(module: AmperModule): String {
     return namespace
-        // Fallback to a generated namespace is required to simplify the restriction in case when the
+        // First, we fall back to using publishing settings if the module is published.
+        // It seems like a reasonable good default when the user doesn't use Android resources but still want to
+        // publish their KMP library. This provides better uniqueness guarantees for applications consuming multiple
+        // libraries.
+        ?: module.publishingSettings.toAndroidNamespace()
+        // Finally, we fall back to a generated namespace simplify the restriction in case when the
         // Android library is used solely for sharing the code and is not intended to be published
         // or expose any Android resources.
         // The main purpose is to be unique for the module in the project and respect Android package name rules.
         ?: "org.jetbrains.ktc.mangled.p${module.userReadableName.hashCode().absoluteValue}"
 }
+
+private fun PublishingSettings.toAndroidNamespace(): String? {
+    // Publishing group should already satisfy the Java's package name rules
+    // according to https://maven.apache.org/guides/mini/guide-naming-conventions.html.
+    val publishingGroupId = group ?: return null
+    val publishingArtifactId = artifactId?.sanitizeToJavaIdentifier() ?: return null
+    return "$publishingGroupId.$publishingArtifactId"
+}
+
+/**
+ * Sanitizes artifact ID to follow Java identifier rules.
+ *
+ * According to https://maven.apache.org/guides/mini/guide-naming-conventions.html,
+ * the identifiers should only consist of lowercase letters, digits, and hyphens.
+ *
+ * Java identifiers are not allowed to start with digits and can't contain hyphens.
+ */
+private fun String.sanitizeToJavaIdentifier(): String =
+    replace("-", "_").let {
+        if (it[0].isJavaIdentifierStart()) "_$it" else it
+    }
