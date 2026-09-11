@@ -1,0 +1,17 @@
+product: jvm/lib
+
+apply:
+  - //sources/common.module-template.yaml
+
+dependencies:
+  - $libs.ktor.client.core
+  - $libs.ktor.client.contentNegotiation
+  - $libs.ktor.serialization.kotlinx.json
+
+test-dependencies:
+  - $libs.ktor.client.mock
+  - $libs.kotlinx.coroutines.test
+
+settings:
+  kotlin:
+    serialization: enabled

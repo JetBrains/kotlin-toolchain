@@ -70,6 +70,7 @@ modules:
   - sources/libraries/incremental-cache
   - sources/libraries/jetbrains-jdk-list
   - sources/libraries/junit-tag-expressions
+  - sources/libraries/klibs-io-notifier-client
   - sources/libraries/kotlin-compiler-messages
   - sources/libraries/kotlin-native-rules
   - sources/libraries/kotlin-project-structure-metadata
