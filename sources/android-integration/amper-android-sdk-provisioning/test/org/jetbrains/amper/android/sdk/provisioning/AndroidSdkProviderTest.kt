@@ -215,7 +215,7 @@ class AndroidSdkProviderTest {
             "the repository XML list should be served from the incremental cache, not re-fetched from the network",
         )
         val incrementalCacheSpan = setupB.spans(incrementalCacheRunSpanName("main")).single()
-        assertEquals("up-to-date", incrementalCacheSpan.attributes.get(statusKey))
+        assertEquals("CacheHit", incrementalCacheSpan.attributes.get(statusKey))
     }
 
     @Test

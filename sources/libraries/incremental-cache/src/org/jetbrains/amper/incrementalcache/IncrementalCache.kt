@@ -20,7 +20,7 @@ import org.jetbrains.amper.telemetry.use
 import org.slf4j.LoggerFactory
 import java.nio.channels.FileChannel
 import java.nio.file.Path
-import java.security.MessageDigest
+import java.util.EnumSet
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
@@ -31,6 +31,8 @@ import kotlin.time.Instant
 class IncrementalCache(
     /**
      * The directory where the cache state should be stored.
+     *
+     * It only contains the tracking state; inputs and outputs can be stored elsewhere.
      */
     private val stateRoot: Path,
     /**
@@ -75,7 +77,7 @@ class IncrementalCache(
      *
      * The given [block] is always executed under double-locking based on the given [key], which means that 2 calls with
      * the same [key] cannot be executed at the same time by multiple threads or multiple processes.
-     * If one call needs to re-run [block] because the cache is invalid, subsequent calls with the same ID will suspend
+     * If one call needs to re-run [block] because the cache is invalid, concurrent calls with the same ID will suspend
      * until the first call completes and then resume and use the cache immediately (if possible).
      */
     suspend fun execute(
@@ -93,7 +95,7 @@ class IncrementalCache(
          * and cache entry will be recalculated automatically on subsequent access
          * if any of these environment parameters changes.
          */
-        block: suspend () -> ExecutionResult,
+        block: suspend IncrementalExecutionScope.() -> ExecutionResult,
     ): IncrementalExecutionResult = tracer.spanBuilder("inc: run: $key")
         .setMapAttribute("inputValues", inputValues)
         .setListAttribute("inputFiles", inputFiles.map { it.pathString }.sorted())
@@ -106,74 +108,79 @@ class IncrementalCache(
             // Prevent parallel execution of this 'id' from this or other processes,
             // tracked by a lock on the state file
             withLock(stateFile) { stateFileChannel ->
-                val cachedState = tracer.spanBuilder("inc: get-cached-state").use {
-                    getCachedState(stateFile, stateFileChannel, inputValues, inputFiles)
+                val state = tracer.spanBuilder("inc: read-state").use {
+                    stateFileChannel.readState(pathForLogs = stateFile)
                 }
-
-                if (cachedState != null && !cachedState.outdated && !forceRecalculation) {
-                    logger.debug("[inc] '$key' is up-to-date according to state file at '{}'", stateFile)
-                    span.setAttribute("status", "up-to-date")
-                    val existingResult =
-                        ExecutionResult(
-                            outputFiles = cachedState.state.outputFiles.map { Path(it) },
-                            outputValues = cachedState.state.outputValues,
-                            expirationTime = cachedState.state.expirationTime
-                        )
-                    // Adding dynamic inputs used for calculating this cache entry to the dynamic inputs of the upstream cache (if any).
-                    DynamicInputsTracker.getCurrentTracker()?.addFrom(cachedState.state.dynamicInputs)
-
-                    span.addResult(existingResult, cachedState.state.dynamicInputs)
-                    return@withLock IncrementalExecutionResult(
-                        executionResult = existingResult,
-                        changes = [],
-                        loadedFromCache = true,
-                    )
-                } else {
-                    span.setAttribute("status", "requires-building")
-                    span.setAttribute("forceRecalculation", "$forceRecalculation")
-                    logger.debug("[inc] building '$key'")
-                }
-
-                // dynamic inputs tracker for registering environments parameters used for this cache entry calculation
-                val tracker = DynamicInputsTracker()
-
-                val result = tracer.spanBuilder("inc: execute").use {
-                    withDynamicInputsTracker(tracker) {
-                        block()
+                val cacheStatus = tracer.spanBuilder("inc: compare-state").use {
+                    when {
+                        forceRecalculation -> CacheMiss.RecalculationForced
+                        state == null -> CacheMiss.NoPreviousState
+                        else -> assessCacheStatus(state, inputValues, inputFiles)
                     }
                 }
-                val dynamicInputsState = tracker.toState().also {
-                    // Adding dynamic inputs used for calculating this cache entry to the dynamic inputs of the upstream cache (if any).
-                    DynamicInputsTracker.getCurrentTracker()?.addFrom(it)
-                }
+                span.setAttribute("status", cacheStatus.toString())
 
-                span.addResult(result, dynamicInputsState)
+                when (cacheStatus) {
+                    is CacheHit -> {
+                        logger.debug("[inc] '$key' is up-to-date according to state file at '{}'", stateFile)
+                        val existingResult = ExecutionResult(
+                            outputFiles = cacheStatus.previousState.outputFiles.map { Path(it) },
+                            outputValues = cacheStatus.previousState.outputValues,
+                            expirationTime = cacheStatus.previousState.expirationTime
+                        )
+                        // Adding dynamic inputs used for calculating this cache entry to the dynamic inputs of the upstream cache (if any).
+                        DynamicInputsTracker.getCurrentTracker()?.addFrom(cacheStatus.previousState.dynamicInputs)
 
-                tracer.spanBuilder("inc: write-state").use {
-                    val state = recordState(inputValues, inputFiles, dynamicInputsState, result)
-                    stateFileChannel.writeState(state)
-                }
+                        span.addResult(existingResult, cacheStatus.previousState.dynamicInputs)
+                        IncrementalExecutionResult(
+                            executionResult = existingResult,
+                            changes = [],
+                            cacheStatus = cacheStatus,
+                        )
+                    }
+                    is CacheMiss -> {
+                        logger.debug("[inc] building '$key'")
+                        // dynamic inputs tracker for registering environments parameters used for this cache entry calculation
+                        val tracker = DynamicInputsTracker()
 
-                val oldOutputFilesState = cachedState?.state?.outputFilesState ?: mapOf()
-                val newOutputFilesState = tracer.spanBuilder("inc: read-new-file-states").use {
-                    readFileStates(
-                        paths = result.outputFiles,
-                        excludedFiles = result.excludedOutputFiles,
-                        failOnMissing = false,
-                    )
-                }
-                val outputFilesChanges = oldOutputFilesState compare newOutputFilesState
+                        val result = tracer.spanBuilder("inc: execute").use {
+                            withDynamicInputsTracker(tracker) {
+                                IncrementalExecutionScope(recalculationReason = cacheStatus).block()
+                            }
+                        }
+                        val dynamicInputsState = tracker.toState()
+                        // Adding dynamic inputs used for calculating this cache entry to the dynamic inputs of the upstream cache (if any).
+                        DynamicInputsTracker.getCurrentTracker()?.addFrom(dynamicInputsState)
 
-                val dynamicInputsChanges = cachedState?.state?.dynamicInputs?.changes() ?: []
+                        span.addResult(result, dynamicInputsState)
 
-                val changes = outputFilesChanges + dynamicInputsChanges
+                        tracer.spanBuilder("inc: write-state").use {
+                            val state = recordState(inputValues, inputFiles, dynamicInputsState, result)
+                            stateFileChannel.writeState(state)
+                        }
 
-                return@withLock IncrementalExecutionResult(
-                    executionResult = result,
-                    changes = changes,
-                    loadedFromCache = false,
-                ).also {
-                    logger.debug("[inc] '$key' changes: {}", changes.joinToString { "'${it.path}' ${it.type}" })
+                        val oldOutputFilesState = state?.outputFilesState ?: mapOf()
+                        val newOutputFilesState = tracer.spanBuilder("inc: read-new-file-states").use {
+                            readFileStates(
+                                paths = result.outputFiles,
+                                excludedFiles = result.excludedOutputFiles,
+                                failOnMissing = false,
+                            )
+                        }
+                        val outputFilesChanges = oldOutputFilesState compare newOutputFilesState
+
+                        val dynamicInputsChanges = state?.dynamicInputs?.changes() ?: []
+
+                        val changes = outputFilesChanges + dynamicInputsChanges
+
+                        IncrementalExecutionResult(
+                            executionResult = result,
+                            changes = changes,
+                            cacheStatus = cacheStatus,
+                        ).also {
+                            logger.debug("[inc] '$key' changes: {}", changes.joinToString { "'${it.path}' ${it.type}" })
+                        }
+                    }
                 }
             }
         }
@@ -188,7 +195,6 @@ class IncrementalCache(
         return stateRoot.resolve("$sanitizedKey-$hash")
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     private fun shortHash(key: String): String = key.hash("MD5").toHexString().take(10)
 
     private fun Span.addResult(result: ExecutionResult, dynamicInputsState: DynamicInputsState) {
@@ -227,105 +233,51 @@ class IncrementalCache(
         expirationTime = result.expirationTime
     )
 
-    private data class CachedState(val state: State, val outdated: Boolean)
-
-    private fun getCachedState(
-        stateFile: Path,
-        stateFileChannel: FileChannel,
+    private fun assessCacheStatus(
+        state: State,
         inputValues: Map<String, String>,
         inputFiles: List<Path>,
-    ): CachedState? {
-        val state = stateFileChannel.readState(pathForLogs = stateFile) ?: return null
-
+    ): CacheStatus {
         if (state.codeVersion != codeVersion) {
-            logger.debug(
-                "[inc] State file '$stateFile' was generated with potentially different logic -> rebuilding\n" +
-                        "old: ${state.codeVersion}\n" +
-                        "current: $codeVersion"
-            )
-            return CachedState(state = state, outdated = true)
+            return CacheMiss.CodeChanged
         }
-
         if (state.expirationTime != null && state.expirationTime < Clock.System.now()) {
-            logger.debug(
-                "[inc] State file '$stateFile' contains expiration time date is passed already\n" +
-                        "expiration time: ${state.expirationTime}\n"
-            )
-            return CachedState(state = state, outdated = true)
+            return CacheMiss.StateExpired
         }
 
+        // Note: all the checks below are performed even though a single one of them is enough to consider the state
+        // outdated. This is because the executed block sometimes contains its own incremental state management and
+        // needs to decide what it can reuse from the previous execution. Better only check once.
+        // About performance concerns: note that, on cache hit, we have to perform all of these checks anyway.
+        val changes = EnumSet.noneOf(TrackedElementType::class.java)
         if (state.inputValues != inputValues) {
-            // TODO better reporting what was exactly changed
-            logger.debug(
-                "[inc] Input values don't match recorded state in $stateFile -> rebuilding\n" +
-                        "  old: ${state.inputValues}\n" +
-                        "  new: $inputValues"
-            )
-            return CachedState(state = state, outdated = true)
+            changes.add(TrackedElementType.InputValue)
         }
-
-        val inputPaths = inputFiles.map { it.pathString }.toSet()
-        if (state.inputFiles != inputPaths) {
-            logger.debug(
-                "[inc] Input files list doesn't match recorded state in '$stateFile' -> rebuilding\n" +
-                        "  old: ${state.inputFiles.sorted()}\n" +
-                        "  new: ${inputPaths.sorted()}"
-            )
-            return CachedState(state = state, outdated = true)
+        if (state.inputFiles != inputFiles.map { it.pathString }.toSet()) {
+            changes.add(TrackedElementType.InputFileSet)
         }
-
-        val currentInputsState = readFileStates(inputFiles, excludedFiles = emptySet(), failOnMissing = false)
-        if (state.inputFilesState != currentInputsState) {
-            logger.debug(
-                "[inc] Input files don't match recorded state in '$stateFile' -> rebuilding\n" +
-                        "  old: ${state.inputFilesState}\n" +
-                        "  new: $currentInputsState"
-            )
-            return CachedState(state = state, outdated = true)
+        if (state.inputFilesState != readFileStates(inputFiles, excludedFiles = emptySet(), failOnMissing = false)) {
+            changes.add(TrackedElementType.InputFileContents)
         }
 
         val outputsList = state.outputFiles.map { Path(it) }
         val excludedOutputs = state.excludedOutputFiles.mapTo(mutableSetOf()) { Path(it) }
         val currentOutputsState = readFileStates(outputsList, excludedFiles = excludedOutputs, failOnMissing = false)
         if (state.outputFilesState != currentOutputsState) {
-            logger.debug(
-                "[inc] Output files don't match recorded state in '$stateFile' -> rebuilding\n" +
-                        "  old: ${state.outputFilesState}\n" +
-                        "  new: $currentOutputsState"
-            )
-            return CachedState(state = state, outdated = true)
+            changes.add(TrackedElementType.OutputFile)
         }
 
         val currentDynamicInputsState = state.dynamicInputs.calculateCurrentState()
-
         if (state.dynamicInputs.systemProperties != currentDynamicInputsState.systemProperties) {
-            logger.debug(
-                "[inc] System properties that affecteted cache calculation don't match recorded state in '$stateFile' -> rebuilding\n" +
-                        "  old: ${state.dynamicInputs.systemProperties.toSortedMap()}\n" +
-                        "  new: ${currentDynamicInputsState.systemProperties.toSortedMap()}"
-            )
-            return CachedState(state = state, outdated = true)
+            changes.add(TrackedElementType.SystemProperty)
         }
-
         if (state.dynamicInputs.environmentVariables != currentDynamicInputsState.environmentVariables) {
-            logger.debug(
-                "[inc] Environment variables that affecteted cache calculation don't match recorded state in '$stateFile' -> rebuilding\n" +
-                        "  old: ${state.dynamicInputs.environmentVariables.toSortedMap()}\n" +
-                        "  new: ${currentDynamicInputsState.environmentVariables.toSortedMap()}"
-            )
-            return CachedState(state = state, outdated = true)
+            changes.add(TrackedElementType.EnvironmentVariable)
         }
-
         if (state.dynamicInputs.pathsExistence != currentDynamicInputsState.pathsExistence) {
-            logger.debug(
-                "[inc] Existence of files affecteted cache calculation don't match recorded state in '$stateFile' -> rebuilding\n" +
-                        "  old: ${state.dynamicInputs.pathsExistence.toSortedMap()}\n" +
-                        "  new: ${currentDynamicInputsState.pathsExistence.toSortedMap()}"
-            )
-            return CachedState(state = state, outdated = true)
+            changes.add(TrackedElementType.PathExistence)
         }
-
-        return CachedState(state = state, outdated = false)
+        return if (changes.isEmpty()) CacheHit(previousState = state) else CacheMiss.DataChanged(changes)
     }
 
     open class ExecutionResult(
@@ -355,9 +307,9 @@ class IncrementalCache(
         private val executionResult: ExecutionResult,
         val changes: List<Change>,
         /**
-         * `true` if the result was loaded from the cache, `false` if execution was performed.
+         * The details about the cache hit or miss of this execution.
          */
-        val loadedFromCache: Boolean,
+        val cacheStatus: CacheStatus,
     ): ExecutionResult(
         executionResult.outputFiles,
         executionResult.outputValues,
@@ -422,6 +374,20 @@ class IncrementalCache(
 }
 
 /**
+ * The receiver of the computation passed to [execute], giving it information about why it is being run.
+ *
+ * Most computations don't need this: they always regenerate all their outputs from their inputs, so the reasons
+ * for the run are irrelevant. They matter for computations that maintain their own internal incremental state
+ * (such as incremental compilation caches).
+ */
+class IncrementalExecutionScope internal constructor(
+    /**
+     * The reason why the computation is being run instead of reusing the result of its previous execution.
+     */
+    val recalculationReason: CacheMiss,
+)
+
+/**
  * Executes the given [block] and returns the output file paths, or immediately returns an existing result from the
  * incremental cache for the given [key].
  *
@@ -451,7 +417,7 @@ suspend inline fun IncrementalCache.executeForFiles(
     inputValues: Map<String, String>,
     inputFiles: List<Path>,
     forceRecalculation: Boolean = false,
-    crossinline block: suspend () -> List<Path>,
+    crossinline block: suspend IncrementalExecutionScope.() -> List<Path>,
 ): List<Path> = execute(
     key = key,
     inputValues = inputValues,

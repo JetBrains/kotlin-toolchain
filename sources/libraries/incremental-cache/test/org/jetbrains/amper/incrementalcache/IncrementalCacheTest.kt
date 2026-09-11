@@ -27,6 +27,8 @@ import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 import kotlin.time.Clock
@@ -55,20 +57,20 @@ class IncrementalCacheTest {
 
         // initial, MISSING state
         call()
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // up to date, the file is still MISSING
         call()
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // changed
         file.writeText("1")
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
 
         // up-to-date
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
     }
 
     @Test
@@ -88,19 +90,19 @@ class IncrementalCacheTest {
 
         // initial
         call("1")
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // up-to-date
         call("1")
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // changed
         call("2")
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
 
         // up-to-date
         call("2")
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
     }
 
     @Test
@@ -117,20 +119,20 @@ class IncrementalCacheTest {
 
         // initial, MISSING state
         call()
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // up to date, the file is still MISSING
         call()
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // changed
         file.writeText("1")
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
 
         // up to date
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
     }
 
     @Test
@@ -147,20 +149,20 @@ class IncrementalCacheTest {
 
         // initial, MISSING state
         call()
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // up to date, subdir is still MISSING
         call()
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // changed
         subdir.createDirectories()
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
 
         // up to date
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
     }
 
     @Test
@@ -173,7 +175,7 @@ class IncrementalCacheTest {
                 IncrementalCache.ExecutionResult([output])
             }
             assertEquals(listOf(output), result1.outputFiles)
-            assertFalse(result1.loadedFromCache)
+            assertFalse(result1.cacheStatus is CacheHit)
             assertEquals("1", output.readText())
 
             // up to date
@@ -183,7 +185,7 @@ class IncrementalCacheTest {
                 IncrementalCache.ExecutionResult([output])
             }
             assertEquals(listOf(output), result2.outputFiles)
-            assertTrue(result2.loadedFromCache)
+            assertTrue(result2.cacheStatus is CacheHit)
             assertEquals("1", output.readText())
 
             output.deleteExisting()
@@ -195,10 +197,142 @@ class IncrementalCacheTest {
                 IncrementalCache.ExecutionResult([output])
             }
             assertEquals([output], result3.outputFiles)
-            assertFalse(result3.loadedFromCache)
+            assertFalse(result3.cacheStatus is CacheHit)
             assertEquals("3", output.readText())
         }
         assertEquals(2, executionsCount.get())
+    }
+
+    @Test
+    fun `recalculation reasons on missing state and modified outputs`() {
+        val output = tempDir.resolve("out.txt")
+
+        fun call(): CacheMiss? {
+            var cacheMiss: CacheMiss? = null
+            runBlocking {
+                incrementalCache.execute(key = "1", inputValues = emptyMap(), inputFiles = emptyList()) {
+                    cacheMiss = this.recalculationReason
+                    output.writeText("compiled")
+                    IncrementalCache.ExecutionResult([output])
+                }
+            }
+            return cacheMiss
+        }
+
+        val initialReason = call()
+        assertIs<CacheMiss.NoPreviousState>(initialReason)
+
+        val reasonAfterCacheHit = call()
+        assertNull(reasonAfterCacheHit, "No additional recalculation reason should be present on cache hit")
+
+        output.deleteExisting()
+        val reasonAfterDeletion = call()
+        assertIs<CacheMiss.DataChanged>(reasonAfterDeletion)
+        assertEquals(CacheMiss.DataChanged([TrackedElementType.OutputFile]), reasonAfterDeletion, "A deleted output is an output change")
+
+        output.writeText("tampered")
+        val reasonAfterTampering = call()
+        assertIs<CacheMiss.DataChanged>(reasonAfterTampering)
+        assertEquals(CacheMiss.DataChanged([TrackedElementType.OutputFile]), reasonAfterTampering, "A modified output is an output change")
+    }
+
+    @Test
+    fun `recalculation reasons distinguish input and output changes`() {
+        val input = tempDir.resolve("in.txt").also { it.writeText("a") }
+        val output = tempDir.resolve("out.txt")
+
+        fun call(inputValues: Map<String, String> = emptyMap()): CacheMiss? {
+            var cacheMiss: CacheMiss? = null
+            runBlocking {
+                incrementalCache.execute(key = "1", inputValues = inputValues, inputFiles = [input]) {
+                    cacheMiss = this.recalculationReason
+                    output.writeText(input.readText())
+                    IncrementalCache.ExecutionResult([output])
+                }
+            }
+            return cacheMiss
+        }
+
+        val initialReason = call()
+        assertEquals(CacheMiss.NoPreviousState, initialReason)
+
+        input.writeText("b")
+        val reasonAfterInputChange = call()
+        assertIs<CacheMiss.DataChanged>(reasonAfterInputChange)
+        assertEquals(CacheMiss.DataChanged([TrackedElementType.InputFileContents]), reasonAfterInputChange)
+
+        val reasonAfterInputValueChange = call(inputValues = mapOf("k" to "v"))
+        assertIs<CacheMiss.DataChanged>(reasonAfterInputValueChange)
+        assertEquals(CacheMiss.DataChanged([TrackedElementType.InputValue]), reasonAfterInputValueChange)
+
+        // Both the input and the output changed. The input change alone is enough to invalidate the cache, but the
+        // block still needs to know that its outputs are not what it left behind.
+        input.writeText("c")
+        output.deleteExisting()
+        val reasonAfterInputAndOutputChange = call(inputValues = mapOf("k" to "v"))
+        assertIs<CacheMiss.DataChanged>(reasonAfterInputAndOutputChange)
+        assertEquals(
+            CacheMiss.DataChanged([TrackedElementType.InputFileContents, TrackedElementType.OutputFile]),
+            reasonAfterInputAndOutputChange,
+            "An output change must be reported even when an input changed as well",
+        )
+    }
+
+    @Test
+    fun `recalculation reason on a changed code version`() {
+        val output = tempDir.resolve("out.txt")
+
+        fun call(codeVersion: String): CacheMiss? {
+            var cacheMiss: CacheMiss? = null
+            runBlocking {
+                IncrementalCache(tempDir / "incremental.state", codeVersion = codeVersion).execute(
+                    key = "1",
+                    inputValues = emptyMap(),
+                    inputFiles = emptyList(),
+                ) {
+                    cacheMiss = this.recalculationReason
+                    output.writeText("compiled")
+                    IncrementalCache.ExecutionResult([output])
+                }
+            }
+            return cacheMiss
+        }
+
+        val initialReason = call("1")
+        assertEquals(CacheMiss.NoPreviousState, initialReason)
+
+        val reasonAfterCodeVersionChange = call("2")
+        assertIs<CacheMiss.CodeChanged>(reasonAfterCodeVersionChange)
+    }
+
+    @Test
+    fun `forced recalculation is reported as such`() {
+        val input = tempDir.resolve("in.txt").also { it.writeText("a") }
+        val output = tempDir.resolve("out.txt")
+
+        fun call(forceRecalculation: Boolean): CacheMiss? {
+            var cacheMiss: CacheMiss? = null
+            runBlocking {
+                incrementalCache.execute(
+                    key = "1",
+                    inputValues = emptyMap(),
+                    inputFiles = [input],
+                    forceRecalculation = forceRecalculation,
+                ) {
+                    cacheMiss = this.recalculationReason
+                    output.writeText("compiled")
+                    IncrementalCache.ExecutionResult([output])
+                }
+            }
+            return cacheMiss
+        }
+
+        val initialReason = call(forceRecalculation = false)
+        assertEquals(CacheMiss.NoPreviousState, initialReason)
+
+        // Nothing actually changed, but a forced recalculation means nothing may be reused.
+        val reasonAfterForcing = call(forceRecalculation = true)
+        assertIs<CacheMiss.RecalculationForced>(reasonAfterForcing)
     }
 
     @Test
@@ -416,11 +550,11 @@ class IncrementalCacheTest {
 
         // initial
         call("1")
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // up to date
         call("1")
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
     }
 
     @Test
@@ -440,11 +574,11 @@ class IncrementalCacheTest {
 
         // initial
         call("1")
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // expired => recalculated
         call("1")
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
     }
 
     @Test
@@ -462,31 +596,31 @@ class IncrementalCacheTest {
 
         // initial, property is missing
         call()
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // up to date, system property is still missing
         call()
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // Set system property affecting cache calculation
         systemProperties.set("my.test.output.system.property", "someValue")
 
         // changed, system property is defined
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
 
         // up to date, system property has not changed
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
 
         // changed, system property is updated to the new value
         systemProperties.set("my.test.output.system.property", "newValue")
         call()
-        assertEquals(executionsCount.get(), 3)
+        assertEquals(3, executionsCount.get())
 
         // up to date
         call()
-        assertEquals(executionsCount.get(), 3)
+        assertEquals(3, executionsCount.get())
     }
 
     @Test
@@ -504,31 +638,31 @@ class IncrementalCacheTest {
 
         // initially, the environment variable is missing
         call()
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // up to date, the environment variable is still missing
         call()
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // Set environment variable affecting cache calculation
         environmentVariables.set(envVar, "someValue")
 
         // changed, the environment variable is defined
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
 
         // up to date, the environment variable has not changed
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
 
         // changed, the environment variable is updated to the new value
         environmentVariables.set(envVar, "newValue")
         call()
-        assertEquals(executionsCount.get(), 3)
+        assertEquals(3, executionsCount.get())
 
         // up to date
         call()
-        assertEquals(executionsCount.get(), 3)
+        assertEquals(3, executionsCount.get())
     }
 
     @Test
@@ -545,38 +679,38 @@ class IncrementalCacheTest {
 
         // initially, the file is missing
         call()
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // up to date, the file is still missing
         call()
-        assertEquals(executionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
 
         // Create the file
         file.createFile()
 
         // changed, the file was created
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
 
         // up to date, the file is still there
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
 
         // Update the file content
         file.writeText("newText")
 
         // up to date, the file is updated but is still there
         call()
-        assertEquals(executionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
         
         // changed, the file is removed
         file.deleteIfExists()
         call()
-        assertEquals(executionsCount.get(), 3)
+        assertEquals(3, executionsCount.get())
 
         // up to date
         call()
-        assertEquals(executionsCount.get(), 3)
+        assertEquals(3, executionsCount.get())
     }
 
     @Test
@@ -599,36 +733,36 @@ class IncrementalCacheTest {
 
         // initial, property is missing
         call()
-        assertEquals(executionsCount.get(), 1)
-        assertEquals(nestedExecutionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
+        assertEquals(1, nestedExecutionsCount.get())
 
         // up to date, system property is still missing
         call()
-        assertEquals(executionsCount.get(), 1)
-        assertEquals(nestedExecutionsCount.get(), 1)
+        assertEquals(1, executionsCount.get())
+        assertEquals(1, nestedExecutionsCount.get())
 
         // Set system property affecting nested cache calculation
         systemProperties.set("my.test.output.system.property", "someValue")
 
         // changed, system property is defined, and this change was propagated to the state of the top-level upstream cache.
         call()
-        assertEquals(executionsCount.get(), 2)
-        assertEquals(nestedExecutionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
+        assertEquals(2, nestedExecutionsCount.get())
 
         // up to date, system property has not changed
         call()
-        assertEquals(executionsCount.get(), 2)
-        assertEquals(nestedExecutionsCount.get(), 2)
+        assertEquals(2, executionsCount.get())
+        assertEquals(2, nestedExecutionsCount.get())
 
         // changed, system property is updated to the new value
         systemProperties.set("my.test.output.system.property", "newValue")
         call()
-        assertEquals(executionsCount.get(), 3)
-        assertEquals(nestedExecutionsCount.get(), 3)
+        assertEquals(3, executionsCount.get())
+        assertEquals(3, nestedExecutionsCount.get())
 
         // up to date
         call()
-        assertEquals(executionsCount.get(), 3)
-        assertEquals(nestedExecutionsCount.get(), 3)
+        assertEquals(3, executionsCount.get())
+        assertEquals(3, nestedExecutionsCount.get())
     }
 }

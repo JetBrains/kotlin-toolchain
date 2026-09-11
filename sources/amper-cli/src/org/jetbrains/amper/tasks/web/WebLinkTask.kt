@@ -31,7 +31,9 @@ import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.jdkSettings
+import org.jetbrains.amper.incrementalcache.CacheMiss
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.incrementalcache.TrackedElementType
 import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
@@ -150,7 +152,14 @@ internal abstract class WebLinkTask(
             ),
             inputFiles = inputs,
         ) {
-            if (!kotlinUserSettings.compileIncrementally) { // we keep compiler outputs to update incrementally
+            val shouldWipeICCache = when (val reason = recalculationReason) {
+                is CacheMiss.NoPreviousState,
+                is CacheMiss.StateDiscarded -> true
+                // The incremental compilation doesn't track output files (KT-89397), so if the output changed, we need
+                // to discard the caches along with the outputs and compile from scratch.
+                is CacheMiss.DataChanged -> TrackedElementType.OutputFile in reason.changes
+            }
+            if (shouldWipeICCache || !kotlinUserSettings.compileIncrementally) {
                 compiledWebArtifact.kotlinCompilerOutputRoot.clean()
                 compiledWebArtifact.kotlinIcDataDir.clean()
             }

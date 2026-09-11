@@ -50,7 +50,10 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.aomBuilder.javaAnnotationProcessingGeneratedSourcesPath
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.frontend.jdkSettings
+import org.jetbrains.amper.incrementalcache.CacheHit
+import org.jetbrains.amper.incrementalcache.CacheMiss
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.incrementalcache.TrackedElementType
 import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.jvm.getJdkOrUserError
@@ -241,13 +244,21 @@ internal class JvmCompileTask(
         val result = incrementalCache.execute(taskName.id.value, inputValues, inputFiles) {
             javaAnnotationProcessorsGeneratedDir.deleteRecursively()
             compiledJvmArtifact.resourcesRoot.deleteRecursively() // we want to remove obsolete resources
+
             val compileJavaIncrementally =
                 shouldCompileJavaIncrementally(userSettings.java, javaAnnotationProcessorClasspath)
-            if (!compileJavaIncrementally) { // we keep compiler outputs to update incrementally
+            val shouldWipeICCache = when (val reason = recalculationReason) {
+                is CacheMiss.NoPreviousState,
+                is CacheMiss.StateDiscarded -> true
+                // Both Kotlin's and Java's incremental compilations don't track output files (see KT-89397), so if any
+                // output changed, we need to discard the caches along with the outputs and compile from scratch.
+                is CacheMiss.DataChanged -> TrackedElementType.OutputFile in reason.changes
+            }
+            if (shouldWipeICCache || !compileJavaIncrementally) { // otherwise we keep compiler outputs to update incrementally
                 compiledJvmArtifact.javaCompilerOutputRoot.deleteRecursively()
                 compiledJvmArtifact.jicDataDir.deleteRecursively()
             }
-            if (!userSettings.kotlin.compileIncrementally) { // we keep compiler outputs to update incrementally
+            if (shouldWipeICCache || !userSettings.kotlin.compileIncrementally) { // otherwise we keep compiler outputs to update incrementally
                 compiledJvmArtifact.kotlinCompilerOutputRoot.deleteRecursively()
                 compiledJvmArtifact.kotlinIcDataDir.deleteRecursively()
             }
@@ -322,7 +333,7 @@ internal class JvmCompileTask(
                 ),
             )
         }
-        if (result.loadedFromCache) {
+        if (result.cacheStatus is CacheHit) {
             replayCachedCompilerBuildProblems(result)
         }
 
@@ -509,7 +520,7 @@ internal class JvmCompileTask(
 
                                 // Necessary to avoid a cache hit when important compiler args change (e.g. JVM target).
                                 // Surprisingly, this is not the default!
-                                // Note: has no effect in Kotlin >= 2.4.0, but we warn users about it in the frontend
+                                // Note: has no effect in Kotlin < 2.4.0, but we warn users about it in the frontend
                                 this[TRACK_CONFIGURATION_INPUTS] = true
                             }
                         }

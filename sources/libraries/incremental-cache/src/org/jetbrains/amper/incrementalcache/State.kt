@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.incrementalcache
@@ -115,13 +115,7 @@ internal fun FileChannel.writeState(state: State) {
 }
 
 internal fun FileChannel.readState(pathForLogs: Path): State? {
-    if (size() <= 0) {
-        logger.debug("[inc] state file is missing or empty at '{}' -> cache miss", pathForLogs)
-        return null
-    }
-
     val stateText = try {
-        position(0)
         readText()
     } catch (t: Throwable) {
         logger.warn("[inc] Unable to read state file '$pathForLogs' -> cache miss", t)
@@ -129,7 +123,7 @@ internal fun FileChannel.readState(pathForLogs: Path): State? {
     }
 
     if (stateText.isBlank()) {
-        logger.warn("[inc] Previous state file '$pathForLogs' is empty -> cache miss")
+        // Blank file is what we get when the file is new (no previous state), so that's the normal path
         return null
     }
 

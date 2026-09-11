@@ -1,0 +1,11 @@
+product: jvm/app
+
+apply:
+  - //common.module-template.yaml
+
+dependencies:
+  - //shared
+
+settings:
+  jvm:
+    mainClass: apkg.Main

@@ -52,7 +52,7 @@ suspend inline fun <reified S : Any> IncrementalCache.executeForSerializable(
     inputFiles: List<Path>,
     json: Json = Json,
     forceRecalculation: Boolean = false,
-    crossinline block: suspend () -> S,
+    crossinline block: suspend IncrementalExecutionScope.() -> S,
 ): S = execute(
     key = key,
     inputValues = inputValues,
@@ -102,7 +102,7 @@ suspend fun <S : Any> IncrementalCache.execute(
     serializer: KSerializer<S>,
     json: Json = Json,
     forceRecalculation: Boolean = false,
-    block: suspend () -> ResultWithSerializable<S>,
+    block: suspend IncrementalExecutionScope.() -> ResultWithSerializable<S>,
 ): ResultWithSerializable<S> {
     var outputValue: S? = null
     // Ensure we have a serialized result (either already cached or created on the spot to reuse later)

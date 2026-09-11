@@ -32,6 +32,7 @@ import java.nio.file.Path
 import java.util.jar.Attributes
 import java.util.jar.JarFile
 import kotlin.io.path.Path
+import kotlin.io.path.deleteExisting
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.getLastModifiedTime
@@ -236,6 +237,54 @@ class AmperBuildTest : CliTestBase() {
         projectDir.resolve("common.module-template.yaml").replaceInText("release: 21", "release: 17")
         runCli(projectDir = projectDir, "build")
         assertEquals(61 /* for Java 17 */, majorClassVersion(worldClass), "Classes should be recompiled to bytecode 17 (major version 61)")
+    }
+
+    @Test
+    fun `incremental jvm build restores deleted output class files`() = runSlowTest {
+        val projectDir = testProject("incremental-compilation")
+        val resultRun = runCli(projectDir = projectDir, "run")
+        resultRun.assertStdoutContains("Hello, World!")
+
+        val appClasses = resultRun.buildDir / "artifacts/CompiledJvmArtifact/appjvm/kotlin-output"
+        val sharedClasses = resultRun.buildDir / "artifacts/CompiledJvmArtifact/sharedjvm/kotlin-output"
+
+        // Simulate an external deletion of compiler outputs (e.g. a user cleaning up files by hand)
+        val mainClass = appClasses / "MainKt.class"
+        val worldClass = sharedClasses / "World.class"
+        assertTrue(mainClass.exists(), "Expected '$mainClass' to exist after the initial build")
+        assertTrue(worldClass.exists(), "Expected '$worldClass' to exist after the initial build")
+        mainClass.deleteExisting()
+        worldClass.deleteExisting()
+
+        val resultAfterDeletion = runCli(projectDir = projectDir, "run")
+        assertTrue(mainClass.exists(), "Deleted output file '$mainClass' should have been restored by recompilation")
+        assertTrue(worldClass.exists(), "Deleted output file '$worldClass' should have been restored by recompilation")
+        resultAfterDeletion.assertStdoutContains("Hello, World!")
+    }
+
+    @Test
+    fun `incremental java build restores deleted output class files`() = runSlowTest {
+        val projectDir = testProject("java-incremental-compilation")
+        val resultRun = runCli(projectDir = projectDir, "run")
+        resultRun.assertStdoutContains("Hello, World!")
+        resultRun.assertJavaIncrementalCompilationState(compileJavaIncrementally = true, moduleName = "app")
+        resultRun.assertJavaIncrementalCompilationState(compileJavaIncrementally = true, moduleName = "shared")
+
+        val appClasses = resultRun.buildDir / "artifacts/CompiledJvmArtifact/appjvm/java-output"
+        val sharedClasses = resultRun.buildDir / "artifacts/CompiledJvmArtifact/sharedjvm/java-output"
+
+        // Simulate an external deletion of compiler outputs (e.g. a user cleaning up files by hand)
+        val mainClass = appClasses / "apkg/Main.class"
+        val worldClass = sharedClasses / "spkg/World.class"
+        assertTrue(mainClass.exists(), "Expected '$mainClass' to exist after the initial build")
+        assertTrue(worldClass.exists(), "Expected '$worldClass' to exist after the initial build")
+        mainClass.deleteExisting()
+        worldClass.deleteExisting()
+
+        val resultAfterDeletion = runCli(projectDir = projectDir, "run")
+        assertTrue(mainClass.exists(), "Deleted output file '$mainClass' should have been restored by recompilation")
+        assertTrue(worldClass.exists(), "Deleted output file '$worldClass' should have been restored by recompilation")
+        resultAfterDeletion.assertStdoutContains("Hello, World!")
     }
 
     private fun majorClassVersion(classFile: Path): Int {

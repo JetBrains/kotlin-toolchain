@@ -1,0 +1,5 @@
+settings:
+  java:
+    compileIncrementally: true
+  jvm:
+    release: 21

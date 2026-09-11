@@ -239,7 +239,7 @@ class AmperProjectStructureTest {
      * We are still in the Amper repo, and the libraries are not yet (or maybe ever) separated from Amper, so they still
      * legitimately use the org.jetbrains.amper package root. Apart from that, there should be no Amper reference.
      */
-    private val amperExceptInPackageRegex = Regex("""(?<!org\.jetbrains\.)[aA]mper|[kK]otlin [tT]oolchain|KTC""")
+    private val amperExceptInPackageRegex = Regex("""\b(?:(?<!org\.jetbrains\.)[aA]mper|[kK]otlin [tT]oolchain|KTC)\b""")
     private fun Path.linesWithKtcWords(): List<String> = readLines()
         .withIndex()
         .filter { it.value.contains(amperExceptInPackageRegex) }
