@@ -11,8 +11,10 @@ interface KlibsIoNotifier {
     /**
      * Sends an HTTP POST notification to klibs.io with Maven coordinates,
      * so the library can be later indexed on the website.
+     *
+     * @return received response body on success
      */
-    suspend fun notifyArtifactPublished(groupId: String, artifactId: String, version: String)
+    suspend fun notifyArtifactPublished(groupId: String, artifactId: String, version: String): String
 
     companion object {
         operator fun invoke(httpClient: HttpClient, apiUrl: String): KlibsIoNotifier =

@@ -10,6 +10,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
@@ -34,11 +35,12 @@ internal class KtorKlibsIoNotifier(
         }
     }
 
-    override suspend fun notifyArtifactPublished(groupId: String, artifactId: String, version: String) {
-        httpClient.post(apiUrl) {
+    override suspend fun notifyArtifactPublished(groupId: String, artifactId: String, version: String): String {
+        val response = httpClient.post(apiUrl) {
             contentType(ContentType.Application.Json)
             setBody(ArtifactCoordinates(groupId = groupId, artifactId = artifactId, version = version))
         }
+        return response.bodyAsText()
     }
 
     @Serializable

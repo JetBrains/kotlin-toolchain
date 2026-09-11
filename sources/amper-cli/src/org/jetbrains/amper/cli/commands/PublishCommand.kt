@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.PrintMessage
 import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.nullableFlag
 import com.github.ajalt.clikt.parameters.options.option
@@ -20,10 +21,13 @@ import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withBackend
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.AmperModule
+import org.jetbrains.amper.frontend.MAVEN_CENTRAL_REPOSITORY_ID
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.aomBuilder.defaultMavenRepositories
+import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.stdlib.collections.mapToSet
 import org.jetbrains.amper.tasks.getModuleDependencies
+import org.jetbrains.amper.tasks.klibsio.notifyKlibsIo
 import kotlin.collections.asSequence
 
 internal class PublishCommand : AmperModelAwareCommand(name = "publish") {
@@ -46,10 +50,21 @@ internal class PublishCommand : AmperModelAwareCommand(name = "publish") {
                 "because all publishable modules are published anyway in that case."
     ).nullableFlag("--non-transitive")
 
+    private val notifyKlibsOnly by option(
+        "--notify-only",
+        help = "When used, the modules are not published, but only a notification to klibs.io is sent for " +
+        "the modules to be indexed on the website. Supported with the '$MAVEN_CENTRAL_REPOSITORY_ID' repository only.",
+    ).flag()
+
     override fun help(context: Context): String = "Publish modules to a repository"
 
     override suspend fun run(cliContext: ProjectCliContext, model: Model) {
         val modulesToPublish = selectModulesToPublish(model, cliContext)
+
+        if (notifyKlibsOnly) {
+            notifyKlibsIo(modulesToPublish)
+            return
+        }
 
         withBackend(cliContext, model) { backend ->
             backend.publish(
@@ -58,6 +73,19 @@ internal class PublishCommand : AmperModelAwareCommand(name = "publish") {
             )
         }
         printSuccessfulCommandConclusion("Publication successful")
+    }
+
+    private suspend fun notifyKlibsIo(modules: List<AmperModule>) {
+        if (repositoryId != MAVEN_CENTRAL_REPOSITORY_ID) {
+            userReadableError("klibs.io notification has not been sent: the --notify-only option is only supported with the '$MAVEN_CENTRAL_REPOSITORY_ID' repository.")
+        }
+        val notifiableModules = modules
+            .filter { it.publishingSettings.mavenCentral.enabled }
+            .distinctBy { it.userReadableName }
+        if (notifiableModules.isEmpty()) {
+            userReadableError("klibs.io notification has not been sent: none of the selected modules have Maven Central publishing enabled.")
+        }
+        notifiableModules.forEach { it.notifyKlibsIo(failOnError = true, terminal = terminal) }
     }
 
     private fun selectModulesToPublish(model: Model, cliContext: ProjectCliContext): List<AmperModule> {

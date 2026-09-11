@@ -94,6 +94,11 @@ sealed class ModuleTaskTypes(
         operationMoniker = "publishing to `$repositoryId`",
     )
 
+    data object NotifyKlibsIo : ModuleTaskTypes(
+        internalName = "notifyKlibsIo",
+        operationMoniker = "notifying klibs.io",
+    )
+
     data object AssembleAllMetadata: ModuleTaskTypes(
         internalName = "assembleMetadata",
         operationMoniker = "assembling all metadata",
