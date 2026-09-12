@@ -53,9 +53,8 @@ private val scriptExtension = if (OsFamily.current.isWindows) ".bat" else ""
  */
 class AndroidTools(
     val androidSdkHome: Path,
-    // We have to specify the parent directory so we can align the "old" ANDROID_SDK_HOME with ANDROID_USER_HOME.
-    // See below how this is used
-    private val androidUserHomeParent: Path,
+    private val androidUserHome: Path,
+    androidSetupCacheDir: Path,
     private val javaHome: Path,
     private val log: (String) -> Unit = ::println,
     /**
@@ -65,10 +64,9 @@ class AndroidTools(
      */
     private val killAdbOnExit: Boolean = true,
 ) {
-    private val androidUserHome: Path = androidUserHomeParent / ".android"
     private val adbExe: Path = androidSdkHome / "platform-tools/adb$binExtension"
     private val emulatorExe: Path = androidSdkHome / "emulator/emulator$binExtension"
-    private val incrementalCache = IncrementalCache(androidUserHomeParent / "setup-cache", codeVersion = "1")
+    private val incrementalCache = IncrementalCache(androidSetupCacheDir/ "incremental.state", codeVersion = "1")
     private val sdkProvider = AndroidSdkProvider(
         userCacheRoot = AmperUserCacheRoot(Dirs.userCacheRoot),
         incrementalCache = incrementalCache,
@@ -87,7 +85,7 @@ class AndroidTools(
          */
         suspend fun prepareForTests(): AndroidTools = AndroidToolsInstaller.prepare(
             androidSdkHome = Dirs.androidTestCache / "sdk",
-            androidUserHomeParent = Dirs.androidTestCache,
+            androidUserHome = Dirs.androidTestCache / ".android",
             androidSetupCacheDir = Dirs.androidTestCache / "setup-cache",
         )
     }
@@ -103,7 +101,7 @@ class AndroidTools(
 
         // ANDROID_HOME and ANDROID_USER_HOME are sufficient if everything else is set to default values.
         // However, the outside environment running the tests might have overridden those variables, which could
-        // interfere with our test config, so we need to override them back to the defaults based on our custom home.
+        // interfere with our test config, so we need to reset them to use defaults based on our custom home.
         environment["ANDROID_EMULATOR_HOME"] = androidUserHome.absolutePathString()
         environment["ANDROID_AVD_HOME"] = (androidUserHome / "avd").absolutePathString()
 

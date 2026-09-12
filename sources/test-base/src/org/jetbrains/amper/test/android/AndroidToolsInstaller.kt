@@ -40,7 +40,7 @@ internal object AndroidToolsInstaller {
         License(name = "android-sdk-arm-dbt-license", hash = "859f317696f67ef3d7f30a50a5560e7834b43903"),
     )
 
-    suspend fun prepare(androidSdkHome: Path, androidUserHomeParent: Path, androidSetupCacheDir: Path): AndroidTools {
+    suspend fun prepare(androidSdkHome: Path, androidUserHome: Path, androidSetupCacheDir: Path): AndroidTools {
         val incrementalCache = IncrementalCache(
             stateRoot = androidSetupCacheDir / "incremental.state",
             // The cache should be invalidated when the code that downloads the tools changes.
@@ -65,14 +65,16 @@ internal object AndroidToolsInstaller {
                 acceptLicense(androidSdkHome, name, hash)
             }
 
-            IncrementalCache.ExecutionResult(
-                outputFiles = listOf(androidSdkHome / "licenses", jdk.homeDir),
-            )
+            IncrementalCache.ExecutionResult(outputFiles = [
+                androidSdkHome / "licenses",
+                jdk.homeDir,
+            ])
         }
 
         return AndroidTools(
             androidSdkHome = androidSdkHome,
-            androidUserHomeParent = androidUserHomeParent,
+            androidUserHome = androidUserHome,
+            androidSetupCacheDir = androidSetupCacheDir,
             javaHome = result.outputFiles[1],
         )
     }
