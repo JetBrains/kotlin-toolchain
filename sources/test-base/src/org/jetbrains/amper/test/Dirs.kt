@@ -13,11 +13,14 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.todayIn
 import org.jetbrains.amper.dependency.resolution.LocalM2RepositoryFinder
 import org.jetbrains.amper.test.Dirs.persistentCaches
+import java.io.IOException
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
 import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.time.Clock
 
@@ -69,18 +72,61 @@ object Dirs {
     private val persistentCaches: Path by lazy {
         // Always run tests in a directory with a space in the name, tests quoting in a lot of places
         val dir = if (TeamCityHelper.isUnderTeamCity) {
-            println("Persistent cache directory entries:")
-            println(TeamCityHelper.persistentCacheDirectory.listDirectoryEntries().joinToString("\n") { " - $it" })
-            // We use the date of last Tuesday (or today if it's a Tuesday) to use a fresh cache every week.
-            // This avoids accumulating things forever, and also tests regularly on clean caches.
-            // The persistent cache's top-level directories are automatically cleaned up when space is needed, starting
-            // from the least recently updated.
-            TeamCityHelper.persistentCacheDirectory / "amper build ${lastTuesday().format(LocalDate.Formats.ISO)}"
+            teamCityWeeklyCacheDir()
         } else {
             amperBuildOutputRoot / "shared test caches"
         }
 
         dir.createDirectories()
+    }
+
+    /**
+     * The name prefix of the weekly test cache directories that we create in the TeamCity persistent cache directory.
+     */
+    private const val weeklyCacheDirPrefix = "amper build "
+
+    /**
+     * Returns the path to this week's test cache directory in the TeamCity persistent cache directory, and deletes
+     * the cache directories of the other weeks.
+     */
+    private fun teamCityWeeklyCacheDir(): Path {
+        val cacheRoot = TeamCityHelper.persistentCacheDirectory
+        println("Persistent cache directory entries:")
+        println(cacheRoot.listDirectoryEntries().joinToString("\n") { " - $it" })
+
+        // We use the date of last Tuesday (or today if it's a Tuesday) to use a fresh cache every week.
+        // This avoids accumulating things forever, and also tests regularly on clean caches.
+        val thisWeekCache = cacheRoot / "$weeklyCacheDirPrefix${lastTuesday().format(LocalDate.Formats.ISO)}"
+
+        // TeamCity only cleans up the persistent cache's top-level directories (starting from the least recently
+        // updated) if the build configuration has a free disk space requirement, and ours doesn't have one on purpose:
+        // we can generally reuse the existing cache, so we don't want builds to wait for free space. This means we have
+        // to delete the previous weeks' caches ourselves (they are useless to us anyway).
+        deleteOtherWeeklyCaches(cacheRoot, keep = thisWeekCache)
+
+        return thisWeekCache
+    }
+
+    /**
+     * Deletes all weekly test cache directories in the given [cacheRoot], except the given [keep] directory.
+     *
+     * Deletion failures are only reported, and don't fail the build: a leftover stale cache only wastes disk space,
+     * and we get another chance to delete it on the next build.
+     */
+    private fun deleteOtherWeeklyCaches(cacheRoot: Path, keep: Path) {
+        // TODO remove once we know we won't run any more builds with the old cache dir name
+        val oldNonDatedCache = cacheRoot.resolve("amper build")
+
+        (cacheRoot.listDirectoryEntries("$weeklyCacheDirPrefix*") + listOf(oldNonDatedCache))
+            .filter { it != keep && it.isDirectory() }
+            .forEach { staleCache ->
+                println("Deleting stale test cache directory: $staleCache")
+                try {
+                    staleCache.deleteRecursively()
+                } catch (e: IOException) {
+                    println("Failed to delete stale test cache directory '$staleCache': $e")
+                }
+            }
     }
 
     /**
