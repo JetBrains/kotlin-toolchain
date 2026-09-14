@@ -5,35 +5,102 @@
 package org.jetbrains.amper.cli.widgets.status
 
 import org.jetbrains.amper.events.BuildId
-import org.jetbrains.amper.events.TaskExecutionId
+import org.jetbrains.amper.events.payload.ProgressState
 import kotlin.time.ComparableTimeMark
-import kotlin.time.Duration
 
-/** Mutable state of the whole build */
-internal class BuildState(
-    val buildId: BuildId,
-    val totalTasksCount: Int,
-    var testStatistics: TestStatistics? = null,
-    var completeTasksCount: Int = 0,
-    val taskStates: MutableMap<TaskExecutionId, StatusEntryState> = mutableMapOf(),
-)
+/**
+ * Mutable state of the whole build.
+ */
+internal interface BuildState {
+    val buildId: BuildId
 
-/** State for tasks, operations, and testsuite/test executions */
-internal class StatusEntryState(
-    val renderedMoniker: String,
-    val startTime: ComparableTimeMark,
-    val isInteractive: Boolean = false,
-    var elapsed: Duration = Duration.ZERO,
-    var shown: Boolean = false,
-    var ticks: Int = 0,
-    val childEntries: MutableMap<EntryId, StatusEntryState> = mutableMapOf(),
-)
+    /**
+     * Total number of tasks planned for this build.
+     */
+    val totalTasksCount: Int
 
-@JvmInline
-internal value class EntryId(val id: Any)
+    /**
+     * Number of tasks that have finished execution.
+     * Can't exceed the [totalTasksCount] at any point.
+     */
+    val completeTasksCount: Int
 
-internal class TestStatistics(
-    var succeeded: Int = 0,
-    var failed: Int = 0,
-    var skipped: Int = 0,
-)
+    /**
+     * Test statistics for the build.
+     */
+    val testStatistics: TestStatistics
+
+    /**
+     * Currently running tasks within the build.
+     */
+    val taskStates: Collection<TaskStatusEntryState>
+}
+
+internal interface HasNestedStatusEntryStates {
+    /**
+     * Nested status entries.
+     */
+    val nestedEntries: Collection<StatusEntryState>
+}
+
+/**
+ * State for tasks, operations, and test suite/test executions.
+ */
+internal interface StatusEntryState : HasNestedStatusEntryStates {
+    /**
+     * A string with ANSI-sequences already encoded that represents the status entry.
+     */
+    val renderedMoniker: String
+
+    /**
+     * A time mark when the entry was *first tracked*.
+     * Do not rely on this value for precise tracing.
+     */
+    val startTime: ComparableTimeMark
+
+    /**
+     * `true` if the status should be displayed immediately when tracked.
+     * `false` instructs the UI to wait for some time before displaying the status;
+     * this is done to prevent the jitter for potentially fast operations.
+     */
+    val showImmediately: Boolean
+
+    /**
+     * Progress status.
+     */
+    val progressState: ProgressState
+}
+
+/**
+ * State for task executions.
+ */
+internal interface TaskStatusEntryState : StatusEntryState {
+    /**
+     * Whether this operation hosts an interactive (inherited IO) external process which needs full terminal
+     * access.
+     */
+    val isInteractive: Boolean
+}
+
+internal interface TestStatistics {
+    /**
+     * `true` if there are tests that have already started in the [build][BuildState].
+     * A good condition to understand when to show test statistics info to the user.
+     */
+    val started: Boolean
+
+    /**
+     * Number of successfully completed tests.
+     */
+    val succeeded: Int
+
+    /**
+     * Number of failed tests.
+     */
+    val failed: Int
+
+    /**
+     * Number of skipped (+ aborted) tests.
+     */
+    val skipped: Int
+}

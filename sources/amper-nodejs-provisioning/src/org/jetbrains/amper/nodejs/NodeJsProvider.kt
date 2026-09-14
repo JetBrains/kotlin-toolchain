@@ -9,6 +9,8 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.extract.ExtractOptions
 import org.jetbrains.amper.core.extract.extractFileToCacheLocation
+import org.jetbrains.amper.events.sink.OperationEventSink
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.telemetry.use
@@ -23,6 +25,7 @@ class NodeJsProvider(
 ) {
     private val tracer = openTelemetry.getTracer("org.jetbrains.amper.nodejs")
 
+    context(_: OperationEventSink)
     suspend fun downloadNodeJs(
         version: String,
     ): NodeJsDist {
@@ -44,10 +47,12 @@ class NodeJsProvider(
                 val extension = if (OsFamily.current.isWindows) "zip" else "tar.gz"
 
                 val distributionName = "node-v$version-$osString-$archString"
-                val archive = Downloader.downloadFileToCacheLocation(
-                    url = "https://nodejs.org/dist/v$version/$distributionName.$extension",
-                    userCacheRoot = userCacheRoot,
-                )
+                val archive = operationEventScope("downloading Node.JS $version") {
+                    Downloader.downloadFileToCacheLocation(
+                        url = "https://nodejs.org/dist/v$version/$distributionName.$extension",
+                        userCacheRoot = userCacheRoot,
+                    )
+                }
                 val distribution = extractFileToCacheLocation(
                     archiveFile = archive,
                     amperUserCacheRoot = userCacheRoot,

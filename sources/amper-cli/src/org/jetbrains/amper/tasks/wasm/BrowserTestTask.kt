@@ -105,8 +105,12 @@ class BrowserTestTask(
 
                 logger.debug("Opening URL: $url")
 
-                val node = nodeJsProvider.downloadNodeJs(NODE_JS_VERSION)
-                val pnpm = pnpmProvider.downloadPnpm(PNPM_VERSION)
+                val node = context(executionContext.eventSink) {
+                    nodeJsProvider.downloadNodeJs(NODE_JS_VERSION)
+                }
+                val pnpm = context(executionContext.eventSink) {
+                    pnpmProvider.downloadPnpm(PNPM_VERSION)
+                }
 
                 installPlaywrightCompatibleChromium(node, pnpm)
 

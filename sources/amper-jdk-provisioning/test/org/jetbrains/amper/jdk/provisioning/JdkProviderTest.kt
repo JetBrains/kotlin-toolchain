@@ -6,6 +6,7 @@ package org.jetbrains.amper.jdk.provisioning
 
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.amperHttpClient
+import org.jetbrains.amper.events.sink.NoopEventSink
 import org.jetbrains.amper.frontend.schema.JdkSelectionMode
 import org.jetbrains.amper.frontend.schema.JvmDistribution
 import org.jetbrains.amper.incrementalcache.IncrementalCache
@@ -244,7 +245,7 @@ class JdkProviderTest {
     ) {
         environmentVariables["JAVA_HOME"] = javaHome
         val collectingProblemReporter = CollectingProblemReporter()
-        val jdkResult = with(collectingProblemReporter) {
+        val jdkResult = context(collectingProblemReporter, NoopEventSink) {
             createTestJdkProvider().getJdk(
                 criteria = JdkProvisioningCriteria(majorVersion = 21),
                 selectionMode = JdkSelectionMode.javaHome,
@@ -271,7 +272,7 @@ class JdkProviderTest {
             operatingSystems = listOf(OsFamily.Windows), // no Corretto 11 for Windows ARM
             architectures = listOf(Arch.Arm64),
         )
-        val jdkResult = createTestJdkProvider().provisionJdk(criteria)
+        val jdkResult = context(NoopEventSink) { createTestJdkProvider().provisionJdk(criteria) }
         val failureMessage = """
             Could not find any JDK that match the criteria:
               - Major version: 11
@@ -286,7 +287,7 @@ class JdkProviderTest {
      * Asserts a JDK can be provisioned, that it is a valid JDK, and that it matches the criteria used to provision it.
      */
     private suspend fun assertValidJdk(jdkProvisioningCriteria: JdkProvisioningCriteria) {
-        val jdk = when (val jdkResult = createTestJdkProvider().provisionJdk(jdkProvisioningCriteria)) {
+        val jdk = when (val jdkResult = context(NoopEventSink) { createTestJdkProvider().provisionJdk(jdkProvisioningCriteria) }) {
             is JdkResult.Failure -> fail("JDK should be resolved successfully but failed with: ${jdkResult.message}")
             is JdkResult.Success -> jdkResult.jdk
         }

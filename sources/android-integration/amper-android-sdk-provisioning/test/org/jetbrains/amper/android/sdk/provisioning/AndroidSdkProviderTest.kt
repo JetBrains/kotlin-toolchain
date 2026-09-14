@@ -11,6 +11,7 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.data.SpanData
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.events.sink.NoopEventSink
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
 import org.jetbrains.amper.problems.reporting.NoopProblemReporter
@@ -330,7 +331,7 @@ class AndroidSdkProviderTest {
         request: AndroidSdkPackageRequest,
         reporter: ProblemReporter = NoopProblemReporter,
     ): AndroidSdkPackage {
-        val result = context(reporter) { provider.provision(request) }
+        val result = context(reporter, NoopEventSink) { provider.provision(request) }
         return when (result) {
             is AndroidSdkResult.Success -> result.androidPackage
             is AndroidSdkResult.Error -> fail("expected a successful provisioning result but got an error: ${result.message}")
@@ -344,7 +345,7 @@ class AndroidSdkProviderTest {
     private suspend fun TestProviderSetup.assertErrorProvisioning(
         request: AndroidSdkPackageRequest,
     ): String {
-        val result = context(NoopProblemReporter) { provider.provision(request) }
+        val result = context(NoopProblemReporter, NoopEventSink) { provider.provision(request) }
         return when (result) {
             is AndroidSdkResult.Error -> result.message
             is AndroidSdkResult.Success -> fail(

@@ -5,6 +5,7 @@
 package org.jetbrains.amper.events
 
 import kotlinx.serialization.Serializable
+import org.jetbrains.amper.events.payload.ProgressState
 
 /**
  * An event that happens in the context of an *operation*.
@@ -51,6 +52,16 @@ sealed interface OperationScopedEvent : Event {
     data class ChildOperationEvent(
         val id: OperationId,
         val event: OperationScopedEvent,
+    ) : OperationScopedEvent
+
+    /**
+     * Progress update event for the current operation.
+     *
+     * @see ProgressState
+     */
+    @Serializable
+    data class ProgressUpdated(
+        val state: ProgressState,
     ) : OperationScopedEvent
 
     /**

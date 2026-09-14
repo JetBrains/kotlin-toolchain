@@ -6,6 +6,7 @@ apply:
   - //sources/common.module-template.yaml
 
 dependencies:
+  - //sources/amper-events: exported
   - //sources/core
   - //sources/libraries/system-info
   - //sources/libraries/telemetry

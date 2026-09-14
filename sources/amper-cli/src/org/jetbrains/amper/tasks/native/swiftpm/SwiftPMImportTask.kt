@@ -57,7 +57,6 @@ import kotlin.io.path.outputStream
 import kotlin.io.path.pathString
 import kotlin.io.path.readLines
 import kotlin.io.path.writeText
-import kotlin.io.use
 
 class SwiftPMImportParsedLdCallArtifact(
     override val path: Path,
@@ -123,6 +122,7 @@ internal class SwiftPMImportTask(
         )
     }
 
+    context(executionContext: TaskGraphExecutionContext)
     private suspend fun generateDefFilesAndLinkerDump(
         syntheticImportProjectRoot: Path,
         swiftPMDependenciesCheckout: Path,
@@ -179,7 +179,7 @@ internal class SwiftPMImportTask(
             "SWIFT_INDEX_STORE_ENABLE=NO",
         )
 
-        val xcbeautyCli = IosBuildTask.prepareLogParsingUtility(userCacheRoot)
+        val xcbeautyCli = IosBuildTask.prepareLogParsingUtility(userCacheRoot, sink = executionContext.eventSink)
         val pipe = ProcessPipe(
             includeStderr = true,
             eavesDroppingListener = LoggingProcessOutputListener(

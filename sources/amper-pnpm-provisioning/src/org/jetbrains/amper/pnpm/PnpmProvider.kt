@@ -8,6 +8,8 @@ import io.opentelemetry.api.OpenTelemetry
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.extract.extractFileToCacheLocation
+import org.jetbrains.amper.events.sink.OperationEventSink
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.telemetry.use
@@ -19,6 +21,7 @@ class PnpmProvider(
 ) {
     private val tracer = openTelemetry.getTracer("org.jetbrains.amper.pnpm")
 
+    context(_: OperationEventSink)
     suspend fun downloadPnpm(
         version: String,
     ): PnpmDist {
@@ -43,10 +46,12 @@ class PnpmProvider(
                     OsFamily.FreeBSD, OsFamily.Solaris -> error("Unsupported OS family: ${OsFamily.current}")
                 }
 
-                val archive = Downloader.downloadFileToCacheLocation(
-                    url = "https://github.com/pnpm/pnpm/releases/download/v$version/pnpm-$osString-$archString.$extension",
-                    userCacheRoot = userCacheRoot,
-                )
+                val archive = operationEventScope("downloading PNPM $version") {
+                    Downloader.downloadFileToCacheLocation(
+                        url = "https://github.com/pnpm/pnpm/releases/download/v$version/pnpm-$osString-$archString.$extension",
+                        userCacheRoot = userCacheRoot,
+                    )
+                }
                 val distPath = extractFileToCacheLocation(archiveFile = archive, amperUserCacheRoot = userCacheRoot)
 
                 PnpmDist(

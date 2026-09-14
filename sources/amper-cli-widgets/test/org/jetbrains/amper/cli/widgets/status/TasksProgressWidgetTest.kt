@@ -7,12 +7,13 @@ import com.github.ajalt.mordant.rendering.AnsiLevel
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.terminal.TerminalRecorder
 import org.jetbrains.amper.events.BuildId
-import org.jetbrains.amper.events.TaskExecutionId
+import org.jetbrains.amper.events.payload.ProgressState
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.time.TimeSource
+import kotlin.time.TestTimeSource
 
 class TasksProgressWidgetTest {
+    private val timeSource = TestTimeSource()
 
     /**
      * Renders the widget for the given [state] in a terminal of the given [height]
@@ -27,7 +28,12 @@ class TasksProgressWidgetTest {
             ),
             interactive = true,
         )
-        val rendered = terminal.render(state.render(terminal = terminal))
+        val rendered = terminal.render(
+            state.render(
+                terminal = terminal,
+                timeSource = timeSource,
+            )
+        )
         return rendered.lines()
             .map { it.trimEnd() }
             .filter { it.isNotEmpty() }
@@ -35,31 +41,35 @@ class TasksProgressWidgetTest {
     }
 
     private fun buildState(
-        tasks: List<StatusEntryState>,
+        tasks: List<TaskStatusEntryState>,
         totalTasksCount: Int = 10,
         completeTasksCount: Int = 0,
-        testStatistics: TestStatistics = TestStatistics(),
-    ) = BuildState(
-        buildId = BuildId(),
-        totalTasksCount = totalTasksCount,
-        completeTasksCount = completeTasksCount,
-        testStatistics = testStatistics,
-        taskStates = tasks
-            .mapIndexed { i, state -> TaskExecutionId() to state }
-            .toMap(mutableMapOf()),
-    )
+        testStatistics: TestStatistics = object : TestStatistics {
+            override val started = false
+            override val succeeded = 0
+            override val failed = 0
+            override val skipped = 0
+        },
+    ) = object : BuildState {
+        override val buildId = BuildId()
+        override val totalTasksCount = totalTasksCount
+        override val completeTasksCount = completeTasksCount
+        override val testStatistics = testStatistics
+        override val taskStates = tasks
+    }
 
     private fun entry(
         moniker: String,
         children: List<StatusEntryState> = [],
-    ) = StatusEntryState(
-        renderedMoniker = moniker,
-        startTime = TimeSource.Monotonic.markNow(),
-        shown = true,
-        childEntries = children
-            .mapIndexed { i, state -> EntryId(i) to state }
-            .toMap(mutableMapOf()),
-    )
+        showImmediately: Boolean = true,
+    ) = object : TaskStatusEntryState {
+        override val renderedMoniker = moniker
+        override val startTime = timeSource.markNow()
+        override val isInteractive = false
+        override val showImmediately = showImmediately
+        override val progressState = ProgressState.Indeterminate
+        override val nestedEntries = children
+    }
 
     @Test
     fun `flat tasks exceeding budget`() {
@@ -216,11 +226,7 @@ class TasksProgressWidgetTest {
             height = 9,
             state = buildState([
                 entry("Task 1"),
-                StatusEntryState(
-                    renderedMoniker = "Task 2",
-                    startTime = TimeSource.Monotonic.markNow(),
-                    shown = false,
-                ),
+                entry("Task 2", showImmediately = false),
             ]),
         )
 

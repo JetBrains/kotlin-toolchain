@@ -10,6 +10,7 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.amper.concurrency.AsyncConcurrentMap
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.UsedInIdePlugin
+import org.jetbrains.amper.events.sink.OperationEventSink
 import org.jetbrains.amper.frontend.schema.JdkSelectionMode
 import org.jetbrains.amper.frontend.schema.JdkSettings
 import org.jetbrains.amper.incrementalcache.IncrementalCache
@@ -43,7 +44,7 @@ class JdkProvider(
      * Other failures to provide a matching JDK are reported via the [JdkResult.Failure] type.
      */
     @UsedInIdePlugin
-    context(invalidJavaHomeReporter: ProblemReporter)
+    context(invalidJavaHomeReporter: ProblemReporter, _: OperationEventSink)
     suspend fun getJdk(jdkSettings: JdkSettings): JdkResult = getJdk(
         criteria = JdkProvisioningCriteria(
             majorVersion = jdkSettings.version,
@@ -60,7 +61,7 @@ class JdkProvider(
      * instance of [JdkProvider].
      * Other failures to provide a matching JDK are reported via the [JdkResult.Failure] type.
      */
-    context(invalidJavaHomeReporter: ProblemReporter)
+    context(invalidJavaHomeReporter: ProblemReporter, _: OperationEventSink)
     suspend fun getJdk(
         criteria: JdkProvisioningCriteria,
         selectionMode: JdkSelectionMode,
@@ -114,9 +115,11 @@ class JdkProvider(
      * This function doesn't attempt to find a matching JDK in `JAVA_HOME`.
      * It directly searches via the Foojay Disco API.
      */
+    context(_: OperationEventSink)
     suspend fun provisionJdk(criteria: JdkProvisioningCriteria): JdkResult =
         provisionJdk(criteria, unusableJavaHomeResult = null)
 
+    context(_: OperationEventSink)
     private suspend fun provisionJdk(
         criteria: JdkProvisioningCriteria,
         unusableJavaHomeResult: UnusableJavaHomeResult?,
@@ -130,6 +133,7 @@ class JdkProvider(
         }
     }
 
+    context(_: OperationEventSink)
     private suspend fun getFromPersistentCacheOrProvision(
         criteria: JdkProvisioningCriteria,
         unusableJavaHomeResult: UnusableJavaHomeResult?,

@@ -15,6 +15,7 @@ import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkResult
 import org.jetbrains.amper.concurrency.FileMutexGroup
 import org.jetbrains.amper.concurrency.withDoubleLock
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.events.sink.NoopEventSink
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.problems.reporting.NoopProblemReporter
@@ -134,7 +135,7 @@ class AndroidTools(
     ) = FileMutexGroup.Default.withDoubleLock(androidSdkHome / "avd-creation.lock") { // We have to use file lock because multiple test processes on TC might try to create a device in parallel
         if (name in listAvds()) return@withDoubleLock
         println("AVD $name not found, creating a new one...")
-        val result = context(NoopProblemReporter) {
+        val result = context(NoopProblemReporter, NoopEventSink) {
             // Command line tools are required for AVD manager
             sdkProvider.provision(AndroidSdkPackageRequest.CommandLineTools("latest")).getOrFail()
             // Emulator is required to create virtual device
@@ -308,7 +309,7 @@ class AndroidTools(
      * The exit code and entire output is captured in the returned [ProcessResult].
      */
     suspend fun aapt2(vararg command: String): ProcessResult.WithOutputs {
-        (val location) = context(NoopProblemReporter) {
+        (val location) = context(NoopProblemReporter, NoopEventSink) {
             sdkProvider.provision(AndroidSdkPackageRequest.BuildTools(DefaultVersions.androidBuildTools)).getOrFail()
         }
         return runAndroidSdkProcess(

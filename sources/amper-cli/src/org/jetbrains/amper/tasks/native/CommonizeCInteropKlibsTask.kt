@@ -23,7 +23,6 @@ import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.kotlin.native.CommonizerTarget
 import org.jetbrains.amper.kotlin.native.asCommonizerTarget
 import org.jetbrains.amper.kotlin.native.dependencyLibrariesForCommonization
-import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
@@ -128,7 +127,7 @@ class CommonizeCInteropKlibsTask(
 
     data class Result(val path: Path): TaskResult
 
-    context(_: ProblemReporter)
+    context(_: TaskGraphExecutionContext)
     private suspend fun commonize(
         klibs: List<CinteropKlib>,
     ): List<Path> {

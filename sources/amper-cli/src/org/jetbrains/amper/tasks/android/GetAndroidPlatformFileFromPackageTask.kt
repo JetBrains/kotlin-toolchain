@@ -27,7 +27,10 @@ class GetAndroidPlatformFileFromPackageTask(
 ) : Task {
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): Result {
-        when (val provisionResult = androidSdkProvider.provision(packageRequest)) {
+        val provisionResult = context(executionContext.eventSink) {
+            androidSdkProvider.provision(packageRequest)
+        }
+        when (provisionResult) {
             // TODO: Add traces to the request? E.g., where the version of Android Platform was defined
             is AndroidSdkResult.Error -> userReadableError(provisionResult.message)
             is AndroidSdkResult.Success -> {

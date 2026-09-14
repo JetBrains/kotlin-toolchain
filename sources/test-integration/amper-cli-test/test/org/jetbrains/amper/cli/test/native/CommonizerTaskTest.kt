@@ -8,6 +8,7 @@ import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.Downloader
+import org.jetbrains.amper.events.sink.NoopEventSink
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.kotlin.native.downloadAndExtractKotlinNative
 import org.jetbrains.amper.test.MacOnly
@@ -79,7 +80,9 @@ class CommonizerTaskTest: CliTestBase() {
         //   knowledge of how things work. In this case, we should customize KONAN_DATA_DIR and look at the commonized
         //   directory in it, just using the kotlin-native-rules library (KTC-agnostic).
         //   This is related to AMPER-5319.
-        val konanDist = Downloader.downloadAndExtractKotlinNative(DefaultVersions.kotlin, AmperUserCacheRoot(userCacheDir))
+        val konanDist = context(NoopEventSink) {
+            Downloader.downloadAndExtractKotlinNative(DefaultVersions.kotlin, AmperUserCacheRoot(userCacheDir))
+        }
         assertNotNull(konanDist, "Konan compiler was not downloaded")
 
         val runResult = runCli(

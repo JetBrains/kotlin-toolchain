@@ -67,8 +67,10 @@ abstract class AbstractJvmRunTask(
         return EmptyTaskResult
     }
 
-    context(_: ProblemReporter)
-    protected open suspend fun getJdk(): Jdk = jdkProvider.getJdkOrUserError(module.jdkSettings)
+    context(executionContext: TaskGraphExecutionContext)
+    protected open suspend fun getJdk(): Jdk = context(executionContext.eventSink) {
+        jdkProvider.getJdkOrUserError(module.jdkSettings)
+    }
 
     context(_: ProblemReporter)
     protected open suspend fun getJvmArgs(dependenciesResult: List<TaskResult>): List<String> = buildList {

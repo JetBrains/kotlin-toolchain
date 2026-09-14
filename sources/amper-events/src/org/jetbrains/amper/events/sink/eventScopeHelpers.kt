@@ -2,7 +2,7 @@
  * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package org.jetbrains.amper.cli.events
+package org.jetbrains.amper.events.sink
 
 import org.jetbrains.amper.events.BuildId
 import org.jetbrains.amper.events.BuildScopedEvent
@@ -11,9 +11,6 @@ import org.jetbrains.amper.events.OperationId
 import org.jetbrains.amper.events.OperationScopedEvent
 import org.jetbrains.amper.events.TaskExecutionId
 import org.jetbrains.amper.events.payload.TaskMonikerSpec
-import org.jetbrains.amper.events.sink.BuildEventSink
-import org.jetbrains.amper.events.sink.GlobalEventSink
-import org.jetbrains.amper.events.sink.OperationEventSink
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 

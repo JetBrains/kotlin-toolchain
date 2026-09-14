@@ -13,6 +13,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.Downloader
+import org.jetbrains.amper.events.sink.OperationEventSink
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.schema.JvmDistribution
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.ResultWithSerializable
@@ -42,6 +44,7 @@ internal class JdkListProvider(
     /**
      * Fetches the metadata of the JDKs that can be provisioned. The list is cached in memory.
      */
+    context(_: OperationEventSink)
     suspend fun getOrFetch(): List<JdkPackage> = openTelemetry.tracer.spanBuilder("Get JDK list").use {
         jdkPackages ?: mutex.withLock {
             jdkPackages ?: fetchAndConvertWithTelemetry().also { packages ->
@@ -50,6 +53,7 @@ internal class JdkListProvider(
         }
     }
 
+    context(_: OperationEventSink)
     private suspend fun fetchAndConvertWithTelemetry(): List<JdkPackage> = incrementalCache.execute(
         key = "jdk-list-download",
         inputValues = emptyMap(),
@@ -57,14 +61,16 @@ internal class JdkListProvider(
         serializer = ListSerializer(JdkPackage.serializer()),
     ) {
         val jdkListFile = openTelemetry.tracer.spanBuilder("Fetch JDK list").use {
-            Downloader.downloadFileToCacheLocation(
-                JetBrainsJdksJsonUrl,
-                userCacheRoot,
-                infoLog = false,
-                // The Downloader doesn't have any concept of expiration, so we need to manually delete files.
-                // We handle the caching mechanism ourselves via the project's incremental cache.
-                forceRedownload = true,
-            )
+            operationEventScope("fetching JDK list") {
+                Downloader.downloadFileToCacheLocation(
+                    JetBrainsJdksJsonUrl,
+                    userCacheRoot,
+                    infoLog = false,
+                    // The Downloader doesn't have any concept of expiration, so we need to manually delete files.
+                    // We handle the caching mechanism ourselves via the project's incremental cache.
+                    forceRedownload = true,
+                )
+            }
         }
         val jdks = openTelemetry.tracer.spanBuilder("Read JDK packages metadata").use {
             withContext(Dispatchers.IO) {

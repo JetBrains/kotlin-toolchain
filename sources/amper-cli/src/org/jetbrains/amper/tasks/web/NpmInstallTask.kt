@@ -87,7 +87,9 @@ class NpmInstallTask(
 
                 logger.debug("Generated package.json with ${uniqueNpmDependencies.size} npm dependencies at $packageJsonPath")
 
-                val pnpm = pnpmProvider.downloadPnpm(PNPM_VERSION)
+                val pnpm = context(executionContext.eventSink) {
+                    pnpmProvider.downloadPnpm(PNPM_VERSION)
+                }
 
                 spanBuilder("pnpm install")
                     .use {

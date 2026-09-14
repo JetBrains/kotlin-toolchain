@@ -26,6 +26,8 @@ import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.extract.ExtractOptions
 import org.jetbrains.amper.core.extract.extractFileToLocation
+import org.jetbrains.amper.events.sink.OperationEventSink
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.telemetry.use
@@ -79,7 +81,7 @@ class AndroidSdkProvider(
      * The provisioning failures itself are reported as [AndroidSdkResult.Error]s.
      */
     @UsedInIdePlugin
-    context(localPackageProblemReporter: ProblemReporter)
+    context(localPackageProblemReporter: ProblemReporter, _: OperationEventSink)
     suspend fun provision(request: AndroidSdkPackageRequest): AndroidSdkResult =
         tracer.spanBuilder("Provision Android SDK package $request")
             .use { span ->
@@ -106,7 +108,7 @@ class AndroidSdkProvider(
         override fun isAccepted(): Boolean = license.checkAccepted(sdkRoot)
     }
 
-    context(_: ProblemReporter)
+    context(_: ProblemReporter, _: OperationEventSink)
     private suspend fun install(request: AndroidSdkPackageRequest): RepoPackage? =
         when (request) {
             // TODO: Some packages have no version qualifiers or use "latest".
@@ -163,7 +165,7 @@ class AndroidSdkProvider(
         sdkExtension?.let { append("-ext$it") }
     }
 
-    context(_: ProblemReporter)
+    context(_: ProblemReporter, _: OperationEventSink)
     private suspend fun installSystemImage(request: AndroidSdkPackageRequest.SystemImage): RepoPackage? {
         val lockName = "system-images;android;${request.tag.value};${request.abi.repositoryValue}.lock"
         return packagesMutexGroup.withDoubleLock(sdkRoot / lockName) {
@@ -181,7 +183,7 @@ class AndroidSdkProvider(
         }
     }
 
-    context(_: ProblemReporter)
+    context(_: ProblemReporter, _: OperationEventSink)
     private suspend fun findAndInstallExactPackage(
         packagePath: PackagePath,
         repository: AndroidSdkRepository,
@@ -209,6 +211,7 @@ class AndroidSdkProvider(
             packageManifest.readRepository().localPackage
         }
 
+    context(_: OperationEventSink)
     private suspend fun installPackageFromRemote(
         packagePath: PackagePath,
         remotePackages: List<RemotePackage>,
@@ -218,16 +221,21 @@ class AndroidSdkProvider(
         return installRemotePackage(pkg, URLBuilder(repository.baseUrl))
     }
 
+    context(_: OperationEventSink)
     private suspend fun installRemotePackage(pkg: RemotePackage, repositoryBaseUrlBuilder: URLBuilder): RepoPackage {
         val localPackagePath = pkg.packagePath.toLocalPath()
         val url = repositoryBaseUrlBuilder.appendPathSegments(pkg.archive.complete.url).build()
         val path = tracer.spanBuilder("Download Android SDK package ${pkg.path}").use {
-            Downloader.downloadFileToCacheLocation(url.toString(), userCacheRoot)
+            operationEventScope("downloading ${pkg.displayName}") {
+                Downloader.downloadFileToCacheLocation(url.toString(), userCacheRoot)
+            }
         }
         return tracer.spanBuilder("Install Android SDK package files ${pkg.path}").use {
             // Clean up possible leftovers of the old package
             if (localPackagePath.exists()) localPackagePath.deleteRecursively()
-            extractFileToLocation(path, localPackagePath, ExtractOptions.STRIP_ROOT)
+            operationEventScope("extracting ${pkg.displayName}") {
+                extractFileToLocation(path, localPackagePath, ExtractOptions.STRIP_ROOT)
+            }
             writePackageXml(pkg, localPackagePath)
         }
     }
@@ -235,17 +243,20 @@ class AndroidSdkProvider(
     private fun PackagePath.toLocalPath(): Path =
         path.split(";").fold(sdkRoot) { dir, component -> dir.resolve(component) }
 
+    context(_: OperationEventSink)
     private suspend fun getRepository(repository: AndroidSdkRepository): Repository =
-        tracer.spanBuilder("Read Android repository ${repository.name}")
-            .setAttribute("repository-name", repository.name)
-            .setAttribute("repository-url", repository.packageUrl.toString())
-            .use { span ->
-                span.setAttribute("from-memory-cache", true)
-                repositories.computeIfAbsent(repository) {
-                    span.setAttribute("from-memory-cache", false)
-                    repositoryXmlListsProvider.getRepositoryXml(repository).readRepository()
+        operationEventScope("reading Android repository ${repository.name}") {
+            tracer.spanBuilder("Read Android repository ${repository.name}")
+                .setAttribute("repository-name", repository.name)
+                .setAttribute("repository-url", repository.packageUrl.toString())
+                .use { span ->
+                    span.setAttribute("from-memory-cache", true)
+                    repositories.computeIfAbsent(repository) {
+                        span.setAttribute("from-memory-cache", false)
+                        repositoryXmlListsProvider.getRepositoryXml(repository).readRepository()
+                    }
                 }
-            }
+        }
 
     private fun writePackageXml(pkg: RemotePackage, localPackagePath: Path): LocalPackage {
         val localPackage = LocalPackageImpl.create(pkg)

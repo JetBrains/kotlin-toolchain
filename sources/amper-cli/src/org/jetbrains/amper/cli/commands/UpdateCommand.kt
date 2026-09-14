@@ -20,6 +20,7 @@ import io.ktor.client.statement.*
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.cli.terminal.promptBoolean
 import org.jetbrains.amper.cli.userReadableError
+import org.jetbrains.amper.cli.widgets.status.standaloneOperationProgressWidget
 import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.downloader.amperHttpClient
 import org.jetbrains.amper.processes.ProcessInput
@@ -225,11 +226,13 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
     private suspend fun downloadWrapper(version: String, extension: String): Path = try {
         spanBuilder("Download wrapper script (kotlin$extension)").use {
             val url = "$repository/org/jetbrains/kotlin/kotlin-cli/$version/kotlin-cli-$version-wrapper$extension"
-            Downloader.downloadFileToCacheLocation(
-                url = url,
-                userCacheRoot = commonOptions.sharedCachesRoot,
-                infoLog = false,
-            )
+            standaloneOperationProgressWidget(terminal) {
+                Downloader.downloadFileToCacheLocation(
+                    url = url,
+                    userCacheRoot = commonOptions.sharedCachesRoot,
+                    infoLog = false,
+                )
+            }
         }
     } catch (e: Exception) {
         userReadableError("Couldn't fetch Kotlin wrapper script version $version:\n$e")

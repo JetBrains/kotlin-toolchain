@@ -220,7 +220,7 @@ internal class JvmCompileTask(
             )
         }
 
-        val jdk = jdkProvider.getJdkOrUserError(jdkSettings = module.jdkSettings)
+        val jdk = jdkProvider.getJdkOrUserError(jdkSettings = module.jdkSettings, sink = executionContext.eventSink)
 
         val javaAnnotationProcessorsGeneratedDir =
             fragments.singleLeafFragment().javaAnnotationProcessingGeneratedSourcesPath(buildOutputRoot.path)

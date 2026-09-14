@@ -8,6 +8,7 @@ apply:
 dependencies:
   - //sources/amper-build-info
   - //sources/amper-telemetry
+  - //sources/amper-events: exported
   - //sources/libraries/concurrency
   - //sources/libraries/nio-filechannels
   - //sources/libraries/stdlib-extended

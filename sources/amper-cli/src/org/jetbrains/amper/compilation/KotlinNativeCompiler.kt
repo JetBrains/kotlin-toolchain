@@ -12,6 +12,8 @@ import org.jetbrains.amper.cli.telemetry.setProcessResultAttributes
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.Downloader
+import org.jetbrains.amper.engine.TaskGraphExecutionContext
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
@@ -33,7 +35,7 @@ import org.slf4j.LoggerFactory
 import kotlin.io.path.div
 import kotlin.io.path.pathString
 
-context(_: ProblemReporter)
+context(executionContext: TaskGraphExecutionContext)
 suspend fun downloadNativeCompiler(
     kotlinVersion: String,
     userCacheRoot: AmperUserCacheRoot,
@@ -42,11 +44,18 @@ suspend fun downloadNativeCompiler(
     // TODO: Should we use KONAN_DATA_DIR here and elsewhere instead of Amper user cache folder?
     //  (as well as for the location of downloading compiler distribution itself.
     //  See AMPER-5319.
-    val konanDistribution = Downloader.downloadAndExtractKotlinNative(kotlinVersion, userCacheRoot)
-        ?: error("kotlin native compiler is not available for the current platform")
+    val konanDistribution = context(executionContext.eventSink) {
+        Downloader.downloadAndExtractKotlinNative(kotlinVersion, userCacheRoot)
+            ?: error("kotlin native compiler is not available for the current platform")
+    }
 
     // According to the Kotlin/Native team, no special requirements for this JDK, but they mostly test with 11.
-    val jdk = jdkProvider.getDefaultJdk()
+    val jdk = operationEventScope(
+        moniker = "provisioning JDK for Kotlin Native compiler",
+        sink = executionContext.eventSink,
+    ) {
+        jdkProvider.getDefaultJdk()
+    }
     return KotlinNativeCompiler(konanDistribution, jdk)
 }
 

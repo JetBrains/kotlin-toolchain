@@ -8,6 +8,8 @@ import io.ktor.http.*
 import io.opentelemetry.api.OpenTelemetry
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.Downloader
+import org.jetbrains.amper.events.OperationScopedEvent
+import org.jetbrains.amper.events.sink.EventSink
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.telemetry.use
 import java.nio.file.Path
@@ -50,12 +52,14 @@ internal class AndroidSdkRepositoryXmlListsProvider(
 ) {
     private val tracer = openTelemetry.getTracer("org.jetbrains.amper.android.sdk.provisioning")
 
+    context(_: EventSink<OperationScopedEvent.ProgressUpdated>)
     suspend fun getRepositoryXml(repository: AndroidSdkRepository): Path = getOrDownload(
         cacheKey = "android-${repository.name}",
         url = repository.packageUrl,
         repositoryName = repository.name,
     )
 
+    context(_: EventSink<OperationScopedEvent.ProgressUpdated>)
     private suspend fun getOrDownload(cacheKey: String, url: Url, repositoryName: String): Path =
         tracer.spanBuilder("Get Android SDK $repositoryName repository XML list").use {
             incrementalCache.execute(

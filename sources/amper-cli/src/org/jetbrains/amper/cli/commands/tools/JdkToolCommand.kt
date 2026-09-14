@@ -10,6 +10,7 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import org.jetbrains.amper.cli.commands.AmperSubcommand
 import org.jetbrains.amper.cli.userReadableError
+import org.jetbrains.amper.cli.widgets.status.standaloneOperationProgressWidget
 import org.jetbrains.amper.intellij.CommandLineUtils
 import org.jetbrains.amper.jvm.getDefaultJdk
 import org.jetbrains.amper.processes.ProcessInput
@@ -42,8 +43,10 @@ private class JdkToolSubcommand(private val name: String) : AmperSubcommand(name
 
     override suspend fun run() {
         val cliContext = findCliContext()
-        val jdk = context(cliContext.problemReporter) {
-            cliContext.jdkProvider.getDefaultJdk()
+        val jdk = standaloneOperationProgressWidget(cliContext.terminal) {
+            context(cliContext.problemReporter) {
+                cliContext.jdkProvider.getDefaultJdk()
+            }
         }
         val ext = if (OsFamily.current.isWindows) ".exe" else ""
         val toolPath = jdk.javaExecutable.resolveSibling(name + ext)

@@ -10,6 +10,7 @@ import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.options.ProjectLayoutOptions
 import org.jetbrains.amper.cli.project.preparePluginsAndReadModel
 import org.jetbrains.amper.cli.userReadableError
+import org.jetbrains.amper.cli.widgets.status.standaloneOperationProgressWidget
 import org.jetbrains.amper.frontend.getComposeHotReloadVersion
 import org.jetbrains.amper.jvm.getDefaultJdk
 import org.jetbrains.amper.processes.ProcessInput
@@ -66,8 +67,10 @@ internal class ComposeHotReloadMcpServerCommand : AmperProjectAwareCommand(name 
                     "Minimal version with MCP support is '$MinimalHotReloadVersionWithMcpSupport'")
         }
 
-        val jdk = context(cliContext.problemReporter) {
-            cliContext.jdkProvider.getDefaultJdk()
+        val jdk = standaloneOperationProgressWidget(cliContext.terminal) {
+            context(cliContext.problemReporter) {
+                cliContext.jdkProvider.getDefaultJdk()
+            }
         }
 
         val downloader = ToolingArtifactsDownloader(

@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.Downloader
+import org.jetbrains.amper.events.sink.NoopEventSink
 import org.jetbrains.amper.test.Dirs
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -114,7 +115,9 @@ class HttpServerExtension(
     private fun HttpExchange.respondWithDownloadedFile(url: String) {
         try {
             runBlocking(Dispatchers.IO) {
-                val cachedFile = Downloader.downloadFileToCacheLocation(url, AmperUserCacheRoot(Dirs.persistentHttpCache))
+                val cachedFile = context(NoopEventSink) {
+                    Downloader.downloadFileToCacheLocation(url, AmperUserCacheRoot(Dirs.persistentHttpCache))
+                }
                 sendResponseHeaders(200, cachedFile.fileSize())
                 responseBody.writeFileContents(cachedFile)
             }

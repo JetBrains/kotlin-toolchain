@@ -28,11 +28,11 @@ import org.jetbrains.amper.cli.context.AmperBuildLogsRoot
 import org.jetbrains.amper.cli.context.AmperProjectLogsRoot
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.userReadableError
+import org.jetbrains.amper.cli.widgets.status.standaloneOperationProgressWidget
 import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.extract.ExtractOptions
 import org.jetbrains.amper.core.extract.extractFileToCacheLocation
 import org.jetbrains.amper.intellij.CommandLineUtils
-import org.jetbrains.amper.processes.PrintToTerminalProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.system.info.Arch
@@ -92,7 +92,9 @@ internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
             val shouldAutoOpenBrowser = openBrowser && !jaegerPortIsReady(port)
 
             val jaegerDistUrl = "https://github.com/jaegertracing/jaeger/releases/download/v$version/jaeger-${version}-$osString-$archString.tar.gz"
-            val file = Downloader.downloadFileToCacheLocation(jaegerDistUrl, userCacheRoot)
+            val file = standaloneOperationProgressWidget(terminal) {
+                Downloader.downloadFileToCacheLocation(jaegerDistUrl, userCacheRoot)
+            }
             val root = extractFileToCacheLocation(file, userCacheRoot, ExtractOptions.STRIP_ROOT)
 
             val executable = root.resolve("jaeger-all-in-one${if (os.family == OsFamily.Windows) ".exe" else ""}")

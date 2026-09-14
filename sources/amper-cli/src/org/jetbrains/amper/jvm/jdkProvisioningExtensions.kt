@@ -5,6 +5,8 @@
 package org.jetbrains.amper.jvm
 
 import org.jetbrains.amper.cli.userReadableError
+import org.jetbrains.amper.events.sink.OperationEventSink
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.frontend.schema.DiscouragedDirectDefaultVersionAccess
 import org.jetbrains.amper.frontend.schema.JdkSelectionMode
@@ -21,28 +23,13 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
  * Potential global errors about `JAVA_HOME` are reported via the given [ProblemReporter], but only once per
  * instance of [JdkProvider].
  */
-context(_: ProblemReporter)
-internal suspend fun JdkProvider.getJdkOrUserError(jdkSettings: JdkSettings): Jdk =
+context(problemReporter: ProblemReporter, sink: OperationEventSink)
+internal suspend fun JdkProvider.getJdkOrUserError(jdkSettings: JdkSettings): Jdk = operationEventScope(
+    moniker = "provisioning JDK",
+) {
     getJdk(jdkSettings).orElse { errorMessage ->
         userReadableError(errorMessage)
     }
-
-/**
- * Finds or provisions a JDK matching the given [majorVersion] and default settings for other criteria, or fails with a
- * [userReadableError].
- *
- * Potential global errors about `JAVA_HOME` are reported via the given [ProblemReporter], but only once per
- * instance of [JdkProvider].
- */
-context(_: ProblemReporter)
-suspend fun JdkProvider.getJdkOrUserError(
-    majorVersion: Int,
-    selectionMode: JdkSelectionMode = JdkSelectionMode.auto,
-): Jdk = getJdk(
-    criteria = JdkProvisioningCriteria(majorVersion = majorVersion),
-    selectionMode = selectionMode,
-).orElse { errorMessage ->
-    userReadableError("Could not provide JDK $majorVersion: $errorMessage")
 }
 
 /**
@@ -54,11 +41,14 @@ suspend fun JdkProvider.getJdkOrUserError(
  * instance of [JdkProvider].
  */
 @OptIn(DiscouragedDirectDefaultVersionAccess::class) // this is the point of this function
-context(_: ProblemReporter)
-suspend fun JdkProvider.getDefaultJdk(selectionMode: JdkSelectionMode = JdkSelectionMode.auto): Jdk =
+context(problemReporter: ProblemReporter, sink: OperationEventSink)
+suspend fun JdkProvider.getDefaultJdk(selectionMode: JdkSelectionMode = JdkSelectionMode.auto): Jdk = operationEventScope(
+    moniker = "provisioning default JDK",
+) {
     getJdk(
         criteria = JdkProvisioningCriteria(majorVersion = DefaultVersions.jdk),
         selectionMode = selectionMode,
     ).orElse { errorMessage ->
         userReadableError("Could not provide the default JDK: $errorMessage")
     }
+}

@@ -8,11 +8,12 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.extract.ExtractOptions
 import org.jetbrains.amper.core.extract.extractFileToCacheLocation
+import org.jetbrains.amper.events.sink.OperationEventSink
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.mavencentral.MavenCentralDefaultConfiguration
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
-import java.nio.file.Path
 
 private val MAVEN_CENTRAL_REPOSITORY_URL = MavenCentralDefaultConfiguration.url
 private const val KOTLIN_BOOTSTRAP_REPOSITORY_URL = "https://packages.jetbrains.team/maven/p/kt/bootstrap"
@@ -22,6 +23,7 @@ private const val KOTLIN_GROUP_ID = "org.jetbrains.kotlin"
  * Downloads and extracts current system specific kotlin native.
  * Returns null if kotlin native is not supported on current system/arch.
  */
+context(_: OperationEventSink)
 suspend fun Downloader.downloadAndExtractKotlinNative(
     version: String,
     userCacheRoot: AmperUserCacheRoot,
@@ -30,7 +32,7 @@ suspend fun Downloader.downloadAndExtractKotlinNative(
     val classifier = kotlinNativeClassifierFor(systemInfo) ?: return null
     val packaging = kotlinNativePackagingExtensionFor(systemInfo)
 
-    val nativeDistHome = downloadAndExtractFromMaven(
+    val artifactUri = getUriForMavenArtifact(
         // Repositories are an implementation detail, we support resolving any version of the native distribution.
         // Dev versions are important for compiler plugin authors who want to test against new versions early.
         mavenRepository = if ("-dev-" in version) KOTLIN_BOOTSTRAP_REPOSITORY_URL else MAVEN_CENTRAL_REPOSITORY_URL,
@@ -39,9 +41,13 @@ suspend fun Downloader.downloadAndExtractKotlinNative(
         version = version,
         classifier = classifier,
         packaging = packaging,
-        userCacheRoot = userCacheRoot,
-        extractOptions = [ExtractOptions.STRIP_ROOT],
     )
+    val downloadedArchive = operationEventScope("downloading Kotlin Native compiler $version") {
+        downloadFileToCacheLocation(artifactUri.toString(), userCacheRoot = userCacheRoot)
+    }
+    val nativeDistHome = operationEventScope("extracting Kotlin Native compiler $version") {
+        extractFileToCacheLocation(downloadedArchive, userCacheRoot, ExtractOptions.STRIP_ROOT)
+    }
     return KonanDistribution(
         homeDir = nativeDistHome,
         kotlinVersion = version,
@@ -72,26 +78,4 @@ private fun kotlinNativeClassifierFor(systemInfo: SystemInfo): String? = when (s
         Arch.X64 -> "linux-x86_64"
         Arch.Arm64 -> null
     }
-}
-
-private suspend fun Downloader.downloadAndExtractFromMaven(
-    mavenRepository: String,
-    groupId: String,
-    artifactId: String,
-    version: String,
-    classifier: String? = null,
-    packaging: String,
-    userCacheRoot: AmperUserCacheRoot,
-    vararg extractOptions: ExtractOptions,
-): Path {
-    val artifactUri = getUriForMavenArtifact(
-        mavenRepository = mavenRepository,
-        groupId = groupId,
-        artifactId = artifactId,
-        version = version,
-        classifier = classifier,
-        packaging = packaging,
-    )
-    val downloadedArchive = downloadFileToCacheLocation(artifactUri.toString(), userCacheRoot)
-    return extractFileToCacheLocation(downloadedArchive, userCacheRoot, *extractOptions)
 }

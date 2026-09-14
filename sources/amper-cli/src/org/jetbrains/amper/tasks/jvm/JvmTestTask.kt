@@ -16,6 +16,7 @@ import org.jetbrains.amper.dependency.resolution.MavenRepository
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.engine.TestTask
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.testJdkSettings
@@ -102,12 +103,17 @@ class JvmTestTask(
 
         val userTestRuntimeClasspath = jvmRuntimeClasspathTask.jvmRuntimeClasspath
 
-        val junitConsole = Downloader.downloadFileToCacheLocation(junitConsoleUrl, userCacheRoot)
+        val junitConsole = operationEventScope(
+            "downloading JUnit Console Launcher ${jvmTestSettings.junitPlatformVersion}",
+            sink = executionContext.eventSink,
+        ) {
+            Downloader.downloadFileToCacheLocation(junitConsoleUrl, userCacheRoot)
+        }
 
         // TODO use maven instead of packing this in the distribution?
         val amperJUnitListenersJars = extractJUnitListenersClasspath()
 
-        val jdk = jdkProvider.getJdkOrUserError(module.testJdkSettings)
+        val jdk = jdkProvider.getJdkOrUserError(module.testJdkSettings, sink = executionContext.eventSink)
 
         taskOutputRoot.path.clean()
 

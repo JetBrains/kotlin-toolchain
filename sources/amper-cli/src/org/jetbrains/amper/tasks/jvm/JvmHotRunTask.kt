@@ -12,7 +12,9 @@ import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.jdkSettings
@@ -129,8 +131,11 @@ class JvmHotRunTask(
         }
     }
 
-    context(_: ProblemReporter)
-    override suspend fun getJdk(): Jdk {
+    context(executionContext: TaskGraphExecutionContext)
+    override suspend fun getJdk(): Jdk = operationEventScope(
+        moniker = "provisioning Hot Reload runtime",
+        sink = executionContext.eventSink,
+    ) {
         return jdkProvider.getJdk(
             criteria = JdkProvisioningCriteria(
                 majorVersion = module.jdkSettings.version, // we want a JBR in the same version as the user's JDK

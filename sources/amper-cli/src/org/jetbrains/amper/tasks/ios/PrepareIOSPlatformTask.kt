@@ -8,12 +8,14 @@ import com.github.ajalt.mordant.terminal.Terminal
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.jetbrains.amper.cli.events.operationEventScope
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.events.emitProgressUpdated
+import org.jetbrains.amper.events.payload.ProgressState
 import org.jetbrains.amper.events.sink.OperationEventSink
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
@@ -118,8 +120,16 @@ class PrepareIOSPlatformTask(
                     workingDir = Path("."),
                     command = command,
                     outputMode = ProcessOutputMode.listen(object : ProcessOutputListener {
-                        // TODO: Report progress
-                        override fun onStdoutLine(line: String, pid: Long) = Unit
+                        override fun onStdoutLine(line: String, pid: Long) {
+                            val ratio = DownloadPercentRegex.find(line)?.let {
+                                it.groupValues[1].replace(',', '.').toFloatOrNull()
+                            }?.div(100f)
+                            if (ratio != null) {
+                                // TODO: we can probably try to parse the done/total size as well
+                                //  and represent it as a proper download
+                                emitProgressUpdated(ProgressState.Generic(ratio.coerceIn(0f, 1f)))
+                            }
+                        }
                         override fun onStderrLine(line: String, pid: Long) {
                             logger.error("[download:$pid] $line")
                         }
@@ -135,5 +145,8 @@ class PrepareIOSPlatformTask(
 }
 
 private const val MAX_DESTINATION_RETRIES = 20
+
+// NBSP is here as well because `-downloadPlatform` uses it in its output, and it's not included into `\s` in regex.
+private val DownloadPercentRegex = """(\d+,\d+)[\u00A0\s]*?%""".toRegex()
 
 private fun XcodeDestination.isIosWithError() = platform == XcodebuildPlatform.iOS && error != null

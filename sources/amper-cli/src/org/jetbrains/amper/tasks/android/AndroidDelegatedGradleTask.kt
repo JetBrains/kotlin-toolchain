@@ -82,7 +82,7 @@ abstract class AndroidDelegatedGradleTask(
             if (servicesJsonPath.exists()) servicesJsonPath else null
         }
 
-        val jdk = jdkProvider.getJdkOrUserError(module.jdkSettings)
+        val jdk = jdkProvider.getJdkOrUserError(module.jdkSettings, sink = executionContext.eventSink)
 
         val executionResult = incrementalCache.execute(
             key = taskName.id.value,

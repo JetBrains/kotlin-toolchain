@@ -12,6 +12,7 @@ apply:
   - //sources/used-in-idea.module-template.yaml
 
 dependencies:
+  - //sources/amper-events: exported
   - //sources/core
   - //sources/frontend-api
   - //sources/libraries/kotlin-native-rules: exported

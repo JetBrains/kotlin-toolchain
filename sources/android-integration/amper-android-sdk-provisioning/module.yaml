@@ -8,6 +8,7 @@ apply:
 
 dependencies:
   - //sources/amper-problem-reporting: exported
+  - //sources/amper-events: exported
   - //sources/core
   - //sources/libraries/concurrency
   - //sources/libraries/incremental-cache: exported

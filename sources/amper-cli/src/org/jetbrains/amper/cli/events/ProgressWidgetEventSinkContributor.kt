@@ -6,14 +6,14 @@ package org.jetbrains.amper.cli.events
 
 import com.github.ajalt.mordant.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.amper.cli.widgets.status.TaskProgressWidgetSink
+import org.jetbrains.amper.cli.widgets.status.ProgressWidgetSink
 import org.jetbrains.amper.events.sink.GlobalEventSink
 import org.jetbrains.amper.events.sink.NoopEventSink
 
 /**
  * Sets up an animated progress-reporting widget if necessary.
  */
-class TaskProgressWidgetEventSinkContributor(
+class ProgressWidgetEventSinkContributor(
     private val terminal: Terminal,
     private val coroutineScope: CoroutineScope,
 ) : EventSinkContributor {
@@ -21,7 +21,7 @@ class TaskProgressWidgetEventSinkContributor(
         if (!terminal.terminalInfo.outputInteractive)
             return NoopEventSink
 
-        return TaskProgressWidgetSink(
+        return ProgressWidgetSink(
             terminal = terminal,
             coroutineScope = coroutineScope,
         )

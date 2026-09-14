@@ -21,6 +21,8 @@ import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.engine.requireSingleDependency
+import org.jetbrains.amper.events.sink.OperationEventSink
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.isDescendantOf
@@ -105,7 +107,7 @@ class IosBuildTask(
         }
 
         coroutineScope {
-            val executable = prepareLogParsingUtility(userCacheRoot)
+            val executable = prepareLogParsingUtility(userCacheRoot, sink = executionContext.eventSink)
             val pipe = ProcessPipe(
                 includeStderr = true,
                 eavesDroppingListener = LoggingProcessOutputListener(
@@ -168,16 +170,19 @@ class IosBuildTask(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
+        context(sink: OperationEventSink)
         suspend fun prepareLogParsingUtility(userCacheRoot: AmperUserCacheRoot): Path {
             val archString = when(Arch.current) {
                 Arch.X64 -> "x86_64"
                 Arch.Arm64 -> "arm64"
             }
             val version = XCBEAUTIFY_VERSION
-            val archive = Downloader.downloadFileToCacheLocation(
-                url = "https://github.com/cpisciotta/xcbeautify/releases/download/$version/xcbeautify-$version-$archString-apple-macosx.zip",
-                userCacheRoot = userCacheRoot,
-            )
+            val archive = operationEventScope("downloading xcbeautify $version binary") {
+                Downloader.downloadFileToCacheLocation(
+                    url = "https://github.com/cpisciotta/xcbeautify/releases/download/$version/xcbeautify-$version-$archString-apple-macosx.zip",
+                    userCacheRoot = userCacheRoot,
+                )
+            }
             val executable = extractFileToCacheLocation(archiveFile = archive, amperUserCacheRoot = userCacheRoot)
                 .resolve("xcbeautify")
             if (!executable.isExecutable()) {

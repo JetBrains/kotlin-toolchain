@@ -46,7 +46,6 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.stdlib.io.path.clean
 import org.jetbrains.amper.tasks.ClasspathElementType
 import org.jetbrains.amper.tasks.ClasspathProvider
-import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
@@ -124,7 +123,7 @@ internal class KspTask(
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
-        val jdk = jdkProvider.getJdkOrUserError(leafFragment.settings.jvm.jdk)
+        val jdk = jdkProvider.getJdkOrUserError(leafFragment.settings.jvm.jdk, sink = executionContext.eventSink)
 
         val kspVersion = fragments.singleLeafFragment().settings.kotlin.ksp.version
         val kspJars = downloadKspCli(kspVersion)
@@ -195,7 +194,7 @@ internal class KspTask(
         }.outputFiles
     }
 
-    context(_: ProblemReporter)
+    context(_: TaskGraphExecutionContext)
     private suspend fun Ksp.runKsp(
         compileLibraries: List<Path>,
         kspOutputPaths: KspOutputPaths,
@@ -285,7 +284,7 @@ internal class KspTask(
      *
      * KSP needs this to know about stdlib declarations (see AMPER-4398 for example failures).
      */
-    context(_: ProblemReporter)
+    context(_: TaskGraphExecutionContext)
     private suspend fun provisionRequiredNativePlatformLibs(compilationSettings: CompilationUserSettings): List<Path> {
         val kotlinVersion = compilationSettings.kotlin.compilerVersion
         val konanData = downloadNativeCompiler(kotlinVersion, userCacheRoot, jdkProvider).konanDistribution

@@ -17,14 +17,14 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.amper.cli.SoftTaskFailureException
 import org.jetbrains.amper.cli.UserReadableError
 import org.jetbrains.amper.cli.events.EventSinkContributors
-import org.jetbrains.amper.cli.events.buildEventScope
 import org.jetbrains.amper.cli.events.createOperationSink
-import org.jetbrains.amper.cli.events.taskEventScope
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.events.sink.BuildEventSink
 import org.jetbrains.amper.events.sink.GlobalEventSink
 import org.jetbrains.amper.events.sink.OperationEventSink
+import org.jetbrains.amper.events.sink.buildEventScope
 import org.jetbrains.amper.events.sink.plus
+import org.jetbrains.amper.events.sink.taskEventScope
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.stdlib.graphs.depthFirstNodeSequence

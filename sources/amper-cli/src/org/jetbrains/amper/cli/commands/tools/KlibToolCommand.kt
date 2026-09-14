@@ -14,6 +14,7 @@ import org.jetbrains.amper.cli.context.GlobalCliContext
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.project.preparePluginsAndReadModel
 import org.jetbrains.amper.cli.userReadableError
+import org.jetbrains.amper.cli.widgets.status.standaloneOperationProgressWidget
 import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.frontend.kotlinVersion
 import org.jetbrains.amper.frontend.schema.DefaultVersions
@@ -59,8 +60,10 @@ internal class KlibToolCommand : AmperSubcommand(name = "klib") {
             }
         }
 
-        val konanDistribution = Downloader.downloadAndExtractKotlinNative(kotlinVersion, cliContext.userCacheRoot)
-            ?: userReadableError("The Kotlin/Native distribution is not available for the current platform")
+        val konanDistribution = standaloneOperationProgressWidget(cliContext.terminal) {
+            Downloader.downloadAndExtractKotlinNative(kotlinVersion, cliContext.userCacheRoot)
+                ?: userReadableError("The Kotlin/Native distribution is not available for the current platform")
+        }
 
         val ext = if (OsFamily.current.isWindows) ".bat" else ""
         val klibExecutable = konanDistribution.homeDir / "bin" / "klib$ext"
@@ -68,9 +71,11 @@ internal class KlibToolCommand : AmperSubcommand(name = "klib") {
             userReadableError("The klib tool is not present or not executable: $klibExecutable")
         }
 
-        val jdk = context(cliContext.problemReporter) {
-            // we always use the default JDK to run the Kotln/Native compiler
-            cliContext.jdkProvider.getDefaultJdk()
+        val jdk = standaloneOperationProgressWidget(cliContext.terminal) {
+            context(cliContext.problemReporter) {
+                // we always use the default JDK to run the Kotln/Native compiler
+                cliContext.jdkProvider.getDefaultJdk()
+            }
         }
 
         val cmd = listOf(klibExecutable.pathString) + klibArguments

@@ -136,7 +136,7 @@ internal abstract class WebLinkTask(
         val compiledKLibs = compileKLibDependencies.mapNotNull { it.compiledKlib }
 
         val kotlinUserSettings = fragments.singleLeafFragment().serializableKotlinSettings()
-        val jdk = jdkProvider.getJdkOrUserError(module.jdkSettings)
+        val jdk = jdkProvider.getJdkOrUserError(module.jdkSettings, sink = executionContext.eventSink)
 
         logger.debug("${expectedPlatform.name} link '${module.userReadableName}' -- ${fragments.joinToString(" ") { it.name }}")
 

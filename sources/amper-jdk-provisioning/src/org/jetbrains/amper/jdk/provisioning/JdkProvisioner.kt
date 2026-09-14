@@ -8,6 +8,8 @@ import io.opentelemetry.api.OpenTelemetry
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.extract.extractFileToCacheLocation
+import org.jetbrains.amper.events.sink.OperationEventSink
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.schema.JvmDistribution
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.telemetry.use
@@ -24,6 +26,7 @@ internal class JdkProvisioner(
      * Finds a JDK matching the given [criteria], downloads/extracts it to the cache, and returns the corresponding
      * [JdkResult].
      */
+    context(_: OperationEventSink)
     suspend fun provision(
         criteria: JdkProvisioningCriteria,
         unusableJavaHomeResult: UnusableJavaHomeResult?,
@@ -95,9 +98,14 @@ private fun JdkProvisioningCriteria.acceptableDistrosUserVisibleValue(): String 
  * `directly_downloadable` to true.
  * In this case, an error will be logged and this package should just be skipped.
  */
+context(_: OperationEventSink)
 private suspend fun JdkPackage.downloadToCache(userCacheRoot: AmperUserCacheRoot): Jdk {
-    val jdkArchive = Downloader.downloadFileToCacheLocation(downloadUrl, userCacheRoot)
-    val extractedJdkRoot = extractFileToCacheLocation(jdkArchive, userCacheRoot)
+    val jdkArchive = operationEventScope("downloading JDK $this") {
+        Downloader.downloadFileToCacheLocation(downloadUrl, userCacheRoot)
+    }
+    val extractedJdkRoot = operationEventScope("extracting JDK $this") {
+        extractFileToCacheLocation(jdkArchive, userCacheRoot)
+    }
     return Jdk(
         homeDir = extractedJdkRoot.findValidJdkHomeDir(),
         version = fullVersion,

@@ -45,7 +45,6 @@ import org.jetbrains.amper.jvm.getJdkOrUserError
 import org.jetbrains.amper.kotlin.native.KonanDistribution
 import org.jetbrains.amper.kotlin.native.asCommonizerTarget
 import org.jetbrains.amper.kotlin.native.librariesForMetadataCompilation
-import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.stdlib.io.path.clean
 import org.jetbrains.amper.stdlib.io.path.isEmptyDirectory
@@ -165,7 +164,7 @@ internal class MetadataCompileTask(
         val friendPaths =
             fragment.friends.map { localDependencies.findMetadataResultForFragment(it).metadataOutputRoot }
 
-        val jdk = jdkProvider.getJdkOrUserError(jdkSettings = fragment.settings.jvm.jdk)
+        val jdk = jdkProvider.getJdkOrUserError(jdkSettings = fragment.settings.jvm.jdk, sink = executionContext.eventSink)
 
         return if (fragmentPlatforms.all { it.nativeTarget != null })   {
             compileNativeMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk)
@@ -174,7 +173,7 @@ internal class MetadataCompileTask(
         }
     }
 
-    context(_: ProblemReporter)
+    context(_: TaskGraphExecutionContext)
     private suspend fun compileCommonMetadata(
         fragmentClasspath: List<Path>,
         refinesPaths: List<Path>,
@@ -235,7 +234,7 @@ internal class MetadataCompileTask(
                     "${f.name} of this fragment ${module.userReadableName}:${fragment.name}. Actual results: " +
                     map { "${it.module.userReadableName}:${it.fragment.name}" })
 
-    context(_: ProblemReporter)
+    context(_: TaskGraphExecutionContext)
     private suspend fun compileNativeSharedSources(
         kotlinUserSettings: KotlinUserSettings,
         sourceDirectories: List<Path>,
@@ -302,7 +301,7 @@ internal class MetadataCompileTask(
         fragmentPlatforms: Set<ResolutionPlatform>,
     ): List<Path> = librariesForMetadataCompilation(fragmentPlatforms.map { it.toPlatform() }.asCommonizerTarget())
 
-    context(_: ProblemReporter)
+    context(_: TaskGraphExecutionContext)
     private suspend fun compileCommonSources(
         jdk: Jdk,
         kotlinUserSettings: KotlinUserSettings,
@@ -361,7 +360,7 @@ internal class MetadataCompileTask(
             }
     }
 
-    context(_: ProblemReporter)
+    context(_: TaskGraphExecutionContext)
     private suspend fun compileNativeMetadata(
         fragmentClasspath: List<Path>,
         refinesPaths: List<Path>,

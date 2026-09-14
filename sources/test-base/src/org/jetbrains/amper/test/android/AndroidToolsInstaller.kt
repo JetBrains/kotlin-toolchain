@@ -5,6 +5,7 @@
 package org.jetbrains.amper.test.android
 
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.events.sink.NoopEventSink
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.frontend.schema.JdkSelectionMode
 import org.jetbrains.amper.incrementalcache.IncrementalCache
@@ -82,7 +83,7 @@ internal object AndroidToolsInstaller {
     private suspend fun getSomeJdk(
         androidSetupCacheDir: Path,
         incrementalCache: IncrementalCache,
-    ): Jdk = context(NoopProblemReporter) {
+    ): Jdk = context(NoopProblemReporter, NoopEventSink) {
         JdkProvider(AmperUserCacheRoot(androidSetupCacheDir), incrementalCache = incrementalCache)
             .getJdk(
                 criteria = JdkProvisioningCriteria(majorVersion = DefaultVersions.jdk),

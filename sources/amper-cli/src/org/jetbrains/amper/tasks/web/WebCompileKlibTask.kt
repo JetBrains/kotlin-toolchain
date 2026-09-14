@@ -126,7 +126,7 @@ internal abstract class WebCompileKlibTask(
 
         val kotlinUserSettings = fragments.singleLeafFragment().serializableKotlinSettings()
 
-        val jdk = jdkProvider.getJdkOrUserError(module.jdkSettings)
+        val jdk = jdkProvider.getJdkOrUserError(module.jdkSettings, sink = executionContext.eventSink)
 
         val libraryPaths = compiledKlibModuleDependencies + externalDependencies
 
