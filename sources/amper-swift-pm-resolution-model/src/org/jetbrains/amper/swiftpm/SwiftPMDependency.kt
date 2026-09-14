@@ -18,7 +18,7 @@ sealed class SwiftPMDependency {
     data class Product(
         val name: String,
         val cinteropClangModules: List<String>,
-        val platformConstraints: List<Platform>?
+        val platformConstraints: List<Platform>? = null,
     )
 
     @Serializable

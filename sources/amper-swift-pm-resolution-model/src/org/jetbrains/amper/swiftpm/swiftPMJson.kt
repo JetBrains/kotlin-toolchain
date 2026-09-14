@@ -8,21 +8,8 @@ import kotlinx.serialization.json.Json
 
 val swiftPMJson = Json {
     encodeDefaults = true
-    explicitNulls = false
     ignoreUnknownKeys = true
+    // Required for the class keys of TransitiveSwiftPMMetadata.metadataByDependencyIdentifier, which we only ever
+    // serialize to our own internal files (the published format has no such maps).
     allowStructuredMapKeys = true
-}
-
-/**
- * The JSON format to use when *writing* [SwiftPMImportMetadata] into a published artifact.
- *
- * It mirrors the format KGP publishes with, which notably keeps `explicitNulls` enabled. That matters: in KGP's model
- * the deployment version fields are nullable but have no default, so kotlinx treats them as required keys. Omitting
- * them (as [swiftPMJson] would) makes KGP consumers fail with a `MissingFieldException` instead of reading a null.
- *
- * [swiftPMJson] stays fine for *reading* published metadata, since a missing key is decoded as null there.
- */
-val swiftPMPublicationJson = Json {
-    encodeDefaults = true
-    ignoreUnknownKeys = true
 }

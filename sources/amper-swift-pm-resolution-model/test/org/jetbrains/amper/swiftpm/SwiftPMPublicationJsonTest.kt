@@ -54,7 +54,7 @@ class SwiftPMPublicationJsonTest {
 
         assertEquals(
             Json.parseToJsonElement(expectedJson),
-            Json.parseToJsonElement(swiftPMPublicationJson.encodeToString(metadata)),
+            Json.parseToJsonElement(swiftPMJson.encodeToString(metadata)),
         )
     }
 

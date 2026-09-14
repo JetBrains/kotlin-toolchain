@@ -9,10 +9,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SwiftPMImportMetadata(
     val konanTargets: Set<String>,
-    val iosDeploymentVersion: String?,
-    val macosDeploymentVersion: String?,
-    val watchosDeploymentVersion: String?,
-    val tvosDeploymentVersion: String?,
+    val iosDeploymentVersion: String? = null,
+    val macosDeploymentVersion: String? = null,
+    val watchosDeploymentVersion: String? = null,
+    val tvosDeploymentVersion: String? = null,
     @Suppress("unused")
     val isModulesDiscoveryEnabled: Boolean,
     val dependencies: Set<SwiftPMDependency>,
