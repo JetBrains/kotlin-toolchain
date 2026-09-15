@@ -5,6 +5,7 @@
 package org.jetbrains.amper.cli.test.native
 
 import org.jetbrains.amper.cli.test.CliTestBase
+import org.jetbrains.amper.cli.test.utils.assertLogContains
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
@@ -17,6 +18,7 @@ import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.LinuxOnly
 import org.jetbrains.amper.test.MacOnly
 import org.junit.jupiter.api.Tag
+import org.slf4j.event.Level
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
@@ -249,6 +251,20 @@ class CinteropTest : CliTestBase() {
             expectedExitCode = 1,
         )
         result.assertStderrContains("cinterop processing failed for MINGW_X64, see the errors above")
+    }
+
+    @Test
+    @MacOnly
+    fun `build - raw cinterop errors are reported as build problems`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("cinterop/mac-and-win"),
+            "build",
+            assertEmptyStdErr = false,
+            expectedExitCode = 1,
+        )
+
+        result.assertLogContains("fatal error: 'curl/curl.h' file not found", Level.ERROR)
+        result.assertLogContains("UtilsKt.ensureNoCompileErrors(Utils.kt:", Level.ERROR)
     }
 
     @Test

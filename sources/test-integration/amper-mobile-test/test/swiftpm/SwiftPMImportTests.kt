@@ -9,6 +9,9 @@ import iosUtils.IOSBaseTest
 import iosUtils.SimulatorManager
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.cli.test.utils.assertErrors
+import org.jetbrains.amper.cli.test.utils.assertStderrDoesNotContain
+import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
+import org.jetbrains.amper.cli.test.utils.assertWarnings
 import org.jetbrains.amper.processes.ProcessLeak
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
@@ -19,8 +22,6 @@ import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.processes.TestReporterProcessOutputListener
 import org.jetbrains.amper.test.spans.SpansTestCollector
 import org.jetbrains.amper.test.spans.spansNamed
-import org.slf4j.event.Level
-import kotlin.collections.mutableListOf
 import kotlin.io.path.appendText
 import kotlin.io.path.div
 import kotlin.io.path.exists
@@ -584,6 +585,40 @@ open class SwiftPMImportTests : IOSBaseTest() {
             assertEmptyStdErr = false,
         )
         Unit
+    }
+
+    @Test
+    fun `KTC-5820 - skipped non-importable modules do not produce scary errors`() = runBlocking {
+        val project = copyProjectToTempDir(ProjectSource.Local(Dirs.amperTestProjectsRoot / "swiftpm-integration-tests/direct-local-swiftpm-dependency"))
+        project.resolve("module.yaml").writeText(
+            """
+                product: 
+                  type: kmp/lib
+                  platforms: [macosArm64]
+
+                dependencies:
+                  - localSwiftPackage:
+                      path: "packageDependency"
+                      products: [ "packageProduct", "cppProduct" ]
+                
+                settings:
+                  kotlin:
+                    version: "2.4.0"
+            """.trimIndent()
+        )
+        val result = runAmper(
+            workingDir = project,
+            args = listOf("build"),
+            assertEmptyStdErr = false,
+        )
+        result.assertErrors(/*no errors*/)
+        result.assertWarnings(
+            "cinterop skipped the following modules because they cannot be imported to Kotlin (for instance, C++ modules): cppTarget. " +
+                    "Run with --log-level=debug to see the underlying Clang diagnostics."
+        )
+        // the raw Clang diagnostics block printed by cinterop must not leak into the default output
+        result.assertStdoutDoesNotContain("java.lang.Error")
+        result.assertStderrDoesNotContain("java.lang.Error")
     }
 
     @Test

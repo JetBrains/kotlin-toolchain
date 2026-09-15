@@ -18,7 +18,17 @@ import java.nio.file.Path
 import org.slf4j.event.Level as LogLevel
 
 /**
- * A [ProcessOutputListener] that parses the messages of a Kotlin CLI compiler (`konanc`, `cinterop`) and reports the
+ * A [ProcessOutputListener] that keeps track of the number of errors reported from the process output.
+ */
+internal interface ErrorCountingOutputListener : ProcessOutputListener {
+    /**
+     * The number of errors reported so far.
+     */
+    val errorCount: Int
+}
+
+/**
+ * A [ProcessOutputListener] that parses the messages of the Kotlin CLI compiler (`konanc`) and reports the
  * diagnostics to the given [reporter] as [CompilerBuildProblem]s, just like
  * [ProblemReportingCompilerMessageRenderer] does for compilations run through the Kotlin Build Tools API.
  *
@@ -41,7 +51,7 @@ internal class ProblemReportingCompilerOutputListener(
     private val moduleName: String,
     private val workingDir: Path,
     private val logger: Logger,
-) : ProcessOutputListener {
+) : ErrorCountingOutputListener {
 
     private val stdoutParser = KotlinCompilerOutputParser { message ->
         handle(message, unrecognizedLineLevel = LogLevel.INFO)
@@ -50,10 +60,7 @@ internal class ProblemReportingCompilerOutputListener(
         handle(message, unrecognizedLineLevel = LogLevel.ERROR)
     }
 
-    /**
-     * The number of errors reported to the [reporter] so far.
-     */
-    var errorCount = 0
+    override var errorCount = 0
         private set
 
     override fun onStdoutLine(line: String, pid: Long) {

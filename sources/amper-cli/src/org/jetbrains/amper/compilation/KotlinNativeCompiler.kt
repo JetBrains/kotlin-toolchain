@@ -58,7 +58,7 @@ class KotlinNativeCompiler(
         private val logger = LoggerFactory.getLogger(KotlinNativeCompiler::class.java)
     }
 
-    context(_: ProblemReporter)
+    context(problemReporter: ProblemReporter)
     suspend fun compile(
         processRunner: ProcessRunner,
         args: List<String>,
@@ -76,16 +76,21 @@ class KotlinNativeCompiler(
                     runNativeCompilerCommand(
                         span = span,
                         moniker = "native compilation",
-                        module = module,
                         processRunner = processRunner,
                         programArgs = listOf("konanc", "@${argFile}"),
                         argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
+                        outputListener = ProblemReportingCompilerOutputListener(
+                            reporter = problemReporter,
+                            moduleName = module.userReadableName,
+                            workingDir = konanDistribution.homeDir,
+                            logger = logger,
+                        ),
                     )
                 }
             }
     }
 
-    context(_: ProblemReporter)
+    context(problemReporter: ProblemReporter)
     suspend fun cinterop(
         processRunner: ProcessRunner,
         args: List<String>,
@@ -99,29 +104,27 @@ class KotlinNativeCompiler(
                 runNativeCompilerCommand(
                     span = span,
                     moniker = "cinterop",
-                    module = module,
                     processRunner = processRunner,
                     programArgs = listOf("cinterop") + args,
                     argsMode = ArgsMode.CommandLine,
+                    // cinterop doesn't use the Kotlin compiler message format, so it needs a dedicated listener
+                    outputListener = CInteropOutputListener(
+                        reporter = problemReporter,
+                        moduleName = module.userReadableName,
+                        logger = logger,
+                    ),
                 )
             }
     }
 
-    context(problemReporter: ProblemReporter)
     private suspend fun runNativeCompilerCommand(
         span: Span,
         moniker: String,
-        module: AmperModule,
         processRunner: ProcessRunner,
         programArgs: List<String>,
         argsMode: ArgsMode,
+        outputListener: ErrorCountingOutputListener,
     ) {
-        val outputListener = ProblemReportingCompilerOutputListener(
-            reporter = problemReporter,
-            moduleName = module.userReadableName,
-            workingDir = konanDistribution.homeDir,
-            logger = logger,
-        )
         val result = runNativeCompilerCommandImpl(
             processRunner = processRunner,
             programArgs = programArgs,
