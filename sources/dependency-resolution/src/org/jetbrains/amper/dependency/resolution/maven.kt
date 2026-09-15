@@ -2545,6 +2545,10 @@ class MavenDependencyImpl internal constructor(
             && downloadSources
             && this.settings[KmpSourceSetName] == null
             && this.isSourcesDependencyFile()
+            // The all-in-one sources JAR is optional: its coordinates might have been merely guessed
+            // (see [getAutoAddedSourcesDependencyFile]), or the publication might simply be missing it.
+            // A library published without sources has nothing to repackage, which is not an error.
+            && this.getPath()?.exists() == true
         ) {
             // repackage KMP library sources.
             val kmpSourcesFile = this
