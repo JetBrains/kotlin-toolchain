@@ -5,9 +5,11 @@
 package org.jetbrains.amper.jdk.provisioning
 
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.core.downloader.amperHttpClient
 import org.jetbrains.amper.frontend.schema.JdkSelectionMode
 import org.jetbrains.amper.frontend.schema.JvmDistribution
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.jdks.fetchIjJdks
 import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
@@ -60,15 +62,21 @@ class JdkProviderTest {
             "there is no Dragonwell JDK for macOS ARM64",
         )
 
+        val ijJdks = amperHttpClient.fetchIjJdks()
+
         // assertValidJdk already checks that the detected distribution in the provisioned JDK actually matches the
         // requested one (because it's the only one in the list in this test case).
         assertValidJdk(
             JdkProvisioningCriteria(
-                // there is no Dragonwell JDK 25 yet
                 majorVersion = when (distribution) {
-                    JvmDistribution.AlibabaDragonwell -> 21
-                    // TODO: AMPER-5202 Oracle OpenJDK 25 is not provided by the list from JetBrains
-                    JvmDistribution.OracleOpenJdk -> 26
+                    // there is no Dragonwell JDK 25 yet
+                    JvmDistribution.AlibabaDragonwell -> ijJdks
+                        .filter { it.vendor.lowercase() == "alibaba" }
+                        .maxOf { it.jdkVersionMajor }
+                    // Only the latest Oracle OpenJDK is provided in the list from JetBrains, so we use that version
+                    JvmDistribution.OracleOpenJdk -> ijJdks
+                        .filter { it.vendor.lowercase() == "oracle" && it.product.lowercase() == "openjdk" }
+                        .maxOf { it.jdkVersionMajor }
                     else -> 25
                 },
                 distributions = listOf(distribution),
