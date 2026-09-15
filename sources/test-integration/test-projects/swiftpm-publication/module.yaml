@@ -19,6 +19,12 @@ repositories:
   - id: mavenLocal
     url: mavenLocal
     publish: true
+  # Only declared to check that a library with local Swift packages cannot be published to a shared repository.
+  # It is never actually reached, so the URL doesn't have to exist.
+  - id: remoteRepo
+    url: https://example.com/maven
+    publish: true
+    resolve: false
 
 settings:
   publishing:

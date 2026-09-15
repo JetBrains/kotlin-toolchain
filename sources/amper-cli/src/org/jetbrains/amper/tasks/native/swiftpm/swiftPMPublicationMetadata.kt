@@ -4,8 +4,11 @@
 
 package org.jetbrains.amper.tasks.native.swiftpm
 
+import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.dr.resolver.swiftpm.directSwiftPMDependencies
+import org.jetbrains.amper.maven.publish.isMultiplatformPublication
+import org.jetbrains.amper.swiftpm.SwiftPMDependency
 import org.jetbrains.amper.swiftpm.SwiftPMImportMetadata
 
 /**
@@ -24,6 +27,10 @@ internal const val SWIFTPM_METADATA_EXTENSION = "json"
  * (`null` if this module declares no SwiftPM dependency).
  */
 internal fun AmperModule.swiftPMImportMetadataForPublication(): SwiftPMImportMetadata? {
+    // SwiftPM dependencies can only be declared for Apple platforms, which only multiplatform libraries support,
+    // so this metadata is always part of the root publication, which only multiplatform publications have.
+    if (!isMultiplatformPublication()) return null
+
     val dependencies = directSwiftPMDependencies().map { it.swiftPMDependency }.toSet()
     if (dependencies.isEmpty()) return null
 
@@ -42,4 +49,34 @@ internal fun AmperModule.swiftPMImportMetadataForPublication(): SwiftPMImportMet
         isModulesDiscoveryEnabled = true,
         dependencies = dependencies,
     )
+}
+
+/**
+ * Fails with a user-readable error if this module publishes dependencies on local Swift packages, because they cannot
+ * be consumed from the repository with the given [targetRepositoryId].
+ *
+ * Local Swift packages are published as absolute paths (this is also what KGP does), so the consumers of the library
+ * can only resolve them on the machine that published it. This is acceptable when publishing to the local Maven
+ * repository, but not to repositories that are shared with other machines.
+ */
+internal fun AmperModule.checkNoPublishedLocalSwiftPackages(targetRepositoryId: String) {
+    val localPackages = swiftPMImportMetadataForPublication()
+        ?.dependencies
+        ?.filterIsInstance<SwiftPMDependency.Local>()
+        // sorted for a reproducible error message, the declaration order is irrelevant here
+        ?.sortedBy { it.packageName }
+        .orEmpty()
+    if (localPackages.isEmpty()) return
+
+    userReadableError {
+        appendLine("Module '$userReadableName' cannot be published to the repository '$targetRepositoryId' because " +
+                "it depends on the following local Swift packages:")
+        localPackages.forEach {
+            appendLine(" - ${it.packageName} (${it.absolutePath})")
+        }
+        appendLine("Local Swift packages are published as absolute paths, so the consumers of this library would " +
+                "only be able to resolve them on this machine.")
+        append("Please use remote Swift packages (`swiftPackage`) instead. With dependency on local Swift package the module could still be published to the local " +
+                "Maven repository (`mavenLocal`).")
+    }
 }

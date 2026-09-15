@@ -20,6 +20,7 @@ import org.jetbrains.amper.mavencentral.UserToken
 import org.jetbrains.amper.mavencentral.pollStatus
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.TaskResult
+import org.jetbrains.amper.tasks.native.swiftpm.checkNoPublishedLocalSwiftPackages
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.slf4j.LoggerFactory
@@ -33,12 +34,17 @@ class MavenCentralPublishTask(
 ) : PublishTask {
     override val targetRepositoryId = MAVEN_CENTRAL_REPOSITORY_ID
 
+    override val publishesToLocalRepository = false
+
     private val logger = LoggerFactory.getLogger(javaClass)
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(
         dependenciesResult: List<TaskResult>,
     ): TaskResult {
+        // The 'publish' command checks this upfront to fail fast, but this task can also be run directly.
+        module.checkNoPublishedLocalSwiftPackages(targetRepositoryId)
+
         val zipBundle = dependenciesResult.filterIsInstance<PrepareMavenCentralBundleTask.Result>()
             .singleOrNull()
             ?.mavenCentralZipBundle

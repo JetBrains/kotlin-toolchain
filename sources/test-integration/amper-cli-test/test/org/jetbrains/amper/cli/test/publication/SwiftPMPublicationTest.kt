@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.jsonObject
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertGradleMetadataEquals
+import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertSwiftPMMetadataEquals
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
@@ -32,9 +33,9 @@ import kotlin.test.assertNotNull
  * packages they have to fetch and link. Just like KGP, we publish them as a JSON file exposed in a dedicated
  * `swiftPMDependenciesMetadataElements` variant of the root publication.
  *
- * This test is Mac-only because publishing an Apple library requires compiling its klibs and cinterops, which in turn
- * requires the SwiftPM import to run (and thus Xcode). The test project only declares local Swift packages, so no
- * network access is needed.
+ * Most tests here are Mac-only because publishing an Apple library requires compiling its klibs and cinterops, which
+ * in turn requires the SwiftPM import to run (and thus Xcode). The test project only declares local Swift packages, so
+ * no network access is needed.
  */
 @Tag("cli-test-group-publication")
 class SwiftPMPublicationTest : CliTestBase() {
@@ -129,5 +130,31 @@ class SwiftPMPublicationTest : CliTestBase() {
             },
             "The consumer must see the very same packages and platform constraints that the library published",
         )
+    }
+
+    /**
+     * Local Swift packages are published as absolute paths, so a library that depends on them can only be consumed on
+     * the machine that published it. Such a library must therefore not be published to a shared repository.
+     *
+     * This test doesn't need a Mac because the publication must fail before anything is built.
+     */
+    @Test
+    fun `publishing local swift packages to a shared repository fails`() = runSlowTest {
+        val projectDir = testProject("swiftpm-publication")
+
+        val result = runCli(
+            projectDir = projectDir,
+            "publish", "remoteRepo",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        result.assertStderrContains("""
+            ERROR: Module 'swiftpm-publication' cannot be published to the repository 'remoteRepo' because it depends on the following local Swift packages:
+             - commonPackage (${projectDir / "commonPackage"})
+             - iosOnlyPackage (${projectDir / "iosOnlyPackage"})
+            Local Swift packages are published as absolute paths, so the consumers of this library would only be able to resolve them on this machine.
+            Please use remote Swift packages (`swiftPackage`) instead. With dependency on local Swift package the module could still be published to the local Maven repository (`mavenLocal`).
+        """.trimIndent())
     }
 }

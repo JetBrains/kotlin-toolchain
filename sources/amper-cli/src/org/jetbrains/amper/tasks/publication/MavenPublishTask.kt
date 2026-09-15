@@ -32,6 +32,7 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.tasks.MavenPublishable
 import org.jetbrains.amper.tasks.PrepareMavenPublishablesTask
 import org.jetbrains.amper.tasks.TaskResult
+import org.jetbrains.amper.tasks.native.swiftpm.checkNoPublishedLocalSwiftPackages
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.telemetry.useWithoutCoroutines
@@ -67,8 +68,16 @@ class MavenPublishTask(
     override val targetRepositoryId: String
         get() = targetRepository.id
 
+    override val publishesToLocalRepository: Boolean
+        get() = targetRepository.isMavenLocal
+
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+        // The 'publish' command checks this upfront to fail fast, but this task can also be run directly.
+        if (!publishesToLocalRepository) {
+            module.checkNoPublishedLocalSwiftPackages(targetRepositoryId)
+        }
+
         val localRepositoryPath = mavenLocalRepository.repository
         val artifacts = dependenciesResult.filterIsInstance<PrepareMavenPublishablesTask.Result>()
             .flatMap { it.publishables }

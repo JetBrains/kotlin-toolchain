@@ -58,6 +58,14 @@ interface PackageTask : Task, MaybeBuildTypeAware, MaybePlatformAware {
 interface PublishTask : Task {
     val module: AmperModule
     val targetRepositoryId: String
+
+    /**
+     * Whether this task publishes to the local Maven repository of this machine.
+     *
+     * Such publications may contain machine-specific data, such as absolute paths, while the ones going to
+     * repositories that are shared with other machines may not.
+     */
+    val publishesToLocalRepository: Boolean
 }
 
 interface TestTask : Task, MaybeBuildTypeAware, PlatformAware {

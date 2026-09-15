@@ -53,6 +53,7 @@ import org.jetbrains.amper.tasks.ios.IosTaskType
 import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.tasks.jvm.JvmCompileTask
 import org.jetbrains.amper.tasks.jvm.JvmHotRunTask
+import org.jetbrains.amper.tasks.native.swiftpm.checkNoPublishedLocalSwiftPackages
 import org.jetbrains.amper.tasks.publication.MAVEN_CENTRAL_REPOSITORY_ID
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.useWithoutCoroutines
@@ -277,15 +278,20 @@ class AmperBackend(
         val publishTasks = taskGraph.tasks
             .filterIsInstance<PublishTask>()
             .filter { it.targetRepositoryId == repositoryId && it.module.userReadableName in moduleNames }
-            .map { it.id }
-            .toSet()
 
         if (publishTasks.isEmpty()) {
             userReadableError("No publish tasks were found for specified module and repository filters")
         }
 
-        logger.debug("Selected tasks to publish: ${formatTaskNames(publishTasks)}")
-        taskExecutor.runTasksAndReportOnFailure(publishTasks)
+        // Checked upfront, because building the artifacts of a publication can take a long time, and we don't want
+        // the user to wait for it just to be told that this publication cannot work in the first place.
+        publishTasks.filterNot { it.publishesToLocalRepository }.forEach {
+            it.module.checkNoPublishedLocalSwiftPackages(repositoryId)
+        }
+
+        val publishTaskIds = publishTasks.mapTo(mutableSetOf()) { it.id }
+        logger.debug("Selected tasks to publish: ${formatTaskNames(publishTaskIds)}")
+        taskExecutor.runTasksAndReportOnFailure(publishTaskIds)
     }
 
     suspend fun test(

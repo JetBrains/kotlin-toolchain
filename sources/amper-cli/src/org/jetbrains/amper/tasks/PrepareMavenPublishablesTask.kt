@@ -101,11 +101,7 @@ class PrepareMavenPublishablesTask(
             )
         } else null
 
-        // SwiftPM dependencies can only be declared for Apple platforms, which only multiplatform libraries support,
-        // so the SwiftPM metadata is always part of the root publication.
-        val swiftPMMetadata = if (module.isMultiplatformPublication()) {
-            module.swiftPMImportMetadataForPublication()
-        } else null
+        val swiftPMMetadata = module.swiftPMImportMetadataForPublication()
 
         val publishables = incrementalCache.executeForSerializable<List<MavenPublishable>>(
             key = taskName.id.value,
