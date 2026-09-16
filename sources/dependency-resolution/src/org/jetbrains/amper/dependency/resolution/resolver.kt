@@ -84,7 +84,14 @@ private val logger = LoggerFactory.getLogger("dr/resolver.kt")
  * @see MavenDependencyNode
  * @see Context
  */
-class Resolver {
+class Resolver internal constructor(
+    /**
+     * Test-only hook, invoked at the end of every conflict resolution wave of [buildGraph].
+     * It allows tests to assert invariants of the intermediate state of the conflict resolution.
+     */
+    private val conflictResolutionWaveObserver: ConflictResolutionWaveObserver?,
+) {
+    constructor() : this(conflictResolutionWaveObserver = null)
 
     /**
      * Main entry point into the dependency resolution.
@@ -299,7 +306,7 @@ class Resolver {
     ) {
         root.context.debugSpanBuilder("Resolver.buildGraph").use {
             val conflictResolver =
-                ConflictResolver(root.context.settings.conflictResolutionStrategies, unspecifiedVersionResolver)
+                ConflictResolver(root.context.settings.conflictResolutionStrategies, root, unspecifiedVersionResolver)
 
             // Contains all nodes that we resolved (we populated the children of their internal dependency), and for which
             // all child nodes resolutions have either completed or been canceled.
@@ -317,6 +324,8 @@ class Resolver {
                 }
 
                 nodesToResolve = conflictResolver.resolveConflicts()
+
+                conflictResolutionWaveObserver?.onWaveCompleted(root, conflictResolver.registeredNodes())
 
                 // Some candidates may have been resolved entirely before the conflict was detected
                 // and the resolution canceled.
@@ -425,9 +434,29 @@ class Resolver {
     }
 }
 
+/**
+ * Observes the conflict resolution performed as a part of [Resolver.buildGraph]. Only meant for tests.
+ */
+internal fun interface ConflictResolutionWaveObserver {
+    /**
+     * Called after conflicts detected during a resolution wave were resolved, and before the next wave starts.
+     * At that point no resolution coroutine is running, so the graph can be traversed safely.
+     *
+     * @param root the root of the graph being resolved
+     * @param registeredNodes the nodes that the conflict resolver currently takes into account, see
+     * [ConflictResolver.registeredNodes]
+     */
+    fun onWaveCompleted(root: DependencyNode, registeredNodes: Set<DependencyNode>)
+}
+
 private class ConflictResolver(
     val conflictResolutionStrategies: List<ConflictResolutionStrategy>,
-    unspecifiedVersionResolver: UnspecifiedVersionResolver<MavenDependencyNodeWithContext>? = null
+    /**
+     * The root of the graph being resolved, used to tell the nodes that are part of the graph from the nodes that
+     * were detached from it by conflict resolution. See [reconcileRegistryWithGraph].
+     */
+    private val root: DependencyNodeWithContext,
+    unspecifiedVersionResolver: UnspecifiedVersionResolver<MavenDependencyNodeWithContext>? = null,
 ) {
     /**
      * Maps each key (group:artifact) to the list of "similar" nodes that have that same key, and thus are potential
@@ -441,6 +470,12 @@ private class ConflictResolver(
     private val conflictDetectionMutexByKey = StripedMutex(64)
 
     private val unspecifiedVersionHelper = unspecifiedVersionResolver?.let { UnspecifiedMavenDependencyVersionHelper(it) }
+
+    /**
+     * All the nodes currently known to this conflict resolver, i.e. the nodes that are taken into account when
+     * conflicts are detected and resolved. Only meant for tests, see [Resolver.conflictResolutionWaveObserver].
+     */
+    fun registeredNodes(): Set<DependencyNode> = similarNodesByKey.values.flatMapTo(mutableSetOf()) { it }
 
     /**
      * Registers this node and all its children transitively for potential conflict resolution
@@ -465,69 +500,65 @@ private class ConflictResolver(
     }
 
     /**
-     * Unregister all nodes that are no longer reachable from the root of the graph after conflicts were resolved.
-     * It is called non-concurrently at the end of resolution iteration after resolution finished and before conflicting nodes
-     * are started resolving on the next iteration.
+     * Reconciles the nodes known to this conflict resolver with the actual content of the graph.
      *
-     * As a result of conflict resolution, nodes may start referencing another version of maven dependency with a different list of children.
-     * Old children could be no longer referenced by any node in a graph,
-     * such nodes (both dependencies and dependencyConstraints) should no longer influence conflict resolution logic.
+     * Resolving a conflict replaces the dependency behind the losing nodes. This detaches their former subgraphs from
+     * the graph and, at the same time, attaches the subgraphs of the winning version. Some nodes belong to both: they
+     * are either shared between the two versions, or reachable via some other path. This is why the registry cannot be
+     * updated by looking at the conflicting nodes alone, and is reconciled with what is reachable from the [root]
+     * instead:
      *
-     * // todo (AB) : Subgraphs of conflicting nodes could have included nodes referenced from another node in graph outside of this subgraphs
-     * // todo (AB) : Such nodes are still reachable in graph, but the list of their parents contains nodes from
-     * // todo (AB) : conflicting subgraphs that are no longer a part of the graph.
-     * // todo (AB) : It is important to note that some of those nodes might be re-added to the graph
-     * // todo (AB) : as a part of conflict resolution winning subgraph, but some will be eliminated (not reachable from the root).
-     * // todo (AB) : The question is: how to detect such "stale" parents? how to get rid of them on conflict resolution-loosing subgraphs?
+     * - nodes that are not part of the graph anymore have to be forgotten, otherwise they keep taking part in conflict
+     *   resolution, and could even align the graph on a version that nothing requires anymore,
+     * - nodes that are part of the graph again have to be registered back, otherwise no conflict involving them can
+     *   ever be detected, and they keep the version they were originally requested with leading to two versions of
+     *   the same library in the resolved graph.
+     *
+     * Deciding this by reachability from the [root], instead of walking [DependencyNode.parents] up from the
+     * conflicting nodes, is also what makes it immune to parents left over from detached subgraphs.
+     *
+     * // todo (AB) : [DependencyNode.parents] may still contain nodes that are no longer part of the graph.
+     * // todo (AB) : Conflict resolution doesn't rely on parents anymore, but other consumers still do, e.g. the cycle
+     * // todo (AB) : detection in `MavenDependencyNodeWithContext.children` and the dependency insights.
+     *
+     * This is called non-concurrently, at the end of a resolution wave: all resolution coroutines of the wave have
+     * already completed, and the nodes of the next wave are not being resolved yet.
+     *
+     * @return the nodes that were registered back, which have to be resolved again in the next wave
      */
-    private suspend fun unregisterOrphanNodes(conflictedNodesWithOldChildren: Map<DependencyNodeWithContext, List<DependencyNodeWithContext>>) {
-        val conflictedNodesActualChildren = conflictedNodesWithOldChildren.keys.flatMap { it.children }.toSet()
-        val conflictedNodesOldChildren = conflictedNodesWithOldChildren.values.flatten().toSet()
+    private suspend fun reconcileRegistryWithGraph(): Set<DependencyNodeWithContext> {
+        val nodesInGraph = root.distinctBfsSequence().toSet()
+        forgetNodesDetachedFrom(nodesInGraph)
+        return registerNodesMissingFromRegistry(nodesInGraph)
+    }
 
-        val conflictedNodesAbandonedChildren = (conflictedNodesOldChildren - conflictedNodesActualChildren)
-
-        val directOrphanChildren = conflictedNodesAbandonedChildren.filter { it.parents.isEmpty() }.toSet()
-        val allOrphanChildren = directOrphanChildren +
-                (conflictedNodesAbandonedChildren - directOrphanChildren)
-                    .filterNot { it.isThereAPathToTopBypassing(directOrphanChildren) }
-
-        val nodesToUnregister =
-            allOrphanChildren.flatMap { orphanChild ->
-                // old children of the node before the conflict was resolved
-                orphanChild.distinctBfsSequence { child, _ ->
-                    // only a single parent leads to the unregistered top node
-                    // => the node can be unregistered as well with all children
-                    child.isOrphanChildOfConflictingNodes(allOrphanChildren)
-                    // otherwise, the node is referenced from some resolved non-conflicted node
-                    // => it should be kept with all children (avoid unregistering)
-                }.filterIsInstance<DependencyNodeWithContext>()
-            }
-
-        nodesToUnregister.forEach { node ->
-            conflictDetectionMutexByKey.withLock(node.key.hashCode()) {
-                val similarNodes = similarNodesByKey.computeIfAbsent(node.key) { mutableSetOf() }
-                similarNodes.remove(node)
-                unspecifiedVersionHelper?.unregisterNode(node)
+    private suspend fun forgetNodesDetachedFrom(nodesInGraph: Set<DependencyNode>) {
+        for (entry in similarNodesByKey) {
+            conflictDetectionMutexByKey.withLock(entry.key.hashCode()) {
+                val detachedNodes = entry.value.filterTo(mutableSetOf()) { it !in nodesInGraph }
+                entry.value -= detachedNodes
+                detachedNodes.forEach { unspecifiedVersionHelper?.unregisterNode(it) }
             }
         }
     }
 
-    private fun DependencyNode.isOrphanChildOfConflictingNodes(
-        nodes: Set<DependencyNodeWithContext>,
-    ): Boolean =
-        // there is the single parent that is to be unregistered
-        // => the child node can be unregistered as well with all children (except those referenced outside)
-        parents.size == 1
-                // all parents lead to one of the unregistered top nodes
-                // => the node could be unregistered as well with all children
-                || !isThereAPathToTopBypassing(nodes)
-
-    private fun DependencyNode.isThereAPathToTopBypassing(nodes: Set<DependencyNodeWithContext>): Boolean {
-        if (parents.isEmpty()) return true // we reach the root
-
-        val nonBypassedParents = parents - nodes
-        return nonBypassedParents.any { it.isThereAPathToTopBypassing(nodes) }
+    private suspend fun registerNodesMissingFromRegistry(
+        nodesInGraph: Set<DependencyNode>,
+    ): Set<DependencyNodeWithContext> {
+        val registeredBackNodes = mutableSetOf<DependencyNodeWithContext>()
+        for (node in nodesInGraph) {
+            if (node is DependencyNodeWithContext && !node.isRegistered()) {
+                registerAndDetectConflicts(node)
+                registeredBackNodes += node
+            }
+        }
+        return registeredBackNodes
     }
+
+    private suspend fun DependencyNodeWithContext.isRegistered(): Boolean =
+        conflictDetectionMutexByKey.withLock(key.hashCode()) {
+            similarNodesByKey[key]?.contains(this) == true
+        }
 
     /**
      * Registers this node for potential conflict resolution and returns whether it already conflicts with a previously
@@ -567,27 +598,23 @@ private class ConflictResolver(
             registerAndDetectConflicts(node)
         }
 
-        val conflictCandidatesWithOldChildren = conflictingNodes()
+        val conflictCandidates = conflictingNodes()
             .map { candidates ->
                 async {
-                    val candidatesWithOldChildren = candidates.associateWith { it.children }
-                    val resolved = candidates.resolveConflict()
-                    if (resolved) {
-                        candidatesWithOldChildren
-                    } else {
-                        emptyMap()
-                    }
+                    if (candidates.resolveConflict()) candidates else emptySet()
                 }
             }
             .awaitAll()
-            .fold(emptyMap<DependencyNodeWithContext, List<DependencyNodeWithContext>>()) { acc, map -> acc + map }
+            .flatMapTo(mutableSetOf()) { it }
 
-        unregisterOrphanNodes(conflictCandidatesWithOldChildren)
+        // The conflicted keys have to be reset before the registry is reconciled: registering the nodes that are back
+        // in the graph is exactly what detects the conflicts to be resolved during the next wave.
         conflictedKeys.clear()
+        val registeredBackNodes = reconcileRegistryWithGraph()
 
         // nodes resolved from BOM might be from non-conflicting group
         // and thus should be included explicitly to the input of the next resolution wave
-        conflictCandidatesWithOldChildren.keys + bomResolvedNodes
+        conflictCandidates + bomResolvedNodes + registeredBackNodes
     }
 
     private fun conflictingNodes(): List<Set<DependencyNodeWithContext>> = conflictedKeys.map { key ->
