@@ -517,9 +517,10 @@ private class ConflictResolver(
      * Deciding this by reachability from the [root], instead of walking [DependencyNode.parents] up from the
      * conflicting nodes, is also what makes it immune to parents left over from detached subgraphs.
      *
-     * // todo (AB) : [DependencyNode.parents] may still contain nodes that are no longer part of the graph.
-     * // todo (AB) : Conflict resolution doesn't rely on parents anymore, but other consumers still do, e.g. the cycle
-     * // todo (AB) : detection in `MavenDependencyNodeWithContext.children` and the dependency insights.
+     * // todo (AB) : [DependencyNode.parents] of a freshly resolved graph may still contain nodes that conflict
+     * // todo (AB) : resolution detached from the graph. A graph taken from the incremental cache never has those:
+     * // todo (AB) : parent links are not serialized and are derived from the child links instead, see
+     * // todo (AB) : [DependencyGraphContext.rebuildDependencyNodesParentRefs].
      *
      * This is called non-concurrently, at the end of a resolution wave: all resolution coroutines of the wave have
      * already completed, and the nodes of the next wave are not being resolved yet.
