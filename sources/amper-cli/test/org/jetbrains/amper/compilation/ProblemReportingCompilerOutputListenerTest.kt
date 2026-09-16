@@ -42,6 +42,27 @@ class ProblemReportingCompilerOutputListenerTest {
     }
 
     @Test
+    fun `suppresses the zcm unrecognized feature warning and reports other features as warnings`() {
+        listener.onStderrLine("'+zcm' is not a recognized feature for this target (ignoring feature)", pid = 1)
+        listener.onStderrLine("'+foo' is not a recognized feature for this target (ignoring feature)", pid = 1)
+        listener.onStderrLine("'+bar' is not a recognized feature (ignoring feature)", pid = 1)
+        listener.onStreamsFlushed(exitCode = 0, pid = 1)
+
+        @OptIn(NonIdealDiagnostic::class)
+        assertEquals(
+            [
+                GlobalCompilerBuildProblem(
+                    moduleName = "my-module",
+                    message = "'+foo' is not a recognized feature for this target (ignoring feature)",
+                    level = Level.Warning,
+                )
+            ],
+            reporter.problems,
+        )
+        assertEquals(0, listener.errorCount)
+    }
+
+    @Test
     fun `reports located messages with their source location`() {
         [
             "/home/me/project/src/Foo.kt:5:13: error: unresolved reference 'undefinedThing'.",

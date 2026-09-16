@@ -7,6 +7,7 @@ package org.jetbrains.amper.cli.test.core
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertJavaIncrementalCompilationState
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
+import org.jetbrains.amper.cli.test.utils.assertStderrDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
@@ -15,6 +16,7 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.cli.test.utils.withTelemetrySpans
 import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.test.AmperCliResult
+import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.spans.assertEachKotlinNativeCompilationSpan
 import org.jetbrains.amper.test.spans.assertSingleKotlinCompilation
@@ -83,6 +85,30 @@ class AmperBuildTest : CliTestBase() {
             projectDir = testProject("ktc-5395"),
             "build", "--platform=linuxX64",
         )
+    }
+
+    @Test
+    @MacOnly
+    fun `KTC-5816 hides zcm linker warning`() = runSlowTest {
+        val projectDir = testProject("ios/interop")
+        val moduleFile = projectDir.resolve("module.yaml")
+        moduleFile.writeText(
+            moduleFile.readText() + """
+
+            dependencies@iosSimulatorArm64:
+              - org.jetbrains.compose.ui:ui-uikit-iossimulatorarm64:1.11.1
+            """.trimIndent()
+        )
+
+        val result = runCli(
+            projectDir = projectDir,
+            "build", "-p", "iosSimulatorArm64",
+            assertEmptyStdErr = false,
+        )
+
+        val unexpectedOutput = "'+zcm' is not a recognized feature for this target (ignoring feature)"
+        result.assertStdoutDoesNotContain(unexpectedOutput)
+        result.assertStderrDoesNotContain(unexpectedOutput)
     }
 
     @Test

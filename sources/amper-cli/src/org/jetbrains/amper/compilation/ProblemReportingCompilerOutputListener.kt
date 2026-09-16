@@ -78,9 +78,28 @@ internal class ProblemReportingCompilerOutputListener(
 
     private fun handle(item: KotlinCompilerOutputItem, unrecognizedLineLevel: LogLevel) {
         when (item) {
-            is UnrecognizedOutputLine -> logger.atLevel(unrecognizedLineLevel).log(item.text)
+            is UnrecognizedOutputLine -> handleUnrecognizedOutputLine(item, unrecognizedLineLevel)
             is KotlinCompilerMessage -> handleMessage(item)
         }
+    }
+
+    @OptIn(NonIdealDiagnostic::class)
+    private fun handleUnrecognizedOutputLine(line: UnrecognizedOutputLine, level: LogLevel) {
+        unrecognizedFeatureRegex.matchEntire(line.text)?.let { match ->
+            when (match.groupValues[1]) {
+                "+zcm" -> Unit // Swallow, see KTC-5816
+                else -> reporter.reportMessage(
+                    GlobalCompilerBuildProblem(
+                        moduleName = moduleName,
+                        message = line.text,
+                        level = Level.Warning,
+                    )
+                )
+            }
+            return
+        }
+
+        logger.atLevel(level).log(line.text)
     }
 
     private fun handleMessage(message: KotlinCompilerMessage) {
@@ -116,6 +135,9 @@ internal class ProblemReportingCompilerOutputListener(
         )
     }
 }
+
+private val unrecognizedFeatureRegex =
+    Regex("""^'([^']+)' is not a recognized feature for this target(?: \(ignoring feature\))?$""")
 
 /**
  * The [Level] to report a message of this severity as, or null if messages of this severity should not be reported as
