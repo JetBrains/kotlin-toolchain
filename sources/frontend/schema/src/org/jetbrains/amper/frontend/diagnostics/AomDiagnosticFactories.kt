@@ -25,6 +25,7 @@ val AomSingleModuleDiagnosticFactories: List<AomSingleModuleDiagnosticFactory> =
     SerializationVersionWithDisabledSerialization,
     SigningEnabledWithoutPropertiesFileFactory,
     KeystorePropertiesDoesNotContainKeyFactory,
+    KlibsIoNotificationCheckingFactory,
     MandatoryFieldInPropertiesFileMustBePresentFactory,
     MavenCentralRequirementsCheckingFactory,
     KeystoreMustExistFactory,

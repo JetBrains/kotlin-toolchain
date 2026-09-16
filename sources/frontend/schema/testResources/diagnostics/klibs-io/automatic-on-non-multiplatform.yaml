@@ -1,0 +1,7 @@
+product: jvm/lib
+
+settings:
+  publishing:
+    mavenCentral:
+      notifyKlibsIo:
+        automatic: <![Warning] This module is not Kotlin Multiplatform. Notification for klibs.io will not be sent.!>true<!>

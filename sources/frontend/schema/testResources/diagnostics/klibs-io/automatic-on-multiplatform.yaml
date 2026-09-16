@@ -1,0 +1,9 @@
+product:
+  type: lib
+  platforms: [jvm, js]
+
+settings:
+  publishing:
+    mavenCentral:
+      notifyKlibsIo:
+        automatic: true

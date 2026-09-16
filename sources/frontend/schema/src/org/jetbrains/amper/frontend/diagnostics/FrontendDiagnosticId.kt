@@ -36,6 +36,7 @@ enum class FrontendDiagnosticId : DiagnosticId {
     JvmReleaseTooLowForDependency,
     KeystoreFileDoesNotExist,
     KeystorePropertiesDoesNotContainKey,
+    KlibsIoAutomaticNotificationRequiresMultiplatform,
     KotlinCompilerVersionTooLow,
     KotlinIncrementalCompilationMayBehaveIncorrectly,
     KotlinVersionDoesNotSupportJdk,
