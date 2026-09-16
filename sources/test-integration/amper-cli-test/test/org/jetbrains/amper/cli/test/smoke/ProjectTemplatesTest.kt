@@ -8,6 +8,7 @@ import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.UpdatedAttribute
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertWarnings
+import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.cli.test.utils.xcodeProjectManagementSpans
 import org.jetbrains.amper.system.info.OsFamily
@@ -84,8 +85,7 @@ class ProjectTemplatesTest : CliTestBase() {
         val result = runCli(tempRoot, "build", configureAndroidHome = true, assertEmptyStdErr = false)
         if (OsFamily.current.isMac) {
             result.assertStdoutDoesNotContain("No shared scheme `app` is found")
-            // FIXME(KTC-5651) after templates are updated
-            // result.readTelemetrySpans().assertXcodeProjectIsValid()
+            result.readTelemetrySpans().assertXcodeProjectIsValid()
         }
     }
 
@@ -151,8 +151,7 @@ class ProjectTemplatesTest : CliTestBase() {
         val result = runCli(tempRoot, "build", assertEmptyStdErr = false)
         if (OsFamily.current.isMac) {
             result.assertStdoutDoesNotContain("No shared scheme `app` is found")
-            // FIXME(KTC-5651) after templates are updated
-            // result.readTelemetrySpans().assertXcodeProjectIsValid()
+            result.readTelemetrySpans().assertXcodeProjectIsValid()
         } else {
             result.assertWarnings("Nothing to build")
         }
