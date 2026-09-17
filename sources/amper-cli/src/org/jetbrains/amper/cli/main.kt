@@ -8,7 +8,6 @@ import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.parsers.CommandLineParser
 import com.github.ajalt.mordant.terminal.Terminal
-import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.cli.commands.RootCommand
 import org.jetbrains.amper.cli.logging.withoutConsoleLogging
 import org.jetbrains.amper.cli.telemetry.TelemetryEnvironment
@@ -124,16 +123,14 @@ private fun printUserError(message: String, cause: Throwable?) {
 }
 
 private fun printInternalError(e: Exception) {
-    if (AmperBuild.isSNAPSHOT) {
-        // For dev-oriented builds the error needs to be accessible immediately.
-        // Not: we do not rely on console logging here, because the internal error could have occurred before it's set up
-        printRedToStderr("\nInternal error:")
-        e.printStackTrace()
-    } else {
-        // we avoid showing a scary stacktrace in the terminal, but we still provide it in the logs
-        printRedToStderr("\nInternal error: $e\n\nPlease check the build logs for the full stacktrace, " +
-                "and if possible file a bug report at https://youtrack.jetbrains.com/newIssue?project=KTC")
-    }
+    // Note: we do not rely on console logging here, because the internal error could have occurred before it's set up
+    printRedToStderr("\nInternal error:")
+    e.printStackTrace()
+
+    // TODO attach the logs dir location to the exception when there is one, so we can give it here
+    printRedToStderr("\nPlease file a bug report at https://youtrack.jetbrains.com/newIssue?project=KTC, " +
+                         "and attach your logs from build/logs/<this_command_dir>")
+
     withoutConsoleLogging {
         logger.error("Internal error:", e)
     }
