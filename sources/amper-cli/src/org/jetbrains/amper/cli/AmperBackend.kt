@@ -7,8 +7,6 @@ package org.jetbrains.amper.cli
 import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.cli.apprun.RunTarget
 import org.jetbrains.amper.cli.context.ProjectCliContext
-import org.jetbrains.amper.cli.events.EventSinkContributors
-import org.jetbrains.amper.cli.events.createGlobalSink
 import org.jetbrains.amper.cli.options.UserJvmArgsOption
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.engine.BuildTask
@@ -25,6 +23,7 @@ import org.jetbrains.amper.engine.TaskGraph
 import org.jetbrains.amper.engine.TestTask
 import org.jetbrains.amper.engine.id
 import org.jetbrains.amper.engine.runTasksAndReportOnFailure
+import org.jetbrains.amper.events.sink.GlobalEventSink
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.MAVEN_CENTRAL_REPOSITORY_ID
 import org.jetbrains.amper.frontend.Model
@@ -92,10 +91,9 @@ class AmperBackend(
      */
     val taskExecutionMode: TaskExecutor.Mode = TaskExecutor.Mode.FAIL_FAST,
     /**
-     * [EventSinkContributors] that set up [org.jetbrains.amper.events.sink.EventSink]
-     * hierarchical structure for the build.
+     * Global event sink to use.
      */
-    val eventSinkContributors: EventSinkContributors,
+    globalEventSink: GlobalEventSink,
 ) {
     internal val taskGraph: TaskGraph by lazy {
         spanBuilder("Build task graph").useWithoutCoroutines {
@@ -115,8 +113,7 @@ class AmperBackend(
             graph = taskGraph,
             mode = taskExecutionMode,
             problemReporter = context.problemReporter,
-            globalEventSink = eventSinkContributors.createGlobalSink(),
-            eventSinkContributors = eventSinkContributors,
+            globalEventSink = globalEventSink,
         )
     }
 

@@ -45,8 +45,8 @@ class ProgressWidgetSink(
                         delegate.consumeUpdate() ||
                         (timeSource.markNow() - lastUpdated) >= WidgetTimings.WidgetMaxFrameUpdateInterval
                     ) {
-                        // NOTE: We only display the last build
-                        val build = stateTracker.builds.lastOrNull()
+                        // NOTE: We only display the latest build
+                        val build = stateTracker.builds.maxByOrNull { it.startTime }
                         // Clear the widget if no build is active
                         // or any task requires interactive access to the terminal
                         if (build == null || build.taskStates.any { it.isInteractive }) {

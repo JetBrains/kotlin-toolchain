@@ -5,6 +5,7 @@ package org.jetbrains.amper.backend.test
 
 import org.jetbrains.amper.backend.test.TestCollector.Companion.runTestWithCollector
 import org.jetbrains.amper.cli.AmperBackend
+import org.jetbrains.amper.events.sink.NoopEventSink
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.aomBuilder.readProjectModel
 import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
@@ -42,7 +43,7 @@ class AmperBackendTest : AmperIntegrationTestBase() {
             context = cliContext,
             model = model,
             runSettings = AllRunSettings(),
-            eventSinkContributors = [],
+            globalEventSink = NoopEventSink,
         )
     }
 

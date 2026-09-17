@@ -17,11 +17,15 @@ import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
 import com.github.ajalt.mordant.markdown.Markdown
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import org.jetbrains.amper.cli.UserReadableError
 import org.jetbrains.amper.cli.apprun.RunTarget
+import org.jetbrains.amper.cli.childScope
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.context.copyWithNewProjectContext
 import org.jetbrains.amper.cli.context.findProjectContext
+import org.jetbrains.amper.cli.events.createProgressStatusWidgetSink
 import org.jetbrains.amper.cli.formatModulePlatforms
 import org.jetbrains.amper.cli.formatPlatforms
 import org.jetbrains.amper.cli.getModuleByName
@@ -37,6 +41,7 @@ import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withBackend
 import org.jetbrains.amper.compose.reload.HotReloadDelegate
 import org.jetbrains.amper.compose.reload.HotReloadLoop
+import org.jetbrains.amper.events.sink.GlobalEventSink
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Platform
@@ -201,7 +206,21 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
             }
             // If the configuration doesn't actually support hot-reload,
             // it will be diagnosed and the error will be thrown.
-            HotReloadLoop.run(HotReloadDelegateImpl(cliContext, target))
+            coroutineScope {
+                val widgetScope = childScope("TUI widget")
+                val statusWidgetSink = createProgressStatusWidgetSink(terminal, widgetScope)
+                try {
+                    HotReloadLoop.run(
+                        HotReloadDelegateImpl(
+                            initialCliContext = cliContext,
+                            target = target,
+                            globalEventSink = statusWidgetSink
+                        )
+                    )
+                } finally {
+                    widgetScope.cancel()
+                }
+            }
         } else {
             withBackend(cliContext, model, runSettings = allRunSettings()) {
                 it.runApplication(target)
@@ -245,6 +264,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
     private inner class HotReloadDelegateImpl(
         private val initialCliContext: ProjectCliContext,
         private val target: RunTarget,
+        private val globalEventSink: GlobalEventSink,
     ) : HotReloadDelegate<ProjectCliContext> {
         private var modelReloadCount = 0
 
@@ -305,6 +325,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
             */
             withBackend(
                 cliContext = state.cliContext,
+                globalEventSink = globalEventSink,
                 model = state.model,
                 runSettings = allRunSettings(
                     composeHotReloadMode = ComposeHotReloadSettings(
@@ -321,6 +342,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
         ) = runCatchingUserReadableError {
             withBackend(
                 cliContext = state.cliContext,
+                globalEventSink = globalEventSink,
                 model = state.model,
                 runSettings = allRunSettings(),
             ) {

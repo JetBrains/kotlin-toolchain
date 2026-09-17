@@ -35,6 +35,7 @@ internal class BuildStateTrackerSink(
     private val _completeTasksCount = AtomicInteger(0)
     private val taskStatesMap = ConcurrentHashMap<TaskExecutionId, TaskStatusEntryStateTrackerSink>()
 
+    override val startTime = delegate.timeSource.markNow()
     override val testStatistics get() = this
     override val completeTasksCount get() = _completeTasksCount.get()
     override val taskStates get() = taskStatesMap.values

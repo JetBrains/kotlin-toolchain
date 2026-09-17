@@ -263,6 +263,5 @@ class TaskExecutorTest {
         mode = mode,
         problemReporter = NoopProblemReporter,
         globalEventSink = NoopEventSink,
-        eventSinkContributors = [],
     )
 }

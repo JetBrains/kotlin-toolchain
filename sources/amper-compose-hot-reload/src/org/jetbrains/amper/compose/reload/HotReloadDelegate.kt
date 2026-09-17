@@ -12,8 +12,7 @@ import kotlinx.coroutines.Deferred
 interface HotReloadDelegate<Context : HotReloadProjectContext> {
     /**
      * Reads the [org.jetbrains.amper.frontend.Model] and creates the [HotReloadLoop.State] object with the necessary entities.
-     * If there are errors during this stage, [UserReadableError] is expected to be thrown and handled gracefully.
-     * Other exceptions are unexpected and would cause an internal error.
+     * If there are non-internal errors during this stage, they should be returned as a [Result.failure].
      */
     suspend fun readModel(): Result<HotReloadLoop.State<Context>>
 

@@ -16,14 +16,11 @@ import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
 import org.jetbrains.amper.cli.SoftTaskFailureException
 import org.jetbrains.amper.cli.UserReadableError
-import org.jetbrains.amper.cli.events.EventSinkContributors
-import org.jetbrains.amper.cli.events.createOperationSink
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.events.sink.BuildEventSink
 import org.jetbrains.amper.events.sink.GlobalEventSink
 import org.jetbrains.amper.events.sink.OperationEventSink
 import org.jetbrains.amper.events.sink.buildEventScope
-import org.jetbrains.amper.events.sink.plus
 import org.jetbrains.amper.events.sink.taskEventScope
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.problems.reporting.ProblemReporter
@@ -40,7 +37,6 @@ class TaskExecutor(
     private val mode: Mode,
     private val problemReporter: ProblemReporter,
     private val globalEventSink: GlobalEventSink,
-    private val eventSinkContributors: EventSinkContributors,
 ) {
     class ExecutionPlan(
         val totalTasksCount: Int,
@@ -201,7 +197,7 @@ class TaskExecutor(
                     executionContext = TaskGraphExecutionContext(
                         // TODO: Introduce a scoped event-based problem reporter?
                         problemReporter = problemReporter,
-                        eventSink = contextOf<OperationEventSink>() + eventSinkContributors.createOperationSink(),
+                        eventSink = contextOf<OperationEventSink>(),
                         executionUtils = executionUtils,
                     ),
                 )

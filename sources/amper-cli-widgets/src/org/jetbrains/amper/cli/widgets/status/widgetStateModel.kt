@@ -15,6 +15,12 @@ internal interface BuildState {
     val buildId: BuildId
 
     /**
+     * A time mark when the build was *first tracked*.
+     * Do not rely on this value for precise tracing.
+     */
+    val startTime: ComparableTimeMark
+
+    /**
      * Total number of tasks planned for this build.
      */
     val totalTasksCount: Int

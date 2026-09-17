@@ -56,6 +56,7 @@ class TasksProgressWidgetTest {
         override val completeTasksCount = completeTasksCount
         override val testStatistics = testStatistics
         override val taskStates = tasks
+        override val startTime = timeSource.markNow()
     }
 
     private fun entry(
