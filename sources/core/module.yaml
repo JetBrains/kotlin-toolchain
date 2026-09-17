@@ -24,6 +24,8 @@ dependencies:
 
 test-dependencies:
   - $libs.system.stubs.jupiter
+  - $libs.junit.jupiter.params
+  - //sources/test-base
 
 settings:
   jvm:

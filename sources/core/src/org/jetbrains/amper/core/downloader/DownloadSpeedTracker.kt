@@ -12,33 +12,47 @@ import kotlin.time.DurationUnit
 import kotlin.time.TimeSource
 
 internal class DownloadSpeedTracker(
-    private val elapsedTime: () -> Duration = TimeSource.Monotonic.markNow()::elapsedNow,
+    timeSource: TimeSource = TimeSource.Monotonic,
 ) {
-    private val downloadStart = elapsedTime()
+    /**
+     * This is mainly used as an origin of time to measure elapsed time differences.
+     * But it's still semantically the download start because the first sample is artificially at "elapsed time 0" from
+     * this origin.
+     */
+    private val downloadStart = timeSource.markNow()
+
     private val speedWindow = ArrayDeque<DownloadSpeedSample>().apply {
-        addLast(DownloadSpeedSample(downloadStart, 0L))
+        addLast(DownloadSpeedSample(elapsedTime = Duration.ZERO, bytesReceived = 0L))
     }
-    private var lastProgressUpdate = downloadStart
 
+    private var lastProgressUpdate = Duration.ZERO
+
+    /**
+     * Records that a total of [bytesReceived] bytes have been received so far, and returns the average download speed
+     * over the last [DOWNLOAD_SPEED_WINDOW] (in bytes per second), or null if the speed shouldn't be reported yet.
+     *
+     * The speed is not reported more often than every [PROGRESS_UPDATE_INTERVAL], and not at all until the download
+     * has been running for at least [DOWNLOAD_SPEED_WINDOW] (so the first samples are not skewed by the connection
+     * setup). It is averaged over the last [DOWNLOAD_SPEED_WINDOW] of the download.
+     */
     fun track(bytesReceived: Long): Long? {
-        val now = elapsedTime()
-        if (now - lastProgressUpdate < PROGRESS_UPDATE_INTERVAL) return null
-        lastProgressUpdate = now
+        val elapsed = downloadStart.elapsedNow()
+        if (elapsed - lastProgressUpdate < PROGRESS_UPDATE_INTERVAL) return null
+        lastProgressUpdate = elapsed
 
-        speedWindow.addLast(DownloadSpeedSample(now, bytesReceived))
-        while (speedWindow.size > 1 && now - speedWindow.first().elapsedTime > DOWNLOAD_SPEED_WINDOW) {
+        speedWindow.addLast(DownloadSpeedSample(elapsed, bytesReceived))
+        // We keep at least 2 samples, so we can report a speed even when no bytes were reported for longer than
+        // DOWNLOAD_SPEED_WINDOW. We also make sure to keep samples so we have at least a full window.
+        while (speedWindow.size > 2 && elapsed - speedWindow[1].elapsedTime >= DOWNLOAD_SPEED_WINDOW) {
             speedWindow.removeFirst()
         }
 
-        val speed = if (now - downloadStart > DOWNLOAD_SPEED_WINDOW) {
-            val oldest = speedWindow.first()
-            val windowElapsed = now - oldest.elapsedTime
-            val windowBytes = bytesReceived - oldest.bytesReceived
-            (windowBytes / windowElapsed.toDouble(DurationUnit.SECONDS)).roundToLong()
-        } else {
-            null
-        }
-        return speed
+        if (elapsed < DOWNLOAD_SPEED_WINDOW) return null
+
+        val oldest = speedWindow.first()
+        val windowElapsed = elapsed - oldest.elapsedTime
+        val windowBytes = bytesReceived - oldest.bytesReceived
+        return (windowBytes / windowElapsed.toDouble(DurationUnit.SECONDS)).roundToLong()
     }
 }
 
