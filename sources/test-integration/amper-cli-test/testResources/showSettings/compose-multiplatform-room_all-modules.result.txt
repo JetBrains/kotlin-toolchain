@@ -211,7 +211,7 @@ settings@iosSimulatorArm64:
     mavenCentral:
       enabled: false  # default
       notifyKlibsIo:
-        apiUrl: https://klibs.io/notify/artifacts  # default
+        apiUrl: https://api.klibs.io/notify/artifacts  # default
         automatic: false  # default
       publishingMode: manual  # default
     name: null  # default
@@ -324,7 +324,7 @@ settings@jvm:
     mavenCentral:
       enabled: false  # default
       notifyKlibsIo:
-        apiUrl: https://klibs.io/notify/artifacts  # default
+        apiUrl: https://api.klibs.io/notify/artifacts  # default
         automatic: false  # default
       publishingMode: manual  # default
     name: null  # default
@@ -434,7 +434,7 @@ settings@iosArm64+iosSimulatorArm64:
     mavenCentral:
       enabled: false  # default
       notifyKlibsIo:
-        apiUrl: https://klibs.io/notify/artifacts  # default
+        apiUrl: https://api.klibs.io/notify/artifacts  # default
         automatic: false  # default
       publishingMode: manual  # default
     name: null  # default
@@ -563,7 +563,7 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
     mavenCentral:
       enabled: false  # default
       notifyKlibsIo:
-        apiUrl: https://klibs.io/notify/artifacts  # default
+        apiUrl: https://api.klibs.io/notify/artifacts  # default
         automatic: false  # default
       publishingMode: manual  # default
     name: null  # default
@@ -684,7 +684,7 @@ settings@jvm:
     mavenCentral:
       enabled: false  # default
       notifyKlibsIo:
-        apiUrl: https://klibs.io/notify/artifacts  # default
+        apiUrl: https://api.klibs.io/notify/artifacts  # default
         automatic: false  # default
       publishingMode: manual  # default
     name: null  # default
@@ -816,7 +816,7 @@ settings@android:
     mavenCentral:
       enabled: false  # default
       notifyKlibsIo:
-        apiUrl: https://klibs.io/notify/artifacts  # default
+        apiUrl: https://api.klibs.io/notify/artifacts  # default
         automatic: false  # default
       publishingMode: manual  # default
     name: null  # default
@@ -921,7 +921,7 @@ settings@iosArm64:
     mavenCentral:
       enabled: false  # default
       notifyKlibsIo:
-        apiUrl: https://klibs.io/notify/artifacts  # default
+        apiUrl: https://api.klibs.io/notify/artifacts  # default
         automatic: false  # default
       publishingMode: manual  # default
     name: null  # default
@@ -1026,7 +1026,7 @@ settings@iosSimulatorArm64:
     mavenCentral:
       enabled: false  # default
       notifyKlibsIo:
-        apiUrl: https://klibs.io/notify/artifacts  # default
+        apiUrl: https://api.klibs.io/notify/artifacts  # default
         automatic: false  # default
       publishingMode: manual  # default
     name: null  # default

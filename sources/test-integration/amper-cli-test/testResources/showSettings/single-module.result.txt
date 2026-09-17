@@ -91,7 +91,7 @@ settings@jvm:
     mavenCentral:
       enabled: false  # default
       notifyKlibsIo:
-        apiUrl: https://klibs.io/notify/artifacts  # default
+        apiUrl: https://api.klibs.io/notify/artifacts  # default
         automatic: false  # default
       publishingMode: manual  # default
     name: null  # default

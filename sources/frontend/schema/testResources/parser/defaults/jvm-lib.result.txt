@@ -170,7 +170,7 @@ Fragments:
         mavenCentral: <default> {
           enabled: <default> false
           notifyKlibsIo: <default> {
-            apiUrl: <default> https://klibs.io/notify/artifacts
+            apiUrl: <default> https://api.klibs.io/notify/artifacts
             automatic: <default> false
           }
           publishingMode: <default> manual
@@ -374,7 +374,7 @@ Fragments:
         mavenCentral: <default> {
           enabled: <default> false
           notifyKlibsIo: <default> {
-            apiUrl: <default> https://klibs.io/notify/artifacts
+            apiUrl: <default> https://api.klibs.io/notify/artifacts
             automatic: <default> false
           }
           publishingMode: <default> manual

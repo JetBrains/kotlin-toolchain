@@ -95,7 +95,7 @@ class KlibsIoNotificationSettings : SchemaNode() {
     val automatic by value(default = false)
 
     @SchemaDoc("URL of the klibs.io endpoint for receiving notifications.")
-    val apiUrl by value(default = "https://klibs.io/notify/artifacts")
+    val apiUrl by value(default = "https://api.klibs.io/notify/artifacts")
 }
 
 enum class Checksum(
