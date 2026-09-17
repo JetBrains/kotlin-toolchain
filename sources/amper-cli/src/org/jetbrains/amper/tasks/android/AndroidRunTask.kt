@@ -4,10 +4,12 @@
 
 package org.jetbrains.amper.tasks.android
 
+import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
+import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.ConsoleProgressIndicator
 import com.android.sdklib.AndroidVersion
@@ -21,6 +23,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import nl.adaptivity.xmlutil.serialization.XML
@@ -39,6 +42,7 @@ import org.jetbrains.amper.processes.startLongLivedProcess
 import org.jetbrains.amper.tasks.MobileRunSettings
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.util.BuildType
+import java.io.IOException
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
@@ -47,6 +51,8 @@ import kotlin.io.path.pathString
 import kotlin.io.path.readText
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import com.android.ddmlib.TimeoutException as DdmTimeoutException
 import org.jetbrains.amper.frontend.schema.AndroidVersion as AmperAndroidVersion
 
 const val headlessEmulatorModePropertyName = "org.jetbrains.amper.android.emulator.headless"
@@ -75,8 +81,7 @@ class AndroidRunTask(
             .flatMap { it.outputs.filter { it.endsWith("emulator") } }.singleOrNull()
             ?: error("Emulator not found")).resolve("emulator")
 
-        val device = run {
-            runSettings.deviceId?.let { deviceId ->
+        val device = runSettings.deviceId?.let { deviceId ->
                 adb.devices.find { it.serialNumber == deviceId } ?: userReadableError(
                     "Unable to find the device with the serial = `$deviceId`, available devices: ${adb.devices.joinToString { it.serialNumber }}"
                 )
@@ -84,7 +89,7 @@ class AndroidRunTask(
                 androidTarget = androidFragment.settings.android.targetSdk.versionNumber,
                 emulatorExecutable = emulatorExecutable,
             )
-        }.waitForBootCompleted()
+        device.waitForBootCompleted()
 
         val apk = dependenciesResult.filterIsInstance<AndroidDelegatedGradleTask.Result>()
             .singleOrNull()?.artifacts?.firstOrNull() ?: error("Apk not found")
@@ -273,14 +278,59 @@ private val xml = XML {
     }
 }
 
-private suspend fun IDevice.waitForBootCompleted(interval: Duration = 10.milliseconds): IDevice {
-    flow {
+/**
+ * Waits until this device has finished booting.
+ *
+ * Polls the `sys.boot_completed` property of this device every [pollingInterval], until it reports a completed boot or
+ * until the given [timeout] elapses.
+ */
+internal suspend fun IDevice.waitForBootCompleted(
+    pollingInterval: Duration = 300.milliseconds,
+    timeout: Duration = 10.minutes,
+) {
+    // The last transient ADB failure that was ignored while polling, if any
+    var lastTransientAdbFailure: Exception? = null
+
+    val bootCompleted = withTimeoutOrNull(timeout) {
         while (true) {
-            emit(executeShellCommandAndGetOutput("getprop sys.boot_completed"))
-            delay(interval)
+            try {
+                val isBootCompleted = executeShellCommandAndGetOutput("getprop sys.boot_completed").trim() == "1"
+                if (isBootCompleted) {
+                    break
+                }
+            } catch (e: Exception) {
+                if (!e.isTransientAdbFailure()) {
+                    throw e
+                }
+                logger.debug("Couldn't read the 'sys.boot_completed' property of device '$serialNumber', " +
+                                 "the device is most likely still booting", e)
+                lastTransientAdbFailure = e
+            }
+            delay(pollingInterval)
         }
-    }.first { it.contains("1") }
-    return this
+    }
+    if (bootCompleted == null) {
+        userReadableError(
+            message = "The device '$serialNumber' didn't complete its boot within $timeout. Please check the state of " +
+                "the device, and run this command again once the device is ready.",
+            cause = lastTransientAdbFailure,
+        )
+    }
+}
+
+
+/**
+ * Whether this exception is an ADB failure that is expected while a device is booting, and thus should not be fatal.
+ *
+ * ADB can reject commands with a "closed" or "device offline" message while the device's `adbd` daemon is restarting,
+ * which happens during the boot. Commands can also time out or fail at the socket level.
+ */
+private fun Exception.isTransientAdbFailure(): Boolean = when (this) {
+    is AdbCommandRejectedException,
+    is ShellCommandUnresponsiveException,
+    is DdmTimeoutException,
+    is IOException -> true
+    else -> false
 }
 
 private suspend fun IDevice.executeShellCommandAndGetOutput(command: String): String =
