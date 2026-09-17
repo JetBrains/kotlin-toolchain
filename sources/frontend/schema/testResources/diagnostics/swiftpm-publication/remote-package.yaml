@@ -1,0 +1,21 @@
+product:
+  type: kmp/lib
+  platforms: [ iosArm64, macosArm64 ]
+
+dependencies:
+  - swiftPackage:
+      repository:
+        value: "https://example.com/foo/bar.git"
+      version:
+        value: "1.0.0"
+      products: [ "BarProduct" ]
+
+repositories:
+  - id: remoteRepo
+    url: https://example.com/maven
+    publish: true
+    resolve: false
+
+settings:
+  publishing:
+    enabled: true

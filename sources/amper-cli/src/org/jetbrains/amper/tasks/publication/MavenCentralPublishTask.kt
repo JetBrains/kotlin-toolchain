@@ -11,6 +11,7 @@ import org.jetbrains.amper.engine.PublishTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
+import org.jetbrains.amper.frontend.MAVEN_CENTRAL_REPOSITORY_ID
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.schema.PublishingMode
 import org.jetbrains.amper.mavencentral.DeploymentState
@@ -25,8 +26,6 @@ import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration.Companion.milliseconds
-
-internal const val MAVEN_CENTRAL_REPOSITORY_ID = "mavenCentral"
 
 class MavenCentralPublishTask(
     override val taskName: TaskName,

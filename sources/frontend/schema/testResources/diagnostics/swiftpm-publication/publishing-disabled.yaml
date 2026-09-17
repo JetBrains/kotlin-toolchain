@@ -1,0 +1,14 @@
+product:
+  type: kmp/lib
+  platforms: [ iosArm64, macosArm64 ]
+
+dependencies:
+  - localSwiftPackage:
+      path: commonPackage
+      products: [ "CommonProduct" ]
+
+repositories:
+  - id: remoteRepo
+    url: https://example.com/maven
+    publish: true
+    resolve: false

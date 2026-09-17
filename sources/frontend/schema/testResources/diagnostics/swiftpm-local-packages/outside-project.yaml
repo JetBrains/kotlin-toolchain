@@ -1,0 +1,9 @@
+# No publishing at all: the problem is about other developers of this project, not about consumers.
+product:
+  type: kmp/lib
+  platforms: [ iosArm64, macosArm64 ]
+
+dependencies:
+  - <![Warning] Local Swift package `outsidePackage` is located outside the project directory. Other developers who check out this project will not be able to resolve it unless they reproduce the same directory layout on their machine. Please move the package inside the project, or use a remote Swift package (`swiftPackage`).!>localSwiftPackage:
+      path: ../outsidePackage
+      products: [ "OutsideProduct" ]<!>

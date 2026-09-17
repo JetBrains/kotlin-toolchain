@@ -39,6 +39,8 @@ enum class FrontendDiagnosticId : DiagnosticId {
     KotlinCompilerVersionTooLow,
     KotlinIncrementalCompilationMayBehaveIncorrectly,
     KotlinVersionDoesNotSupportJdk,
+    LocalSwiftPackageInRemotePublication,
+    LocalSwiftPackageOutsideProject,
     MandatoryFieldInPropertiesFileMustBePresent,
     MavenCentralPublishingEnabledButPublishingDisabled,
     ModuleDependencyDoesntHaveNeededPlatforms,

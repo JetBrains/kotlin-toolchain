@@ -26,6 +26,7 @@ import org.jetbrains.amper.engine.TestTask
 import org.jetbrains.amper.engine.id
 import org.jetbrains.amper.engine.runTasksAndReportOnFailure
 import org.jetbrains.amper.frontend.AmperModule
+import org.jetbrains.amper.frontend.MAVEN_CENTRAL_REPOSITORY_ID
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
@@ -54,7 +55,6 @@ import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.tasks.jvm.JvmCompileTask
 import org.jetbrains.amper.tasks.jvm.JvmHotRunTask
 import org.jetbrains.amper.tasks.native.swiftpm.checkNoPublishedLocalSwiftPackages
-import org.jetbrains.amper.tasks.publication.MAVEN_CENTRAL_REPOSITORY_ID
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.useWithoutCoroutines
 import org.jetbrains.amper.util.BuildType

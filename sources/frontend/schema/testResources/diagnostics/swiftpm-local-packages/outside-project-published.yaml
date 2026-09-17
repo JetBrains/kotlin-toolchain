@@ -1,0 +1,19 @@
+# Both diagnostics apply here: the package is unresolvable for other developers AND unpublishable.
+product:
+  type: kmp/lib
+  platforms: [ iosArm64, macosArm64 ]
+
+dependencies:
+  - <![Warning] Local Swift package `outsidePackage` cannot be published to the repository `remoteRepo`, because local packages are published as absolute paths, so consumers could only resolve them on this machine. Please use a remote Swift package (`swiftPackage`) instead, or publish this module to the local Maven repository (`mavenLocal`) only.!><![Warning] Local Swift package `outsidePackage` is located outside the project directory. Other developers who check out this project will not be able to resolve it unless they reproduce the same directory layout on their machine. Please move the package inside the project, or use a remote Swift package (`swiftPackage`).!>localSwiftPackage:
+      path: ../outsidePackage
+      products: [ "OutsideProduct" ]<!><!>
+
+repositories:
+  - id: remoteRepo
+    url: https://example.com/maven
+    publish: true
+    resolve: false
+
+settings:
+  publishing:
+    enabled: true

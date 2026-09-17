@@ -1,0 +1,21 @@
+product:
+  type: kmp/lib
+  platforms: [ iosArm64, macosArm64 ]
+
+dependencies:
+  - <![Warning] Local Swift package `commonPackage` cannot be published to the repository `remoteRepo`, because local packages are published as absolute paths, so consumers could only resolve them on this machine. Please use a remote Swift package (`swiftPackage`) instead, or publish this module to the local Maven repository (`mavenLocal`) only.!>localSwiftPackage:
+      path: commonPackage
+      products: [ "CommonProduct" ]<!>
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    publish: true
+  - id: remoteRepo
+    url: https://example.com/maven
+    publish: true
+    resolve: false
+
+settings:
+  publishing:
+    enabled: true

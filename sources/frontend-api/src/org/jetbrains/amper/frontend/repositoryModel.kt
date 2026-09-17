@@ -38,3 +38,10 @@ data class PublicationRepository(
 val ResolutionRepository.isMavenLocal: Boolean get() = url == Repository.SpecialMavenLocalUrl
 
 val PublicationRepository.isMavenLocal: Boolean get() = url == Repository.SpecialMavenLocalUrl
+
+/**
+ * The ID of the Maven Central repository.
+ *
+ * The Kotlin Toolchain adds this repository to every module by default (together with `mavenGoogle`)
+ */
+const val MAVEN_CENTRAL_REPOSITORY_ID = "mavenCentral"

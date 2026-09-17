@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend.aomBuilder
 
+import org.jetbrains.amper.frontend.MAVEN_CENTRAL_REPOSITORY_ID
 import org.jetbrains.amper.frontend.PublicationRepository
 import org.jetbrains.amper.frontend.RepositoryCredentials
 import org.jetbrains.amper.frontend.ResolutionRepository
@@ -96,7 +97,7 @@ internal fun Module.readPublishRepositories(): List<PublicationRepository> =
 
 val defaultMavenRepositories = [
     ResolutionRepository(
-        id = "mavenCentral",
+        id = MAVEN_CENTRAL_REPOSITORY_ID,
         url = MavenCentralDefaultConfiguration.url,
     ),
     ResolutionRepository(

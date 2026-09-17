@@ -6,6 +6,7 @@ package org.jetbrains.amper.frontend.diagnostics
 
 val AomModelDiagnosticFactories: List<AomModelDiagnosticFactory> = listOf(
     JvmReleaseLowerThanDependencies,
+    LocalSwiftPackageOutsideProjectFactory,
     ModuleDependencyLoopFactory,
     PublishingSettingsMissingInDependencies,
     ComposeHotReloadVersionConflictFactory,
@@ -20,6 +21,7 @@ val AomSingleModuleDiagnosticFactories: List<AomSingleModuleDiagnosticFactory> =
     JdkDistributionRequiresLicenseFactory,
     KotlinIncrementalCompilationMayBehaveIncorrectlyFactory,
     KotlinVersionDoesNotSupportJdkFactory,
+    LocalSwiftPackageInRemotePublicationFactory,
     SerializationVersionWithDisabledSerialization,
     SigningEnabledWithoutPropertiesFileFactory,
     KeystorePropertiesDoesNotContainKeyFactory,
