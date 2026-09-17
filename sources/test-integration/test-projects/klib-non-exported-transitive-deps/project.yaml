@@ -1,6 +1,8 @@
 modules:
   - exported-facade
   - facade-lib
+  - facade-only-consumer
   - good-consumer
   - leaking-consumer
+  - leaking-external-consumer
   - model-lib

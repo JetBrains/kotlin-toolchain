@@ -103,7 +103,9 @@ internal abstract class WebCompileKlibTask(
             error("Zero fragments in module ${module.userReadableName} for platform $platform isTest=$isTest")
         }
 
-        // TODO The IR compiler needs recursive dependencies
+        // Exported compile transitive dependencies only (aligned with what KGP does for JS/Wasm).
+        // JS/Wasm KLIBs record no "depends" in their manifest (unlike Kotlin/Native ones),
+        // and the compiler's KLIB loader never resolves transitive dependencies by itself.
         val externalDependencies = dependenciesResult
             .filterIsInstance<ResolveExternalDependenciesTask.Result>()
             .flatMap { it.compileClasspath }

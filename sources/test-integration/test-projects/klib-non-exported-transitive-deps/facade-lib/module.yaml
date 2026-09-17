@@ -2,6 +2,7 @@ product:
   type: kmp/lib
   platforms: [ js, jvm, wasmJs, wasmWasi ]
 
-# Not exported: 'Model' must not be visible to the consumers of this module
+# Neither of these is exported: neither 'Model' nor the kotlinx-datetime types may be visible to the consumers
 dependencies:
   - ../model-lib
+  - org.jetbrains.kotlinx:kotlinx-datetime:0.7.1

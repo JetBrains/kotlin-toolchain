@@ -7,6 +7,7 @@ package org.jetbrains.amper.cli.test.dependencies
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertSomeStderrLineContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
+import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -45,6 +46,36 @@ class DependencyResolutionTest : CliTestBase() {
             else -> "LeakingConsumer.kt:2:22: error: unresolved reference 'Model'."
         }
         result.assertSomeStderrLineContains(expectedDiagnostic)
+    }
+
+    @RunForEachKlibPlatformAndJvm
+    fun `types from non-exported external dependencies are not visible`(platform: String) = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("klib-non-exported-transitive-deps"),
+            "build", "--module=leaking-external-consumer", "--platform=$platform",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        val expectedDiagnostic = when (platform) {
+            "jvm" -> "ERROR: Unresolved reference 'kotlinx'."
+            else -> "LeakingExternalConsumer.kt:6:27: error: unresolved reference 'kotlinx'."
+        }
+        result.assertSomeStderrLineContains(expectedDiagnostic)
+    }
+
+    @RunForEachKlibPlatformAndJvm
+    fun `compiling against a module doesn't need its non-exported dependencies`(platform: String) = runSlowTest {
+        // 'facade-only-consumer' only depends on 'facade-lib', so neither 'model-lib' nor kotlinx-datetime (the
+        // non-exported dependencies of 'facade-lib') is on the compilation classpath. The KLIB compilations must
+        // cope with that: JS/Wasm KLIBs record no "depends" in their manifest, and the compiler's KLIB loader
+        // never tries to resolve transitive dependencies by itself.
+        val result = runCli(
+            projectDir = testProject("klib-non-exported-transitive-deps"),
+            "build", "--module=facade-only-consumer", "--platform=$platform",
+        )
+
+        result.assertStdoutDoesNotContain("KLIB resolver")
     }
 
     // KTC-5875
