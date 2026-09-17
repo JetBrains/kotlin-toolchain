@@ -86,7 +86,14 @@ class AndroidSdkProviderTest {
                 tag = AndroidSdkPackageRequest.SystemImage.ServicesTag.GoogleApis,
                 abi = systemImageAbi,
             )
-            createTestProvider().assertSuccessProvisioning(request)
+            val androidPackage = createTestProvider().assertSuccessProvisioning(request)
+            // Preview images (`android-CANARY`, `android-canary-20260909`, `android-37.2-beta1`, ...) are published to
+            // the stable channel, but must never be selected because they are unstable (our invariant is implicitly
+            // about reusing stable versions that match the configuration).
+            assertTrue(
+                androidPackage.packagePath.path.matches(stableSystemImagePathRegex),
+                "expected a stable system image, but got a preview one: ${androidPackage.packagePath}",
+            )
         }
     }
 
@@ -354,6 +361,8 @@ class AndroidSdkProviderTest {
         }
     }
 }
+
+private val stableSystemImagePathRegex = Regex("""system-images;android-\d+(\.\d+)?(-ext\d+)?;.+""")
 
 private val fromMemoryCacheKey: AttributeKey<Boolean> = AttributeKey.booleanKey("from-memory-cache")
 private val statusKey: AttributeKey<String> = AttributeKey.stringKey("status")

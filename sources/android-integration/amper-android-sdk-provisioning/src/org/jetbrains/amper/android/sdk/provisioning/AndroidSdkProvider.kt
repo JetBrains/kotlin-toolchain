@@ -325,7 +325,8 @@ private fun AndroidSdkPackageRequest.SystemImage.findBestPackageLocally(sdkHome:
     val acceptableVersion = ComparableVersion("$minimalAcceptableApiLevel")
     val (servicesRoot) = systemImagesHome.listDirectoryEntries(glob = "android-*")
         .mapNotNull { imageRoot ->
-            val version = ComparableVersion(imageRoot.name.removePrefix("android-"))
+            // Preview images are skipped here for the same reason as in findBestPackageRemotely
+            val version = imageRoot.stableApiVersionOrNull() ?: return@mapNotNull null
             if (version < acceptableVersion) return@mapNotNull null
 
             val acceptableTag = imageRoot.listDirectoryEntries()
@@ -345,11 +346,30 @@ private fun AndroidSdkPackageRequest.SystemImage.findBestPackageLocally(sdkHome:
     return servicesRoot / abi.repositoryValue
 }
 
+/**
+ * Regex matching the directory name of a stable system image, such as `android-37`, `android-37.2`, or
+ * `android-36-ext19`.
+ *
+ * Preview images are named after their codename or preview build instead (`android-CANARY`,
+ * `android-canary-20260909`, `android-37.2-beta1`), and thus don't match this pattern.
+ */
+private val stableSystemImageDirRegex = Regex("""android-(?<version>\d+(?:\.\d+)?(?:-ext\d+)?)""")
+
+/**
+ * Returns the API version of this local system image directory, or null if it is not a stable image directory.
+ */
+private fun Path.stableApiVersionOrNull(): ComparableVersion? {
+    val match = stableSystemImageDirRegex.matchEntire(name) ?: return null
+    val version = match.groups["version"] ?: error("regex matches but mandatory group 'version' is absent")
+    return ComparableVersion(version.value)
+}
+
 private fun AndroidSdkPackageRequest.SystemImage.findBestPackageRemotely(packages: List<RemotePackage>): PackagePath? {
     return packages.filter { remotePackage ->
         val typeDetails = remotePackage.typeDetails as? DetailsTypes.SysImgDetailsType ?: return@filter false
-        // We can't use channel as an indicator of stable package because beta packages are published to the stable channel
-        if (remotePackage.path.contains("beta") || remotePackage.path.contains("dev")) return@filter false
+        // We can't use the channel as an indicator of a stable package, because preview packages (beta, canary) are
+        // published to the stable channel. Preview packages are instead identified by their codename.
+        if (typeDetails.codename != null) return@filter false
 
         // We want to download the latest available system image so that it's suitable for most of the projects later on
         typeDetails.apiLevel >= minimalAcceptableApiLevel &&
