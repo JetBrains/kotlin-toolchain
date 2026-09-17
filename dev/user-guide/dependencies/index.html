@@ -1160,6 +1160,17 @@ and more.
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#publishing-libraries-with-swiftpm-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing libraries with SwiftPM dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3066,6 +3077,17 @@ and more.
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#publishing-libraries-with-swiftpm-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing libraries with SwiftPM dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3563,6 +3585,21 @@ of dependency will apply. Other types of dependencies can be specified using the
 <span class="w">    </span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div>
+<h3 id="publishing-libraries-with-swiftpm-dependencies">Publishing libraries with SwiftPM dependencies<a class="headerlink" href="#publishing-libraries-with-swiftpm-dependencies" title="Permanent link">&para;</a></h3>
+<p>When a <a href="../publishing/">published library</a> declares SwiftPM dependencies, they are published alongside its artifacts so
+that consumers of the library know which Swift packages they have to fetch and link. Nothing needs to be configured for
+this: the SwiftPM dependencies of the library are described in an additional <code>-swiftpm-metadata.json</code> artifact, in the
+same format as the one published by the Kotlin Gradle Plugin.</p>
+<p>Only the SwiftPM dependencies declared by the library itself are published. The ones declared by their own dependencies 
+are published by those dependencies and are collected by walking the whole dependency graph.</p>
+<div class="admonition warning">
+<p class="admonition-title">Libraries depending on local Swift packages can only be published to the local Maven repository</p>
+<p><a href="#importing-local-swift-packages">Local Swift packages</a> are published as the absolute path they had on the
+publishing machine, so only consumers building on that same machine could resolve them reliably. This is why a library that
+depends on local Swift packages can only be published to the local Maven repository (<code>mavenLocal</code>), which is
+machine-local as well. Publishing it to any other repository fails with an error, so use remote packages in
+libraries that you share with others.</p>
+</div>
 <div class="footnote">
 <hr />
 <ol>
@@ -3599,7 +3636,7 @@ of dependency will apply. Other types of dependencies can be specified using the
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 4, 2026 13:47:48 UTC">September 4, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 15, 2026 15:17:21 UTC">September 15, 2026</span>
   </span>
 
     
