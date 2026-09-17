@@ -72,21 +72,28 @@ fun ProjectTasksBuilder.setupJsTasks() {
             }
         }
 
+    // KLIB compilation must only see the exported ('api') part of the transitive module dependencies
+    // so that non-exported types don't leak into the consumer's compilation classpath.
     allModules()
         .alsoPlatforms(Platform.JS)
         .alsoTests()
-        .selectModuleDependencies(ResolutionScope.RUNTIME).withEach {
+        .selectModuleDependencies(ResolutionScope.COMPILE).withEach {
             tasks.registerDependency(
                 CommonTaskType.Compile.getTaskName(module, platform, isTest),
                 CommonTaskType.Compile.getTaskName(dependsOn, platform, false)
             )
+        }
 
-            if (needsLinkedExecutable(module, isTest)) {
-                tasks.registerDependency(
-                    LinkTaskType.getTaskName(module, platform, isTest),
-                    CommonTaskType.Compile.getTaskName(dependsOn, platform, false)
-                )
-            }
+    // Linking, on the other hand, needs the whole runtime closure of KLIBs.
+    allModules()
+        .alsoPlatforms(Platform.JS)
+        .alsoTests()
+        .filter { needsLinkedExecutable(it.module, it.isTest) }
+        .selectModuleDependencies(ResolutionScope.RUNTIME).withEach {
+            tasks.registerDependency(
+                LinkTaskType.getTaskName(module, platform, isTest),
+                CommonTaskType.Compile.getTaskName(dependsOn, platform, false)
+            )
         }
 }
 

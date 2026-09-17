@@ -1,0 +1,6 @@
+modules:
+  - exported-facade
+  - facade-lib
+  - good-consumer
+  - leaking-consumer
+  - model-lib

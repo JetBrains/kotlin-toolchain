@@ -1,0 +1,6 @@
+product:
+  type: kmp/lib
+  platforms: [ js, jvm, wasmJs, wasmWasi ]
+
+dependencies:
+  - ../model-lib: exported

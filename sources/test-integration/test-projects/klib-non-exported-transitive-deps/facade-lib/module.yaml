@@ -1,0 +1,7 @@
+product:
+  type: kmp/lib
+  platforms: [ js, jvm, wasmJs, wasmWasi ]
+
+# Not exported: 'Model' must not be visible to the consumers of this module
+dependencies:
+  - ../model-lib

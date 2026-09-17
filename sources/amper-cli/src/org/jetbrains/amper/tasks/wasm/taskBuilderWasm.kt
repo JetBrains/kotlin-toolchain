@@ -120,22 +120,29 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
             }
         }
 
+    // KLIB compilation must only see the exported ('api') part of the transitive module dependencies
+    // so that non-exported types don't leak into the consumer's compilation classpath.
     allModules()
         .alsoPlatforms(platform)
         .alsoTests()
-        .alsoBuildTypes()
-        .selectModuleDependencies(ResolutionScope.RUNTIME).withEach {
+        .selectModuleDependencies(ResolutionScope.COMPILE).withEach {
             tasks.registerDependency(
                 CommonTaskType.Compile.getTaskName(module, platform, isTest),
                 CommonTaskType.Compile.getTaskName(dependsOn, platform, false)
             )
+        }
 
-            if (needsLinkedExecutable(module, isTest)) {
-                tasks.registerDependency(
-                    LinkTaskType.getTaskName(module, platform, isTest, buildType),
-                    CommonTaskType.Compile.getTaskName(dependsOn, platform, false)
-                )
-            }
+    // Linking, on the other hand, needs the whole runtime closure of KLIBs.
+    allModules()
+        .alsoPlatforms(platform)
+        .alsoTests()
+        .alsoBuildTypes()
+        .filter { needsLinkedExecutable(it.module, it.isTest) }
+        .selectModuleDependencies(ResolutionScope.RUNTIME).withEach {
+            tasks.registerDependency(
+                LinkTaskType.getTaskName(module, platform, isTest, buildType),
+                CommonTaskType.Compile.getTaskName(dependsOn, platform, false)
+            )
         }
 }
 

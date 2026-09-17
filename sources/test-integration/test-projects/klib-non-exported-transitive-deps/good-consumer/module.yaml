@@ -1,0 +1,10 @@
+product:
+  type: kmp/lib
+  platforms: [ js, jvm, wasmJs, wasmWasi ]
+
+dependencies:
+  - ../exported-facade
+  - ../facade-lib
+
+test-dependencies:
+  - $kotlin.test
