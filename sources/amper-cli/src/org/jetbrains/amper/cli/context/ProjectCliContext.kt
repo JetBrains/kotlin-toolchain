@@ -33,12 +33,12 @@ interface ProjectCliContext : CliContext, HotReloadProjectContext {
     val projectTempRoot: AmperProjectTempRoot
 
     /**
-     * The root directory containing all logs for all Amper executions in the current project.
+     * The root directory containing all logs for all Kotlin CLI executions in the current project.
      */
     val projectLogsRoot: AmperProjectLogsRoot
 
     /**
-     * The logs directory for the current Amper execution.
+     * The logs directory for the current Kotlin CLI execution.
      */
     val currentLogsRoot: AmperBuildLogsRoot
 

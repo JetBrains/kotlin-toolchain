@@ -9,6 +9,7 @@ import org.jetbrains.amper.cli.context.GlobalCliContext
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.options.ProjectLayoutOptions
 import org.jetbrains.amper.cli.userReadableError
+import java.nio.file.Path
 
 /**
  * An [AmperSubcommand] that can only be run in an Amper project.
@@ -24,7 +25,11 @@ internal abstract class AmperProjectAwareCommand(name: String) : AmperSubcommand
         when (val cliContext = findCliContext(layoutOptions)) {
             is ProjectCliContext -> {
                 setProjectSpecificState(cliContext)
-                run(cliContext)
+                try {
+                    run(cliContext)
+                } catch (e: Exception) {
+                    throw LogsDirAwareInternalError(logsDir = cliContext.currentLogsRoot.path, cause = e)
+                }
             }
             is GlobalCliContext -> userReadableError(
                 "No Kotlin project found in the current directory or above. " +
@@ -37,3 +42,9 @@ internal abstract class AmperProjectAwareCommand(name: String) : AmperSubcommand
 
     abstract suspend fun run(cliContext: ProjectCliContext)
 }
+
+/**
+ * An exception that wraps any exception thrown during the execution of the command (internal error) to add information
+ * about the logs directory, so we can ask users to upload it.
+ */
+class LogsDirAwareInternalError(val logsDir: Path, override val cause: Throwable) : Exception(cause)

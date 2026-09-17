@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.parsers.CommandLineParser
 import com.github.ajalt.mordant.terminal.Terminal
+import org.jetbrains.amper.cli.commands.LogsDirAwareInternalError
 import org.jetbrains.amper.cli.commands.RootCommand
 import org.jetbrains.amper.cli.logging.withoutConsoleLogging
 import org.jetbrains.amper.cli.telemetry.TelemetryEnvironment
@@ -17,6 +18,7 @@ import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
+import java.nio.file.Path
 import java.time.Instant
 import kotlin.system.exitProcess
 
@@ -62,14 +64,17 @@ suspend fun main(args: Array<String>) {
     } catch (e: ExitProcessButCloseTelemetrySpansException) {
         exitProcess(e.exitCode)
     } catch (e: UserReadableError) {
-        printUserError(e.message, e.cause)
-        // See `resultsOrThrowCombinedError`
-        e.suppressedExceptions
-            .filterIsInstance<UserReadableError>()
-            .forEach { printUserError(it.message, it.cause) }
-        exitProcess(e.exitCode)
+        handleUserError(e)
+    } catch (e: LogsDirAwareInternalError) {
+        val effectiveException = e.cause
+        if (effectiveException is UserReadableError) {
+            handleUserError(effectiveException)
+        } else {
+            printInternalError(effectiveException, e.logsDir)
+            exitProcess(1)
+        }
     } catch (e: Exception) {
-        printInternalError(e)
+        printInternalError(e, logsDir = null)
         exitProcess(1)
     }
 }
@@ -115,6 +120,15 @@ private suspend fun SuspendingCliktCommand.mainWithTelemetry(args: Array<String>
  */
 private class ExitProcessButCloseTelemetrySpansException(val exitCode: Int) : RuntimeException()
 
+private fun handleUserError(e: UserReadableError): Nothing {
+    printUserError(e.message, e.cause)
+    // See `resultsOrThrowCombinedError`
+    e.suppressedExceptions
+        .filterIsInstance<UserReadableError>()
+        .forEach { printUserError(it.message, it.cause) }
+    exitProcess(e.exitCode)
+}
+
 private fun printUserError(message: String, cause: Throwable?) {
     printRedToStderr("\nERROR: $message")
     withoutConsoleLogging {
@@ -122,14 +136,18 @@ private fun printUserError(message: String, cause: Throwable?) {
     }
 }
 
-private fun printInternalError(e: Exception) {
+private fun printInternalError(e: Throwable, logsDir: Path?) {
     // Note: we do not rely on console logging here, because the internal error could have occurred before it's set up
     printRedToStderr("\nInternal error:")
     e.printStackTrace()
 
-    // TODO attach the logs dir location to the exception when there is one, so we can give it here
-    printRedToStderr("\nPlease file a bug report at https://youtrack.jetbrains.com/newIssue?project=KTC, " +
-                         "and attach your logs from build/logs/<this_command_dir>")
+    val message = buildString {
+        append("\nPlease file a bug report at https://youtrack.jetbrains.com/newIssue?project=KTC")
+        if (logsDir != null) {
+            appendLine(", and attach your logs from $logsDir")
+        }
+    }
+    printRedToStderr(message)
 
     withoutConsoleLogging {
         logger.error("Internal error:", e)
