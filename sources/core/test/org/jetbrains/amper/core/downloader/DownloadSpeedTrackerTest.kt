@@ -34,14 +34,14 @@ class DownloadSpeedTrackerTest {
     }
 
     @Test
-    fun `the speed is not reported more often than every 100 milliseconds`() = runTestWithMdc {
+    fun `the speed is reported on every call after the initial window`() = runTestWithMdc {
         val tracker = DownloadSpeedTracker(testTimeSource)
 
         advanceTimeBy(2.seconds)
         assertEquals(1000, tracker.track(2000))
 
         advanceTimeBy(50.milliseconds)
-        assertNull(tracker.track(2050))
+        assertEquals(1000, tracker.track(2050))
 
         advanceTimeBy(50.milliseconds)
         assertEquals(1000, tracker.track(2100))

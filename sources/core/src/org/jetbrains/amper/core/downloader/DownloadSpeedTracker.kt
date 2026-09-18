@@ -6,7 +6,6 @@ package org.jetbrains.amper.core.downloader
 
 import kotlin.math.roundToLong
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.TimeSource
@@ -25,21 +24,16 @@ internal class DownloadSpeedTracker(
         addLast(DownloadSpeedSample(elapsedTime = Duration.ZERO, bytesReceived = 0L))
     }
 
-    private var lastProgressUpdate = Duration.ZERO
-
     /**
      * Records that a total of [bytesReceived] bytes have been received so far, and returns the average download speed
      * over the last [DOWNLOAD_SPEED_WINDOW] (in bytes per second), or null if the speed shouldn't be reported yet.
      *
-     * The speed is not reported more often than every [PROGRESS_UPDATE_INTERVAL], and not at all until the download
-     * has been running for at least [DOWNLOAD_SPEED_WINDOW] (so the first samples are not skewed by the connection
-     * setup). It is averaged over the last [DOWNLOAD_SPEED_WINDOW] of the download.
+     * The speed is not reported until the download has been running for at least [DOWNLOAD_SPEED_WINDOW] (so the first
+     * samples are not skewed by the connection setup). Samples are recorded on every call, and the reported speed is
+     * averaged over the last [DOWNLOAD_SPEED_WINDOW] of the download.
      */
     fun track(bytesReceived: Long): Long? {
         val elapsed = downloadStart.elapsedNow()
-        if (elapsed - lastProgressUpdate < PROGRESS_UPDATE_INTERVAL) return null
-        lastProgressUpdate = elapsed
-
         speedWindow.addLast(DownloadSpeedSample(elapsed, bytesReceived))
         // We keep at least 2 samples, so we can report a speed even when no bytes were reported for longer than
         // DOWNLOAD_SPEED_WINDOW. We also make sure to keep samples so we have at least a full window.
@@ -62,5 +56,3 @@ private data class DownloadSpeedSample(
 )
 
 private val DOWNLOAD_SPEED_WINDOW = 1.seconds
-
-private val PROGRESS_UPDATE_INTERVAL = 100.milliseconds

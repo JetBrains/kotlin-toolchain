@@ -15,13 +15,13 @@ import io.opentelemetry.api.trace.Span
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.amper.concurrency.StripedFileMutexGroup
 import org.jetbrains.amper.concurrency.withLock
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.events.OperationScopedEvent
-import org.jetbrains.amper.events.emitProgressUpdated
-import org.jetbrains.amper.events.payload.ProgressState
 import org.jetbrains.amper.events.sink.EventSink
 import org.jetbrains.amper.stdlib.hashing.sha256String
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -47,6 +47,7 @@ import kotlin.io.path.setLastModifiedTime
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 
 object Downloader {
 
@@ -113,25 +114,25 @@ object Downloader {
                     // Add a hook, so interruption won't leave garbage files.
                     tempFile.toFile().deleteOnExit()
                     target.parent.createDirectories()
+                    val timeSource = TimeSource.Monotonic
                     try {
-                        val speedTracker = DownloadSpeedTracker()
+                        val progressTracker = DownloadProgressTracker(sink, timeSource)
                         val response = archivesDownloadClient.prepareGet(url) {
                             // we manually handle errors below
                             expectSuccess = false
                             onDownload { receivedBytes, contentLength ->
-                                speedTracker.track(receivedBytes)?.let { speed ->
-                                    emitProgressUpdated(
-                                        progressState = ProgressState.Downloading(
-                                            bytesDone = receivedBytes,
-                                            bytesTotal = contentLength,
-                                            speed = speed,
-                                        )
-                                    )
-                                }
+                                progressTracker.onDownload(receivedBytes, contentLength)
                             }
                         }.execute {
                             coroutineScope {
-                                it.bodyAsChannel().copyAndClose(writeChannel(tempFile))
+                                val progressJob = launch {
+                                    progressTracker.run()
+                                }
+                                try {
+                                    it.bodyAsChannel().copyAndClose(writeChannel(tempFile))
+                                } finally {
+                                    progressJob.cancelAndJoin()
+                                }
                             }
                             it
                         }
