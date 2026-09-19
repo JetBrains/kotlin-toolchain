@@ -6,6 +6,8 @@
 
 package org.jetbrains.amper.processes
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import java.nio.file.Path
 import kotlin.contracts.InvocationKind
@@ -54,12 +56,23 @@ annotation class ProcessLeak
 /**
  * Starts a new process with the given [command] in [workingDir], detached from the execution of the current JVM.
  *
- * **WARNING:** this new process will not be stopped or awaited by this function call. Only use this function if the
- * intention is to start a long-lived process that survives across executions of this program.
- * In any other case, please prefer other functions that handle coroutines and process lifecycle.
- *
  * By default, the child process inherits the environment of the current process. Use [configureEnvironment] to add,
  * remove, or change environment variables from the environment map.
+ *
+ * **WARNING:** this new process will not be stopped or awaited by this function call. Only use this function if the
+ * intention is to start a long-lived process that survives across executions of the calling program.
+ * This usually implies reconnecting to the long-lived process in subsequent runs of this program.
+ * In any other case, please prefer other functions that handle coroutines and process lifecycle.
+ *
+ * It is not possible to listen to the output of the process directly via a pipe, because the read end of the pipe would
+ * be closed when this program ends, thus making the started process fail when writing to it. This would defeat the
+ * purpose of a long-lived process. It also wouldn't make sense to read the output via pipes, because subsequent runs of
+ * this program should be able to reconnect to it and get the output via another way anyway.
+ *
+ * This is why this function intentionally doesn't give access to the [Process] object, either.
+ *
+ * It is possible to redirect the output to a file using [outputFileRedirect], though, and access it through the file.
+ * In this case, the stderr stream is also redirected to the same file.
  *
  * @return the started process's PID. This function doesn't return the [Process] object intentionally, because there
  * should be another way to interact with a long-lived process (some kind of IPC).
@@ -69,22 +82,58 @@ fun startLongLivedProcess(
     workingDir: Path? = null,
     command: List<String>,
     configureEnvironment: MutableMap<String, String>.() -> Unit = {},
-    redirectErrorStream: Boolean = false,
-): Long { // NOT the Process, intentionally, because there must be some other way to interact with long-lived processes
+    outputFileRedirect: Path? = null,
+): LongLivedProcess { // NOT the Process, intentionally, because there must be some other way to interact with long-lived processes
     return processBuilder(
         workingDir = workingDir,
         command = command,
         configureEnvironment = configureEnvironment,
     )
-        .redirectErrorStream(redirectErrorStream)
-        .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-        .redirectError(ProcessBuilder.Redirect.DISCARD)
+        .apply {
+            if (outputFileRedirect != null) {
+                redirectOutput(ProcessBuilder.Redirect.appendTo(outputFileRedirect.toFile()))
+                redirectErrorStream(true)
+            } else {
+                redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                redirectError(ProcessBuilder.Redirect.DISCARD)
+            }
+        }
         // no shutdown hook on purpose - we want to keep the process alive after the current JVM terminates
         .start()
         .apply {
             outputStream.close()
         }
-        .pid()
+        .let(::LongLivedProcess)
+}
+
+/**
+ * A process that is expected to outlive the current JVM.
+ * It is equivalent to [Process] but provides less operations, because most interactions should be done via other means.
+ */
+class LongLivedProcess(private val process: Process) {
+    /**
+     * The PID of this process.
+     */
+    val pid: Long get() = process.pid()
+
+    /**
+     * The deferred exit code of this process. Completes when this process terminates.
+     *
+     * This can be used to check for premature termination of this process (which can
+     * be a problem if left unchecked, due to the nature of long-lived processes).
+     *
+     * Ideally, callers should instead use the same liveness check for this process as
+     * for previously started processes from earlier runs.
+     */
+    val exitCode: Deferred<Int> = CompletableDeferred<Int>().apply {
+        process.onExit().handle { process, throwable ->
+            if (throwable != null) {
+                completeExceptionally(throwable)
+            } else {
+                complete(process.exitValue())
+            }
+        }
+    }
 }
 
 private fun processBuilder(
