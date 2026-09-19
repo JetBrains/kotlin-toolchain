@@ -148,13 +148,9 @@ class AndroidRunTask(
                 30,
                 TimeUnit.SECONDS
             )
-        flow {
-            while (!adb.hasInitialDeviceList()) {
-                emit(false)
-                delay(100)
-            }
-            emit(true)
-        }.first { it }
+        while (!adb.hasInitialDeviceList()) {
+            delay(100.milliseconds)
+        }
         return adb
     }
 
