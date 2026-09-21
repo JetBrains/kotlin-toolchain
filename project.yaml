@@ -57,6 +57,7 @@ modules:
   - sources/java-incremental-compilation/amper-jic-runner
   - sources/java-incremental-compilation/intellij-build-zip
   - sources/java-incremental-compilation/jvm-inc-builder
+  - sources/libraries/android-emulator-manager
   - sources/libraries/apple-simulator-manager
   - sources/libraries/async-processes
   - sources/libraries/binary-compatibility-validation

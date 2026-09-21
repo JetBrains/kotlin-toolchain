@@ -1,0 +1,16 @@
+product: jvm/lib
+
+apply:
+  - //sources/common.module-template.yaml
+
+dependencies:
+  - //sources/libraries/async-processes
+  - //sources/libraries/serialization-extended
+  - $libs.kotlinx.coroutines.core
+  - $libs.xmlutil.serialization
+  - $libs.android.tools.common
+  - $libs.android.tools.ddmlib
+
+settings:
+  kotlin:
+    serialization: enabled

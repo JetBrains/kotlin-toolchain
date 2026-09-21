@@ -103,6 +103,7 @@ dependencies:
   - //sources/libraries/maven-central-portal-publisher-client
   - //sources/amper-nodejs-provisioning
   - //sources/amper-pnpm-provisioning
+  - //sources/libraries/android-emulator-manager
 
 test-dependencies:
   - //sources/test-base

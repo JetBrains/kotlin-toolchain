@@ -4,33 +4,24 @@
 
 package org.jetbrains.amper.tasks.android
 
-import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.IDevice.DeviceState
-import com.android.ddmlib.IShellOutputReceiver
-import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.ConsoleProgressIndicator
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE
 import com.android.sdklib.devices.DeviceManager
+import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.OnDiskSkin
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.utils.StdLogger
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.serialization.XmlElement
-import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import org.jetbrains.amper.android.tools.AndroidEmulatorFailedException
+import org.jetbrains.amper.android.tools.AndroidTools
+import org.jetbrains.amper.android.tools.EmulatorBootFailureException
+import org.jetbrains.amper.android.tools.awaitBootCompleted
+import org.jetbrains.amper.android.tools.manifest.findMainLauncherActivity
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.engine.RunTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
@@ -39,23 +30,13 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.singleSourceRoot
-import org.jetbrains.amper.processes.LongLivedProcess
 import org.jetbrains.amper.processes.ProcessLeak
-import org.jetbrains.amper.processes.startLongLivedProcess
 import org.jetbrains.amper.tasks.MobileRunSettings
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.util.BuildType
-import java.io.IOException
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
-import kotlin.coroutines.resume
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
-import kotlin.io.path.readText
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
-import com.android.ddmlib.TimeoutException as DdmTimeoutException
 import org.jetbrains.amper.frontend.schema.AndroidVersion as AmperAndroidVersion
 
 const val headlessEmulatorModePropertyName = "org.jetbrains.amper.android.emulator.headless"
@@ -75,7 +56,6 @@ class AndroidRunTask(
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
-        val adb = waitForAdbConnection()
         val androidFragment = fragments.filterIsInstance<LeafFragment>().singleOrNull()
             ?: error("Only one $platform fragment is expected")
 
@@ -84,15 +64,16 @@ class AndroidRunTask(
             .flatMap { it.outputs.filter { it.endsWith("emulator") } }.singleOrNull()
             ?: error("Emulator not found")).resolve("emulator")
 
-        val device = runSettings.deviceId?.let { deviceId ->
-                adb.devices.find { it.serialNumber == deviceId } ?: userReadableError(
-                    "Unable to find the device with the serial = `$deviceId`, available devices: ${adb.devices.joinToString { it.serialNumber }}"
-                )
-            } ?: adb.selectOrCreateVirtualDevice(
-                androidTarget = androidFragment.settings.android.targetSdk.versionNumber,
-                emulatorExecutable = emulatorExecutable,
-            )
-        device.waitForBootCompleted()
+        val androidTools = AndroidTools(androidSdkPath, avdPath, emulatorExecutable)
+        val adb = androidTools.getOrCreateDebugBridge()
+
+        val androidVersion = AndroidVersion(androidFragment.settings.android.targetSdk.versionNumber, 0)
+        val device = adb.findEmulatorOrDevice(androidVersion) ?: startNewEmulator(androidVersion, androidTools)
+        try {
+            device.awaitBootCompleted()
+        } catch (e: EmulatorBootFailureException) {
+            userReadableError(message = e.message, cause = e.cause)
+        }
 
         val apk = dependenciesResult.filterIsInstance<AndroidDelegatedGradleTask.Result>()
             .singleOrNull()?.artifacts?.firstOrNull() ?: error("Apk not found")
@@ -133,28 +114,73 @@ class AndroidRunTask(
         return Result(device)
     }
 
-    /**
-     * Wait for adb connection
-     *
-     * Polling is the only way to wait for ADB connection
-     *
-     * And we need not only wait until adb is connected,
-     * but devices list first time initialized, otherwise the device's request right after connection returns an empty
-     * array
-     */
-    private suspend fun waitForAdbConnection(): AndroidDebugBridge {
-        AndroidDebugBridge.init(true)
-        val adb = AndroidDebugBridge.getBridge()
-            ?: AndroidDebugBridge.createBridge(
-                androidSdkPath.resolve("platform-tools/adb").toString(),
-                false,
-                30,
-                TimeUnit.SECONDS
-            )
-        while (!adb.hasInitialDeviceList()) {
-            delay(100.milliseconds)
+    private fun AndroidDebugBridge.findEmulatorOrDevice(
+        androidVersion: AndroidVersion,
+    ): IDevice? {
+        val deviceId = runSettings.deviceId
+        return if (deviceId == null) {
+            devices.firstOrNull { it.version.canRun(androidVersion) }
+        } else {
+            devices.find { it.serialNumber == deviceId }
+                ?: userReadableError("Unable to find the device with the serial = `$deviceId`, available devices: " +
+                                         devices.joinToString { it.serialNumber })
         }
-        return adb
+    }
+
+    private suspend fun startNewEmulator(
+        androidVersion: AndroidVersion,
+        androidTools: AndroidTools,
+    ): IDevice {
+        val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, androidSdkPath)
+        val deviceManager = DeviceManager.createInstance(sdkHandler, StdLogger(StdLogger.Level.VERBOSE))
+        val avdManager = AvdManager.createInstance(sdkHandler, avdPath, deviceManager, StdLogger(StdLogger.Level.VERBOSE))
+        val avd = avdManager.validAvds.firstOrNull { it.androidVersion.canRun(androidVersion) }
+            ?: createNewAvd(sdkHandler, androidVersion, avdManager)
+
+        return try {
+            @OptIn(ProcessLeak::class) // we start the emulator as long-lived on purpose to avoid paying startup time
+            androidTools.startEmulatorAndAwaitOnline(
+                avdName = avd.name,
+                androidVersion = androidVersion,
+                headless = System.getProperty(headlessEmulatorModePropertyName).toBoolean()
+            )
+        } catch (e: AndroidEmulatorFailedException) {
+            userReadableError(e.message)
+        }
+    }
+
+    private fun createNewAvd(
+        sdkHandler: AndroidSdkHandler,
+        androidVersion: AndroidVersion,
+        avdManager: AvdManager,
+    ): AvdInfo {
+        val consoleProgressIndicator = ConsoleProgressIndicator()
+        val systemImageManager = sdkHandler.getSystemImageManager(consoleProgressIndicator)
+        val systemImage = systemImageManager.images.firstOrNull { it.androidVersion.canRun(androidVersion) }
+            ?: error("System image for $androidVersion not found")
+        val systemImageVersion = systemImage.androidVersion.apiStringWithoutExtension
+        // NB: Skin + AVD name + hardware config should match the phone specifications
+        // See Device Manager for specifications
+        return avdManager.createAvd(
+            avdFolder = avdPath.resolve("Pixel-9-$systemImageVersion-ktc.avd"),
+            avdName = "Pixel 9 API $systemImageVersion",
+            systemImage = systemImage,
+            skin = androidSdkPath.resolve("skins/pixel_9")
+                .takeIf { it.exists() }
+                ?.let(::OnDiskSkin),
+            sdcard = null,
+            hardwareConfig = mutableMapOf(
+                "hw.lcd.width" to "1080",
+                "hw.lcd.height" to "2424",
+                "hw.lcd.density" to "420",
+            ),
+            userSettings = mutableMapOf(),
+            bootProps = mutableMapOf(),
+            environment = mutableMapOf(),
+            deviceHasPlayStore = true,
+            removePrevious = true,
+            editExisting = true,
+        )
     }
 
     private fun findActivityToLaunch(androidFragment: LeafFragment): String? {
@@ -166,281 +192,8 @@ class AndroidRunTask(
         if (!manifestPath.exists()) {
             userReadableError("AndroidManifest.xml not found in ${manifestPath.parent}")
         }
-        return parseManifest(manifestPath)
-            .application
-            .activities
-            .firstOrNull {
-                val isMain = it.intentFilters.any { it.action.name == "android.intent.action.MAIN" }
-                val isLauncher = it.intentFilters.any { it.category.name == "android.intent.category.LAUNCHER" }
-                isMain && isLauncher
-            }
-            ?.name
+        return findMainLauncherActivity(manifestPath)
     }
-
-    private fun parseManifest(manifestPath: Path) = xml.decodeFromString<AndroidManifest>(manifestPath.readText())
-
-    private suspend fun AndroidDebugBridge.selectOrCreateVirtualDevice(
-        androidTarget: Int,
-        emulatorExecutable: Path
-    ): IDevice {
-        val androidVersion = AndroidVersion(androidTarget, 0)
-        val selectedDevice = devices.firstOrNull { it.version.canRun(androidVersion) }
-        return selectedDevice ?: run {
-            val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, androidSdkPath)
-            val consoleProgressIndicator = ConsoleProgressIndicator()
-            val systemImageManager = sdkHandler.getSystemImageManager(consoleProgressIndicator)
-            val systemImage = systemImageManager.images.firstOrNull { it.androidVersion.canRun(androidVersion) }
-                ?: error("System image for $androidVersion not found")
-            val deviceManager = DeviceManager.createInstance(sdkHandler, StdLogger(StdLogger.Level.VERBOSE))
-            val avdManager =
-                AvdManager.createInstance(sdkHandler, avdPath, deviceManager, StdLogger(StdLogger.Level.VERBOSE))
-            val avd = avdManager
-                .validAvds
-                .firstOrNull { it.androidVersion.canRun(androidVersion) }
-                ?: run {
-                    val systemImageVersion = systemImage.androidVersion.apiStringWithoutExtension
-                    // Create a new one
-                    // NB: Skin + AVD name + hardware config should match the phone specifications
-                    // See Device Manager for specifications
-                    avdManager.createAvd(
-                        avdFolder = avdPath.resolve("Pixel-9-$systemImageVersion-ktc.avd"),
-                        avdName = "Pixel 9 API $systemImageVersion",
-                        systemImage = systemImage,
-                        skin = androidSdkPath.resolve("skins/pixel_9")
-                            .takeIf { it.exists() }
-                            ?.let(::OnDiskSkin),
-                        sdcard = null,
-                        hardwareConfig = mutableMapOf(
-                            "hw.lcd.width" to "1080",
-                            "hw.lcd.height" to "2424",
-                            "hw.lcd.density" to "420",
-                        ),
-                        userSettings = mutableMapOf(),
-                        bootProps = mutableMapOf(),
-                        environment = mutableMapOf(),
-                        deviceHasPlayStore = true,
-                        removePrevious = true,
-                        editExisting = true,
-                    )
-                }
-
-            @OptIn(ProcessLeak::class)
-            startEmulatorAndAwaitOnline(
-                emulatorExecutable = emulatorExecutable,
-                avdName = avd.name,
-                androidVersion = androidVersion,
-                headless = System.getProperty(headlessEmulatorModePropertyName).toBoolean()
-            )
-        }
-    }
-
-    /**
-     * Starts the Android emulator for the given [avdName], and waits until it is reachable via ADB.
-     */
-    @ProcessLeak
-    private suspend fun startEmulatorAndAwaitOnline(
-        emulatorExecutable: Path,
-        avdName: String,
-        androidVersion: AndroidVersion,
-        headless: Boolean,
-    ): IDevice {
-        val emulatorProcess = startEmulator(emulatorExecutable, avdName, headless)
-        return coroutineScope {
-            val deviceOnline = async {
-                awaitDeviceChanged { device, _ ->
-                    device.state == DeviceState.ONLINE && device.version.canRun(androidVersion)
-                }
-            }
-            try {
-                select {
-                    deviceOnline.onAwait { it }
-                    emulatorProcess.exitCode.onAwait { exitCode ->
-                        userReadableError("The Android emulator terminated with exit code ${exitCode}")
-                    }
-                }
-            } finally {
-                // The emulator must outlive this command, so we only stop watching it, we never kill it.
-                deviceOnline.cancel()
-            }
-        }
-    }
-
-    /**
-     * Starts the Android emulator for the given [avdName], detached from the life of the current JVM so it survives
-     * after this command terminates.
-     */
-    @ProcessLeak
-    private fun startEmulator(
-        emulatorExecutable: Path,
-        avdName: String,
-        headless: Boolean,
-    ): LongLivedProcess = startLongLivedProcess(
-        command = buildList {
-            add(emulatorExecutable.pathString)
-            if (headless) {
-                add("-no-window")
-            }
-            add("-avd")
-            add(avdName)
-        },
-        workingDir = emulatorExecutable.parent,
-        configureEnvironment = {
-            put("ANDROID_AVD_HOME", avdPath.toString())
-            put("ANDROID_HOME", androidSdkPath.toString())
-        },
-    )
-
-    private suspend fun awaitDeviceChanged(predicate: (IDevice, Int) -> Boolean): IDevice =
-        suspendCancellableCoroutine { continuation ->
-            val listener = object : AndroidDebugBridge.IDeviceChangeListener {
-                override fun deviceConnected(device: IDevice) = Unit
-                override fun deviceDisconnected(device: IDevice?) = Unit
-
-                override fun deviceChanged(device: IDevice, changeMask: Int) {
-                    if (predicate(device, changeMask)) {
-                        AndroidDebugBridge.removeDeviceChangeListener(this)
-                        continuation.resume(device)
-                    }
-                }
-            }
-            AndroidDebugBridge.addDeviceChangeListener(listener)
-            continuation.invokeOnCancellation {
-                AndroidDebugBridge.removeDeviceChangeListener(listener)
-            }
-        }
 
     data class Result(val device: IDevice) : TaskResult
-}
-
-private val xml = XML {
-    defaultPolicy {
-        ignoreUnknownChildren()
-        repairNamespaces = false
-    }
-}
-
-/**
- * Waits until this device has finished booting.
- *
- * Polls the `sys.boot_completed` property of this device every [pollingInterval], until it reports a completed boot or
- * until the given [timeout] elapses.
- */
-internal suspend fun IDevice.waitForBootCompleted(
-    pollingInterval: Duration = 300.milliseconds,
-    timeout: Duration = 10.minutes,
-) {
-    // The last transient ADB failure that was ignored while polling, if any
-    var lastTransientAdbFailure: Exception? = null
-
-    val bootCompleted = withTimeoutOrNull(timeout) {
-        while (true) {
-            try {
-                val isBootCompleted = executeShellCommandAndGetOutput("getprop sys.boot_completed").trim() == "1"
-                if (isBootCompleted) {
-                    break
-                }
-            } catch (e: Exception) {
-                if (!e.isTransientAdbFailure()) {
-                    throw e
-                }
-                logger.debug("Couldn't read the 'sys.boot_completed' property of device '$serialNumber', " +
-                                 "the device is most likely still booting", e)
-                lastTransientAdbFailure = e
-            }
-            delay(pollingInterval)
-        }
-    }
-    if (bootCompleted == null) {
-        userReadableError(
-            message = "The device '$serialNumber' didn't complete its boot within $timeout. Please check the state of " +
-                "the device, and run this command again once the device is ready.",
-            cause = lastTransientAdbFailure,
-        )
-    }
-}
-
-
-/**
- * Whether this exception is an ADB failure that is expected while a device is booting, and thus should not be fatal.
- *
- * ADB can reject commands with a "closed" or "device offline" message while the device's `adbd` daemon is restarting,
- * which happens during the boot. Commands can also time out or fail at the socket level.
- */
-private fun Exception.isTransientAdbFailure(): Boolean = when (this) {
-    is AdbCommandRejectedException,
-    is ShellCommandUnresponsiveException,
-    is DdmTimeoutException,
-    is IOException -> true
-    else -> false
-}
-
-private suspend fun IDevice.executeShellCommandAndGetOutput(command: String): String =
-    suspendCancellableCoroutine { continuation ->
-        var isCancelled = false
-        executeShellCommand(command, object : IShellOutputReceiver {
-            val stringBuilder = StringBuilder()
-
-            override fun addOutput(data: ByteArray, offset: Int, length: Int) {
-                stringBuilder.append(data.decodeToString(offset, offset + length))
-            }
-
-            override fun flush() {
-                continuation.resume(stringBuilder.toString())
-            }
-
-            override fun isCancelled(): Boolean = isCancelled
-        })
-        continuation.invokeOnCancellation {
-            isCancelled = true
-        }
-    }
-
-private const val namespace = "http://schemas.android.com/apk/res/android"
-private const val prefix = "android"
-
-@Serializable
-@XmlSerialName("manifest")
-private data class AndroidManifest(@XmlElement(true) val application: Application) {
-    @Serializable
-    @XmlSerialName("application")
-    data class Application(
-        @XmlElement(true)
-        @XmlSerialName("activity")
-        val activities: List<Activity>
-    ) {
-        @Serializable
-        @XmlSerialName("activity")
-        data class Activity(
-            @XmlSerialName("name", namespace, prefix)
-            val name: String,
-            @XmlElement(true)
-            @XmlSerialName("intent-filter")
-            val intentFilters: List<IntentFilter>
-        ) {
-            @Serializable
-            @XmlSerialName("intent-filter")
-            data class IntentFilter(
-                @XmlElement(true)
-                @XmlSerialName("action")
-                val action: Action,
-                @XmlElement(true)
-                @XmlSerialName("category")
-                val category: Category
-            ) {
-                @Serializable
-                @XmlSerialName("action")
-                data class Action(
-                    @XmlSerialName("name", namespace, prefix)
-                    val name: String
-                )
-
-                @Serializable
-                @XmlSerialName("category")
-                data class Category(
-                    @XmlSerialName("name", namespace, prefix)
-                    val name: String
-                )
-            }
-        }
-    }
 }
