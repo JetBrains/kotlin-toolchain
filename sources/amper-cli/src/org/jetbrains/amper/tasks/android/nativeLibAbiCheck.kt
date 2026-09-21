@@ -4,9 +4,7 @@
 
 package org.jetbrains.amper.tasks.android
 
-import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.frontend.AmperModule
-import org.jetbrains.amper.frontend.Fragment
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.zip.ZipFile
@@ -18,34 +16,30 @@ private val androidPackageExtensions = setOf("apk", "aab")
 private val abiCheckLogger = LoggerFactory.getLogger("android-native-lib-abis")
 
 /**
- * Reports the ABIs of the given [artifacts] that don't carry all the native libraries that their sibling ABIs
- * carry, which would break the app at runtime on the devices selecting them.
+ * Warns about the ABIs of the given [artifacts] that don't carry all the native libraries that their sibling ABIs
+ * carry, which might break the app at runtime on the devices selecting them.
  *
- * This always validates what is actually packaged, but its severity depends on whether the user selected the ABIs
- * via `settings.android.abiFilters`:
- *  - when they didn't, an inconsistent package is never what they want, so this fails the build;
- *  - when they did, they may knowingly ship an ABI without some optional native library (one whose absence their
- *    code handles at runtime), which only they can know, so this merely warns.
+ * This validates what is actually packaged, whether the ABIs were selected via `settings.android.abiFilters` or
+ * not: selecting ABIs is not a claim about the consistency of the native libraries behind them, so a dependency
+ * added later can make a previously fine choice incomplete.
  *
- * Note that selecting ABIs is not a claim about the consistency of the native libraries behind them, which is why
- * the explicit case still reports: a dependency added later can make a previously fine selection incomplete.
+ * This only warns because a missing library may be an optional one whose absence the app handles at runtime, and
+ * only the user can know that.
  */
-internal fun checkNativeLibAbiConsistency(module: AmperModule, fragments: List<Fragment>, artifacts: List<Path>) {
-    val abisSelectedExplicitly = fragments.any { it.settings.android.abiFilters.isNotEmpty() }
-
+internal fun checkNativeLibAbiConsistency(module: AmperModule, artifacts: List<Path>) {
     for (artifact in artifacts.filter { it.extension.lowercase() in androidPackageExtensions }) {
         val nativeLibsByAbi = readNativeLibsByAbi(artifact)
         val incompleteAbis = findIncompleteAbis(nativeLibsByAbi)
         if (incompleteAbis.isEmpty()) continue
 
-        val message = incompleteAbisMessage(
-            module = module,
-            artifact = artifact,
-            packagedAbis = nativeLibsByAbi.keys,
-            incompleteAbis = incompleteAbis,
-            abisSelectedExplicitly = abisSelectedExplicitly,
+        abiCheckLogger.warn(
+            incompleteAbisMessage(
+                module = module,
+                artifact = artifact,
+                packagedAbis = nativeLibsByAbi.keys,
+                incompleteAbis = incompleteAbis,
+            )
         )
-        if (abisSelectedExplicitly) abiCheckLogger.warn(message) else userReadableError(message)
     }
 }
 
@@ -109,7 +103,6 @@ private fun incompleteAbisMessage(
     artifact: Path,
     packagedAbis: Set<String>,
     incompleteAbis: List<IncompleteAbi>,
-    abisSelectedExplicitly: Boolean,
 ): String = buildString {
     appendLine("Incomplete native libraries in ${artifact.name} (module '${module.userReadableName}'):")
     for (incompleteAbi in incompleteAbis) {
@@ -134,11 +127,6 @@ private fun incompleteAbisMessage(
                     "add the missing libraries, or use settings.android.abiFilters to choose the ABIs to package."
         )
     }
-    if (abisSelectedExplicitly) {
-        appendLine()
-        append(
-            "This is only a warning because settings.android.abiFilters selects the ABIs explicitly. Ignore it " +
-                    "only if your code handles the absence of the libraries listed above at runtime."
-        )
-    }
+    appendLine()
+    append("Ignore this only if your code handles the absence of the libraries listed above at runtime.")
 }

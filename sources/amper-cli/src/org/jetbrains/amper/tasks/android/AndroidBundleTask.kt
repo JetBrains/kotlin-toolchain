@@ -24,7 +24,7 @@ class AndroidBundleTask(
     override val buildType: BuildType,
     incrementalCache: IncrementalCache,
     androidSdkPath: Path,
-    private val fragments: List<Fragment>,
+    fragments: List<Fragment>,
     projectRoot: AmperProjectRoot,
     userCacheRoot: AmperUserCacheRoot,
     taskOutputPath: TaskOutputRoot,
@@ -54,6 +54,6 @@ class AndroidBundleTask(
         get() = PackageTask.Format.Aab
 
     override fun validateArtifacts(artifacts: List<Path>) {
-        checkNativeLibAbiConsistency(module = module, fragments = fragments, artifacts = artifacts)
+        checkNativeLibAbiConsistency(module = module, artifacts = artifacts)
     }
 }

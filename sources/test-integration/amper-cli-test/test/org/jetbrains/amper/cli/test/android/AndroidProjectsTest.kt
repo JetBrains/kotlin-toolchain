@@ -303,34 +303,30 @@ class AndroidProjectsTest : CliTestBase() {
     }
 
     @Test
-    fun `packaging abis with inconsistent jniLibs fails the build`() = runSlowTest {
+    fun `packaging abis with inconsistent jniLibs warns`() = runSlowTest {
         val result = runCli(
             projectDir = testProject("android/jni-libs-abi-mismatch"),
             "task", ":jni-libs-abi-mismatch:buildAndroidDebug",
             configureAndroidHome = true,
-            expectedExitCode = 1,
-            assertEmptyStdErr = false,
         )
         // arm64-v8a has libtest.so and libextra.so, x86_64 only has libtest.so
-        result.assertStderrContains("x86_64 is missing libextra.so")
-        result.assertStderrContains("abiFilters: [ arm64-v8a ]")
+        result.assertStdoutContains("x86_64 is missing libextra.so")
+        result.assertStdoutContains("abiFilters: [ arm64-v8a ]")
     }
 
     /**
      * Selecting ABIs explicitly says nothing about whether the native libraries are consistent across them, so the
      * check must still report. Otherwise, adding a dependency that lacks one of the selected ABIs would silently
-     * break a package that used to be fine. It's only a warning, because the missing libraries may be optional
-     * ones whose absence the app handles at runtime, which the build can't know.
+     * break a package that used to be fine.
      */
     @Test
-    fun `explicitly selected abis with inconsistent jniLibs only warn`() = runSlowTest {
+    fun `explicitly selected abis with inconsistent jniLibs also warn`() = runSlowTest {
         val result = runCli(
             projectDir = testProject("android/jni-libs-abi-filter-mismatch"),
             "task", ":jni-libs-abi-filter-mismatch:buildAndroidDebug",
             configureAndroidHome = true,
         )
         result.assertStdoutContains("x86_64 is missing libextra.so")
-        result.assertStdoutContains("only a warning because settings.android.abiFilters selects the ABIs explicitly")
     }
 
     @Test

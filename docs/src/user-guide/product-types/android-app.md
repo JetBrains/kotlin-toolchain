@@ -83,7 +83,7 @@ available options.
 ### Filtering native library ABIs
 
 An Android package may carry pre-compiled native libraries (`.so` files) grouped by
-c, and by default it carries every ABI it can find.
+[ABI](https://developer.android.com/ndk/guides/abis)s, and by default it carries every ABI it can find.
 
 Native libraries come from two sources: the module's own [`jniLibs` directory](#module-layout), and those
 dependencies of the module that contain native libraries, each bringing the ABIs it was built for. Most dependencies
@@ -94,8 +94,8 @@ ABI list that is present in the package, and then only that one `lib/<abi>/` dir
 carry every mandatory native library that the other ABIs carry, the app might fail at runtime with `UnsatisfiedLinkError` on every
 device that selects it.
 
-The Kotlin Toolchain doesn't let that reach your users by accident: packaging ABIs with inconsistent native
-libraries **fails the build**, reporting which ABI is missing which library.
+The Kotlin Toolchain **warns** when it packages ABIs with inconsistent native libraries, reporting which ABI is
+missing which library.
 
 Use `settings.android.abiFilters` to package only the ABIs that all of your native libraries support:
 
@@ -106,11 +106,15 @@ settings:
 ```
 
 Only the listed ABIs are packaged; any other `lib/<abi>/` directory is dropped. Narrowing the list to ABIs whose
-native libraries are all present makes the package consistent, which is what resolves the build failure.
+native libraries are all present makes the package consistent, which silences the warning.
 
 Sometimes an ABI is incomplete on purpose because the missing library is optional: your code guards the call to
-`System.loadLibrary` and degrades gracefully when it isn't there. Only you can know that, so once `abiFilters`
-selects the ABIs explicitly, an inconsistency is reported as a **warning** instead of failing the build.
+`System.loadLibrary` and degrades gracefully when it isn't there. Only you can know that, which is why this is
+reported as a warning rather than an error.
+
+The check runs whether or not you selected the ABIs yourself, since selecting them says nothing about the
+consistency of the libraries behind them: a dependency you add later can make a previously fine selection
+incomplete.
 
 ### Code shrinking
 

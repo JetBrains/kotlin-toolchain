@@ -25,7 +25,7 @@ class AndroidBuildTask(
     override val isTest: Boolean,
     incrementalCache: IncrementalCache,
     androidSdkPath: Path,
-    private val fragments: List<Fragment>,
+    fragments: List<Fragment>,
     projectRoot: AmperProjectRoot,
     userCacheRoot: AmperUserCacheRoot,
     taskOutputPath: TaskOutputRoot,
@@ -52,6 +52,6 @@ class AndroidBuildTask(
         get() = AndroidBuildRequest.Phase.Build
 
     override fun validateArtifacts(artifacts: List<Path>) {
-        checkNativeLibAbiConsistency(module = module, fragments = fragments, artifacts = artifacts)
+        checkNativeLibAbiConsistency(module = module, artifacts = artifacts)
     }
 }
