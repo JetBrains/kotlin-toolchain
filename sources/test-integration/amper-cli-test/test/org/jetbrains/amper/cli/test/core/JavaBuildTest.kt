@@ -68,7 +68,7 @@ class JavaBuildTest : CliTestBase() {
             assertEmptyStdErr = false
         )
 
-        assertNotEquals(result.exitCode, 0, "Exit code should not be 0 because there are compiler errors")
+        assertNotEquals(0, result.exitCode.value, "Exit code should not be 0 because there are compiler errors")
         result.assertStderrContains("';' expected")
         result.assertStderrContains("java-error/src/apkg/Main.java")
     }

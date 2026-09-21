@@ -91,7 +91,7 @@ class CommonizerTaskTest: CliTestBase() {
             "ide-integration", "commonize-native-distribution",
         )
 
-        assertEquals(0, runResult.exitCode, "The commonizer task failed with exit code ${runResult.exitCode}")
+        assertEquals(0, runResult.exitCode.value, "The commonizer task failed with exit code ${runResult.exitCode}")
         val commonizedRootDir = konanDist.commonizedRoot
         assertTrue(commonizedRootDir.exists(), "$commonizedRootDir directory does not exist")
         return commonizedRootDir

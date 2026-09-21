@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.processes.output
 
+import org.jetbrains.amper.processes.ExitCode
 import org.jetbrains.amper.processes.ProcessResult
 
 /**
@@ -51,7 +52,7 @@ internal class InMemoryCaptureIndependentStreams(
     private data class ProcessResultWithCapturedOutputs(
         override val command: List<String>,
         override val pid: Long,
-        override val exitCode: Int,
+        override val exitCode: ExitCode,
         override val stdout: String,
         override val stderr: String,
     ) : ProcessResult.WithOutputs
@@ -79,7 +80,7 @@ internal class InMemoryCaptureStderrOnly(
     private data class ProcessResultWithCapturedStderr(
         override val command: List<String>,
         override val pid: Long,
-        override val exitCode: Int,
+        override val exitCode: ExitCode,
         override val stderr: String,
     ) : ProcessResult.WithStderr
 }
@@ -111,7 +112,7 @@ internal class InMemoryCaptureMergedStreams(
     private data class ProcessResultWithCapturedMergedOutputs(
         override val command: List<String>,
         override val pid: Long,
-        override val exitCode: Int,
+        override val exitCode: ExitCode,
         override val stdoutAndStderr: String,
     ) : ProcessResult.WithMergedOutputs
 }

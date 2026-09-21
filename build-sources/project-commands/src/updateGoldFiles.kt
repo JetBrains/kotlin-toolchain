@@ -75,7 +75,7 @@ private class AmperGoldUpdater(
         repeat(maxAttempts) { attemptIndex ->
             val attemptNumber = attemptIndex + 1
             println("Attempt $attemptNumber/$maxAttempts: running gold file tests...")
-            if (runGoldFileTests().exitCode == 0) {
+            if (runGoldFileTests().exitCode.value == 0) {
                 println("All gold file tests passed.")
                 println()
                 return

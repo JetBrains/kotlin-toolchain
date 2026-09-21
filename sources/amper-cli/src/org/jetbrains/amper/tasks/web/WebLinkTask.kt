@@ -233,7 +233,7 @@ internal abstract class WebLinkTask(
                         webPlatform = expectedPlatform,
                     )
                 }
-                if (result.exitCode != 0) {
+                if (result.exitCode.value != 0) {
                     userReadableError("Kotlin ${expectedPlatform.name} linking failed (see errors above)")
                 }
             }

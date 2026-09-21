@@ -213,8 +213,8 @@ class JvmTestTask(
                 // TODO exit code from JUnit launcher should be carefully become some kind of exit code for entire Amper run
                 //  + one more interesting case: if we reported some failed tests to TeamCity, exit code of Amper should be 0,
                 //  since the build will be failed anyway and it'll just have one more useless build failure about exit code
-                if (result.exitCode != 0) {
-                    val meaning = if (result.exitCode == 2) " (no tests were discovered)" else ""
+                if (result.exitCode.value != 0) {
+                    val meaning = if (result.exitCode.value == 2) " (no tests were discovered)" else ""
                     userReadableError("JVM tests failed for module '${module.userReadableName}' with exit code ${result.exitCode}$meaning (see errors above)")
                 }
                 EmptyTaskResult

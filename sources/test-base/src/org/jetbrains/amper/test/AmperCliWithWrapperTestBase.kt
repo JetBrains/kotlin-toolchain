@@ -10,6 +10,7 @@ import io.opentelemetry.sdk.trace.data.SpanData
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.serialization.json.Json
+import org.jetbrains.amper.processes.ExitCode
 import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputListener
@@ -190,7 +191,7 @@ abstract class AmperCliWithWrapperTestBase {
             if (expectedExitCode != null) {
                 assertEquals(
                     expected = expectedExitCode,
-                    actual = result.exitCode,
+                    actual = result.exitCode.value,
                     message = """
                         Exit code must be $expectedExitCode, but got ${result.exitCode} for the Kotlin CLI call (PID ${result.pid}):
                         $wrapper ${args.joinToString(" ")}
@@ -321,7 +322,7 @@ data class AmperCliResult(
      */
     val logsDir: Path?,
     val pid: Long,
-    val exitCode: Int,
+    val exitCode: ExitCode,
     val stdout: String,
     val stderr: String,
 ) {

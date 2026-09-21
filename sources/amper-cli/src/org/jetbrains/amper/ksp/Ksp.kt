@@ -16,11 +16,8 @@ import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.io.IOException
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
-import kotlin.io.path.deleteRecursively
-import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.pathString
 import kotlin.io.path.relativeTo
 
@@ -84,7 +81,7 @@ internal class Ksp(
             },
         )
         // Note: KSP fails automatically with exit code 1 if any error log is present
-        if (result.exitCode != 0) {
+        if (result.exitCode.value != 0) {
             userReadableError("KSP execution failed with exit code ${result.exitCode} (see errors above)")
         }
     }

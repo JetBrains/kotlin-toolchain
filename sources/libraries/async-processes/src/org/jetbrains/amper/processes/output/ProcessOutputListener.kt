@@ -4,6 +4,8 @@
 
 package org.jetbrains.amper.processes.output
 
+import org.jetbrains.amper.processes.ExitCode
+
 interface ProcessOutputListener {
     /**
      * Called after each [line] of output on the stdout stream of the process identified by the given [pid].
@@ -31,14 +33,14 @@ interface ProcessOutputListener {
      * There might still be some output to process, so [onStdoutLine] and [onStderrLine] might still be called after
      * this. Use [onStreamsFlushed] if you want to make sure there is no more output.
      */
-    fun onProcessTerminated(exitCode: Int, pid: Long) {}
+    fun onProcessTerminated(exitCode: ExitCode, pid: Long) {}
 
     /**
      * Called after the process has terminated and all the output has been processed.
      *
      * The [onStdoutLine] and [onStderrLine] callbacks are guaranteed not to be called again after this.
      */
-    fun onStreamsFlushed(exitCode: Int, pid: Long) {}
+    fun onStreamsFlushed(exitCode: ExitCode, pid: Long) {}
 
     /**
      * A [ProcessOutputListener] that ignores all output.
@@ -68,11 +70,11 @@ private class CompositeProcessOutputListener(val listeners: List<ProcessOutputLi
         listeners.forEach { it.onStderrLine(line, pid) }
     }
 
-    override fun onProcessTerminated(exitCode: Int, pid: Long) {
+    override fun onProcessTerminated(exitCode: ExitCode, pid: Long) {
         listeners.forEach { it.onProcessTerminated(exitCode, pid) }
     }
 
-    override fun onStreamsFlushed(exitCode: Int, pid: Long) {
+    override fun onStreamsFlushed(exitCode: ExitCode, pid: Long) {
         listeners.forEach { it.onStreamsFlushed(exitCode, pid) }
     }
 }

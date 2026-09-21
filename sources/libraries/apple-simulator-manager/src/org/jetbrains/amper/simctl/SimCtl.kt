@@ -5,7 +5,6 @@
 package org.jetbrains.amper.simctl
 
 import kotlinx.serialization.json.Json
-import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.simctl.model.SimDevice
@@ -41,7 +40,7 @@ object SimCtl {
             },
             outputMode = ProcessOutputMode.capture(),
         )
-        if (result.exitCode != 0) {
+        if (result.exitCode.value != 0) {
             throw SimCtlException("Failed to retrieve devices list: ${result.stderr}")
         }
         return json.decodeFromString<SimDevices>(result.stdout).devices
@@ -57,7 +56,7 @@ object SimCtl {
             command = ["xcrun", "simctl", "list", "devicetypes", "--json"],
             outputMode = ProcessOutputMode.capture(),
         )
-        if (result.exitCode != 0) {
+        if (result.exitCode.value != 0) {
             throw SimCtlException("Failed to retrieve device types list: ${result.stderr}")
         }
         return json.decodeFromString<SimDeviceTypes>(result.stdout).devicetypes
@@ -71,7 +70,7 @@ object SimCtl {
             command = ["xcrun", "simctl", "list", "runtimes", "--json"],
             outputMode = ProcessOutputMode.capture(),
         )
-        if (result.exitCode != 0) {
+        if (result.exitCode.value != 0) {
             throw SimCtlException("Failed to retrieve runtimes list: ${result.stderr}")
         }
         return json.decodeFromString<SimRuntimes>(result.stdout).runtimes
@@ -98,7 +97,7 @@ object SimCtl {
                 return
             }
         }
-        if (result.exitCode != 0) {
+        if (result.exitCode.value != 0) {
             throw SimulatorBootException(deviceId = deviceId, stderr = result.stderr)
         }
     }
@@ -119,7 +118,7 @@ object SimCtl {
             command = ["xcrun", "simctl", "install", device.cliName, appFile.absolutePathString()],
             outputMode = ProcessOutputMode.captureStderr(),
         )
-        if (result.exitCode != 0) {
+        if (result.exitCode.value != 0) {
             throw AppInstallationException(appFile, device, result.stderr)
         }
     }
@@ -132,7 +131,7 @@ object SimCtl {
             command = ["xcrun", "simctl", "uninstall", device.cliName, appBundleId],
             outputMode = ProcessOutputMode.captureStderr(),
         )
-        if (result.exitCode != 0) {
+        if (result.exitCode.value != 0) {
             throw AppUninstallationException(appBundleId, device, result.stderr)
         }
     }

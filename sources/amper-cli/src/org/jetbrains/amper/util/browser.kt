@@ -27,7 +27,7 @@ internal suspend fun openBrowser(
         outputMode = ProcessOutputMode.Inherit,
         input = ProcessInput.Inherit,
     )
-    if (result.exitCode != 0) {
+    if (result.exitCode.value != 0) {
         log("$cmd failed with exit code ${result.exitCode}")
     }
 }

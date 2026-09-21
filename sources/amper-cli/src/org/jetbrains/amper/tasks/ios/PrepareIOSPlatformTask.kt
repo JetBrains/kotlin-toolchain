@@ -136,7 +136,7 @@ class PrepareIOSPlatformTask(
                     }),
                 )
             }
-            if (exit.exitCode != 0) {
+            if (exit.exitCode.value != 0) {
                 userReadableError("Unable to download iOS platform, see errors above")
             }
             downloaded = true

@@ -83,5 +83,5 @@ internal suspend fun compileJavaWithJic(
             Json.encodeToStream(request, stdin)
         },
     )
-    return result.exitCode == 0
+    return result.exitCode.value == 0
 }

@@ -111,7 +111,7 @@ class NpmInstallTask(
                                 listener = LoggingProcessOutputListener(logger),
                             ),
                         )
-                        if (result.exitCode != 0) {
+                        if (result.exitCode.value != 0) {
                             error("pnpm install failed with exit code ${result.exitCode}:\n${result.stderr}")
                         }
                     }

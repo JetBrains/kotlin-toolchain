@@ -19,7 +19,7 @@ interface ProcessResult {
     /**
      * The exit code of the process.
      */
-    val exitCode: Int
+    val exitCode: ExitCode
 
     /**
      * The result of a completed process, with the standard error stream captured as [stderr].
@@ -58,5 +58,5 @@ interface ProcessResult {
 internal data class SimpleProcessResult(
     override val command: List<String>,
     override val pid: Long,
-    override val exitCode: Int,
+    override val exitCode: ExitCode,
 ) : ProcessResult

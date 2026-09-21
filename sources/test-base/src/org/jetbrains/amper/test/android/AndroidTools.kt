@@ -278,7 +278,7 @@ class AndroidTools(
             //    - "no devices/emulators found" (for a couple seconds)
             //    - "device offline" (for a couple seconds)
             // Then we get exit code 0 with output "1" (for the sys.boot_completed property)
-            if (result.exitCode == 0 && result.stdout.trim() == "1") {
+            if (result.exitCode.value == 0 && result.stdout.trim() == "1") {
                 return
             } else {
                 log("  (still booting...)")

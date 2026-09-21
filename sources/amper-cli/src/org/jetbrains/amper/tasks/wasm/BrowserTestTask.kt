@@ -167,7 +167,7 @@ class BrowserTestTask(
                     ),
                 )
 
-                if (installResult.exitCode != 0) {
+                if (installResult.exitCode.value != 0) {
                     userReadableError(
                         "Failed to install Playwright for module '${module.userReadableName}'"
                     )
@@ -188,7 +188,7 @@ class BrowserTestTask(
                     ),
                 )
 
-                if (result.exitCode != 0) {
+                if (result.exitCode.value != 0) {
                     userReadableError(
                         "Failed to install Chromium browser for Kotlin/Wasm $platform tests for module '${module.userReadableName}'"
                     )

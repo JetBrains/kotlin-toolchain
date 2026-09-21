@@ -26,6 +26,7 @@ import kotlin.io.path.name
 import kotlin.io.path.pathString
 import kotlin.test.Test
 import kotlin.test.assertContains
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.test.expect
@@ -102,7 +103,7 @@ class ProjectTemplatesTest : CliTestBase() {
             "-sdk", "iphonesimulator",
             "-derivedDataPath", buildDir.pathString,
         )
-        expect(0) { result.exitCode }
+        assertEquals(0, result.exitCode.value)
         assertTrue {
             val appPath = buildDir / "Build" / "Products" / "Debug-iphonesimulator" / "ios-app.app"
             appPath.isDirectory()
@@ -124,7 +125,7 @@ class ProjectTemplatesTest : CliTestBase() {
             "CODE_SIGNING_ALLOWED=NO",  // To build real device arch
         )
 
-        expect(0) { result.exitCode }
+        assertEquals(0, result.exitCode.value)
         assertTrue {
             val appPath = buildDir / "Build" / "Products" / "Release-iphoneos" / "ios-app.app"
             appPath.isDirectory()
@@ -170,7 +171,7 @@ class ProjectTemplatesTest : CliTestBase() {
             "-sdk", "iphonesimulator",
             "-derivedDataPath", buildDir.pathString,
         )
-        expect(0) { result.exitCode }
+        assertEquals(0, result.exitCode.value)
         assertTrue {
             val appPath = buildDir / "Build" / "Products" / "Debug-iphonesimulator" / "compose-ios.app"
             appPath.isDirectory()

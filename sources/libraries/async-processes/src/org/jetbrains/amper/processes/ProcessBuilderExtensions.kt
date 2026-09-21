@@ -65,7 +65,7 @@ suspend fun <R : ProcessResult> ProcessBuilder.run(
             val exitCode = if (outputMode is ProcessOutputMode.Listen) {
                 process.awaitListening(outputMode.listener)
             } else {
-                process.onExit().await().exitValue()
+                process.onExit().await().exitValue().let(::ExitCode)
             }
             outputMode.refineResult(
                 SimpleProcessResult(

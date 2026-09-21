@@ -7,6 +7,7 @@ package org.jetbrains.amper.compilation
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.NonIdealDiagnostic
 import org.jetbrains.amper.problems.reporting.ProblemReporter
+import org.jetbrains.amper.processes.ExitCode
 import org.slf4j.Logger
 
 /**
@@ -50,8 +51,8 @@ internal class CInteropOutputListener(
         stderrLines.add(line)
     }
 
-    override fun onStreamsFlushed(exitCode: Int, pid: Long) {
-        if (exitCode != 0) {
+    override fun onStreamsFlushed(exitCode: ExitCode, pid: Long) {
+        if (exitCode.value != 0) {
             reportFailure(exitCode)
             return
         }
@@ -66,7 +67,7 @@ internal class CInteropOutputListener(
     }
 
     @OptIn(NonIdealDiagnostic::class)
-    private fun reportFailure(exitCode: Int) {
+    private fun reportFailure(exitCode: ExitCode) {
         val output = (stderrLines + stdoutLines).dropWhile { it.isBlank() }.dropLastWhile { it.isBlank() }
         val message = buildString {
             append("cinterop failed with exit code $exitCode")

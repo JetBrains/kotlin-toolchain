@@ -354,7 +354,7 @@ internal class MetadataCompileTask(
                         argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
                     )
                 }
-                if (result.exitCode != 0) {
+                if (result.exitCode.value != 0) {
                     userReadableError("Kotlin metadata compilation failed (see errors above)")
                 }
             }

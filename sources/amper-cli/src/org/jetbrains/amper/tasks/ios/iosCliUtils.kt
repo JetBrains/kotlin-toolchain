@@ -200,7 +200,7 @@ private abstract class Xcrun {
         command = listOf(XCRUN_EXECUTABLE) + args,
         outputMode = outputMode,
     ).also {
-        if (checkNonZeroExitCode && it.exitCode != 0) {
+        if (checkNonZeroExitCode && it.exitCode.value != 0) {
             userReadableError("xcrun `${args.contentToString()}` failed with exit code ${it.exitCode}")
         }
     }
@@ -297,7 +297,7 @@ private object SimCtl : Xcrun() {
                 return
             }
         }
-        if (result.exitCode != 0) {
+        if (result.exitCode.value != 0) {
             userReadableError("Failed to boot simulator: command `${result.command.joinToString(" ")}` failed with " +
                     "exit code ${result.exitCode}")
         }

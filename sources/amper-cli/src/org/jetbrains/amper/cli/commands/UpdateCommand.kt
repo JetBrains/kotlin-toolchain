@@ -134,7 +134,7 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
         val result = spanBuilder("New version first run").use {
             runKotlinToolchainVersionFirstRun(newBatWrapperPath, newBashWrapperPath)
         }
-        if (result.exitCode != 0) {
+        if (result.exitCode.value != 0) {
             userReadableError("Couldn't run the new Kotlin Toolchain version. Please check the errors above.")
         }
 

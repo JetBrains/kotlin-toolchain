@@ -12,6 +12,7 @@ import org.jetbrains.amper.kotlin.compiler.messages.UnrecognizedOutputLine
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.NonIdealDiagnostic
 import org.jetbrains.amper.problems.reporting.ProblemReporter
+import org.jetbrains.amper.processes.ExitCode
 import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.slf4j.Logger
 import java.nio.file.Path
@@ -71,7 +72,7 @@ internal class ProblemReportingCompilerOutputListener(
         stderrParser.consumeLine(line)
     }
 
-    override fun onStreamsFlushed(exitCode: Int, pid: Long) {
+    override fun onStreamsFlushed(exitCode: ExitCode, pid: Long) {
         stderrParser.flush()
         stdoutParser.flush()
     }

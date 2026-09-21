@@ -60,7 +60,7 @@ private class JdkToolSubcommand(private val name: String) : AmperSubcommand(name
             outputMode = ProcessOutputMode.Inherit,
             input = ProcessInput.Inherit,
         )
-        if (result.exitCode != 0) {
+        if (result.exitCode.value != 0) {
             userReadableError("$name exited with exit code ${result.exitCode}")
         }
     }

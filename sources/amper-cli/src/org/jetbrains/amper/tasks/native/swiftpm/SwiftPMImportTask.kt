@@ -228,7 +228,7 @@ internal class SwiftPMImportTask(
             )
 
             parserProcessJob.join()
-            if (xcodebuildResult.exitCode != 0) {
+            if (xcodebuildResult.exitCode.value != 0) {
                 userReadableError("xcodebuild failed with exit code ${xcodebuildResult.exitCode}")
             }
         }

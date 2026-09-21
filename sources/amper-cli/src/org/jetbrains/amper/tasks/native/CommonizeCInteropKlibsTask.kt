@@ -230,7 +230,7 @@ class CommonizeCInteropKlibsTask(
                 argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
                 outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger = logger)),
             )
-            if (result.exitCode != 0) {
+            if (result.exitCode.value != 0) {
                 userReadableError("cinterop commonization failed, see the errors above")
             }
             outputs.forEach {

@@ -240,7 +240,7 @@ internal abstract class WebCompileKlibTask(
                         webPlatform = expectedPlatform,
                     )
                 }
-                if (result.exitCode != 0) {
+                if (result.exitCode.value != 0) {
                     userReadableError("Kotlin ${expectedPlatform.name} compilation failed (see errors above)")
                 }
             }

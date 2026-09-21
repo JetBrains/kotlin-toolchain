@@ -5,6 +5,7 @@
 package org.jetbrains.amper.processes.pipe
 
 import kotlinx.coroutines.channels.Channel
+import org.jetbrains.amper.processes.ExitCode
 import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputListener
@@ -49,7 +50,7 @@ class ProcessPipe(
         }
         override fun onStderrLine(line: String, pid: Long) = Unit
 
-        override fun onStreamsFlushed(exitCode: Int, pid: Long) {
+        override fun onStreamsFlushed(exitCode: ExitCode, pid: Long) {
             outputLinesChannel.close()
         }
     }

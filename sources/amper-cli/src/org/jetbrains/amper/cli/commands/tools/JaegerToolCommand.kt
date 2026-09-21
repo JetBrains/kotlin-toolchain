@@ -115,7 +115,7 @@ internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
                     command = CommandLineUtils.quoteCommandLineForCurrentPlatform(cmd),
                     outputMode = ProcessOutputMode.Inherit,
                 )
-                if (result.exitCode != 0) {
+                if (result.exitCode.value != 0) {
                     userReadableError("${executable.name} exited with code ${result.exitCode}")
                 }
             }

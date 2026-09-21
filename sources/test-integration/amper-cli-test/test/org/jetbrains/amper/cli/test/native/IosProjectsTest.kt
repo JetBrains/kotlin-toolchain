@@ -206,7 +206,7 @@ class IosProjectsTest : CliTestBase() {
             "-arch", "x86_64",
             "-sdk", "iphonesimulator",
         )
-        assertNotEquals(illegal = 0, actual = result.exitCode)
+        assertNotEquals(illegal = 0, actual = result.exitCode.value)
         assertContains(
             result.stdout, """
             ERROR: Platform 'iosX64' is not found for iOS module 'non-intel'.
@@ -234,7 +234,7 @@ class IosProjectsTest : CliTestBase() {
             "CODE_SIGNING_ALLOWED=NO",  // To archive for the real device arch
             action = "archive",
         )
-        expect(0) { result.exitCode }
+        assertEquals(0, result.exitCode.value)
 
         // Nothing except the app bundle itself must be installed into the archive,
         // otherwise Xcode doesn't recognize the archive as an iOS app archive, and it can't be distributed.

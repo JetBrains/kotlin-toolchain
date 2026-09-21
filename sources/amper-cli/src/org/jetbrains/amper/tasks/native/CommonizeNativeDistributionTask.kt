@@ -105,7 +105,7 @@ class CommonizeNativeDistributionTask(
                             argsMode = ArgsMode.ArgFile(tempRoot = tempRoot),
                             outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
                         )
-                        if (result.exitCode != 0) {
+                        if (result.exitCode.value != 0) {
                             userReadableError("Kotlin commonizer invocation failed (see errors above)")
                         }
                         return@execute IncrementalCache.ExecutionResult(emptyList())

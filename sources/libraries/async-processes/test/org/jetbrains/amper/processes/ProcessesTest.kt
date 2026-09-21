@@ -32,8 +32,8 @@ import kotlin.time.measureTimedValue
 private val isWindows = System.getProperty("os.name").startsWith("win", ignoreCase = true)
 
 class ProcessesTest {
-    private val unknownCommandExitCode = if (isWindows) 1 else 127
-    private val cancelledExitCode = if (isWindows) 1 else 137
+    private val unknownCommandExitCode = if (isWindows) ExitCode(1) else ExitCode(127)
+    private val cancelledExitCode = if (isWindows) ExitCode(1) else ExitCode(137)
     private val loremIpsum1000 =
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nibh odio, auctor non tincidunt eu, posuere vitae nisl. Sed lobortis gravida sapien, eget feugiat purus feugiat et. Fusce ullamcorper risus ac diam varius, ullamcorper molestie est aliquam. Ut dictum, tellus sit amet efficitur hendrerit, est dolor bibendum nunc, et lacinia sem erat nec lectus. Donec orci elit, feugiat in arcu vel, dictum ultricies diam. Nullam ut ultricies tortor. Sed a finibus tortor. Vestibulum et diam vitae orci hendrerit faucibus ac posuere leo. Nunc laoreet interdum euismod. Pellentesque ac porttitor enim. In malesuada pharetra orci in euismod. Quisque sit amet rutrum enim. Morbi ultrices blandit augue, non tincidunt sapien sagittis sit amet. Mauris id tempus tortor, vitae ullamcorper orci. Phasellus efficitur dolor mollis, mattis lacus quis, convallis elit. Phasellus dignissim, nibh a aliquam commodo, ipsum risus suscipit massa, et porta lacus eros nec felis. Nulla ante augue, elementum cras amet."
 
@@ -331,7 +331,7 @@ private fun powershell(command: String) =
 private fun String.toPowerShellStringLiteral(): String = "'${replace("'", "''")}'"
 
 private fun ProcessResult.assertZeroExitCode() {
-    assertEquals(0, exitCode,
+    assertEquals(ExitCode(0), exitCode,
         buildString {
             appendLine("Execution failed with exit code ${exitCode} for command: $command")
             when (this@assertZeroExitCode) {

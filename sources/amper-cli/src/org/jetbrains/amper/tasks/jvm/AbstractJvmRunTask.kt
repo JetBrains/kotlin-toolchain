@@ -60,8 +60,11 @@ abstract class AbstractJvmRunTask(
             input = ProcessInput.Inherit,
         )
 
-        if (result.exitCode != 0) {
-            userReadableError("Process failed with exit code ${result.exitCode}", exitCode = result.exitCode)
+        if (result.exitCode.value != 0) {
+            userReadableError(
+                message = "Process failed with exit code ${result.exitCode}",
+                exitCode = result.exitCode.value,
+            )
         }
 
         return EmptyTaskResult

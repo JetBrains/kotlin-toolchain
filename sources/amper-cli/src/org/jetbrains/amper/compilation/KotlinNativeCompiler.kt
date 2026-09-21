@@ -145,7 +145,7 @@ class KotlinNativeCompiler(
         //  should extract higher-level information from the raw output and use that in this span.
         span.setProcessResultAttributes(result)
 
-        if (result.exitCode != 0) {
+        if (result.exitCode.value != 0) {
             val errorCount = outputListener.errorCount
             if (errorCount > 0) {
                 val errorsWord = if (errorCount == 1) "error" else "errors"

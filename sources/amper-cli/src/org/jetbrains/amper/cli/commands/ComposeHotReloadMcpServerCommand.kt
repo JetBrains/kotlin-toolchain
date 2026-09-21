@@ -98,8 +98,11 @@ internal class ComposeHotReloadMcpServerCommand : AmperProjectAwareCommand(name 
                 }
             )
         }
-        if (result.exitCode != 0) {
-            userReadableError("MCP server exited with code ${result.exitCode}", exitCode = result.exitCode)
+        if (result.exitCode.value != 0) {
+            userReadableError(
+                message = "MCP server exited with code ${result.exitCode}",
+                exitCode = result.exitCode.value,
+            )
         }
     }
 }

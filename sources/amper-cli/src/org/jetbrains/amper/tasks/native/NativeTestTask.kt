@@ -89,7 +89,7 @@ class NativeTestTask(
                         teamCityMessageProcessor = TeamCityMessageProcessor(executionContext.eventSink),
                     )),
                 )
-                if (result.exitCode != 0) {
+                if (result.exitCode.value != 0) {
                     userReadableError("Kotlin/Native $platform tests failed for module '${module.userReadableName}' with exit code ${result.exitCode} (see errors above)")
                 }
 

@@ -152,8 +152,8 @@ class IosBuildTask(
                     // Ensure the parser is done to avoid putting the final log entries into the middle of the log
                     parserProcessJob.join()
 
-                    if (result.exitCode != 0) {
-                        userReadableError("xcodebuild invocation failed, check the log above.")
+                    if (result.exitCode.value != 0) {
+                        userReadableError("xcodebuild invocation failed with exit code ${result.exitCode}, check the log above.")
                     }
                 }
         }

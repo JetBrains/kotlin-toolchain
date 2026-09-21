@@ -56,7 +56,7 @@ class AmperInstallerTest : AmperCliWithWrapperTestBase() {
 
         println(result.stdoutAndStderr)
 
-        assertEquals(expected = 0, actual = result.exitCode, "Expected zero exit code")
+        assertEquals(expected = 0, actual = result.exitCode.value, "Expected zero exit code")
 
         assertTrue(message = "Expected kotlin in .local/bin") {
             testHome.resolve(".local/bin/kotlin").isRegularFile()
@@ -115,7 +115,7 @@ class AmperInstallerTest : AmperCliWithWrapperTestBase() {
 
         println(result.stdoutAndStderr)
 
-        assertEquals(expected = 0, actual = result.exitCode, "Expected zero exit code")
+        assertEquals(expected = 0, actual = result.exitCode.value, "Expected zero exit code")
 
         assertTrue(message = "Expected kotlin.bat in .local/bin") {
             testHome.resolve(".local/bin/kotlin.bat").isRegularFile()
@@ -125,7 +125,7 @@ class AmperInstallerTest : AmperCliWithWrapperTestBase() {
     }
 
     private suspend fun hasNewPowershell(): Boolean = try {
-        runProcess(command = ["pwsh", "--version"], outputMode = ProcessOutputMode.Discard).exitCode == 0
+        runProcess(command = ["pwsh", "--version"], outputMode = ProcessOutputMode.Discard).exitCode.value == 0
     } catch (_: IOException) {
         false
     }

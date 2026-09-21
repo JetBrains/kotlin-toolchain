@@ -13,7 +13,7 @@ import org.jetbrains.amper.processes.ProcessResult
  * This is not an assertion utility, but rather a safeguard for side processes launched as part of tests.
  */
 fun <T : ProcessResult> T.checkExitCodeIsZero(): T {
-    check(exitCode == 0) {
+    check(exitCode.value == 0) {
         buildString {
             append("Execution failed with exit code $exitCode for command: $command")
             when (this@checkExitCodeIsZero) {

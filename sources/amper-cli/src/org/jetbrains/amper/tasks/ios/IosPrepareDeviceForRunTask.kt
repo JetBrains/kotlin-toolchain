@@ -113,7 +113,7 @@ class IosPrepareDeviceForRunTask(
         workingDir = Path("."),
         command = ["codesign", "-v", appPath.absolutePathString()],
         outputMode = ProcessOutputMode.Discard,
-    ).exitCode == 0
+    ).exitCode.value == 0
 
     class Result(
         val readyDeviceId: XcodeDeviceId,

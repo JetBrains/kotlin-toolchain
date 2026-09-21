@@ -67,7 +67,7 @@ suspend fun runAmperSchemaProcessor(
         outputMode = ProcessOutputMode.capture(),
     )
 
-    if (result.exitCode != 0) {
+    if (result.exitCode.value != 0) {
         logger.error(result.stderr)
         error("Failed to process local plugin schema")
     }

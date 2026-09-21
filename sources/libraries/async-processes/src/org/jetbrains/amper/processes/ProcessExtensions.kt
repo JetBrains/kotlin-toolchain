@@ -52,9 +52,11 @@ internal val DefaultGracePeriod = 3.seconds
  * ensuring we don't leak any coroutine nor hold on to extra threads. Non-network IO reads are not cancellable, but the
  * readers are made partially cooperative by allowing cancellation between each line read, so they don't have to keep
  * reading the whole stream if the result is meant to be discarded anyway.
+ *
+ * @return The exit code of the process.
  */
 // NOT PUBLIC ON PURPOSE, please check the KDoc - the caller is responsible for too many things
-internal suspend fun Process.awaitListening(outputListener: ProcessOutputListener): Int {
+internal suspend fun Process.awaitListening(outputListener: ProcessOutputListener): ExitCode {
     val pid = pid()
     val exitCode = coroutineScope {
         launch {
@@ -70,8 +72,8 @@ internal suspend fun Process.awaitListening(outputListener: ProcessOutputListene
 
         // This is async: onExit() runs on the ForkJoinPool so it doesn't hold the current thread.
         // This is why we only really need 2 threads in the current dispatcher (to consume stdout and stderr).
-        onExit().await().exitValue().also { exitCode ->
-            outputListener.onProcessTerminated(exitCode, pid)
+        onExit().await().exitValue().let(::ExitCode).also {
+            outputListener.onProcessTerminated(exitCode = it, pid = pid)
         }
     }
     outputListener.onStreamsFlushed(exitCode, pid)

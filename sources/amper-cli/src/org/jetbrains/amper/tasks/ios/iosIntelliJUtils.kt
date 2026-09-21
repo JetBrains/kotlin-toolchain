@@ -42,7 +42,7 @@ suspend fun initializeXcodeComponentManager() = xCodeInitializationMutex.withLoc
 
 private suspend fun detectXcodeInstallation(): String {
     val result = runProcess(command = ["xcode-select", "--print-path"], outputMode = ProcessOutputMode.capture())
-    if (result.exitCode != 0) userReadableError("Failed to detect Xcode. Make sure Xcode is installed.")
+    if (result.exitCode.value != 0) userReadableError("Failed to detect Xcode. Make sure Xcode is installed.")
 
     return result.stdout.trim()
 }

@@ -37,7 +37,7 @@ internal suspend fun ProcessRunner.disablePnpmUpdateNotifier(
         ),
     )
 
-    if (result.exitCode != 0) {
+    if (result.exitCode.value != 0) {
         error(
             "pnpm configuration exits with the code ${result.exitCode}"
         )

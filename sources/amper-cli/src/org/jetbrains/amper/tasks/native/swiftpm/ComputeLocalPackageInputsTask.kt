@@ -150,7 +150,7 @@ class ComputeLocalPackageInputsTask(
             )
         )
 
-        if (result.exitCode != 0) userReadableError("Failed to discover local package sources")
+        if (result.exitCode.value != 0) userReadableError("Failed to discover local package sources")
 
         val packageDescription = swiftPMJson.decodeFromString<PackageDescription>(result.stdout)
 

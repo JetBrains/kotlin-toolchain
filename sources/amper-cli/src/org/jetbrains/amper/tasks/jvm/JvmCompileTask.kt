@@ -718,7 +718,7 @@ internal class JvmCompileTask(
             }
             result.exitCode
         }
-        return exitCode == 0
+        return exitCode.value == 0
     }
 
     private fun javacSpanBuilder(args: List<String>, jdk: Jdk, incremental: Boolean): SpanBuilder {

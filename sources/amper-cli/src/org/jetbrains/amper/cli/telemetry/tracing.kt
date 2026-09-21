@@ -22,5 +22,5 @@ fun SpanBuilder.setFragments(fragments: List<Fragment>) =
  * Sets attributes on this [Span] describing the given [result].
  */
 fun Span.setProcessResultAttributes(result: ProcessResult) {
-    setAttribute("exit-code", result.exitCode.toLong())
+    setAttribute("exit-code", result.exitCode.value.toLong())
 }

@@ -7,6 +7,7 @@ package org.jetbrains.amper.compilation
 import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.NonIdealDiagnostic
+import org.jetbrains.amper.processes.ExitCode
 import org.slf4j.LoggerFactory
 import kotlin.io.path.Path
 import kotlin.test.Test
@@ -25,7 +26,7 @@ class ProblemReportingCompilerOutputListenerTest {
     @Test
     fun `reports warnings printed on stderr as warnings, not errors`() {
         listener.onStderrLine("warning: flag is not supported by this version of the compiler: -Xfoo-bar", pid = 1)
-        listener.onStreamsFlushed(exitCode = 0, pid = 1)
+        listener.onStreamsFlushed(exitCode = ExitCode(0), pid = 1)
 
         @OptIn(NonIdealDiagnostic::class)
         assertEquals(
@@ -46,7 +47,7 @@ class ProblemReportingCompilerOutputListenerTest {
         listener.onStderrLine("'+zcm' is not a recognized feature for this target (ignoring feature)", pid = 1)
         listener.onStderrLine("'+foo' is not a recognized feature for this target (ignoring feature)", pid = 1)
         listener.onStderrLine("'+bar' is not a recognized feature (ignoring feature)", pid = 1)
-        listener.onStreamsFlushed(exitCode = 0, pid = 1)
+        listener.onStreamsFlushed(exitCode = ExitCode(0), pid = 1)
 
         @OptIn(NonIdealDiagnostic::class)
         assertEquals(
@@ -69,7 +70,7 @@ class ProblemReportingCompilerOutputListenerTest {
             "    println(undefinedThing)",
             "            ^^^^^^^^^^^^^^",
         ].forEach { listener.onStderrLine(it, pid = 1) }
-        listener.onStreamsFlushed(exitCode = 0, pid = 1)
+        listener.onStreamsFlushed(exitCode = ExitCode(0), pid = 1)
 
         assertEquals(
             [
@@ -97,7 +98,7 @@ class ProblemReportingCompilerOutputListenerTest {
             "src/Foo.kt:5: error: some error",
             "src/Foo.kt:6: error: some other error",
         ].forEach { listener.onStderrLine(it, pid = 1) }
-        listener.onStreamsFlushed(exitCode = 0, pid = 1)
+        listener.onStreamsFlushed(exitCode = ExitCode(0), pid = 1)
 
         assertEquals(
             [Path("/home/me/konan/src/Foo.kt"), Path("/home/me/konan/src/Foo.kt")],
@@ -114,7 +115,7 @@ class ProblemReportingCompilerOutputListenerTest {
             "WARNING: A terminally deprecated method in sun.misc.Unsafe has been called",
         ].forEach { listener.onStderrLine(it, pid = 1) }
         listener.onStdoutLine("some plain output of the compiler", pid = 1)
-        listener.onStreamsFlushed(exitCode = 0, pid = 1)
+        listener.onStreamsFlushed(exitCode = ExitCode(0), pid = 1)
 
         assertEquals([], reporter.problems)
         assertEquals(0, listener.errorCount)
@@ -124,7 +125,7 @@ class ProblemReportingCompilerOutputListenerTest {
     fun `reports messages from both streams independently`() {
         listener.onStderrLine("error: some error on stderr", pid = 1)
         listener.onStdoutLine("warning: some warning on stdout", pid = 1)
-        listener.onStreamsFlushed(exitCode = 0, pid = 1)
+        listener.onStreamsFlushed(exitCode = ExitCode(0), pid = 1)
 
         assertEquals(
             ["some error on stderr" to Level.Error, "some warning on stdout" to Level.Warning],

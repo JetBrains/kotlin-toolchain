@@ -94,10 +94,10 @@ open class SwiftPMImportTests : IOSBaseTest() {
                 Please rebuild the project
             """.trimIndent(),
         )
-        assertEquals(65, failingXcodebuildResult.exitCode)
+        assertEquals(65, failingXcodebuildResult.exitCode.value)
 
         val succeedingXcodebuildResult = runXcodebuild()
-        assertEquals(0, succeedingXcodebuildResult.exitCode)
+        assertEquals(0, succeedingXcodebuildResult.exitCode.value)
 
         val latestSimulator = SimulatorManager.launchLatestIPhoneSimulator()
         SimCtl.installApp(
@@ -122,7 +122,7 @@ open class SwiftPMImportTests : IOSBaseTest() {
             "",
             appRunResult.stderr,
         )
-        assertEquals(0, appRunResult.exitCode)
+        assertEquals(0, appRunResult.exitCode.value)
     }
 
     @Test
@@ -217,7 +217,7 @@ open class SwiftPMImportTests : IOSBaseTest() {
             configureEnvironment = { putAll(baseEnvironmentForWrapper()) },
             outputMode = ProcessOutputMode.listen(TestReporterProcessOutputListener("xcodebuild", testReporter)),
         )
-        assertEquals(0, xcodebuildResult.exitCode)
+        assertEquals(0, xcodebuildResult.exitCode.value)
 
         val inputKlib = project.resolve("build/generated/firebase/iosSimulatorArm64/cinterop/firebase-cinterop-firebase_swiftPMImport.klib")
         assert(inputKlib.exists())
@@ -269,7 +269,7 @@ open class SwiftPMImportTests : IOSBaseTest() {
             "",
             appRunResult.stderr,
         )
-        assertEquals(0, appRunResult.exitCode)
+        assertEquals(0, appRunResult.exitCode.value)
     }
 
     @Test
@@ -307,7 +307,7 @@ open class SwiftPMImportTests : IOSBaseTest() {
             configureEnvironment = { putAll(baseEnvironmentForWrapper()) },
             outputMode = ProcessOutputMode.listen(TestReporterProcessOutputListener("xcodebuild", testReporter)),
         )
-        assertEquals(0, xcodebuildResult.exitCode)
+        assertEquals(0, xcodebuildResult.exitCode.value)
 
         val latestSimulator = SimulatorManager.launchLatestIPhoneSimulator()
         SimCtl.installApp(
@@ -332,7 +332,7 @@ open class SwiftPMImportTests : IOSBaseTest() {
             "",
             appRunResult.stderr,
         )
-        assertEquals(0, appRunResult.exitCode)
+        assertEquals(0, appRunResult.exitCode.value)
     }
 
     internal fun AmperCliResult.readTelemetrySpans(): SpansTestCollector {

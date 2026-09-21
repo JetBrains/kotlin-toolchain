@@ -125,12 +125,12 @@ class LongLivedProcess(private val process: Process) {
      * Ideally, callers should instead use the same liveness check for this process as
      * for previously started processes from earlier runs.
      */
-    val exitCode: Deferred<Int> = CompletableDeferred<Int>().apply {
+    val exitCode: Deferred<ExitCode> = CompletableDeferred<ExitCode>().apply {
         process.onExit().handle { process, throwable ->
             if (throwable != null) {
                 completeExceptionally(throwable)
             } else {
-                complete(process.exitValue())
+                complete(ExitCode(process.exitValue()))
             }
         }
     }

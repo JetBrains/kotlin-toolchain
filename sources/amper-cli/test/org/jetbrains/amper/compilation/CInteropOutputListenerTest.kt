@@ -7,6 +7,7 @@ package org.jetbrains.amper.compilation
 import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.NonIdealDiagnostic
+import org.jetbrains.amper.processes.ExitCode
 import org.slf4j.LoggerFactory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -32,7 +33,7 @@ class CInteropOutputListenerTest {
             "absl: /var/folders/T/4942355504760821608.m:1:9: fatal error: module 'absl' not found",
             "leveldb: /p/checkouts/leveldb/include/leveldb/cache.h:21:10: fatal error: 'cstdint' file not found",
         ].forEach { listener.onStdoutLine(it, pid = 1) }
-        listener.onStreamsFlushed(exitCode = 0, pid = 1)
+        listener.onStreamsFlushed(exitCode = ExitCode(0), pid = 1)
 
         assertEquals(
             [
@@ -53,7 +54,7 @@ class CInteropOutputListenerTest {
     fun `does not report anything for a successful run without skipped modules`() {
         listener.onStdoutLine("some plain output of cinterop", pid = 1)
         listener.onStderrLine("WARNING: A terminally deprecated method in sun.misc.Unsafe has been called", pid = 1)
-        listener.onStreamsFlushed(exitCode = 0, pid = 1)
+        listener.onStreamsFlushed(exitCode = ExitCode(0), pid = 1)
 
         assertEquals([], reporter.problems)
         assertEquals(0, listener.errorCount)
@@ -65,7 +66,7 @@ class CInteropOutputListenerTest {
         listener.onStdoutLine("warning: The package value 'foo' specified in .def file is overridden with explicit -pkg command line argument.", pid = 1)
         listener.onStdoutLine("warning: -linker-option(s)/-linkerOpts option is not supported by cinterop. Please add linker options to .def file or binary compilation instead.", pid = 1)
         listener.onStdoutLine("some plain output of cinterop", pid = 1)
-        listener.onStreamsFlushed(exitCode = 0, pid = 1)
+        listener.onStreamsFlushed(exitCode = ExitCode(0), pid = 1)
 
         assertEquals(
             [
@@ -89,7 +90,7 @@ class CInteropOutputListenerTest {
     fun `does not confuse cinterop's own warnings with skipped modules`() {
         listener.onStdoutLine("java.lang.Error: cppTarget: /p/cppTarget/include/foo.h:1:10: fatal error: 'string' file not found", pid = 1)
         listener.onStdoutLine("warning: -Xklib-abi-compatibility-level is experimental", pid = 1)
-        listener.onStreamsFlushed(exitCode = 0, pid = 1)
+        listener.onStreamsFlushed(exitCode = ExitCode(0), pid = 1)
 
         assertEquals(
             [
@@ -119,7 +120,7 @@ class CInteropOutputListenerTest {
             "\tat org.jetbrains.kotlin.native.interop.indexer.ModuleSupportKt.getModulesASTFiles(ModuleSupport.kt:1)",
             "",
         ].forEach { listener.onStderrLine(it, pid = 1) }
-        listener.onStreamsFlushed(exitCode = 1, pid = 1)
+        listener.onStreamsFlushed(exitCode = ExitCode(1), pid = 1)
 
         assertEquals(
             [

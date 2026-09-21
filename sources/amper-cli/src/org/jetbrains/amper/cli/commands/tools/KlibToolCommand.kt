@@ -89,8 +89,11 @@ internal class KlibToolCommand : AmperSubcommand(name = "klib") {
             outputMode = ProcessOutputMode.Inherit,
             input = ProcessInput.Inherit,
         )
-        if (result.exitCode != 0) {
-            userReadableError("klib exited with exit code ${result.exitCode}", exitCode = result.exitCode)
+        if (result.exitCode.value != 0) {
+            userReadableError(
+                message = "klib exited with exit code ${result.exitCode}",
+                exitCode = result.exitCode.value,
+            )
         }
     }
 }

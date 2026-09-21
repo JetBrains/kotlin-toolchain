@@ -156,7 +156,7 @@ class FetchPackageTask(
                     }
                 )
             )
-            if (result.exitCode == 0) {
+            if (result.exitCode.value == 0) {
                 // Good path, exit cleanly
                 return
             }
@@ -171,7 +171,7 @@ class FetchPackageTask(
             }
         } while (retryCount < MAX_SPM_FETCH_RETRY_COUNT)
 
-        if (result.exitCode != 0) {
+        if (result.exitCode.value != 0) {
             userReadableError("SwiftPM fetch failed, see errors above")
         }
     }
