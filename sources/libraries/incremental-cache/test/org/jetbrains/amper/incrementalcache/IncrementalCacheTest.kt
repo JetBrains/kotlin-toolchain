@@ -230,7 +230,10 @@ class IncrementalCacheTest {
         assertIs<CacheMiss.DataChanged>(reasonAfterDeletion)
         assertEquals(CacheMiss.DataChanged([TrackedElementType.OutputFile]), reasonAfterDeletion, "A deleted output is an output change")
 
-        output.writeText("tampered")
+        // Funny note: this modification might happen within the same "last modified" tick of the OS.
+        // Our cache invalidation relies on file length and last modified time. To avoid flakiness due to unfortunate
+        // speed, let's make sure we have a different length in the tampered contents than the text we generate in call()
+        output.writeText("tampered contents")
         val reasonAfterTampering = call()
         assertIs<CacheMiss.DataChanged>(reasonAfterTampering)
         assertEquals(CacheMiss.DataChanged([TrackedElementType.OutputFile]), reasonAfterTampering, "A modified output is an output change")
