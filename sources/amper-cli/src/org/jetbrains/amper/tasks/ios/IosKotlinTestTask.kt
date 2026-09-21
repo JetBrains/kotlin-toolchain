@@ -47,7 +47,9 @@ class IosKotlinTestTask(
     )
 
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult = context(
+        dependenciesResult.xcodeEnvironment(),
+    ) {
         if (!runSettings.testFilters.tagFiltersWouldMatchUntaggedTests()) {
             logger.debug("Skipping tests of module '${module.userReadableName}' for platform '${platform.pretty}' " +
                     "because Kotlin/Native tests are all untagged, and the given tag filters exclude untagged tests")
@@ -91,7 +93,10 @@ class IosKotlinTestTask(
                         workingDir = workingDir,
                         command = spawnTestsCommand,
                         span = span,
-                        configureEnvironment = { putAll(swiftPMSearchPaths) },
+                        configureEnvironment = {
+                            contextOf<XcodeEnvironment>().configureCommandEnvironment()
+                            putAll(swiftPMSearchPaths)
+                        },
                         outputMode = ProcessOutputMode.listen(StructuredNativeTestProcessOutputListener(
                             teamCityMessageProcessor = TeamCityMessageProcessor(executionContext.eventSink),
                         )),

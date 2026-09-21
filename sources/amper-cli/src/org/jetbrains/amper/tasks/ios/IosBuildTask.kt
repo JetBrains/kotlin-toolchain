@@ -81,7 +81,7 @@ class IosBuildTask(
         val symRootPath = workingDir / "bin"
 
         val xcodebuildArgs = buildList {
-            this += "xcrun"
+            this += XCRUN_EXECUTABLE
             this += "xcodebuild"
             this += "-project"; this += module.xcodeProjectPath.absolutePathString()
             this += "-scheme"; this += IosConventions.SCHEME_NAME
@@ -144,6 +144,7 @@ class IosBuildTask(
                         command = xcodebuildArgs,
                         span = span,
                         configureEnvironment = {
+                            dependenciesResult.xcodeEnvironment().configureCommandEnvironment()
                             put(IosPreBuildTask.Result.ENV_JSON_NAME, Json.encodeToString(prebuildResult))
                         },
                         outputMode = pipe,

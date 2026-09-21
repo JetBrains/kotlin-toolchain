@@ -29,13 +29,11 @@ import io.opentelemetry.api.trace.Span
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.telemetry.setAmperModule
 import org.jetbrains.amper.cli.userReadableError
-import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.singleSourceRoot
-import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.ios.IosConventions.SCHEME_NAME
@@ -80,7 +78,6 @@ class ManageXCodeProjectTask(
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
-        initializeXcodeComponentManager()
         val projectDir = module.xcodeProjectPath
         val baseDir = projectDir.parent
         val pbxProjectFilePath = projectDir / PBXProjectFile.PROJECT_FILE

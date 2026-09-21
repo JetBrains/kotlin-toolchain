@@ -14,19 +14,19 @@ import com.jetbrains.cidr.xcode.pbxproj.PbxId
 import com.jetbrains.cidr.xcode.util.XcodeUserDataHolder
 import fleet.com.intellij.openapi.util.UserDataHolderEx
 import org.jetbrains.amper.cli.userReadableError
-import org.jetbrains.amper.tasks.ios.initializeXcodeComponentManager
+import org.jetbrains.amper.tasks.ios.XcodeEnvironment
 import org.jetbrains.amper.tasks.native.swiftpm.GenerateSwiftPMImportPackageTask.Companion.SYNTHETIC_IMPORT_TARGET_MAGIC_NAME
 import java.nio.file.Path
 
 private class XcodeProjectHandle : XcodeProjectId, UserDataHolderEx by XcodeUserDataHolder()
 
-internal suspend fun checkAndIntegrateXcodeProjectWithSwiftPMPackageIfNeeded(
+context(/*Need to ensure the xcode-model environment is initialized*/ @Suppress("unused") _: XcodeEnvironment)
+internal fun checkAndIntegrateXcodeProjectWithSwiftPMPackageIfNeeded(
     swiftPMDependenciesArtifact: SwiftPMDependenciesArtifact,
     xcodeProjectPath: Path,
     terminal: Terminal,
 ) {
     if (!swiftPMDependenciesArtifact.swiftPMDependencies.hasDirectOrTransitiveSwiftPMDependencies) return
-    initializeXcodeComponentManager()
     val xcodeProject = PBXProjectFile(XcodeProjectHandle(), xcodeProjectPath, xcodeProjectPath.resolve("project.pbxproj"))
     xcodeProject.load(ProjectFilesChanges())
     xcodeProject.lock()

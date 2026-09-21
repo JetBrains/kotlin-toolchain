@@ -36,7 +36,10 @@ class PrepareIOSPlatformTask(
     ) : TaskResult
 
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): Result = context(executionContext.eventSink) {
+    override suspend fun run(dependenciesResult: List<TaskResult>): Result = context(
+        executionContext.eventSink,
+        dependenciesResult.xcodeEnvironment(),
+    ) {
         var destinations: List<XcodeDestination> = operationEventScope("Querying Xcode project destinations") {
             listXcodeDestinations(
                 projectDir = module.xcodeProjectPath,
@@ -95,7 +98,7 @@ class PrepareIOSPlatformTask(
 
         private val logger = LoggerFactory.getLogger(javaClass)
 
-        context(_: OperationEventSink)
+        context(_: OperationEventSink, xcodeEnvironment: XcodeEnvironment)
         private suspend fun provisionIosPlatform() = mutex.withLock {
             if (downloaded) {
                 return@withLock
@@ -104,13 +107,15 @@ class PrepareIOSPlatformTask(
             val [command, moniker] = if (preDownloadedImagePath != null) {
                 logger.info("Using iOS Simulator image path: $preDownloadedImagePath")
                 [
-                    "xcrun", "xcodebuild",
+                    XCRUN_EXECUTABLE,
+                    "xcodebuild",
                     "-importPlatform",
                     preDownloadedImagePath,
                 ] to "importing the platform image"
             } else {
                 [
-                    "xcrun", "xcodebuild",
+                    XCRUN_EXECUTABLE,
+                    "xcodebuild",
                     "-downloadPlatform",
                     "iOS",
                 ] to "downloading the platform image"
@@ -119,6 +124,7 @@ class PrepareIOSPlatformTask(
                 runProcess(
                     workingDir = Path("."),
                     command = command,
+                    configureEnvironment = { xcodeEnvironment.configureCommandEnvironment() },
                     outputMode = ProcessOutputMode.listen(object : ProcessOutputListener {
                         override fun onStdoutLine(line: String, pid: Long) {
                             val ratio = DownloadPercentRegex.find(line)?.let {

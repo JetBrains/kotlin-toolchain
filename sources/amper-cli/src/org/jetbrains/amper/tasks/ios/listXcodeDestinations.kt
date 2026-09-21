@@ -28,6 +28,7 @@ data class XcodeDestination(
 val XcodeDestination.isBuildOnly
     get() = id.let { ":placeholder" in it.value } && arch == null
 
+context(xcodeEnvironment: XcodeEnvironment)
 suspend fun listXcodeDestinations(
     projectDir: Path,
     schemeName: String,
@@ -35,12 +36,14 @@ suspend fun listXcodeDestinations(
     val result = runProcess(
         workingDir = projectDir,
         command = [
-            "xcrun", "xcodebuild",
+            XCRUN_EXECUTABLE,
+            "xcodebuild",
             "-project", projectDir.absolutePathString(),
             "-scheme", schemeName,
             "-showdestinations",
             "-quiet",
         ],
+        configureEnvironment = { xcodeEnvironment.configureCommandEnvironment() },
         outputMode = ProcessOutputMode.capture(),
     )
     /*

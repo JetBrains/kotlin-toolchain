@@ -11,6 +11,7 @@ import org.jetbrains.amper.tasks.ModuleTaskTypes
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
 import org.jetbrains.amper.tasks.getTaskName
+import org.jetbrains.amper.tasks.ios.XcodeEnvironmentTask
 import org.jetbrains.amper.tasks.native.XcodebuildTaskType
 
 fun ProjectTasksBuilder.setupSwiftPMTasks() {
@@ -84,6 +85,7 @@ fun ProjectTasksBuilder.setupSwiftPMTasks() {
                         userCacheRoot = context.userCacheRoot,
                         terminal = context.terminal,
                     ),
+                    dependsOn = XcodeEnvironmentTask.TASK_NAME,
                 )
             }
 
@@ -104,6 +106,7 @@ fun ProjectTasksBuilder.setupSwiftPMTasks() {
                         taskName = ModuleTaskTypes.IntegrateSwiftPMPackageIfNeeded.getTaskName(module),
                         terminal = context.terminal,
                     ),
+                    dependsOn = XcodeEnvironmentTask.TASK_NAME,
                 )
             }
         }

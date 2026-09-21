@@ -5,6 +5,7 @@
 package org.jetbrains.amper.tasks.ios
 
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.LinkTaskType
@@ -18,6 +19,14 @@ import org.jetbrains.amper.tasks.getTaskName
  * Set up apple-related tasks.
  */
 fun ProjectTasksBuilder.setupIosTasks() {
+    if (model.modules.any { module -> module.leafPlatforms.any { it.isDescendantOf(Platform.APPLE) } }) {
+        tasks.registerTask(
+            XcodeEnvironmentTask(
+                processRunner = context.processRunner,
+            )
+        )
+    }
+
     allModules()
         .alsoPlatforms(Platform.IOS)
         .alsoBuildTypes()
@@ -36,7 +45,10 @@ fun ProjectTasksBuilder.setupIosTasks() {
                     buildType = buildType,
                     processRunner = context.processRunner,
                 ),
-                dependsOn = LinkTaskType.getTaskName(module, platform, isTest = true, buildType)
+                dependsOn = [
+                    LinkTaskType.getTaskName(module, platform, isTest = true, buildType),
+                    XcodeEnvironmentTask.TASK_NAME,
+                ]
             )
         }
 
@@ -50,6 +62,9 @@ fun ProjectTasksBuilder.setupIosTasks() {
                     module = module,
                     terminal = context.terminal,
                 ),
+                dependsOn = [
+                    XcodeEnvironmentTask.TASK_NAME,
+                ]
             )
             tasks.registerTask(
                 task = PrepareIOSPlatformTask(
@@ -57,7 +72,10 @@ fun ProjectTasksBuilder.setupIosTasks() {
                     terminal = context.terminal,
                     module = module,
                 ),
-                dependsOn = manageXcodeProjectTaskName,
+                dependsOn = [
+                    manageXcodeProjectTaskName,
+                    XcodeEnvironmentTask.TASK_NAME,
+                ],
             )
         }
 
@@ -117,6 +135,7 @@ fun ProjectTasksBuilder.setupIosTasks() {
                     // project won't help much anyway.
                     ModuleTaskTypes.ManageXCodeProject.getTaskName(module),
                     ModuleTaskTypes.PrepareIosPlatform.getTaskName(module),
+                    XcodeEnvironmentTask.TASK_NAME,
                 ],
             )
 
@@ -135,6 +154,7 @@ fun ProjectTasksBuilder.setupIosTasks() {
                     buildTaskName,
                     xcodeBuildSettingsResolution.taskDependency(module),
                     ModuleTaskTypes.PrepareIosPlatform.getTaskName(module),
+                    XcodeEnvironmentTask.TASK_NAME,
                 )
             )
             tasks.registerTask(
@@ -148,6 +168,7 @@ fun ProjectTasksBuilder.setupIosTasks() {
                 ),
                 dependsOn = [
                     prepareDeviceForRunTaskName,
+                    XcodeEnvironmentTask.TASK_NAME,
                 ]
             )
         }

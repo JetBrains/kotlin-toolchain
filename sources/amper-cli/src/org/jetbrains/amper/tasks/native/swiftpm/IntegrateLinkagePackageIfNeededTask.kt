@@ -11,6 +11,7 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
+import org.jetbrains.amper.tasks.ios.xcodeEnvironment
 import org.jetbrains.amper.tasks.ios.xcodeProjectPath
 
 /**
@@ -25,7 +26,9 @@ class IntegrateLinkagePackageIfNeededTask(
     private val generatedPackage by generatedPackage<XcodeWiredSwiftPMImportPackage>(module)
 
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult = context(
+        dependenciesResult.xcodeEnvironment(),
+    ) {
         checkAndIntegrateXcodeProjectWithSwiftPMPackageIfNeeded(
             swiftPMDependenciesArtifact,
             module.xcodeProjectPath,

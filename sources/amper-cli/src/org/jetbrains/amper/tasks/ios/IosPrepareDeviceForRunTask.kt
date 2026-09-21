@@ -31,7 +31,10 @@ class IosPrepareDeviceForRunTask(
     private val buildSettingsResolution: XcodeBuildSettingsResolution,
 ) : Task {
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult = context(executionContext.eventSink) {
+    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult = context(
+        executionContext.eventSink,
+        dependenciesResult.xcodeEnvironment(),
+    ) {
         val builtApp = dependenciesResult.requireSingleDependency<IosBuildTask.Result>()
 
         if (!platform.isIosSimulator && !checkAppIsSigned(builtApp.appPath)) {
@@ -121,7 +124,7 @@ class IosPrepareDeviceForRunTask(
     ) : TaskResult
 }
 
-context(_: OperationEventSink)
+context(_: OperationEventSink, _: XcodeEnvironment)
 suspend fun prepareSimulator(
     processRunner: ProcessRunner,
     userProvidedDeviceId: XcodeDeviceId?,

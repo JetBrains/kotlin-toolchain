@@ -25,7 +25,9 @@ class IosRunTask(
     private val terminal: Terminal,
 ) : RunTask {
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult = context(
+        dependenciesResult.xcodeEnvironment(),
+    ) {
         val preparedRun = dependenciesResult.requireSingleDependency<IosPrepareDeviceForRunTask.Result>()
         terminal.println(terminal.theme.success("Starting the app"))
         if (platform.isIosSimulator) {

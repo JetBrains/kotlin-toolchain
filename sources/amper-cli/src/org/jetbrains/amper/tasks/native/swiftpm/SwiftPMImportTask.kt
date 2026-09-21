@@ -39,6 +39,9 @@ import org.jetbrains.amper.tasks.artifacts.api.ArtifactSelector
 import org.jetbrains.amper.tasks.artifacts.api.ArtifactType
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.ios.IosBuildTask
+import org.jetbrains.amper.tasks.ios.XCRUN_EXECUTABLE
+import org.jetbrains.amper.tasks.ios.XcodeEnvironment
+import org.jetbrains.amper.tasks.ios.xcodeEnvironment
 import org.jetbrains.amper.tasks.native.NativeCInteropGenerateKlibTask
 import org.jetbrains.amper.tasks.native.swiftpm.GenerateSwiftPMImportPackageTask.Companion.SYNTHETIC_IMPORT_DYLIB
 import org.jetbrains.amper.tasks.native.swiftpm.GenerateSwiftPMImportPackageTask.Companion.SYNTHETIC_IMPORT_TARGET_MAGIC_NAME
@@ -122,7 +125,7 @@ internal class SwiftPMImportTask(
         )
     }
 
-    context(executionContext: TaskGraphExecutionContext)
+    context(executionContext: TaskGraphExecutionContext, xcodeEnvironment: XcodeEnvironment)
     private suspend fun generateDefFilesAndLinkerDump(
         syntheticImportProjectRoot: Path,
         swiftPMDependenciesCheckout: Path,
@@ -166,7 +169,7 @@ internal class SwiftPMImportTask(
         }.toSet()
 
         val args = mutableListOf(
-            "xcodebuild", "build",
+            XCRUN_EXECUTABLE, "xcodebuild",
             "-scheme", SYNTHETIC_IMPORT_TARGET_MAGIC_NAME,
             "-destination", "generic/platform=${xcodebuildDestination}",
             "-derivedDataPath", dd.pathString,
@@ -215,6 +218,7 @@ internal class SwiftPMImportTask(
                 workingDir = syntheticImportProjectRoot,
                 command = args,
                 configureEnvironment = {
+                    xcodeEnvironment.configureCommandEnvironment()
                     put(XcodebuildDefFileUtils.KOTLIN_CLANG_ARGS_DUMP_FILE_ENV, clangArgsDump.pathString)
                     put(XcodebuildDefFileUtils.KOTLIN_LD_ARGS_DUMP_FILE_ENV, ldArgsDump.pathString)
                     remove("EMBED_PACKAGE_RESOURCE_BUNDLE_NAMES")
@@ -296,7 +300,9 @@ internal class SwiftPMImportTask(
     }
 
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult = context(
+        dependenciesResult.xcodeEnvironment(),
+    ) {
         if (!fetchedPackage.path.exists()) {
             produces.forEach {
                 it.path.deleteRecursively()

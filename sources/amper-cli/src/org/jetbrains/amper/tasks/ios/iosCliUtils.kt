@@ -25,21 +25,27 @@ import kotlin.time.Duration.Companion.milliseconds
 
 const val XCRUN_EXECUTABLE = "/usr/bin/xcrun"
 
+context(_: XcodeEnvironment)
 suspend fun ProcessRunner.installAppOnDevice(deviceId: XcodeDeviceId, appPath: Path) =
     SimCtl.install(deviceId = deviceId.value, appPath = appPath)
 
+context(_: XcodeEnvironment)
 suspend fun ProcessRunner.installAppOnPhysicalDevice(deviceId: XcodeDeviceId, appPath: Path) =
     DeviceCtl.installApp(deviceId = deviceId.value, appPath = appPath)
 
+context(_: XcodeEnvironment)
 suspend fun ProcessRunner.launchAppOnDevice(deviceId: XcodeDeviceId, bundleId: String) =
     SimCtl.launch(deviceId = deviceId.value, bundleId = bundleId)
 
+context(_: XcodeEnvironment)
 suspend fun ProcessRunner.launchAppOnPhysicalDevice(deviceId: XcodeDeviceId, bundleId: String) =
     DeviceCtl.launchProcess(deviceId = deviceId.value, bundleId = bundleId)
 
+context(_: XcodeEnvironment)
 suspend fun ProcessRunner.shutdownDevice(deviceId: XcodeDeviceId) =
     SimCtl.shutdown(deviceId = deviceId.value)
 
+context(_: XcodeEnvironment)
 suspend fun ProcessRunner.selectBestIosSimulator(
     preFilter: (XcodeDeviceId) -> Boolean = { true },
 ): XcodeDeviceId? {
@@ -69,6 +75,7 @@ suspend fun ProcessRunner.selectBestIosSimulator(
     return selectBestIosDevice(candidates)?.id
 }
 
+context(_: XcodeEnvironment)
 suspend fun ProcessRunner.isSimulatorBooted(
     deviceId: XcodeDeviceId,
 ): Boolean {
@@ -79,6 +86,7 @@ suspend fun ProcessRunner.isSimulatorBooted(
 }
 
 // We assume that the device is not yet booted
+context(_: XcodeEnvironment)
 suspend fun ProcessRunner.bootAndWaitSimulator(
     deviceId: XcodeDeviceId,
     forceShowWindow: Boolean = false,
@@ -111,6 +119,7 @@ suspend fun ProcessRunner.bootAndWaitSimulator(
     userReadableError("Simulator boot timeout for `${deviceId}`.")
 }
 
+context(_: XcodeEnvironment)
 suspend fun ProcessRunner.provisionLatestIPhoneSimulator(
     platform: Platform,
 ): XcodeDestination {
@@ -182,7 +191,7 @@ private fun <T : DeviceCandidate> selectBestIosDevice(
 )
 
 private abstract class Xcrun {
-    context(_: ProcessRunner)
+    context(_: ProcessRunner, _: XcodeEnvironment)
     protected suspend fun xcrun(vararg args: String, checkNonZeroExitCode: Boolean = true): ProcessResult.WithStderr =
         xcrun(
             *args,
@@ -190,7 +199,7 @@ private abstract class Xcrun {
             checkNonZeroExitCode = checkNonZeroExitCode,
         )
 
-    context(processRunner: ProcessRunner)
+    context(processRunner: ProcessRunner, xcodeEnvironment: XcodeEnvironment)
     protected suspend fun <R : ProcessResult> xcrun(
         vararg args: String,
         outputMode: ProcessOutputMode<R>,
@@ -198,6 +207,7 @@ private abstract class Xcrun {
     ): R = processRunner.runProcess(
         workingDir = Path("."),
         command = listOf(XCRUN_EXECUTABLE) + args,
+        configureEnvironment = { xcodeEnvironment.configureCommandEnvironment() },
         outputMode = outputMode,
     ).also {
         if (checkNonZeroExitCode && it.exitCode.value != 0) {
@@ -254,7 +264,7 @@ private object SimCtl : Xcrun() {
         data class DeviceId(val id: XcodeDeviceId) : DeviceFilter
     }
 
-    context(_: ProcessRunner)
+    context(_: ProcessRunner, _: XcodeEnvironment)
     suspend fun queryDevices(filter: DeviceFilter? = null): SimCtlListOutput {
         val args: MutableList<String> = [
             "simctl", "list", "devices", "--json",
@@ -268,7 +278,7 @@ private object SimCtl : Xcrun() {
         return SimCtlOutputFormat.decodeFromString<SimCtlListOutput>(simctlListOut)
     }
 
-    context(_: ProcessRunner)
+    context(_: ProcessRunner, _: XcodeEnvironment)
     suspend fun listAvailableRuntimes(): SimCtlRuntimesOutput {
         val runtimesOutput = xcrun(
             "simctl", "list", "runtimes", "--json", "available",
@@ -277,7 +287,7 @@ private object SimCtl : Xcrun() {
         return SimCtlOutputFormat.decodeFromString<SimCtlRuntimesOutput>(runtimesOutput.stdoutAndStderr)
     }
 
-    context(_: ProcessRunner)
+    context(_: ProcessRunner, _: XcodeEnvironment)
     suspend fun create(
         name: String,
         deviceTypeId: String,
@@ -287,7 +297,7 @@ private object SimCtl : Xcrun() {
         outputMode = ProcessOutputMode.capture(),
     ).stdout.trim()
 
-    context(_: ProcessRunner)
+    context(_: ProcessRunner, _: XcodeEnvironment)
     suspend fun boot(deviceId: String, failIfAlreadyBooted: Boolean = false) {
         val result = xcrun("simctl", "boot", deviceId, checkNonZeroExitCode = false)
         if ("Unable to boot device in current state: Booted" in result.stderr) {
@@ -304,24 +314,24 @@ private object SimCtl : Xcrun() {
         return
     }
 
-    context(_: ProcessRunner)
+    context(_: ProcessRunner, _: XcodeEnvironment)
     suspend fun install(deviceId: String, appPath: Path) = xcrun("simctl", "install", deviceId, appPath.pathString)
 
-    context(_: ProcessRunner)
+    context(_: ProcessRunner, _: XcodeEnvironment)
     suspend fun launch(deviceId: String, bundleId: String) = xcrun("simctl", "launch", deviceId, bundleId)
 
-    context(_: ProcessRunner)
+    context(_: ProcessRunner, _: XcodeEnvironment)
     suspend fun shutdown(deviceId: String) = xcrun("simctl", "shutdown", deviceId)
 }
 
 private object DeviceCtl : Xcrun() {
-    context(_: ProcessRunner)
+    context(_: ProcessRunner, _: XcodeEnvironment)
     suspend fun installApp(
         deviceId: String,
         appPath: Path,
     ) = xcrun("devicectl", "device", "install", "app", "--device", deviceId, appPath.pathString)
 
-    context(_: ProcessRunner)
+    context(_: ProcessRunner, _: XcodeEnvironment)
     suspend fun launchProcess(
         deviceId: String,
         bundleId: String,
