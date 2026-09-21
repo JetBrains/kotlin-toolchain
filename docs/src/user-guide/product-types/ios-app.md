@@ -41,6 +41,13 @@ struct iosApp: App {
 
 This is not customizable at the moment.
 
+## Running your application
+
+You can run your application using the `kotlin run` command.
+
+Prerequisite: [Xcode](https://developer.apple.com/xcode/) must be installed, and the first launch must have been run 
+already (this is a one-time operation that can also be done via the command `xcodebuild -runFirstLaunch`).
+
 ## Xcode Project
 
 Currently, an Xcode project is required to build an iOS application in the Kotlin Toolchain.

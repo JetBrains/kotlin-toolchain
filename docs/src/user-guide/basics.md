@@ -183,7 +183,7 @@ Here are some example module files for different types of modules:
           type: jvm/app
        ```
        The `jvm/app` product type means that the module produces a [JVM application](product-types/jvm-app.md).
-       Read more about other product types in the [Product types](product-types/index.md) section.
+       Read more about other product types in the [Product types](product-types/overview.md) section.
     2. The `dependencies` section contains the list of dependencies for this module. 
        Here `io.ktor:ktor-client-java:2.3.0` are the 
        [Maven coordinates :fontawesome-solid-external-link:](https://maven.apache.org/pom.html#Maven_Coordinates) of 
@@ -221,7 +221,7 @@ Here are some example module files for different types of modules:
 
     1. The `kmp/lib` product type means that the module produces a [:jetbrains-kotlin-multiplatform: Kotlin Multiplatform 
        library](product-types/kmp-lib.md).
-       Read more about other product types in the [Product types](product-types/index.md) section.
+       Read more about other product types in the [Product types](product-types/overview.md) section.
     2. The `platforms` list contains the platforms that this module is built for.
     3. The `dependencies` section contains the list of common dependencies for this module. 
        Here `io.ktor:ktor-client-core:2.3.0` are the 
@@ -254,7 +254,7 @@ application (`android/app`), Kotlin Multiplatform library (`kmp/lib`), etc.
 It actually tells us both the target platform and the type of the module at the same time.
 
 All modules generally work the same way, but each product type may add its own set of rules and capabilities.
-Check out the [Product types](product-types/index.md) section and subsections to see details about each of them.
+Check out the [Product types](product-types/overview.md) section and subsections to see details about each of them.
 
 ### Dependencies
 

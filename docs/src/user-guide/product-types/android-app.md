@@ -30,7 +30,14 @@ The application's entry point is specified in the `AndroidManifest.xml` file acc
 </manifest>
 ```
 
-You can run your application using the `./kotlin run` command.
+## Running your application
+
+You can run your application using the `kotlin run` command.
+
+It installs and starts the application on a connected device or emulator, starting a new emulator if necessary.
+
+There are no prerequisites for this. All the required tools, including the Android SDK, will be provisioned if not
+present (you will need to accept licenses).
 
 ??? tip "Run in IntelliJ IDEA"
 

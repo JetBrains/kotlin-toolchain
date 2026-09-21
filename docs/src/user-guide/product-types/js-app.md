@@ -47,6 +47,17 @@ The entry point of a Kotlin/JS application is a top-level `main` function in the
 Multiple `main` functions are not supported. If you have multiple main functions, the one chosen by the compiler as 
 an entry point is unspecified.
 
+## Running your application
+
+!!! warning "Kotlin/JS applications cannot be run directly by the Kotlin CLI at the moment."
+
+To run your application, you need to:
+
+1. Install a JavaScript runtime (e.g., Node.js or a browser)
+2. Build your module with `kotlin build`
+3. Run the `.mjs` file produced by your module using your JavaScript runtime.
+   See the [Packaging](#packaging) section below to know where this file is located.
+
 ## Packaging
 
 You can use the `build` command to compile your code to a JavaScript module file (`.mjs`) for your application.
@@ -56,14 +67,3 @@ The `.mjs` file is produced in the `build/tasks/_<module-name>_linkJs` folder at
 change.
 
 There is no extra packaging facilities at the moment, and the `package` command is not supported for this product type.
-
-## Running your application
-
-!!! warning "Kotlin/JS applications cannot be run directly by the Kotlin CLI at the moment."
-
-To run your application, you need to:
-
-1. Install a JavaScript runtime (e.g., Node.js or a browser)
-2. Build your module with `./kotlin build`
-3. Run the `.mjs` file produced by your module using your JavaScript runtime. 
-   See the [Packaging](#packaging) section above to know where this file is located.

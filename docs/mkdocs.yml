@@ -126,7 +126,7 @@ nav:
       - 'Templates': user-guide/templates.md
       - 'Publishing': user-guide/publishing.md
       - 'Product types':
-          - user-guide/product-types/index.md
+          - 'Overview': user-guide/product-types/overview.md
           - 'Android application': user-guide/product-types/android-app.md
           - 'iOS application': user-guide/product-types/ios-app.md
           - 'JVM application': user-guide/product-types/jvm-app.md

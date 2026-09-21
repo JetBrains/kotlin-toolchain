@@ -39,6 +39,17 @@ settings:
     
     For example, the top-level declarations of `myMain.kt` will be in a class named `MyMainKt`.
 
+## Running your application
+
+You can run your application using the `kotlin run` command.
+
+There are no prerequisites for this command. It will automatically:
+
+* download dependencies
+* provision a JDK (see how to configure this in the [JDK provisioning](../advanced/jdk-provisioning.md) section)
+* compile the module and its local dependencies
+* start the JVM with your main class (see the [entry point](#entry-point) section above) 
+
 ## Packaging
 
 You can use the `build` command to produce a regular JAR of your application's code, or the `package` 

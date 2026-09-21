@@ -12,7 +12,7 @@ These applications can be run using runtimes like [Node.js](https://nodejs.org/e
     The support for the Wasm-WASI target is currently in an incomplete preview state.
 
     For example, running a WASI application is not supported out of the box at the moment like other application 
-    types, and needs some manual work (see the [Running WASI application](#running-wasi-application)).
+    types, and needs some manual work (see [Running your application](#running-your-application) below).
 
     We're eager to hear more about your use cases and how we can improve this experience!
     Please let us know in a [:jetbrains-youtrack: YouTrack](https://youtrack.jetbrains.com/issues/KTC) issue, or in
@@ -39,6 +39,17 @@ The entry point of a Kotlin/Wasm application is a top-level `main` function in t
 Multiple `main` functions are not supported. If you have multiple main functions, the one chosen by the compiler as 
 an entry point is unspecified.
 
+## Running your application
+
+!!! warning "Kotlin/Wasm application targeting WASI cannot be run directly by the Kotlin CLI at the moment."
+
+To run WASI application, you need to:
+
+1. Install a runtime that supports WebAssembly (e.g., Node.js, Deno, WasmEdge, ...).
+2. Build your module with `kotlin build`
+3. Using your runtime, run the `.mjs` wrapper file that calls the `.wasm` code produced by your module.
+   See the [Packaging](#packaging) section below to know where this file is located.
+
 ## Packaging
 
 Using the `build` command compiles your code to WebAssembly (`.wasm` file) and generates a JavaScript wrapper file 
@@ -48,14 +59,3 @@ These files are produced in the `build/artifacts/CompiledWebArtifact/<module-nam
 at the moment, but this is subject to change.
 
 There are no extra packaging facilities at the moment, and the `package` command is not supported for this product type.
-
-## Running WASI application
-
-!!! warning "Kotlin/Wasm application targeting WASI cannot be run directly by the Kotlin CLI at the moment."
-
-To run WASI application, you need to:
-
-1. Install a runtime that supports WebAssembly (e.g., Node.js, Deno, WasmEdge, ...).
-2. Build your module with `./kotlin build`
-3. Using your runtime, run the `.mjs` wrapper file that calls the `.wasm` code produced by your module.
-   See the [Packaging](#packaging) section above to know where this file is located.

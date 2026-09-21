@@ -74,9 +74,22 @@ The default `index.html` looks like this:
 
 ## Dependencies
 
-Currently, defining direct NPM dependencies for your application is not supported. However, if you use a Kotlin Multiplatform library
-that requires such a dependency (e.g., `@js-joda/core` for `kotlinx-datetime`), the dependency will be downloaded and packed together
-with your application.
+Currently, defining direct NPM dependencies for your application is not supported. However, if you use a Kotlin 
+Multiplatform library that requires such a dependency (e.g., `@js-joda/core` for `kotlinx-datetime`), the dependency will 
+be downloaded and packed together with your application.
+
+## Running your application
+
+You can run your application in a browser using the `kotlin run` command.
+
+There are no prerequisites for this command. It will automatically:
+
+* download Maven dependencies and their transitive npm dependencies
+* provision the Skiko Wasm runtime
+* compile the module and its local dependencies
+* generate all the relevant files (see the [packaging](#packaging) section below)
+* start a local server to serve those files
+* launch a browser with the `/index.html` file
 
 ## Packaging
 
@@ -96,7 +109,3 @@ There are no extra packaging facilities at the moment, and the `package` command
 ## Testing
 
 Tests targeting Wasm JS target are not supported yet, but we are [working on it](https://youtrack.jetbrains.com/issue/KTC-5576).
-
-## Running Wasm application in your browser
-
-You can use the `run` command to start the local server and open your application in the browser.
