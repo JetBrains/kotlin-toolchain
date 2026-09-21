@@ -14,6 +14,8 @@ import com.android.sdklib.AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.AvdNames
+import com.android.sdklib.internal.avd.ConfigKey
 import com.android.sdklib.internal.avd.OnDiskSkin
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.utils.StdLogger
@@ -142,7 +144,7 @@ class AndroidRunTask(
             androidTools.startEmulatorAndAwaitOnline(
                 avdName = avd.name,
                 androidVersion = androidVersion,
-                headless = System.getProperty(headlessEmulatorModePropertyName).toBoolean()
+                headless = System.getProperty(headlessEmulatorModePropertyName).toBoolean(),
             )
         } catch (e: AndroidEmulatorFailedException) {
             userReadableError(e.message)
@@ -159,17 +161,20 @@ class AndroidRunTask(
         val systemImage = systemImageManager.images.firstOrNull { it.androidVersion.canRun(androidVersion) }
             ?: error("System image for $androidVersion not found")
         val systemImageVersion = systemImage.androidVersion.apiStringWithoutExtension
+        val avdDisplayName = "Pixel 9 API $systemImageVersion"
+        // The AVD name is used as a filename and passed to the emulator's -avd option.
+        // It doesn't support spaces or special characters, and thus needs sanitization with AvdNames.cleanAvdName()
+        val avdName = AvdNames.cleanAvdName(avdDisplayName)
         // NB: Skin + AVD name + hardware config should match the phone specifications
         // See Device Manager for specifications
         return avdManager.createAvd(
-            avdFolder = avdPath.resolve("Pixel-9-$systemImageVersion-ktc.avd"),
-            avdName = "Pixel 9 API $systemImageVersion",
+            avdFolder = AvdInfo.getDefaultAvdFolder(avdManager, avdName, false),
+            avdName = avdName,
             systemImage = systemImage,
-            skin = androidSdkPath.resolve("skins/pixel_9")
-                .takeIf { it.exists() }
-                ?.let(::OnDiskSkin),
+            skin = androidSdkPath.resolve("skins/pixel_9").takeIf { it.exists() }?.let(::OnDiskSkin),
             sdcard = null,
             hardwareConfig = mutableMapOf(
+                ConfigKey.DISPLAY_NAME to avdDisplayName,
                 "hw.lcd.width" to "1080",
                 "hw.lcd.height" to "2424",
                 "hw.lcd.density" to "420",
