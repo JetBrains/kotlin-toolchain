@@ -8,6 +8,7 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.api.CanBeReferenced
 import org.jetbrains.amper.frontend.api.DeprecatedSchema
 import org.jetbrains.amper.frontend.api.KnownIntValues
+import org.jetbrains.amper.frontend.api.KnownStringValues
 import org.jetbrains.amper.frontend.api.Misnomers
 import org.jetbrains.amper.frontend.api.NotBlank
 import org.jetbrains.amper.frontend.api.ProductTypeSpecific
@@ -90,6 +91,17 @@ class AndroidSettings : SchemaNode() {
     @SchemaDoc("Packaging options for java resource files.")
     @ProductTypeSpecific(ProductType.ANDROID_APP)
     val resourcePackaging: AndroidJavaResourcesPackagingSettings by nested()
+
+    @Misnomers("abis", "supportedAbis", "ndkAbiFilters")
+    @SchemaDoc("The set of Android ABIs to package native libraries for. " +
+            "Only the ABI directories listed here are packaged in the APK or bundle.<br>" +
+            "When empty (the default), every ABI found in the native libraries of this module and its dependencies " +
+            "is packaged.<br>" +
+            "Example: 'arm64-v8a', 'x86_64', etc. " +
+            "[Read more](https://developer.android.com/ndk/guides/abis)")
+    @ProductTypeSpecific(ProductType.ANDROID_APP)
+    @KnownStringValues("arm64-v8a", "armeabi-v7a", "x86_64", "x86", "riscv64")
+    val abiFilters by value<List<TraceableString>>(default = [])
 
     @SchemaDoc("Configure [Kotlin Parcelize](https://developer.android.com/kotlin/parcelize) to automatically " +
             "implement the `Parcelable` interface for classes annotated with `@Parcelize`.")

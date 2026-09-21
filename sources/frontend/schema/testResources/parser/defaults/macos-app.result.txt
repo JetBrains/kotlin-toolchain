@@ -8,6 +8,8 @@ Fragments:
       native (REFINE)
     Settings: {
       android: <default> {
+        abiFilters: <default> [
+        ]
         applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
@@ -208,6 +210,8 @@ Fragments:
       apple (FRIEND)
     Settings: {
       android: <default> {
+        abiFilters: <default> [
+        ]
         applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
@@ -404,6 +408,8 @@ Fragments:
     Fragment dependencies:
     Settings: {
       android: <default> {
+        abiFilters: <default> [
+        ]
         applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
@@ -603,6 +609,8 @@ Fragments:
       common (FRIEND)
     Settings: {
       android: <default> {
+        abiFilters: <default> [
+        ]
         applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
@@ -800,6 +808,8 @@ Fragments:
       apple (REFINE)
     Settings: {
       android: <default> {
+        abiFilters: <default> [
+        ]
         applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
@@ -997,6 +1007,8 @@ Fragments:
       macos (REFINE)
     Settings: {
       android: <default> {
+        abiFilters: <default> [
+        ]
         applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
@@ -1197,6 +1209,8 @@ Fragments:
       macosArm64 (FRIEND)
     Settings: {
       android: <default> {
+        abiFilters: <default> [
+        ]
         applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
@@ -1397,6 +1411,8 @@ Fragments:
       macos (FRIEND)
     Settings: {
       android: <default> {
+        abiFilters: <default> [
+        ]
         applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
@@ -1594,6 +1610,8 @@ Fragments:
       common (REFINE)
     Settings: {
       android: <default> {
+        abiFilters: <default> [
+        ]
         applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
@@ -1794,6 +1812,8 @@ Fragments:
       native (FRIEND)
     Settings: {
       android: <default> {
+        abiFilters: <default> [
+        ]
         applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {

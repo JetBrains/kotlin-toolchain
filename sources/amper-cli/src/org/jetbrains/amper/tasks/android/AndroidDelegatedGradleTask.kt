@@ -123,10 +123,18 @@ abstract class AndroidDelegatedGradleTask(
                 taskOutputPath.path.resolve(it.fileName), followLinks = false, overwrite = true
             )
         }
+        validateArtifacts(executionResult.outputFiles)
         return result(executionResult.outputFiles)
     }
 
     protected abstract val phase: AndroidBuildRequest.Phase
+
+    /**
+     * Validates the produced [artifacts], failing the build if they can't work at runtime.
+     *
+     * This runs on cache hits as well, so that an artifact that was already built can't slip through unchecked.
+     */
+    protected open fun validateArtifacts(artifacts: List<Path>) {}
 
     protected open val additionalInputFiles: List<Path> = emptyList()
     protected open fun outputFilterPredicate(path: Path): Boolean = true

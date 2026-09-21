@@ -200,6 +200,8 @@ class AmperAndroidIntegrationProjectPlugin @Inject constructor(private val probl
                     "Application ID must have been specified for the module ${module.userReadableName} and verified by the frontend"
                 }
             }
+            // An empty set means "no filtering", which is AGP's default, so this is a no-op when unset.
+            ndk.abiFilters.addAll(androidSettings.abiFilters.map { it.value })
         }
         androidExtension.namespace = androidSettings.effectiveNamespace(module)
 

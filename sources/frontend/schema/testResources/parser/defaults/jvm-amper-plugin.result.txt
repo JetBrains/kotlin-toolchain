@@ -8,6 +8,8 @@ Fragments:
     Fragment dependencies:
     Settings: {
       android: <default> {
+        abiFilters: <default> [
+        ]
         applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
@@ -207,6 +209,8 @@ Fragments:
       main (FRIEND)
     Settings: {
       android: <default> {
+        abiFilters: <default> [
+        ]
         applicationId: <default> null
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {

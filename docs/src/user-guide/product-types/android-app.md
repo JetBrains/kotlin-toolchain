@@ -80,6 +80,38 @@ The values are glob patterns accepted by Android's
 API. See the [`resourcePackaging` reference](../../reference/module.md#settingsandroidresourcepackaging) for all
 available options.
 
+### Filtering native library ABIs
+
+An Android package may carry pre-compiled native libraries (`.so` files) grouped by
+c, and by default it carries every ABI it can find.
+
+Native libraries come from two sources: the module's own [`jniLibs` directory](#module-layout), and those
+dependencies of the module that contain native libraries, each bringing the ABIs it was built for. Most dependencies
+contain none at all, but the ones that do could have different ABIs coverage.
+
+This matters because Android picks a single ABI per installation: it takes the first entry of the device's supported
+ABI list that is present in the package, and then only that one `lib/<abi>/` directory is used. If an ABI doesn't
+carry every mandatory native library that the other ABIs carry, the app might fail at runtime with `UnsatisfiedLinkError` on every
+device that selects it.
+
+The Kotlin Toolchain doesn't let that reach your users by accident: packaging ABIs with inconsistent native
+libraries **fails the build**, reporting which ABI is missing which library.
+
+Use `settings.android.abiFilters` to package only the ABIs that all of your native libraries support:
+
+```yaml
+settings:
+  android:
+    abiFilters: [ arm64-v8a, x86_64 ]
+```
+
+Only the listed ABIs are packaged; any other `lib/<abi>/` directory is dropped. Narrowing the list to ABIs whose
+native libraries are all present makes the package consistent, which is what resolves the build failure.
+
+Sometimes an ABI is incomplete on purpose because the missing library is optional: your code guards the call to
+`System.loadLibrary` and degrades gracefully when it isn't there. Only you can know that, so once `abiFilters`
+selects the ABIs explicitly, an inconsistency is reported as a **warning** instead of failing the build.
+
 ### Code shrinking
 
 When creating a release build with the Kotlin Toolchain, R8 will be used automatically, with minification and shrinking enabled.

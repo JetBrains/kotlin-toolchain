@@ -2,6 +2,7 @@ Module: android-app
 
 settings@android:
   android:
+    abiFilters: []  # default
     applicationId: com.example.app  # default, from ${namespace} @ module.yaml
     buildToolsVersion: 37.0.0  # default
     compileSdk:

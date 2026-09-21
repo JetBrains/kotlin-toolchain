@@ -1,0 +1,6 @@
+product: android/app
+
+settings:
+  android:
+    namespace: com.jetbrains.sample.jnilibs
+    abiFilters: [ arm64-v8a ]
