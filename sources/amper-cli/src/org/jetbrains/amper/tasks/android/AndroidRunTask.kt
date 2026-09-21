@@ -8,6 +8,7 @@ import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.IDevice.DeviceState
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.prefs.AndroidLocationsSingleton
@@ -19,9 +20,10 @@ import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.OnDiskSkin
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.utils.StdLogger
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
@@ -37,6 +39,7 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.singleSourceRoot
+import org.jetbrains.amper.processes.LongLivedProcess
 import org.jetbrains.amper.processes.ProcessLeak
 import org.jetbrains.amper.processes.startLongLivedProcess
 import org.jetbrains.amper.tasks.MobileRunSettings
@@ -220,39 +223,81 @@ class AndroidRunTask(
                         editExisting = true,
                     )
                 }
-            runEmulator(emulatorExecutable, avd.name)
-            waitForDevice(androidVersion)
+
+            @OptIn(ProcessLeak::class)
+            startEmulatorAndAwaitOnline(
+                emulatorExecutable = emulatorExecutable,
+                avdName = avd.name,
+                androidVersion = androidVersion,
+                headless = System.getProperty(headlessEmulatorModePropertyName).toBoolean()
+            )
         }
     }
 
-    @OptIn(ProcessLeak::class)
-    private fun runEmulator(emulatorExecutable: Path, avdName: String) {
-        startLongLivedProcess(
-            command = buildList {
-                add(emulatorExecutable.pathString)
-                val headlessMode: String? = System.getProperty(headlessEmulatorModePropertyName)
-                if (headlessMode == "true") {
-                    add("-no-window")
+    /**
+     * Starts the Android emulator for the given [avdName], and waits until it is reachable via ADB.
+     */
+    @ProcessLeak
+    private suspend fun startEmulatorAndAwaitOnline(
+        emulatorExecutable: Path,
+        avdName: String,
+        androidVersion: AndroidVersion,
+        headless: Boolean,
+    ): IDevice {
+        val emulatorProcess = startEmulator(emulatorExecutable, avdName, headless)
+        return coroutineScope {
+            val deviceOnline = async {
+                awaitDeviceChanged { device, _ ->
+                    device.state == DeviceState.ONLINE && device.version.canRun(androidVersion)
                 }
-                add("-avd")
-                add(avdName)
-            },
-            workingDir = emulatorExecutable.parent,
-            configureEnvironment = {
-                put("ANDROID_AVD_HOME", avdPath.toString())
-                put("ANDROID_HOME", androidSdkPath.toString())
-            },
-        )
+            }
+            try {
+                select {
+                    deviceOnline.onAwait { it }
+                    emulatorProcess.exitCode.onAwait { exitCode ->
+                        userReadableError("The Android emulator terminated with exit code ${exitCode}")
+                    }
+                }
+            } finally {
+                // The emulator must outlive this command, so we only stop watching it, we never kill it.
+                deviceOnline.cancel()
+            }
+        }
     }
 
-    private suspend fun waitForDevice(targetVersion: AndroidVersion): IDevice =
+    /**
+     * Starts the Android emulator for the given [avdName], detached from the life of the current JVM so it survives
+     * after this command terminates.
+     */
+    @ProcessLeak
+    private fun startEmulator(
+        emulatorExecutable: Path,
+        avdName: String,
+        headless: Boolean,
+    ): LongLivedProcess = startLongLivedProcess(
+        command = buildList {
+            add(emulatorExecutable.pathString)
+            if (headless) {
+                add("-no-window")
+            }
+            add("-avd")
+            add(avdName)
+        },
+        workingDir = emulatorExecutable.parent,
+        configureEnvironment = {
+            put("ANDROID_AVD_HOME", avdPath.toString())
+            put("ANDROID_HOME", androidSdkPath.toString())
+        },
+    )
+
+    private suspend fun awaitDeviceChanged(predicate: (IDevice, Int) -> Boolean): IDevice =
         suspendCancellableCoroutine { continuation ->
             val listener = object : AndroidDebugBridge.IDeviceChangeListener {
                 override fun deviceConnected(device: IDevice) = Unit
                 override fun deviceDisconnected(device: IDevice?) = Unit
 
                 override fun deviceChanged(device: IDevice, changeMask: Int) {
-                    if (device.state == IDevice.DeviceState.ONLINE && device.version.canRun(targetVersion)) {
+                    if (predicate(device, changeMask)) {
                         AndroidDebugBridge.removeDeviceChangeListener(this)
                         continuation.resume(device)
                     }
