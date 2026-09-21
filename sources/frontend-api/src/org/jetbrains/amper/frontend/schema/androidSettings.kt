@@ -182,7 +182,7 @@ fun AndroidSettings.effectiveNamespace(module: AmperModule): String {
         // It seems like a reasonable good default when the user doesn't use Android resources but still want to
         // publish their KMP library. This provides better uniqueness guarantees for applications consuming multiple
         // libraries.
-        ?: module.publishingSettings.toAndroidNamespace()
+        ?: module.publishingSettings.toAndroidNamespace(module)
         // Finally, we fall back to a generated namespace simplify the restriction in case when the
         // Android library is used solely for sharing the code and is not intended to be published
         // or expose any Android resources.
@@ -190,11 +190,11 @@ fun AndroidSettings.effectiveNamespace(module: AmperModule): String {
         ?: "org.jetbrains.ktc.mangled.p${module.userReadableName.hashCode().absoluteValue}"
 }
 
-private fun PublishingSettings.toAndroidNamespace(): String? {
+private fun PublishingSettings.toAndroidNamespace(module: AmperModule): String? {
     // Publishing group should already satisfy the Java's package name rules
     // according to https://maven.apache.org/guides/mini/guide-naming-conventions.html.
     val publishingGroupId = group ?: return null
-    val publishingArtifactId = artifactId?.sanitizeToJavaIdentifier() ?: return null
+    val publishingArtifactId = (artifactId ?: module.userReadableName).sanitizeToJavaIdentifier()
     return "$publishingGroupId.$publishingArtifactId"
 }
 
