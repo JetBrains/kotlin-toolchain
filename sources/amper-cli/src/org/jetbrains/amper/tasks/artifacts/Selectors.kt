@@ -8,6 +8,7 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
+import org.jetbrains.amper.frontend.FragmentDependencyType
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.allFragmentDependencies
@@ -46,15 +47,17 @@ object Selectors {
     }
 
     /**
-     * From the [fragment] and the fragments it refines.
+     * From the [fragment] and the fragments it depends on, following only the links of type [dependencyType] when
+     * one is given (all of them otherwise).
      */
     fun <T : FragmentScopedArtifact, Q : Quantifier.Multiple> fromFragmentWithDependencies(
         type: KClass<T>,
         fragment: Fragment,
         quantifier: Q,
+        dependencyType: FragmentDependencyType? = null,
     ): ArtifactSelector<T, Q> {
         val dependencies by lazy {
-            fragment.allFragmentDependencies(includeSelf = true).toSet()
+            fragment.allFragmentDependencies(includeSelf = true, dependencyType = dependencyType).toSet()
         }
         return ArtifactSelector(
             type = ArtifactType(type),

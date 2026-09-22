@@ -56,13 +56,26 @@ class ComposeResourcesTest : CliTestBase() {
             .walk(PathWalkOption.BREADTH_FIRST)
             .firstOrNull { it.extension == "apk" }
             ?: fail("No APK is found in the output of the '$taskName' task")
-        val assets = ZipFile(apk.toFile()).use { apkZip ->
-            apkZip.entries().asSequence().map { it.name }.filter { it.startsWith("assets/") }.toList()
+        val composeResourceEntries = ZipFile(apk.toFile()).use { apkZip ->
+            apkZip.entries().asSequence().map { it.name }.filter { "composeResources/" in it }.toList()
         }
-        assertContains(assets, "assets/composeResources/com.example.gen/files/platform-text.txt")
+        assertContains(composeResourceEntries, "assets/composeResources/com.example.gen/files/platform-text.txt")
         assertContains(
-            assets,
+            composeResourceEntries,
             "assets/composeResources/com.mohamedrejeb.calf.calf_cupertino_icons.generated.resources/font/sf_symbols.ttf",
+        )
+        // Assets are the only place Android reads Compose resources from, so they must not also be packaged as Java
+        // resources on the classpath: that would just duplicate every resource file in the APK.
+        assertEquals(
+            emptyList(),
+            composeResourceEntries.filterNot { it.startsWith("assets/") },
+            "Compose resources must only be packaged as Android assets, but the APK also carries them elsewhere",
+        )
+        // 'jvm' and 'android' are sibling leaf platforms, neither refines the other, so the JVM refinement of this
+        // file must not reach Android: the APK gets the common one.
+        assertEquals(
+            "Any platform",
+            apk.readZipEntryText("assets/composeResources/com.example.gen/files/refined-text.txt"),
         )
     }
 
@@ -76,6 +89,37 @@ class ComposeResourcesTest : CliTestBase() {
             projectDir = testProject("compose-resources-demo"),
             "test", "--platform=jvm",
             assertEmptyStdErr = false,  // on some platforms/machines, the UI part may issue warnings to stderr
+        )
+    }
+
+    /**
+     * The JVM packages the Compose resources of a module into its jar, and it must package the same merge of the
+     * fragments as the other platforms: the resources of a fragment override the ones of the fragments it refines.
+     * This is the JVM counterpart of [compose resources merging (ios)].
+     */
+    @Test
+    fun `compose resources merging (jvm)`() = runSlowTest {
+        val taskName = ":shared:jarJvm"
+        val result = runCli(
+            projectDir = testProject("compose-resources-demo"),
+            "task", taskName,
+        )
+
+        val jar = result.getTaskOutputPath(taskName)
+            .walk(PathWalkOption.BREADTH_FIRST)
+            .firstOrNull { it.extension == "jar" }
+            ?: fail("No jar is found in the output of the '$taskName' task")
+        val composeResources = jar.fileEntries().filter { it.startsWith("composeResources/") }
+
+        // Resources of the fragments taking part in the JVM compilation are all packaged, each exactly once.
+        assertContains(composeResources, "composeResources/com.example.gen/files/icon.xml") // from 'common'
+        assertContains(composeResources, "composeResources/com.example.gen/files/platform-text.txt") // from 'jvm'
+        assertEquals(composeResources.distinct(), composeResources, "some resources are packaged more than once")
+
+        // 'jvm' refines 'common', so its version of this file wins.
+        assertEquals(
+            "JVM refinement",
+            jar.readZipEntryText("composeResources/com.example.gen/files/refined-text.txt"),
         )
     }
 
@@ -306,5 +350,10 @@ class ComposeResourcesTest : CliTestBase() {
 
     private fun Path.fileEntries(): List<String> = ZipFile(toFile()).use { zip ->
         zip.entries().asSequence().filterNot { it.isDirectory }.map { it.name }.sorted().toList()
+    }
+
+    private fun Path.readZipEntryText(entryName: String): String = ZipFile(toFile()).use { zip ->
+        val entry = zip.getEntry(entryName) ?: fail("No '$entryName' entry in $this")
+        zip.getInputStream(entry).readBytes().decodeToString()
     }
 }

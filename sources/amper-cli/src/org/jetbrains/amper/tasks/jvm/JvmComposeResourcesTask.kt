@@ -4,34 +4,42 @@
 
 package org.jetbrains.amper.tasks.jvm
 
-import org.jetbrains.amper.BuildPrimitives
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
-import org.jetbrains.amper.frontend.Fragment
+import org.jetbrains.amper.frontend.FragmentDependencyType
+import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.tasks.artifacts.JvmResourcesDirArtifact
 import org.jetbrains.amper.tasks.artifacts.PureArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.compose.PreparedComposeResourcesDirArtifact
-import kotlin.io.path.createDirectories
-import kotlin.io.path.deleteRecursively
-import kotlin.io.path.isDirectory
+import org.jetbrains.amper.tasks.compose.composeResourcesPackagingDir
+import org.jetbrains.amper.tasks.compose.fragmentComposeResources
+import org.jetbrains.amper.tasks.compose.packageComposeResourcesHierarchy
 
 /**
- * Provides prepared Compose Resources as java resources to be placed into the classpath.
+ * Provides the prepared Compose Resources of a single JVM compilation as java resources, to be placed into the
+ * classpath.
  *
  * **Output**: [JvmResourcesDirArtifact]
  */
-class JvmComposeResourcesTask(
-    private val fragment: Fragment,
+internal class JvmComposeResourcesTask(
+    private val fragment: LeafFragment,
     private val buildOutputRoot: AmperBuildOutputRoot,
     incrementalCache: IncrementalCache,
 ) : PureArtifactTaskBase(buildOutputRoot, incrementalCache, "copying JVM compose resources") {
-    private val preparedResources by Selectors.fromFragment(
+    private val packagingDir by extraInput(fragment.module.composeResourcesPackagingDir())
+
+    private val preparedResources by Selectors.fromFragmentWithDependencies(
         type = PreparedComposeResourcesDirArtifact::class,
         fragment = fragment,
-        quantifier = Quantifier.Single,
+        quantifier = Quantifier.AtLeastOne,
+        // Only the fragments this compilation refines contribute here. The main fragments a test compilation
+        // befriends are packaged by the main compilation, whose output is on the test classpath already. Merging
+        // them here would not just duplicate them: it would fail the build, because a test fragment refines no main
+        // fragment, and resources of fragments that don't refine each other are reported as a conflict.
+        dependencyType = FragmentDependencyType.REFINE,
     )
 
     private val outputJvmResources by JvmResourcesDirArtifact(
@@ -40,18 +48,10 @@ class JvmComposeResourcesTask(
     )
 
     override suspend fun run(executionContext: TaskGraphExecutionContext) {
-        val outputRoot = outputJvmResources.path
-
-        val dir = preparedResources.path
-        if (!dir.isDirectory()) {
-            outputRoot.resolve(preparedResources.packagingDir).deleteRecursively()
-            return
-        }
-
-        // TODO: Maybe don't copy the files somehow?
-        BuildPrimitives.copy(
-            from = dir,
-            to = outputRoot.createDirectories(),
+        packageComposeResourcesHierarchy(
+            fragments = preparedResources.fragmentComposeResources(),
+            outputDir = outputJvmResources.path,
+            packagingDir = packagingDir,
         )
     }
 }

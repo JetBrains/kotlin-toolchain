@@ -140,17 +140,15 @@ fun ProjectTasksBuilder.setupJvmTasks() {
             }
         }
 
-    allModules().alsoPlatforms(Platform.JVM).withEach {
+    allModules().alsoPlatforms(Platform.JVM).alsoTests().withEach {
         if (isComposeEnabledFor(module)) {
-            module.fragments.filter { Platform.JVM in it.platforms }.forEach { fragment ->
-                tasks.registerTask(
-                    task = JvmComposeResourcesTask(
-                        fragment = fragment,
-                        buildOutputRoot = context.buildOutputRoot,
-                        incrementalCache = context.incrementalCache,
-                    ),
-                )
-            }
+            tasks.registerTask(
+                task = JvmComposeResourcesTask(
+                    fragment = module.leafFragments.single { it.platform == platform && it.isTest == isTest },
+                    buildOutputRoot = context.buildOutputRoot,
+                    incrementalCache = context.incrementalCache,
+                ),
+            )
         }
     }
 

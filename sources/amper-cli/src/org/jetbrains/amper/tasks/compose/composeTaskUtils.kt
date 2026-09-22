@@ -46,6 +46,13 @@ internal fun AmperModule.composeResourcesPackageName(): String =
     }
 
 /**
+ * The relative directory the Compose resources of this module are packaged into, which is also where the generated
+ * accessors expect to find them at runtime, on every platform.
+ */
+internal fun AmperModule.composeResourcesPackagingDir(): String =
+    "$COMPOSE_RESOURCES_DIR/${composeResourcesPackageName()}/"
+
+/**
  * The package name parts identifying this module as published: its group, and its artifact ID, which is the module
  * name when it is not set explicitly (just like in the published coordinates). Without that part, sibling modules of
  * the same group would all share a package.
