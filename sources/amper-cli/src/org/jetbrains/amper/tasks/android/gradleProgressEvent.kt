@@ -18,8 +18,7 @@ import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
-
-val logger = LoggerFactory.getLogger(object {}.javaClass)
+private val logger = LoggerFactory.getLogger(object {}.javaClass)
 
 @Suppress("UnstableApiUsage")
 internal fun ProgressEvent.handle(stdoutPath: Path, stderrPath: Path) {

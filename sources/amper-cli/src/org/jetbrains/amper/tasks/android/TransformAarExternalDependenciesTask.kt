@@ -17,6 +17,7 @@ import org.jetbrains.amper.tasks.ClasspathElementType
 import org.jetbrains.amper.tasks.ClasspathProvider
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskResult
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.extension
@@ -29,6 +30,9 @@ internal class TransformAarExternalDependenciesTask(
     override val taskName: TaskName,
     private val incrementalCache: IncrementalCache,
 ) : Task {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
         val resolvedAndroidDependencies = dependenciesResult

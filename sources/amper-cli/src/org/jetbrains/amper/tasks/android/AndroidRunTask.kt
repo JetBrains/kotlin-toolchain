@@ -36,6 +36,7 @@ import org.jetbrains.amper.processes.ProcessLeak
 import org.jetbrains.amper.tasks.MobileRunSettings
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.util.BuildType
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
@@ -55,6 +56,8 @@ class AndroidRunTask(
         get() = Platform.ANDROID
 
     private val fragments = module.fragments.filter { !it.isTest && it.platforms.contains(platform) }
+
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
