@@ -1,7 +1,11 @@
 .idea
 
+# The `kotlin` CLI wrapper, which test projects must not carry: they are run with the CLI under test.
 kotlin
 kotlin.bat
+# ... but `kotlin` is also the name of the Kotlin source directories, which are a part of the test projects.
+# Without this, any *new* source file would be silently ignored (the existing ones stay tracked).
+!kotlin/
 
 # We don't want these in tests currently unless included explicitly
 module.xcodeproj
