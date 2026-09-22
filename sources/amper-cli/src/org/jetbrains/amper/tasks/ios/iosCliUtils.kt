@@ -4,6 +4,8 @@
 
 package org.jetbrains.amper.tasks.ios
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -20,6 +22,7 @@ import org.jetbrains.amper.tasks.native.swiftpm.clangArch
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.pathString
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -87,36 +90,55 @@ suspend fun ProcessRunner.isSimulatorBooted(
 
 // We assume that the device is not yet booted
 context(_: XcodeEnvironment)
-suspend fun ProcessRunner.bootAndWaitSimulator(
+suspend fun ProcessRunner.ensureSimulatorBooted(
     deviceId: XcodeDeviceId,
     forceShowWindow: Boolean = false,
     failIfAlreadyBooted: Boolean = false,
-) {
-    if (forceShowWindow) {
-        // The `open` command works without any errors/warnings regardless of the simulator boot status.
-        // It boots the simulator on demand and brings its window forward.
-        runProcess(
-            workingDir = Path("."),
-            command = [
-                "open", "-a", "Simulator",
-                // We specify the simulator ID to open a window for
-                "--args", "-CurrentDeviceUDID",
-                deviceId.value,
-            ],
-            outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
-        )
+) = coroutineScope {
+    val booted by lazy {
+        async {
+            // we could also use `simctl bootstatus -b` which boots and waits on its own
+            SimCtl.boot(deviceId.value, failIfAlreadyBooted)
+        }
     }
 
-    SimCtl.boot(deviceId.value, failIfAlreadyBooted)
-
-    // we could also use `simctl bootstatus -b` which boots and waits on its own
     repeat(20) {
         if (isSimulatorBooted(deviceId)) {
-            return  // Success
+            if (forceShowWindow) {
+                openSimulatorWindow(deviceId)
+            }
+            return@coroutineScope  // Success
         }
+        booted.await()
         delay(500.milliseconds)
     }
     userReadableError("Simulator boot timeout for `${deviceId}`.")
+}
+
+context(xcodeEnvironment: XcodeEnvironment)
+private suspend fun ProcessRunner.openSimulatorWindow(deviceId: XcodeDeviceId) {
+    val command = buildList {
+        add("open")
+        add("-a")
+        if (xcodeEnvironment.version >= ComparableVersion("27.0")) {
+            // Xcode 27.0+ comes without the Simulator.app but the `DeviceHub.app`.
+            // Ensure the window for the selected simulator is shown.
+            add(xcodeEnvironment.developerDirectory.parent.resolve("Applications/DeviceHub.app").absolutePathString())
+            add("devices://device/open?id=${deviceId.value}")
+        } else {
+            // The `open` command works without any errors/warnings regardless of the simulator boot status.
+            // It boots the simulator on demand and brings its window forward.
+            add(xcodeEnvironment.developerDirectory.resolve("Applications/Simulator.app").absolutePathString())
+            add("--args")
+            add("-CurrentDeviceUDID")
+            add(deviceId.value)
+        }
+    }
+    runProcess(
+        workingDir = Path("."),
+        command = command,
+        outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
+    )
 }
 
 context(_: XcodeEnvironment)

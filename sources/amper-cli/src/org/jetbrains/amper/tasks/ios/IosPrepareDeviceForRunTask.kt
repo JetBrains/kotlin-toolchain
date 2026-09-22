@@ -58,12 +58,8 @@ class IosPrepareDeviceForRunTask(
                 destinations = destinations,
                 platform = platform,
             ).also ensureBooted@ { (id, name) ->
-                if (processRunner.isSimulatorBooted(id)) {
-                    return@ensureBooted
-                }
-
                 operationEventScope("Waiting for the iOS Simulator `$name` to boot") {
-                    processRunner.bootAndWaitSimulator(
+                    processRunner.ensureSimulatorBooted(
                         deviceId = id,
                         // Maybe move this to the `run` task as a separate operation?
                         forceShowWindow = true,
