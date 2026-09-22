@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.templates
@@ -15,6 +15,7 @@ import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.createDirectories
 import kotlin.io.path.outputStream
+import kotlin.io.path.writeLines
 
 /**
  * Accessor for Amper project templates.
@@ -78,17 +79,30 @@ data class TemplateFile(
     val relativePath: String,
 ) {
     /**
-     * Extracts this file from the resources to the given [projectRoot].
+     * Extracts this file from the resources to the given [projectRoot], substituting the [TemplatePlaceholders] with
+     * [projectId] and [projectName] (binary files are copied verbatim).
+     *
+     * [projectId] must be a valid dot-separated lowercase identifier, because it is used as a Kotlin package, an
+     * Android namespace and application id, and an iOS bundle id. [projectName] is free-form: it is escaped for the
+     * format of each file it appears in.
      *
      * If the file already exists in the project root, it will be overwritten.
      */
-    fun extractTo(projectRoot: Path) {
+    fun extractTo(
+        projectRoot: Path,
+        projectId: String,
+        projectName: String,
+    ) {
         val path = projectRoot.resolve(relativePath)
         path.parent.createDirectories()
-        resourceUrl.openStream().use { stream ->
-            path.outputStream().use { out ->
-                stream.copyTo(out)
+        if (isBinaryTemplateFile(relativePath)) {
+            resourceUrl.openStream().use { input ->
+                path.outputStream().use { output -> input.copyTo(output) }
             }
+        } else {
+            val text = resourceUrl.openStream().bufferedReader().use { it.readText() }
+            val substitutedText = TemplatePlaceholders.substituteIn(text, relativePath, projectId, projectName)
+            path.writeLines(substitutedText.reader().readLines())
         }
     }
 }

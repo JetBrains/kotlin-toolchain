@@ -30,6 +30,7 @@ modules:
   - sources/amper-problem-reporting
   - sources/amper-project-templates
   - sources/amper-project-templates/amper-project-template-resources
+  - sources/amper-project-wizard
   - sources/amper-swift-pm-resolution-model
   - sources/amper-teamcity-events
   - sources/amper-telemetry

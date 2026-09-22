@@ -1,1 +1,0 @@
-actual fun getWorld() = "Wasm JS World"

@@ -1,0 +1,14 @@
+product: jvm/lib
+
+description: The project generation logic behind `./kotlin new` and `./kotlin init`, independent of the CLI itself.
+
+apply:
+  - //sources/common.module-template.yaml
+
+dependencies:
+  - //sources/amper-project-templates
+  - $libs.kotlinx.coroutines.core
+  - $libs.org.eclipse.jgit
+
+test-dependencies:
+  - $libs.junit.jupiter.params

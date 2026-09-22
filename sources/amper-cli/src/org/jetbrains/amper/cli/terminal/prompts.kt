@@ -5,6 +5,8 @@
 package org.jetbrains.amper.cli.terminal
 
 import com.github.ajalt.clikt.core.PrintMessage
+import com.github.ajalt.mordant.input.KeyboardEvent
+import com.github.ajalt.mordant.input.interactiveMultiSelectList
 import com.github.ajalt.mordant.input.interactiveSelectList
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.terminal.prompt
@@ -32,6 +34,30 @@ internal fun <T : Any> Terminal.interactiveSelectList(
         filterable(filterable)
     } ?: return null
     return itemsByName[choice] ?: error("Item with name '$choice' not found")
+}
+
+/**
+ * Displays a list of items and allows the user to select any number of them with the arrow keys, the space bar, and
+ * enter. Items in [preselected] start out selected.
+ *
+ * Returns `null` if the user cancelled the prompt.
+ */
+internal fun <T : Any> Terminal.interactiveMultiSelectList(
+    items: List<T>,
+    nameSelector: (T) -> String,
+    title: String = "",
+    preselected: Set<T> = [],
+    filterable: Boolean = false,
+): List<T>? {
+    val itemsByName = items.associateBy(nameSelector)
+    val chosenNames = interactiveMultiSelectList {
+        title(title)
+        entries(items.map { SelectList.Entry(title = nameSelector(it), selected = it in preselected) })
+        filterable(filterable)
+        // Space is more discoverable than Mordant's default 'x', and matches what most other wizards use.
+        keyToggle(KeyboardEvent(" "))
+    } ?: return null
+    return chosenNames.map { itemsByName[it] ?: error("Item with name '$it' not found") }
 }
 
 internal fun Terminal.promptBoolean(

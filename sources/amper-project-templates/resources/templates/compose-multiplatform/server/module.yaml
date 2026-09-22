@@ -1,0 +1,15 @@
+product: jvm/app
+
+dependencies:
+  - //{{CORE_MODULE_NAME}}
+  - $ktor.server.core
+  - $ktor.server.netty
+  - $libs.logback.classic
+
+settings:
+  ktor: enabled
+  jvm:
+    mainClass: {{PROJECT_ID}}.server.ApplicationKt
+
+test-dependencies:
+  - $ktor.server.testHost

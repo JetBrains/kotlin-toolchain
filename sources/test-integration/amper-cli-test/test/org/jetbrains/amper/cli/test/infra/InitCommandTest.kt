@@ -8,17 +8,27 @@ import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertContainsRelativeFiles
 import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
+import org.jetbrains.amper.cli.test.utils.assertStderrDoesNotContain
+import org.jetbrains.amper.cli.test.utils.assertStdoutContains
+import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.test.LocalAmperPublication
 import org.junit.jupiter.api.Tag
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
+import kotlin.io.path.exists
 import kotlin.io.path.isExecutable
+import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @Tag("cli-test-group-infra")
@@ -27,49 +37,111 @@ class InitCommandTest : CliTestBase() {
     @Test
     fun `init generates a project from the given template`() = runSlowTest {
         val newRoot = newEmptyProjectDir()
-        runCli(newRoot, "init", "multiplatform-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
+        runCli(newRoot, "init", "--from-template=jvm-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
 
         newRoot.assertContainsRelativeFiles(
-            "jvm-cli/module.yaml",
+            ".gitattributes",
+            ".gitignore",
             "kotlin",
             "kotlin.bat",
-            "linux-cli/module.yaml",
-            "macos-cli/module.yaml",
-            "project.yaml",
-            "shared/module.yaml",
-            "shared/src/World.kt",
-            "shared/src/main.kt",
-            "shared/src@jvm/World.kt",
-            "shared/src@linux/World.kt",
-            "shared/src@macos/World.kt",
-            "shared/src@mingw/World.kt",
-            "shared/test/test.kt",
-            "windows-cli/module.yaml",
+            "module.yaml",
+            "src/World.kt",
+            "src/main.kt",
+            "test/WorldTest.kt",
         )
     }
 
     @Test
-    fun `init generates a project into a new directory with --target-dir`() = runSlowTest {
+    fun `init generates a project into an existing directory with --target-dir`() = runSlowTest {
         val newRoot = newEmptyProjectDir()
-        runCli(newRoot, "init", "--target-dir=foo", "multiplatform-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
+        (newRoot / "foo").createDirectories()
+        runCli(newRoot, "init", "--target-dir=foo", "--from-template=jvm-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
 
         (newRoot / "foo").assertContainsRelativeFiles(
-            "jvm-cli/module.yaml",
+            ".gitattributes",
+            ".gitignore",
             "kotlin",
             "kotlin.bat",
-            "linux-cli/module.yaml",
-            "macos-cli/module.yaml",
-            "project.yaml",
-            "shared/module.yaml",
-            "shared/src/World.kt",
-            "shared/src/main.kt",
-            "shared/src@jvm/World.kt",
-            "shared/src@linux/World.kt",
-            "shared/src@macos/World.kt",
-            "shared/src@mingw/World.kt",
-            "shared/test/test.kt",
-            "windows-cli/module.yaml",
+            "module.yaml",
+            "src/World.kt",
+            "src/main.kt",
+            "test/WorldTest.kt",
         )
+    }
+
+    @Test
+    fun `init fails when the target directory has no project name`() = runSlowTest {
+        val newRoot = newEmptyProjectDir()
+        val fileSystemRoot = checkNotNull(newRoot.root)
+
+        val result = runCli(
+            newRoot, "init", "--target-dir=$fileSystemRoot",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+            wrapperMode = WrapperMode.GlobalIntrinsicVersion,
+        )
+
+        result.assertStderrContains("Cannot determine a project name from target directory")
+        result.assertStderrContains("Choose a named directory.")
+    }
+
+    @Test
+    fun `in-place Compose init derives an id and prints the build command without cd`() = runSlowTest {
+        val newRoot = newEmptyProjectDir()
+
+        val result = runCli(
+            newRoot, "init", "--target-platform=desktop",
+            wrapperMode = WrapperMode.GlobalIntrinsicVersion,
+        )
+
+        result.assertStdoutDoesNotContain("  cd ")
+        result.assertStdoutContains("kotlin build")
+        assertContains((newRoot / "shared/src/App.kt").readText(), "package org.example.projectnew")
+    }
+
+    @Test
+    fun `out-of-place Compose init derives an id and prints quoted cd steps`() = runSlowTest {
+        val newRoot = newEmptyProjectDir()
+        (newRoot / "My App").createDirectories()
+
+        val result = runCli(
+            newRoot, "init", "--target-dir=My App", "--target-platform=android", "--target-platform=ios",
+           
+            wrapperMode = WrapperMode.GlobalIntrinsicVersion,
+        )
+
+        result.assertStdoutContains(if (OsFamily.current.isWindows) "cd \"My App\"" else "cd 'My App'")
+        val projectRoot = newRoot / "My App"
+        assertContains((projectRoot / "shared/src/App.kt").readText(), "package org.example.myapp")
+        assertContains((projectRoot / "androidApp/module.yaml").readText(), "applicationId: org.example.myapp")
+        val xcodeProject = (projectRoot / "iosApp/module.xcodeproj/project.pbxproj").readText()
+        val bundleIdSetting = "PRODUCT_BUNDLE_IDENTIFIER = \"org.example.myapp\";"
+        assertEquals(2, Regex.fromLiteral(bundleIdSetting).findAll(xcodeProject).count())
+    }
+
+    @Test
+    fun `Compose init validates project ids before overwrite handling`() = runSlowTest {
+        val newRoot = newEmptyProjectDir()
+        val targetRoot = (newRoot / "existing").createDirectories()
+        val sentinel = targetRoot / "project.yaml"
+        sentinel.writeText("existing project")
+
+        val result = runCli(
+            newRoot, "init", "--target-dir=existing", "--target-platform=desktop", "--project-id=com.my_app",
+            "--overwrite",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+            wrapperMode = WrapperMode.GlobalIntrinsicVersion,
+        )
+
+        result.assertStderrContains(
+            "--project-id: Invalid project id 'com.my_app': " +
+                    "package name segments must contain only lowercase ASCII letters and digits",
+        )
+        result.assertStderrContains("See --help for --project-id requirements.")
+        result.assertStderrDoesNotContain("Use at least two non-empty dot-separated segments")
+        assertEquals("existing project", sentinel.readText())
+        assertEquals([sentinel], targetRoot.listDirectoryEntries())
     }
 
     @Test
@@ -82,7 +154,7 @@ class InitCommandTest : CliTestBase() {
         bashWrapper.writeText("w1")
         batWrapper.writeText("w2")
 
-        runCli(newRoot, "init", "multiplatform-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion, assertEmptyStdErr = false)
+        runCli(newRoot, "init", "--from-template=jvm-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion, assertEmptyStdErr = false)
 
         assertTrue(batWrapper.readText().count { it == '\r' } > 10,
             "Windows wrapper must have \\r in line separators: $batWrapper")
@@ -98,11 +170,11 @@ class InitCommandTest : CliTestBase() {
     @Test
     fun `init doesn't replace existing files - single`() = runSlowTest {
         val newRoot = newEmptyProjectDir()
-        val existingModuleFile = newRoot.resolve("jvm-cli/module.yaml").also { it.createParentDirectories() }
+        val existingModuleFile = newRoot.resolve("module.yaml")
         existingModuleFile.writeText("some text in module.yaml")
 
         val r = runCli(
-            newRoot, "init", "multiplatform-cli",
+            newRoot, "init", "--from-template=jvm-cli",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -111,13 +183,14 @@ class InitCommandTest : CliTestBase() {
             ERROR: The following conflicts must be resolved before generating the project:
 
             Files that would be overwritten by the template:
-              jvm-cli/module.yaml
+              module.yaml
 
-            Please move, rename, or delete them before running the command again.
+            Either move, rename, or delete them, or re-run the command with --overwrite to replace
+            the conflicting files and directories.
         """.trimIndent()
         r.assertStderrContains(expectedStderr)
 
-        newRoot.assertContainsRelativeFiles("jvm-cli/module.yaml")
+        newRoot.assertContainsRelativeFiles("module.yaml")
         assertEquals("some text in module.yaml", existingModuleFile.readText())
     }
 
@@ -128,7 +201,7 @@ class InitCommandTest : CliTestBase() {
         newRoot.resolve("src").writeText("not a directory")
 
         val r = runCli(
-            newRoot, "init", "jvm-cli",
+            newRoot, "init", "--from-template=jvm-cli",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -139,7 +212,8 @@ class InitCommandTest : CliTestBase() {
             Paths that exist as files but are needed as directories:
               src
             
-            Please move, rename, or delete them before running the command again.
+            Either move, rename, or delete them, or re-run the command with --overwrite to replace
+            the conflicting files and directories.
         """.trimIndent()
         r.assertStderrContains(expectedStderr)
     }
@@ -147,13 +221,13 @@ class InitCommandTest : CliTestBase() {
     @Test
     fun `init fails with clear error when a nested directory needed by the template exists as a file`() = runSlowTest {
         val newRoot = newEmptyProjectDir()
-        // The multiplatform-cli template has shared/src/main.kt, so shared/src must be a directory.
-        // Create shared/ as a real directory but shared/src as a regular file to exercise a nested ancestor conflict.
-        newRoot.resolve("shared").createDirectories()
-        newRoot.resolve("shared/src").writeText("not a directory")
+        // The spring-boot-kotlin template has src/org/jetbrains/amper/spring/Main.kt, so src/org/jetbrains must be a
+        // directory. Create its parent as a real directory and the nested path as a regular file.
+        newRoot.resolve("src/org").createDirectories()
+        newRoot.resolve("src/org/jetbrains").writeText("not a directory")
 
         val r = runCli(
-            newRoot, "init", "multiplatform-cli",
+            newRoot, "init", "--from-template=spring-boot-kotlin",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -162,9 +236,10 @@ class InitCommandTest : CliTestBase() {
             ERROR: The following conflicts must be resolved before generating the project:
 
             Paths that exist as files but are needed as directories:
-              shared/src
+              src/org/jetbrains
             
-            Please move, rename, or delete them before running the command again.
+            Either move, rename, or delete them, or re-run the command with --overwrite to replace
+            the conflicting files and directories.
         """.trimIndent()
         r.assertStderrContains(expectedStderr)
     }
@@ -172,13 +247,13 @@ class InitCommandTest : CliTestBase() {
     @Test
     fun `init doesn't replace existing files - multiple`() = runSlowTest {
         val newRoot = newEmptyProjectDir()
-        val existingProjectFile = newRoot.resolve("project.yaml")
-        val existingModuleFile = newRoot.resolve("jvm-cli/module.yaml").createParentDirectories()
-        existingProjectFile.writeText("some text in project.yaml")
+        val existingModuleFile = newRoot.resolve("module.yaml")
+        val existingSourceFile = newRoot.resolve("src/main.kt").createParentDirectories()
         existingModuleFile.writeText("some text in module.yaml")
+        existingSourceFile.writeText("some text in main.kt")
 
         val r = runCli(
-            newRoot, "init", "multiplatform-cli",
+            newRoot, "init", "--from-template=jvm-cli",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -187,15 +262,16 @@ class InitCommandTest : CliTestBase() {
             ERROR: The following conflicts must be resolved before generating the project:
 
             Files that would be overwritten by the template:
-              jvm-cli/module.yaml
-              project.yaml
+              module.yaml
+              src/main.kt
             
-            Please move, rename, or delete them before running the command again.
+            Either move, rename, or delete them, or re-run the command with --overwrite to replace
+            the conflicting files and directories.
         """.trimIndent()
         r.assertStderrContains(expectedStderr)
 
-        newRoot.assertContainsRelativeFiles("jvm-cli/module.yaml", "project.yaml")
-        assertEquals("some text in project.yaml", existingProjectFile.readText())
+        newRoot.assertContainsRelativeFiles("module.yaml", "src/main.kt")
         assertEquals("some text in module.yaml", existingModuleFile.readText())
+        assertEquals("some text in main.kt", existingSourceFile.readText())
     }
 }

@@ -22,6 +22,7 @@ dependencies:
   - //sources/amper-maven-converter
   - //sources/amper-maven-publish
   - //sources/amper-project-templates
+  - //sources/amper-project-wizard
   - //sources/amper-swift-pm-resolution-model
   - //sources/amper-teamcity-events
   - //sources/amper-telemetry
@@ -53,6 +54,7 @@ dependencies:
   - //sources/android-integration/amper-android-runner
   - //sources/java-incremental-compilation/amper-jic-api
   - //sources/amper-maven-plugins-compatibility
+  - $libs.org.eclipse.jgit
   - $libs.bouncycastle.bcprov # for keystore generation
   - $libs.bouncycastle.bcpkix # for keystore generation
   - $libs.intellij.amper.xcodemodel
@@ -107,6 +109,7 @@ dependencies:
 
 test-dependencies:
   - //sources/test-base
+  - $libs.junit.jupiter.params
 
 plugins:
   amper-distribution:

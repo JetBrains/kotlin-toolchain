@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.cli.test.utils
@@ -14,16 +14,30 @@ import kotlin.io.path.fileSize
 import kotlin.io.path.readBytes
 import kotlin.io.path.relativeTo
 import kotlin.io.path.walk
+import kotlin.sequences.sorted
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
  * Asserts that the directory at this [Path] contains all the files at the given [expectedRelativePaths].
+ *
+ * @param ignoreRootGitDirectory this is for the case of generated projects where .git directory is tested separately.
  */
-internal fun Path.assertContainsRelativeFiles(vararg expectedRelativePaths: String) {
+internal fun Path.assertContainsRelativeFiles(
+    vararg expectedRelativePaths: String,
+    ignoreRootGitDirectory: Boolean = false,
+) {
     val actualFiles = walk()
-        .onEach { assertTrue(it.fileSize() > 0, "File should not be empty: $it") }
-        .map { it.relativeTo(this).joinToString("/") }
+        .map { it to it.relativeTo(this).joinToString("/") }
+        .filterNot { entry ->
+            val relativePath = entry.second
+            ignoreRootGitDirectory && (relativePath == ".git" || relativePath.startsWith(".git/"))
+        }
+        .onEach { entry ->
+            val path = entry.first
+            assertTrue(path.fileSize() > 0, "File should not be empty: $path")
+        }
+        .map { it.second }
         .sorted()
         .toList()
     // comparing multi-line strings instead of lists for easier comparison of test failures

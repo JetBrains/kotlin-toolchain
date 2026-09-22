@@ -67,6 +67,9 @@ settings:
   internal:
     excludeDependencies:
       - com.intellij.platform:kotlinx-coroutines-core-jvm
+      # They probably moved this dependency into another coordinates
+      - org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm
+
 
       # This legacy ASM library (org.objectweb.asm.* as in ASM 3.x, where ClassVisitor is an interface) is pulled
       # transitively via:

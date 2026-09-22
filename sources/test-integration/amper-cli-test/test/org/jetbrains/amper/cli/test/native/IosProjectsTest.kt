@@ -52,7 +52,10 @@ class IosProjectsTest : CliTestBase() {
             "task", ":interop:frameworkIosSimulatorArm64Debug",
             assertEmptyStdErr = false,
         )
-        result.readTelemetrySpans().konancSpans.assertZeroExitCode(times = 2)
+        val compilerSpans = result.readTelemetrySpans().konancSpans
+        compilerSpans.assertZeroExitCode(times = 2)
+        val compilerArguments = compilerSpans.all().flatMap { it.getAttribute(AttributeKey.stringArrayKey("args")) }
+        assertContains(compilerArguments, "-Xbinary=bundleId=interop.kotlin.framework")
     }
 
     @Test

@@ -1,0 +1,8 @@
+product: ios/app
+
+dependencies:
+  - //{{APP_MODULE_DIR}}{{SHARED_MODULE_NAME}}
+  - $compose.ui
+
+settings:
+  compose: enabled
