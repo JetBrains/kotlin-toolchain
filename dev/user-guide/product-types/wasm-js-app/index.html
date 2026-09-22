@@ -961,8 +961,6 @@
     
       
         
-          
-        
       
         
       
@@ -996,9 +994,8 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_8" checked>
         
           
-          <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
-              
+          <label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+            
   
   
   <span class="md-ellipsis">
@@ -1012,14 +1009,8 @@
   
   
 
-            </a>
-            
-              
-              <label class="md-nav__link " for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
-                <span class="md-nav__icon md-icon"></span>
-              </label>
-            
-          </div>
+            <span class="md-nav__icon md-icon"></span>
+          </label>
         
         <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3_8">
@@ -1032,6 +1023,32 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1347,6 +1364,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#running-your-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running your application
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#packaging" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1362,17 +1390,6 @@
     <span class="md-ellipsis">
       
         Testing
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#running-wasm-application-in-your-browser" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Running Wasm application in your browser
       
     </span>
   </a>
@@ -2631,6 +2648,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#running-your-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running your application
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#packaging" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2646,17 +2674,6 @@
     <span class="md-ellipsis">
       
         Testing
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#running-wasm-application-in-your-browser" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Running Wasm application in your browser
       
     </span>
   </a>
@@ -2749,9 +2766,20 @@ There are several template variables that are available for use in the <code>ind
 <li>Styles required for the content to fill the entire screen. See <a href="https://kotlinlang.org/docs/multiplatform/compose-css-styles.html">Compose Multiplatform documentation</a> for explanation.</li>
 </ol>
 <h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
-<p>Currently, defining direct NPM dependencies for your application is not supported. However, if you use a Kotlin Multiplatform library
-that requires such a dependency (e.g., <code>@js-joda/core</code> for <code>kotlinx-datetime</code>), the dependency will be downloaded and packed together
-with your application.</p>
+<p>Currently, defining direct NPM dependencies for your application is not supported. However, if you use a Kotlin 
+Multiplatform library that requires such a dependency (e.g., <code>@js-joda/core</code> for <code>kotlinx-datetime</code>), the dependency will 
+be downloaded and packed together with your application.</p>
+<h2 id="running-your-application">Running your application<a class="headerlink" href="#running-your-application" title="Permanent link">&para;</a></h2>
+<p>You can run your application in a browser using the <code>kotlin run</code> command.</p>
+<p>There are no prerequisites for this command. It will automatically:</p>
+<ul>
+<li>download Maven dependencies and their transitive npm dependencies</li>
+<li>provision the Skiko Wasm runtime</li>
+<li>compile the module and its local dependencies</li>
+<li>generate all the relevant files (see the <a href="#packaging">packaging</a> section below)</li>
+<li>start a local server to serve those files</li>
+<li>launch a browser with the <code>/index.html</code> file</li>
+</ul>
 <h2 id="packaging">Packaging<a class="headerlink" href="#packaging" title="Permanent link">&para;</a></h2>
 <p>Using the <code>build</code> command packages your application under the <code>build/tasks/_&lt;module-name&gt;_buildWasmJsAppWasmJs&lt;Debug|Release&gt;</code> 
 folder, but this is subject to change.</p>
@@ -2766,8 +2794,6 @@ folder, but this is subject to change.</p>
 <p>There are no extra packaging facilities at the moment, and the <code>package</code> command is not supported for this product type.</p>
 <h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
 <p>Tests targeting Wasm JS target are not supported yet, but we are <a href="https://youtrack.jetbrains.com/issue/KTC-5576">working on it</a>.</p>
-<h2 id="running-wasm-application-in-your-browser">Running Wasm application in your browser<a class="headerlink" href="#running-wasm-application-in-your-browser" title="Permanent link">&para;</a></h2>
-<p>You can use the <code>run</code> command to start the local server and open your application in the browser.</p>
 
 
 
@@ -2788,7 +2814,7 @@ folder, but this is subject to change.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 24, 2026 21:25:52 UTC">August 24, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 21, 2026 22:04:43 UTC">September 21, 2026</span>
   </span>
 
     
