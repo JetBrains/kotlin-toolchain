@@ -15,6 +15,7 @@ import org.jetbrains.amper.tasks.NoopTask
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
 import org.jetbrains.amper.tasks.TaskNameFactory
+import org.jetbrains.amper.tasks.compose.MergePreparedComposeResourcesTask
 import org.jetbrains.amper.tasks.compose.isComposeEnabledFor
 import org.jetbrains.amper.tasks.composeHotReloadMode
 import org.jetbrains.amper.tasks.getModuleDependencies
@@ -142,9 +143,22 @@ fun ProjectTasksBuilder.setupJvmTasks() {
 
     allModules().alsoPlatforms(Platform.JVM).alsoTests().withEach {
         if (isComposeEnabledFor(module)) {
+            val fragment = module.leafFragments.single { it.platform == platform && it.isTest == isTest }
+            if (isTest) {
+                // The merge for main compilations is registered for every leaf platform by the Compose task builder.
+                // The JVM is the only platform that packages the resources of its test compilation as well, so the
+                // corresponding merge is only needed, and only registered, here.
+                tasks.registerTask(
+                    task = MergePreparedComposeResourcesTask(
+                        buildOutputRoot = context.buildOutputRoot,
+                        incrementalCache = context.incrementalCache,
+                        fragment = fragment,
+                    ),
+                )
+            }
             tasks.registerTask(
                 task = JvmComposeResourcesTask(
-                    fragment = module.leafFragments.single { it.platform == platform && it.isTest == isTest },
+                    fragment = fragment,
                     buildOutputRoot = context.buildOutputRoot,
                     incrementalCache = context.incrementalCache,
                 ),

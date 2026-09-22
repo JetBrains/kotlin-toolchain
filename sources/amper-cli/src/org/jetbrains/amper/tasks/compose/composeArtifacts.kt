@@ -56,4 +56,5 @@ class MergedPreparedComposeResourcesDirArtifact(
     buildOutputRoot: AmperBuildOutputRoot,
     module: AmperModule,
     platform: Platform,
-) : CompilationScopedArtifact(buildOutputRoot, module, platform, false)
+    isTest: Boolean,
+) : CompilationScopedArtifact(buildOutputRoot, module, platform, isTest)

@@ -128,7 +128,6 @@ private fun ProjectTasksBuilder.configureComposeResourcesGeneration() {
                     buildOutputRoot = context.buildOutputRoot,
                     incrementalCache = context.incrementalCache,
                     fragment = fragment,
-                    packagingDir = packagingDir,
                 )
             )
 

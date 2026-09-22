@@ -4,23 +4,24 @@
 
 package org.jetbrains.amper.tasks.jvm
 
+import org.jetbrains.amper.BuildPrimitives
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
-import org.jetbrains.amper.frontend.FragmentDependencyType
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.tasks.artifacts.JvmResourcesDirArtifact
 import org.jetbrains.amper.tasks.artifacts.PureArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.Selectors
-import org.jetbrains.amper.tasks.artifacts.api.Quantifier
-import org.jetbrains.amper.tasks.compose.PreparedComposeResourcesDirArtifact
-import org.jetbrains.amper.tasks.compose.composeResourcesPackagingDir
-import org.jetbrains.amper.tasks.compose.fragmentComposeResources
-import org.jetbrains.amper.tasks.compose.packageComposeResourcesHierarchy
+import org.jetbrains.amper.tasks.compose.MergedPreparedComposeResourcesDirArtifact
+import kotlin.io.path.createDirectories
+import kotlin.io.path.isDirectory
 
 /**
- * Provides the prepared Compose Resources of a single JVM compilation as java resources, to be placed into the
- * classpath.
+ * Provides the merged Compose Resources of a single JVM compilation as java resources, to be placed into the
+ * classpath. This is where the Compose resources runtime reads them from on the JVM.
+ *
+ * Contrary to the other platforms, this also runs for test compilations: a test fragment may declare its own
+ * resources, and the JVM test classpath is where they belong.
  *
  * **Output**: [JvmResourcesDirArtifact]
  */
@@ -29,17 +30,11 @@ internal class JvmComposeResourcesTask(
     private val buildOutputRoot: AmperBuildOutputRoot,
     incrementalCache: IncrementalCache,
 ) : PureArtifactTaskBase(buildOutputRoot, incrementalCache, "copying JVM compose resources") {
-    private val packagingDir by extraInput(fragment.module.composeResourcesPackagingDir())
-
-    private val preparedResources by Selectors.fromFragmentWithDependencies(
-        type = PreparedComposeResourcesDirArtifact::class,
-        fragment = fragment,
-        quantifier = Quantifier.AtLeastOne,
-        // Only the fragments this compilation refines contribute here. The main fragments a test compilation
-        // befriends are packaged by the main compilation, whose output is on the test classpath already. Merging
-        // them here would not just duplicate them: it would fail the build, because a test fragment refines no main
-        // fragment, and resources of fragments that don't refine each other are reported as a conflict.
-        dependencyType = FragmentDependencyType.REFINE,
+    private val mergedResources by Selectors.fromModuleOnly(
+        type = MergedPreparedComposeResourcesDirArtifact::class,
+        module = fragment.module,
+        isTest = fragment.isTest,
+        platform = fragment.platform,
     )
 
     private val outputJvmResources by JvmResourcesDirArtifact(
@@ -48,10 +43,13 @@ internal class JvmComposeResourcesTask(
     )
 
     override suspend fun run(executionContext: TaskGraphExecutionContext) {
-        packageComposeResourcesHierarchy(
-            fragments = preparedResources.fragmentComposeResources(),
-            outputDir = outputJvmResources.path,
-            packagingDir = packagingDir,
+        // A compilation whose fragments declare no Compose resources has nothing merged, and so nothing to place on
+        // the classpath. The output directory is cleaned before this runs, so there is nothing to remove either.
+        val mergedDir = mergedResources.singleOrNull()?.path?.takeIf { it.isDirectory() } ?: return
+
+        BuildPrimitives.copy(
+            from = mergedDir,
+            to = outputJvmResources.path.createDirectories(),
         )
     }
 }
