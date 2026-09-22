@@ -491,9 +491,9 @@ private fun ModuleSequenceCtx.checkDependencySupportsJvm(dependsOn: AmperModule)
 
 
 internal object AndroidGlobalTaskType {
-    val InstallCmdlineTools = TaskName("installCmdlineTools", "installing `cmdline-tools` for Android")
-    val InstallEmulator = TaskName("installEmulator", "installing Android Emulator")
-    val InstallPlatformTools = TaskName("installPlatformTools", "installing `platform-tools` for Android")
+    val InstallCmdlineTools = TaskName("installCmdlineTools", "Installing `cmdline-tools` for Android")
+    val InstallEmulator = TaskName("installEmulator", "Installing Android Emulator")
+    val InstallPlatformTools = TaskName("installPlatformTools", "Installing `platform-tools` for Android")
 }
 
 internal enum class AndroidModuleTaskType(
