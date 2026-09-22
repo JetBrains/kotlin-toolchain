@@ -15,6 +15,7 @@ import kotlin.concurrent.Volatile
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+// TODO remove this entire logger and reconsider logging entirely
 class DynamicLevelConsoleWriter(properties: Map<String, String>): AbstractFormatPatternWriter(properties) {
     @Volatile
     private var minimumLevel: Level = Level.INFO
@@ -37,7 +38,7 @@ class DynamicLevelConsoleWriter(properties: Map<String, String>): AbstractFormat
             if (logEntry.level.ordinal >= minimumLevel.ordinal) {
                 if (!logEntry.context.containsKey(DISABLED_MDC_KEY)) {
                     val isError = logEntry.level.ordinal >= Level.ERROR.ordinal
-                    val message = render(logEntry).trim()
+                    val message = render(logEntry).trim().removePrefix("INFO ").trim()
                     val style = term.theme.styleForLevel(logEntry.level)
                     term.println(style.invoke(message), stderr = isError)
                 }

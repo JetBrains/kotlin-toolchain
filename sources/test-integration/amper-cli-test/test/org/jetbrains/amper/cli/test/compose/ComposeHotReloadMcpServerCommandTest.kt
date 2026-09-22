@@ -99,4 +99,4 @@ class ComposeHotReloadMcpServerCommandTest : CliTestBase() {
     }.await()
 }
 
-private val McpStartedRegex = """INFO\s+Started MCP server with the pid: (\d+)""".toRegex()
+private val McpStartedRegex = """Started MCP server with the pid: (\d+)""".toRegex()
