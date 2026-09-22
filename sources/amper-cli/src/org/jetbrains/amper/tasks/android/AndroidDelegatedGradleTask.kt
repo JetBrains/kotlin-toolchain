@@ -16,6 +16,7 @@ import org.jetbrains.amper.dependency.resolution.MavenLocalRepository
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.api.toStableJsonLikeString
@@ -106,15 +107,25 @@ abstract class AndroidDelegatedGradleTask(
                 buildLogsRoot.path / "gradle" / "${this::class.simpleName}-$logFileName.stderr"
             gradleLogStdoutPath.createParentDirectories()
             GradleDaemonShutdownHook.setupIfNeeded()
-            val result = runAndroidBuild(
-                buildRequest = request,
-                buildPath = gradleProjectPath,
-                gradleLogStdoutPath = gradleLogStdoutPath,
-                gradleLogStderrPath = gradleLogStderrPath,
-                jdkDir = jdk.homeDir,
-                gradlePluginJars = ExtraClasspath.ANDROID_INTEGRATION_GRADLE_PLUGIN.findJarsInDistribution(),
-                eventHandler = { it.handle(gradleLogStdoutPath, gradleLogStderrPath) },
-            )
+            val result = context(executionContext.eventSink) {
+                val operation = when (request.phase) {
+                    AndroidBuildRequest.Phase.Prepare -> "[Gradle] building R.class from resources"
+                    AndroidBuildRequest.Phase.Build -> "[Gradle] building APK from classes"
+                    AndroidBuildRequest.Phase.Bundle -> "[Gradle] bundling AAB"
+                    AndroidBuildRequest.Phase.Test -> "[Gradle] preparing mockable android.jar"
+                }
+                operationEventScope(operation) {
+                    runAndroidBuild(
+                        buildRequest = request,
+                        buildPath = gradleProjectPath,
+                        gradleLogStdoutPath = gradleLogStdoutPath,
+                        gradleLogStderrPath = gradleLogStderrPath,
+                        jdkDir = jdk.homeDir,
+                        gradlePluginJars = ExtraClasspath.ANDROID_INTEGRATION_GRADLE_PLUGIN.findJarsInDistribution(),
+                        eventHandler = { it.handle(gradleLogStdoutPath, gradleLogStderrPath) },
+                    )
+                }
+            }
             IncrementalCache.ExecutionResult(result.filter(::outputFilterPredicate))
         }
         taskOutputPath.path.createDirectories()

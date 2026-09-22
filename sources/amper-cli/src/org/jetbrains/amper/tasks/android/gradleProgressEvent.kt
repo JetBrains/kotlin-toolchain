@@ -15,6 +15,7 @@ import org.gradle.tooling.events.problems.Severity.ADVICE
 import org.gradle.tooling.events.problems.Severity.ERROR
 import org.gradle.tooling.events.problems.Severity.WARNING
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
@@ -45,11 +46,9 @@ internal fun ProgressEvent.handle(stdoutPath: Path, stderrPath: Path) {
     }
     if (descriptor.name == "Run build") {
         when (this) {
-            is StartEvent -> logger.info("Gradle build started")
+            is StartEvent -> logger.infoNoConsole("Gradle build started")
             is FinishEvent -> when (val r = result) {
-                is SuccessResult -> {
-                    logger.info("Gradle build finished successfully")
-                }
+                is SuccessResult -> logger.infoNoConsole("Gradle build finished successfully")
                 is FailureResult -> {
                     logger.error("Gradle build failed with errors:")
                     for (error in r.failures) {
