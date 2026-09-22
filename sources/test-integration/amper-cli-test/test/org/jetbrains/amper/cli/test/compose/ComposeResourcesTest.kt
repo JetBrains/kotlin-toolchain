@@ -71,10 +71,11 @@ class ComposeResourcesTest : CliTestBase() {
             composeResourceEntries.filterNot { it.startsWith("assets/") },
             "Compose resources must only be packaged as Android assets, but the APK also carries them elsewhere",
         )
-        // 'jvm' and 'android' are sibling leaf platforms, neither refines the other, so the JVM refinement of this
-        // file must not reach Android: the APK gets the common one.
+        // The assets must be the same merge of the fragments as on the other platforms: 'android' refines 'common',
+        // so its version of this file wins. 'jvm' is a sibling leaf platform that 'android' doesn't refine, so its
+        // own version of the very same file must not take part in this merge at all.
         assertEquals(
-            "Any platform",
+            "Android refinement",
             apk.readZipEntryText("assets/composeResources/com.example.gen/files/refined-text.txt"),
         )
     }

@@ -258,9 +258,8 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
                     dependsOn = buildList {
                         add(jarTaskName)
                         if (isComposeEnabledFor(module)) {
-                            fragments.forEach { fragment ->
-                                add(AndroidFragmentTaskType.PrepareComposeResources.getTaskName(fragment))
-                            }
+                            val leafFragment = module.leafFragments.single { it.platform == platform && !it.isTest }
+                            add(AndroidFragmentTaskType.PrepareComposeResources.getTaskName(leafFragment))
                         }
                     },
                 )
@@ -321,14 +320,13 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
 
     allModules().alsoPlatforms(Platform.ANDROID).withEach {
         if (isComposeEnabledFor(module)) {
-            module.fragments.filter { Platform.ANDROID in it.platforms }.forEach { fragment ->
-                tasks.registerTask(
-                    task = AndroidComposeResourcesTask(
-                        taskName = AndroidFragmentTaskType.PrepareComposeResources.getTaskName(fragment),
-                        fragment = fragment,
-                    ),
-                )
-            }
+            val fragment = module.leafFragments.single { it.platform == platform && !it.isTest }
+            tasks.registerTask(
+                task = AndroidComposeResourcesTask(
+                    taskName = AndroidFragmentTaskType.PrepareComposeResources.getTaskName(fragment),
+                    fragment = fragment,
+                ),
+            )
         }
     }
 

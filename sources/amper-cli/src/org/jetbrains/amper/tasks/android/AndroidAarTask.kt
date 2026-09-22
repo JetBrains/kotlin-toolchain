@@ -72,7 +72,8 @@ internal class AndroidAarTask(
             ?: error("No input classes jar")
 
         // TODO: Implement picking up actual user-provided assets?
-        // TODO: Implement overriding (refining) assets?
+        // Each provider hands over assets that are already merged across the fragments it covers, so refinement is
+        // resolved before this point. Providers are independent of each other and cannot override one another.
         val additionalAssets = dependenciesResult.filterIsInstance<AdditionalAndroidAssetsProvider>()
 
         val outputAarPath = taskOutputRoot.path / jarResult.jarPath.nameWithoutExtension.plus(".aar")
