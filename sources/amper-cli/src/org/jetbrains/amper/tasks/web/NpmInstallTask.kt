@@ -6,6 +6,8 @@ package org.jetbrains.amper.tasks.web
 
 import kotlinx.serialization.json.Json
 import org.jetbrains.amper.ProcessRunner
+import org.jetbrains.amper.cli.logging.infoNoConsole
+import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
@@ -85,38 +87,36 @@ class NpmInstallTask(
                     )
                 }
 
-                logger.debug("Generated package.json with ${uniqueNpmDependencies.size} npm dependencies at $packageJsonPath")
+                logger.debug(
+                    "Generated package.json with {} npm dependencies at {}",
+                    uniqueNpmDependencies.size,
+                    packageJsonPath
+                )
 
                 val pnpm = context(executionContext.eventSink) {
                     pnpmProvider.downloadPnpm(PNPM_VERSION)
                 }
 
-                spanBuilder("pnpm install")
-                    .use {
-                        processRunner.disablePnpmUpdateNotifier(
-                            workingDir = outputDir,
-                            pnpm = pnpm,
-                            logger = logger,
-                            span = it,
-                        )
+                spanBuilder("pnpm install").use {
+                    processRunner.disablePnpmUpdateNotifier(
+                        workingDir = outputDir,
+                        pnpm = pnpm,
+                        logger = logger,
+                        span = it,
+                    )
 
-                        val result = processRunner.runProcess(
-                            workingDir = outputDir,
-                            command = [
-                                pnpm.executable.pathString,
-                                "install"
-                            ],
-                            span = it,
-                            outputMode = ProcessOutputMode.listenAndCaptureStderr(
-                                listener = LoggingProcessOutputListener(logger),
-                            ),
-                        )
-                        if (result.exitCode.value != 0) {
-                            error("pnpm install failed with exit code ${result.exitCode}:\n${result.stderr}")
-                        }
+                    // TODO maybe we could use --reporter=ndjson and parse events to report some progress
+                    val result = processRunner.runProcess(
+                        workingDir = outputDir,
+                        command = [pnpm.executable.pathString, "install"],
+                        span = it,
+                        outputMode = ProcessOutputMode.captureStderr(),
+                    )
+                    if (result.exitCode.value != 0) {
+                        userReadableError("pnpm install failed with exit code ${result.exitCode}:\n${result.stderr}")
                     }
-
-                logger.info("pnpm install completed successfully")
+                }
+                logger.infoNoConsole("pnpm install completed successfully")
 
                 listOf(packageJsonPath.resolveSibling(NODE_MODULES))
             }

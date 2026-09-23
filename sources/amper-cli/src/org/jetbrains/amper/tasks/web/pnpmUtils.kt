@@ -6,6 +6,7 @@ package org.jetbrains.amper.tasks.web
 
 import io.opentelemetry.api.trace.Span
 import org.jetbrains.amper.ProcessRunner
+import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.pnpm.PnpmDist
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
@@ -32,14 +33,10 @@ internal suspend fun ProcessRunner.disablePnpmUpdateNotifier(
             "false"
         ],
         span = span,
-        outputMode = ProcessOutputMode.listenAndCaptureStderr(
-            listener = LoggingProcessOutputListener(logger),
-        ),
+        outputMode = ProcessOutputMode.listen(LoggingProcessOutputListener(logger)),
     )
 
     if (result.exitCode.value != 0) {
-        error(
-            "pnpm configuration exits with the code ${result.exitCode}"
-        )
+        userReadableError("pnpm configuration failed with exit code ${result.exitCode}")
     }
 }

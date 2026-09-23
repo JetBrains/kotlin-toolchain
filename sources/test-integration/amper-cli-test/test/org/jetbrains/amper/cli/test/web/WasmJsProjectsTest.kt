@@ -358,10 +358,6 @@ class WasmJsProjectsTest : CliTestBase() {
         assertFileExists(vendors)
         assertFileExists(vendors / "@js-joda/core")
 
-        assertStdoutContains(
-            "pnpm install completed successfully"
-        )
-
         assertFileExists(buildWasmJs / "vendors" / "@js-joda" / "core")
         assertEquals(
             (buildWasmJs / "import-map-loader.js").readText(),
