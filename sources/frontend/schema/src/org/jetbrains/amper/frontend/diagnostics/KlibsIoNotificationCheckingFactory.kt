@@ -22,30 +22,30 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
 object KlibsIoNotificationCheckingFactory : AomSingleModuleDiagnosticFactory {
 
     override fun analyze(module: AmperModule, problemReporter: ProblemReporter) {
-        val notifyKlibsIo = module.publishingSettings.mavenCentral.notifyKlibsIo
-        val automatic = notifyKlibsIo.automaticDelegate
+        val mavenCentralSettings = module.publishingSettings.mavenCentral
+        val notifyKlibsIoDelegate = mavenCentralSettings.notifyKlibsIoDelegate
         if (
-            notifyKlibsIo.automatic &&
-            automatic.isExplicitlySet &&
-            !automatic.isSetInTemplate &&
+            mavenCentralSettings.notifyKlibsIo &&
+            notifyKlibsIoDelegate.isExplicitlySet &&
+            !notifyKlibsIoDelegate.isSetInTemplate &&
             module.type.supportedPlatforms.size <= 1
         ) {
             problemReporter.reportMessage(
-                KlibsIoAutomaticNotificationRequiresMultiplatform(
-                    automaticTrace = automatic.trace,
+                NotifyKlibsIoRequiresMultiplatform(
+                    notifyKlibsIoTrace = notifyKlibsIoDelegate.trace,
                 )
             )
         }
     }
 }
 
-class KlibsIoAutomaticNotificationRequiresMultiplatform(
-    val automaticTrace: Trace,
+class NotifyKlibsIoRequiresMultiplatform(
+    val notifyKlibsIoTrace: Trace,
 ) : BuildProblem {
 
-    override val diagnosticId: DiagnosticId = FrontendDiagnosticId.KlibsIoAutomaticNotificationRequiresMultiplatform
-    override val message = SchemaBundle.message("klibs.io.automatic.requires.multiplatform")
-    override val level: Level = Level.Warning
+    override val diagnosticId: DiagnosticId = FrontendDiagnosticId.NotifyKlibsIoRequiresMultiplatform
+    override val message = SchemaBundle.message("notify.klibs.io.requires.multiplatform")
+    override val level: Level = Level.Error
     override val type: BuildProblemType = BuildProblemType.InconsistentConfiguration
-    override val source: BuildProblemSource = automaticTrace.asBuildProblemSource()
+    override val source: BuildProblemSource = notifyKlibsIoTrace.asBuildProblemSource()
 }

@@ -1,0 +1,24 @@
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: false
+    publish: true
+
+settings:
+  publishing:
+    enabled: true
+    group: "amper.test.kmp-publish-multimodule"
+    version: "2.2"
+    signArtifacts: true
+    publishSources: true
+    mavenCentral:
+      enabled: true
+      notifyKlibsIo: true
+    pom:
+      url: https://example.org
+      scm: https://git.example.org
+      licenses:
+        - name: MIT
+          url: https://opensource.org/licenses/MIT
+      developers:
+        - John Doe

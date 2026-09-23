@@ -8,27 +8,37 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.PrintMessage
 import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.nullableFlag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.unique
+import io.ktor.client.plugins.ResponseException
+import io.ktor.client.statement.bodyAsText
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.getModuleByName
 import org.jetbrains.amper.cli.options.moduleOption
+import org.jetbrains.amper.cli.terminal.printCompletedMilestone
 import org.jetbrains.amper.cli.terminal.promptBoolean
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withBackend
+import org.jetbrains.amper.core.downloader.amperHttpClient
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.MAVEN_CENTRAL_REPOSITORY_ID
 import org.jetbrains.amper.frontend.Model
+import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.aomBuilder.defaultMavenRepositories
 import org.jetbrains.amper.frontend.publishingSettings
+import org.jetbrains.amper.klibsio.KlibsIoNotifier
+import org.jetbrains.amper.maven.publish.isMultiplatformPublication
+import org.jetbrains.amper.maven.publish.publicationCoordinates
 import org.jetbrains.amper.stdlib.collections.mapToSet
 import org.jetbrains.amper.tasks.getModuleDependencies
-import org.jetbrains.amper.tasks.klibsio.notifyKlibsIo
 import kotlin.collections.asSequence
+import kotlin.coroutines.cancellation.CancellationException
+
+private const val KLIBS_API_URL_ENV = "KOTLIN_TOOLCHAIN_KLIBS_IO_API_URL"
+private const val KLIBS_API_URL_DEFAULT = "https://api.klibs.io/notify/artifacts"
 
 internal class PublishCommand : AmperModelAwareCommand(name = "publish") {
 
@@ -50,42 +60,69 @@ internal class PublishCommand : AmperModelAwareCommand(name = "publish") {
                 "because all publishable modules are published anyway in that case."
     ).nullableFlag("--non-transitive")
 
-    private val notifyKlibsOnly by option(
-        "--notify-only",
-        help = "When used, the modules are not published, but only a notification to klibs.io is sent for " +
-        "the modules to be indexed on the website. Supported with the '$MAVEN_CENTRAL_REPOSITORY_ID' repository only.",
-    ).flag()
+    private val klibsIoApiUrl: String
+        get() {
+            val overriddenKlibsIoApiUrl = System.getenv(KLIBS_API_URL_ENV)
+                ?.takeIf { it.isNotBlank() }
+            return overriddenKlibsIoApiUrl ?: KLIBS_API_URL_DEFAULT
+        }
+
+    private val klibsIoNotifier by lazy {
+        KlibsIoNotifier(httpClient = amperHttpClient, apiUrl = klibsIoApiUrl)
+    }
 
     override fun help(context: Context): String = "Publish modules to a repository"
 
     override suspend fun run(cliContext: ProjectCliContext, model: Model) {
-        val modulesToPublish = selectModulesToPublish(model, cliContext)
-
-        if (notifyKlibsOnly) {
-            notifyKlibsIo(modulesToPublish)
-            return
-        }
+        val modulesToPublish = selectModulesToPublish(model, cliContext).distinctBy { it.userReadableName }
 
         withBackend(cliContext, model) { backend ->
             backend.publish(
-                modules = modulesToPublish.distinctBy { it.userReadableName },
+                modules = modulesToPublish,
                 repositoryId = repositoryId,
             )
         }
+
+        notifyKlibsIo(modulesToPublish)
         printSuccessfulCommandConclusion("Publication successful")
     }
 
     private suspend fun notifyKlibsIo(modules: List<AmperModule>) {
-        if (repositoryId != MAVEN_CENTRAL_REPOSITORY_ID) {
-            userReadableError("klibs.io notification has not been sent: the --notify-only option is only supported with the '$MAVEN_CENTRAL_REPOSITORY_ID' repository.")
+        if (repositoryId == MAVEN_CENTRAL_REPOSITORY_ID) {
+            modules
+                .filter { it.publishingSettings.mavenCentral.notifyKlibsIo }
+                .filter { it.isMultiplatformPublication() }
+                .forEach { klibsIoNotifier.notify(it) }
         }
-        val notifiableModules = modules
-            .filter { it.publishingSettings.mavenCentral.enabled }
-            .distinctBy { it.userReadableName }
-        if (notifiableModules.isEmpty()) {
-            userReadableError("klibs.io notification has not been sent: none of the selected modules have Maven Central publishing enabled.")
+    }
+
+    /**
+     * Sends a notification to klibs.io with KMP library coordinates for it to be later indexed on the website.
+     */
+    private suspend fun KlibsIoNotifier.notify(
+        module: AmperModule,
+    ) {
+        val coordinates = module.publicationCoordinates(Platform.COMMON)
+
+        logger.info("Notifying klibs.io about ${module.userReadableName}")
+        try {
+            val confirmation = notifyArtifactPublished(
+                groupId = coordinates.groupId,
+                artifactId = coordinates.artifactId,
+                version = coordinates.version ?: error("Missing version of the publication coordinates."),
+            )
+            terminal.printCompletedMilestone("Successfully notified klibs.io about ${module.userReadableName}: ${confirmation.message}.")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: ResponseException) {
+            logger.warn(
+                "Failed to notify klibs.io about ${module.userReadableName}: HTTP ${e.response.status.value}\n${e.response.bodyAsText()}."
+            )
+        } catch (e: Exception) {
+            logger.warn(
+                "Failed to reach klibs.io at $klibsIoApiUrl about ${module.userReadableName}: $e."
+            )
         }
-        notifiableModules.forEach { it.notifyKlibsIo(failOnError = true, terminal = terminal) }
     }
 
     private fun selectModulesToPublish(model: Model, cliContext: ProjectCliContext): List<AmperModule> {
@@ -119,8 +156,10 @@ internal class PublishCommand : AmperModelAwareCommand(name = "publish") {
         if (!terminal.terminalInfo.interactive) {
             userReadableError {
                 appendLine(message)
-                appendLine("Please pass the --transitive or --non-transitive flag to decide whether they should be " +
-                        "published as well.")
+                appendLine(
+                    "Please pass the --transitive or --non-transitive flag to decide whether they should be " +
+                            "published as well."
+                )
             }
         }
         terminal.println(message)

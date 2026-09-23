@@ -113,6 +113,7 @@ settings@android:
     group: null  # default
     mavenCentral:
       enabled: false  # default
+      notifyKlibsIo: false  # default
       publishingMode: manual  # default
     name: null  # default
     pom:
@@ -210,9 +211,7 @@ settings@iosSimulatorArm64:
     group: null  # default
     mavenCentral:
       enabled: false  # default
-      notifyKlibsIo:
-        apiUrl: https://api.klibs.io/notify/artifacts  # default
-        automatic: false  # default
+      notifyKlibsIo: false  # default
       publishingMode: manual  # default
     name: null  # default
     pom:
@@ -323,9 +322,7 @@ settings@jvm:
     group: null  # default
     mavenCentral:
       enabled: false  # default
-      notifyKlibsIo:
-        apiUrl: https://api.klibs.io/notify/artifacts  # default
-        automatic: false  # default
+      notifyKlibsIo: false  # default
       publishingMode: manual  # default
     name: null  # default
     pom:
@@ -433,9 +430,7 @@ settings@iosArm64+iosSimulatorArm64:
     group: null  # default
     mavenCentral:
       enabled: false  # default
-      notifyKlibsIo:
-        apiUrl: https://api.klibs.io/notify/artifacts  # default
-        automatic: false  # default
+      notifyKlibsIo: false  # default
       publishingMode: manual  # default
     name: null  # default
     pom:
@@ -562,9 +557,7 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
     group: null  # default
     mavenCentral:
       enabled: false  # default
-      notifyKlibsIo:
-        apiUrl: https://api.klibs.io/notify/artifacts  # default
-        automatic: false  # default
+      notifyKlibsIo: false  # default
       publishingMode: manual  # default
     name: null  # default
     pom:
@@ -683,9 +676,7 @@ settings@jvm:
     group: null  # default
     mavenCentral:
       enabled: false  # default
-      notifyKlibsIo:
-        apiUrl: https://api.klibs.io/notify/artifacts  # default
-        automatic: false  # default
+      notifyKlibsIo: false  # default
       publishingMode: manual  # default
     name: null  # default
     pom:
@@ -815,9 +806,7 @@ settings@android:
     group: null  # default
     mavenCentral:
       enabled: false  # default
-      notifyKlibsIo:
-        apiUrl: https://api.klibs.io/notify/artifacts  # default
-        automatic: false  # default
+      notifyKlibsIo: false  # default
       publishingMode: manual  # default
     name: null  # default
     pom:
@@ -920,9 +909,7 @@ settings@iosArm64:
     group: null  # default
     mavenCentral:
       enabled: false  # default
-      notifyKlibsIo:
-        apiUrl: https://api.klibs.io/notify/artifacts  # default
-        automatic: false  # default
+      notifyKlibsIo: false  # default
       publishingMode: manual  # default
     name: null  # default
     pom:
@@ -1025,9 +1012,7 @@ settings@iosSimulatorArm64:
     group: null  # default
     mavenCentral:
       enabled: false  # default
-      notifyKlibsIo:
-        apiUrl: https://api.klibs.io/notify/artifacts  # default
-        automatic: false  # default
+      notifyKlibsIo: false  # default
       publishingMode: manual  # default
     name: null  # default
     pom:

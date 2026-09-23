@@ -16,6 +16,7 @@ import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.schema.PublishingMode
 import org.jetbrains.amper.mavencentral.DeploymentState
 import org.jetbrains.amper.mavencentral.PublisherPortalClient
+import org.jetbrains.amper.mavencentral.PublisherPortalClient.Companion.MAVEN_CENTRAL_API_URL_BASE_DEFAULT
 import org.jetbrains.amper.mavencentral.PublishingType
 import org.jetbrains.amper.mavencentral.UserToken
 import org.jetbrains.amper.mavencentral.pollStatus
@@ -26,6 +27,8 @@ import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration.Companion.milliseconds
+
+private const val MAVEN_CENTRAL_API_URL_BASE_ENV = "KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_API_URL"
 
 class MavenCentralPublishTask(
     override val taskName: TaskName,
@@ -52,6 +55,8 @@ class MavenCentralPublishTask(
         val publisherPortalClient = PublisherPortalClient(
             httpClient = amperHttpClient,
             userToken = getMavenCentralToken(),
+            apiUrlBase = System.getenv(MAVEN_CENTRAL_API_URL_BASE_ENV)
+                ?.takeIf { it.isNotBlank() } ?: MAVEN_CENTRAL_API_URL_BASE_DEFAULT
         )
 
         logger.info("Uploading Maven Central bundle for module `${module.userReadableName}`…")

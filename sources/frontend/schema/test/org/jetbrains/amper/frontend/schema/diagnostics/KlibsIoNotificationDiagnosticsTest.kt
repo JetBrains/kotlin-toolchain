@@ -26,8 +26,7 @@ class KlibsIoNotificationDiagnosticsTest : FrontendTestCaseBase(Path("testResour
 
     @Test
     fun `automatic notification enabled in a template applied to a non-multiplatform module`() {
-        diagnosticsTest(caseName = "automatic-in-template-on-non-multiplatform")
-        { problems ->
+        diagnosticsTest(caseName = "automatic-in-template-on-non-multiplatform") { problems ->
             assertEquals(
                 expected = [],
                 actual = problems.map { it.diagnosticId },

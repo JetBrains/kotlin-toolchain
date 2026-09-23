@@ -7,7 +7,6 @@ package org.jetbrains.amper.mavencentral
 import io.ktor.client.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.transformWhile
@@ -39,10 +38,18 @@ interface PublisherPortalClient {
     suspend fun getDeploymentStatus(deploymentId: DeploymentId): DeploymentStatus
 
     companion object {
-        operator fun invoke(httpClient: HttpClient, userToken: UserToken): PublisherPortalClient =
+        // Spec: https://central.sonatype.org/publish/publish-portal-api/#uploading-a-deployment-bundle
+        const val MAVEN_CENTRAL_API_URL_BASE_DEFAULT = "https://central.sonatype.com/api/v1"
+
+        operator fun invoke(
+            httpClient: HttpClient,
+            userToken: UserToken,
+            apiUrlBase: String = MAVEN_CENTRAL_API_URL_BASE_DEFAULT,
+        ): PublisherPortalClient =
             KtorPublisherPortalClient(
                 httpClient = httpClient,
                 token = userToken,
+                apiUrlBase = apiUrlBase,
             )
     }
 }

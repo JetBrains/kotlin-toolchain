@@ -24,7 +24,6 @@ import org.jetbrains.amper.tasks.native.NativeTaskType
 import org.jetbrains.amper.tasks.native.canHaveCinterop
 import org.jetbrains.amper.tasks.publication.MavenCentralPublishTask
 import org.jetbrains.amper.tasks.publication.MavenPublishTask
-import org.jetbrains.amper.tasks.klibsio.NotifyKlibsIoTask
 import org.jetbrains.amper.tasks.publication.PrepareMavenCentralBundleTask
 import org.jetbrains.amper.util.BuildType
 
@@ -212,16 +211,6 @@ fun ProjectTasksBuilder.setupCommonTasks(moduleDependenciesMap: Map<AmperModule,
                         ),
                         dependsOn = listOf(packageTaskName),
                     )
-                    if (module.publishingSettings.mavenCentral.notifyKlibsIo.automatic) {
-                        tasks.registerTask(
-                            task = NotifyKlibsIoTask(
-                                taskName = ModuleTaskTypes.NotifyKlibsIo.getTaskName(module),
-                                module = module,
-                                terminal = context.terminal,
-                            ),
-                            dependsOn = listOf(ModuleTaskTypes.Publish("mavenCentral").getTaskName(module)),
-                        )
-                    }
                 }
 
                 val publishRepositories = module.mavenPublishRepositories

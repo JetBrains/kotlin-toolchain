@@ -5,5 +5,4 @@ product:
 settings:
   publishing:
     mavenCentral:
-      notifyKlibsIo:
-        automatic: true
+      notifyKlibsIo: true

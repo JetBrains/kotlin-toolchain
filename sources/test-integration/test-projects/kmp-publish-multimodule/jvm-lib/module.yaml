@@ -1,0 +1,6 @@
+product: jvm/lib
+
+description: A test JVM library
+
+apply:
+  - ../common.module-template.yaml

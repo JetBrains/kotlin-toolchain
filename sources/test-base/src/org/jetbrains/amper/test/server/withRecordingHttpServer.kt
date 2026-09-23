@@ -14,21 +14,34 @@ data class RecordedRequest(
     val body: String,
 )
 
+data class RouteHandler(
+    val path: String = "/",
+    val responseStatus: Int = 200,
+    val responseBody: String = "",
+    val responseHeaders: Map<String, String> = emptyMap(),
+)
+
 suspend fun withRecordingHttpServer(
-    responseStatus: Int = 200,
-    responseBody: String = "",
+    routes: List<RouteHandler> = [],
     block: suspend (baseUrl: String) -> Unit,
 ): List<RecordedRequest> {
     val requests = mutableListOf<RecordedRequest>()
     val httpServer = HttpServer.create(InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 10)
     try {
-        httpServer.createContext("/") { exchange ->
-            val body = exchange.requestBody.use { it.readBytes() }.decodeToString()
-            requests.add(RecordedRequest(exchange.requestMethod, exchange.requestURI.path, body))
+        for ((path, responseStatus, responseBody, responseHeaders) in routes) {
+            httpServer.createContext(path) { exchange ->
+                val body = exchange.requestBody.use { it.readBytes() }.decodeToString()
+                requests.add(RecordedRequest(exchange.requestMethod, exchange.requestURI.path, body))
 
-            val responseBytes = responseBody.encodeToByteArray()
-            exchange.sendResponseHeaders(responseStatus, if (responseBytes.isEmpty()) -1 else responseBytes.size.toLong())
-            exchange.responseBody.use { it.write(responseBytes) }
+                responseHeaders.forEach { (key, value) -> exchange.responseHeaders.add(key, value) }
+
+                val responseBytes = responseBody.encodeToByteArray()
+                exchange.sendResponseHeaders(
+                    responseStatus,
+                    if (responseBytes.isEmpty()) -1 else responseBytes.size.toLong()
+                )
+                exchange.responseBody.use { it.write(responseBytes) }
+            }
         }
         httpServer.start()
 

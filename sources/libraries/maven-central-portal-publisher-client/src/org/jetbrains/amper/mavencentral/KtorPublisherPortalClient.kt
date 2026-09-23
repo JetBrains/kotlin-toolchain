@@ -22,6 +22,7 @@ import kotlin.io.path.pathString
 internal class KtorPublisherPortalClient(
     httpClient: HttpClient,
     private val token: UserToken,
+    private val apiUrlBase: String,
 ) : PublisherPortalClient {
 
     private val httpClient = httpClient.config {
@@ -44,7 +45,7 @@ internal class KtorPublisherPortalClient(
             }
         ) {
             url {
-                takeFrom("https://central.sonatype.com/api/v1/publisher/upload")
+                takeFrom("$apiUrlBase/publisher/upload")
                 parameter("publishingType", publishingType.apiValue)
             }
             // Spec: https://central.sonatype.org/publish/publish-portal-api/#authentication-authorization
@@ -72,7 +73,7 @@ internal class KtorPublisherPortalClient(
         // Spec: https://central.sonatype.org/publish/publish-portal-api/#uploading-a-deployment-bundle
         val response = httpClient.post {
             url {
-                takeFrom("https://central.sonatype.com/api/v1/publisher/status")
+                takeFrom("$apiUrlBase/publisher/status")
                 parameter("id", deploymentId.uuidValue)
             }
             // Spec: https://central.sonatype.org/publish/publish-portal-api/#authentication-authorization

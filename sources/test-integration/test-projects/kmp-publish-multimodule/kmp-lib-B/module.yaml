@@ -1,0 +1,8 @@
+product:
+  type: lib
+  platforms: [jvm, js]
+
+description: A test multiplatform library B
+
+apply:
+  - ../common.module-template.yaml

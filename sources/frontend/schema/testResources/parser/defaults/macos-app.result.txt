@@ -170,10 +170,7 @@ Fragments:
         group: <default> null
         mavenCentral: <default> {
           enabled: <default> false
-          notifyKlibsIo: <default> {
-            apiUrl: <default> https://api.klibs.io/notify/artifacts
-            automatic: <default> false
-          }
+          notifyKlibsIo: <default> false
           publishingMode: <default> manual
         }
         name: <default> null
@@ -376,10 +373,7 @@ Fragments:
         group: <default> null
         mavenCentral: <default> {
           enabled: <default> false
-          notifyKlibsIo: <default> {
-            apiUrl: <default> https://api.klibs.io/notify/artifacts
-            automatic: <default> false
-          }
+          notifyKlibsIo: <default> false
           publishingMode: <default> manual
         }
         name: <default> null
@@ -578,10 +572,7 @@ Fragments:
         group: <default> null
         mavenCentral: <default> {
           enabled: <default> false
-          notifyKlibsIo: <default> {
-            apiUrl: <default> https://api.klibs.io/notify/artifacts
-            automatic: <default> false
-          }
+          notifyKlibsIo: <default> false
           publishingMode: <default> manual
         }
         name: <default> null
@@ -783,10 +774,7 @@ Fragments:
         group: <default> null
         mavenCentral: <default> {
           enabled: <default> false
-          notifyKlibsIo: <default> {
-            apiUrl: <default> https://api.klibs.io/notify/artifacts
-            automatic: <default> false
-          }
+          notifyKlibsIo: <default> false
           publishingMode: <default> manual
         }
         name: <default> null
@@ -986,10 +974,7 @@ Fragments:
         group: <default> null
         mavenCentral: <default> {
           enabled: <default> false
-          notifyKlibsIo: <default> {
-            apiUrl: <default> https://api.klibs.io/notify/artifacts
-            automatic: <default> false
-          }
+          notifyKlibsIo: <default> false
           publishingMode: <default> manual
         }
         name: <default> null
@@ -1189,10 +1174,7 @@ Fragments:
         group: <default> null
         mavenCentral: <default> {
           enabled: <default> false
-          notifyKlibsIo: <default> {
-            apiUrl: <default> https://api.klibs.io/notify/artifacts
-            automatic: <default> false
-          }
+          notifyKlibsIo: <default> false
           publishingMode: <default> manual
         }
         name: <default> null
@@ -1395,10 +1377,7 @@ Fragments:
         group: <default> null
         mavenCentral: <default> {
           enabled: <default> false
-          notifyKlibsIo: <default> {
-            apiUrl: <default> https://api.klibs.io/notify/artifacts
-            automatic: <default> false
-          }
+          notifyKlibsIo: <default> false
           publishingMode: <default> manual
         }
         name: <default> null
@@ -1601,10 +1580,7 @@ Fragments:
         group: <default> null
         mavenCentral: <default> {
           enabled: <default> false
-          notifyKlibsIo: <default> {
-            apiUrl: <default> https://api.klibs.io/notify/artifacts
-            automatic: <default> false
-          }
+          notifyKlibsIo: <default> false
           publishingMode: <default> manual
         }
         name: <default> null
@@ -1804,10 +1780,7 @@ Fragments:
         group: <default> null
         mavenCentral: <default> {
           enabled: <default> false
-          notifyKlibsIo: <default> {
-            apiUrl: <default> https://api.klibs.io/notify/artifacts
-            automatic: <default> false
-          }
+          notifyKlibsIo: <default> false
           publishingMode: <default> manual
         }
         name: <default> null
@@ -2010,10 +1983,7 @@ Fragments:
         group: <default> null
         mavenCentral: <default> {
           enabled: <default> false
-          notifyKlibsIo: <default> {
-            apiUrl: <default> https://api.klibs.io/notify/artifacts
-            automatic: <default> false
-          }
+          notifyKlibsIo: <default> false
           publishingMode: <default> manual
         }
         name: <default> null

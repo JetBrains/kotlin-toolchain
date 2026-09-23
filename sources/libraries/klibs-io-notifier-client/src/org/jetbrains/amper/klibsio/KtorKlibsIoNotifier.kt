@@ -5,8 +5,6 @@
 package org.jetbrains.amper.klibsio
 
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -26,21 +24,14 @@ internal class KtorKlibsIoNotifier(
         install(ContentNegotiation) {
             json()
         }
-        install(HttpRequestRetry) {
-            noRetry()
-        }
-        install(HttpTimeout) {
-            connectTimeoutMillis = TIMEOUT.inWholeMilliseconds
-            requestTimeoutMillis = TIMEOUT.inWholeMilliseconds
-        }
     }
 
-    override suspend fun notifyArtifactPublished(groupId: String, artifactId: String, version: String): String {
+    override suspend fun notifyArtifactPublished(groupId: String, artifactId: String, version: String): Confirmation {
         val response = httpClient.post(apiUrl) {
             contentType(ContentType.Application.Json)
             setBody(ArtifactCoordinates(groupId = groupId, artifactId = artifactId, version = version))
         }
-        return response.bodyAsText()
+        return Confirmation(response.bodyAsText())
     }
 
     @Serializable
@@ -49,8 +40,4 @@ internal class KtorKlibsIoNotifier(
         val artifactId: String,
         val version: String,
     )
-
-    private companion object {
-        val TIMEOUT = 10.seconds
-    }
 }

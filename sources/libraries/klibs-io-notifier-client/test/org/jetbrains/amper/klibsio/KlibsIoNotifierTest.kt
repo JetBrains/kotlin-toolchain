@@ -46,10 +46,10 @@ class KlibsIoNotifierTest {
     fun `returns the response body on a 2xx response`() = runTest {
         val engine = MockEngine { respond(content = ACK_BODY, status = HttpStatusCode.OK) }
 
-        val responseBody = KlibsIoNotifier(clientWith(engine), API_URL)
+        val result = KlibsIoNotifier(clientWith(engine), API_URL)
             .notifyArtifactPublished("com.example", "test-artifact", "1.2.3")
 
-        assertEquals(ACK_BODY, responseBody)
+        assertEquals(Confirmation(ACK_BODY), result)
     }
 
     @Test

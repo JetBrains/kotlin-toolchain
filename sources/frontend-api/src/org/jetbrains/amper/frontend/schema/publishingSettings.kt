@@ -84,18 +84,8 @@ class MavenCentralSettings : SchemaNode() {
     @SchemaDoc("Configures whether the publication should be fully automated, or pause for manual verification.")
     val publishingMode: PublishingMode by value(default = PublishingMode.Manual)
 
-    @SchemaDoc("Configures notifications sent to klibs.io for automatic library indexing.")
-    val notifyKlibsIo by nested<KlibsIoNotificationSettings>()
-}
-
-class KlibsIoNotificationSettings : SchemaNode() {
-
-    @Shorthand
-    @SchemaDoc("If set to true, notification is automatically sent to klibs.io after successfully publishing artifacts.")
-    val automatic by value(default = false)
-
-    @SchemaDoc("URL of the klibs.io endpoint for receiving notifications.")
-    val apiUrl by value(default = "https://api.klibs.io/notify/artifacts")
+    @SchemaDoc("If set to true, notification is sent to klibs.io automatically after successfully publishing artifacts.")
+    val notifyKlibsIo: Boolean by value(default = false)
 }
 
 enum class Checksum(
