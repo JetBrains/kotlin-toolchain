@@ -50,7 +50,7 @@ current_state() {
   stat "${stat_format[@]}" "$script_dir/project.yaml"
 }
 
-# Do not rebuild Amper if nothing changed
+# Do not rebuild the Kotlin Toolchain if nothing changed
 up_to_date_file="$script_dir/build/up-to-date-from-sources-wrapper.txt"
 current="$(current_state)"
 if [ ! -f "$up_to_date_file" ] || [ "$(cat "$up_to_date_file")" != "$current" ]; then
@@ -68,7 +68,6 @@ if [ ! -f "$up_to_date_file" ] || [ "$(cat "$up_to_date_file")" != "$current" ];
   fi
 
   echo "Building Kotlin Toolchain distribution from sources..."
-  # Amper needs a published Amper Android Gradle plugin support for the delegated Gradle builds
   if (cd "$script_dir" && ./kotlin --log-level=warn do buildUnpackedDistribution); then
     current_state >"$up_to_date_file"
   else

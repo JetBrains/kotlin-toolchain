@@ -21,11 +21,9 @@ REM ********** Build Amper from sources **********
 pushd "%~dp0"
 if errorlevel 1 goto fail
 
-echo Building Kotlin Toolchain distribution from sources...
-call kotlin.bat --log-level=warn do buildUnpackedDistribution
+powershell.exe -NoProfile -File "%~dp0/build-sources/build-in-alt-screen.ps1"
 if errorlevel 1 goto fail
 
-cls
 popd
 if errorlevel 1 goto fail
 

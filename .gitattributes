@@ -2,6 +2,7 @@
 
 *.sh text eol=lf
 *.bat text eol=crlf
+*.ps1 text eol=crlf
 
 # Kotlin CLI wrappers that don't have an extension
 kotlin text eol=lf
