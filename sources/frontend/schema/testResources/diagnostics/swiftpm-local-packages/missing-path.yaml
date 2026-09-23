@@ -1,0 +1,7 @@
+product:
+  type: ios/app
+
+dependencies:
+  - localSwiftPackage:
+      <![Error] Expected a value: `path`!>path:<!>
+      products: [ "MyProduct" ]

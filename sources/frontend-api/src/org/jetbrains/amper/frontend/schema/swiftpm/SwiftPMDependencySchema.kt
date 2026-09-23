@@ -23,7 +23,11 @@ sealed class SwiftPMDependencySchema : SchemaNode() {
     class Remote : SwiftPMDependencySchema() {
         class RepoPathToPackageNameTransform : ReferenceNode.TransformFunction<String> {
             private fun inferPackageName(url: String) = url.split("/").last().split(".git").first()
-            override fun transform(node: RefinedTreeNode): String = inferPackageName((((node as RefinedMappingNode).refinedChildren.get("value")!!.value as StringNode).value))
+            override fun transform(node: RefinedTreeNode): String {
+                val url = ((node as? RefinedMappingNode)?.refinedChildren?.get("value")?.value as? StringNode)?.value
+                    ?: return ""
+                return inferPackageName(url)
+            }
         }
 
         @CanBeReferenced
@@ -67,7 +71,8 @@ sealed class SwiftPMDependencySchema : SchemaNode() {
         override val products: List<String> by value<List<String>>()
 
         class PathToPackageNameTransform : ReferenceNode.TransformFunction<String> {
-            override fun transform(node: RefinedTreeNode): String = (node as PathNode).value.normalize().fileName.toString()
+            override fun transform(node: RefinedTreeNode): String =
+                (node as? PathNode)?.value?.normalize()?.fileName?.toString().orEmpty()
         }
 
         override val packageName: String by referenceValue<String>(::path, "package name", PathToPackageNameTransform())
