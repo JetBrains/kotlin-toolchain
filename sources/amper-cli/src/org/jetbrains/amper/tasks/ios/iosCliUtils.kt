@@ -49,6 +49,20 @@ suspend fun ProcessRunner.shutdownDevice(deviceId: XcodeDeviceId) =
     SimCtl.shutdown(deviceId = deviceId.value)
 
 context(_: XcodeEnvironment)
+suspend fun ProcessRunner.latestAvailableRuntimeVersion(): ComparableVersion {
+    return SimCtl.listAvailableRuntimes().runtimes.maxOfOrNull { ComparableVersion(it.version) }
+        ?: ComparableVersion("0.0")
+}
+
+context(_: XcodeEnvironment)
+suspend fun ProcessRunner.latestSimulatorSdkVersion(): ComparableVersion {
+    return Xcodebuild.showSdks()
+        .filter { it.platform == XcodebuildPlatform.`iOS Simulator`.sdk }
+        .maxOfOrNull { ComparableVersion(it.platformVersion) }
+        ?: ComparableVersion("0.0")
+}
+
+context(_: XcodeEnvironment)
 suspend fun ProcessRunner.selectBestIosSimulator(
     preFilter: (XcodeDeviceId) -> Boolean = { true },
 ): XcodeDeviceId? {
@@ -235,6 +249,24 @@ private abstract class Xcrun {
         if (checkNonZeroExitCode && it.exitCode.value != 0) {
             userReadableError("xcrun `${args.contentToString()}` failed with exit code ${it.exitCode}")
         }
+    }
+}
+
+private object Xcodebuild : Xcrun() {
+    private val OutputFormat = Json {
+        ignoreUnknownKeys = true
+    }
+
+    @Serializable
+    data class SdkData(
+        val platform: String,
+        val platformVersion: String,
+    )
+
+    context(_: ProcessRunner, _: XcodeEnvironment)
+    suspend fun showSdks(): List<SdkData> {
+        val result = xcrun("xcodebuild", "-showsdks", "-json", outputMode = ProcessOutputMode.capture())
+        return OutputFormat.decodeFromString(result.stdout)
     }
 }
 

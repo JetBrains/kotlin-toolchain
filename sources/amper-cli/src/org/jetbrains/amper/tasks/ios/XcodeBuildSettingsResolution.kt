@@ -102,3 +102,5 @@ val XcodeBuildSettingsResolution.Resolver.productName: String
 val XcodeBuildSettingsResolution.Resolver.productBundleIdentifier: String
     get() = getRequiredSetting(BuildSettingNames.PRODUCT_BUNDLE_IDENTIFIER)
 
+val XcodeBuildSettingsResolution.Resolver.iphoneOsDeploymentTarget: String?
+    get() = getSetting("IPHONEOS_DEPLOYMENT_TARGET")

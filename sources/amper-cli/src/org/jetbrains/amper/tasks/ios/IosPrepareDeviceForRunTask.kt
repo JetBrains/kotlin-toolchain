@@ -4,6 +4,8 @@
 
 package org.jetbrains.amper.tasks.ios
 
+import kotlinx.coroutines.delay
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.engine.Task
@@ -21,6 +23,7 @@ import org.jetbrains.amper.util.BuildType
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
+import kotlin.time.Duration.Companion.seconds
 
 class IosPrepareDeviceForRunTask(
     override val taskName: TaskName,
@@ -48,11 +51,14 @@ class IosPrepareDeviceForRunTask(
         val destinations = dependenciesResult
             .requireSingleDependency<PrepareIOSPlatformTask.Result>()
             .destinations
+            .filter { it.error == null }  // Filter out unsupported destinations
+
         val bundleId = buildSettingsResolution.getResolver(buildType, dependenciesResult)
             .productBundleIdentifier
 
         val device = if (platform.isIosSimulator) {
             prepareSimulator(
+                settingsResolver = buildSettingsResolution.getResolver(buildType, dependenciesResult),
                 userProvidedDeviceId = runSettings.deviceId?.let(::XcodeDeviceId),
                 processRunner = processRunner,
                 destinations = destinations,
@@ -123,6 +129,7 @@ class IosPrepareDeviceForRunTask(
 context(_: OperationEventSink, _: XcodeEnvironment)
 suspend fun prepareSimulator(
     processRunner: ProcessRunner,
+    settingsResolver: XcodeBuildSettingsResolution.Resolver,
     userProvidedDeviceId: XcodeDeviceId?,
     destinations: List<XcodeDestination>,
     platform: Platform,
@@ -151,6 +158,30 @@ suspend fun prepareSimulator(
     }
 
     return operationEventScope("Creating iOS Simulator") {
+        val latestSupportedPlatformVersion = processRunner.latestSimulatorSdkVersion()
+        val minimumSupportedTarget = settingsResolver.iphoneOsDeploymentTarget?.let(::ComparableVersion)
+            ?: latestSupportedPlatformVersion
+        if (latestSupportedPlatformVersion < minimumSupportedTarget) {
+            userReadableError("The current Xcode version ${contextOf<XcodeEnvironment>().version.canonical} " +
+                    "only supports Simulator runtimes up to ${latestSupportedPlatformVersion.canonical} " +
+                    "and it doesn't support Simulator runtime ${minimumSupportedTarget.canonical} " +
+                    "which is the minimum app requirement.\n" +
+                    "Please lower the deployment target in the Xcode project settings or update Xcode.")
+        }
+
+        val latestAvailableRuntime = processRunner.latestAvailableRuntimeVersion()
+        if (minimumSupportedTarget > latestAvailableRuntime) {
+            // This path is now reachable in Xcode 27.0+
+            // because it can now build things without the latest simulator platform downloaded.
+            PrepareIOSPlatformTask.provisionIosPlatform()
+            operationEventScope("Verifying the platform is ready") verify@ {
+                repeat(5) {
+                    if (processRunner.latestAvailableRuntimeVersion() > latestAvailableRuntime) return@verify
+                    delay(1.seconds)
+                }
+                userReadableError("No valid iOS destination is detected after downloading the iOS platform.")
+            }
+        }
         processRunner.provisionLatestIPhoneSimulator(platform)
     }
 }

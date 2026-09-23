@@ -62,7 +62,7 @@ class PrepareIOSPlatformTask(
 
         // The platform doesn't come online immediately;
         // so we wait and ensure the error disappeared from the destination list
-        operationEventScope("Verifying the platform is ready", sink = executionContext.eventSink) {
+        operationEventScope("Verifying the platform is ready") {
             var retryCount = 0
             do {
                 destinations = listXcodeDestinations(
@@ -99,26 +99,24 @@ class PrepareIOSPlatformTask(
         private val logger = LoggerFactory.getLogger(javaClass)
 
         context(_: OperationEventSink, xcodeEnvironment: XcodeEnvironment)
-        private suspend fun provisionIosPlatform() = mutex.withLock {
+        suspend fun provisionIosPlatform() = mutex.withLock {
             if (downloaded) {
                 return@withLock
             }
             val preDownloadedImagePath = System.getenv("KTC_IOS_PLATFORM_IMAGE_PATH")
-            val [command, moniker] = if (preDownloadedImagePath != null) {
-                logger.info("Using iOS Simulator image path: $preDownloadedImagePath")
-                [
-                    XCRUN_EXECUTABLE,
-                    "xcodebuild",
-                    "-importPlatform",
-                    preDownloadedImagePath,
-                ] to "importing the platform image"
-            } else {
-                [
-                    XCRUN_EXECUTABLE,
-                    "xcodebuild",
-                    "-downloadPlatform",
-                    "iOS",
-                ] to "downloading the platform image"
+            val moniker: String
+            val command = buildList {
+                add(XCRUN_EXECUTABLE)
+                add("xcodebuild")
+                if (preDownloadedImagePath != null) {
+                    add("-importPlatform")
+                    add(preDownloadedImagePath)
+                    moniker = "importing the platform image"
+                } else {
+                    add("-downloadPlatform")
+                    add("iOS")
+                    moniker = "downloading the platform image"
+                }
             }
             val exit = operationEventScope(moniker) {
                 runProcess(

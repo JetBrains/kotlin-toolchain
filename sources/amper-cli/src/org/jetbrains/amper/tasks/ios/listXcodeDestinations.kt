@@ -59,6 +59,20 @@ suspend fun listXcodeDestinations(
      |        { platform:iOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator:placeholder, name:Any iOS Simulator Device }
      |        { platform:iOS Simulator, arch:arm64, id:E518559A-3084-4260-A223-E8FFB923D11A, OS:26.5, name:iPhone 17 Pro }
      ```
+
+     Xcode 27.0+:
+     ```
+     |
+     |    Destinations compatible with the "app" scheme:
+     |        { platform:macOS, arch:arm64, variant:Designed for [iPad,iPhone], id:00006031-0018109A21B8001C, name:My Mac }
+     |        { platform:iOS, arch:arm64, id:00008253-000E67211A78001E, name:Some Device Name }
+     |        { platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }
+     |        { platform:iOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator:placeholder, name:Any iOS Simulator Device }
+     |
+     |    Destinations incompatible with the "app" scheme:
+     |        { platform:macOS, arch:arm64e, id:00004031-0028109B51B3002G, name:My Mac, error:My Mac’s macOS platform doesn’t match compose-ios.app’s supported platforms. You can change compose-ios.app’s Base SDK or Supported Platforms to support My Mac. }
+     ```
+     We don't need to parse the "section" text, the `error` field is enough to understand that the destination is unsupported
      */
     return DestinationLineRegex.findAll(result.stdout)
         .map { it.groupValues[1] }
