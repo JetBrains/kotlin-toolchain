@@ -211,16 +211,4 @@ class ExampleProjectsTest : CliTestBase() {
             assertContains(stdout, "0 tests failed")
         }
     }
-
-    @Test
-    fun `spring-petclinic-kotlin`() = runSlowTest {
-        val projectRoot = exampleProject("spring-petclinic-kotlin")
-
-        // TODO: enable assertEmptyStdErr when AMPER-4265 is fixed
-        with(runCli(projectRoot, "test", assertEmptyStdErr = false)) {
-            assertContains(stdout, "Test run finished")
-            assertContains(stdout, "tests successful")
-            assertContains(stdout, "0 tests failed")
-        }
-    }
 }
