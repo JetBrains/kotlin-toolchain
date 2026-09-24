@@ -14,6 +14,7 @@ import com.intellij.mock.MockApplication
 import com.intellij.mock.MockProject
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -26,6 +27,7 @@ import org.jetbrains.amper.telemetry.useWithoutCoroutines
 import org.jetbrains.yaml.YAMLFileType
 import org.jetbrains.yaml.YAMLLanguage
 import org.jetbrains.yaml.YAMLParserDefinition
+import org.slf4j.LoggerFactory
 import org.toml.lang.TomlLanguage
 import org.toml.lang.parse.TomlParserDefinition
 import org.toml.lang.psi.TomlFileType
@@ -77,6 +79,11 @@ object MockProjectInitializer {
         }
 
         return spanBuilder("Init mock IntelliJ project").useWithoutCoroutines {
+            // We don't want the Mock IDEA logs to be printed to the stdout without the terminal;
+            // Thus we force them to the org.slf4j.Logger.
+            // And we use DEBUG level to hide them from the users by default.
+            Logger.setFactory { DebugLogger() }
+
             System.setProperty("idea.home.path", "") // TODO: Is it correct?
 
             // Tells the IntelliJ Platform code not to use the APIs added to the IntelliJ coroutine fork on top of Kotlin
@@ -161,6 +168,18 @@ object MockProjectInitializer {
 
         override fun allowInWriteAction(runnable: Runnable) {
             allowInWriteAction(runnable::run)
+        }
+    }
+
+    private class DebugLogger() : Logger() {
+        private val logger = LoggerFactory.getLogger("com.intellij.openapi.diagnostic.Logger")
+        override fun isDebugEnabled() = logger.isDebugEnabled
+        override fun debug(message: String?, t: Throwable?) = logger.debug(message, t)
+        override fun info(message: String?, t: Throwable?) = logger.debug("INFO: $message", t)
+        override fun warn(message: String?, t: Throwable?) = logger.debug("WARN: $message", t)
+        override fun error(message: String?, t: Throwable?, vararg details: String?) {
+            logger.debug("ERROR: $message", t)
+            for (string in details) logger.debug("ERROR: (detail) $string")
         }
     }
 }
