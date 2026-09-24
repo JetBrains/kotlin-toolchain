@@ -101,7 +101,8 @@ context(problemReporter: ProblemReporter, processRunner: ProcessRunner)
 private suspend fun selectedDeveloperDirectory(): Path {
     val result = processRunner.runProcess(
         workingDir = Path("."),
-        command = [XCRUN_EXECUTABLE, "xcode-select", "--print-path"],
+        // We don't do `xcrun xcode-select` because `xcrun` itself may require license acceptance.
+        command = ["xcode-select", "--print-path"],
         outputMode = ProcessOutputMode.capture(),
     )
     val path = result.stdout.trim()
@@ -117,7 +118,8 @@ context(problemReporter: ProblemReporter, processRunner: ProcessRunner,)
 private suspend fun checkXcodeVersion() : ComparableVersion {
     (val exitCode, val stdout) = processRunner.runProcess(
         workingDir = Path("."),
-        command = [XCRUN_EXECUTABLE, "xcodebuild", "-version"],
+        // We don't do `xcrun xcodebuild` because `xcrun` itself may require license acceptance.
+        command = ["xcodebuild", "-version"],
         outputMode = ProcessOutputMode.capture(),
     )
     val actualVersion = XCODE_VERSION_REGEX.find(stdout)
