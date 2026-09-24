@@ -10,6 +10,7 @@ import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.Selectors
+import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.compose.MergedPreparedComposeResourcesDirArtifact
 import kotlin.io.path.exists
 
@@ -39,13 +40,14 @@ class AndroidComposeResourcesTask(
         module = fragment.module,
         isTest = false,
         platform = fragment.platform,
+        quantifier = Quantifier.SingleOrNone,
     )
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(
         dependenciesResult: List<TaskResult>,
     ): TaskResult {
-        val mergedResourcesPath = mergedResources.singleOrNull()?.path
+        val mergedResourcesPath = mergedResources?.path
 
         return Result(
             assetsRoots = if (mergedResourcesPath != null && mergedResourcesPath.exists()) {

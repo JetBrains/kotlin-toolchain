@@ -93,14 +93,14 @@ object Selectors {
     /**
      * From the [module] only that matches [platform], [isTest].
      */
-    // TODO Should introduce `SingleOrNone` quantifier.
-    fun <T : CompilationScopedArtifact> fromModuleOnly(
+    fun <T : CompilationScopedArtifact, Q : Quantifier> fromModuleOnly(
         type: KClass<T>,
         module: AmperModule,
         isTest: Boolean,
         platform: Platform,
+        quantifier: Q,
         additionalFilter: (CompilationScopedArtifact) -> Boolean = { true },
-    ): ArtifactSelector<T, Quantifier.AnyOrNone> {
+    ): ArtifactSelector<T, Q> {
         return ArtifactSelector(
             type = ArtifactType(type),
             predicate = {
@@ -109,7 +109,7 @@ object Selectors {
                         it.isTest == isTest && additionalFilter(it)
             },
             description = "from module ${module.userReadableName} with platform $platform and its dependencies",
-            quantifier = Quantifier.AnyOrNone,
+            quantifier = quantifier,
         )
     }
 

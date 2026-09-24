@@ -7,6 +7,7 @@ package org.jetbrains.amper.tasks.compose
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
+import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jar.ZipConfig
@@ -18,6 +19,7 @@ import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.Selectors
+import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.mavenFileName
 import org.jetbrains.amper.tasks.metadata.KMP_RESOURCES_CLASSIFIER
 import org.jetbrains.amper.tasks.metadata.KMP_RESOURCES_EXTENSION
@@ -42,20 +44,24 @@ import kotlin.io.path.walk
 class ComposeResourcesArchiveTask(
     override val taskName: TaskName,
     private val module: AmperModule,
-    private val platform: Platform,
+    fragment: LeafFragment,
     private val taskOutputRoot: TaskOutputRoot,
     private val incrementalCache: IncrementalCache,
 ) : ArtifactTaskBase() {
+
+    private val platform = fragment.platform
+
     private val mergedResources by Selectors.fromModuleOnly(
         type = MergedPreparedComposeResourcesDirArtifact::class,
         module = module,
         isTest = false,
         platform = platform,
+        quantifier = Quantifier.SingleOrNone,
     )
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
-        val mergedDir = mergedResources.singleOrNull()?.path?.takeIf { it.isDirectory() }
+        val mergedDir = mergedResources?.path?.takeIf { it.isDirectory() }
         // Modules without any Compose resources have nothing to publish, and we don't want to publish empty archives.
         if (mergedDir == null || mergedDir.walk().none { it.isRegularFile() }) {
             return EmptyTaskResult

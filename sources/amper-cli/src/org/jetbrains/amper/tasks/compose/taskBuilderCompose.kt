@@ -140,7 +140,7 @@ private fun ProjectTasksBuilder.configureComposeResourcesGeneration() {
                     ComposeResourcesArchiveTask(
                         taskName = archiveTaskName,
                         module = module,
-                        platform = fragment.platform,
+                        fragment = fragment,
                         taskOutputRoot = context.getTaskOutputPath(archiveTaskName),
                         incrementalCache = context.incrementalCache,
                     ),

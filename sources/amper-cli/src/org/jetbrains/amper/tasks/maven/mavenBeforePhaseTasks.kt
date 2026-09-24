@@ -132,6 +132,7 @@ class ClassesAwareMavenPhaseTask(parameters: PhaseTaskParameters) : BeforeMavenP
         module = parameters.module,
         platform = Platform.JVM,
         isTest = parameters.isTest,
+        quantifier = Quantifier.AnyOrNone,
     )
 
     context(_: ProblemReporter)

@@ -12,6 +12,7 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.tasks.artifacts.JvmResourcesDirArtifact
 import org.jetbrains.amper.tasks.artifacts.PureArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.Selectors
+import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.compose.MergedPreparedComposeResourcesDirArtifact
 import kotlin.io.path.createDirectories
 import kotlin.io.path.isDirectory
@@ -35,6 +36,7 @@ internal class JvmComposeResourcesTask(
         module = fragment.module,
         isTest = fragment.isTest,
         platform = fragment.platform,
+        quantifier = Quantifier.SingleOrNone,
     )
 
     private val outputJvmResources by JvmResourcesDirArtifact(
@@ -45,7 +47,7 @@ internal class JvmComposeResourcesTask(
     override suspend fun run(executionContext: TaskGraphExecutionContext) {
         // A compilation whose fragments declare no Compose resources has nothing merged, and so nothing to place on
         // the classpath. The output directory is cleaned before this runs, so there is nothing to remove either.
-        val mergedDir = mergedResources.singleOrNull()?.path?.takeIf { it.isDirectory() } ?: return
+        val mergedDir = mergedResources?.path?.takeIf { it.isDirectory() } ?: return
 
         BuildPrimitives.copy(
             from = mergedDir,
