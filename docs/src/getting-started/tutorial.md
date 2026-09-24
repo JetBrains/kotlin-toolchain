@@ -244,7 +244,6 @@ Now we have a GUI application!
 
     - [Compose Desktop]({{ examples_base_url }}/compose-desktop)
     - [Compose Android]({{ examples_base_url }}/compose-android)
-    - [Compose iOS]({{ examples_base_url }}/compose-ios)
     - [Compose Multiplatform]({{ examples_base_url }}/compose-multiplatform)
 
 !!! abstract "Related documentation: [Compose Multiplatform](../user-guide/builtin-tech/compose-multiplatform.md)"

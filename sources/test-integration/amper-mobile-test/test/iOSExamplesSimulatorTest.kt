@@ -14,12 +14,6 @@ import kotlin.io.path.div
 class iOSExamplesSimulatorTest : swiftpm.SwiftPMImportTests() {
 
     @Test
-    fun composeiOSAppStandalone() = runIosAppTests(
-        projectSource = ProjectSource.Local(Dirs.examplesRoot / "compose-ios"),
-        bundleIdentifier = "compose-ios",
-    )
-
-    @Test
     fun composeiOSAppMultiplatform() = runIosAppTests(
         projectSource = ProjectSource.Local(Dirs.examplesRoot / "compose-multiplatform"),
         bundleIdentifier = "ios-app",

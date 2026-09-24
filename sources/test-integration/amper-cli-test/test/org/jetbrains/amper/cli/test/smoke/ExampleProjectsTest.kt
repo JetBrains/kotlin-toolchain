@@ -64,10 +64,7 @@ class ExampleProjectsTest : CliTestBase() {
         )
 
         // Linking and xcodebuild produce some warnings on stderr (said warnings are ignored specifically)
-        private val knownProjectsWithNonEmptyStderr = setOf(
-            "compose-desktop",
-            "compose-ios",
-        )
+        private val knownProjectsWithNonEmptyStderr = setOf("compose-desktop")
 
         // We use directory names, not paths, so the preview of the tests in IDE and TC is more readable
         @JvmStatic
@@ -84,13 +81,9 @@ class ExampleProjectsTest : CliTestBase() {
             assertEmptyStdErr = projectName !in knownProjectsWithNonEmptyStderr,
             configureAndroidHome = true, // no need to be granular by project here, we'll install them once
         )
-        if (projectName == "compose-ios" && !OsFamily.current.isMac) {
-            buildResult.assertWarnings("Nothing to build")
-        } else {
-            val warnings = buildResult.stdoutClean.lines().filter { "WARN" in it }
-            val unexpectedWarnings = warnings.filterNot { knownWarnings.any { warning -> it.contains(warning) } }
-            assertEqualsWithDiff(unexpectedWarnings, emptyList(), "Unexpected warnings in $projectName")
-        }
+        val warnings = buildResult.stdoutClean.lines().filter { "WARN" in it }
+        val unexpectedWarnings = warnings.filterNot { knownWarnings.any { warning -> it.contains(warning) } }
+        assertEqualsWithDiff(unexpectedWarnings, emptyList(), "Unexpected warnings in $projectName")
     }
 
     @Test

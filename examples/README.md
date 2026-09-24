@@ -17,8 +17,6 @@ You can check them out right here on GitHub, or download a zipped version to ope
 | Compose Multiplatform   | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/compose-multiplatform)   |
 | Compose Android         | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/compose-android)         |
 | Compose Desktop         | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/compose-desktop)         |
-| Compose iOS             | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/compose-ios)             |
 | JVM "Hello, World"      | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/jvm)                     |
 | Ktor Simplest Sample    | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/ktor-simplest-sample)    |
-| Spring PetClinic        | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/spring-petclinic)        |
 | Spring PetClinic Kotlin | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/spring-petclinic-kotlin) |
