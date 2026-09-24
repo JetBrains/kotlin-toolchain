@@ -36,7 +36,9 @@ internal class DownloadProgressTracker(
 
     fun onDownload(bytesReceived: Long, contentLength: Long?) {
         this.bytesReceived = bytesReceived
-        this.contentLength = contentLength
+        if (contentLength != null) {
+            this.contentLength = contentLength
+        }
     }
 }
 

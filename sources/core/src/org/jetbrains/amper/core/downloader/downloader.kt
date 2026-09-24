@@ -76,6 +76,7 @@ object Downloader {
         userCacheRoot: AmperUserCacheRoot,
         infoLog: Boolean = true,
         forceRedownload: Boolean = false,
+        knownContentLengthHint: Long? = null,
     ): Path {
         val target = getTargetFile(userCacheRoot, url)
         fileLocks.withLock(target) {
@@ -117,6 +118,10 @@ object Downloader {
                     val timeSource = TimeSource.Monotonic
                     try {
                         val progressTracker = DownloadProgressTracker(sink, timeSource)
+                        knownContentLengthHint?.let {
+                            // Will be overridden if available later from the response, otherwise will stay.
+                            progressTracker.onDownload(bytesReceived = 0L, contentLength = knownContentLengthHint)
+                        }
                         val response = archivesDownloadClient.prepareGet(url) {
                             // we manually handle errors below
                             expectSuccess = false

@@ -227,7 +227,11 @@ class AndroidSdkProvider(
         val url = repositoryBaseUrlBuilder.appendPathSegments(pkg.archive.complete.url).build()
         val path = tracer.spanBuilder("Download Android SDK package ${pkg.path}").use {
             operationEventScope("downloading ${pkg.displayName}") {
-                Downloader.downloadFileToCacheLocation(url.toString(), userCacheRoot)
+                Downloader.downloadFileToCacheLocation(
+                    url = url.toString(),
+                    userCacheRoot = userCacheRoot,
+                    knownContentLengthHint = pkg.archive.complete.size,
+                )
             }
         }
         return tracer.spanBuilder("Install Android SDK package files ${pkg.path}").use {
