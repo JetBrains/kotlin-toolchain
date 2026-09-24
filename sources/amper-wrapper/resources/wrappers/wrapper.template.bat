@@ -40,13 +40,14 @@ set sha=%~4
 set sha_size=%~5
 set show_banner_on_cache_miss=%~6
 
+setlocal enableDelayedExpansion
+
 set flag_file=%target_dir%\.flag
 if exist "%flag_file%" (
     set /p current_flag=<"%flag_file%"
-    if "%current_flag%" == "%sha%" exit /b
+    if "!current_flag!" == "%sha%" exit /b
 )
 
-setlocal enableDelayedExpansion
 set NL=^
 
 
