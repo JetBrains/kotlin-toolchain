@@ -1,0 +1,11 @@
+product: jvm/lib
+
+dependencies:
+  - org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2: exported
+
+test-dependencies:
+  - org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2
+
+settings:
+  kotlin:
+    serialization: enabled

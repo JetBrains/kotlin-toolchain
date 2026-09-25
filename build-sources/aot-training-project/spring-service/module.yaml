@@ -1,0 +1,10 @@
+product: jvm/app
+
+dependencies:
+  - ../core
+  - org.springframework.boot:spring-boot-starter
+
+settings:
+  springBoot: enabled
+  jvm:
+    mainClass: org.jetbrains.aottraining.service.ServiceApplicationKt

@@ -1,0 +1,6 @@
+/.idea/
+/build/
+
+# The wrappers are generated on demand, never checked in (see README.md)
+/kotlin
+/kotlin.bat

@@ -1,0 +1,6 @@
+# Standalone project used as the training workload for the Kotlin CLI JVM AOT cache (see README.md).
+# It is intentionally NOT part of the main Kotlin Toolchain build.
+modules:
+  - core
+  - desktop-app
+  - spring-service
