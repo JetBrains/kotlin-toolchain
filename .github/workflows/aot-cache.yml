@@ -1,0 +1,127 @@
+name: aot-cache
+
+# Trains and publishes a JVM AOT cache for the Kotlin CLI on every supported OS/arch.
+#
+# An AOT cache is only valid for the exact combination of:
+#   - the Kotlin CLI distribution (its lib/*.jar classpath),
+#   - the JRE that the launcher provisions (Zulu version pinned in bin/launcher.sh),
+#   - the OS and CPU architecture.
+#
+# This is why one cache is produced per matrix entry, for the os-arch platform naming used by the launcher.
+#
+# Each platform is published as its own maven artifact (org.jetbrains.kotlin:kotlin-cli-aot-cache-<os>-<arch>), so
+# every machine trains, verifies and publishes its own cache independently: there is no shared POM or
+# maven-metadata.xml that concurrent publications could race on.
+
+on:
+  workflow_dispatch:
+    inputs:
+      kotlin-cli-version:
+        description: Kotlin CLI distribution version to train for (must be already published)
+        type: string
+        required: true
+      publish:
+        description: >-
+          Publish the caches to the Maven repository on packages.jetbrains.team. Without it, the caches are only
+          trained and checked on the machine that produced them (the verify-published job needs them to be published).
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  KOTLIN_CLI_NO_WELCOME_BANNER: 1
+  TRAINING_KTC_VERSION: ${{ inputs.kotlin-cli-version }}
+  TRAINING_PROJECT_PATH: build-sources/aot-training-project
+
+jobs:
+  train:
+    name: train (${{ matrix.os }}_${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # os/arch names are the ones used in the AOT cache artifact IDs (see provision_aot_cache in launcher.sh)
+        include:
+          - { runner: ubuntu-latest,    os: linux,   arch: x64 }
+          - { runner: ubuntu-24.04-arm, os: linux,   arch: aarch64 }
+          - { runner: macos-latest,     os: macos,   arch: aarch64 }
+          - { runner: windows-latest,   os: windows, arch: x64 }
+          - { runner: windows-11-arm,   os: windows, arch: aarch64 }
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Train the AOT cache
+        run: |
+          # The training project has no checked-in wrappers: we create them for exactly the version being trained
+          # (this fetches the published wrapper scripts for that version)
+          ./kotlin update --create --target-dir="$TRAINING_PROJECT_PATH" --target-version="$TRAINING_KTC_VERSION"
+          ./kotlin do trainAotCache
+
+      - name: Check that the JVM accepts the trained cache
+        working-directory: examples
+        #language=bash
+        run: |
+          aot_cache_file="../build/tasks/_amper-cli_trainAotCache@amper-distribution/kotlin-cli.aot"
+          if [ "$RUNNER_OS" = Windows ]; then aot_cache_file=$(cygpath -m "$aot_cache_file"); fi
+
+          log_dir=$RUNNER_TEMP
+          if [ "$RUNNER_OS" = Windows ]; then log_dir=$(cygpath -m "$log_dir"); fi
+
+          {
+            echo "### ${{ matrix.os }}_${{ matrix.arch }}"
+            echo
+            echo "Classes loaded during \`kotlin build\`, and how many came from the AOT cache:"
+            echo
+            echo "| example project | classes loaded | from the AOT cache |"
+            echo "|---|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Only the examples that build on every platform of the matrix without extra tooling. The other examples
+          # need an Android SDK (which Google doesn't ship for linux-aarch64 or windows-aarch64) or Xcode.
+          for project in jvm compose-desktop ktor-simplest-sample spring-petclinic; do
+            echo "::group::$project"
+            cd "$project"
+          
+            echo "Setting up the wrapper version $TRAINING_KTC_VERSION"
+            ./kotlin update --target-version="$TRAINING_KTC_VERSION"
+          
+            echo "Pre-downloading dependencies and tools..."
+            ./kotlin build
+            # We still want a clean build, we just wanted to download what needed to be downloaded
+            ./kotlin clean
+
+            aot_log_file=$log_dir/$project-classload.log
+            # -XX:AOTMode=on makes the JVM fail if it cannot load the cache instead of silently falling back
+            KOTLIN_CLI_JAVA_OPTIONS="-XX:AOTCache=$aot_cache_file -XX:AOTMode=on -Xlog:class+load=info:file=$aot_log_file" ./kotlin build
+
+            loaded=$(grep -c "\[class,load\]" "$aot_log_file" || true)
+            from_cache=$(grep -c "source: shared objects file" "$aot_log_file" || true)
+            echo "$project: $from_cache of $loaded classes came from the AOT cache"
+            if [ "$from_cache" -lt 5000 ]; then
+              echo "::error::Only $from_cache classes were loaded from the AOT cache in $project, it is probably not being used"
+              exit 1
+            fi
+            percent=$((from_cache * 100 / loaded))
+            echo "| $project | $loaded | $from_cache ($percent%) |" >> "$GITHUB_STEP_SUMMARY"
+
+            cd ..
+            echo "::endgroup::"
+          done
+
+      - name: Publish this platform's cache to the Maven repository
+        if: inputs.publish
+        env:
+          JETBRAINS_TEAM_AMPER_USERNAME: ${{ secrets.JETBRAINS_TEAM_AMPER_USERNAME }}
+          JETBRAINS_TEAM_AMPER_PASSWORD: ${{ secrets.JETBRAINS_TEAM_AMPER_PASSWORD }}
+        run: |
+          # Compresses and publishes the cache verified above (trainAotCache is a dependency of this task, and
+          # the training is reused as-is).
+          ./kotlin do uploadAotCache

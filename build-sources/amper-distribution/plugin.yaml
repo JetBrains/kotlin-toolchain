@@ -52,6 +52,25 @@ tasks:
       classpath: ${pluginSettings.embedClasspathAsResources.classpath}
       jarListFileName: classpath.txt
 
+  # ********** JVM AOT cache **********
+
+  trainAotCache:
+    action: !aot.trainAotCache
+      trainingProjectDir: ${project.rootDir}/build-sources/aot-training-project
+      cacheFile: ${taskOutputDir}/kotlin-cli.aot
+
+  uploadAotCache:
+    action: !aot.uploadAotCache
+      aotCacheFile: ${tasks.trainAotCache.action.cacheFile}
+      trainingProjectDir: ${project.rootDir}/build-sources/aot-training-project
+      repository: jetbrains-team-amper-maven
+
+  uploadAotCacheLocal:
+    action: !aot.uploadAotCache
+      aotCacheFile: ${tasks.trainAotCache.action.cacheFile}
+      trainingProjectDir: ${project.rootDir}/build-sources/aot-training-project
+      repository: maven-local
+
   # ********** Home Brew **********
 
   generateLocalDemoBrewFormula:
@@ -75,6 +94,15 @@ commands:
     performedBy: buildUnpacked
 
   - buildSdkmanArchive
+
+  - name: trainAotCache
+    performedBy: trainAotCache
+
+  - name: uploadAotCache
+    performedBy: uploadAotCache
+
+  - name: uploadAotCacheLocal
+    performedBy: uploadAotCacheLocal
 
   - installLocalDemoBrewFormula
 

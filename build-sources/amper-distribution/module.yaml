@@ -20,7 +20,9 @@ dependencies:
   - //sources/amper-build-info
   - //sources/amper-maven-publish
   - //sources/amper-wrapper
+  - //sources/libraries/async-processes
   - //sources/libraries/stdlib-extended
+  - //sources/libraries/system-info
   - $libs.ktor.client
   - $libs.ktor.client.cio
   - $libs.apacheCommons.compress
