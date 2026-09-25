@@ -346,7 +346,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                 model = state.model,
                 runSettings = allRunSettings(),
             ) {
-                it.rebuildJvmAppForHotReload(module = state.hotApp)
+                it.rebuildJvmModuleForHotReload(module = state.hotApp)
             }
         }
 

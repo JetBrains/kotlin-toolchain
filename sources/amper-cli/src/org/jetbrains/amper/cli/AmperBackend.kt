@@ -438,10 +438,13 @@ class AmperBackend(
         taskExecutor.runTasksAndReportOnFailure(resolvedCommands)
     }
 
-    suspend fun rebuildJvmAppForHotReload(
+    suspend fun rebuildJvmModuleForHotReload(
         module: AmperModule,
     ) : List<IncrementalCache.Change> {
-        require(module.type == ProductType.JVM_APP)
+        require(Platform.JVM in module.leafPlatforms) {
+            "Trying to rebuild the module ${module.userReadableName} for Hot Reload but it doesn't target JVM.\n" +
+                    "Supported platforms: ${module.leafPlatforms}"
+        }
 
         val taskIds = buildSet {
             add(CommonTaskType.Compile.getTaskName(module, Platform.JVM).id)
