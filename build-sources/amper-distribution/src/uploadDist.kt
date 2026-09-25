@@ -2,25 +2,19 @@
  * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import org.apache.maven.model.Model
+import maven.createSimplePom
+import maven.kotlinToolchainArtifact
+import maven.publish
 import org.eclipse.aether.artifact.Artifact
-import org.eclipse.aether.artifact.DefaultArtifact
-import org.eclipse.aether.repository.RemoteRepository
-import org.eclipse.aether.util.repository.AuthenticationBuilder
-import org.jetbrains.amper.buildinfo.AmperBuild
-import org.jetbrains.amper.dependency.resolution.LocalM2RepositoryFinder
-import org.jetbrains.amper.frontend.schema.Checksum
-import org.jetbrains.amper.maven.publish.createPlexusContainer
-import org.jetbrains.amper.maven.publish.deployToRemoteRepo
-import org.jetbrains.amper.maven.publish.installToMavenLocal
-import org.jetbrains.amper.maven.publish.writePom
 import org.jetbrains.amper.plugins.Input
 import org.jetbrains.amper.plugins.TaskAction
+import org.jetbrains.amper.stdlib.io.path.withTempDir
 import java.nio.file.Path
-import kotlin.io.path.createTempDirectory
-import kotlin.io.path.deleteRecursively
-import kotlin.io.path.extension
 import kotlin.io.path.listDirectoryEntries
+
+private const val KotlinCliArtifactId = "kotlin-cli"
+
+private const val KotlinCliSdkmanArtifactId = "kotlin-cli-sdkman"
 
 @TaskAction
 fun uploadDist(
@@ -28,28 +22,11 @@ fun uploadDist(
     @Input sdkmanArchive: Path,
     repository: Repository,
 ) {
-    val tempDirectory = createTempDirectory() // TODO: Expose such facility via Amper
-    try {
-        val artifacts = context(tempDirectory) {
+    withTempDir { tempDir ->
+        val artifacts = context(tempDir) {
             distArtifacts(distribution, sdkmanArchive)
         }
-
-        val localMavenRepoPath = LocalM2RepositoryFinder.findPath()
-        val plexusContainer = createPlexusContainer(Distribution::class.java.classLoader)
-        when (repository) {
-            Repository.MavenLocal -> plexusContainer.installToMavenLocal(
-                localRepositoryPath = localMavenRepoPath,
-                artifacts = artifacts,
-            )
-            Repository.JetBrainsTeamAmperMaven -> plexusContainer.deployToRemoteRepo(
-                remoteRepository = JetBrainsTeamAmperRepository,
-                localRepositoryPath = localMavenRepoPath,
-                artifacts = artifacts,
-                checksumAlgorithms = Checksum.entries,
-            )
-        }
-    } finally {
-        tempDirectory.deleteRecursively()
+        repository.publish(artifacts)
     }
 }
 
@@ -60,59 +37,24 @@ fun distArtifacts(distribution: Distribution, sdkmanArchive: Path): List<Artifac
 context(tempDirectory: Path)
 private fun Distribution.artifacts(artifactId: String): List<Artifact> {
     val wrapperArtifacts = wrappersDir.listDirectoryEntries()
-        .map { kotlinToolchainArtifact(artifactId, classifier = "wrapper", file = it) }
+        .map { kotlinToolchainArtifact(artifactId, file = it, classifier = "wrapper") }
     val installerArtifacts = installersDir.listDirectoryEntries()
-        .map { kotlinToolchainArtifact(artifactId, classifier = "installer", file = it) }
-    val tarGzDistArtifact = kotlinToolchainArtifact(artifactId, classifier = "dist", file = cliTgz)
+        .map { kotlinToolchainArtifact(artifactId, file = it, classifier = "installer") }
+    val tarGzDistArtifact = kotlinToolchainArtifact(artifactId, file = cliTgz, classifier = "dist")
     // we also generate a POM file to please maven and ensure maven-metadata.xml is properly updated
-    val pomArtifact = kotlinToolchainArtifact(artifactId, classifier = null, file =
-        createSimplePom(artifactId, AmperBuild.mavenVersion))
-    return wrapperArtifacts + installerArtifacts + tarGzDistArtifact + pomArtifact
+    val pomArtifact = kotlinToolchainArtifact(artifactId, file = createSimplePom(tempDirectory, artifactId))
+    return buildList {
+        addAll(wrapperArtifacts)
+        addAll(installerArtifacts)
+        add(tarGzDistArtifact)
+        add(pomArtifact)
+    }
 }
 
 context(tempDirectory: Path)
 private fun sdkmanArtifacts(artifactId: String, sdkmanArchive: Path): List<Artifact> {
-    val sdkmanArchiveArtifact = kotlinToolchainArtifact(artifactId, classifier = null, file = sdkmanArchive)
-    val pomArtifact = kotlinToolchainArtifact(artifactId, classifier = null, file = createSimplePom(artifactId, AmperBuild.mavenVersion))
+    val sdkmanArchiveArtifact = kotlinToolchainArtifact(artifactId, file = sdkmanArchive)
+    val pomFile = createSimplePom(tempDirectory, artifactId)
+    val pomArtifact = kotlinToolchainArtifact(artifactId, file = pomFile)
     return listOf(sdkmanArchiveArtifact, pomArtifact)
-}
-
-context(tempDirectory: Path)
-private fun createSimplePom(artifactId: String, version: String): Path {
-    val model = Model()
-    model.modelVersion = "4.0.0"
-    model.name = artifactId
-    model.groupId = KotlinGroupId
-    model.artifactId = artifactId
-    model.version = version
-    return tempDirectory.resolve("$artifactId.pom").apply { writePom(model) }
-}
-
-private fun kotlinToolchainArtifact(artifactId: String, classifier: String?, file: Path): Artifact = DefaultArtifact(
-    KotlinGroupId,
-    artifactId,
-    classifier,
-    file.extension,
-    AmperBuild.mavenVersion,
-).setFile(file.toFile())
-
-private const val KotlinGroupId = "org.jetbrains.kotlin"
-private const val KotlinCliArtifactId = "kotlin-cli"
-private const val KotlinCliSdkmanArtifactId = "kotlin-cli-sdkman"
-
-private val JetBrainsTeamAmperRepository by lazy {
-    val username = System.getenv("JETBRAINS_TEAM_AMPER_USERNAME")
-        ?: error("JETBRAINS_TEAM_AMPER_USERNAME environment variable is not set")
-    val password = System.getenv("JETBRAINS_TEAM_AMPER_PASSWORD")
-        ?: error("JETBRAINS_TEAM_AMPER_PASSWORD environment variable is not set")
-    val builder = RemoteRepository.Builder(
-        "jetbrains-team-amper",
-        "default",
-        "https://packages.jetbrains.team/maven/p/amper/amper",
-    )
-    val authBuilder = AuthenticationBuilder()
-    authBuilder.addUsername(username)
-    authBuilder.addPassword(password)
-    builder.setAuthentication(authBuilder.build())
-    builder.build()
 }
