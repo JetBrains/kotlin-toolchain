@@ -21,7 +21,7 @@ settings:
         - --sun-misc-unsafe-memory-access=allow
 
 plugins:
-  amper-schema-generator: enabled
+  amper-frontend-schema-generator: enabled
 
 dependencies:
   - //sources/amper-build-info
