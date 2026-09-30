@@ -1195,11 +1195,61 @@
   
 </li>
         
-          <li class="md-nav__item">
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#signing" class="md-nav__link">
     <span class="md-ellipsis">
       
         Signing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Publishing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configure-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure the application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-the-bundle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upload the bundle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-from-intellij-idea-or-android-studio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build from IntelliJ IDEA or Android Studio
       
     </span>
   </a>
@@ -2708,11 +2758,61 @@
   
 </li>
         
-          <li class="md-nav__item">
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#signing" class="md-nav__link">
     <span class="md-ellipsis">
       
         Signing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Publishing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configure-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure the application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-the-bundle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upload the bundle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-from-intellij-idea-or-android-studio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build from IntelliJ IDEA or Android Studio
       
     </span>
   </a>
@@ -2812,9 +2912,13 @@ get proper support for Android-specific features.</p>
 <h2 id="entry-point">Entry point<a class="headerlink" href="#entry-point" title="Permanent link">&para;</a></h2>
 <p>The application's entry point is specified in the <code>AndroidManifest.xml</code> file according to the
 <a href="https://developer.android.com/guide/topics/manifest/manifest-intro">official Android documentation</a>:</p>
-<div class="highlight"><span class="filename">src/AndroidManifest.xml</span><pre><span></span><code><span class="nt">&lt;manifest</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="nt">&gt;</span>
-<span class="w">  </span><span class="nt">&lt;application</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="nt">&gt;</span>
-<span class="w">    </span><span class="nt">&lt;activity</span><span class="w"> </span><span class="na">android:name=</span><span class="s">"com.example.myapp.MainActivity"</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="nt">&gt;</span>
+<div class="highlight"><span class="filename">src/AndroidManifest.xml</span><pre><span></span><code><span class="nt">&lt;manifest</span><span class="w"> </span><span class="na">xmlns:android=</span><span class="s">"http://schemas.android.com/apk/res/android"</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;application&gt;</span>
+<span class="w">    </span><span class="nt">&lt;activity</span><span class="w"> </span><span class="na">android:name=</span><span class="s">"com.example.myapp.MainActivity"</span><span class="w"> </span><span class="na">android:exported=</span><span class="s">"true"</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;intent-filter&gt;</span>
+<span class="w">        </span><span class="nt">&lt;action</span><span class="w"> </span><span class="na">android:name=</span><span class="s">"android.intent.action.MAIN"</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">        </span><span class="nt">&lt;category</span><span class="w"> </span><span class="na">android:name=</span><span class="s">"android.intent.category.LAUNCHER"</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/intent-filter&gt;</span>
 <span class="w">    </span><span class="nt">&lt;/activity&gt;</span>
 <span class="w">  </span><span class="nt">&lt;/application&gt;</span>
 <span class="nt">&lt;/manifest&gt;</span>
@@ -2832,8 +2936,22 @@ configuration for it:</p>
 </details>
 <h2 id="packaging">Packaging<a class="headerlink" href="#packaging" title="Permanent link">&para;</a></h2>
 <p>You can use the <code>build</code> command to create an APK, or the <code>package</code> command to create an Android Application Bundle (AAB).</p>
-<p>The <code>package</code> command will not only build the AAB, but also minify/obfuscate it with R8, and sign it.
-See the dedicated <a href="#signing">signing</a> and <a href="#code-shrinking">code shrinking</a> sections below to learn how to configure this.</p>
+<p>The <code>package</code> command will not only build the AAB, but also minify/obfuscate it with R8, and sign it when signing is
+enabled. See the dedicated <a href="#signing">signing</a> and <a href="#code-shrinking">code shrinking</a> sections below to learn how to
+configure this.</p>
+<p>For example, build an AAB for the <code>android-app</code> module with:</p>
+<div class="highlight"><pre><span></span><code>kotlin<span class="w"> </span>package<span class="w"> </span>-m<span class="w"> </span>android-app
+</code></pre></div>
+<p>For an <code>android/app</code> module, the Android platform, AAB format, and release variant are selected automatically. The
+command prints the path to the generated AAB. For a module named <code>android-app</code>, the default path, relative to the
+project root, is:</p>
+<div class="highlight"><pre><span></span><code>build/tasks/_android-app_bundleAndroid/gradle-project-release.aab
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This path is temporary: the build artifact layout will be revised in a future release. Use the path printed by the
+command to locate your bundle.</p>
+</div>
 <h3 id="resolving-duplicate-java-resources">Resolving duplicate Java resources<a class="headerlink" href="#resolving-duplicate-java-resources" title="Permanent link">&para;</a></h3>
 <p>Dependencies can package Java resources under the same path. If Android packaging fails in <code>MergeJavaResWorkAction</code>
 with an error such as <code>2 files found with path ...</code>, use <code>settings.android.resourcePackaging</code> to tell the Android
@@ -2896,35 +3014,77 @@ This is equivalent to the following Gradle configuration:</p>
 </code></pre></div>
 <p>It is automatically used by the Kotlin Toolchain if present.</p>
 <p>An example of how to add custom R8 rules can be found <a href="https://github.com/JetBrains/kotlin-toolchain/tree/main/examples/compose-multiplatform/android-app/proguard-rules.pro">in the android-app module</a> of the <code>compose-multiplatform</code> example project.</p>
-<h3 id="signing">Signing<a class="headerlink" href="#signing" title="Permanent link">&para;</a></h3>
-<p>In a module containing an Android application (using the <code>android/app</code> product type) you can enable signing under
-settings:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
+<h2 id="signing">Signing<a class="headerlink" href="#signing" title="Permanent link">&para;</a></h2>
+<p>Enable signing in <code>android-app/module.yaml</code> to sign the release AAB during <code>kotlin package -m android-app</code>:</p>
+<div class="highlight"><span class="filename">android-app/module.yaml</span><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">android</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">signing</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enabled</span>
 </code></pre></div>
-<p>This will use a <code>keystore.properties</code> file located in the module folder for the signing details by default. This
-properties file must contain the following signing details. <strong>Remember that these details should usually not be added
-to version control.</strong></p>
-<div class="highlight"><pre><span></span><code><span class="na">storeFile</span><span class="o">=</span><span class="s">/Users/example/.keystores/release.keystore</span>
-<span class="na">storePassword</span><span class="o">=</span><span class="s">store_password</span>
+<p>Create <code>android-app/keystore.properties</code> next to <code>android-app/module.yaml</code>:</p>
+<div class="highlight"><pre><span></span><code>android-app/
+├─ module.yaml
+╰─ keystore.properties  # create this file
+</code></pre></div>
+<p>Add the signing details to that file. Set <code>storeFile</code> to the name of the keystore to create in the same module directory:</p>
+<div class="highlight"><span class="filename">android-app/keystore.properties</span><pre><span></span><code><span class="na">storeFile</span><span class="o">=</span><span class="s">release.keystore</span>
+<span class="na">storePassword</span><span class="o">=</span><span class="s">REPLACE_WITH_STRONG_STORE_PASSWORD</span>
 <span class="na">keyAlias</span><span class="o">=</span><span class="s">alias</span>
-<span class="na">keyPassword</span><span class="o">=</span><span class="s">key_password</span>
+<span class="na">keyPassword</span><span class="o">=</span><span class="s">REPLACE_WITH_STRONG_KEY_PASSWORD</span>
 </code></pre></div>
-<p>To customize the path to this file, you can use the <code>propertiesFile</code> option:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">android</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">signing</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">      </span><span class="nt">propertiesFile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./keystore.properties</span><span class="w"> </span><span class="c1"># default value</span>
+<p>Replace both password placeholders with your own strong passwords before generating the keystore.</p>
+<p>From the <code>android-app</code> directory, generate the keystore using the values in <code>keystore.properties</code>:</p>
+<div class="highlight"><pre><span></span><code>kotlin<span class="w"> </span>tool<span class="w"> </span>generate-keystore<span class="w"> </span>--properties-file<span class="w"> </span>keystore.properties
 </code></pre></div>
-<p>You can use <code>./kotlin tool generate-keystore</code> to generate a new keystore if you don't have one yet.
-This will create a new self-signed certificate, using the details in the <code>keystore.properties</code> file.</p>
+<p>The tool creates <code>android-app/release.keystore</code>; do not create it beforehand. When you build the AAB, the signing
+configuration reads <code>android-app/keystore.properties</code> and uses <code>android-app/release.keystore</code> to sign the bundle. A
+relative <code>storeFile</code> path is resolved from the module directory, so run <code>generate-keystore</code> from there as shown above.</p>
+<div class="admonition warning">
+<p class="admonition-title">Keep the signing files secure</p>
+<p>Add <code>release.keystore</code> and <code>keystore.properties</code> to your Git ignore rules. Never commit either file to version
+control. Back up both files in a secure location.
+Losing the upload key requires an upload-key reset in Google Play Console.</p>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You can also pass in these details to <code>generate-keystore</code> as command line arguments. Invoke the tool with <code>--help</code>
 to learn more.</p>
 </div>
+<h2 id="publishing">Publishing<a class="headerlink" href="#publishing" title="Permanent link">&para;</a></h2>
+<p>Publish an <code>android/app</code> module to Google Play as a signed Android App Bundle (AAB). You need a Google Play Console
+developer account.</p>
+<h3 id="configure-the-application">Configure the application<a class="headerlink" href="#configure-the-application" title="Permanent link">&para;</a></h3>
+<p>Set a unique application ID and an initial version in <code>android-app/module.yaml</code>:</p>
+<div class="highlight"><span class="filename">android-app/module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">android/app</span>
+
+<span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">android</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">applicationId</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">com.example.myapp</span>
+<span class="w">    </span><span class="nt">versionCode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">    </span><span class="nt">versionName</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0"</span>
+</code></pre></div>
+<p>The <code>applicationId</code> uniquely identifies the application in Google Play and cannot be changed after you upload the
+first artifact.</p>
+<p>Before uploading the application:</p>
+<ol>
+<li><a href="#signing">Prepare signing</a>: create <code>android-app/keystore.properties</code> and generate the upload key in
+   <code>android-app/release.keystore</code>.</li>
+<li><a href="#packaging">Package the application</a> with <code>kotlin package -m android-app</code>. This produces a signed release AAB and
+   prints its path. Use that AAB for the upload.</li>
+</ol>
+<h3 id="upload-the-bundle">Upload the bundle<a class="headerlink" href="#upload-the-bundle" title="Permanent link">&para;</a></h3>
+<p>If you haven't created the application yet, open <a href="https://play.google.com/console/">Google Play Console</a> and select
+<strong>Create app</strong> to set it up before uploading your first bundle.</p>
+<p>Open the application in Google Play Console, go to <strong>Test and release</strong>, and select the appropriate testing or
+production track. Create a release and upload the generated <code>.aab</code> file.</p>
+<p>Google Play validates and processes the bundle before making the release available to testers or users.</p>
+<div class="admonition note">
+<p class="admonition-title">For future uploads</p>
+<p>Increase <code>versionCode</code> in <code>android-app/module.yaml</code> before every new upload: Google Play rejects bundles with a
+previously used version code. Update the user-facing <code>versionName</code> when publishing a new application version.</p>
+</div>
+<h3 id="build-from-intellij-idea-or-android-studio">Build from IntelliJ IDEA or Android Studio<a class="headerlink" href="#build-from-intellij-idea-or-android-studio" title="Permanent link">&para;</a></h3>
+<p>Generating a signed bundle from <strong>Build | Generate Signed App Bundle or APK</strong> is not supported for Kotlin Toolchain
+projects yet. Use the Kotlin CLI to create the AAB.</p>
 <h2 id="parcelize">Parcelize<a class="headerlink" href="#parcelize" title="Permanent link">&para;</a></h2>
 <p>If you want to automatically generate your <code>Parcelable</code> implementations, you can enable
 <a href="https://developer.android.com/kotlin/parcelize">Parcelize</a> as follows:</p>
@@ -3002,7 +3162,7 @@ your <code>google-services.json</code> file in the module containing an <code>an
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 21, 2026 09:40:33 UTC">September 21, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 30, 2026 09:35:23 UTC">September 30, 2026</span>
   </span>
 
     

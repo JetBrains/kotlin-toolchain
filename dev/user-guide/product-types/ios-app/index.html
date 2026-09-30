@@ -1200,6 +1200,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#publishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Publishing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prepare-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prepare the application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#distribute-from-the-command-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distribute from the command line
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#distribute-from-xcode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distribute from Xcode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2624,6 +2674,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#publishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Publishing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prepare-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prepare the application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#distribute-from-the-command-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distribute from the command line
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#distribute-from-xcode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distribute from Xcode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2761,6 +2861,85 @@ This framework is built from:</p>
 <p class="admonition-title">Note</p>
 <p>All declarations from the source Kotlin code are accessible to Swift, but external dependencies are not.</p>
 </div>
+<h2 id="publishing">Publishing<a class="headerlink" href="#publishing" title="Permanent link">&para;</a></h2>
+<p>The Kotlin Toolchain creates a regular Xcode project for an <code>ios/app</code> module. Use that project to configure
+signing, create a release archive, and upload the application to App Store Connect.</p>
+<p>You need a Mac with Xcode and an <a href="https://developer.apple.com/programs/">Apple Developer Program</a> membership.</p>
+<h3 id="prepare-the-application">Prepare the application<a class="headerlink" href="#prepare-the-application" title="Permanent link">&para;</a></h3>
+<p>Open the <code>module.xcodeproj</code> file of the iOS application module in Xcode, for example:</p>
+<div class="highlight"><pre><span></span><code>open<span class="w"> </span>ios-app/module.xcodeproj
+</code></pre></div>
+<p>In the project navigator, select the project and then the application target. Configure the following settings before
+creating an archive:</p>
+<ol>
+<li>Under <strong>Signing &amp; Capabilities</strong>, select your development team and replace the default bundle identifier with a
+   unique identifier for your application.</li>
+<li>Under <strong>General | Minimum Deployments</strong>, select the oldest iOS version that your application supports.</li>
+<li>Under <strong>Info | Custom iOS Target Properties | Supported interface orientations</strong>, keep only the orientations your
+   application supports.</li>
+<li>Add an <code>AppIcon</code> asset catalog under the module's <code>src</code> directory and provide the application icon. A 1024×1024
+   image is sufficient when the asset uses Xcode's single-size app icon format.</li>
+<li>Under <strong>General | Identity</strong>, set the public-facing <strong>Version</strong> and the unique <strong>Build</strong> number.</li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">Use a new build number for every upload</p>
+<p>App Store Connect rejects another upload with the same version and build number. Increase the <strong>Build</strong> value
+(<code>CFBundleVersion</code>) before every upload. Increase <strong>Version</strong> (<code>CFBundleShortVersionString</code>) when publishing a new
+application version.</p>
+</div>
+<p>Register the same bundle identifier in
+<a href="https://developer.apple.com/account/resources/identifiers/bundleId/add/bundle">Certificates, Identifiers &amp; Profiles</a>,
+then <a href="https://appstoreconnect.apple.com/apps">create the application in App Store Connect</a>. The bundle identifier in
+Xcode, the registered identifier, and the App Store Connect application must match.</p>
+<h3 id="distribute-from-the-command-line">Distribute from the command line<a class="headerlink" href="#distribute-from-the-command-line" title="Permanent link">&para;</a></h3>
+<p>You can ask your coding agent to archive and upload the iOS application to TestFlight, or run the commands below
+manually. Run them from the Kotlin project root and replace the module path and scheme if they differ in your project.
+You can list the available schemes with:</p>
+<div class="highlight"><pre><span></span><code>xcodebuild<span class="w"> </span>-list<span class="w"> </span>-project<span class="w"> </span>ios-app/module.xcodeproj
+</code></pre></div>
+<p>Create a release archive:</p>
+<div class="highlight"><pre><span></span><code>xcodebuild<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-project<span class="w"> </span>ios-app/module.xcodeproj<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-scheme<span class="w"> </span>app<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-configuration<span class="w"> </span>Release<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-destination<span class="w"> </span><span class="s1">'generic/platform=iOS'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-archivePath<span class="w"> </span>build/release/ios-app.xcarchive<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-allowProvisioningUpdates<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>archive
+</code></pre></div>
+<p>Create <code>ios-app/ExportOptions.plist</code> to configure an App Store Connect upload:</p>
+<div class="highlight"><span class="filename">ios-app/ExportOptions.plist</span><pre><span></span><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="cp">&lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;</span>
+<span class="nt">&lt;plist</span><span class="w"> </span><span class="na">version=</span><span class="s">"1.0"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;dict&gt;</span>
+<span class="w">    </span><span class="nt">&lt;key&gt;</span>method<span class="nt">&lt;/key&gt;</span>
+<span class="w">    </span><span class="nt">&lt;string&gt;</span>app-store-connect<span class="nt">&lt;/string&gt;</span>
+<span class="w">    </span><span class="nt">&lt;key&gt;</span>destination<span class="nt">&lt;/key&gt;</span>
+<span class="w">    </span><span class="nt">&lt;string&gt;</span>upload<span class="nt">&lt;/string&gt;</span>
+<span class="w">    </span><span class="nt">&lt;key&gt;</span>signingStyle<span class="nt">&lt;/key&gt;</span>
+<span class="w">    </span><span class="nt">&lt;string&gt;</span>automatic<span class="nt">&lt;/string&gt;</span>
+<span class="nt">&lt;/dict&gt;</span>
+<span class="nt">&lt;/plist&gt;</span>
+</code></pre></div>
+<p>Export and upload the archive:</p>
+<div class="highlight"><pre><span></span><code>xcodebuild<span class="w"> </span>-exportArchive<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-archivePath<span class="w"> </span>build/release/ios-app.xcarchive<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-exportOptionsPlist<span class="w"> </span>ios-app/ExportOptions.plist<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-exportPath<span class="w"> </span>build/release/export<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-allowProvisioningUpdates
+</code></pre></div>
+<p>With <code>destination</code> set to <code>upload</code>, the export command uploads the application to App Store Connect. After Apple
+finishes processing the build, it becomes available in App Store Connect and can be assigned to TestFlight testers.</p>
+<h3 id="distribute-from-xcode">Distribute from Xcode<a class="headerlink" href="#distribute-from-xcode" title="Permanent link">&para;</a></h3>
+<p>You can perform the same archive and upload steps in Xcode:</p>
+<ol>
+<li>In the macOS menu bar, select <strong>Product | Archive</strong>.</li>
+<li>After the archive is created successfully, Xcode opens the Organizer window. Select the new archive and click
+   <strong>Distribute App</strong>.</li>
+<li>Select <strong>App Store Connect</strong>, then follow the upload flow.</li>
+</ol>
+<p>After Apple finishes processing the build, continue in App Store Connect to distribute it through TestFlight or submit
+it for App Store review.</p>
 
 
 
@@ -2781,7 +2960,7 @@ This framework is built from:</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 21, 2026 22:04:43 UTC">September 21, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 24, 2026 12:00:44 UTC">September 24, 2026</span>
   </span>
 
     
