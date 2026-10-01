@@ -114,16 +114,11 @@ abstract class CliTestBase : AmperCliWithWrapperTestBase() {
             }
         }
 
-        val effectiveArgs = buildList {
-            add("--shared-cache-dir=${Dirs.userCacheRoot.absolutePathString()}")
-            addAll(args)
-        }
-
         val androidTools = if (configureAndroidHome) AndroidTools.prepareForTests() else null
 
         val result = runAmper(
             workingDir = projectDir,
-            args = effectiveArgs,
+            args = args.toList(),
             configureEnvironment = {
                 androidTools?.configureEnvironment(this)
                 put("AMPER_NO_GRADLE_DAEMON", "1")

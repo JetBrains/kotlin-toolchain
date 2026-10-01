@@ -82,12 +82,12 @@ class AmperShellScriptsTest : AmperCliWithWrapperTestBase() {
         assertTrue("Process output must contain welcome banner the first time. Output:\n${result1.stdout}") {
             result1.stdout.contains("Welcome")
         }
-        val nDownloadingLines1 = result1.stdout.lines().count { it.startsWith("Downloading ") }
-        assertEquals(
-            2,
-            nDownloadingLines1,
-            "Process output must have 'Downloading ' line twice the first time, got $nDownloadingLines1. Output:\n${result1.stdout}"
-        )
+        assertTrue("Process output must contain the distribution download. Output:\n${result1.stdout}") {
+            result1.stdout.contains("Downloading Kotlin Toolchain distribution")
+        }
+        assertTrue("Process output must contain the JRE download for the CLI. Output:\n${result1.stdout}") {
+            result1.stdout.contains("Downloading Kotlin CLI runtime")
+        }
 
         val result2 = runAmper(
             workingDir = tempDir,

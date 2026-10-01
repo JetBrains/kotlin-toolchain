@@ -92,7 +92,7 @@ abstract class AmperCliWithWrapperTestBase {
         // tells the wrapper to download the distribution and JRE through our local HTTP server
         this["KOTLIN_CLI_DOWNLOAD_ROOT"] = httpServer.wwwRootUrl
         this["KOTLIN_CLI_JRE_DOWNLOAD_ROOT"] = httpServer.cacheRootUrl
-        this["KOTLIN_CLI_BOOTSTRAP_CACHE_DIR"] = Dirs.userCacheRoot.pathString
+        this["KOTLIN_SHARED_CACHE_DIR"] = Dirs.userCacheRoot.pathString
     }
 
     /**
