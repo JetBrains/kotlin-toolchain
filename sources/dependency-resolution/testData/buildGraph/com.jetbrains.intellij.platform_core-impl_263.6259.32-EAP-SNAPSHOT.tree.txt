@@ -1,0 +1,36 @@
+root
+╰─── com.jetbrains.intellij.platform:core-impl:263.6259.32-EAP-SNAPSHOT
+     ├─── org.jetbrains.kotlin:kotlin-stdlib:2.4.20
+     │    ╰─── org.jetbrains:annotations:13.0 -> 23.0.0
+     ├─── org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-core-jvm:1.11.0-intellij-1
+     │    ├─── org.jetbrains:annotations:23.0.0
+     │    ├─── org.jetbrains.intellij.deps.kotlinx:kotlinx-coroutines-bom:1.11.0-intellij-1
+     │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.2.20 -> 2.4.20 (*)
+     ├─── org.jetbrains.intellij.deps.fastutil:intellij-deps-fastutil:8.5.18-jb1
+     ├─── com.fasterxml:aalto-xml:1.4.0
+     │    ╰─── org.codehaus.woodstox:stax2-api:4.3.0
+     ├─── dk.brics:automaton:1.12-4
+     ├─── com.google.guava:guava:33.7.1-jre
+     │    ├─── com.google.guava:failureaccess:1.0.3
+     │    ├─── com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+     │    ├─── org.jspecify:jspecify:1.0.1
+     │    ├─── com.google.errorprone:error_prone_annotations:2.50.0
+     │    ╰─── com.google.j2objc:j2objc-annotations:3.1
+     ├─── io.opentelemetry:opentelemetry-sdk:1.66.0
+     │    ├─── io.opentelemetry:opentelemetry-api:1.66.0
+     │    │    ╰─── io.opentelemetry:opentelemetry-context:1.66.0
+     │    │         ╰─── io.opentelemetry:opentelemetry-common:1.66.0
+     │    ├─── io.opentelemetry:opentelemetry-sdk-common:1.66.0
+     │    │    ╰─── io.opentelemetry:opentelemetry-api:1.66.0 (*)
+     │    ├─── io.opentelemetry:opentelemetry-sdk-trace:1.66.0
+     │    │    ├─── io.opentelemetry:opentelemetry-api:1.66.0 (*)
+     │    │    ╰─── io.opentelemetry:opentelemetry-sdk-common:1.66.0 (*)
+     │    ├─── io.opentelemetry:opentelemetry-sdk-metrics:1.66.0
+     │    │    ├─── io.opentelemetry:opentelemetry-api:1.66.0 (*)
+     │    │    ╰─── io.opentelemetry:opentelemetry-sdk-common:1.66.0 (*)
+     │    ╰─── io.opentelemetry:opentelemetry-sdk-logs:1.66.0
+     │         ├─── io.opentelemetry:opentelemetry-api:1.66.0 (*)
+     │         ╰─── io.opentelemetry:opentelemetry-sdk-common:1.66.0 (*)
+     ├─── io.opentelemetry.semconv:opentelemetry-semconv:1.44.0
+     ╰─── org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.5.2
+          ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.3.0 -> 2.4.20 (*)
