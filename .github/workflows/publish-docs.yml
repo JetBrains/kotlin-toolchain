@@ -12,6 +12,14 @@ on:
   create: {}
   workflow_dispatch: {}
 
+# We need max 1 concurrent job because of the GitHub pages pushes.
+# If 2 jobs checkout the gh-pages branch and attempt to push, one of them will fail.
+concurrency:
+  group: docs-updates
+  # While the default `queue: single` would be fine for this workflow, we have to use `queue: max` if we don't want this
+  # workflow to replace instances of update-docs-version-selection.yml in the queue.
+  queue: max
+
 permissions:
   contents: write # allow pushing commits to gh-pages
 

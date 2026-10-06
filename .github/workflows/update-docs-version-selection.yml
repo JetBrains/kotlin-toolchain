@@ -11,6 +11,13 @@ on:
         required: true
         type: string
 
+# We need max 1 concurrent job because of the GitHub pages pushes.
+# If 2 jobs checkout the gh-pages branch and attempt to push, one of them will fail.
+concurrency:
+  group: docs-updates
+  # Every tag should be accounted for, we don't want to discard ongoing patch publications if 2 tags are pushed in a row
+  queue: max
+
 permissions:
   contents: write # allow pushing commits to gh-pages
 
