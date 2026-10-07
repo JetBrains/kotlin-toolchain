@@ -54,8 +54,6 @@ import kotlin.time.Duration.Companion.seconds
 
 private val TEST_RUN_TIMEOUT: Duration = 30.seconds
 
-private val FLOW_ID_REGEX = Regex(" flowId='[^']*'")
-
 class BrowserTestTask(
     override val taskName: TaskName,
     override val platform: Platform,
@@ -240,18 +238,17 @@ class BrowserTestTask(
                                                 finished = true
                                             } else {
                                                 // kotlin-test for wasm generates random flow id, it breaks nesting
+                                                // KT-90072
                                                 val lineWithoutFlowId = line.replace(FLOW_ID_REGEX, "")
                                                 teamCityMessageProcessor.parse(lineWithoutFlowId, stderr = false)
                                             }
                                         }
 
                                         page.onPageError {
-                                            userReadableError(
-                                                """
-                                                    An error occurred on the page while running Kotlin/Wasm $platform tests for module '${module.userReadableName}':
-                                                    $it
-                                                """.trimIndent()
-                                            )
+                                            userReadableError {
+                                                appendLine("An error occurred on the page while running Kotlin/Wasm $platform tests for module '${module.userReadableName}':")
+                                                appendLine(it)
+                                            }
                                         }
 
                                         page.navigate(url)
@@ -271,3 +268,5 @@ class BrowserTestTask(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 }
+
+private val FLOW_ID_REGEX = Regex(" flowId='[^']*'")

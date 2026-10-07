@@ -36,6 +36,11 @@ import org.jetbrains.amper.testevents.TestStarted as AmperTestStarted
 import org.jetbrains.amper.testevents.TestSuiteFinished as AmperTestSuiteFinished
 import org.jetbrains.amper.testevents.TestSuiteStarted as AmperTestSuiteStarted
 
+/**
+ * The name given to a suite that is reported without a name, so it can still be used in a [TestId].
+ */
+private const val ROOT_SUITE_NAME = "<root>"
+
 class TeamCityMessageProcessor(
     private val eventSink: EventSink<TestEvent>,
     private val onTestFailed: (id: TestId, message: TestFailed) -> Unit = { _, _ -> },
@@ -110,6 +115,7 @@ class TeamCityMessageProcessor(
                         parentId = parentId,
                         displayName = message.displayName(),
                         location = message.suiteLocationHint()
+                            ?: message.suiteDerivedLocationHint(testId)
                     )
                 )
             )
@@ -147,6 +153,7 @@ class TeamCityMessageProcessor(
                         parentId = parentId,
                         displayName = message.displayName(),
                         location = message.testLocationHint()
+                            ?: message.testDerivedLocationHint(testId)
                     )
                 )
             )
@@ -247,7 +254,7 @@ class TeamCityMessageProcessor(
     }
 
     private fun ServiceMessage.displayName(): String = attributes["displayName"] ?: when (this) {
-        is TestSuiteStarted -> suiteName
+        is TestSuiteStarted -> nonEmptySuiteName()
         is TestStarted -> testName
         else -> error("Not a start message")
     }
@@ -267,7 +274,7 @@ class TeamCityMessageProcessor(
     }
 
     private fun BaseTestSuiteMessage.nonEmptySuiteName(): String =
-        suiteName.ifEmpty { "<root>" }
+        suiteName.ifEmpty { ROOT_SUITE_NAME }
 
     /**
      * Finds the best flow ID for the given message to report it to.
@@ -294,13 +301,58 @@ class TeamCityMessageProcessor(
         return currentFlow
     }
 
+    /**
+     * Extracts a location hint for a test suite from the service message's attributes.
+     *
+     * @return A [TestLocationHint.Class] containing the fully qualified class name of the test suite,
+     *         or `null` if the location hint is not present.
+     */
     private fun ServiceMessage.suiteLocationHint(): TestLocationHint.Class? {
-        val locationHint = attributes["locationHint"]?.removePrefix("ktest:suite://") ?: return null
-        return TestLocationHint.Class(locationHint)
+        val className = attributes["locationHint"]?.removePrefix("ktest:suite://")
+            ?: return null
+        return TestLocationHint.Class(className)
     }
 
+    /**
+     * Approximates the location of a test suite based on the name of the given [testId].
+     */
+    private fun ServiceMessage.suiteDerivedLocationHint(testId: TestId): TestLocationHint.Class? {
+        return derivedLocation(testId)?.let { TestLocationHint.Class(it) }
+    }
+
+    /**
+     * Extracts and returns a [TestLocationHint.Method] from the location hint of the test, if available.
+     *
+     * @return A [TestLocationHint.Method] indicating the class and method location of the test,
+     * or null if the location hint is not present.
+     */
     private fun TestStarted.testLocationHint(): TestLocationHint.Method? {
-        val location = locationHint?.removePrefix("ktest:test://") ?: return null
+        val location = locationHint?.removePrefix("ktest:test://")
+            ?: return null
+        return testLocationHint(location)
+    }
+
+    /**
+     * Approximates a location hint for the test based on the name on the given [testId].
+     *
+     * @param testId The unique identifier of the test, used to derive its location.
+     * @return A [TestLocationHint.Method] representing the derived class and method location of the test,
+     * or `null` if no location could be derived.
+     */
+    private fun TestStarted.testDerivedLocationHint(testId: TestId): TestLocationHint.Method? {
+        return derivedLocation(testId)?.let { testLocationHint(it) }
+    }
+
+    /**
+     * Parses a string representing a test location into a [TestLocationHint.Method].
+     * The input string must follow the format "fully.qualified.ClassName.methodName".
+     *
+     * @param location A string containing the fully qualified class name and method name,
+     * separated by a period (e.g., "com.example.TestClass.testMethod").
+     * @return A [TestLocationHint.Method] instance representing the parsed class and method,
+     * or `null` if the input string cannot be correctly parsed.
+     */
+    private fun testLocationHint(location: String): TestLocationHint.Method? {
         val methodSeparator = location.lastIndexOf('.')
         if (methodSeparator <= 0 || methodSeparator == location.lastIndex) return null
         return TestLocationHint.Method(
@@ -308,6 +360,26 @@ class TeamCityMessageProcessor(
             methodName = location.substring(methodSeparator + 1),
         )
     }
+
+    /**
+     * Approximates the location of a test or suite based on its [testId].
+     *
+     * Some test runners (like the kotlin-test one for Kotlin/Wasm) don't report location hints at all, but they name
+     * their suites after the package and the test class, so the ID built from the suite stack already is the fully
+     * qualified name of the test class (possibly followed by the test name).
+     *
+     * This is only possible without flows, because, when present, the [testId] actually wraps the [flowId], which is
+     * opaque and usually contains no information about the names of the tests.
+     */
+    private fun ServiceMessage.derivedLocation(testId: TestId): String? =
+        if (flowId == null) testId.value.withoutSyntheticRoot() else null
+
+    /**
+     * Removes the synthetic [ROOT_SUITE_NAME] segment, which is not part of any real package or class name.
+     * Returns `null` if nothing is left after the removal.
+     */
+    private fun String.withoutSyntheticRoot(): String? =
+        removePrefix("$ROOT_SUITE_NAME.").takeIf { it != ROOT_SUITE_NAME }
 
     /**
      * Finds parent [TestId] based on a flow.

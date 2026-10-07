@@ -697,13 +697,16 @@ class AmperTestFormatTest : CliTestBase() {
             )
             val serviceMessages = parseTeamCityServiceMessages(r.stdout)
             val expectedMessages = buildServiceMessages {
-                suiteWithFlow("") {
-                    suiteWithFlow("MyTest") {
-                        testWithFlow("testHelloWorld") {
+                suiteWithFlow("<root>") {
+                    suiteWithFlow("MyTest", locationHint = "java:suite://MyTest") {
+                        testWithFlow("testHelloWorld", locationHint = "java:test://MyTest/testHelloWorld") {
                             testStdOut("running testHelloWorld$NL")
                         }
-                        suiteWithFlow("MyNestedTest") {
-                            testWithFlow("testFalsyHelloWorld") {
+                        suiteWithFlow("MyNestedTest", locationHint = "java:suite://MyTest.MyNestedTest") {
+                            testWithFlow(
+                                "testFalsyHelloWorld",
+                                locationHint = "java:test://MyTest.MyNestedTest/testFalsyHelloWorld",
+                            ) {
                                 testStdOut("running testFalsyHelloWorld$NL")
                                 testFailed(
                                     "kotlin.AssertionError: Expected value to be true.",

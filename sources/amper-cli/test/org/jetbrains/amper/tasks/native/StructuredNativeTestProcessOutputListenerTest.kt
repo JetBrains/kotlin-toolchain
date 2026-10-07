@@ -32,7 +32,8 @@ import org.jetbrains.amper.testevents.TestSuiteStarted as AmperTestSuiteStarted
 
 class StructuredNativeTestProcessOutputListenerTest {
     private val renderer = RecordingRenderer()
-    private val listener = StructuredNativeTestProcessOutputListener(TeamCityMessageProcessor(renderer))
+    val processor = TeamCityMessageProcessor(renderer)
+    private val listener = StructuredNativeTestProcessOutputListener(processor)
     private val runId get() = renderer.events.firstNotNullOf { it.testId }.runId
 
     @Test
@@ -53,8 +54,22 @@ class StructuredNativeTestProcessOutputListenerTest {
         val testId = TestId(runId, "SampleTest.works")
         assertEquals(
             [
-                AmperTestSuiteStarted(TestDescriptor(suiteId, null, "SampleTest")),
-                AmperTestStarted(TestDescriptor(testId, suiteId, "works")),
+                AmperTestSuiteStarted(
+                    TestDescriptor(
+                        suiteId,
+                        null,
+                        "SampleTest",
+                        TestLocationHint.Class("SampleTest"),
+                    )
+                ),
+                AmperTestStarted(
+                    TestDescriptor(
+                        testId,
+                        suiteId,
+                        "works",
+                        TestLocationHint.Method("SampleTest", "works"),
+                    )
+                ),
                 TestStdoutEvent(testId, "stdout"),
                 TestStderrEvent(testId, "stderr"),
                 AmperTestFinished.Failed(testId, 42.milliseconds, "failure"),
@@ -95,12 +110,40 @@ class StructuredNativeTestProcessOutputListenerTest {
 
         assertEquals(
             [
-                AmperTestSuiteStarted(TestDescriptor(TestId(runId, "First"), null, "First")),
-                AmperTestStarted(TestDescriptor(TestId(runId, "First.same"), TestId(runId, "First"), "same")),
+                AmperTestSuiteStarted(
+                    TestDescriptor(
+                        TestId(runId, "First"),
+                        null,
+                        "First",
+                        TestLocationHint.Class("First"),
+                    )
+                ),
+                AmperTestStarted(
+                    TestDescriptor(
+                        TestId(runId, "First.same"),
+                        TestId(runId, "First"),
+                        "same",
+                        TestLocationHint.Method("First", "same"),
+                    )
+                ),
                 AmperTestFinished.Succeeded(TestId(runId, "First.same"), duration = 0.milliseconds),
                 AmperTestSuiteFinished(TestId(runId, "First")),
-                AmperTestSuiteStarted(TestDescriptor(TestId(runId, "Second"), null, "Second")),
-                AmperTestStarted(TestDescriptor(TestId(runId, "Second.same"), TestId(runId, "Second"), "same")),
+                AmperTestSuiteStarted(
+                    TestDescriptor(
+                        TestId(runId, "Second"),
+                        null,
+                        "Second",
+                        TestLocationHint.Class("Second"),
+                    )
+                ),
+                AmperTestStarted(
+                    TestDescriptor(
+                        TestId(runId, "Second.same"),
+                        TestId(runId, "Second"),
+                        "same",
+                        TestLocationHint.Method("Second", "same"),
+                    )
+                ),
             ],
             renderer.events,
         )
@@ -167,6 +210,80 @@ class StructuredNativeTestProcessOutputListenerTest {
         )
     }
 
+    @Test
+    fun `derives location hints from the suite and test names`() {
+        // kotlin-test for wasm js doesn't report any location hint, and nests the test class suite into a package suite
+        [
+            TestSuiteStarted("org.example"),
+            TestSuiteStarted("MyTest"),
+            TestStarted("myTest", false, null),
+        ].forEach { processor.parseStdOut(it.asString()) }
+
+        val packageSuiteId = TestId(runId, "org.example")
+        val classSuiteId = TestId(runId, "org.example.MyTest")
+        val testId = TestId(runId, "org.example.MyTest.myTest")
+        assertEquals(
+            [
+                AmperTestSuiteStarted(
+                    TestDescriptor(
+                        packageSuiteId,
+                        null,
+                        "org.example",
+                        TestLocationHint.Class("org.example"),
+                    ),
+                ),
+                AmperTestSuiteStarted(
+                    TestDescriptor(
+                        classSuiteId,
+                        packageSuiteId,
+                        "MyTest",
+                        TestLocationHint.Class("org.example.MyTest"),
+                    ),
+                ),
+                AmperTestStarted(
+                    TestDescriptor(
+                        testId,
+                        classSuiteId,
+                        "myTest",
+                        TestLocationHint.Method("org.example.MyTest", "myTest"),
+                    ),
+                ),
+            ],
+            renderer.events,
+        )
+    }
+
+    @Test
+    fun `doesn't derive location hints from the synthetic name of the unnamed root suite`() {
+        // The package suite reported by kotlin-test for wasm js has no name at all for the root package
+        [
+            TestSuiteStarted(""),
+            TestSuiteStarted("MyTest"),
+            TestStarted("testHelloWorld", false, null),
+        ].forEach { processor.parseStdOut(it.asString()) }
+
+        val rootSuiteId = TestId(runId, "<root>")
+        val classSuiteId = TestId(runId,"<root>.MyTest")
+        val testId = TestId(runId,"<root>.MyTest.testHelloWorld")
+        assertEquals(
+            [
+                AmperTestSuiteStarted(TestDescriptor(rootSuiteId, null, "<root>")),
+                AmperTestSuiteStarted(
+                    TestDescriptor(classSuiteId, rootSuiteId, "MyTest", TestLocationHint.Class("MyTest")),
+                ),
+                AmperTestStarted(
+                    TestDescriptor(
+                        testId,
+                        classSuiteId,
+                        "testHelloWorld",
+                        TestLocationHint.Method("MyTest", "testHelloWorld"),
+                    ),
+                ),
+            ],
+            renderer.events,
+        )
+    }
+
     private class RecordingRenderer : EventSink<TestEvent> {
         val events: List<TestEvent>
             field = mutableListOf()
@@ -200,5 +317,7 @@ class StructuredNativeTestProcessOutputListenerTest {
                 put("locationHint", locationHint)
             }
         ) {}
+
+    private fun TeamCityMessageProcessor.parseStdOut(line: String) = parse(line, stderr = false)
 }
 
