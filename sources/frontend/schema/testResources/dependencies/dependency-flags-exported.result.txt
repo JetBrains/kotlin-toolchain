@@ -12,8 +12,8 @@ Fragments:
     Fragment dependencies:
     Settings: {
       android: {
-        applicationId: <default> com.example.app
-        namespace: com.example.app
+        applicationId: com.example.app
+        namespace: <default> com.example.app
         targetSdk: <default> 37
       }
     }
@@ -33,8 +33,8 @@ Fragments:
       main (FRIEND)
     Settings: {
       android: {
-        applicationId: <default> com.example.app
-        namespace: com.example.app
+        applicationId: com.example.app
+        namespace: <default> com.example.app
         targetSdk: <default> 37
       }
     }

@@ -107,7 +107,7 @@ Install the [Kotlin Toolchain plugin](https://plugins.jetbrains.com/plugin/31850
 
         settings:
           android:
-            namespace: com.example.app
+            applicationId: com.example.app
           compose: enabled
         ```
 

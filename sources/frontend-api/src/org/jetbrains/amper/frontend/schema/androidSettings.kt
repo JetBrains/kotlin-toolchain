@@ -54,22 +54,26 @@ class AndroidSettings : SchemaNode() {
             "[Read more](https://developer.android.com/reference/tools/gradle-api/com/android/build/api/dsl/CommonExtension#compileSdk())")
     val compileSdk: AndroidCompileSdkVersion by nested()
 
+    @CanBeReferenced // by namespace
+    @SchemaDoc("The ID for the application on a device and in the Google Play Store. " +
+            "It must not change across publications of the same application, choose wisely. " +
+            "If you need to change the package name for the generated `R` and `BuildConfig` " +
+            "classes, leave the `applicationId` untouched, and set the `namespace` explicitly. " +
+            "[Read more](https://developer.android.com/build/configure-app-module#set-application-id)")
+    @ProductTypeSpecific(ProductType.ANDROID_APP)
+    @NotBlank
+    val applicationId by nullableValue<String>()
+
     /**
      * NB: in cases where the non-null namespace is expected, use [effectiveNamespace]
      * (as long as the model doesn't have any errors reported).
      */
-    @CanBeReferenced // by applicationId
     @Misnomers("packageName")
     @SchemaDoc("A Kotlin or Java package name for the generated `R` and `BuildConfig` classes. " +
+            "For applications, defaults to the `applicationId`. " +
             "[Read more](https://developer.android.com/build/configure-app-module#set-namespace)")
     @NotBlank
-    val namespace by nullableValue<String>()
-
-    @SchemaDoc("The ID for the application on a device and in the Google Play Store. " +
-            "[Read more](https://developer.android.com/build/configure-app-module#set-application-id)")
-    @ProductTypeSpecific(ProductType.ANDROID_APP)
-    @NotBlank
-    val applicationId by referenceValue(::namespace)
+    val namespace by referenceValue(::applicationId)
 
     @SchemaDoc("Application signing settings. " +
     "[Read more](https://developer.android.com/studio/publish/app-signing)")
@@ -189,8 +193,10 @@ class AndroidJavaResourcesPackagingSettings : SchemaNode() {
  * Should be used only if there were no errors reported regarding the namespace.
  */
 fun AndroidSettings.effectiveNamespace(module: AmperModule): String {
-    return namespace
-        // First, we fall back to using publishing settings if the module is published.
+    // namespace already falls back to applicationId from the schema, which will always hit for 
+    // android/app modules because it's required via diagnostics.
+    return namespace 
+        // Then, we fall back to using publishing settings if the module is published.
         // It seems like a reasonable good default when the user doesn't use Android resources but still want to
         // publish their KMP library. This provides better uniqueness guarantees for applications consuming multiple
         // libraries.

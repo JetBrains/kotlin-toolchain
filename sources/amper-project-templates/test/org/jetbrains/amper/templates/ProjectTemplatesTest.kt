@@ -22,7 +22,6 @@ import kotlin.test.assertContains
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 private const val TestProjectId = "org.example.project"
 
@@ -104,7 +103,7 @@ class ProjectTemplatesTest {
         assertContains((outputDir / "app/shared/src/App.kt").readText(), "package $TestProjectId")
         assertContains(
             (outputDir / "app/androidApp/module.yaml").readText(),
-            "namespace: $TestProjectId",
+            "applicationId: $TestProjectId",
         )
         assertContains(
             (outputDir / "app/androidApp/res/values/strings.xml").readText(),

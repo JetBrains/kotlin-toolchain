@@ -2,5 +2,5 @@ product: android/app
 
 settings:
   android:
-    namespace: com.jetbrains.sample.app
+    applicationId: com.jetbrains.sample.app
     parcelize: enabled

@@ -4,4 +4,4 @@ layout: maven-like
 
 settings:
   android:
-    namespace: com.example.app
+    applicationId: com.example.app

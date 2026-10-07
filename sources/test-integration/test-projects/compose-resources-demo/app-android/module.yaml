@@ -4,7 +4,7 @@ settings:
   compose:
     enabled: true
   android:
-    namespace: demo.app
+    applicationId: demo.app
 
 dependencies:
   - ../shared

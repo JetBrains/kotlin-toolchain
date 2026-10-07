@@ -3,7 +3,7 @@ Module: android-app
 settings@android:
   android:
     abiFilters: []  # default
-    applicationId: com.example.app  # default, from ${namespace} @ module.yaml
+    applicationId: com.example.app  # module.yaml
     buildToolsVersion: 37.0.0  # default
     compileSdk:
       apiLevel: 37  # default
@@ -11,7 +11,7 @@ settings@android:
       sdkExtension: null  # default
     maxSdk: null  # default
     minSdk: 24  # default
-    namespace: com.example.app  # module.yaml
+    namespace: com.example.app  # default, from ${applicationId} @ module.yaml
     parcelize:
       additionalAnnotations: []  # default
       enabled: false  # default
@@ -355,7 +355,7 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
       sdkExtension: null  # default
     maxSdk: null  # default
     minSdk: 24  # default
-    namespace: null  # default
+    namespace: null  # default, from ${applicationId}
     parcelize:
       additionalAnnotations: []  # default
       enabled: false  # default
@@ -603,7 +603,7 @@ settings@android:
       sdkExtension: null  # default
     maxSdk: null  # default
     minSdk: 24  # default
-    namespace: null  # default
+    namespace: null  # default, from ${applicationId}
     parcelize:
       additionalAnnotations: []  # default
       enabled: false  # default

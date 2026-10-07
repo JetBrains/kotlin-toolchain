@@ -11,8 +11,8 @@ import org.jetbrains.amper.cli.test.utils.assertStderrDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.runSlowTest
-import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
@@ -153,7 +153,6 @@ class NewCommandTest : CliTestBase() {
         assertContains((projectRoot / "server/src/Application.kt").readText(), "package com.acme.demo.server")
         assertContains((projectRoot / "app/shared/src/App.kt").readText(), "package com.acme.demo")
         assertContains((projectRoot / "app/androidApp/src/MainActivity.kt").readText(), "package com.acme.demo")
-        assertContains((projectRoot / "app/androidApp/module.yaml").readText(), "namespace: com.acme.demo")
         assertContains((projectRoot / "app/androidApp/module.yaml").readText(), "applicationId: com.acme.demo")
         assertContains((projectRoot / "app/androidApp/res/values/strings.xml").readText(), ">myapp</string>")
         assertContains((projectRoot / "app/desktopApp/src/main.kt").readText(), "title = \"myapp\"")
@@ -542,7 +541,6 @@ class NewCommandTest : CliTestBase() {
         assertContains((projectRoot / "app/shared/src/App.kt").readText(), "package $projectId")
         assertContains((projectRoot / "app/shared/src/App.kt").readText(), "import $projectId.resources.Res")
         assertContains((projectRoot / "app/shared/module.yaml").readText(), "packageName: $projectId.resources")
-        assertContains((projectRoot / "app/androidApp/module.yaml").readText(), "namespace: $projectId")
         assertContains((projectRoot / "app/androidApp/module.yaml").readText(), "applicationId: $projectId")
         val xcodeProject = (projectRoot / "app/iosApp/module.xcodeproj/project.pbxproj").readText()
         val bundleIds = xcodeProject.lineSequence()

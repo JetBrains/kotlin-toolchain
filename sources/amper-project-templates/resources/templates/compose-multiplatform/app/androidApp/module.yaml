@@ -9,5 +9,4 @@ dependencies:
 settings:
   compose: enabled
   android:
-    namespace: {{PROJECT_ID}}
     applicationId: {{PROJECT_ID}}

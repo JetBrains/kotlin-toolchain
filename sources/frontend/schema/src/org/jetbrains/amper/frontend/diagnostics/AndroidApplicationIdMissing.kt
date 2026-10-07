@@ -16,22 +16,22 @@ import org.jetbrains.amper.problems.reporting.DiagnosticId
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 
-object AndroidApplicationNamespaceMissingFactory : AomSingleModuleDiagnosticFactory {
+object AndroidApplicationIdMissingFactory : AomSingleModuleDiagnosticFactory {
     override fun analyze(module: AmperModule, problemReporter: ProblemReporter) {
         if (module.type != ProductType.ANDROID_APP) return
 
         val androidSettings = module.fragments.first { !it.isTest }.settings.android
-        if (androidSettings.namespace == null) {
-            problemReporter.reportMessage(AndroidApplicationNamespaceMissing(module))
+        if (androidSettings.applicationId == null) {
+            problemReporter.reportMessage(AndroidApplicationIdMissing(module))
         }
     }
 }
 
-class AndroidApplicationNamespaceMissing(
+class AndroidApplicationIdMissing(
     module: AmperModule,
 ) : BuildProblem {
-    override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AndroidApplicationNamespaceMissing
-    override val message: String = SchemaBundle.message("android.application.namespace.missing")
+    override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AndroidApplicationIdMissing
+    override val message: String = SchemaBundle.message("android.application.id.missing")
     override val level: Level = Level.Error
     override val type: BuildProblemType = BuildProblemType.InconsistentConfiguration
     override val source: BuildProblemSource = module.commonModuleNode.product.typeDelegate.trace.asBuildProblemSource()

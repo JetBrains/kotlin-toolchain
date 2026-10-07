@@ -267,7 +267,7 @@ product: android/app
 
 settings@android:    # settings to be used for Android target platform
   android:           # Android toolchain settings
-    namespace: com.example.app
+    applicationId: com.example.app
     compileSdk: 33
   kotlin:        # Kotlin toolchain settings
     languageVersion: 2.3
@@ -281,7 +281,7 @@ product: android/app
 
 settings:
   android:           # Android toolchain settings
-    namespace: com.example.app
+    applicationId: com.example.app
     compileSdk: 33
   kotlin:        # Kotlin toolchain settings
     languageVersion: 2.3

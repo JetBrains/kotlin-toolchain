@@ -205,7 +205,6 @@ class ComposeMultiplatformProjectGeneratorTest {
         assertContains(files.getValue("app/shared/src/App.kt").text(), "package $projectId")
         assertContains(files.getValue("app/shared/src/App.kt").text(), "import $projectId.resources.Res")
         assertContains(files.getValue("app/shared/module.yaml").text(), "packageName: $projectId.resources")
-        assertContains(files.getValue("app/androidApp/module.yaml").text(), "namespace: $projectId")
         assertContains(files.getValue("app/androidApp/module.yaml").text(), "applicationId: $projectId")
 
         val xcodeProject = files.getValue("app/iosApp/module.xcodeproj/project.pbxproj").text()

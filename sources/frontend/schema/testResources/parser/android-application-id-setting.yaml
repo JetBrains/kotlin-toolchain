@@ -2,4 +2,4 @@ product: android/app
 
 settings:
   android:
-    namespace: namespace
+    applicationId: com.example.app

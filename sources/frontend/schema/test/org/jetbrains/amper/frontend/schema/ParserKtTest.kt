@@ -168,7 +168,7 @@ internal class ParserKtTest : FrontendTestCaseBase(Path("testResources") / "pars
 
     @Test
     fun `android namespace set`() {
-        aomTest("android-namespace-setting")
+        aomTest("android-application-id-setting")
     }
 
     @Test

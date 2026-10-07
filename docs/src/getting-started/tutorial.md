@@ -407,7 +407,7 @@ dependencies:
 
 settings:
   android:
-    namespace: com.example.app
+    applicationId: com.example.app
   compose:
     enabled: true
 ```
@@ -605,7 +605,7 @@ apply:
 
 settings:
   android:
-    namespace: com.example.app
+    applicationId: com.example.app
 ```
 
 ```yaml title="ios-app/module.yaml"

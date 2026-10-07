@@ -10,8 +10,8 @@ Fragments:
     Fragment dependencies:
     Settings: {
       android: {
-        applicationId: <default> com.jetbrains.sample.app
-        namespace: com.jetbrains.sample.app
+        applicationId: com.jetbrains.sample.app
+        namespace: <default> com.jetbrains.sample.app
         parcelize: {
           enabled: true
         }
@@ -32,8 +32,8 @@ Fragments:
       main (FRIEND)
     Settings: {
       android: {
-        applicationId: <default> com.jetbrains.sample.app
-        namespace: com.jetbrains.sample.app
+        applicationId: com.jetbrains.sample.app
+        namespace: <default> com.jetbrains.sample.app
         parcelize: {
           enabled: true
         }

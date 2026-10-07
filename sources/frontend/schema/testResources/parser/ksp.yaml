@@ -14,4 +14,4 @@ settings:
         room.schemaLocation: ./generated-db-schema
         room.generateKotlin: true
   android:
-    namespace: com.jetbrains.sample.app
+    applicationId: com.jetbrains.sample.app

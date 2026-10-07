@@ -8,5 +8,4 @@ dependencies:
 settings:
   android:
     applicationId: "org.jetbrains.todo"
-    namespace: "org.jetbrains.todo"
   compose: enabled

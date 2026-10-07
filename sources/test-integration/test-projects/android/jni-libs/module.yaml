@@ -2,4 +2,4 @@ product: android/app
 
 settings:
   android:
-    namespace: com.jetbrains.sample.jnilibs
+    applicationId: com.jetbrains.sample.jnilibs

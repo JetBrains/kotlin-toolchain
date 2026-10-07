@@ -16,7 +16,7 @@ dependencies:
 
 settings:
   android:
-    namespace: com.sample.app
+    applicationId: com.sample.app
     targetSdk: 36
     compileSdk: 36
     minSdk: 28

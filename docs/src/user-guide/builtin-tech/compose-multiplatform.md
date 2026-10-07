@@ -38,7 +38,7 @@ Use `settings.compose.enabled` to enable Compose:
     
     settings:
       android:
-        namespace: com.example.app
+        applicationId: com.example.app
       compose: enabled # (2)!
     ```
 

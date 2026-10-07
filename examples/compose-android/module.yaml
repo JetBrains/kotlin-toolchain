@@ -8,7 +8,7 @@ dependencies:
 
 settings:
   android:
-    namespace: "com.jetbrains.sample.app"
+    applicationId: "com.jetbrains.sample.app"
     signing: enabled
   compose: enabled
   junit: junit-4

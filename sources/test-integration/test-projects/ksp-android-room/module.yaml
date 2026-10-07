@@ -9,7 +9,7 @@ settings:
       processorOptions:
         room.schemaLocation: ./generated-db-schema
   android:
-    namespace: com.jetbrains.sample.app
+    applicationId: com.jetbrains.sample.app
 
 dependencies:
   - androidx.appcompat:appcompat:1.6.1

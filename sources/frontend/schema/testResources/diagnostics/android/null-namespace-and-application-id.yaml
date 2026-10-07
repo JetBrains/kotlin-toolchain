@@ -1,4 +1,4 @@
-product: <![Error] Android applications require setting `android.namespace` set!>android/app<!>
+product: <![Error] Android applications require setting `android.applicationId`!>android/app<!>
 
 settings:
   android:

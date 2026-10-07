@@ -11,7 +11,7 @@ Fragments:
       android: {
         abiFilters: <default> [
         ]
-        applicationId: <default> com.example.app
+        applicationId: com.example.app
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -20,7 +20,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: com.example.app
+        namespace: <default> com.example.app
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]
@@ -213,7 +213,7 @@ Fragments:
       android: {
         abiFilters: <default> [
         ]
-        applicationId: <default> com.example.app
+        applicationId: com.example.app
         buildToolsVersion: <default> 37.0.0
         compileSdk: <default> {
           apiLevel: <default> 37
@@ -222,7 +222,7 @@ Fragments:
         }
         maxSdk: <default> null
         minSdk: <default> 24
-        namespace: com.example.app
+        namespace: <default> com.example.app
         parcelize: <default> {
           additionalAnnotations: <default> [
           ]

@@ -2,7 +2,7 @@ product: android/app
 
 settings:
   android:
-    namespace: com.jetbrains.sample.app
+    applicationId: com.jetbrains.sample.app
 
 dependencies:
   # This coordinate transitively brings in both org.jetbrains.androidx.lifecycle:* and androidx.lifecycle:*

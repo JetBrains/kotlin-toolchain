@@ -4,4 +4,4 @@ layout: <![Error] Module layout `maven-like` is only supported in JVM modules (`
 
 settings:
   android:
-    namespace: com.example.app
+    applicationId: com.example.app

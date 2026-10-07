@@ -13,7 +13,7 @@ val AomModelDiagnosticFactories: List<AomModelDiagnosticFactory> = listOf(
 )
 
 val AomSingleModuleDiagnosticFactories: List<AomSingleModuleDiagnosticFactory> = listOf(
-    AndroidApplicationNamespaceMissingFactory,
+    AndroidApplicationIdMissingFactory,
     AndroidSettingsCannotBeNullFactory,
     AndroidVersionShouldBeAtLeastMinSdkFactory,
     ComposeVersionWithDisabledCompose,
