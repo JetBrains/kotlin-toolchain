@@ -85,6 +85,7 @@ modules:
   - sources/libraries/stdlib-extended
   - sources/libraries/system-info
   - sources/libraries/telemetry
+  - sources/libraries/windows-registry
   - sources/libraries/xcode-model-ext
   - sources/test-base
   - sources/test-integration/amper-backend-test

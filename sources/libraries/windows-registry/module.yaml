@@ -1,0 +1,12 @@
+product: jvm/lib
+
+apply:
+  - //sources/common.module-template.yaml
+
+test-dependencies:
+  - $libs.junit.jupiter.api
+
+settings:
+  jvm:
+    test:
+      freeJvmArgs: [ --enable-native-access=ALL-UNNAMED ]
