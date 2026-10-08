@@ -126,7 +126,7 @@ private fun createManifestProperties(mainClassName: String?): Map<String, String
 private fun createClasspathIndex(tempDir: Path, libInputs: List<ZipInput>): Path {
     val jarPathsFromArchiveRoot = libInputs.map { it.destPathInArchive.invariantSeparatorsPathString }
     val classpathIndexFile = tempDir.resolve("classpath.idx")
-    classpathIndexFile.writeText(jarPathsFromArchiveRoot.joinToString { "- \"$it\"\n" })
+    classpathIndexFile.writeText(jarPathsFromArchiveRoot.joinToString(separator = "") { "- \"$it\"\n" })
     return classpathIndexFile
 }
 
