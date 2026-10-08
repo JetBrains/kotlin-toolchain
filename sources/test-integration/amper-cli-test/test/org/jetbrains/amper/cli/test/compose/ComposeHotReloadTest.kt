@@ -49,7 +49,7 @@ class ComposeHotReloadTest : CliTestBase() {
         )
 
         result.readTelemetrySpans().assertHotReloadJavaExecSpan()
-        result.assertStdoutContains("💡 Tip: Running with Compose Hot Reload. Use --no-compose-hot-reload to disable it.")
+        result.assertStdoutContains("ℹ️ Note: Running with Compose Hot Reload. Use --no-compose-hot-reload to disable it.")
     }
 
     @Test
@@ -58,7 +58,7 @@ class ComposeHotReloadTest : CliTestBase() {
             projectDir = testProject("jvm-app-without-compose"),
             "run",
         )
-        result.assertStdoutDoesNotContain("💡 Tip: Running with Compose Hot Reload. Use --no-compose-hot-reload to disable it.")
+        result.assertStdoutDoesNotContain("ℹ️ Note: Running with Compose Hot Reload. Use --no-compose-hot-reload to disable it.")
         result.assertStdoutContains("compose.reload.devToolsEnabled=null")
     }
 

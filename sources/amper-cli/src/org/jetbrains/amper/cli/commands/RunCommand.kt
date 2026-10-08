@@ -201,7 +201,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
 
         if (runWithComposeHotReload) {
             if (!composeHotReloadConfiguredExplicitly) {
-                terminal.print(terminal.theme.info("💡 Tip: "))
+                terminal.print(terminal.theme.info("ℹ️ Note: "))
                 terminal.println(Markdown("Running with Compose Hot Reload. Use `--no-compose-hot-reload` to disable it."))
             }
             // If the configuration doesn't actually support hot-reload,
