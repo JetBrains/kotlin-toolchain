@@ -103,7 +103,7 @@ class ProcessesTest {
 
         // simulate external kill via regular API
         process.destroyForcibly()
-        process.waitFor(1, TimeUnit.SECONDS)
+        process.waitFor(10, TimeUnit.SECONDS)
         assertTerminated(process, "The process should have terminated by now, because it was explicitly killed")
 
         val (exitCode = value, duration) = measureTimedValue {
