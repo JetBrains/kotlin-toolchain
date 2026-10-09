@@ -182,33 +182,41 @@ feedback loop during UI development.
 
 === ":jetbrains-intellij-idea: IntelliJ IDEA"
 
-    To run your application with Compose Hot Reload, simply select the *Run with Compose Hot Reload* option from the 
+    To run your application with Compose Hot Reload, simply run your app from the 
     IDE:
 
     ![Compose Hot Reload special mode of running application](../../images/hot-reload-run-option.png)
     
-    ??? question "I don't have this option, please help!"
+    ??? question "My application doesn't start in the Hot Reload mode, please help!"
 
         Make sure that:
 
           * you have installed and enabled the [Kotlin Toolchain IDEA plugin](https://plugins.jetbrains.com/plugin/31850-kotlin-toolchain)
           * your module has the `jvm` target (`jvm/app` product type, or a library module with `jvm` platform)
 
+    ??? question "How do I run my app without the Hot Reload mode in the IDE?"
+
+        Modify the run configuration by removing the "Compose Hot Reload" option:
+        
+        ![Compose Hot Reload setting in Run configuration](../../images/hot-reload-disable-in-ide.png)
+
     In this mode, IDEA will recompile and hot-reload your application based on file system changes.
 
 === ":octicons-terminal-16: CLI"
 
-    To run your application with Compose Hot Reload from the [command line](../../cli/index.md), use the
-    `--compose-hot-reload` flag:
-    
+    If your JVM application has Compose enabled, you can simply run it from the [command line](../../cli/index.md) with the `kotlin run` command.
+
+    It is equivalent to running it with the `--compose-hot-reload` flag:
+
     ```shell
     ./kotlin run --compose-hot-reload
     ```
 
-    !!! warning "No file-system watch"
+    If you want to run it without Compose Hot Reload, use the `--no-compose-hot-reload` flag:
 
-        At the moment, the Kotlin CLI doesn't watch the file system for changes, so the only way to reap the benefits
-        of Compose Hot Reload is to run the application from the IDE.
+    ```shell
+    ./kotlin run --no-compose-hot-reload
+    ```
 
 When you run your application with Compose Hot Reload enabled:
 
@@ -216,6 +224,7 @@ When you run your application with Compose Hot Reload enabled:
   hot-swap capabilities
 - The Java agent for Compose Hot Reload is attached during execution
 - A small Compose Hot Reload devtools icon appears next to the application window, indicating that the feature is active
+- A file watcher is attached to detect changes in your source files and automatically recompile the application
 
 ![Compose Hot Reload dev tools](../../images/hot-reload-devtools.png) 
 
