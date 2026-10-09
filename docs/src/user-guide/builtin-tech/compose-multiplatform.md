@@ -172,7 +172,7 @@ settings:
 ```
 This will make the generated accessors and the `Res` class `public`.
 
-## :jetbrains-compose-hot-reload: Compose Hot Reload (experimental)
+## :jetbrains-compose-hot-reload: Compose Hot Reload
 
 The Kotlin Toolchain supports [Compose Hot Reload](https://github.com/JetBrains/compose-hot-reload), allowing you to see UI changes in
 real-time without restarting the application. This significantly improves the developer experience by shortening the
