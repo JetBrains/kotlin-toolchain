@@ -3000,6 +3000,25 @@ class BuildGraphTest : BaseDRTest() {
     }
 
     /**
+     * This test checks that prepending/trailing spaces met in the dependencyManagement section of pom.xml
+     * in values of elements groupId/artiafact are ignored (trimmed).
+     *
+     * In particular,
+     *  "com.google.api:gax:2.87.0.pom" declares dependency on "com.google.protobuf" in dependencyManagement
+     *  section with groupId containing leading space:  " com.google.protobuf"
+     *  <dependency>
+     *    <groupId> com.google.protobuf</groupId>
+     *    <artifactId>protobuf-java-util</artifactId>
+     *  </dependency>
+     */
+    @Test
+    fun `com_google_api gax 2_87_0`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(testInfo)
+        downloadAndAssertFiles(testInfo, root, verifyMessages = true)
+    }
+
+
+    /**
      * This test checks that a property with an empty value declared in pom.xml
      * is not ignored and is successfully used for substitutions.
      *

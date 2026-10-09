@@ -182,7 +182,7 @@ private fun Project.getEffectiveDependencies(
         dependencyManagement
             ?.dependencies
             ?.dependencies
-            ?.find { it.groupId == dep.groupId && it.artifactId == dep.artifactId }
+            ?.find { it.groupId.trim() == dep.groupId.trim() && it.artifactId.trim() == dep.artifactId.trim() }
             ?.let { dependencyManagementEntry ->
                 return@map dep
                     .let {
