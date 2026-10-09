@@ -34,6 +34,9 @@ private const val DerivedProjectIdPrefix = "org.example."
 private const val CoreModuleDir = CoreModule
 private const val SharedModuleDir = "$AppDir$SharedModule"
 
+/** The MCP server config for AI agents, which only makes sense when there is a JVM app to hot-reload. */
+private const val HotReloadMcpConfigPath = ".mcp.json"
+
 /**
  * A generated project file, ready to be written to disk with [extractTo].
  */
@@ -68,6 +71,7 @@ internal data class TextGeneratedFile(
  *  - only the modules for the selected [targets] are kept,
  *  - the Compose `shared` module is kept when at least one UI target is selected,
  *  - a `core` module shared by the client apps and Ktor backend is kept when the server target is selected,
+ *  - the Compose Hot Reload MCP config (`.mcp.json`) is kept only when the desktop (JVM) target is selected,
  *  - `project.yaml`'s `modules:` list is rewritten to only reference the kept modules,
  *  - KMP module `platforms:` lists are rewritten to only reference the platforms of the selected targets,
  *  - the `app/` directory is flattened when no server target is selected,
@@ -104,6 +108,7 @@ internal object ComposeMultiplatformProjectGenerator {
         return template.listFiles()
             .filter { it.isKeptProjectFile(keptModuleDirs) }
             .filter { it.matchesKeptSourceSets(keptSourceSetQualifiers) }
+            .filter { it.relativePath != HotReloadMcpConfigPath || ComposeMultiplatformTargetPlatform.DESKTOP in targets }
             .map { it.toGeneratedFile() }
             .map { it.rewriteIfProjectYaml(keptModuleDirs, flattenAppDirectory = !serverIncluded) }
             .map { it.rewriteIfReadme(targets, keptModuleDirs) }

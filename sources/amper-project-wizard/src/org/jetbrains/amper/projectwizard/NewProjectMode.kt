@@ -55,16 +55,27 @@ fun NewProjectMode.describe(highlight: (String) -> String): String = when (this)
         "a Compose Multiplatform application (${highlight(targets.map { it.cliValue }.sorted().joinToString())})"
 }
 
-fun NewProjectMode.toExtractionSchema(generateGitFiles: Boolean = true): ProjectExtractionSchema {
+/**
+ * Resolves all the files to generate for this mode.
+ *
+ * @param generateGitFiles whether to add `.gitignore` and `.gitattributes`
+ * @param generateAiFiles whether to keep the files that configure AI agents
+ */
+fun NewProjectMode.toExtractionSchema(
+    generateGitFiles: Boolean = true,
+    generateAiFiles: Boolean = true,
+): ProjectExtractionSchema {
     val sourceTemplate = sourceTemplate()
     return ProjectExtractionSchema(files = buildList {
-        addAll(projectFiles(sourceTemplate))
+        addAll(projectFiles(sourceTemplate).filter { generateAiFiles || it.relativePath !in AiAgentFilePaths })
         if (generateGitFiles) {
             add(sourceTemplate.generateGitIgnoreFile())
             add(sourceTemplate.generateGitAttributesFile())
         }
     })
 }
+
+private val AiAgentFilePaths = setOf(".mcp.json")
 
 private fun NewProjectMode.projectFiles(sourceTemplate: AmperProjectTemplate): List<ExtractableFile> = when (this) {
     is NewProjectMode.FromTemplate -> sourceTemplate.listFiles().map { it.asExtractableFile(projectName) }

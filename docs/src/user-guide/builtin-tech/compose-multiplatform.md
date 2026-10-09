@@ -265,6 +265,35 @@ A clickable gutter icon will appear on the left side of the composable.
     }
     ```
 
+### Connect an AI agent
+
+Compose Hot Reload provides an [MCP](https://modelcontextprotocol.io) server that lets an AI agent inspect the
+composables of the running application (including screenshots of them), trigger hot reloads, and interact with the
+UI by triggering actions such as button clicks, typing text, and scrolling.
+This is much faster than taking OS screenshots of the desktop app or using mobile simulators.
+
+Start your application with `./kotlin run --compose-hot-reload` (or the *Run with Compose Hot Reload* option in the IDE),
+and configure your agent to launch the MCP server with the `compose-hot-reload-mcp-server` command.
+Most agents read this configuration from an `.mcp.json` file in the project root:
+
+```json
+{
+  "mcpServers": {
+    "Compose Hot Reload": {
+      "command": "./kotlin",
+      "args": [
+        "compose-hot-reload-mcp-server"
+      ]
+    }
+  }
+}
+```
+
+!!! note
+
+    The MCP server requires Compose Hot Reload `1.2.0` or later. It finds the running application via the
+    build directory, so if you customize it, use the same build directory for `run --compose-hot-reload`.
+
 ### Custom Compose Hot Reload version
 
 You can optionally customize the version of Compose Hot Reload used by the Kotlin Toolchain this way:

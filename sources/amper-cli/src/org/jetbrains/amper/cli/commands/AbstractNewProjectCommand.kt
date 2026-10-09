@@ -90,6 +90,11 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
         help = "Do not initialize a Git repository or generate Git-related files for the generated project.",
     ).flag(default = false)
 
+    private val noAi: Boolean by option(
+        "--no-ai",
+        help = "Do not generate files that configure AI agents.",
+    ).flag(default = false)
+
     /**
      * Determines the directory to generate the project in, prompting or failing as appropriate if it depends on
      * information that wasn't supplied on the command line (e.g. the project name for `kotlin new`).
@@ -104,7 +109,7 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
         val outputDir = resolveTargetDir()
         val projectName = determineProjectName(outputDir)
         val mode = resolveMode(projectName)
-        val schema = mode.toExtractionSchema(generateGitFiles = !noGit)
+        val schema = mode.toExtractionSchema(generateGitFiles = !noGit, generateAiFiles = !noAi)
         val overwriteConflicts = overwrite || terminal.shouldOverwriteConflictingPaths(
             relativePaths = schema.relativePaths,
             outputDir = outputDir,
