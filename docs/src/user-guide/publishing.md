@@ -17,6 +17,8 @@ With a little bit of configuration, you'll be able to publish using the `kotlin 
 All library modules (JVM and multiplatform) can be published to Maven repositories.
 All Kotlin platforms are supported, as well as Compose Resources.
 
+Compose Multiplatform libraries are also included in the publication since version `0.13.0`.
+
 Libraries that bind to native C libraries are covered as well: the `cinterop` bindings are published both in their
 commonized form, for use from common code, and per platform, so your users get the same C API you compiled against
 without setting up interop themselves.
