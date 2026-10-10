@@ -20,6 +20,7 @@ import org.jetbrains.amper.frontend.aomBuilder.plugins.buildAndApplyPlugins
 import org.jetbrains.amper.frontend.api.Trace
 import org.jetbrains.amper.frontend.api.asTrace
 import org.jetbrains.amper.frontend.catalogs.builtInCatalog
+import org.jetbrains.amper.frontend.catalogs.reportCatalogProblems
 import org.jetbrains.amper.frontend.catalogs.substituteCatalogDependencies
 import org.jetbrains.amper.frontend.contexts.DefaultInheritance
 import org.jetbrains.amper.frontend.contexts.MainTestInheritance
@@ -99,6 +100,8 @@ internal fun AmperProjectContext.doReadProjectModel(
     SchemaTypingContext(pluginData, mavenPluginXmls),
     systemInfo,
 ) {
+    projectVersionsCatalog.reportCatalogProblems()
+
     // Parse all module files and perform preprocessing (templates, catalogs, etc.)
     val templateCache = hashMapOf<Path, MappingNode>()
     val rawModulesByFile = amperModuleFiles.associateWith {

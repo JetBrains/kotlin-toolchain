@@ -286,6 +286,39 @@ To use dependencies from the project catalog, use the syntax `$libs.<key>` inste
 the catalog name of the project catalog, and `<key>` is defined according to the
 [Gradle name mapping rules](https://docs.gradle.org/current/userguide/version_catalogs.html#sec:mapping-aliases-to-accessors).
 
+Use hyphens or underscores to separate words in TOML library aliases: for example, `ktor-core` or `ktor_core` is
+referenced as `$libs.ktor.core` in YAML. Dots are rejected in library aliases, both in unquoted keys such as
+`ktor.core = ...` and quoted keys such as `"ktor.core" = ...` or `'ktor.core' = ...`.
+Quoted aliases such as `"ktor-core"` are supported. Quoting does not change how an alias is referenced in YAML.
+Do not declare both `ktor-core` and `ktor_core` in the same catalog: they resolve to the same key.
+
+Dots can separate an alias from its definition fields. With a `ktor` entry in `[versions]`, these definitions are equivalent:
+
+```toml
+[libraries]
+ktor-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+```
+
+```toml
+[libraries]
+ktor-core.module = "io.ktor:ktor-client-core"
+ktor-core.version.ref = "ktor"
+```
+
+```toml
+[libraries.ktor-core]
+module = "io.ktor:ktor-client-core"
+version.ref = "ktor"
+```
+
+A library table must specify `module = "group:artifact"` or both `group` and `name`.
+Library versions must be strings or references to entries in `[versions]`; version constraints such as `strictly` or `prefer`
+are not supported. A library can omit its version when the version is supplied by a BOM.
+
+The Kotlin Toolchain validates the catalog when reading the project, including unused entries. It reports errors for
+conflicting aliases, undefined version references, invalid coordinates or value types, missing or unknown fields,
+unsupported version constraints, invalid TOML or repeated definitions, and multiple project catalog files.
+
 Example:
 
 ```toml title="libs.versions.toml"
