@@ -121,6 +121,21 @@
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+  
+  
+    <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2 1 21h22M12 6l7.53 13H4.47M11 10v4h2v-4m-2 6v2h2v-2"/></svg></span>
+    You're reading the docs of version 0.11, which
+    is not the latest release.
+  
+  <a href="../../../latest/"><strong>Switch to the latest stable version.</strong></a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),base=new URL("../.."),outdated=__md_get("__outdated",sessionStorage,base);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -2424,8 +2439,8 @@ YAML is indent-sensitive.</p>
 <p>Here is a <a href="https://quickref.me/yaml.html">cheat-sheet</a> and <a href="https://yaml.org/spec/1.2.2/">YAML 1.2 specification</a>.</p>
 <p>Strings can be quoted or unquoted. These are equivalent:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">string1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">foo bar</span>
-<span class="nt">string2</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;foo</span><span class="nv"> </span><span class="s">bar&quot;</span>
-<span class="nt">string3</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;foo</span><span class="nv"> </span><span class="s">bar&#39;</span>
+<span class="nt">string2</span><span class="p">:</span><span class="w"> </span><span class="s">"foo</span><span class="nv"> </span><span class="s">bar"</span>
+<span class="nt">string3</span><span class="p">:</span><span class="w"> </span><span class="s">'foo</span><span class="nv"> </span><span class="s">bar'</span>
 </code></pre></div>
 <p>Mapping:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">mapping-name</span><span class="p">:</span>
@@ -2435,7 +2450,7 @@ YAML is indent-sensitive.</p>
 <p>List of values (strings):</p>
 <div class="highlight"><pre><span></span><code><span class="nt">list-name</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">foo bar</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;bar</span><span class="nv"> </span><span class="s">baz&quot;</span><span class="w">  </span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"bar</span><span class="nv"> </span><span class="s">baz"</span><span class="w">  </span>
 </code></pre></div>
 <p>List of mapping:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">list-name</span><span class="p">:</span>
@@ -2565,7 +2580,7 @@ YAML is indent-sensitive.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.action.edit", "content.code.annotate", "content.code.copy", "content.footnote.tooltips", "content.tooltips", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.preview", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.action.edit", "content.code.annotate", "content.code.copy", "content.footnote.tooltips", "content.tooltips", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.preview", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"default": "latest", "provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
