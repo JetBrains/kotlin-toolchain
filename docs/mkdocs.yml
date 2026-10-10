@@ -173,8 +173,17 @@ extra:
   # The MKDOCS_GIT_BRANCH variable is provided by the CI when building the docs.
   # The "main" fallback is to avoid breaking links locally.
   git_branch: !ENV [MKDOCS_GIT_BRANCH, "main"]
+  # The ID of the version of the docs being built, as passed to `mike deploy`: either "dev" or major.minor ("0.10").
+  # The MKDOCS_VERSION_ID variable is provided by the CI when building the docs.
+  # It is used in overrides/main.html to pick the right "outdated version" warning banner.
+  docs_version_id: !ENV [MKDOCS_VERSION_ID, ""]
+  # Whether the version being built has no release yet ("coming soon" in the version selector).
+  # The MKDOCS_VERSION_COMING_SOON variable is provided by the CI when building the docs.
+  docs_version_coming_soon: !ENV [MKDOCS_VERSION_COMING_SOON, false]
   version:
     provider: mike # enables the version selector
+    # Versions with this alias are considered up-to-date. All others get a warning banner (see overrides/main.html).
+    default: latest
 
 # Fails the docs build if there are any warnings (this avoids publishing a site with broken links)
 strict: true
