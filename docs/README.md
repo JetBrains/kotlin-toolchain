@@ -105,4 +105,26 @@ update it when we release a patch of our latest version, but not when patching o
 Example: if `0.10.0` is our current `latest`:
 * releasing `0.10.1` updates the `latest` alias to `0.10.1`
 * releasing `0.9.2` does **not** update the `latest` alias (it just replaces `0.9.1` with `0.9.2`)
- 
+
+### Warning banner for non-latest versions
+
+Readers who land on a copy of the website that is not the one aliased as `latest` get a warning banner at the top of
+every page, with a link to the latest version.
+There are three variants of the banner:
+
+* one for the `dev` copy (built from `main`, which may document unreleased features)
+* one for "coming soon" copies (built from a `release/x.y` branch that has no tag yet)
+* a generic one for older releases
+
+The banner markup lives in the `outdated` block of `overrides/main.html`:
+
+* **Whether** the banner is shown is decided at runtime by the Material theme: its JavaScript fetches `versions.json`
+  and unhides the banner unless the current copy has the alias configured in `extra.version.default` (`latest`).
+* **Which** variant is rendered is decided at build time, based on variables from `mkdocs.yml`:
+  * `extra.docs_version_id` reads the `MKDOCS_VERSION_ID` environment variable, which the `publish-docs` workflow sets
+    to the version ID passed to mike when deploying (`dev`, `0.10`, …).
+  * `extra.dosc_version_coming_soon` reads the `MKDOCS_VERSION_COMING_SOON` environment variable, which the
+    `publish-docs` workflow sets to `true` when the release branch has no tag yet.
+
+  Both are unset when building locally, in which case the generic variant is rendered (but never shown, since there
+  is no `versions.json` locally).

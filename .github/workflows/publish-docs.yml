@@ -52,6 +52,7 @@ jobs:
           if [[ "$branch" == "main" ]]; then
             echo "version_id=dev" >> $GITHUB_OUTPUT
             echo "version_title=dev" >> $GITHUB_OUTPUT
+            echo "coming_soon=false" >> $GITHUB_OUTPUT
             exit 0
           fi
 
@@ -65,9 +66,11 @@ jobs:
           if [[ -n "$tag" ]]; then
             # strip v to get "X.Y.Z"
             echo "version_title=${tag#v}" >> $GITHUB_OUTPUT
+            echo "coming_soon=false" >> $GITHUB_OUTPUT
           else
             # no published release yet for this release branch
             echo "version_title=${major_minor} (coming soon)" >> $GITHUB_OUTPUT
+            echo "coming_soon=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Deploy docs
@@ -75,6 +78,8 @@ jobs:
         env:
           MKDOCS_GIT_BRANCH: ${{ github.ref_name }}
           MKDOCS_GIT_EDIT_URL: edit/${{ github.ref_name }}/docs/src/
+          MKDOCS_VERSION_ID: ${{ steps.meta.outputs.version_id }}
+          MKDOCS_VERSION_COMING_SOON: ${{ steps.meta.outputs.coming_soon }}
         run: |
           version_id="${{ steps.meta.outputs.version_id }}"
           version_title="${{ steps.meta.outputs.version_title }}"
