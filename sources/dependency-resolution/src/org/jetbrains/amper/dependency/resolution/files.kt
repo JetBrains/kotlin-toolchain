@@ -12,6 +12,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
@@ -1786,7 +1787,9 @@ private fun String.fixOldGradleHash(hashLength: Int) = takeIfSpecified()?.padSta
  */
 @Suppress("unused")
 private suspend fun InputStream.readTo(writers: Collection<Writer>): Long {
-    return withContext(Dispatchers.IO) {
+    // Reading the body blocks, and a blocking read is not a suspension point: without an interruptible block a
+    // cancellation would only be noticed once the read returns, which a body that stopped arriving never does.
+    return runInterruptible(Dispatchers.IO) {
         var size = 0L
         val chunk = ByteArray(1024)
         do {
