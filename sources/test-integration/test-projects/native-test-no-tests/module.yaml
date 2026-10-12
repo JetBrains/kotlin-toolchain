@@ -1,3 +1,3 @@
 product:
   type: kmp/lib
-  platforms: [ mingwX64 ]
+  platforms: [ mingwX64, linuxX64, macosArm64 ]

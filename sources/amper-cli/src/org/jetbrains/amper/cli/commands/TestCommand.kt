@@ -10,6 +10,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.enum
+import org.jetbrains.amper.cli.UserReadableError
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.options.UserJvmArgsOption
 import org.jetbrains.amper.cli.options.buildTypeOption
@@ -178,10 +179,12 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
             addAll(includeTagFilters)
             addAll(excludeTagFilters)
         }
+        val discoveryTracker = TestDiscoveryTracker()
         withBackend(
             cliContext = cliContext,
             model = model,
             taskExecutionMode = TaskExecutor.Mode.GREEDY, // try to execute as many tests as possible
+            additionalDomainEventSink = discoveryTracker,
             runSettings = AllRunSettings(
                 userJvmArgs = jvmArgs,
                 testFilters = allTestFilters,
@@ -201,6 +204,57 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
                 excludeModules = excludeModules.toSet(),
                 buildType = variant,
             )
+
+            if (!discoveryTracker.testsDiscovered) {
+                throw UserReadableError(
+                    message = noTestsDiscoveredMessage(allTestFilters),
+                    exitCode = 1,
+                    isMarkdown = true,
+                )
+            }
         }
+    }
+
+    private fun noTestsDiscoveredMessage(testFilters: List<TestFilter>): String = buildString {
+        val filterLines = buildList {
+            addAll(testFilters.map { it.toUserReadableString() })
+            if (platforms.isNotEmpty()) {
+                add("Only platforms: ${platforms.joinToString { "`${it.pretty}`" }}")
+            }
+            if (includeModules.isNotEmpty()) {
+                add("From modules: ${includeModules.joinToString { "`$it`" }}")
+            }
+            if (excludeModules.isNotEmpty()) {
+                add("Excluding modules: ${excludeModules.joinToString { "`$it`" }}")
+            }
+            variant?.let { add("Only the `${it.value}` variant") }
+        }
+
+        if (filterLines.isNotEmpty()) {
+            appendLine("No tests were discovered.")
+            appendLine()
+            appendLine("The following filters were applied:")
+            append(filterLines.joinToString("\n") { "- $it" })
+        } else {
+            append("No tests were discovered in the project.")
+        }
+    }
+}
+
+private fun TestFilter.toUserReadableString(): String = when (this) {
+    is TestFilter.SpecificTestInclude -> buildString {
+        append("Test `$testName`")
+        if (paramTypes != null) append(" with parameter types (${paramTypes.joinToString(", ") { "`$it`" }})")
+        append(" in ")
+        append(if (nestedClassName != null) "nested class `$nestedClassName` of `$suiteFqn`" else "`$suiteFqn`")
+    }
+    is TestFilter.SpecificSuiteInclude -> "Tests in the class or suite `$fullyQualifiedName`"
+    is TestFilter.SuitePattern -> when (mode) {
+        FilterMode.Include -> "Tests in classes or suites matching `$pattern`"
+        FilterMode.Exclude -> "Tests in classes or suites not matching `$pattern`"
+    }
+    is TestFilter.TagExpression -> when (mode) {
+        FilterMode.Include -> "Tests which tags match `$expression`"
+        FilterMode.Exclude -> "Tests which tags don't match `$expression`"
     }
 }

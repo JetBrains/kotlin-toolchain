@@ -7,7 +7,6 @@ package org.jetbrains.amper.cli.test.web
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertFileExists
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
-import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
@@ -308,7 +307,11 @@ class WasmJsProjectsTest : CliTestBase() {
         val testResult = runCli(
             projectDir = projectDir,
             "test",
+            // CLI fails if no tests are discovered
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
         )
+        testResult.assertStderrContains("No tests were discovered in the project.")
 
         testResult.readTelemetrySpans().spansNamed("kotlin-wasm_js-compilation").assertNone()
         testResult.readTelemetrySpans().spansNamed("kotlin-wasm_js-link").assertNone()

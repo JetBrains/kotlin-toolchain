@@ -7,21 +7,17 @@ package org.jetbrains.amper.cli.test.testing
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
-import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.SystemInfo
-import org.jetbrains.amper.telemetry.getListAttribute
 import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.WindowsOnly
-import org.jetbrains.amper.test.spans.spansNamed
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.Tag
 import kotlin.io.path.readText
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertContains
-import kotlin.test.assertEquals
 
 @Tag("cli-test-group-testing")
 class TestCommandTest : CliTestBase() {
@@ -52,17 +48,68 @@ class TestCommandTest : CliTestBase() {
     }
 
     @Test
+    fun `fails when there are no test sources`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("jvm-kotlin-test-no-test-sources"),
+            "test",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+        result.assertStderrContains("No tests were discovered in the project.")
+    }
+
+    // Differs from the previous test because there are test sources (but no tests defined in them)
+    @Test
     fun `fails when no tests were discovered`() = runSlowTest {
-        // Testing a module should fail if there are some test sources, but no tests were found
-        // for example it'll automatically fail if you run your tests with TestNG, but specified JUnit in settings
-        // see `native test no tests`
         val result = runCli(
             projectDir = testProject("jvm-kotlin-test-no-tests"),
             "test",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
         )
-        result.assertStderrContains("JVM tests failed for module 'jvm-kotlin-test-no-tests' with exit code 2 (no tests were discovered) (see errors above)")
+        result.assertStderrContains("No tests were discovered in the project.")
+    }
+
+    @Test
+    fun `succeeds when all discovered tests are skipped`() = runSlowTest {
+        runCli(
+            projectDir = testProject("jvm-kotlin-test-all-skipped"),
+            "test",
+            expectedExitCode = 0,
+        )
+    }
+
+    @Test
+    fun `no tests discovered message lists applied filters`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("jvm-kotlin-test-no-tests"),
+            "test",
+            "--include-test=com.example.MyTest/Nested.myTest(java.lang.String,kotlin.Int)",
+            "--include-test=com.example.OtherTest.otherTest",
+            "--include-classes=com.example.Specific",
+            "--include-classes=com.example.*Wildcard",
+            "--exclude-classes=com.example.Excluded*",
+            "--include-tag=slow & !flaky",
+            "--exclude-tag=broken",
+            "--platform=jvm",
+            "--include-module=jvm-kotlin-test-no-tests",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+        result.assertStderrContains("No tests were discovered.")
+        result.assertStderrContains("The following filters were applied:")
+        // The message is markdown, so the backticks are not visible in the rendered output
+        listOf(
+            "Test myTest with parameter types (java.lang.String, kotlin.Int) in nested class Nested of com.example.MyTest",
+            "Test otherTest in com.example.OtherTest",
+            "Tests in the class or suite com.example.Specific",
+            "Tests in classes or suites matching com.example.*Wildcard",
+            "Tests in classes or suites not matching com.example.Excluded*",
+            "Tests which tags match slow & !flaky",
+            "Tests which tags don't match broken",
+            "Only platforms: jvm",
+            "From modules: jvm-kotlin-test-no-tests",
+        ).forEach { result.assertStderrContains(it) }
     }
 
     @Test
@@ -136,7 +183,7 @@ class TestCommandTest : CliTestBase() {
 
     // This ensures we're not tempted to force the XMLOutputFactoru inside our own test framework
     @Test
-    fun                                                                                                                                                                                                                                             `jvm test with custom XMLOutputFactory`() = runSlowTest {
+    fun `jvm test with custom XMLOutputFactory`() = runSlowTest {
         val projectRoot = testProject("jvm-test-custom-xml-factory")
         val result = runCli(projectDir = projectRoot, "test")
 
@@ -183,11 +230,7 @@ class TestCommandTest : CliTestBase() {
     }
 
     @Test
-    @WindowsOnly
-    @Ignore("AMPER-474")
     fun `native test no tests`() = runSlowTest {
-        // Testing a module should fail if there are some test sources, but no tests were found
-
         val projectContext = testProject("native-test-no-tests")
         val result = runCli(
             projectDir = projectContext,
@@ -195,7 +238,7 @@ class TestCommandTest : CliTestBase() {
             expectedExitCode = 1,
             assertEmptyStdErr = false,
         )
-        result.assertStderrContains("Some message about `no tests were discovered`")
+        result.assertStderrContains("No tests were discovered in the project.")
     }
 
     @Test

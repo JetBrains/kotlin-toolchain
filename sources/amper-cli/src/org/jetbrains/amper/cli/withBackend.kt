@@ -20,6 +20,7 @@ import org.jetbrains.amper.events.GlobalScopedEvent
 import org.jetbrains.amper.events.OperationScopedEvent
 import org.jetbrains.amper.events.sink.EventSink
 import org.jetbrains.amper.events.sink.GlobalEventSink
+import org.jetbrains.amper.events.sink.NoopEventSink
 import org.jetbrains.amper.events.sink.plus
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.tasks.AllRunSettings
@@ -38,6 +39,7 @@ internal suspend fun <T> withBackend(
     includePluginTasks: Boolean = true,
     xcodeBuildSettingsResolution: XcodeBuildSettingsResolution = XcodeBuildSettingsResolution,
     taskExecutionMode: TaskExecutor.Mode = TaskExecutor.Mode.FAIL_FAST,
+    additionalDomainEventSink: EventSink<OperationScopedEvent.DomainEvent> = NoopEventSink,
     block: suspend (AmperBackend) -> T,
 ): T {
     contract {
@@ -61,6 +63,7 @@ internal suspend fun <T> withBackend(
                 includePluginTasks = includePluginTasks,
                 xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
                 taskExecutionMode = taskExecutionMode,
+                additionalDomainEventSink = additionalDomainEventSink,
                 block = block,
             )
         } finally {
@@ -82,6 +85,7 @@ internal suspend fun <T> withBackend(
     includePluginTasks: Boolean = true,
     xcodeBuildSettingsResolution: XcodeBuildSettingsResolution = XcodeBuildSettingsResolution,
     taskExecutionMode: TaskExecutor.Mode = TaskExecutor.Mode.FAIL_FAST,
+    additionalDomainEventSink: EventSink<OperationScopedEvent.DomainEvent> = NoopEventSink,
     block: suspend (AmperBackend) -> T,
 ): T {
     contract {
@@ -106,7 +110,7 @@ internal suspend fun <T> withBackend(
             sink = createTestRenderingSink(
                 terminal = cliContext.terminal,
                 testRunSettings = runSettings,
-            ),
+            ) + additionalDomainEventSink,
         ),
     )
     return spanBuilder("Run command with backend").use {
