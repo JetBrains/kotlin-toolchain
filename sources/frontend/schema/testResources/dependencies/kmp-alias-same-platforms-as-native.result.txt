@@ -1,0 +1,287 @@
+Fragments:
+  apple
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      src@apple
+    Fragment dependencies:
+      native (REFINE)
+    Settings: {
+    }
+
+  appleTest
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      test@apple
+    Fragment dependencies:
+      nativeTest (REFINE)
+      apple (FRIEND)
+    Settings: {
+    }
+
+  common
+    External dependencies:
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+    Src folders:
+      src
+    Fragment dependencies:
+    Settings: {
+    }
+
+  commonTest
+    External dependencies:
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+    Src folders:
+      test
+    Fragment dependencies:
+      common (FRIEND)
+    Settings: {
+    }
+
+  ios
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      src@ios
+    Fragment dependencies:
+      apple (REFINE)
+      nonJvm (REFINE)
+    Settings: {
+    }
+
+  iosArm64
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      src@iosArm64
+    Fragment dependencies:
+      ios (REFINE)
+    Settings: {
+    }
+
+  iosArm64Test
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      test@iosArm64
+    Fragment dependencies:
+      iosTest (REFINE)
+      iosArm64 (FRIEND)
+    Settings: {
+    }
+
+  iosTest
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      test@ios
+    Fragment dependencies:
+      appleTest (REFINE)
+      nonJvmTest (REFINE)
+      ios (FRIEND)
+    Settings: {
+    }
+
+  jvm
+    External dependencies:
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+    Src folders:
+      src@jvm
+    Fragment dependencies:
+      common (REFINE)
+    Settings: {
+    }
+
+  jvmTest
+    External dependencies:
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-junit5:2.4.20, trace=TransformedValueTrace(description=because the test engine is junit-5, sourceValue=SchemaValue(property = org.jetbrains.amper.frontend.schema.Settings.junit, value = JUNIT5), definitionTrace=DefaultTrace, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      test@jvm
+    Fragment dependencies:
+      commonTest (REFINE)
+      jvm (FRIEND)
+    Settings: {
+    }
+
+  macos
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      src@macos
+    Fragment dependencies:
+      apple (REFINE)
+      nonJvm (REFINE)
+    Settings: {
+    }
+
+  macosArm64
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      src@macosArm64
+    Fragment dependencies:
+      macos (REFINE)
+    Settings: {
+    }
+
+  macosArm64Test
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      test@macosArm64
+    Fragment dependencies:
+      macosTest (REFINE)
+      macosArm64 (FRIEND)
+    Settings: {
+    }
+
+  macosTest
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      test@macos
+    Fragment dependencies:
+      appleTest (REFINE)
+      nonJvmTest (REFINE)
+      macos (FRIEND)
+    Settings: {
+    }
+
+  native
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      src@native
+    Fragment dependencies:
+      common (REFINE)
+    Settings: {
+    }
+
+  nativeTest
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      test@native
+    Fragment dependencies:
+      commonTest (REFINE)
+      native (FRIEND)
+    Settings: {
+    }
+
+  nonJvm
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      src@nonJvm
+    Fragment dependencies:
+      common (REFINE)
+    Settings: {
+    }
+
+  nonJvmTest
+    External dependencies:
+      MavenDependency(coordinates=androidx.collection:collection:1.5.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=com.squareup.okio:okio:3.9.1, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.compose.collection-internal:collection:1.10.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-annotations-common:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains:annotations:24.1.0, trace=PsiTrace(psiElement=YAML plain scalar text, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      test@nonJvm
+    Fragment dependencies:
+      commonTest (REFINE)
+      nonJvm (FRIEND)
+    Settings: {
+    }
+
+Artifacts:
+  isTest: false
+  [iosArm64, jvm, macosArm64]
+    Fragments:
+      iosArm64
+      jvm
+      macosArm64
+  isTest: true
+  [iosArm64, jvm, macosArm64]
+    Fragments:
+      iosArm64Test
+      jvmTest
+      macosArm64Test
+Repositories for resolution:
+  - id: mavenCentral
+    url: https://cache-redirector.jetbrains.com/kotlin/repo1.maven.org/maven2
+  - id: mavenGoogle
+    url: https://maven.google.com
