@@ -1492,10 +1492,10 @@ The Kotlin Toolchain provides support for it out of the box.
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#more-control-over-serialization-formats" class="md-nav__link">
+  <a href="#serialization-formats" class="md-nav__link">
     <span class="md-ellipsis">
       
-        More control over serialization formats
+        Serialization formats
       
     </span>
   </a>
@@ -2546,10 +2546,10 @@ The Kotlin Toolchain provides support for it out of the box.
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#more-control-over-serialization-formats" class="md-nav__link">
+  <a href="#serialization-formats" class="md-nav__link">
     <span class="md-ellipsis">
       
-        More control over serialization formats
+        Serialization formats
       
     </span>
   </a>
@@ -2584,29 +2584,32 @@ The Kotlin Toolchain provides support for it out of the box.
 <h1 id="kotlin-serialization">Kotlin Serialization<a class="headerlink" href="#kotlin-serialization" title="Permanent link">&para;</a></h1>
 <p><a href="https://github.com/Kotlin/kotlinx.serialization">Kotlin Serialization</a> is the official multiplatform and multi-format
 serialization library for Kotlin.</p>
-<p>If you need to (de)serialize Kotlin classes to/from JSON, you can enable Kotlin Serialization it in its simplest form:
-<div class="highlight"><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">serialization</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">  </span><span class="c1"># JSON or other format</span>
-</code></pre></div>
-This snippet configures the compiler to process <code>@Serializable</code> classes, and adds dependencies on the serialization
-runtime and JSON format libraries.</p>
-<p>You can also customize the version of the Kotlin Serialization libraries using the full form of the configuration:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">serialization</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
-<span class="w">      </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.7.3</span>
-</code></pre></div>
-<h2 id="more-control-over-serialization-formats">More control over serialization formats<a class="headerlink" href="#more-control-over-serialization-formats" title="Permanent link">&para;</a></h2>
-<p>If you don't need serialization format dependencies or if you need more control over them, you can use the following:
+<p>To (de)serialize Kotlin classes to/from JSON, enable Kotlin Serialization and add the format dependency:
 <div class="highlight"><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">serialization</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enabled</span><span class="w"> </span><span class="c1"># configures the compiler and serialization runtime library</span>
+
+<span class="nt">dependencies</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$kotlin.serialization.json</span><span class="w">  </span><span class="c1"># JSON or other format</span>
 </code></pre></div>
-This snippet on its own only configures the compiler and the serialization runtime library, but doesn't add any format
-dependency. However, it adds a built-in catalog with official serialization formats libraries, which you can use in
-your <code>dependencies</code> section. This is useful in multiple cases:</p>
+This configures the compiler to process <code>@Serializable</code> classes, and adds dependencies on the serialization
+runtime and JSON format libraries.</p>
+<p>You can also customize the version of the Kotlin Serialization libraries using the full form:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">kotlin</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">serialization</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.11.0</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The <code>serialization: json</code> shortcut and the <code>serialization.format</code> property are deprecated.
+Use <code>serialization: enabled</code> with catalog dependencies instead.</p>
+</div>
+<h2 id="serialization-formats">Serialization formats<a class="headerlink" href="#serialization-formats" title="Permanent link">&para;</a></h2>
+<p><code>serialization: enabled</code> only configures the compiler and the serialization runtime library, but doesn't add any format
+dependency. It adds a built-in catalog with official serialization formats libraries, which you can use in
+your <code>dependencies</code> section. This gives you control in multiple cases:</p>
 <ul>
 <li>
 <p>if you need a format dependency only in tests:
@@ -2670,7 +2673,7 @@ your <code>dependencies</code> section. This is useful in multiple cases:</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="May 12, 2026 15:51:35 UTC">May 12, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 12, 2026 16:45:21 UTC">October 12, 2026</span>
   </span>
 
     
