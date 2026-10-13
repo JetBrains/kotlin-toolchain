@@ -61,10 +61,10 @@ class ExecutableJarTask(
             inputFiles = compiledClasses + runtimeDependencies,
         ) {
             outputJarPath.createParentDirectories().writeExecutableJar(
-                compiledClasses,
-                runtimeDependencies,
-                springBootLoaderJarUnpacked,
-                mainClass
+                compiledClasses = compiledClasses,
+                runtimeDependencies = runtimeDependencies,
+                springBootLoaderJarUnpacked = springBootLoaderJarUnpacked,
+                mainClass = mainClass,
             )
             [outputJarPath]
         }

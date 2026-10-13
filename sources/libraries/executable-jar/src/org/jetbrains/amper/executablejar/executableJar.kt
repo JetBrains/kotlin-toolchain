@@ -9,11 +9,15 @@ import org.jetbrains.amper.jar.JarConfig
 import org.jetbrains.amper.jar.ZipConfig
 import org.jetbrains.amper.jar.ZipInput
 import org.jetbrains.amper.jar.writeJar
+import org.jetbrains.amper.stdlib.hashing.sha256String
 import org.jetbrains.amper.stdlib.io.path.withTempDir
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.div
+import kotlin.io.path.extension
 import kotlin.io.path.invariantSeparatorsPathString
+import kotlin.io.path.name
+import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.writeText
 
 /**
@@ -78,9 +82,8 @@ private fun prepareJarInputs(
     springBootLoaderJar: Path,
     tempDir: Path,
 ): List<ZipInput> {
-    val libInputs = runtimeDependencies.map { jar ->
-        ZipInput(path = jar, destPathInArchive = ArchivePaths.libDirectory / jar.fileName)
-    }
+    val libInputs = runtimeDependencies.asDeduplicatedLibInputs()
+
     return buildList {
         add(ZipInput(path = springBootLoaderJar, destPathInArchive = Path(".")))
 
@@ -96,13 +99,67 @@ private fun prepareJarInputs(
     }
 }
 
+/**
+ * Returns [ZipInput]s corresponding to these [Path]s, with destinations in [ArchivePaths.libDirectory].
+ *
+ * Inputs with identical filenames are allowed, and their destination is a unique name based on the hash of their
+ * contents.
+ *
+ * ### Design note
+ *
+ * It is possible that some code accesses its containing JAR name, and renaming JARs does break such code.
+ * That said, this shouldn't be expected to work when bundling everything into a single JAR anyway, so we consider
+ * this behavior acceptable. Also, frankly, there isn't really an alternative - the users can't do anything about the
+ * names of the JARs of their dependencies.
+ */
+private fun List<Path>.asDeduplicatedLibInputs(): List<ZipInput> {
+    val collidingJarNames = groupingBy { it.name }
+        .eachCount()
+        .filterValues { it > 1 }
+        .keys
+    val renamedDestinations = mutableMapOf<String, Path>()
+    return mapNotNull { jar ->
+        val destFilename = if (jar.name in collidingJarNames) {
+            jar.fileNameWithHashSuffix().also { newName ->
+                // colliding files with identical names but ALSO identical contents
+                val collidingIdenticalJar = renamedDestinations.put(newName, jar)
+                require(collidingIdenticalJar == null) {
+                    """
+                        Cannot build executable JAR with dependencies that have the same name and contents:
+                          $jar
+                          $collidingIdenticalJar
+                        Two JARs with identical names are allowed, but not if they have identical contents.
+                    """.trimIndent()
+                }
+            }
+        } else {
+            jar.name
+        }
+        ZipInput(path = jar, destPathInArchive = ArchivePaths.libDirectory / destFilename)
+    }
+}
+
+/**
+ * Returns this Path's [name][Path.name] with a hash of the file contents added before the extension.
+ *
+ * Example:
+ * ```kotlin
+ * Path("dir/foo.jar").fileNameWithHashSuffix() == "foo-80b6d614.jar"
+ * ```
+ */
+private fun Path.fileNameWithHashSuffix(): String {
+    val sha = sha256String().take(8)
+    val ext = extension
+    return if (ext.isEmpty()) "$nameWithoutExtension-$sha" else "${nameWithoutExtension}-$sha.$ext"
+}
+
 private fun createJarConfig(mainClassName: String?): JarConfig = JarConfig(
     mainClassFqn = loaderMainClass,
     manifestProperties = createManifestProperties(mainClassName),
     zipConfig = ZipConfig(
         // The format requires STORE mode for nested jars
         // See https://docs.spring.io/spring-boot/specification/executable-jar/restrictions.html
-        compressionStrategy = Selective(listOf("^BOOT-INF/lib/.+")),
+        compressionStrategy = Selective(["^BOOT-INF/lib/.+"]),
     ),
 )
 
