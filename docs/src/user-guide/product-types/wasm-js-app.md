@@ -146,6 +146,6 @@ Use `--format teamcity` for machine-readable TeamCity service messages on standa
 ./kotlin test -m my-module --format teamcity
 ```
 
-Kotlin/Wasm tests do not currently generate JUnit XML report files.
+In Kotlin Toolchain 0.13.0, Kotlin/Wasm tests do not generate JUnit XML report files.
 
 See `./kotlin test --help` for CLI options and [Testing](../testing.md) for test dependencies and shared test settings.
