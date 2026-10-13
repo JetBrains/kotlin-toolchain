@@ -4,5 +4,17 @@ product:
     - android
 
 settings:
+  junit: junit-4
   android:
     parcelize: enabled
+  jvm:
+    test:
+      freeJvmArgs:
+        # Robolectric transitively depends on conscrypt, which requires native access
+        - --enable-native-access=ALL-UNNAMED
+      systemProperties:
+        robolectric.dependency.repo.url: https://cache-redirector.jetbrains.com/repo1.maven.org/maven2
+        robolectric.dependency.repo.id: jetbrains-cache-redirector
+
+test-dependencies@android:
+  - org.robolectric:robolectric:4.16
