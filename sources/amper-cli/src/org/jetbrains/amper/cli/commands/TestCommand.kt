@@ -170,7 +170,7 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
         help = "Root directory for JVM, Android, and Wasm browser test reports, absolute or relative to the current " +
                 "working directory. Defaults to 'reports' under the build directory. Each module and platform " +
                 "has a separate subdirectory. This does not change the console format.",
-    ).path(canBeFile = false)
+    ).path(canBeFile = false).convert { it.toAbsolutePath() }
 
     private val variant by buildTypeOption(
         help = "Test the specified variant of the project. Debug variant is tested by default."

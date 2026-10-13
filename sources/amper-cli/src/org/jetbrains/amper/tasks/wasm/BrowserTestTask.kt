@@ -18,6 +18,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.withContext
 import org.jetbrains.amper.ProcessRunner
+import org.jetbrains.amper.cli.UserReadableError
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
@@ -54,6 +55,7 @@ import org.jetbrains.amper.testevents.TestId
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.div
@@ -94,44 +96,62 @@ internal class BrowserTestTask(
             ?: return EmptyTaskResult
         val nodeModulesPath = dependenciesResult.requireSingleDependency<NpmInstallTask.Result>().nodeModulesPath
 
-        val allTestsSucceeded = withJUnitXmlReport(reportPath, taskName.id.value) { reportEvents ->
-            coroutineScope {
-                val server = setupServer(port = 0, appDirectory = builtApp).also { server ->
-                    server.application.routing {
-                        nodeModulesPath?.let {
-                            staticFiles("/$VENDORS", it.toFile())
-                        }
-                    }
-                }.startSuspend(wait = false)
-
-                try {
-                    val url = server.engine.getUrl(
-                        segment = TEST_PAGE_NAME,
-                        parameters = parameters {
-                            runSettings.testFilters.toTestFilterArgs().forEach {
-                                append(KOTLIN_TEST_ARG_QUERY_PARAM, it)
-                            }
-                        },
+        var testFailure: UserReadableError? = null
+        try {
+            withJUnitXmlReport(reportPath, taskName.id.value) { reportEvents ->
+                if (!runTestsWithServer(builtApp, nodeModulesPath, reportEvents)) {
+                    testFailure = UserReadableError(
+                        "Kotlin/Wasm $platform tests failed for module '${module.userReadableName}' (see errors above)",
+                        exitCode = 1,
                     )
-                    logger.debug("Opening URL: $url")
-
-                    val node = context(executionContext.eventSink) {
-                        nodeJsProvider.downloadNodeJs(NODE_JS_VERSION)
-                    }
-                    val pnpm = context(executionContext.eventSink) {
-                        pnpmProvider.downloadPnpm(PNPM_VERSION)
-                    }
-                    installPlaywrightCompatibleChromium(node, pnpm)
-                    runTestsInBrowser(url, node, reportEvents)
-                } finally {
-                    server.stop()
                 }
             }
+        } catch (reportError: Throwable) {
+            val failure = testFailure ?: throw reportError
+            failure.addSuppressed(reportError)
+            throw failure
         }
-        if (!allTestsSucceeded) {
-            userReadableError("Kotlin/Wasm $platform tests failed for module '${module.userReadableName}' (see errors above)")
-        }
+        val failure = testFailure
+        if (failure != null) throw failure
         return EmptyTaskResult
+    }
+
+    context(executionContext: TaskGraphExecutionContext)
+    private suspend fun runTestsWithServer(
+        builtApp: Path,
+        nodeModulesPath: Path?,
+        reportEvents: EventSink<TestEvent>,
+    ): Boolean = coroutineScope {
+        val server = setupServer(port = 0, appDirectory = builtApp).also { server ->
+            server.application.routing {
+                nodeModulesPath?.let {
+                    staticFiles("/$VENDORS", it.toFile())
+                }
+            }
+        }.startSuspend(wait = false)
+
+        try {
+            val url = server.engine.getUrl(
+                segment = TEST_PAGE_NAME,
+                parameters = parameters {
+                    runSettings.testFilters.toTestFilterArgs().forEach {
+                        append(KOTLIN_TEST_ARG_QUERY_PARAM, it)
+                    }
+                },
+            )
+            logger.debug("Opening URL: $url")
+
+            val node = context(executionContext.eventSink) {
+                nodeJsProvider.downloadNodeJs(NODE_JS_VERSION)
+            }
+            val pnpm = context(executionContext.eventSink) {
+                pnpmProvider.downloadPnpm(PNPM_VERSION)
+            }
+            installPlaywrightCompatibleChromium(node, pnpm)
+            runTestsInBrowser(url, node, reportEvents)
+        } finally {
+            server.stop()
+        }
     }
 
     /** Playwright installs all possible browsers in its instantiation.
