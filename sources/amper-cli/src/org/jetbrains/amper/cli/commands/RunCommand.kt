@@ -39,6 +39,7 @@ import org.jetbrains.amper.cli.terminal.interactiveSelectList
 import org.jetbrains.amper.cli.terminal.promptModuleSelection
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withBackend
+import org.jetbrains.amper.cli.withBackendWithoutWidget
 import org.jetbrains.amper.compose.reload.HotReloadDelegate
 import org.jetbrains.amper.compose.reload.HotReloadLoop
 import org.jetbrains.amper.events.sink.GlobalEventSink
@@ -323,7 +324,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
              NOTE: When the actual "run app" code is no longer a task, this will stop being a problem,
               as the task graph will only be used for *build* and running is going to be detached from that.
             */
-            withBackend(
+            withBackendWithoutWidget(
                 cliContext = state.cliContext,
                 globalEventSink = globalEventSink,
                 model = state.model,
@@ -340,7 +341,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
         override suspend fun rebuildClasses(
             state: HotReloadLoop.State<ProjectCliContext>,
         ) = runCatchingUserReadableError {
-            withBackend(
+            withBackendWithoutWidget(
                 cliContext = state.cliContext,
                 globalEventSink = globalEventSink,
                 model = state.model,

@@ -51,7 +51,7 @@ internal suspend fun <T> withBackend(
         val backgroundScope = childScope("project background scope")
 
         try {
-            withBackend(
+            withBackendWithoutWidget(
                 cliContext = cliContext,
                 model = model,
                 globalEventSink = createProgressStatusWidgetSink(
@@ -76,7 +76,7 @@ internal suspend fun <T> withBackend(
     }
 }
 
-internal suspend fun <T> withBackend(
+internal suspend fun <T> withBackendWithoutWidget(
     cliContext: ProjectCliContext,
     model: Model,
     globalEventSink: GlobalEventSink,
