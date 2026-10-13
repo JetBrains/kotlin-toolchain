@@ -12,6 +12,7 @@ dependencies:
 
 test-dependencies:
   - //sources/amper-telemetry
+  - //sources/amper-test-events
   - //sources/libraries/telemetry
   - //sources/test-base
   - $libs.gradle.toolingApi: compile-only

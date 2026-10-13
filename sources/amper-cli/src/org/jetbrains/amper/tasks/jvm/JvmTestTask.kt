@@ -117,7 +117,8 @@ class JvmTestTask(
 
         taskOutputRoot.path.clean()
 
-        val reportsDir = buildOutputRoot.path / "reports" / module.userReadableName / platform.schemaValue
+        val reportsRoot = runSettings.testReportsDir ?: (buildOutputRoot.path / "reports")
+        val reportsDir = reportsRoot / module.userReadableName / platform.schemaValue
         reportsDir.clean()
 
         val junitArgs = buildList {

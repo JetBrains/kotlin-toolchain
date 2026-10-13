@@ -27,6 +27,7 @@ dependencies:
   - //sources/amper-teamcity-events
   - //sources/amper-telemetry
   - //sources/amper-test-events
+  - //sources/amper-test-reports
   - //sources/amper-wrapper
   - //sources/core
   - //sources/core-intellij

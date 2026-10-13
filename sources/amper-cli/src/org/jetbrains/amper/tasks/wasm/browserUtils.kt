@@ -62,7 +62,9 @@ private fun ConnectorType.toUrlProtocol() = when {
 }
 
 /**
- * Reuse kotlin-web-helpers with mocha after [this PR](https://github.com/Kotlin/kotlin-web-helpers/pull/5) is merged
+ * Completion marker for the kotlin-test adapter harness.
+ * TODO KTC-5857: replace the harness with kotlin-web-helpers and Mocha. Browser ESM support is available since
+ * kotlin-web-helpers 3.5.0 (https://github.com/Kotlin/kotlin-web-helpers/pull/5).
  */
 internal const val TESTS_FINISHED_MARKER = "__KOTLIN_TOOLCHAIN_BROWSER_TESTS_FINISHED__"
 

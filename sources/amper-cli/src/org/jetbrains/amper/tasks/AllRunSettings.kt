@@ -54,6 +54,9 @@ sealed interface TestRunSettings : RunSettings {
      * How the test results should be formatted.
      */
     val testResultsFormat: TestResultsFormat
+
+    /** Root directory for file reports, or null to use the build directory's `reports` subdirectory. */
+    val testReportsDir: Path?
 }
 
 enum class TestResultsFormat(val cliValue: String) {
@@ -156,6 +159,7 @@ data class AllRunSettings(
     override val workingDir: Path = Path("."),
     override val testFilters: List<TestFilter> = emptyList(),
     override val testResultsFormat: TestResultsFormat = TestResultsFormat.Pretty,
+    override val testReportsDir: Path? = null,
     override val userJvmArgs: List<String> = emptyList(),
     override val userJvmMainClass: String? = null,
     override val deviceId: String? = null,

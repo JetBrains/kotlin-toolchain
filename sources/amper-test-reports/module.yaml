@@ -1,0 +1,14 @@
+product: jvm/lib
+
+description: File reports from structured Kotlin Toolchain test events.
+
+apply:
+  - //sources/common.module-template.yaml
+
+dependencies:
+  - //sources/amper-test-events
+  - //sources/libraries/junit-xml-report
+
+test-dependencies:
+  - //sources/amper-teamcity-events
+  - $libs.kotlinx.coroutines.test

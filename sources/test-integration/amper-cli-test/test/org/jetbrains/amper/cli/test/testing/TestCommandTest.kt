@@ -17,14 +17,44 @@ import org.jetbrains.amper.test.WindowsOnly
 import org.jetbrains.amper.test.spans.spansNamed
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.Tag
+import kotlin.io.path.createParentDirectories
+import kotlin.io.path.div
+import kotlin.io.path.exists
 import kotlin.io.path.readText
+import kotlin.io.path.writeText
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @Tag("cli-test-group-testing")
 class TestCommandTest : CliTestBase() {
+
+    @Test
+    fun `relative report directory is resolved from the CLI working directory for nested modules`() = runSlowTest {
+        val projectRoot = newEmptyProjectDir(setupWrappers = true)
+        (projectRoot / "project.yaml").writeText("modules: [app]")
+        (projectRoot / "app" / "module.yaml").createParentDirectories().writeText("product: jvm/lib")
+        (projectRoot / "app" / "test" / "ExampleTest.kt").createParentDirectories().writeText(
+            "import kotlin.test.Test\nclass ExampleTest { @Test fun succeeds() {} }"
+        )
+
+        runCli(projectRoot, "test", "--reports-dir=ci reports")
+
+        assertTrue((projectRoot / "ci reports" / "app" / "jvm" / "TEST-junit-jupiter.xml").exists())
+        assertFalse((projectRoot / "app" / "ci reports").exists())
+    }
+
+    @Test
+    fun `jvm test report directory is configurable`() = runSlowTest {
+        val projectRoot = testProject("jvm-kotlin-test-smoke")
+        val result = runCli(projectRoot, "test", "--reports-dir=ci reports")
+
+        assertTrue((projectRoot / "ci reports" / "jvm-kotlin-test-smoke" / "jvm" / "TEST-junit-jupiter.xml").exists())
+        assertFalse((result.buildDir / "reports").exists())
+    }
 
     @Test
     fun `jvm-kotlin-test-smoke test`() = runSlowTest {

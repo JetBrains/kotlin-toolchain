@@ -146,6 +146,7 @@ fun ProjectTasksBuilder.setupWasmJsTasks(moduleDependenciesMap: Map<AmperModule,
                         context.openTelemetry,
                     ),
                     taskOutputPath = context.getTaskOutputPath(testTaskName),
+                    buildOutputRoot = context.buildOutputRoot,
                 ),
                 dependsOn = [buildAppTaskName, npmInstallTask]
             )

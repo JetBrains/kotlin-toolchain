@@ -1,0 +1,4 @@
+product: wasm-js/app
+
+test-dependencies:
+  - org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2

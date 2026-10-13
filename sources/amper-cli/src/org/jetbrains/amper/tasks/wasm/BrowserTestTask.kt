@@ -13,14 +13,20 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.withContext
 import org.jetbrains.amper.ProcessRunner
+import org.jetbrains.amper.cli.UserReadableError
+import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.engine.TestTask
 import org.jetbrains.amper.engine.requireSingleDependency
+import org.jetbrains.amper.events.sink.EventSink
+import org.jetbrains.amper.events.sink.plus
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.nodejs.NodeJsDist
@@ -42,19 +48,24 @@ import org.jetbrains.amper.tasks.web.disablePnpmUpdateNotifier
 import org.jetbrains.amper.teamcity.events.TeamCityMessageProcessor
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
+import org.jetbrains.amper.test.reports.withJUnitXmlReport
 import org.jetbrains.amper.test.tagFiltersWouldMatchUntaggedTests
+import org.jetbrains.amper.testevents.TestEvent
 import org.jetbrains.amper.testevents.TestId
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import java.nio.file.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.div
 import kotlin.io.path.pathString
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 private val TEST_RUN_TIMEOUT: Duration = 30.seconds
 
-class BrowserTestTask(
+internal class BrowserTestTask(
     override val taskName: TaskName,
     override val platform: Platform,
     override val buildType: BuildType,
@@ -64,12 +75,18 @@ class BrowserTestTask(
     private val nodeJsProvider: NodeJsProvider,
     private val pnpmProvider: PnpmProvider,
     private val taskOutputPath: TaskOutputRoot,
+    private val buildOutputRoot: AmperBuildOutputRoot,
 ) : TestTask {
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(
         dependenciesResult: List<TaskResult>,
     ): TaskResult {
+        val reportsRoot = runSettings.testReportsDir ?: (buildOutputRoot.path / "reports")
+        val reportPath = reportsRoot / module.userReadableName /
+                platform.schemaValue / buildType.value / "TEST-browser.xml"
+        // A skipped or interrupted invocation must not leave a successful report from the previous run.
+        reportPath.deleteIfExists()
         if (!runSettings.testFilters.tagFiltersWouldMatchUntaggedTests()) {
             logger.debug("Skipping tests of module '${module.userReadableName}' for platform '${platform.pretty}' " +
                     "because Kotlin/Wasm tests are all untagged, and the given tag filters exclude untagged tests")
@@ -79,49 +96,61 @@ class BrowserTestTask(
             ?: return EmptyTaskResult
         val nodeModulesPath = dependenciesResult.requireSingleDependency<NpmInstallTask.Result>().nodeModulesPath
 
-        return coroutineScope {
-            val server = setupServer(
-                port = 0,
-                appDirectory = builtApp,
-            ).also { server ->
-                server.application.routing {
-                    nodeModulesPath?.let {
-                        staticFiles("/$VENDORS", it.toFile())
-                    }
+        var testFailure: UserReadableError? = null
+        try {
+            withJUnitXmlReport(reportPath, taskName.id.value) { reportEvents ->
+                if (!runTestsWithServer(builtApp, nodeModulesPath, reportEvents)) {
+                    testFailure = UserReadableError(
+                        "Kotlin/Wasm $platform tests failed for module '${module.userReadableName}' (see errors above)",
+                        exitCode = 1,
+                    )
                 }
-            }.startSuspend(wait = false)
-
-            try {
-                val url = server.engine.getUrl(
-                    segment = TEST_PAGE_NAME,
-                    parameters = parameters {
-                        runSettings.testFilters.toTestFilterArgs().forEach {
-                            append(KOTLIN_TEST_ARG_QUERY_PARAM, it)
-                        }
-                    },
-                )
-
-                logger.debug("Opening URL: $url")
-
-                val node = context(executionContext.eventSink) {
-                    nodeJsProvider.downloadNodeJs(NODE_JS_VERSION)
-                }
-                val pnpm = context(executionContext.eventSink) {
-                    pnpmProvider.downloadPnpm(PNPM_VERSION)
-                }
-
-                installPlaywrightCompatibleChromium(node, pnpm)
-
-                val allTestsSucceeded = runTestsInBrowser(url, node)
-
-                if (!allTestsSucceeded) {
-                    userReadableError("Kotlin/Wasm $platform tests failed for module '${module.userReadableName}' (see errors above)")
-                }
-
-                EmptyTaskResult
-            } finally {
-                server.stop()
             }
+        } catch (reportError: Throwable) {
+            val failure = testFailure ?: throw reportError
+            failure.addSuppressed(reportError)
+            throw failure
+        }
+        val failure = testFailure
+        if (failure != null) throw failure
+        return EmptyTaskResult
+    }
+
+    context(executionContext: TaskGraphExecutionContext)
+    private suspend fun runTestsWithServer(
+        builtApp: Path,
+        nodeModulesPath: Path?,
+        reportEvents: EventSink<TestEvent>,
+    ): Boolean = coroutineScope {
+        val server = setupServer(port = 0, appDirectory = builtApp).also { server ->
+            server.application.routing {
+                nodeModulesPath?.let {
+                    staticFiles("/$VENDORS", it.toFile())
+                }
+            }
+        }.startSuspend(wait = false)
+
+        try {
+            val url = server.engine.getUrl(
+                segment = TEST_PAGE_NAME,
+                parameters = parameters {
+                    runSettings.testFilters.toTestFilterArgs().forEach {
+                        append(KOTLIN_TEST_ARG_QUERY_PARAM, it)
+                    }
+                },
+            )
+            logger.debug("Opening URL: $url")
+
+            val node = context(executionContext.eventSink) {
+                nodeJsProvider.downloadNodeJs(NODE_JS_VERSION)
+            }
+            val pnpm = context(executionContext.eventSink) {
+                pnpmProvider.downloadPnpm(PNPM_VERSION)
+            }
+            installPlaywrightCompatibleChromium(node, pnpm)
+            runTestsInBrowser(url, node, reportEvents)
+        } finally {
+            server.stop()
         }
     }
 
@@ -195,7 +224,11 @@ class BrowserTestTask(
     }
 
     context(executionContext: TaskGraphExecutionContext)
-    private suspend fun runTestsInBrowser(url: String, node: NodeJsDist): Boolean {
+    private suspend fun runTestsInBrowser(
+        url: String,
+        node: NodeJsDist,
+        reportEvents: EventSink<TestEvent>,
+    ): Boolean {
         val nodeExecutable = node.executable.pathString
 
         return spanBuilder("wasm-js-browser-test")
@@ -207,6 +240,7 @@ class BrowserTestTask(
                 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
                 newSingleThreadContext(taskName.id.value).use { context ->
                     withContext(context) {
+                        val testContext = currentCoroutineContext()
                         var finished = false
 
                         val createOptions = Playwright.CreateOptions().setEnv(
@@ -217,7 +251,7 @@ class BrowserTestTask(
                         )
 
                         val teamCityMessageProcessor = TeamCityMessageProcessor(
-                            executionContext.eventSink,
+                            executionContext.eventSink + reportEvents,
                             onTestFailed = { id, _ ->
                                 failedTests.add(id)
                             }
@@ -252,7 +286,10 @@ class BrowserTestTask(
                                         }
 
                                         page.navigate(url)
-                                        page.waitForCondition { finished }
+                                        page.waitForCondition {
+                                            testContext.ensureActive()
+                                            finished
+                                        }
                                     }
                                 }
                             }
