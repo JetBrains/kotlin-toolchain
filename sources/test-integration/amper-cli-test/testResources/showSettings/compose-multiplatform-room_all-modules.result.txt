@@ -129,6 +129,103 @@ settings@android:
     signArtifacts: false  # default
     version: null  # default
 
+Module: ios-app
+
+settings@iosSimulatorArm64:
+  compose:
+    enabled: true  # module.yaml
+    experimental: {}  # default
+    resources:
+      exposedAccessors: false  # default
+      nameOfResClass: Res  # default
+      packageName:   # default
+    version: 1.12.1  # default
+  jvm:
+    jdk:
+      acknowledgedLicenses: []  # default
+      distributions: null  # default
+      selectionMode: auto  # default
+      version: 25  # default
+    release: 25  # default, from ${jdk.version}
+    runtimeClasspathMode: jars  # default
+    storeParameterNames: false  # default
+    test:
+      extraEnvironment: {}  # default
+      freeJvmArgs: []  # default
+      junitPlatformVersion: 6.1.3  # default
+      systemProperties: {}  # default
+  kotlin:
+    allOpen:
+      annotations: null  # default
+      enabled: false  # default
+      presets: null  # default
+    allWarningsAsErrors: false  # default
+    apiVersion: null  # default, from ${languageVersion}
+    compileIncrementally: true  # default, based on ${version}: enabled for Kotlin compiler >= 2.4.0
+    compilerPlugins: []  # default
+    dataframe:
+      enabled: false  # default
+      version: 1.0.0-rc01  # default
+    explicitApi: disable  # default
+    freeCompilerArgs: null  # default
+    ksp:
+      processorOptions: {}  # default
+      processors: []  # default
+      version: 2.3.12  # default
+    languageFeatures: null  # default
+    languageVersion: null  # default
+    noArg:
+      annotations: null  # default
+      enabled: false  # default
+      invokeInitializers: false  # default
+      presets: null  # default
+    optIns: null  # default
+    powerAssert:
+      enabled: false  # default
+      functions:
+        - kotlin.assert  # default
+    progressiveMode: false  # default
+    rpc:
+      annotationTypeSafetyEnabled: true  # default
+      applyBom: true  # default
+      enabled: false  # default
+      version: 0.10.4  # default
+    serialization:
+      enabled: false  # default, based on ${format}: enabled when specified
+      format: null  # default
+      version: 1.11.0  # default
+    suppressWarnings: false  # default
+    verbose: false  # default
+    version: 2.4.20  # default
+  ktor:
+    applyBom: true  # default
+    enabled: false  # default
+    version: 3.6.0  # default
+  publishing:
+    artifactId: null  # default, from ${name}
+    checksums:
+      - md5  # default
+      - sha1  # default
+    enabled: false  # default
+    group: null  # default
+    mavenCentral:
+      enabled: false  # default
+      publishingMode: manual  # default
+    name: null  # default
+    pom:
+      description: null  # default
+      developers: []  # default
+      licenses: []  # default
+      name: null  # default
+      scm:
+        connection: null  # default, based on ${url}: SCM connection URL from repo URL
+        developerConnection: null  # default, based on ${url}: SCM developer connection URL from repo URL
+        url: null  # default
+      url: null  # default
+    publishSources: false  # default
+    signArtifacts: false  # default
+    version: null  # default
+
 Module: jvm-app
 
 settings@jvm:
