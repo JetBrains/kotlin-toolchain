@@ -10,6 +10,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.enum
+import com.github.ajalt.clikt.parameters.types.path
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.options.UserJvmArgsOption
 import org.jetbrains.amper.cli.options.buildTypeOption
@@ -164,6 +165,13 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
         """.trimIndent(),
     ).enum<TestResultsFormat> { it.cliValue }.default(TestResultsFormat.Pretty)
 
+    private val reportsDir by option(
+        "--reports-dir",
+        help = "Root directory for JVM, Android, and Wasm browser test reports, absolute or relative to the current " +
+                "working directory. Defaults to 'reports' under the build directory. Each module and platform " +
+                "has a separate subdirectory. This does not change the console format.",
+    ).path(canBeFile = false)
+
     private val variant by buildTypeOption(
         help = "Test the specified variant of the project. Debug variant is tested by default."
     )
@@ -186,6 +194,7 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
                 userJvmArgs = jvmArgs,
                 testFilters = allTestFilters,
                 testResultsFormat = format,
+                testReportsDir = reportsDir,
             ),
         ) { backend ->
             if (allTestFilters.isNotEmpty() && includeModules.isEmpty() && excludeModules.isEmpty() && model.modules.size > 1) {

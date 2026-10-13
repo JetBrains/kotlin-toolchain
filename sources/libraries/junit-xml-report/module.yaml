@@ -1,0 +1,6 @@
+product: jvm/lib
+
+description: Writing JUnit XML test reports for CI tools.
+
+apply:
+  - //sources/common.module-template.yaml

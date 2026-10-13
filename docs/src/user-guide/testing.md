@@ -95,3 +95,37 @@ test-settings:
   kotlin:
     languageVersion: 2.2 # overrides settings.kotlin.languageVersion 2.1
 ```
+
+## Test reports
+
+JVM, Android, and Wasm browser tests write JUnit XML reports under `build/reports/`.
+Use `--reports-dir` to choose a different root directory, independently of the console output format:
+
+```shell
+./kotlin test --reports-dir="ci-reports" --format=teamcity
+```
+
+Relative report paths are resolved from the current working directory. The default report root follows `--build-dir`.
+JVM and Android reports are grouped by module and platform. Wasm browser reports also separate build variants:
+
+```text
+ci-reports/<module>/wasmJs/debug/TEST-browser.xml
+```
+
+For example, a CI report collector can read `ci-reports/**/TEST-*.xml`. Collect reports even when the test command fails.
+The XML records successful, failed, and ignored tests, durations, failure details, and captured output.
+The `--format` option still controls only console output. File reporting observes the same test events and does not
+change which tests run. A report-writing error fails the command; if the test run also failed, its original error is retained.
+
+A completed Wasm browser run with no reported tests writes a report with zero tests. Ignored tests count as skipped
+even when no tests execute; the report follows the events emitted by the test adapter. Tasks skipped because
+they have no sources or because tag filters exclude Wasm tests do not write a report. Each executed browser test task
+removes its previous report first, so these skipped runs cannot leave an old success report for that task.
+Reports for other modules and variants are preserved.
+
+Browser timeouts, page errors, and coroutine cancellation preserve completed results and mark unfinished tests as errors.
+If the runner fails while no test is running, the report contains a synthetic `Test runner` error case.
+Reports are finalized during normal task cleanup; forcibly terminating the process cannot guarantee a final report.
+
+Wasm reports currently use the existing Kotlin test adapter. Mocha migration, CTRF, and Open Test Reporting support
+are separate follow-up work.
