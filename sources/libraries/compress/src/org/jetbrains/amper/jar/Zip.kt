@@ -11,6 +11,7 @@ import java.nio.file.attribute.FileTime
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipEntry.STORED
+import java.util.zip.ZipException
 import java.util.zip.ZipOutputStream
 import kotlin.io.path.PathWalkOption
 import kotlin.io.path.div
@@ -110,6 +111,7 @@ data class ZipInput(
  * Parts of this process can be configured using the given [config].
  *
  * Files and directories are added to the archive in an order that depends on [ZipConfig.reproducibleFileOrder].
+ * Duplicate file entries are not allowed, and fail with a [ZipException].
  */
 fun Path.writeZip(inputs: List<ZipInput>, config: ZipConfig = ZipConfig()) {
     ZipOutputStream(outputStream().buffered()).use { out ->
@@ -128,7 +130,7 @@ internal fun ZipOutputStream.writeZip(inputs: List<ZipInput>, config: ZipConfig)
         .asSequence()
         .flatMap { it.findEntriesToAdd() }
         .sortedIf(config.reproducibleFileOrder)
-        .distinctBy { it.entryName }
+        .distinctDirectories()
         .forEach { spec ->
             writeZipEntry(spec.entryName, spec.inputFile, config)
         }
@@ -155,6 +157,28 @@ private data class ZipEntrySpec(val entryName: String, val inputFile: Path)
 
 private fun Sequence<ZipEntrySpec>.sortedIf(condition: Boolean): Sequence<ZipEntrySpec> =
     if (condition) sortedBy { it.entryName } else this
+
+/**
+ * For each group of duplicate directory entries, return only the first one.
+ * This is harmless because we can put files from any number of sources into the same directory (so long as the files
+ * themselves don't collide).
+ *
+ * This function fails early on duplicate _file_ entries (they would fail anyway in the [ZipOutputStream]).
+ */
+private fun Sequence<ZipEntrySpec>.distinctDirectories(): Collection<ZipEntrySpec> {
+    return groupingBy { it.entryName }
+        .reduce { entryName, spec1, spec2 ->
+            if (entryName.endsWith('/')) {
+                spec1
+            } else {
+                throw ZipException("duplicate entry '$entryName'. " +
+                        "Trying to write both of these files to the same entry:\n" +
+                        "  ${spec1.inputFile}\n" +
+                        "  ${spec2.inputFile}")
+            }
+        }
+        .values
+}
 
 /**
  * Determines if an entry should be stored uncompressed based on the compression strategy.

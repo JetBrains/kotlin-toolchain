@@ -9,6 +9,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 import java.time.Instant
+import java.util.zip.ZipException
 import java.util.zip.ZipEntry.DEFLATED
 import java.util.zip.ZipEntry.STORED
 import kotlin.io.path.Path
@@ -189,20 +190,36 @@ class ZipTest {
     }
 
     @Test
-    fun `writes only the first input when several inputs map to the same entry name`() {
+    fun `fails for duplicate file entries`() {
         val first = inputsDir.createTextFile("first/dup.txt", text = "first")
         val second = inputsDir.createTextFile("second/dup.txt", text = "second")
 
-        zipFile.writeZip(
-            [
-                ZipInput(path = first, destPathInArchive = Path("dup.txt")),
-                ZipInput(path = second, destPathInArchive = Path("dup.txt")),
-            ]
+        val exception = assertFailsWith<ZipException> {
+            zipFile.writeZip([
+                ZipInput(first, Path("dup.txt")),
+                ZipInput(second, Path("dup.txt")),
+            ])
+        }
+        assertEquals(
+            expected = """
+                duplicate entry 'dup.txt'. Trying to write both of these files to the same entry:
+                  ${inputsDir / "first/dup.txt"}
+                  ${inputsDir / "second/dup.txt"}
+            """.trimIndent(),
+            actual = exception.message
         )
+    }
 
-        val expectedNames: List<String> = ["dup.txt"]
-        assertEquals(expectedNames, zipFile.readZipEntryNames())
-        assertEquals("first", zipFile.readZipEntry("dup.txt").text)
+    @Test
+    fun `merges duplicate directory entries`() {
+        val first = (inputsDir / "first").createDirectories()
+        first.createTextFile("sub/a.txt")
+        val second = (inputsDir / "second").createDirectories()
+        second.createTextFile("sub/b.txt")
+
+        zipFile.writeZip([ZipInput(first, Path("merged")), ZipInput(second, Path("merged"))])
+
+        assertEquals(["merged/", "merged/sub/", "merged/sub/a.txt", "merged/sub/b.txt"], zipFile.readZipEntryNames())
     }
 
     @Test
