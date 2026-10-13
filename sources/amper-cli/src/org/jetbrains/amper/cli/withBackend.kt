@@ -14,11 +14,7 @@ import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.events.createProgressStatusWidgetSink
 import org.jetbrains.amper.cli.events.createTestRenderingSink
 import org.jetbrains.amper.engine.TaskExecutor
-import org.jetbrains.amper.events.BuildScopedEvent
-import org.jetbrains.amper.events.Event
-import org.jetbrains.amper.events.GlobalScopedEvent
-import org.jetbrains.amper.events.OperationScopedEvent
-import org.jetbrains.amper.events.sink.EventSink
+import org.jetbrains.amper.events.sink.DomainEventFlatteningSink
 import org.jetbrains.amper.events.sink.GlobalEventSink
 import org.jetbrains.amper.events.sink.NoopEventSink
 import org.jetbrains.amper.events.sink.plus
@@ -34,12 +30,12 @@ import kotlin.contracts.contract
 internal suspend fun <T> withBackend(
     cliContext: ProjectCliContext,
     model: Model,
+    globalEventSink: GlobalEventSink = NoopEventSink,
     runSettings: AllRunSettings = AllRunSettings(),
     cinteropGenSettings: CinteropGenSettings = CinteropGenSettings(),
     includePluginTasks: Boolean = true,
     xcodeBuildSettingsResolution: XcodeBuildSettingsResolution = XcodeBuildSettingsResolution,
     taskExecutionMode: TaskExecutor.Mode = TaskExecutor.Mode.FAIL_FAST,
-    additionalDomainEventSink: EventSink<OperationScopedEvent.DomainEvent> = NoopEventSink,
     block: suspend (AmperBackend) -> T,
 ): T {
     contract {
@@ -54,7 +50,7 @@ internal suspend fun <T> withBackend(
             withBackendWithoutWidget(
                 cliContext = cliContext,
                 model = model,
-                globalEventSink = createProgressStatusWidgetSink(
+                globalEventSink = globalEventSink + createProgressStatusWidgetSink(
                     terminal = cliContext.terminal,
                     coroutineScope = backgroundScope,
                 ),
@@ -63,7 +59,6 @@ internal suspend fun <T> withBackend(
                 includePluginTasks = includePluginTasks,
                 xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
                 taskExecutionMode = taskExecutionMode,
-                additionalDomainEventSink = additionalDomainEventSink,
                 block = block,
             )
         } finally {
@@ -85,7 +80,6 @@ internal suspend fun <T> withBackendWithoutWidget(
     includePluginTasks: Boolean = true,
     xcodeBuildSettingsResolution: XcodeBuildSettingsResolution = XcodeBuildSettingsResolution,
     taskExecutionMode: TaskExecutor.Mode = TaskExecutor.Mode.FAIL_FAST,
-    additionalDomainEventSink: EventSink<OperationScopedEvent.DomainEvent> = NoopEventSink,
     block: suspend (AmperBackend) -> T,
 ): T {
     contract {
@@ -110,25 +104,11 @@ internal suspend fun <T> withBackendWithoutWidget(
             sink = createTestRenderingSink(
                 terminal = cliContext.terminal,
                 testRunSettings = runSettings,
-            ) + additionalDomainEventSink,
+            ),
         ),
     )
     return spanBuilder("Run command with backend").use {
         block(backend)
-    }
-}
-
-private class DomainEventFlatteningSink(
-    val sink: EventSink<OperationScopedEvent.DomainEvent>,
-) : EventSink<Event> {
-    override fun emit(event: Event) {
-        when (event) {
-            is GlobalScopedEvent.BuildEvent -> emit(event.event)
-            is BuildScopedEvent.TaskEvent -> emit(event.event)
-            is OperationScopedEvent.ChildOperationEvent -> emit(event.event)
-            is OperationScopedEvent.DomainEvent -> sink.emit(event)
-            else -> Unit  // Not interesting
-        }
     }
 }
 

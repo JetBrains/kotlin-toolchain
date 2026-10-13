@@ -20,6 +20,7 @@ import org.jetbrains.amper.cli.options.userJvmArgsOption
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withBackend
 import org.jetbrains.amper.engine.TaskExecutor
+import org.jetbrains.amper.events.sink.DomainEventFlatteningSink
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.TestResultsFormat
@@ -184,7 +185,7 @@ internal class TestCommand : AmperModelAwareCommand(name = "test") {
             cliContext = cliContext,
             model = model,
             taskExecutionMode = TaskExecutor.Mode.GREEDY, // try to execute as many tests as possible
-            additionalDomainEventSink = discoveryTracker,
+            globalEventSink = DomainEventFlatteningSink(discoveryTracker),
             runSettings = AllRunSettings(
                 userJvmArgs = jvmArgs,
                 testFilters = allTestFilters,
