@@ -122,10 +122,6 @@ class JvmTestTask(
 
         val junitArgs = buildList {
             add("--disable-banner")
-
-            // TODO I certainly want to have it here by default (too many real life errors when tests are skipped for a some reason)
-            //  but probably there should be an option to disable it
-            add("--fail-if-no-tests")
             add("--reports-dir=${reportsDir}")
 
             addAll(runSettings.testFilters.toJUnitSelectorAndFilterArgs(compileTask.classesOutputRoots))
@@ -213,11 +209,7 @@ class JvmTestTask(
                 // TODO exit code from JUnit launcher should be carefully become some kind of exit code for entire Amper run
                 //  + one more interesting case: if we reported some failed tests to TeamCity, exit code of Amper should be 0,
                 //  since the build will be failed anyway and it'll just have one more useless build failure about exit code
-                if (result.exitCode.value != 0 &&
-                    // This exit code means that no tests were discovered. This situation is not an error, because build might have other tests.
-                    // The overall test discovery across all modules happens in the TestCommand itself.
-                    result.exitCode.value != 2
-                ) {
+                if (result.exitCode.value != 0) {
                     userReadableError("JVM tests failed for module '${module.userReadableName}' with exit code ${result.exitCode} (see errors above)")
                 }
                 EmptyTaskResult
