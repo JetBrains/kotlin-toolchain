@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.cli.terminal
 
-import com.github.ajalt.mordant.rendering.AnsiLevel.NONE
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyle
 import com.github.ajalt.mordant.rendering.Theme
@@ -13,7 +12,7 @@ import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.useWithoutCoroutines
 
 internal fun createMordantTerminal(): Terminal = spanBuilder("Initialize Mordant terminal").useWithoutCoroutines {
-    val defaultTerm = Terminal(
+    Terminal(
         theme = createAmperTerminalTheme(),
         // The default of 79 is unreasonably small. The places affected by this are:
         //   * CI build log UIs
@@ -21,18 +20,6 @@ internal fun createMordantTerminal(): Terminal = spanBuilder("Initialize Mordant
         //   * our own tests (which might check stdout and expect longer lines)
         nonInteractiveWidth = 1500,
     )
-
-    // Workaround while waiting for https://github.com/ajalt/mordant/pull/290
-    if (System.getenv("TERM_PROGRAM")?.lowercase() == "ghostty") {
-        Terminal(
-            theme = defaultTerm.theme,
-            // These are the conditions checked in the default TerminalDetection before checking the terminal name.
-            // Even if Ghostty were supported by Mordant, it wouldn't force hyperlinks if these conditions were false.
-            hyperlinks = defaultTerm.terminalInfo.outputInteractive && defaultTerm.terminalInfo.ansiLevel != NONE,
-        )
-    } else {
-        defaultTerm
-    }
 }
 
 private fun createAmperTerminalTheme(): Theme = Theme {
