@@ -19,6 +19,10 @@ internal fun createMordantTerminal(): Terminal = spanBuilder("Initialize Mordant
         //   * file containing redirected output of the Kotlin Toolchain
         //   * our own tests (which might check stdout and expect longer lines)
         nonInteractiveWidth = 1500,
+        // Many of the Mordant interactive output capabilities that we use (clearing lines, coloring, progress escape
+        // sequences, etc.) are not supported on dumb terminals:
+        // See dumb capabilities at: https://invisible-island.net/ncurses/terminfo.src.html
+        interactive = if (System.getenv("TERM") == "dumb") false else null,
     )
 }
 
