@@ -21,6 +21,9 @@ just like `src@platform/` folders for sources.
 By default, the [Kotlin test](https://kotlinlang.org/api/latest/kotlin.test/) framework is preconfigured for each
 platform.
 
+For Kotlin/Wasm browser tests, see [Kotlin/Wasm testing](product-types/wasm-js-app.md#testing) for execution,
+test selection, and output details.
+
 !!! note "JUnit version"
 
     On the JVM and Android platforms, tests run with JUnit, and JUnit 5 is used by default.
