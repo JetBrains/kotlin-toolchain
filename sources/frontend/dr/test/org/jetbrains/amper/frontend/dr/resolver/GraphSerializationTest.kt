@@ -17,8 +17,10 @@ import org.jetbrains.amper.dependency.resolution.MavenDependencyNode
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.dependency.resolution.SerializableDependencyNode
 import org.jetbrains.amper.dependency.resolution.diagnostics.Message
+import org.jetbrains.amper.dependency.resolution.distinctBfsSequence
 import org.jetbrains.amper.dependency.resolution.group
 import org.jetbrains.amper.dependency.resolution.isOrphan
+import org.jetbrains.amper.dependency.resolution.prettyPrint
 import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.runTestWithMdc
 import org.junit.jupiter.api.Tag

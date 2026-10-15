@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.dependency.resolution
 
-import org.jetbrains.amper.test.Dirs
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path

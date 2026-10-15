@@ -9,6 +9,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.decodeFromStream
 import org.jetbrains.amper.CliReportingMavenResolver
 import org.jetbrains.amper.dependency.resolution.MavenDependencyNode
+import org.jetbrains.amper.dependency.resolution.distinctBfsSequence
 import org.jetbrains.amper.dependency.resolution.swiftpm.SwiftPMDependenciesMetadataNode
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings

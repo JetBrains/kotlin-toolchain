@@ -34,6 +34,8 @@ import org.jetbrains.amper.dependency.resolution.RootDependencyNodeWithContext
 import org.jetbrains.amper.dependency.resolution.SerializableDependencyNode
 import org.jetbrains.amper.dependency.resolution.SerializableRootDependencyNode
 import org.jetbrains.amper.dependency.resolution.asRootCacheEntryKey
+import org.jetbrains.amper.dependency.resolution.dependencyPaths
+import org.jetbrains.amper.dependency.resolution.distinctBfsSequence
 import org.jetbrains.amper.dependency.resolution.getDependenciesGraphInput
 import org.jetbrains.amper.dependency.resolution.infoSpanBuilder
 import org.jetbrains.amper.frontend.AmperModule

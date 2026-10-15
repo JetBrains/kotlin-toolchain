@@ -24,7 +24,9 @@ import org.jetbrains.amper.dependency.resolution.diagnostics.Message
 import org.jetbrains.amper.dependency.resolution.diagnostics.Severity
 import org.jetbrains.amper.dependency.resolution.diagnostics.SimpleDiagnosticDescriptor
 import org.jetbrains.amper.dependency.resolution.diagnostics.detailedMessage
+import org.jetbrains.amper.dependency.resolution.distinctBfsSequence
 import org.jetbrains.amper.dependency.resolution.getDefaultFileCacheBuilder
+import org.jetbrains.amper.dependency.resolution.prettyPrint
 import org.jetbrains.amper.dependency.resolution.unwrap
 import org.jetbrains.amper.dependency.resolution.withFilteredChildren
 import org.jetbrains.amper.frontend.Model
