@@ -379,9 +379,11 @@ abstract class BaseDRTest {
 
         internal inline fun <reified MessageT : Message> assertTheOnlyNonInfoMessage(
             root: DependencyNode,
-            severity: Severity
+            severity: Severity,
+            transitively: Boolean = false
         ): MessageT {
-            val messages = root.children.single().messages.defaultFilterMessages()
+            val nodes = if (transitively) root.distinctBfsSequence() else sequenceOf(root)
+            val messages = nodes.flatMap{ node -> node.children.flatMap { it.messages.defaultFilterMessages() } }
             val message = messages.singleOrNull()
             assertNotNull(message, "A single error message is expected, but found: ${messages.toSet()}")
             assertEquals(

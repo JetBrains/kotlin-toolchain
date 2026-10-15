@@ -3047,6 +3047,50 @@ class BuildGraphTest : BaseDRTest() {
         downloadAndAssertFiles(testInfo, root)
     }
 
+    /**
+     * This test checks that appropriate diagnostic [PlatformsAreNotSupported] is reported for KMP library
+     * that doesn't support one of the platforms the resolution is done for
+     *
+     * In particular, `androidx.sqlite:sqlite-bundled:2.8.0-alpha01` doesn't support wasmJs.
+     * Diagnostic is reported when it is resolved in jvm+wasmJs resolution context.
+     */
+    @Test
+    fun `androidx_sqlite sqlite-bundled 2_8_0-alpha01 wasmJs multiplatform`(testInfo: TestInfo) = runDrTest {
+        val root = doTest(
+            testInfo,
+            dependency = "androidx.sqlite:sqlite-bundled:2.8.0-alpha01",
+            scope = ResolutionScope.COMPILE,
+            platform = setOf(ResolutionPlatform.JVM, ResolutionPlatform.WASM_JS),
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_DL_GOOGLE_ANDROID),
+            verifyMessages = false
+        )
+
+        assertTheOnlyNonInfoMessage<PlatformsAreNotSupported>(root, severity = Severity.ERROR, transitively = true)
+    }
+
+    /**
+     * This test checks that appropriate diagnostic [PlatformsAreNotSupported] is reported for KMP library
+     * that doesn't support one the platforms the resolution is done for.
+     * Resolution in single context follows another execution path than resolution in multiplatform context,
+     * so this test doesn't duplicate the previous one, but compliments it.
+     *
+     * In particular, `androidx.sqlite:sqlite-bundled:2.8.0-alpha01` doesn't support wasmJs.
+     * Diagnostic is reported when it is resolved in wasmJs resolution context.
+     */
+    @Test
+    fun `androidx_sqlite sqlite-bundled 2_8_0-alpha01 wasmJs single platform`(testInfo: TestInfo) = runDrTest {
+        val root = doTest(
+            testInfo,
+            dependency = "androidx.sqlite:sqlite-bundled:2.8.0-alpha01",
+            scope = ResolutionScope.COMPILE,
+            platform = setOf(ResolutionPlatform.WASM_JS),
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_DL_GOOGLE_ANDROID),
+            verifyMessages = false
+        )
+
+        assertTheOnlyNonInfoMessage<PlatformsAreNotSupported>(root, severity = Severity.ERROR, transitively = true)
+    }
+
     private fun assertEquals(@Language("text") expected: String, root: DependencyNode) =
         assertEquals(expected, root.prettyPrint().trimEnd())
 }

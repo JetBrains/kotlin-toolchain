@@ -1320,7 +1320,7 @@ class MavenDependencyImpl internal constructor(
 
                 val validVariants = resolveVariants(moduleMetadata, context.settings, platform)
 
-                if (validVariants.isEmpty()) {
+                if (validVariants.withoutDocumentationAndMetadata.isEmpty()) {
                     reportVariantMismatchForLibrary(diagnosticsReporter, moduleMetadata, setOf(platform))
                 } else {
                     validVariants.also {
