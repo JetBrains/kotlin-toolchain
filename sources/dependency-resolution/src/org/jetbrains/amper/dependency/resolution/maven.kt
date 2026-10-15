@@ -591,17 +591,14 @@ interface MavenDependencyConstraint {
     val module: String
     val version: Version
 
+    /**
+     * Constraints equal by content share a single graph entry, whatever their implementation
+     * (a serialized graph might combine nodes restored from the cache with nodes resolved anew).
+     */
     fun toSerializableReference(graphContext: DependencyGraphContext): MavenDependencyConstraintReference {
-        return graphContext.getMavenDependencyConstraintReference(this)
-            ?: run {
-                // 1. register plain
-                val newNodePlain = MavenDependencyConstraintPlain(group, module, version)
-                val newReference = graphContext.registerMavenDependencyConstraintPlain(this, newNodePlain)
-
-                // 2. enrich it with references
-
-                newReference
-            }
+        val constraintPlain = MavenDependencyConstraintPlain(group, module, version)
+        return graphContext.getMavenDependencyConstraintReference(constraintPlain)
+            ?: graphContext.registerMavenDependencyConstraintPlain(constraintPlain, constraintPlain)
     }
 }
 
