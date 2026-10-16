@@ -38,9 +38,9 @@ class ProjectTemplatesTest {
         val expectedTemplates = mapOf(
             "compose-android" to "Android Application (Compose Multiplatform)",
             "compose-desktop" to "JVM GUI application (Compose Multiplatform)",
-            "compose-multiplatform" to "Kotlin Multiplatform Application (Compose Multiplatform)",
+            "kotlin-multiplatform-app" to "Kotlin Multiplatform Application (Compose Multiplatform)",
             "jvm-cli" to "JVM console application",
-            "kmp-lib" to "Kotlin Multiplatform library",
+            "kotlin-multiplatform-library" to "Kotlin Multiplatform library",
             "ktor-server" to "Ktor server application",
             "spring-boot-kotlin" to "Spring Boot application (Kotlin)",
         )
@@ -72,7 +72,7 @@ class ProjectTemplatesTest {
             .filter { template -> template.listFiles().any { it.relativePath == ".mcp.json" } }
             .map { it.id }
 
-        assertEquals(["compose-desktop", "compose-multiplatform"], templatesWithHotReloadMcp.sorted())
+        assertEquals(["compose-desktop", "kotlin-multiplatform-app"], templatesWithHotReloadMcp.sorted())
         AmperProjectTemplates.availableTemplates
             .filter { it.id in templatesWithHotReloadMcp }
             .forEach { template ->
@@ -83,8 +83,8 @@ class ProjectTemplatesTest {
     }
 
     @Test
-    fun `Compose template uses placeholders for module names`() {
-        val projectYaml = Path("resources/templates/compose-multiplatform/project.yaml").readText()
+    fun `Kotlin Multiplatform template uses placeholders for module names`() {
+        val projectYaml = Path("resources/templates/kotlin-multiplatform-app/project.yaml").readText()
         TemplatePlaceholder.entries.filter { it.fixedValue != null }.forEach { placeholder ->
             assertContains(projectYaml, placeholder.text)
         }
@@ -112,7 +112,7 @@ class ProjectTemplatesTest {
 
     @Test
     fun `extraction substitutes the given project id and name in every file`() = withTempDir { outputDir ->
-        composeMultiplatformTemplate.listFiles().forEach {
+        kotlinMultiplatformTemplate.listFiles().forEach {
             it.extractTo(outputDir, projectId = TestProjectId, projectName = "My App")
         }
 
@@ -130,7 +130,7 @@ class ProjectTemplatesTest {
 
     @Test
     fun `extraction substitutes the given project id and name`() = withTempDir { outputDir ->
-        composeMultiplatformTemplate.extractTo(outputDir, projectId = "com.acme.demo", projectName = "My App")
+        kotlinMultiplatformTemplate.extractTo(outputDir, projectId = "com.acme.demo", projectName = "My App")
 
         assertContains((outputDir / "app/shared/src/App.kt").readText(), "package com.acme.demo")
         assertContains((outputDir / "server/src/Application.kt").readText(), "package com.acme.demo.server")
@@ -141,7 +141,7 @@ class ProjectTemplatesTest {
 
     @Test
     fun `extraction escapes the project name for each text format`() = withTempDir { outputDir ->
-        composeMultiplatformTemplate.extractTo(outputDir, projectName = "Bob's & <App>")
+        kotlinMultiplatformTemplate.extractTo(outputDir, projectName = "Bob's & <App>")
 
         assertContains(
             (outputDir / "app/androidApp/res/values/strings.xml").readText(),
@@ -191,8 +191,34 @@ class ProjectTemplatesTest {
         assertEquals(expected, outputDir.resolve(file.relativePath).readText())
     }
 
-    private val composeMultiplatformTemplate: AmperProjectTemplate
-        get() = AmperProjectTemplates.availableTemplates.single { it.id == "compose-multiplatform" }
+    @Test
+    fun `copying a file leaves placeholders untouched`() = withTempDir { tempDir ->
+        val source = tempDir.resolve("source.txt")
+        source.writeText("${TemplatePlaceholder.ProjectId.text}\n")
+        val file = TemplateFile(source.toUri().toURL(), "nested/file.txt")
+        val outputDir = tempDir.resolve("output")
+
+        file.copyTo(outputDir)
+
+        val expected = TemplatePlaceholder.ProjectId.text + System.lineSeparator()
+        assertEquals(expected, outputDir.resolve(file.relativePath).readText())
+    }
+
+    @Test
+    fun `only the kotlin-multiplatform template uses placeholders`() {
+        for (template in AmperProjectTemplates.availableTemplates.filter { it.id != "kotlin-multiplatform-app" }) {
+            for (file in template.listFiles().filterNot { isBinaryTemplateFile(it.relativePath) }) {
+                val text = file.resourceUrl.readText()
+                assertFalse(
+                    TemplatePlaceholder.entries.any { it.text in text },
+                    "Template '${template.id}' uses a placeholder in '${file.relativePath}'",
+                )
+            }
+        }
+    }
+
+    private val kotlinMultiplatformTemplate: AmperProjectTemplate
+        get() = AmperProjectTemplates.availableTemplates.single { it.id == "kotlin-multiplatform-app" }
 
     private fun AmperProjectTemplate.fileContent(relativePath: String): String =
         listFiles().single { it.relativePath == relativePath }.resourceUrl.readText()

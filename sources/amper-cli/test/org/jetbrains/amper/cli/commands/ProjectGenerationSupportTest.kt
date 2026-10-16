@@ -17,6 +17,7 @@ import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertContains
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -26,62 +27,31 @@ class ProjectGenerationSupportTest {
     lateinit var tempDir: Path
 
     @Test
-    fun `next steps combine the cd and build commands into one copyable line`() {
-        val recorder = TerminalRecorder()
-        val terminal = Terminal(terminalInterface = recorder)
+    fun `cd prefix enters a child directory`() {
+        val prefix = cdPrefix(Path("/work/myapp"), workingDir = Path("/work"), osFamily = OsFamily.Linux)
 
-        terminal.printProjectGeneratedNextSteps(
-            outputDir = Path("/work/myapp"),
-            workingDir = Path("/work"),
-            osFamily = OsFamily.Linux,
-        )
-
-        val output = recorder.output()
-        assertContains(output, "cd myapp && kotlin build")
-        assertContains(output, "IDE with the Kotlin Toolchain plugin")
+        assertEquals("cd myapp && ", prefix)
     }
 
     @Test
-    fun `next steps omit cd for generation in the current directory`() {
-        val recorder = TerminalRecorder()
-        val terminal = Terminal(terminalInterface = recorder)
+    fun `cd prefix is empty for the current directory`() {
+        val prefix = cdPrefix(Path("/work"), workingDir = Path("/work"), osFamily = OsFamily.Linux)
 
-        terminal.printProjectGeneratedNextSteps(
-            outputDir = Path("/work"),
-            workingDir = Path("/work"),
-            osFamily = OsFamily.Linux,
-        )
-
-        assertFalse("cd " in recorder.output())
-        assertContains(recorder.output(), "kotlin build")
+        assertEquals("", prefix)
     }
 
     @Test
-    fun `next steps quote child directories containing spaces`() {
-        val recorder = TerminalRecorder()
-        val terminal = Terminal(terminalInterface = recorder)
+    fun `cd prefix quotes child directories containing spaces`() {
+        val prefix = cdPrefix(Path("/work/My App"), workingDir = Path("/work"), osFamily = OsFamily.Linux)
 
-        terminal.printProjectGeneratedNextSteps(
-            outputDir = Path("/work/My App"),
-            workingDir = Path("/work"),
-            osFamily = OsFamily.Linux,
-        )
-
-        assertContains(recorder.output(), "cd 'My App' && kotlin build")
+        assertEquals("cd 'My App' && ", prefix)
     }
 
     @Test
-    fun `next steps quote child directories the Windows way`() {
-        val recorder = TerminalRecorder()
-        val terminal = Terminal(terminalInterface = recorder)
+    fun `cd prefix uses a Windows command separator`() {
+        val prefix = cdPrefix(Path("/work/My App"), workingDir = Path("/work"), osFamily = OsFamily.Windows)
 
-        terminal.printProjectGeneratedNextSteps(
-            outputDir = Path("/work/My App"),
-            workingDir = Path("/work"),
-            osFamily = OsFamily.Windows,
-        )
-
-        assertContains(recorder.output(), "cd \"My App\" && kotlin build")
+        assertEquals("cd \"My App\"; ", prefix)
     }
 
     @Test

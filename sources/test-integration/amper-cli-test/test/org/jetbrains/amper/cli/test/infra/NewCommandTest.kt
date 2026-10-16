@@ -11,6 +11,7 @@ import org.jetbrains.amper.cli.test.utils.assertStderrDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.jetbrains.amper.system.info.OsFamily
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
@@ -48,7 +49,8 @@ class NewCommandTest : CliTestBase() {
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
-        result.assertStdoutContains("cd myapp && kotlin build")
+        val cdPrefix = if (OsFamily.current.isWindows) "cd myapp; " else "cd myapp && "
+        result.assertStdoutContains("${cdPrefix}kotlin run")
         val projectRoot = workDir / "myapp"
         assertContains((projectRoot / "shared/src/App.kt").readText(), "package org.example.myapp")
         projectRoot.assertContainsRelativeFiles(
@@ -87,10 +89,12 @@ class NewCommandTest : CliTestBase() {
     @Test
     fun `new generates a Ktor server target`() = runSlowTest {
         val workDir = (nonRepositoryTempDir / "server-target").createDirectories()
-        runCli(
+        val result = runCli(
             workDir, "new", "myapp", "--target-platform=server",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
+        val cdPrefix = if (OsFamily.current.isWindows) "cd myapp; " else "cd myapp && "
+        result.assertStdoutContains("${cdPrefix}kotlin run")
 
         val projectRoot = workDir / "myapp"
         projectRoot.assertContainsRelativeFiles(
@@ -356,14 +360,17 @@ class NewCommandTest : CliTestBase() {
         val workDir = newEmptyProjectDir()
         for (command in ["new", "init"]) {
             val result = runCli(workDir, command, "--help", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
-            result.assertStdoutContains("non-empty dot-separated segments")
-            result.assertStdoutContains("start with a lowercase ASCII letter")
-            result.assertStdoutContains("lowercase ASCII letters and digits")
-            result.assertStdoutContains("Kotlin hard keywords")
-            result.assertStdoutContains("Java reserved words or literals")
-            result.assertStdoutContains("java or kotlin as the first segment")
-            result.assertStdoutDoesNotContain("Maximum length")
-            result.assertStdoutContains("org.example.project")
+            val normalizedHelp = result.stdoutClean.replace(Regex("\\s+"), " ")
+            assertContains(
+                normalizedHelp,
+                "The project id. Defaults to org.example.<normalized-project-name>. Used as the Kotlin package, " +
+                        "Android namespace/application id, and iOS bundle id. Changing it later requires updating " +
+                        "source packages, source layout, and platform configuration, so choose carefully. " +
+                        "Use at least two non-empty dot-separated segments (for example, 'org.example.project'). " +
+                        "Each segment must start with a lowercase ASCII letter and contain only lowercase ASCII " +
+                        "letters and digits. Do not use Kotlin hard keywords, Java reserved words or literals as " +
+                        "segments, or java or kotlin as the first segment. Ignored when --from-template is used.",
+            )
         }
     }
 
@@ -496,8 +503,23 @@ class NewCommandTest : CliTestBase() {
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
         result.assertStdoutContains("--project-id is ignored when generating from a template.")
+        val cdPrefix = if (OsFamily.current.isWindows) "cd myapp; " else "cd myapp && "
+        result.assertStdoutContains("${cdPrefix}kotlin run")
+        result.assertStdoutDoesNotContain("kotlin build")
         assertTrue((workDir / "myapp/module.yaml").isRegularFile())
         assertTrue((workDir / "myapp/src/main.kt").isRegularFile())
+    }
+
+    @Test
+    fun `kmp library template suggests building rather than running`() = runSlowTest {
+        val workDir = newEmptyProjectDir()
+        val result = runCli(
+            workDir, "new", "mylib", "--from-template=kotlin-multiplatform-library",
+            wrapperMode = WrapperMode.GlobalIntrinsicVersion,
+        )
+
+        result.assertStdoutContains("kotlin build")
+        result.assertStdoutDoesNotContain("kotlin run")
     }
 
     @Test

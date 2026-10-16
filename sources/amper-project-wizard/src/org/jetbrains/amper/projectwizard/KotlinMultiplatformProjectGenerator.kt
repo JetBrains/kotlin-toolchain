@@ -23,11 +23,8 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.writeBytes
 import kotlin.io.path.writeLines
 
-/** The project id used by the wizard when the user doesn't provide one. */
-const val DefaultProjectId = "org.example.project"
-
-/** The id of the `compose-multiplatform` project template in [AmperProjectTemplates.availableTemplates]. */
-internal const val ComposeMultiplatformTemplateId = "compose-multiplatform"
+/** The id of the `kotlin-multiplatform-app` project template in [AmperProjectTemplates.availableTemplates]. */
+internal const val KotlinMultiplatformTemplateId = "kotlin-multiplatform-app"
 
 private const val DerivedProjectIdPrefix = "org.example."
 
@@ -40,7 +37,13 @@ private const val HotReloadMcpConfigPath = ".mcp.json"
 /**
  * A generated project file, ready to be written to disk with [extractTo].
  */
-internal sealed interface GeneratedFile : ExtractableFile
+internal sealed interface GeneratedFile {
+    /** The path of this file relative to the project root. */
+    val relativePath: String
+
+    /** Writes this file under [outputDir], overwriting it if it already exists. */
+    fun extractTo(outputDir: Path)
+}
 
 internal data class BinaryGeneratedFile(
     override val relativePath: String,
@@ -66,7 +69,7 @@ internal data class TextGeneratedFile(
 
 /**
  * Generates the files for a parameterized Compose Multiplatform application, by pruning and rewriting the
- * `compose-multiplatform` project template (see the [ComposeMultiplatformTargetPlatform] docs for target semantics):
+ * `kotlin-multiplatform-app` project template (see the [KotlinMultiplatformTargetPlatform] docs for target semantics):
  *
  *  - only the modules for the selected [targets] are kept,
  *  - the Compose `shared` module is kept when at least one UI target is selected,
@@ -76,16 +79,16 @@ internal data class TextGeneratedFile(
  *  - KMP module `platforms:` lists are rewritten to only reference the platforms of the selected targets,
  *  - the `app/` directory is flattened when no server target is selected,
  *  - the [TemplatePlaceholders] are substituted in text files, with the project id and the escaped project name,
- *  - `.gitignore` and `.gitattributes` are added by [NewProjectMode.toExtractionSchema].
+ *  - `.gitignore` and `.gitattributes` are added by [KotlinMultiplatformApp.toExtractionSchema].
  */
-internal object ComposeMultiplatformProjectGenerator {
+internal object KotlinMultiplatformProjectGenerator {
 
-    private val template: AmperProjectTemplate
-        get() = AmperProjectTemplates.availableTemplates.singleOrNull { it.id == ComposeMultiplatformTemplateId }
-            ?: error("Template '$ComposeMultiplatformTemplateId' not found in the available project templates")
+    internal val template: AmperProjectTemplate
+        get() = AmperProjectTemplates.availableTemplates.singleOrNull { it.id == KotlinMultiplatformTemplateId }
+            ?: error("Template '$KotlinMultiplatformTemplateId' not found in the available project templates")
 
     fun generate(
-        targets: Set<ComposeMultiplatformTargetPlatform>,
+        targets: Set<KotlinMultiplatformTargetPlatform>,
         projectId: String,
         projectName: String,
     ): List<GeneratedFile> {
@@ -94,7 +97,7 @@ internal object ComposeMultiplatformProjectGenerator {
             "At least one target is required to generate a Compose Multiplatform project"
         }
 
-        val serverIncluded = ComposeMultiplatformTargetPlatform.SERVER in targets
+        val serverIncluded = KotlinMultiplatformTargetPlatform.SERVER in targets
         val sharedModuleTargets = targets.filter { it.sharedModuleSourceSetQualifier != null }
         val keptModuleDirs = buildSet {
             addAll(targets.map { it.moduleDir })
@@ -108,7 +111,7 @@ internal object ComposeMultiplatformProjectGenerator {
         return template.listFiles()
             .filter { it.isKeptProjectFile(keptModuleDirs) }
             .filter { it.matchesKeptSourceSets(keptSourceSetQualifiers) }
-            .filter { it.relativePath != HotReloadMcpConfigPath || ComposeMultiplatformTargetPlatform.DESKTOP in targets }
+            .filter { it.relativePath != HotReloadMcpConfigPath || KotlinMultiplatformTargetPlatform.DESKTOP in targets }
             .map { it.toGeneratedFile() }
             .map { it.rewriteIfProjectYaml(keptModuleDirs, flattenAppDirectory = !serverIncluded) }
             .map { it.rewriteIfReadme(targets, keptModuleDirs) }
@@ -154,12 +157,12 @@ internal object ComposeMultiplatformProjectGenerator {
     }
 
     private fun GeneratedFile.rewriteIfReadme(
-        targets: Set<ComposeMultiplatformTargetPlatform>,
+        targets: Set<KotlinMultiplatformTargetPlatform>,
         keptModuleDirs: Set<String>,
     ): GeneratedFile {
         if (relativePath != "README.md") return this
         return transformText { readme ->
-            val targetNames = ComposeMultiplatformTargetPlatform.entries
+            val targetNames = KotlinMultiplatformTargetPlatform.entries
                 .filter { it in targets }
                 .joinToString { it.displayName }
             ReadmeSectionsByModule.entries

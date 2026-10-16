@@ -9,7 +9,7 @@ import com.github.ajalt.mordant.rendering.AnsiLevel
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.terminal.TerminalRecorder
 import com.github.ajalt.mordant.terminal.prompt
-import org.jetbrains.amper.projectwizard.ComposeMultiplatformTargetPlatform
+import org.jetbrains.amper.projectwizard.KotlinMultiplatformTargetPlatform
 import org.jetbrains.amper.projectwizard.defaultProjectId
 import kotlin.io.path.Path
 import kotlin.test.Test
@@ -32,17 +32,16 @@ class NewProjectPromptsTest {
         }
         val terminal = Terminal(terminalInterface = recorder)
 
-        val selected = terminal.promptForComposeMultiplatformTargets()
+        val selected = terminal.promptForKotlinMultiplatformTargets()
 
-        val expected: Set<ComposeMultiplatformTargetPlatform> = [
-            ComposeMultiplatformTargetPlatform.ANDROID,
-            ComposeMultiplatformTargetPlatform.IOS,
-            ComposeMultiplatformTargetPlatform.DESKTOP,
-            ComposeMultiplatformTargetPlatform.WEB,
+        val expected: Set<KotlinMultiplatformTargetPlatform> = [
+            KotlinMultiplatformTargetPlatform.ANDROID,
+            KotlinMultiplatformTargetPlatform.IOS,
+            KotlinMultiplatformTargetPlatform.DESKTOP,
         ]
         assertEquals(expected, selected)
         assertEquals(KeyboardEvent("c", ctrl = true), recorder.inputEvents.single(), "Enter alone should suffice")
-        assertFalse(ComposeMultiplatformTargetPlatform.SERVER in selected)
+        assertFalse(KotlinMultiplatformTargetPlatform.SERVER in selected)
     }
 
     @Test
@@ -52,10 +51,10 @@ class NewProjectPromptsTest {
             inputEvents.addAll([Space, KeyboardEvent("Enter"), KeyboardEvent("c", ctrl = true)])
         }
 
-        val selected = Terminal(terminalInterface = recorder).promptForComposeMultiplatformTargets()
+        val selected = Terminal(terminalInterface = recorder).promptForKotlinMultiplatformTargets()
 
-        assertFalse(ComposeMultiplatformTargetPlatform.ANDROID in selected)
-        assertTrue(ComposeMultiplatformTargetPlatform.IOS in selected)
+        assertFalse(KotlinMultiplatformTargetPlatform.ANDROID in selected)
+        assertTrue(KotlinMultiplatformTargetPlatform.IOS in selected)
         assertEquals(KeyboardEvent("c", ctrl = true), recorder.inputEvents.single())
     }
 
@@ -65,9 +64,9 @@ class NewProjectPromptsTest {
             inputEvents.addAll([KeyboardEvent("x"), KeyboardEvent("Enter"), KeyboardEvent("c", ctrl = true)])
         }
 
-        val selected = Terminal(terminalInterface = recorder).promptForComposeMultiplatformTargets()
+        val selected = Terminal(terminalInterface = recorder).promptForKotlinMultiplatformTargets()
 
-        assertTrue(ComposeMultiplatformTargetPlatform.ANDROID in selected)
+        assertTrue(KotlinMultiplatformTargetPlatform.ANDROID in selected)
     }
 
     @Test
@@ -76,7 +75,7 @@ class NewProjectPromptsTest {
             inputEvents.addAll([KeyboardEvent("Enter"), KeyboardEvent("c", ctrl = true)])
         }
 
-        Terminal(terminalInterface = recorder).promptForComposeMultiplatformTargets()
+        Terminal(terminalInterface = recorder).promptForKotlinMultiplatformTargets()
 
         assertContains(recorder.output(), "[Space]")
         assertContains(recorder.output(), "\nspace toggle •")
@@ -95,7 +94,7 @@ class NewProjectPromptsTest {
         assertContains(recorder.output(), "Kotlin package")
         assertContains(recorder.output(), "Android namespace and application id")
         assertContains(recorder.output(), "iOS bundle id")
-        assertContains(recorder.output(), "expensive to change later")
+        assertContains(recorder.output(), "Changing it later requires updating source packages, source layout, and platform configuration")
         assertEquals(1, recorder.output().occurrencesOf("The project id is used as"))
         assertTrue(recorder.output().indexOf("The project id is used as") < recorder.output().indexOf("Project id ("))
         assertTrue(recorder.output().endsWith("Project id ($defaultProjectId): "))
@@ -119,7 +118,6 @@ class NewProjectPromptsTest {
         assertContains(recorder.output(), "the package name must have at least 2 segments separated with a dot")
         assertContains(recorder.output(), "'when' is a reserved keyword")
         assertEquals(3, recorder.output().occurrencesOf("Invalid project id"))
-        assertFalse("Use at least two non-empty dot-separated segments" in recorder.output())
         assertContains(
             recorder.output(),
             "lowercase ASCII letters and digits. See --help for --project-id requirements. Please try again.",

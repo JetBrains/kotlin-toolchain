@@ -92,7 +92,19 @@ data class TemplateFile(
         projectRoot: Path,
         projectId: String,
         projectName: String,
-    ) {
+    ) = writeTo(projectRoot) { text ->
+        TemplatePlaceholders.substituteIn(text, relativePath, projectId, projectName)
+    }
+
+    /**
+     * Copies this file from the resources to the given [projectRoot] as is, without substituting any placeholders.
+     * This is meant for templates that are ready to use without any customization.
+     *
+     * If the file already exists in the project root, it will be overwritten.
+     */
+    fun copyTo(projectRoot: Path) = writeTo(projectRoot) { it }
+
+    private fun writeTo(projectRoot: Path, transformText: (String) -> String) {
         val path = projectRoot.resolve(relativePath)
         path.parent.createDirectories()
         if (isBinaryTemplateFile(relativePath)) {
@@ -101,8 +113,7 @@ data class TemplateFile(
             }
         } else {
             val text = resourceUrl.openStream().bufferedReader().use { it.readText() }
-            val substitutedText = TemplatePlaceholders.substituteIn(text, relativePath, projectId, projectName)
-            path.writeLines(substitutedText.reader().readLines())
+            path.writeLines(transformText(text).reader().readLines())
         }
     }
 }

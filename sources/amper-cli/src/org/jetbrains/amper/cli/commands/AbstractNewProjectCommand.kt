@@ -7,7 +7,6 @@ package org.jetbrains.amper.cli.commands
 import com.github.ajalt.clikt.core.PrintMessage
 import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
-import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.groups.single
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.flag
@@ -21,17 +20,13 @@ import org.jetbrains.amper.cli.terminal.interactiveMultiSelectList
 import org.jetbrains.amper.cli.terminal.interactiveSelectList
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.widgets.withIndeterminateProgress
-import org.jetbrains.amper.projectwizard.ComposeMultiplatformTargetPlatform
-import org.jetbrains.amper.projectwizard.DefaultInteractiveComposeMultiplatformTargets
-import org.jetbrains.amper.projectwizard.DefaultProjectId
+import org.jetbrains.amper.projectwizard.KotlinMultiplatformTargetPlatform
+import org.jetbrains.amper.projectwizard.DefaultInteractiveKotlinMultiplatformTargets
 import org.jetbrains.amper.projectwizard.GitInitResult
 import org.jetbrains.amper.projectwizard.InvalidProjectIdException
-import org.jetbrains.amper.projectwizard.NewProjectMode
 import org.jetbrains.amper.projectwizard.checkValidProjectId
 import org.jetbrains.amper.projectwizard.defaultProjectId
-import org.jetbrains.amper.projectwizard.describe
 import org.jetbrains.amper.projectwizard.initGitRepository
-import org.jetbrains.amper.projectwizard.toExtractionSchema
 import org.jetbrains.amper.templates.AmperProjectTemplate
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -39,7 +34,10 @@ import kotlin.io.path.createDirectories
 
 internal const val ProjectIdPrompt = "Project id"
 
+private const val KmpLibraryTemplateId = "kotlin-multiplatform-library"
 private const val ProjectIdHelpHint = "See --help for --project-id requirements."
+private const val ProjectIdImpact =
+    "Changing it later requires updating source packages, source layout, and platform configuration, so choose carefully."
 
 private const val ProjectIdRequirements =
     "Use at least two non-empty dot-separated segments (for example, '$DefaultProjectId'). " +
@@ -49,14 +47,14 @@ private const val ProjectIdRequirements =
 /**
  * Shared base for the `kotlin init` and `kotlin new` commands: both generate a Kotlin project, either from one of
  * the flat [cliVisibleTemplates], or as a parameterized Compose Multiplatform application (see
- * [ComposeMultiplatformTargetPlatform]). They only differ in how the target directory is determined (see [resolveTargetDir]).
+ * [KotlinMultiplatformTargetPlatform]). They only differ in how the target directory is determined (see [resolveTargetDir]).
  */
 internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcommand(name) {
 
     private val projectIdOption: String? by option(
         "--project-id",
         help = "The project id. Defaults to org.example.<normalized-project-name>. Used as the Kotlin package, " +
-                "Android namespace/application id, and iOS bundle id. $ProjectIdRequirements. " +
+                "Android namespace/application id, and iOS bundle id. $ProjectIdImpact $ProjectIdRequirements. " +
                 "Ignored when --from-template is used.",
     )
 
@@ -69,8 +67,8 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
         option(
             "--target-platform",
             help = "Adds a target platform to the generated Compose Multiplatform application. Can be repeated. " +
-                    "One of: ${ComposeMultiplatformTargetPlatform.byCliValue.keys.joinToString()}.",
-        ).choice(ComposeMultiplatformTargetPlatform.byCliValue)
+                    "One of: ${KotlinMultiplatformTargetPlatform.byCliValue.keys.joinToString()}.",
+        ).choice(KotlinMultiplatformTargetPlatform.byCliValue)
             .transformAll { targets -> NewProjectSource.ComposeTargets(targets.toSet()) },
         option(
             "--from-template",
@@ -128,14 +126,36 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
             generateWrapperScripts(outputDir, logger)
         }
 
-        if (mode is NewProjectMode.ComposeMultiplatformApp && !noGit) {
+        if (mode is NewProjectMode.KotlinMultiplatformApp && !noGit) {
             initGitRepositoryAndReport(outputDir)
         }
 
         printSuccessfulCommandConclusion("Project successfully generated")
 
         terminal.println()
-        terminal.printProjectGeneratedNextSteps(outputDir, workingDir = Path(System.getProperty("user.dir")))
+        printNextSteps(mode, outputDir)
+    }
+
+    private fun printNextSteps(mode: NewProjectMode, outputDir: Path) {
+        val cd = cdPrefix(outputDir, workingDir = Path(System.getProperty("user.dir")))
+        when (mode) {
+            is NewProjectMode.KotlinMultiplatformApp -> printRunHint(cd)
+            is NewProjectMode.FromTemplate -> when (mode.template.id) {
+                KmpLibraryTemplateId -> printBuildHint(cd)
+                else -> printRunHint(cd)
+            }
+        }
+        terminal.println("Or open the generated folder in an IDE with the Kotlin Toolchain plugin.")
+    }
+
+    private fun printRunHint(cd: String) {
+        terminal.println("To run your application:")
+        terminal.println("  ${terminal.theme.info("${cd}kotlin run")}")
+    }
+
+    private fun printBuildHint(cd: String) {
+        terminal.println("Now you may build your project with:")
+        terminal.println("  ${terminal.theme.info("${cd}kotlin build")}")
     }
 
     /**
@@ -143,30 +163,30 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
      * that wasn't supplied, or failing with a user-readable error if the terminal is not interactive.
      */
     private fun resolveMode(projectName: String): NewProjectMode = when (val source = explicitSource) {
-        is NewProjectSource.Template -> fromTemplate(source.template, projectName)
-        is NewProjectSource.ComposeTargets -> composeMultiplatformApp(source.targets, projectName)
+        is NewProjectSource.Template -> fromTemplate(source.template)
+        is NewProjectSource.ComposeTargets -> kotlinMultiplatformApp(source.targets, projectName)
         null -> {
             if (!terminal.terminalInfo.interactive) {
                 userReadableError(
                     "Please specify at least one --target-platform " +
-                            "(${ComposeMultiplatformTargetPlatform.byCliValue.keys.joinToString()}), " +
+                            "(${KotlinMultiplatformTargetPlatform.byCliValue.keys.joinToString()}), " +
                             "or use --from-template to pick a template instead " +
                             "(one of: ${cliVisibleTemplates.joinToString { it.id }})."
                 )
             }
             when (val choice = promptForFirstScreen()) {
-                FirstScreenChoice.ComposeApp -> composeMultiplatformApp(
-                    targets = terminal.promptForComposeMultiplatformTargets(),
+                FirstScreenChoice.ComposeApp -> kotlinMultiplatformApp(
+                    targets = terminal.promptForKotlinMultiplatformTargets(),
                     projectName = projectName,
                 )
-                is FirstScreenChoice.FromTemplate -> fromTemplate(choice.template, projectName)
+                is FirstScreenChoice.FromTemplate -> fromTemplate(choice.template)
             }
         }
     }
 
-    private fun fromTemplate(template: AmperProjectTemplate, projectName: String): NewProjectMode.FromTemplate {
+    private fun fromTemplate(template: AmperProjectTemplate): NewProjectMode.FromTemplate {
         if (projectIdOption != null) warnIgnoredTemplateOption("--project-id")
-        return NewProjectMode.FromTemplate(template, projectName)
+        return NewProjectMode.FromTemplate(template)
     }
 
     private fun warnIgnoredTemplateOption(option: String) {
@@ -187,10 +207,10 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
         }
     }
 
-    private fun composeMultiplatformApp(
-        targets: Set<ComposeMultiplatformTargetPlatform>,
+    private fun kotlinMultiplatformApp(
+        targets: Set<KotlinMultiplatformTargetPlatform>,
         projectName: String,
-    ): NewProjectMode.ComposeMultiplatformApp = NewProjectMode.ComposeMultiplatformApp(
+    ): NewProjectMode.KotlinMultiplatformApp = NewProjectMode.KotlinMultiplatformApp(
         targets = targets,
         projectId = resolveProjectId(projectName),
         projectName = projectName,
@@ -221,9 +241,9 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
         val description: String
 
         data object ComposeApp : FirstScreenChoice {
-            override val label = "Compose Multiplatform application"
+            override val label = "Kotlin Multiplatform application"
             override val description =
-                "Compose Multiplatform clients for Android, iOS, desktop, and web, with an optional Ktor server"
+                "Kotlin Application for Android, iOS, web, and/or desktop, with an optional Ktor server"
         }
 
         data class FromTemplate(val template: AmperProjectTemplate) : FirstScreenChoice {
@@ -247,17 +267,17 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
  * The source of the project explicitly selected on the command line (see the `explicitSource` option group).
  */
 private sealed interface NewProjectSource {
-    data class ComposeTargets(val targets: Set<ComposeMultiplatformTargetPlatform>) : NewProjectSource
+    data class ComposeTargets(val targets: Set<KotlinMultiplatformTargetPlatform>) : NewProjectSource
     data class Template(val template: AmperProjectTemplate) : NewProjectSource
 }
 
-internal fun Terminal.promptForComposeMultiplatformTargets(): Set<ComposeMultiplatformTargetPlatform> {
-    var preselected = DefaultInteractiveComposeMultiplatformTargets
+internal fun Terminal.promptForKotlinMultiplatformTargets(): Set<KotlinMultiplatformTargetPlatform> {
+    var preselected = DefaultInteractiveKotlinMultiplatformTargets
     while (true) {
         val selected = interactiveMultiSelectList(
             title = "Please select at least one target platform using ${theme.info("[Space]")}, " +
                     "and confirm with ${theme.info("[Enter]")}:",
-            items = ComposeMultiplatformTargetPlatform.entries,
+            items = KotlinMultiplatformTargetPlatform.entries,
             nameSelector = { it.displayName },
             preselected = preselected,
             filterable = true,
@@ -270,8 +290,8 @@ internal fun Terminal.promptForComposeMultiplatformTargets(): Set<ComposeMultipl
 
 internal fun Terminal.promptForProjectId(defaultProjectId: String): String {
     println(
-        "The project id is used as the Kotlin package, Android namespace and application id, and iOS bundle id, " +
-                "and is expensive to change later."
+        "The project id is used as the Kotlin package, Android namespace and application id, and iOS bundle id. " +
+                ProjectIdImpact
     )
     while (true) {
         val input = prompt(prompt = ProjectIdPrompt, default = defaultProjectId)

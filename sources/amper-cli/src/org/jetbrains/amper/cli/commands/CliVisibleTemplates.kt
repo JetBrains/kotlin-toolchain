@@ -7,6 +7,14 @@ package org.jetbrains.amper.cli.commands
 import org.jetbrains.amper.templates.AmperProjectTemplate
 import org.jetbrains.amper.templates.AmperProjectTemplates
 
-/** CLI template choices, excluding Compose templates covered by the parameterized wizard. */
+/** The template that the parameterized Kotlin Multiplatform wizard generates from, instead of copying it as is. */
+private const val KotlinMultiplatformTemplateId = "kotlin-multiplatform-app"
+
+/**
+ * The static templates that the CLI can copy as is: this excludes the Compose templates meant for the IDE, and the
+ * [KotlinMultiplatformTemplateId] template, which is covered by the parameterized wizard.
+ */
 internal val cliVisibleTemplates: List<AmperProjectTemplate>
-    get() = AmperProjectTemplates.availableTemplates.filterNot { it.id.startsWith("compose-") }
+    get() = AmperProjectTemplates.availableTemplates.filterNot {
+        it.id.startsWith("compose-") || it.id == KotlinMultiplatformTemplateId
+    }

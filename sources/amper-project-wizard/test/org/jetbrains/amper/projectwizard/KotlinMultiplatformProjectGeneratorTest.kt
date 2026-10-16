@@ -4,12 +4,8 @@
 
 package org.jetbrains.amper.projectwizard
 
-import org.jetbrains.amper.templates.AmperProjectTemplate
-import org.jetbrains.amper.templates.AmperProjectTemplates
 import org.jetbrains.amper.templates.TemplatePlaceholder
-import org.junit.jupiter.api.Named
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -19,7 +15,9 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class ComposeMultiplatformProjectGeneratorTest {
+private const val TestProjectId = "org.example.project"
+
+class KotlinMultiplatformProjectGeneratorTest {
 
     @Test
     fun `validates the conservative cross-platform project id contract`() {
@@ -194,8 +192,8 @@ class ComposeMultiplatformProjectGeneratorTest {
     fun `uses the validated project id for every generated platform identifier`() {
         val projectId = "com.acme.demo"
         val projectName = "My App_name-with-hyphens"
-        val files = ComposeMultiplatformProjectGenerator.generate(
-            targets = ComposeMultiplatformTargetPlatform.entries.toSet(),
+        val files = KotlinMultiplatformProjectGenerator.generate(
+            targets = KotlinMultiplatformTargetPlatform.entries.toSet(),
             projectId = projectId,
             projectName = projectName,
         ).associateBy { it.relativePath }
@@ -220,8 +218,8 @@ class ComposeMultiplatformProjectGeneratorTest {
 
     @Test
     fun `leaves no template placeholder in any generated file`() {
-        val files = ComposeMultiplatformProjectGenerator.generate(
-            targets = ComposeMultiplatformTargetPlatform.entries.toSet(),
+        val files = KotlinMultiplatformProjectGenerator.generate(
+            targets = KotlinMultiplatformTargetPlatform.entries.toSet(),
             projectId = "com.acme.demo",
             projectName = "My App",
         )
@@ -236,8 +234,8 @@ class ComposeMultiplatformProjectGeneratorTest {
 
     @Test
     fun `quotes generated Xcode product paths containing spaces`() {
-        val xcodeProject = ComposeMultiplatformProjectGenerator.generate(
-            targets = [ComposeMultiplatformTargetPlatform.IOS],
+        val xcodeProject = KotlinMultiplatformProjectGenerator.generate(
+            targets = [KotlinMultiplatformTargetPlatform.IOS],
             projectId = "com.acme.demo",
             projectName = "My App",
         ).single { it.relativePath == "iosApp/module.xcodeproj/project.pbxproj" }.text()
@@ -249,8 +247,8 @@ class ComposeMultiplatformProjectGeneratorTest {
     @Test
     fun `escapes project names in every generated text format`() {
         val projectName = "Bob's & <App> \"\\${'$'}"
-        val files = ComposeMultiplatformProjectGenerator.generate(
-            targets = ComposeMultiplatformTargetPlatform.entries.toSet(),
+        val files = KotlinMultiplatformProjectGenerator.generate(
+            targets = KotlinMultiplatformTargetPlatform.entries.toSet(),
             projectId = "com.acme.demo",
             projectName = projectName,
         ).associateBy { it.relativePath }
@@ -281,8 +279,8 @@ class ComposeMultiplatformProjectGeneratorTest {
         val dollar = '$'
         val projectName = "$dollar(SRCROOT) $dollar{PRODUCT_NAME} $dollar"
         val escapedProjectName = "$dollar$dollar(SRCROOT) $dollar$dollar{PRODUCT_NAME} $dollar$dollar"
-        val xcodeProject = ComposeMultiplatformProjectGenerator.generate(
-            targets = [ComposeMultiplatformTargetPlatform.IOS],
+        val xcodeProject = KotlinMultiplatformProjectGenerator.generate(
+            targets = [KotlinMultiplatformTargetPlatform.IOS],
             projectId = "com.acme.demo",
             projectName = projectName,
         ).single { it.relativePath == "iosApp/module.xcodeproj/project.pbxproj" }.text()
@@ -294,8 +292,8 @@ class ComposeMultiplatformProjectGeneratorTest {
     @ParameterizedTest
     @ValueSource(strings = ["@MyApp", "?MyApp"])
     fun `escapes Android resource reference prefixes in project names`(projectName: String) {
-        val stringsXml = ComposeMultiplatformProjectGenerator.generate(
-            targets = [ComposeMultiplatformTargetPlatform.ANDROID],
+        val stringsXml = KotlinMultiplatformProjectGenerator.generate(
+            targets = [KotlinMultiplatformTargetPlatform.ANDROID],
             projectId = "com.acme.demo",
             projectName = projectName,
         ).single { it.relativePath == "androidApp/res/values/strings.xml" }.text()
@@ -306,8 +304,8 @@ class ComposeMultiplatformProjectGeneratorTest {
     @ParameterizedTest
     @ValueSource(strings = [" My App", "My  App", "My App "])
     fun `preserves Android project name whitespace`(projectName: String) {
-        val stringsXml = ComposeMultiplatformProjectGenerator.generate(
-            targets = [ComposeMultiplatformTargetPlatform.ANDROID],
+        val stringsXml = KotlinMultiplatformProjectGenerator.generate(
+            targets = [KotlinMultiplatformTargetPlatform.ANDROID],
             projectId = "com.acme.demo",
             projectName = projectName,
         ).single { it.relativePath == "androidApp/res/values/strings.xml" }.text()
@@ -317,9 +315,9 @@ class ComposeMultiplatformProjectGeneratorTest {
 
     @Test
     fun `extraction schema can omit Git files`() {
-        val mode = NewProjectMode.ComposeMultiplatformApp(
-            targets = [ComposeMultiplatformTargetPlatform.DESKTOP],
-            projectId = DefaultProjectId,
+        val mode = KotlinMultiplatformApp(
+            targets = [KotlinMultiplatformTargetPlatform.ANDROID],
+            projectId = TestProjectId,
             projectName = "Sample App",
         )
 
@@ -330,61 +328,71 @@ class ComposeMultiplatformProjectGeneratorTest {
 
     @Test
     fun `extraction schema generates the gitattributes at the project root`() {
-        val mode = NewProjectMode.ComposeMultiplatformApp(
-            targets = [ComposeMultiplatformTargetPlatform.DESKTOP],
-            projectId = DefaultProjectId,
+        val mode = KotlinMultiplatformApp(
+            targets = [KotlinMultiplatformTargetPlatform.DESKTOP],
+            projectId = TestProjectId,
             projectName = "Sample App",
         )
 
         assertContains(mode.toExtractionSchema().relativePaths, ".gitattributes")
     }
 
-    @ParameterizedTest
-    @MethodSource("templates")
-    fun `generates template-specific Git files for every template`(template: AmperProjectTemplate) {
-        val mode = NewProjectMode.FromTemplate(template, projectName = "Sample App")
-        val files = mode.toExtractionSchema().files
-        val gitignore = files.single { it.relativePath == ".gitignore" } as GeneratedFile
-        val gitAttributes = files.single { it.relativePath == ".gitattributes" } as GeneratedFile
-
-        val expectedGitIgnore = if (template.id == ComposeMultiplatformTemplateId) {
-            ComposeMultiplatformGitIgnore
-        } else {
-            DefaultGitIgnore
-        }
-        assertEquals(expectedGitIgnore, gitignore.text())
-        assertEquals(
-            expectedGitAttributes(hasPngFiles = template.listFiles().any { it.relativePath.endsWith(".png") }),
-            gitAttributes.text(),
+    @Test
+    fun `generates the gitattributes with PNG rules because the template has PNG files`() {
+        val app = KotlinMultiplatformApp(
+            targets = [KotlinMultiplatformTargetPlatform.DESKTOP],
+            projectId = TestProjectId,
+            projectName = "Sample App",
         )
+        val gitAttributes = app.toExtractionSchema().files.single { it.relativePath == ".gitattributes" }
+
+        assertEquals(expectedGitAttributes(hasPngFiles = true), gitAttributes.text())
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `does not generate a module-level gitignore for the Android app`(serverIncluded: Boolean) {
+        val targets: Set<KotlinMultiplatformTargetPlatform> = if (serverIncluded) {
+            [KotlinMultiplatformTargetPlatform.ANDROID, KotlinMultiplatformTargetPlatform.SERVER]
+        } else {
+            [KotlinMultiplatformTargetPlatform.ANDROID]
+        }
+        val mode = KotlinMultiplatformApp(
+            targets = targets,
+            projectId = TestProjectId,
+            projectName = "Sample App",
+        )
+        val gitignorePaths = mode.toExtractionSchema().relativePaths.filter { it.endsWith(".gitignore") }
+
+        assertEquals([".gitignore"], gitignorePaths)
     }
 
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
     fun `generates Compose root gitignore without generating IDEA files`(serverIncluded: Boolean) {
-        val targets: Set<ComposeMultiplatformTargetPlatform> = if (serverIncluded) {
-            [ComposeMultiplatformTargetPlatform.DESKTOP, ComposeMultiplatformTargetPlatform.SERVER]
+        val targets: Set<KotlinMultiplatformTargetPlatform> = if (serverIncluded) {
+            [KotlinMultiplatformTargetPlatform.DESKTOP, KotlinMultiplatformTargetPlatform.SERVER]
         } else {
-            [ComposeMultiplatformTargetPlatform.DESKTOP]
+            [KotlinMultiplatformTargetPlatform.DESKTOP]
         }
-        val mode = NewProjectMode.ComposeMultiplatformApp(
+        val mode = KotlinMultiplatformApp(
             targets = targets,
-            projectId = DefaultProjectId,
+            projectId = TestProjectId,
             projectName = "Sample App",
         )
         val files = mode.toExtractionSchema().files
         val gitignore = assertNotNull(files.singleOrNull { it.relativePath == ".gitignore" }) as GeneratedFile
-        assertEquals(ComposeMultiplatformGitIgnore, gitignore.text())
+        assertEquals(KotlinMultiplatformGitIgnore, gitignore.text())
 
         assertFalse(files.any { it.relativePath.startsWith(".idea/") })
     }
 
     @Test
     fun `modules list regex accepts Windows line endings`() {
-        val modulesListRegex = ComposeMultiplatformProjectGenerator::class.java
+        val modulesListRegex = KotlinMultiplatformProjectGenerator::class.java
             .getDeclaredField("ModulesListRegex")
             .apply { isAccessible = true }
-            .get(ComposeMultiplatformProjectGenerator) as Regex
+            .get(KotlinMultiplatformProjectGenerator) as Regex
         val projectYaml = "modules:\r\n  - desktopApp\r\n  - shared\r\n"
 
         assertNotNull(modulesListRegex.find(projectYaml))
@@ -392,10 +400,10 @@ class ComposeMultiplatformProjectGeneratorTest {
 
     @Test
     fun `core dependency regex accepts Windows line endings`() {
-        val coreDependencyRegex = ComposeMultiplatformProjectGenerator::class.java
+        val coreDependencyRegex = KotlinMultiplatformProjectGenerator::class.java
             .getDeclaredField("CoreDependencyRegex")
             .apply { isAccessible = true }
-            .get(ComposeMultiplatformProjectGenerator) as Regex
+            .get(KotlinMultiplatformProjectGenerator) as Regex
         val moduleYaml = "dependencies:\r\n  - //core\r\n  - other\r\n"
 
         assertEquals("dependencies:\r\n  - other\r\n", coreDependencyRegex.replace(moduleYaml, ""))
@@ -405,7 +413,7 @@ class ComposeMultiplatformProjectGeneratorTest {
     fun `readme has a heading and only describes selected modules`() {
         val readme = generate().single { it.relativePath == "README.md" }.text()
         assertTrue(readme.startsWith("# "))
-        assertContains(readme, "targeting Desktop (JVM), built with")
+        assertContains(readme, "targeting Desktop (fast UI development with Compose Hot Reload), built with")
         assertContains(readme, "https://kotlin-toolchain.org/latest/")
         assertFalse("greeting helper" in readme)
         assertFalse("run widget" in readme)
@@ -414,9 +422,9 @@ class ComposeMultiplatformProjectGeneratorTest {
 
     @Test
     fun `always generates sample tests for the selected targets`() {
-        val paths = ComposeMultiplatformProjectGenerator.generate(
-            targets = [ComposeMultiplatformTargetPlatform.DESKTOP, ComposeMultiplatformTargetPlatform.SERVER],
-            projectId = DefaultProjectId,
+        val paths = KotlinMultiplatformProjectGenerator.generate(
+            targets = [KotlinMultiplatformTargetPlatform.DESKTOP, KotlinMultiplatformTargetPlatform.SERVER],
+            projectId = TestProjectId,
             projectName = "Sample App",
         ).map { it.relativePath }
 
@@ -425,9 +433,9 @@ class ComposeMultiplatformProjectGeneratorTest {
     }
 
     private fun generate(
-        projectId: String = DefaultProjectId,
-    ): List<GeneratedFile> = ComposeMultiplatformProjectGenerator.generate(
-        targets = [ComposeMultiplatformTargetPlatform.DESKTOP],
+        projectId: String = TestProjectId,
+    ): List<GeneratedFile> = KotlinMultiplatformProjectGenerator.generate(
+        targets = [KotlinMultiplatformTargetPlatform.DESKTOP],
         projectId = projectId,
         projectName = "Sample App",
     )
@@ -444,11 +452,5 @@ class ComposeMultiplatformProjectGeneratorTest {
     private fun GeneratedFile.text(): String = when (this) {
         is BinaryGeneratedFile -> content.contentToString()
         is TextGeneratedFile -> content
-    }
-
-    companion object {
-        @JvmStatic
-        private fun templates(): List<Named<AmperProjectTemplate>> =
-            AmperProjectTemplates.availableTemplates.map { Named.of(it.id, it) }
     }
 }

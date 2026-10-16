@@ -86,7 +86,7 @@ class InitCommandTest : CliTestBase() {
     }
 
     @Test
-    fun `in-place Compose init derives an id and prints the build command without cd`() = runSlowTest {
+    fun `in-place Compose init derives an id and prints interactive run command without cd`() = runSlowTest {
         val newRoot = newEmptyProjectDir()
 
         val result = runCli(
@@ -95,12 +95,12 @@ class InitCommandTest : CliTestBase() {
         )
 
         result.assertStdoutDoesNotContain("  cd ")
-        result.assertStdoutContains("kotlin build")
+        result.assertStdoutContains("kotlin run")
         assertContains((newRoot / "shared/src/App.kt").readText(), "package org.example.projectnew")
     }
 
     @Test
-    fun `out-of-place Compose init derives an id and prints quoted cd steps`() = runSlowTest {
+    fun `out-of-place Compose init derives an id and prints one quoted run command`() = runSlowTest {
         val newRoot = newEmptyProjectDir()
         (newRoot / "My App").createDirectories()
 
@@ -110,7 +110,8 @@ class InitCommandTest : CliTestBase() {
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
-        result.assertStdoutContains(if (OsFamily.current.isWindows) "cd \"My App\"" else "cd 'My App'")
+        val cdPrefix = if (OsFamily.current.isWindows) "cd \"My App\"; " else "cd 'My App' && "
+        result.assertStdoutContains(cdPrefix)
         val projectRoot = newRoot / "My App"
         assertContains((projectRoot / "shared/src/App.kt").readText(), "package org.example.myapp")
         assertContains((projectRoot / "androidApp/module.yaml").readText(), "applicationId: org.example.myapp")

@@ -22,12 +22,12 @@ import org.jetbrains.amper.templates.WebAppModule
  * `desktop`, and `web`) and an optional Ktor `server` backend. The server doesn't contribute a platform or source
  * set to the Compose `shared` module; it uses a separate `core` module for code shared with the client apps.
  */
-enum class ComposeMultiplatformTargetPlatform(
+enum class KotlinMultiplatformTargetPlatform(
     /** The value used for this target on the `--target-platform` CLI option. */
     val cliValue: String,
     /** A short human-readable name of this target, e.g. for the interactive multi-select prompt. */
     val displayName: String,
-    /** The module directory generated for this target in the `compose-multiplatform` template. */
+    /** The module directory generated for this target in the `kotlin-multiplatform-app` template. */
     val moduleDir: String,
     /** The Amper platforms that this target contributes to the shared module's `platforms:` list. */
     val sharedModulePlatforms: List<String>,
@@ -54,7 +54,7 @@ enum class ComposeMultiplatformTargetPlatform(
     ),
     DESKTOP(
         cliValue = "desktop",
-        displayName = "Desktop (JVM)",
+        displayName = "Desktop (fast UI development with Compose Hot Reload)",
         moduleDir = "$AppDir$DesktopAppModule",
         sharedModulePlatforms = ["jvm"],
         sharedModuleSourceSetQualifier = "jvm",
@@ -79,15 +79,14 @@ enum class ComposeMultiplatformTargetPlatform(
         get() = if (this == SERVER) ["jvm"] else sharedModulePlatforms
 
     companion object {
-        /** All valid `--target-platform` values, mapped to their [ComposeMultiplatformTargetPlatform]. */
-        val byCliValue: Map<String, ComposeMultiplatformTargetPlatform> = entries.associateBy { it.cliValue }
+        /** All valid `--target-platform` values, mapped to their [KotlinMultiplatformTargetPlatform]. */
+        val byCliValue: Map<String, KotlinMultiplatformTargetPlatform> = entries.associateBy { it.cliValue }
     }
 }
 
 /** Targets selected by default when the interactive wizard's target list is first displayed. */
-val DefaultInteractiveComposeMultiplatformTargets: Set<ComposeMultiplatformTargetPlatform> = [
-    ComposeMultiplatformTargetPlatform.ANDROID,
-    ComposeMultiplatformTargetPlatform.IOS,
-    ComposeMultiplatformTargetPlatform.DESKTOP,
-    ComposeMultiplatformTargetPlatform.WEB,
+val DefaultInteractiveKotlinMultiplatformTargets: Set<KotlinMultiplatformTargetPlatform> = [
+    KotlinMultiplatformTargetPlatform.ANDROID,
+    KotlinMultiplatformTargetPlatform.IOS,
+    KotlinMultiplatformTargetPlatform.DESKTOP,
 ]

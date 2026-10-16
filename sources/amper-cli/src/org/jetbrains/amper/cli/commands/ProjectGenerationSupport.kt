@@ -203,23 +203,20 @@ internal fun generateWrapperScripts(
 }
 
 /**
- * Prints a single copyable command that enters [outputDir] (unless it is [workingDir]) and builds the generated
- * project.
+ * Returns a shell prefix (such as `cd myapp && `) to enter [outputDir] from [workingDir],
+ * or an empty string if they are the same directory.
  */
-internal fun Terminal.printProjectGeneratedNextSteps(
+internal fun cdPrefix(
     outputDir: Path,
     workingDir: Path,
     osFamily: OsFamily = OsFamily.current,
-) {
+): String {
     val absoluteWorkingDir = workingDir.toAbsolutePath().normalize()
     val absoluteOutputDir = absoluteWorkingDir.resolve(outputDir).normalize()
-    val cdPrefix = if (absoluteOutputDir == absoluteWorkingDir) "" else {
-        val readablePath = absoluteOutputDir.relativeToOrNull(absoluteWorkingDir) ?: absoluteOutputDir
-        "cd ${readablePath.quotedForShell(osFamily)} && "
-    }
-    println("Now you may build your project with:")
-    println("  ${theme.info("${cdPrefix}kotlin build")}")
-    println("Or open the generated folder in an IDE with the Kotlin Toolchain plugin.")
+    if (absoluteOutputDir == absoluteWorkingDir) return ""
+    val readablePath = absoluteOutputDir.relativeToOrNull(absoluteWorkingDir) ?: absoluteOutputDir
+    val commandSeparator = if (osFamily.isWindows) "; " else " && "
+    return "cd ${readablePath.quotedForShell(osFamily)}$commandSeparator"
 }
 
 private fun Path.quotedForShell(osFamily: OsFamily): String {

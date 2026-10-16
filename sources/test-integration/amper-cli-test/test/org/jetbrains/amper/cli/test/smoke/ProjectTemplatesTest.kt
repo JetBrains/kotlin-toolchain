@@ -47,7 +47,7 @@ class ProjectTemplatesTest : CliTestBase() {
         check(entries.size > 3) {
             "Possibly incorrect templates root: $templatesRoot"
         }
-        check(entries.any { it.name == "jvm-cli" } && entries.any { it.name == "compose-multiplatform" }) {
+        check(entries.any { it.name == "jvm-cli" } && entries.any { it.name == "kotlin-multiplatform-app" }) {
             "Does not look like a templates root: $templatesRoot"
         }
 
@@ -58,7 +58,7 @@ class ProjectTemplatesTest : CliTestBase() {
     }
 
     @Test
-    fun `kmp-lib`(testInfo: TestInfo) = runSlowTest {
+    fun `kotlin-multiplatform-library`(testInfo: TestInfo) = runSlowTest {
         runInitForTemplateFromTestName(testInfo)
         // Can't easily get rid of output associated with
         // class 'World': expect and corresponding actual are declared in the same module, which will be prohibited in Kotlin 2.0.
@@ -73,8 +73,8 @@ class ProjectTemplatesTest : CliTestBase() {
     }
 
     @Test
-    fun `compose-multiplatform`(testInfo: TestInfo) = runSlowTest {
-        runInitForComposeMultiplatform()
+    fun `kotlin-multiplatform-app`(testInfo: TestInfo) = runSlowTest {
+        runInitForKotlinMultiplatform()
         val result = runCli(tempRoot, "build", configureAndroidHome = true, assertEmptyStdErr = false)
         if (OsFamily.current.isMac) {
             result.assertStdoutDoesNotContain("No shared scheme `app` is found")
@@ -84,8 +84,8 @@ class ProjectTemplatesTest : CliTestBase() {
 
     @Test
     @MacOnly
-    fun `compose-multiplatform - build debug with xcodebuild`(testInfo: TestInfo) = runSlowTest {
-        val initResult = runInitForComposeMultiplatform()
+    fun `kotlin-multiplatform-app - build debug with xcodebuild`(testInfo: TestInfo) = runSlowTest {
+        val initResult = runInitForKotlinMultiplatform()
         val buildDir = initResult.buildDir / "xcode"
         val result = runXcodebuild(
             "-project", "app/iosApp/module.xcodeproj",
@@ -104,8 +104,8 @@ class ProjectTemplatesTest : CliTestBase() {
 
     @Test
     @MacOnly
-    fun `compose-multiplatform - build release with xcodebuild`(testInfo: TestInfo) = runSlowTest {
-        val initResult = runInitForComposeMultiplatform()
+    fun `kotlin-multiplatform-app - build release with xcodebuild`(testInfo: TestInfo) = runSlowTest {
+        val initResult = runInitForKotlinMultiplatform()
         val buildDir = initResult.buildDir / "xcode"
         val result = runXcodebuild(
             "-project", "app/iosApp/module.xcodeproj",
@@ -158,10 +158,10 @@ class ProjectTemplatesTest : CliTestBase() {
         )
 
     /**
-     * Generates the `compose-multiplatform` project via the parameterized flow (with all targets), which is how it
+     * Generates the `kotlin-multiplatform-app` project via the parameterized flow (with all targets), which is how it
      * is created from the CLI now that the template itself is not offered via `--from-template`.
      */
-    private suspend fun runInitForComposeMultiplatform(): AmperCliResult =
+    private suspend fun runInitForKotlinMultiplatform(): AmperCliResult =
         runCli(
             tempRoot,
             "init", "--target-platform=android", "--target-platform=ios", "--target-platform=desktop",
