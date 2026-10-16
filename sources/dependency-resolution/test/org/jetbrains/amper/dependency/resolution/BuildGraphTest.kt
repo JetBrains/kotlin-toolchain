@@ -3091,6 +3091,27 @@ class BuildGraphTest : BaseDRTest() {
         assertTheOnlyNonInfoMessage<PlatformsAreNotSupported>(root, severity = Severity.ERROR, transitively = true)
     }
 
+    /**
+     * The JVM variants of `org.apache.groovy:groovy:5.0.2` declare the legacy `org.codehaus.groovy:groovy` capability
+     * in addition to their own one, and such variants are rejected.
+     * The reported diagnostic should name unsupported capabilities as the reason
+     * instead of claiming that there is no variant for the platform.
+     */
+    @Test
+    fun `org_apache_groovy groovy 5_0_2`(testInfo: TestInfo) = runDrTest {
+        val root = doTest(
+            testInfo,
+            platform = setOf(ResolutionPlatform.JVM),
+            verifyMessages = false,
+        )
+
+        assertTheOnlyNonInfoMessage(root, DependencyResolutionDiagnostics.UnsupportedCapabilities, transitively = true)
+        assertEquals(
+            "The library org.apache.groovy:groovy:5.0.2 cannot be used for jvm: " +
+                    "its matching variants declare capabilities, which is not supported yet",
+            root.children.single().messages.single { it.severity == Severity.ERROR }.message,
+        )
+    }
     private fun assertEquals(@Language("text") expected: String, root: DependencyNode) =
         assertEquals(expected, root.prettyPrint().trimEnd())
 }

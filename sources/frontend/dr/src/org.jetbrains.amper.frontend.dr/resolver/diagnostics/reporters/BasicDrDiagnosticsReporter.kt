@@ -10,8 +10,11 @@ import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.dependency.resolution.DependencyNode
 import org.jetbrains.amper.dependency.resolution.Key
 import org.jetbrains.amper.dependency.resolution.MavenDependencyNode
+import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.UnsupportedCapabilities
 import org.jetbrains.amper.dependency.resolution.diagnostics.Message
 import org.jetbrains.amper.dependency.resolution.diagnostics.detailedMessage
+import org.jetbrains.amper.dependency.resolution.group
+import org.jetbrains.amper.dependency.resolution.module
 import org.jetbrains.amper.dependency.resolution.version
 import org.jetbrains.amper.frontend.api.BuiltinCatalogTrace
 import org.jetbrains.amper.frontend.api.DefaultTrace
@@ -203,10 +206,26 @@ class DependencyBuildProblem(
                 appendLine()
                 append(versionDefinitionMessage)
             }
+            val exclusionHint = getExclusionHint()
+            if (exclusionHint != null) {
+                appendLine()
+                appendLine()
+                append(exclusionHint)
+            }
         }
 
     val isTransitive: Boolean
         get() = problematicDependency.isTransitiveFor(directFragmentDependency)
+
+    /**
+     * A transitive dependency that can't be used at all might be not needed by the module,
+     * then excluding it is a way to get rid of the problem.
+     */
+    private fun getExclusionHint(): @Nls String? {
+        if (errorMessage.id != UnsupportedCapabilities.id || !isTransitive) return null
+        val node = problematicDependency as? MavenDependencyNode ?: return null
+        return FrontendDrBundle.message("dependency.problem.exclusion.hint", "${node.group}:${node.module}")
+    }
 
     private fun getVersionDefinitionMessage(): @Nls String? {
         versionDefinition ?: return null

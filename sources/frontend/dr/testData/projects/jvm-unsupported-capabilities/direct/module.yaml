@@ -1,0 +1,5 @@
+product: jvm/lib
+
+# Variants of the library declare several capabilities
+dependencies:
+  - org.apache.groovy:groovy:5.0.3

@@ -1,0 +1,6 @@
+product: jvm/lib
+
+# spock-core itself resolves fine, but depends on org.apache.groovy:groovy:5.0.3
+# whose variants declare several capabilities
+dependencies:
+  - org.spockframework:spock-core:2.4-groovy-5.0

@@ -47,6 +47,7 @@ import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutio
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.UnableToParseMetadata
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.UnexpectedDependencyFormat
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.UnresolvedMavenDependencyPackagingType
+import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.UnsupportedCapabilities
 import org.jetbrains.amper.dependency.resolution.diagnostics.DiagnosticReporter
 import org.jetbrains.amper.dependency.resolution.diagnostics.Message
 import org.jetbrains.amper.dependency.resolution.diagnostics.MetadataResolvedWithPomErrors
@@ -1321,7 +1322,7 @@ class MavenDependencyImpl internal constructor(
                 val validVariants = resolveVariants(moduleMetadata, context.settings, platform)
 
                 if (validVariants.withoutDocumentationAndMetadata.isEmpty()) {
-                    reportVariantMismatchForLibrary(diagnosticsReporter, moduleMetadata, setOf(platform))
+                    reportVariantMismatchForLibrary(diagnosticsReporter, moduleMetadata, context.settings, setOf(platform))
                 } else {
                     validVariants.also {
                         variants = it
@@ -1417,6 +1418,7 @@ class MavenDependencyImpl internal constructor(
     private fun reportVariantMismatchForLibrary(
         diagnosticsReporter: DiagnosticReporter,
         module: Module,
+        settings: Settings,
         missingPlatforms: Set<ResolutionPlatform>,
     ) {
         val groupedByCategory = module.variants.groupBy { it.getAttributeValue(Category) }
@@ -1430,20 +1432,41 @@ class MavenDependencyImpl internal constructor(
             return
         }
 
-        val supportedPlatforms = libraryVariants
-            .mapNotNullTo(mutableSetOf()) { variant -> getLeafPlatformFromVariant(variant) }
-        // This check might be more sophisticated,
-        // but for the time being we suppose that all JVM libraries can be used on Android
-        if (ResolutionPlatform.JVM in supportedPlatforms) {
-            supportedPlatforms += ResolutionPlatform.ANDROID
+        val platformsBlockedByCapabilities = missingPlatforms.filter { platform ->
+            findBlockingFilter(module, settings, platform) == VariantFilter.Capability
+        }.toSet()
+        if (platformsBlockedByCapabilities.isNotEmpty()) {
+            diagnosticsReporter.addMessage(
+                UnsupportedCapabilities.asMessage(this, platformsBlockedByCapabilities.joinToString { it.pretty })
+            )
+        }
+        // The rest of the platforms are missing for other reasons
+        val otherMissingPlatforms = missingPlatforms - platformsBlockedByCapabilities
+        if (otherMissingPlatforms.isEmpty()) return
+
+        val supportedPlatforms = buildSet {
+            libraryVariants.mapNotNullTo(this) { variant -> getLeafPlatformFromVariant(variant) }
+            // The variants of the platforms blocked by capabilities can't be used, so those platforms are not supported
+            removeAll(platformsBlockedByCapabilities)
+            // This check might be more sophisticated,
+            // but for the time being we suppose that all JVM libraries can be used on Android
+            if (ResolutionPlatform.JVM in this && ResolutionPlatform.ANDROID !in platformsBlockedByCapabilities) {
+                add(ResolutionPlatform.ANDROID)
+            }
         }
         if (supportedPlatforms.isNotEmpty()) {
-            diagnosticsReporter.addMessage(PlatformsAreNotSupported(this, supportedPlatforms))
+            diagnosticsReporter.addMessage(
+                PlatformsAreNotSupported(
+                    this,
+                    supportedPlatforms = supportedPlatforms,
+                    alreadyReportedPlatforms = platformsBlockedByCapabilities,
+                )
+            )
             return
         }
 
         // It's a fallback that actually shouldn't ever occur. It is possible that it can be safely deleted.
-        missingPlatforms.forEach {
+        otherMissingPlatforms.forEach {
             diagnosticsReporter.addMessage(NoVariantForPlatform.asMessage(it.pretty, this))
         }
     }
@@ -1763,7 +1786,7 @@ class MavenDependencyImpl internal constructor(
         }
         val platformsWithoutVariants = resolvedVariants.filterValues { it.isEmpty() }
         if (platformsWithoutVariants.isNotEmpty()) {
-            reportVariantMismatchForLibrary(diagnosticsReporter, moduleMetadata, platformsWithoutVariants.keys)
+            reportVariantMismatchForLibrary(diagnosticsReporter, moduleMetadata, context.settings, platformsWithoutVariants.keys)
         }
 
         val allPsmVariants = kotlinProjectStructureMetadata.projectStructure.variants.associateBy { it.name }
@@ -2227,19 +2250,11 @@ class MavenDependencyImpl internal constructor(
         settings: Settings,
         platform: ResolutionPlatform,
         isResource: Boolean = false,
+        excludedFilter: VariantFilter? = null,
     ): List<Variant> {
-        val initiallyFilteredVariants = module
-            .variants
-            .filter { capabilityMatches(it) }
-            .filter { nativeTargetMatches(it, platform) }
-            .filter { wasmJsTargetMatches(it, platform) }
-            .filter { categoryMatches(it) }
-
-        val validVariants = initiallyFilteredVariants
-            .filterWithFallbackPlatform(platform)
-            .filterWithFallbackJvmEnvironment(platform)
-            .let {
-                if (isResource) it.filterKmpResources(platform) else it.filterWithFallbackScope(settings.scope)
+        val validVariants = VariantFilter.entries
+            .fold(module.variants) { variants, filter ->
+                if (filter != excludedFilter) variants.applyFilter(filter, settings, platform, isResource) else variants
             }
             .filterMultipleVariantsByUnusedAttributes()
             .filterWellKnowSpecialLibraries(this.group, this.module)
@@ -2253,6 +2268,34 @@ class MavenDependencyImpl internal constructor(
 
         return validVariants
     }
+
+    private fun List<Variant>.applyFilter(
+        filter: VariantFilter,
+        settings: Settings,
+        platform: ResolutionPlatform,
+        isResource: Boolean,
+    ): List<Variant> = when (filter) {
+        VariantFilter.Capability -> filter { capabilityMatches(it) }
+        VariantFilter.NativeTarget -> filter { nativeTargetMatches(it, platform) }
+        VariantFilter.WasmJsTarget -> filter { wasmJsTargetMatches(it, platform) }
+        VariantFilter.Category -> filter { categoryMatches(it) }
+        VariantFilter.PlatformType -> filterWithFallbackPlatform(platform)
+        VariantFilter.JvmEnvironment -> filterWithFallbackJvmEnvironment(platform)
+        VariantFilter.Scope -> if (isResource) filterKmpResources(platform) else filterWithFallbackScope(settings.scope)
+    }
+
+    /**
+     * Finds the filter of the variant resolution that alone prevents selecting any variant for the given [platform].
+     * Filters are checked in the order of their declaration in [VariantFilter].
+     *
+     * @return null if no variant is selected even with any single filter excluded
+     */
+    private fun findBlockingFilter(module: Module, settings: Settings, platform: ResolutionPlatform): VariantFilter? =
+        VariantFilter.entries.firstOrNull { filter ->
+            resolveVariants(module, settings, platform, excludedFilter = filter)
+                .withoutDocumentationAndMetadata
+                .isNotEmpty()
+        }
 
     private fun resolveBomVariants(
         module: Module,
@@ -2444,7 +2487,7 @@ class MavenDependencyImpl internal constructor(
                 diagnosticsReporter.addMessage(
                     PlatformsAreNotSupported(
                         this,
-                        setOf(ResolutionPlatform.ANDROID, ResolutionPlatform.JVM)
+                        supportedPlatforms = setOf(ResolutionPlatform.ANDROID, ResolutionPlatform.JVM)
                     )
                 )
             }
@@ -2815,4 +2858,19 @@ fun DependencyNode.transitiveParents(
         }
     }
     return visited
+}
+
+/**
+ * A step of the variant resolution that rejects variants not suitable for the requested platform and scope.
+ * Steps are applied in the order of declaration.
+ * The order matters since some steps fall back to less specific criteria depending on the variants left.
+ */
+private enum class VariantFilter {
+    Capability,
+    NativeTarget,
+    WasmJsTarget,
+    Category,
+    PlatformType,
+    JvmEnvironment,
+    Scope,
 }

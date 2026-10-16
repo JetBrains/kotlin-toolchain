@@ -18,8 +18,15 @@ class PlatformsAreNotSupported private constructor(
     val supportedPlatforms: Set<ResolutionPlatform>,
 ) : Message {
 
-    constructor(dependency: MavenDependency, supportedPlatforms: Set<ResolutionPlatform>)
-            : this(dependency.coordinates, dependency.resolutionConfig.platforms, supportedPlatforms)
+    /**
+     * @param alreadyReportedPlatforms the platforms the [dependency] is resolved for,
+     * which are reported by another message, so they are not listed among unsupported ones
+     */
+    constructor(
+        dependency: MavenDependency,
+        supportedPlatforms: Set<ResolutionPlatform>,
+        alreadyReportedPlatforms: Set<ResolutionPlatform> = emptySet(),
+    ) : this(dependency.coordinates, dependency.resolutionConfig.platforms - alreadyReportedPlatforms, supportedPlatforms)
 
     companion object {
         const val ID = "platforms.are.not.supported"

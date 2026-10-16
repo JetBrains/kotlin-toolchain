@@ -7,6 +7,7 @@ package org.jetbrains.amper.frontend.dr.resolver
 import org.jetbrains.amper.dependency.resolution.DependencyNode
 import org.jetbrains.amper.dependency.resolution.MavenDependencyNode
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
+import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics
 import org.jetbrains.amper.dependency.resolution.diagnostics.Severity
 import org.jetbrains.amper.dependency.resolution.group
 import org.jetbrains.amper.dependency.resolution.module
@@ -491,6 +492,54 @@ class DiagnosticsTest : AbstractDependencyInsightsTest() {
         )
     }
 
+
+    @Test
+    fun `exclusion hint for transitive dependency with unsupported capabilities`() = runModuleDependenciesTest {
+        val buildProblem = unsupportedCapabilitiesProblems(module = "transitive").single()
+
+        assertTrue(buildProblem.isTransitive, "Dependency org.apache.groovy:groovy is expected to be transitive")
+        assertContains(
+            buildProblem.message,
+            """
+                If `org.apache.groovy:groovy` is not needed, it could be excluded from the module dependencies:
+                settings:
+                  internal:
+                    excludeDependencies:
+                      - org.apache.groovy:groovy
+            """.trimIndent()
+        )
+    }
+
+    @Test
+    fun `no exclusion hint for direct dependency with unsupported capabilities`() = runModuleDependenciesTest {
+        val buildProblem = unsupportedCapabilitiesProblems(module = "direct").single()
+
+        assertFalse(buildProblem.isTransitive, "Dependency org.apache.groovy:groovy is expected to be direct")
+        assertEquals(
+            "The library org.apache.groovy:groovy:5.0.3 cannot be used for jvm: " +
+                    "its matching variants declare capabilities, which is not supported yet",
+            buildProblem.message,
+        )
+    }
+
+    private suspend fun unsupportedCapabilitiesProblems(module: String): List<DependencyBuildProblem> {
+        val aom = getTestProjectModel("jvm-unsupported-capabilities", testDataRoot)
+        val deps = doTest(
+            aom,
+            ideSyncTestResolutionInput,
+            verifyMessages = false,
+            module = module,
+            filter = ideSyncModuleResolutionFilter.copy(scope = ResolutionScope.COMPILE),
+        )
+
+        val diagnosticsReporter = CollectingProblemReporter()
+        collectBuildProblems(deps, diagnosticsReporter, Level.Error)
+
+        return diagnosticsReporter.problems
+            .filterIsInstance<DependencyBuildProblem>()
+            .filter { it.errorMessage.id == DependencyResolutionDiagnostics.UnsupportedCapabilities.id }
+            .distinctBy { it.message }
+    }
 
     @OptIn(ExperimentalContracts::class)
     internal fun DependencyNode.isMavenDependency(group: String, module: String): Boolean {

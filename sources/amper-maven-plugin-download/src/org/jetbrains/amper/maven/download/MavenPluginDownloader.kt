@@ -33,6 +33,8 @@ suspend fun MavenResolver.downloadSingleArtifactJar(
         scope = ResolutionScope.RUNTIME,
         platform = ResolutionPlatform.JVM,
         resolveSourceMoniker = coordinates.toString(),
+        // Only the artifact itself is needed, its dependencies are irrelevant
+        transitive = false,
     )
     val dependencyNode = resolvedRoot.root.children.first() as MavenDependencyNode
     return dependencyNode.dependency.files()

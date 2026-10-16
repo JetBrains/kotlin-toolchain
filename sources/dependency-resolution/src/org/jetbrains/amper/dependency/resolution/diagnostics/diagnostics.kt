@@ -54,4 +54,5 @@ object DependencyResolutionDiagnostics {
     val UnexpectedErrorOnDownload = SimpleDiagnosticDescriptor("unexpected.error.on.download", Severity.ERROR)
     val UnexpectedDependencyFormat = SimpleDiagnosticDescriptor("unexpected.dependency.format", Severity.ERROR)
     val UnspecifiedDependencyVersion = SimpleDiagnosticDescriptor("unspecified.dependency.version", Severity.ERROR)
+    val UnsupportedCapabilities = SimpleDiagnosticDescriptor("unsupported.capabilities", Severity.ERROR)
 }
