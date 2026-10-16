@@ -94,7 +94,7 @@ class KmpLibraryTest : BaseDRTest() {
         assertEquals(
             [
                 "The library org.jetbrains.dr.test:kmp-lib-capabilities:1.0 cannot be used for iosArm64: " +
-                        "its matching variants declare capabilities, which is not supported yet",
+                        "its matching variants declare capabilities, which is not supported yet (KTC-5532)",
                 "Platform iosSimulatorArm64 is not supported by the library org.jetbrains.dr.test:kmp-lib-capabilities:1.0\n" +
                         "Supported platform: [linuxX64]",
             ],
@@ -112,7 +112,7 @@ class KmpLibraryTest : BaseDRTest() {
         assertEquals(
             [
                 "The library org.jetbrains.dr.test:kmp-lib-capabilities:1.0 cannot be used for iosArm64: " +
-                        "its matching variants declare capabilities, which is not supported yet",
+                        "its matching variants declare capabilities, which is not supported yet (KTC-5532)",
                 "No variant for the platform iosSimulatorArm64 is provided by the library org.jetbrains.dr.test:kmp-lib-capabilities:1.0",
             ],
             errors,

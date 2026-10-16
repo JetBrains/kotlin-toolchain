@@ -517,7 +517,7 @@ class DiagnosticsTest : AbstractDependencyInsightsTest() {
         assertFalse(buildProblem.isTransitive, "Dependency org.apache.groovy:groovy is expected to be direct")
         assertEquals(
             "The library org.apache.groovy:groovy:5.0.3 cannot be used for jvm: " +
-                    "its matching variants declare capabilities, which is not supported yet",
+                    "its matching variants declare capabilities, which is not supported yet (KTC-5532)",
             buildProblem.message,
         )
     }

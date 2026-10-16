@@ -3108,7 +3108,7 @@ class BuildGraphTest : BaseDRTest() {
         assertTheOnlyNonInfoMessage(root, DependencyResolutionDiagnostics.UnsupportedCapabilities, transitively = true)
         assertEquals(
             "The library org.apache.groovy:groovy:5.0.2 cannot be used for jvm: " +
-                    "its matching variants declare capabilities, which is not supported yet",
+                    "its matching variants declare capabilities, which is not supported yet (KTC-5532)",
             root.children.single().messages.single { it.severity == Severity.ERROR }.message,
         )
     }
