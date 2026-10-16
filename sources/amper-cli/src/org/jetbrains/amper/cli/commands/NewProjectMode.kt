@@ -4,8 +4,10 @@
 
 package org.jetbrains.amper.cli.commands
 
+import org.jetbrains.amper.projectwizard.AgentsMdPath
 import org.jetbrains.amper.projectwizard.KotlinMultiplatformApp
 import org.jetbrains.amper.projectwizard.KotlinMultiplatformTargetPlatform
+import org.jetbrains.amper.projectwizard.agentsMd
 import org.jetbrains.amper.projectwizard.gitAttributes
 import org.jetbrains.amper.projectwizard.toExtractionSchema
 import org.jetbrains.amper.templates.AmperProjectTemplate
@@ -59,7 +61,7 @@ internal fun NewProjectMode.describe(highlight: (String) -> String): String = wh
  * Resolves all the files to generate for this mode.
  *
  * @param generateGitFiles whether to add `.gitignore` and `.gitattributes`
- * @param generateAiFiles whether to keep the files that configure AI agents
+ * @param generateAiFiles whether to add the `AGENTS.md` file for AI agents
  */
 internal fun NewProjectMode.toExtractionSchema(generateGitFiles: Boolean, generateAiFiles: Boolean): ProjectFiles =
     when (this) {
@@ -72,18 +74,24 @@ internal fun NewProjectMode.toExtractionSchema(generateGitFiles: Boolean, genera
     }
 
 private fun AmperProjectTemplate.toExtractionSchema(generateGitFiles: Boolean, generateAiFiles: Boolean): ProjectFiles {
-    val files = listFiles().filter { generateAiFiles || it.relativePath !in AiAgentFilePaths }
-    val gitFiles = if (generateGitFiles) templateGitFiles(hasPngFiles = files.any { it.relativePath.endsWith(".png") }) else []
+    val files = listFiles()
+    val generatedFiles = buildList {
+        if (generateGitFiles) addAll(templateGitFiles(hasPngFiles = files.any { it.relativePath.endsWith(".png") }))
+        if (generateAiFiles) {
+            add(TextFile(AgentsMdPath, agentsMd(hotReloadable = id in HotReloadableTemplateIds)))
+        }
+    }
     return ProjectFiles(
-        relativePaths = files.map { it.relativePath } + gitFiles.map { it.relativePath },
+        relativePaths = files.map { it.relativePath } + generatedFiles.map { it.relativePath },
         extract = { outputDir ->
             files.forEach { it.copyTo(outputDir) }
-            gitFiles.forEach { it.writeTo(outputDir) }
+            generatedFiles.forEach { it.writeTo(outputDir) }
         },
     )
 }
 
-private val AiAgentFilePaths = setOf(".mcp.json")
+/** The ids of the static templates that contain an app supporting Compose Hot Reload. */
+private val HotReloadableTemplateIds = setOf("compose-desktop")
 
 private class TextFile(val relativePath: String, val content: String) {
     fun writeTo(outputDir: Path) {

@@ -29,25 +29,23 @@ class ProjectExtractionSchema internal constructor(internal val files: List<Gene
  * Resolves all the files to generate for this app.
  *
  * @param generateGitFiles whether to add `.gitignore` and `.gitattributes`
- * @param generateAiFiles whether to keep the files that configure AI agents
+ * @param generateAiFiles whether to add the `AGENTS.md` file for AI agents
  */
 fun KotlinMultiplatformApp.toExtractionSchema(
     generateGitFiles: Boolean = true,
     generateAiFiles: Boolean = true,
 ): ProjectExtractionSchema =
     ProjectExtractionSchema(files = buildList {
-        addAll(
-            KotlinMultiplatformProjectGenerator.generate(targets, projectId, projectName)
-                .filter { generateAiFiles || it.relativePath !in AiAgentFilePaths }
-        )
+        addAll(KotlinMultiplatformProjectGenerator.generate(targets, projectId, projectName))
+        if (generateAiFiles) {
+            val hotReloadable = KotlinMultiplatformTargetPlatform.DESKTOP in targets
+            add(TextGeneratedFile(relativePath = AgentsMdPath, content = agentsMd(hotReloadable)))
+        }
         if (generateGitFiles) {
             add(TextGeneratedFile(relativePath = ".gitignore", content = KotlinMultiplatformGitIgnore))
             add(generateGitAttributesFile())
         }
     })
-
-/** The paths of the files that only configure AI agents. */
-private val AiAgentFilePaths = setOf(".mcp.json")
 
 private fun generateGitAttributesFile(): TextGeneratedFile {
     val hasPngFiles = KotlinMultiplatformProjectGenerator.template.listFiles().any { it.relativePath.endsWith(".png") }

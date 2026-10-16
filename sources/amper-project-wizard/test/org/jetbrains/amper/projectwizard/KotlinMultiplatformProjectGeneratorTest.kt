@@ -314,6 +314,37 @@ class KotlinMultiplatformProjectGeneratorTest {
     }
 
     @Test
+    fun `extraction schema generates template AGENTS md unless no-ai is given`() {
+        val mode = KotlinMultiplatformApp(
+            targets = [KotlinMultiplatformTargetPlatform.ANDROID],
+            projectId = TestProjectId,
+            projectName = "Sample App",
+        )
+
+        val withAi = mode.toExtractionSchema().files.singleOrNull { it.relativePath == "AGENTS.md" }
+        assertNotNull(withAi, "AGENTS.md should come from the Kotlin Multiplatform template")
+        assertContains((withAi as GeneratedFile).text(), "Kotlin Toolchain")
+
+        val withoutAi = mode.toExtractionSchema(generateAiFiles = false).relativePaths
+        assertFalse("AGENTS.md" in withoutAi)
+    }
+
+    @Test
+    fun `AGENTS md has UI development section only when desktop target is selected`() {
+        fun agentsMd(target: KotlinMultiplatformTargetPlatform) =
+            KotlinMultiplatformApp([target], TestProjectId, "Sample App").toExtractionSchema().files
+                .single { it.relativePath == "AGENTS.md" }.text()
+
+        val withDesktop = agentsMd(KotlinMultiplatformTargetPlatform.DESKTOP)
+        assertContains(withDesktop, "## UI Development")
+        assertContains(withDesktop, "Kotlin Toolchain")
+
+        val withoutDesktop = agentsMd(KotlinMultiplatformTargetPlatform.ANDROID)
+        assertContains(withoutDesktop, "Kotlin Toolchain")
+        assertFalse("UI Development" in withoutDesktop)
+    }
+
+    @Test
     fun `extraction schema can omit Git files`() {
         val mode = KotlinMultiplatformApp(
             targets = [KotlinMultiplatformTargetPlatform.ANDROID],

@@ -67,22 +67,6 @@ class ProjectTemplatesTest {
     }
 
     @Test
-    fun `templates with a JVM Compose app configure the Compose Hot Reload MCP server`() {
-        val templatesWithHotReloadMcp = AmperProjectTemplates.availableTemplates
-            .filter { template -> template.listFiles().any { it.relativePath == ".mcp.json" } }
-            .map { it.id }
-
-        assertEquals(["compose-desktop", "kotlin-multiplatform-app"], templatesWithHotReloadMcp.sorted())
-        AmperProjectTemplates.availableTemplates
-            .filter { it.id in templatesWithHotReloadMcp }
-            .forEach { template ->
-                val mcpJson = template.fileContent(".mcp.json")
-                assertContains(mcpJson, "\"command\": \"./kotlin\"", message = template.id)
-                assertContains(mcpJson, "\"compose-hot-reload-mcp-server\"", message = template.id)
-            }
-    }
-
-    @Test
     fun `Kotlin Multiplatform template uses placeholders for module names`() {
         val projectYaml = Path("resources/templates/kotlin-multiplatform-app/project.yaml").readText()
         TemplatePlaceholder.entries.filter { it.fixedValue != null }.forEach { placeholder ->
