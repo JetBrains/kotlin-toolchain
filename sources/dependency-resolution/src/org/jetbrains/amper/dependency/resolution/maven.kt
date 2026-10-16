@@ -13,6 +13,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import org.jetbrains.amper.dependency.resolution.attributes.AndroidBuildType
 import org.jetbrains.amper.dependency.resolution.attributes.Attribute
 import org.jetbrains.amper.dependency.resolution.attributes.AttributeValue
 import org.jetbrains.amper.dependency.resolution.attributes.Category
@@ -1208,10 +1209,14 @@ class MavenDependencyImpl internal constructor(
      * If all those variants have the same attribute and a single variant has the attribute with a preferred value,
      * then such a variant is selected.
      * Otherwise, the original variants list is returned.
+     *
+     * The release variant is preferred among the Android build types,
+     * since the Android build type of the consumer is not taken into account by the resolution.
      */
     private fun List<Variant>.filterMultipleVariantsByAttributePreferredValue(): List<Variant> {
         return if (this.withoutDocumentationAndMetadata.size > 1) {
             filterMultipleVariantsByAttribute(attribute = DependencyBundling, preferredValue = External)
+                .filterMultipleVariantsByAttribute(attribute = AndroidBuildType, preferredValue = AndroidBuildType.Release)
         } else {
             this
         }
@@ -1221,7 +1226,7 @@ class MavenDependencyImpl internal constructor(
         attribute: Attribute<T>, preferredValue: T
     ): List<Variant> {
         if (this.withoutDocumentationAndMetadata.all { v -> v.getAttributeValue(attribute) != null }) {
-            // All variants contain dependency bundling, so we could try resolving the best match
+            // All variants contain the attribute, so we could try resolving the best match
             this.filter { v ->
                 v.hasNoAttribute(attribute)
                         || v.getAttributeValue(attribute) == preferredValue

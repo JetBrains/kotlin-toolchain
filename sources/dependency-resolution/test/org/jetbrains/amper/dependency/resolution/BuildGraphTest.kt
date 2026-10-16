@@ -3112,6 +3112,33 @@ class BuildGraphTest : BaseDRTest() {
             root.children.single().messages.single { it.severity == Severity.ERROR }.message,
         )
     }
+
+    /**
+     * The library publishes both debug and release Android variants (distinguished by AGP `BuildTypeAttr`),
+     * the release one is expected to be selected.
+     */
+    @Test
+    fun `com_louiscad_splitties splitties-appctx 3_0_0`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            platform = setOf(ResolutionPlatform.ANDROID),
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_DL_GOOGLE_ANDROID),
+        )
+        assertFiles(testInfo, root)
+    }
+
+    @Test
+    fun `com_louiscad_splitties splitties-appctx 3_0_0 runtime`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            dependency = ["com.louiscad.splitties:splitties-appctx:3.0.0"],
+            scope = ResolutionScope.RUNTIME,
+            platform = setOf(ResolutionPlatform.ANDROID),
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_DL_GOOGLE_ANDROID),
+        )
+        assertFiles(testInfo, root)
+    }
+
     private fun assertEquals(@Language("text") expected: String, root: DependencyNode) =
         assertEquals(expected, root.prettyPrint().trimEnd())
 }

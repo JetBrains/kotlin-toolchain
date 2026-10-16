@@ -1,0 +1,7 @@
+annotation-1.2.0.jar
+annotations-13.0.jar
+kotlin-stdlib-1.5.21.jar
+kotlin-stdlib-common-1.5.21.jar
+kotlin-stdlib-jdk7-1.5.21.jar
+kotlin-stdlib-jdk8-1.5.21.jar
+splitties-appctx-android-3.0.0.aar

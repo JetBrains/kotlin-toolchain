@@ -1,0 +1,18 @@
+root
+╰─── com.louiscad.splitties:splitties-appctx:3.0.0
+     ╰─── com.louiscad.splitties:splitties-appctx-android:3.0.0
+          ├─── androidx.annotation:annotation:1.2.0
+          ├─── org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21
+          │    ├─── org.jetbrains.kotlin:kotlin-stdlib:1.5.21
+          │    │    ├─── org.jetbrains:annotations:13.0
+          │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib-common:1.5.21
+          │    ╰─── org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.21
+          │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.5.21 (*)
+          ├─── androidx.startup:startup-runtime:1.1.0
+          │    ├─── androidx.annotation:annotation:1.1.0 -> 1.2.0
+          │    ╰─── androidx.tracing:tracing:1.0.0
+          │         ╰─── androidx.annotation:annotation:1.1.0 -> 1.2.0
+          ╰─── com.louiscad.splitties:splitties-experimental:3.0.0
+               ╰─── com.louiscad.splitties:splitties-experimental-jvm:3.0.0
+                    ├─── org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21 (*)
+                    ╰─── org.jetbrains.kotlin:kotlin-stdlib-common:1.5.21
