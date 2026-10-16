@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.cli.test
 
+import org.jetbrains.amper.agentdetection.Agent
 import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputListener
@@ -125,6 +126,9 @@ abstract class CliTestBase : AmperCliWithWrapperTestBase() {
                 if (wrapperMode == WrapperMode.GlobalIntrinsicVersion) {
                     put("KOTLIN_CLI_WRAPPER_ALWAYS_USE_INTRINSIC_VERSION", "1")
                 }
+                // Make the CLI behave consistently whether the tests are run by an AI agent or not.
+                // Tests that need agent detection can override this value.
+                put("KOTLIN_TOOLCHAIN_AGENT_DETECTION_ENABLED", "false")
                 configureEnvironment()
             },
             buildDir = buildOutputRoot,
@@ -148,6 +152,26 @@ abstract class CliTestBase : AmperCliWithWrapperTestBase() {
 
         return result
     }
+
+    /**
+     * Runs the CLI like [runCli] does, but makes it behave as if it was run by the given [agent],
+     * by enabling agent detection and declaring the agent in the `AI_AGENT` variable.
+     */
+    protected suspend fun runCliAsAgent(
+        agent: Agent,
+        projectDir: Path,
+        vararg args: String,
+        wrapperMode: WrapperMode = WrapperMode.Local,
+        configureEnvironment: MutableMap<String, String>.() -> Unit = {},
+    ): AmperCliResult = runCli(
+        projectDir, *args,
+        wrapperMode = wrapperMode,
+        configureEnvironment = {
+            put("KOTLIN_TOOLCHAIN_AGENT_DETECTION_ENABLED", "true")
+            put("AI_AGENT", agent.aiAgentName)
+            configureEnvironment()
+        },
+    )
 
     /**
      * Runs the CLI like [runCli] does, but using [mavenLocalRepository] as the local Maven repository, so that the

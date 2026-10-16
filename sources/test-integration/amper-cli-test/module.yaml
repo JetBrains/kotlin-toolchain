@@ -6,6 +6,7 @@ apply:
   - //sources/common.module-template.yaml
 
 test-dependencies:
+  - //sources/libraries/agent-detection
   - //sources/amper-build-info
   - //sources/amper-events
   - //sources/amper-kotlin-native

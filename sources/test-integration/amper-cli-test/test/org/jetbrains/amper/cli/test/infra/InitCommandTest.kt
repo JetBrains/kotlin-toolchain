@@ -42,6 +42,7 @@ class InitCommandTest : CliTestBase() {
         newRoot.assertContainsRelativeFiles(
             ".gitattributes",
             ".gitignore",
+            "AGENTS.md",
             "kotlin",
             "kotlin.bat",
             "module.yaml",
@@ -60,6 +61,7 @@ class InitCommandTest : CliTestBase() {
         (newRoot / "foo").assertContainsRelativeFiles(
             ".gitattributes",
             ".gitignore",
+            "AGENTS.md",
             "kotlin",
             "kotlin.bat",
             "module.yaml",

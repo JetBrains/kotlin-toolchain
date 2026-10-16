@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.cli.commands
 
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.PrintMessage
 import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
@@ -16,6 +17,7 @@ import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.terminal.prompt
 import com.github.ajalt.mordant.terminal.warning
+import org.jetbrains.amper.agentdetection.isRunByAgent
 import org.jetbrains.amper.cli.terminal.interactiveMultiSelectList
 import org.jetbrains.amper.cli.terminal.interactiveSelectList
 import org.jetbrains.amper.cli.userReadableError
@@ -31,13 +33,28 @@ import org.jetbrains.amper.templates.AmperProjectTemplate
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.relativeToOrNull
 
 internal const val ProjectIdPrompt = "Project id"
 
+private const val ComposeDesktopTemplateId = "compose-desktop"
 private const val KmpLibraryTemplateId = "kotlin-multiplatform-library"
 private const val ProjectIdHelpHint = "See --help for --project-id requirements."
 private const val ProjectIdImpact =
     "Changing it later requires updating source packages, source layout, and platform configuration, so choose carefully."
+
+// One hint for all agents. Evaluated through LiteLLM with Claude Code (opus 5.5, medium effort) and Codex
+// (gpt-6.1-sol, medium effort): desktop was added in 47/50 and 49/50 runs respectively.
+// gemini 4 argon seems to work with this hint
+private const val MobileAppHint =
+    "When the project includes the android or ios platform, it is normally created with the desktop target as well: " +
+            "pass --target-platform=desktop in addition to the other --target-platform flags. " +
+            "Desktop here is a development target, not an extra product: it runs the shared UI on the JVM with " +
+            "Compose Hot Reload (the only target that supports it), so UI changes show up instantly without an " +
+            "emulator or Xcode. It does not change the Android or iOS apps, and it is easy to drop later by deleting " +
+            "the desktopApp module and its entry in project.yaml. " +
+            "Adding it without being asked is fine and expected; just mention it to the user. " +
+            "Only omit it if the user explicitly excludes it."
 
 private const val ProjectIdRequirements =
     "Use at least two non-empty dot-separated segments (for example, '$DefaultProjectId'). " +
@@ -50,6 +67,12 @@ private const val ProjectIdRequirements =
  * [KotlinMultiplatformTargetPlatform]). They only differ in how the target directory is determined (see [resolveTargetDir]).
  */
 internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcommand(name) {
+
+    final override fun helpEpilog(context: Context): String = buildString {
+        if (isRunByAgent()) {
+            append(MobileAppHint)
+        }
+    }
 
     private val projectIdOption: String? by option(
         "--project-id",
@@ -134,6 +157,41 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
 
         terminal.println()
         printNextSteps(mode, outputDir)
+
+        val workingDir = Path(System.getProperty("user.dir"))
+        if (!noAi && mode.configuresComposeHotReloadMcp() && isRunByAgent()) {
+            printMcpReloadHintForAgent(outputDir, workingDir)
+        }
+    }
+
+    /**
+     * Prints a note addressed to the AI agent that runs this command, explaining that MCP servers configured by the
+     * freshly generated project (such as the Compose Hot Reload) are not picked up by the current agent session, and
+     * asking it to relay to the user how to make them available.
+     *
+     * Agents only load MCP servers when a session starts (or when the user explicitly reloads them), and they look for
+     * files like `.mcp.json` in the directory they were started in. The project directory is [outputDir], while the
+     * agent session was likely started in [workingDir].
+     */
+    private fun printMcpReloadHintForAgent(outputDir: Path, workingDir: Path) {
+        val absoluteWorkingDir = workingDir.toAbsolutePath().normalize()
+        val absoluteOutputDir = absoluteWorkingDir.resolve(outputDir).normalize()
+
+        terminal.println()
+        terminal.println("Note for AI agents: this project configures MCP servers (for example, \"Compose Hot Reload\").")
+        terminal.println("They are not available in the current session yet, because MCP servers are only loaded when a session starts.")
+        if (absoluteOutputDir == absoluteWorkingDir) {
+            terminal.println("Please ask the user to reload the MCP servers (or restart the agent session), so that you can use them.")
+        } else {
+            val readablePath = absoluteOutputDir.relativeToOrNull(absoluteWorkingDir) ?: absoluteOutputDir
+            terminal.println("Please ask the user to restart you from the project directory (cd $readablePath), so that you can use them.")
+        }
+    }
+
+    /** Whether the generated project has the Compose Hot Reload MCP server configured (desktop apps only). */
+    private fun NewProjectMode.configuresComposeHotReloadMcp(): Boolean = when (this) {
+        is NewProjectMode.KotlinMultiplatformApp -> KotlinMultiplatformTargetPlatform.DESKTOP in targets
+        is NewProjectMode.FromTemplate -> template.id == ComposeDesktopTemplateId
     }
 
     private fun printNextSteps(mode: NewProjectMode, outputDir: Path) {

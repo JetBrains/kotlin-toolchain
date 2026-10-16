@@ -1,0 +1,6 @@
+product: jvm/lib
+
+description: Detects whether the current process is run by an AI coding agent (port of vercel/detect-agent).
+
+apply:
+  - //sources/common.module-template.yaml

@@ -33,6 +33,7 @@ dependencies:
   - //sources/frontend-api
   - //sources/frontend/schema
   - //sources/frontend/dr
+  - //sources/libraries/agent-detection
   - //sources/libraries/async-processes
   - //sources/libraries/compose-resources
   - //sources/libraries/compress
