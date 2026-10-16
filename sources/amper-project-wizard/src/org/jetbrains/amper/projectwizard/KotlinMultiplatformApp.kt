@@ -30,19 +30,27 @@ class ProjectExtractionSchema internal constructor(internal val files: List<Gene
  *
  * @param generateGitFiles whether to add `.gitignore` and `.gitattributes`
  * @param generateAiFiles whether to add the `AGENTS.md` file for AI agents
+ * @param agents the AI agents to generate MCP configuration files for (none if empty)
  */
 fun KotlinMultiplatformApp.toExtractionSchema(
     generateGitFiles: Boolean = true,
     generateAiFiles: Boolean = true,
+    agents: Set<AiAgent> = AiAgent.entries.toSet(),
 ): ProjectExtractionSchema =
     ProjectExtractionSchema(files = buildList {
         addAll(KotlinMultiplatformProjectGenerator.generate(targets, projectId, projectName))
+        val hasDesktop = KotlinMultiplatformTargetPlatform.DESKTOP in targets
         if (generateAiFiles) {
-            val hotReloadable = KotlinMultiplatformTargetPlatform.DESKTOP in targets
-            add(TextGeneratedFile(relativePath = AgentsMdPath, content = agentsMd(hotReloadable)))
+            add(TextGeneratedFile(relativePath = AgentsMdPath, content = agentsMd(hotReloadable = hasDesktop)))
         }
+        addAll(
+            generateMcpConfigFiles(agents = agents, hasJvmComposeApp = hasDesktop)
+                .entries.map { entry -> TextGeneratedFile(relativePath = entry.key, content = entry.value) }
+        )
         if (generateGitFiles) {
-            add(TextGeneratedFile(relativePath = ".gitignore", content = KotlinMultiplatformGitIgnore))
+            val gitIgnore = KotlinMultiplatformGitIgnore +
+                    mcpConfigGitIgnoreEntries(agents).joinToString("") { "$it\n" }
+            add(TextGeneratedFile(relativePath = ".gitignore", content = gitIgnore))
             add(generateGitAttributesFile())
         }
     })

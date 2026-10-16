@@ -31,6 +31,7 @@ kotlin-bta = "2.4.20" # Should be at least as high as default Kotlin version for
 kotlinpoet = "2.4.0"
 kotlinx-coroutines = "1.10.2" # aligned with IntelliJ platform - see https://code.jetbrains.team/p/ij/repositories/ultimate/files/261.26222/.idea/libraries/kotlinx_coroutines_core.xml
 kotlinx-datetime = "0.8.0"
+kotlinx-serialization = "1.11.0"
 ktor = "3.4.1" # aligned with IntelliJ platform - see https://code.jetbrains.team/p/ij/repositories/ultimate/files/261.26222/.idea/libraries/ktor_client_core.xml
 maven = "3.9.16"
 maven-plugin-annotations = "3.16.0"
@@ -108,6 +109,7 @@ kotlinx-coroutines-debug = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-
 kotlinx-coroutines-slf4j = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { module="org.jetbrains.kotlinx:kotlinx-datetime", version.ref="kotlinx-datetime" }
+kotlinx-serialization-json = {module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref="kotlinx-serialization" }
 ktor-client = { module = "io.ktor:ktor-client", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }

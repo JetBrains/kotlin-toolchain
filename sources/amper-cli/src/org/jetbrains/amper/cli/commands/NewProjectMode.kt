@@ -5,9 +5,12 @@
 package org.jetbrains.amper.cli.commands
 
 import org.jetbrains.amper.projectwizard.AgentsMdPath
+import org.jetbrains.amper.projectwizard.AiAgent
 import org.jetbrains.amper.projectwizard.KotlinMultiplatformApp
 import org.jetbrains.amper.projectwizard.KotlinMultiplatformTargetPlatform
 import org.jetbrains.amper.projectwizard.agentsMd
+import org.jetbrains.amper.projectwizard.generateMcpConfigFiles
+import org.jetbrains.amper.projectwizard.mcpConfigGitIgnoreEntries
 import org.jetbrains.amper.projectwizard.gitAttributes
 import org.jetbrains.amper.projectwizard.toExtractionSchema
 import org.jetbrains.amper.templates.AmperProjectTemplate
@@ -62,25 +65,41 @@ internal fun NewProjectMode.describe(highlight: (String) -> String): String = wh
  *
  * @param generateGitFiles whether to add `.gitignore` and `.gitattributes`
  * @param generateAiFiles whether to add the `AGENTS.md` file for AI agents
+ * @param agents the AI agents to generate MCP configuration files for (none if empty)
  */
-internal fun NewProjectMode.toExtractionSchema(generateGitFiles: Boolean, generateAiFiles: Boolean): ProjectFiles =
+internal fun NewProjectMode.toExtractionSchema(
+    generateGitFiles: Boolean,
+    generateAiFiles: Boolean,
+    agents: Set<AiAgent>,
+): ProjectFiles =
     when (this) {
-        is NewProjectMode.FromTemplate -> template.toExtractionSchema(generateGitFiles, generateAiFiles)
+        is NewProjectMode.FromTemplate -> template.toExtractionSchema(generateGitFiles, generateAiFiles, agents)
         is NewProjectMode.KotlinMultiplatformApp -> {
             val schema = KotlinMultiplatformApp(targets, projectId, projectName)
-                .toExtractionSchema(generateGitFiles, generateAiFiles)
+                .toExtractionSchema(generateGitFiles, generateAiFiles, agents)
             ProjectFiles(schema.relativePaths, schema::extractTo)
         }
     }
 
-private fun AmperProjectTemplate.toExtractionSchema(generateGitFiles: Boolean, generateAiFiles: Boolean): ProjectFiles {
+private fun AmperProjectTemplate.toExtractionSchema(
+    generateGitFiles: Boolean,
+    generateAiFiles: Boolean,
+    agents: Set<AiAgent>,
+): ProjectFiles {
     val files = listFiles()
-    val generatedFiles = buildList {
-        if (generateGitFiles) addAll(templateGitFiles(hasPngFiles = files.any { it.relativePath.endsWith(".png") }))
-        if (generateAiFiles) {
-            add(TextFile(AgentsMdPath, agentsMd(hotReloadable = id in HotReloadableTemplateIds)))
-        }
+    val mcpFiles = generateMcpConfigFiles(agents, hasJvmComposeApp = id in JvmComposeTemplateIds)
+        .entries.map { entry -> TextFile(entry.key, entry.value) }
+    val agentsMdFiles = if (generateAiFiles) {
+        [TextFile(AgentsMdPath, agentsMd(hotReloadable = id in HotReloadableTemplateIds))]
+    } else {
+        []
     }
+    val gitFiles = if (generateGitFiles) {
+        templateGitFiles(hasPngFiles = files.any { it.relativePath.endsWith(".png") }, agents = agents)
+    } else {
+        []
+    }
+    val generatedFiles = gitFiles + mcpFiles + agentsMdFiles
     return ProjectFiles(
         relativePaths = files.map { it.relativePath } + generatedFiles.map { it.relativePath },
         extract = { outputDir ->
@@ -93,6 +112,9 @@ private fun AmperProjectTemplate.toExtractionSchema(generateGitFiles: Boolean, g
 /** The ids of the static templates that contain an app supporting Compose Hot Reload. */
 private val HotReloadableTemplateIds = setOf("compose-desktop")
 
+/** The ids of the static templates that contain a JVM Compose app (for the Compose Hot Reload MCP server). */
+private val JvmComposeTemplateIds = setOf("compose-desktop", "kotlin-multiplatform-app")
+
 private class TextFile(val relativePath: String, val content: String) {
     fun writeTo(outputDir: Path) {
         val path = outputDir.resolve(relativePath)
@@ -101,7 +123,7 @@ private class TextFile(val relativePath: String, val content: String) {
     }
 }
 
-private fun templateGitFiles(hasPngFiles: Boolean): List<TextFile> = [
-    TextFile(".gitignore", DefaultGitIgnore),
+private fun templateGitFiles(hasPngFiles: Boolean, agents: Set<AiAgent>): List<TextFile> = [
+    TextFile(".gitignore", DefaultGitIgnore + mcpConfigGitIgnoreEntries(agents).joinToString("") { "$it\n" }),
     TextFile(".gitattributes", gitAttributes(hasPngFiles)),
 ]

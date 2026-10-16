@@ -7,8 +7,10 @@ apply:
 
 dependencies:
   - //sources/amper-project-templates
+  - //sources/libraries/system-info
   - $libs.kotlinx.coroutines.core
   - $libs.org.eclipse.jgit
+  - $libs.kotlinx.serialization.json
 
 test-dependencies:
   - $libs.junit.jupiter.params

@@ -12,6 +12,7 @@ import com.github.ajalt.clikt.parameters.groups.single
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.switch
 import com.github.ajalt.clikt.parameters.options.transformAll
 import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.mordant.terminal.Terminal
@@ -20,8 +21,10 @@ import com.github.ajalt.mordant.terminal.warning
 import org.jetbrains.amper.agentdetection.isRunByAgent
 import org.jetbrains.amper.cli.terminal.interactiveMultiSelectList
 import org.jetbrains.amper.cli.terminal.interactiveSelectList
+import org.jetbrains.amper.cli.terminal.promptBoolean
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.widgets.withIndeterminateProgress
+import org.jetbrains.amper.projectwizard.AiAgent
 import org.jetbrains.amper.projectwizard.KotlinMultiplatformTargetPlatform
 import org.jetbrains.amper.projectwizard.DefaultInteractiveKotlinMultiplatformTargets
 import org.jetbrains.amper.projectwizard.GitInitResult
@@ -67,6 +70,10 @@ private const val ProjectIdRequirements =
  * [KotlinMultiplatformTargetPlatform]). They only differ in how the target directory is determined (see [resolveTargetDir]).
  */
 internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcommand(name) {
+    private sealed interface AiConfigurationOption {
+        data object NoAi : AiConfigurationOption
+        data class SelectedAgents(val agents: List<AiAgent>) : AiConfigurationOption
+    }
 
     final override fun helpEpilog(context: Context): String = buildString {
         if (isRunByAgent()) {
@@ -111,10 +118,23 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
         help = "Do not initialize a Git repository or generate Git-related files for the generated project.",
     ).flag(default = false)
 
-    private val noAi: Boolean by option(
-        "--no-ai",
-        help = "Do not generate files that configure AI agents.",
-    ).flag(default = false)
+    private val aiConfigurationOption by mutuallyExclusiveOptions(
+        option("--no-ai", help = "Do not generate files that configure AI agents.")
+            .switch("--no-ai" to AiConfigurationOption.NoAi),
+        option(
+            "--agent",
+            help = "Generate AI configuration only for this agent. Can be repeated. " +
+                    "One of: ${AiAgent.byCliValue.keys.joinToString()}. " +
+                    "Required in non-interactive mode unless --no-ai is given; " +
+                    "in interactive mode, prompts for the agents.",
+        ).choice(AiAgent.byCliValue).transformAll { agents ->
+            agents.takeIf { it.isNotEmpty() }?.let(AiConfigurationOption::SelectedAgents)
+        },
+    ).single()
+
+    private val noAi: Boolean get() = aiConfigurationOption == AiConfigurationOption.NoAi
+    private val agentOptions: List<AiAgent>
+        get() = (aiConfigurationOption as? AiConfigurationOption.SelectedAgents)?.agents.orEmpty()
 
     /**
      * Determines the directory to generate the project in, prompting or failing as appropriate if it depends on
@@ -130,7 +150,11 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
         val outputDir = resolveTargetDir()
         val projectName = determineProjectName(outputDir)
         val mode = resolveMode(projectName)
-        val schema = mode.toExtractionSchema(generateGitFiles = !noGit, generateAiFiles = !noAi)
+        val schema = mode.toExtractionSchema(
+            generateGitFiles = !noGit,
+            generateAiFiles = !noAi,
+            agents = resolveAgents(),
+        )
         val overwriteConflicts = overwrite || terminal.shouldOverwriteConflictingPaths(
             relativePaths = schema.relativePaths,
             outputDir = outputDir,
@@ -214,6 +238,17 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
     private fun printBuildHint(cd: String) {
         terminal.println("Now you may build your project with:")
         terminal.println("  ${terminal.theme.info("${cd}kotlin build")}")
+    }
+
+    private fun resolveAgents(): Set<AiAgent> = when {
+        noAi -> []
+        agentOptions.isNotEmpty() -> agentOptions.toSet()
+        terminal.terminalInfo.interactive -> terminal.promptForAiAgents()
+        else -> userReadableError(
+            "Please specify which AI agents to configure with --agent " +
+                    "(one of: ${AiAgent.byCliValue.keys.joinToString()}; can be repeated), " +
+                    "or pass --no-ai to skip AI configuration."
+        )
     }
 
     /**
@@ -342,6 +377,26 @@ internal fun Terminal.promptForKotlinMultiplatformTargets(): Set<KotlinMultiplat
         ) ?: throw PrintMessage("Command aborted.")
         if (selected.isNotEmpty()) return selected.toSet()
         // Nothing was selected, so the retry starts from an empty list rather than from the defaults again.
+        preselected = []
+    }
+}
+
+internal fun Terminal.promptForAiAgents(): Set<AiAgent> {
+    val install = promptBoolean("Install AI agent configuration?", default = true)
+        ?: throw PrintMessage("Command aborted.")
+    if (!install) return []
+
+    var preselected = AiAgent.entries.toSet()
+    while (true) {
+        val selected = interactiveMultiSelectList(
+            title = "Please select at least one AI agent using ${theme.info("[Space]")}, " +
+                    "and confirm with ${theme.info("[Enter]")}:",
+            items = AiAgent.entries,
+            nameSelector = { it.displayName },
+            preselected = preselected,
+            filterable = true,
+        ) ?: throw PrintMessage("Command aborted.")
+        if (selected.isNotEmpty()) return selected.toSet()
         preselected = []
     }
 }

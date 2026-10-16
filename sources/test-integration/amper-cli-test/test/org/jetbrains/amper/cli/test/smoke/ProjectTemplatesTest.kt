@@ -153,7 +153,7 @@ class ProjectTemplatesTest : CliTestBase() {
     private suspend fun runInitForTemplateFromTestName(testInfo: TestInfo): AmperCliResult =
         runCli(
             tempRoot,
-            "init", "--from-template=${templateNameFromTestName(testInfo.testMethod.get().name)}",
+            "init", "--no-ai", "--from-template=${templateNameFromTestName(testInfo.testMethod.get().name)}",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
@@ -164,7 +164,7 @@ class ProjectTemplatesTest : CliTestBase() {
     private suspend fun runInitForKotlinMultiplatform(): AmperCliResult =
         runCli(
             tempRoot,
-            "init", "--target-platform=android", "--target-platform=ios", "--target-platform=desktop",
+            "init", "--no-ai", "--target-platform=android", "--target-platform=ios", "--target-platform=desktop",
             "--target-platform=web", "--target-platform=server",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )

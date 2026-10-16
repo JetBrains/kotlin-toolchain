@@ -6,6 +6,7 @@ package org.jetbrains.amper.projectwizard
 
 import org.jetbrains.amper.templates.TemplatePlaceholder
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -413,7 +414,8 @@ class KotlinMultiplatformProjectGeneratorTest {
         )
         val files = mode.toExtractionSchema().files
         val gitignore = assertNotNull(files.singleOrNull { it.relativePath == ".gitignore" }) as GeneratedFile
-        assertEquals(KotlinMultiplatformGitIgnore, gitignore.text())
+        assertEquals(KotlinMultiplatformGitIgnore + mcpConfigGitIgnoreEntries(AiAgent.entries.toSet()).joinToString("") { "$it\n" }, gitignore.text())
+        assertContains(gitignore.text(), "/.mcp.json\n")
 
         assertFalse(files.any { it.relativePath.startsWith(".idea/") })
     }
@@ -484,4 +486,79 @@ class KotlinMultiplatformProjectGeneratorTest {
         is BinaryGeneratedFile -> content.contentToString()
         is TextGeneratedFile -> content
     }
+
+
+    private val cmpDesktopMode get() = KotlinMultiplatformApp(
+        targets = [KotlinMultiplatformTargetPlatform.DESKTOP],
+        projectId = TestProjectId,
+        projectName = "Sample App",
+    )
+
+    private val allMcpPaths = [
+        ".mcp.json",
+        ".codex/config.toml",
+        ".agents/mcp_config.json",
+        ".junie/mcp/mcp.json",
+        ".pi/mcp.json",
+        ".opencode/opencode.json",
+    ]
+
+    @Test
+    fun `empty agents set omits MCP configs in CMP mode`() {
+        val paths = cmpDesktopMode.toExtractionSchema(agents = []).relativePaths
+        for (mcpPath in allMcpPaths) {
+            assertFalse(mcpPath in paths, "$mcpPath should be absent when agents is empty")
+        }
+    }
+
+    @Test
+    fun `all-agents default produces all six MCP files`() {
+        val paths = cmpDesktopMode.toExtractionSchema().relativePaths
+        for (mcpPath in allMcpPaths) {
+            assertContains(paths, mcpPath)
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = [
+        "CLAUDE, .mcp.json",
+        "CODEX, .codex/config.toml",
+        "ANTIGRAVITY, .agents/mcp_config.json",
+        "JUNIE, .junie/mcp/mcp.json",
+        "PI, .pi/mcp.json",
+        "OPENCODE, .opencode/opencode.json",
+    ])
+    fun `single agent generates only its config`(agent: AiAgent, expectedPath: String) {
+        val paths = cmpDesktopMode.toExtractionSchema(agents = [agent]).relativePaths
+        assertContains(paths, expectedPath)
+        for (mcpPath in allMcpPaths - expectedPath) {
+            assertFalse(mcpPath in paths, "$mcpPath should be absent when only $agent is selected")
+        }
+    }
+
+    @Test
+    fun `Junie and Pi share claude schema content even when Claude not selected`() {
+        val juniePaths = cmpDesktopMode.toExtractionSchema(agents = [AiAgent.JUNIE, AiAgent.PI]).relativePaths
+        assertContains(juniePaths, ".junie/mcp/mcp.json")
+        assertContains(juniePaths, ".pi/mcp.json")
+        assertFalse(".mcp.json" in juniePaths)
+
+        val files = cmpDesktopMode.toExtractionSchema(agents = [AiAgent.JUNIE, AiAgent.PI]).files
+        val junieContent = (files.single { it.relativePath == ".junie/mcp/mcp.json" } as TextGeneratedFile).content
+        val piContent = (files.single { it.relativePath == ".pi/mcp.json" } as TextGeneratedFile).content
+        assertEquals(junieContent, piContent, "Junie and Pi should get identical shared-schema content")
+        assertContains(junieContent, "mcpServers")
+    }
+
+    @Test
+    fun `Claude and Junie and Pi all share same config content`() {
+        val files = cmpDesktopMode.toExtractionSchema(agents = AiAgent.entries.toSet()).files
+        val claudeContent = (files.single { it.relativePath == ".mcp.json" } as TextGeneratedFile).content
+        val junieContent = (files.single { it.relativePath == ".junie/mcp/mcp.json" } as TextGeneratedFile).content
+        val piContent = (files.single { it.relativePath == ".pi/mcp.json" } as TextGeneratedFile).content
+        assertEquals(claudeContent, junieContent)
+        assertEquals(claudeContent, piContent)
+    }
+
+
 }

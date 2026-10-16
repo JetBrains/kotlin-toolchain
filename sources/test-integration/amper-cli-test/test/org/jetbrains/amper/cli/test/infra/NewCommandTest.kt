@@ -47,7 +47,7 @@ class NewCommandTest : CliTestBase() {
     fun `new generates a single-target Compose Multiplatform app in a new directory`() = runSlowTest {
         val workDir = (nonRepositoryTempDir / "single-target").createDirectories()
         val result = runCli(
-            workDir, "new", "myapp", "--target-platform=desktop",
+            workDir, "new", "--no-ai", "myapp", "--target-platform=desktop",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
@@ -58,7 +58,6 @@ class NewCommandTest : CliTestBase() {
         projectRoot.assertContainsRelativeFiles(
             ".gitattributes",
             ".gitignore",
-            "AGENTS.md",
             "README.md",
             "desktopApp/module.yaml",
             "desktopApp/resources/logback.xml",
@@ -92,7 +91,7 @@ class NewCommandTest : CliTestBase() {
     fun `new generates a Ktor server target`() = runSlowTest {
         val workDir = (nonRepositoryTempDir / "server-target").createDirectories()
         val result = runCli(
-            workDir, "new", "myapp", "--target-platform=server",
+            workDir, "new", "--no-ai", "myapp", "--target-platform=server",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
         val cdPrefix = if (OsFamily.current.isWindows) "cd myapp; " else "cd myapp && "
@@ -102,7 +101,6 @@ class NewCommandTest : CliTestBase() {
         projectRoot.assertContainsRelativeFiles(
             ".gitattributes",
             ".gitignore",
-            "AGENTS.md",
             "README.md",
             "core/module.yaml",
             "core/src/GreetingUtil.kt",
@@ -135,7 +133,7 @@ class NewCommandTest : CliTestBase() {
     fun `new prunes the shared module platforms and modules to the selected targets`() = runSlowTest {
         val workDir = newEmptyProjectDir()
         runCli(
-            workDir, "new", "myapp", "--target-platform=desktop", "--target-platform=web",
+            workDir, "new", "--no-ai", "myapp", "--target-platform=desktop", "--target-platform=web",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
@@ -149,7 +147,7 @@ class NewCommandTest : CliTestBase() {
     fun `new substitutes the project id and name everywhere`() = runSlowTest {
         val workDir = newEmptyProjectDir()
         runCli(
-            workDir, "new", "myapp",
+            workDir, "new", "--no-ai", "myapp",
             "--target-platform=android", "--target-platform=ios", "--target-platform=desktop",
             "--target-platform=web", "--target-platform=server",
             "--project-id=com.acme.demo",
@@ -185,7 +183,7 @@ class NewCommandTest : CliTestBase() {
         val workDir = newEmptyProjectDir()
         val idArgs = if (explicitId == null) [] else ["--project-id=$explicitId"]
         runCli(
-            workDir, "new", projectName,
+            workDir, "new", "--no-ai", projectName,
             "--target-platform=android", "--target-platform=ios", "--target-platform=desktop",
             "--target-platform=web", "--target-platform=server",
             *idArgs.toTypedArray(),
@@ -198,7 +196,7 @@ class NewCommandTest : CliTestBase() {
     fun `new always generates sample test sources`() = runSlowTest {
         val workDir = newEmptyProjectDir()
         runCli(
-            workDir, "new", "myapp", "--target-platform=desktop",
+            workDir, "new", "--no-ai", "myapp", "--target-platform=desktop",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
@@ -210,7 +208,7 @@ class NewCommandTest : CliTestBase() {
     @Test
     fun `new initializes a git repository with a gitignore by default`() = runSlowTest {
         val workDir = (nonRepositoryTempDir / "default-init").createDirectories()
-        runCli(workDir, "new", "myapp", "--target-platform=desktop", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
+        runCli(workDir, "new", "--no-ai", "myapp", "--target-platform=desktop", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
 
         val projectRoot = workDir / "myapp"
         val head = projectRoot / ".git" / "HEAD"
@@ -233,7 +231,7 @@ class NewCommandTest : CliTestBase() {
     fun `new does not generate Git repository or files with no-git`(sourceOption: String) = runSlowTest {
         val workDir = (nonRepositoryTempDir / "no-git").createDirectories()
         runCli(
-            workDir, "new", "myapp", sourceOption, "--no-git",
+            workDir, "new", "--no-ai", "myapp", sourceOption, "--no-git",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
@@ -247,7 +245,7 @@ class NewCommandTest : CliTestBase() {
     fun `new generates AGENTS md for static templates unless no-ai is given`() = runSlowTest {
         val workDir = (nonRepositoryTempDir / "static-agents").createDirectories()
         runCli(
-            workDir, "new", "cli-app", "--from-template=jvm-cli", "--no-git",
+            workDir, "new", "cli-app", "--from-template=jvm-cli", "--no-git", "--agent=claude",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
         runCli(
@@ -261,10 +259,10 @@ class NewCommandTest : CliTestBase() {
     }
 
     @Test
-    fun `new generates AGENTS md unless no-ai is given`() = runSlowTest {
-        val workDir = (nonRepositoryTempDir / "no-ai").createDirectories()
+    fun `new generates MCP configs only for explicitly requested agents in non-interactive mode`() = runSlowTest {
+        val workDir = (nonRepositoryTempDir / "agents").createDirectories()
         runCli(
-            workDir, "new", "with-ai", "--target-platform=desktop", "--no-git",
+            workDir, "new", "with-agent", "--target-platform=desktop", "--no-git", "--agent=claude",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
         runCli(
@@ -272,7 +270,9 @@ class NewCommandTest : CliTestBase() {
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
-        assertTrue((workDir / "with-ai/AGENTS.md").exists(), "AGENTS.md should be generated by default")
+        assertTrue((workDir / "with-agent/AGENTS.md").exists(), "AGENTS.md should be generated by default")
+        assertTrue((workDir / "with-agent/.mcp.json").exists(), ".mcp.json should be generated with --agent=claude")
+        assertFalse((workDir / "without-ai/.mcp.json").exists(), ".mcp.json should not be generated with --no-ai")
         assertFalse((workDir / "without-ai/AGENTS.md").exists(), "AGENTS.md should not be generated with --no-ai")
     }
 
@@ -280,7 +280,7 @@ class NewCommandTest : CliTestBase() {
     fun `new hints agents to reload MCP servers when run by an agent`() = runSlowTest {
         val workDir = (nonRepositoryTempDir / "agent-hint").createDirectories()
         val result = runCliAsAgent(
-            Agent.ClaudeCode, workDir, "new", "myapp", "--target-platform=desktop", "--no-git",
+            Agent.ClaudeCode, workDir, "new", "myapp", "--target-platform=desktop", "--no-git", "--agent=claude",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
@@ -292,7 +292,7 @@ class NewCommandTest : CliTestBase() {
     fun `new does not hint agents when no MCP config is generated`() = runSlowTest {
         val workDir = (nonRepositoryTempDir / "agent-hint-server").createDirectories()
         val result = runCliAsAgent(
-            Agent.ClaudeCode, workDir, "new", "myapp", "--target-platform=server", "--no-git",
+            Agent.ClaudeCode, workDir, "new", "myapp", "--target-platform=server", "--no-git", "--agent=claude",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
@@ -341,14 +341,14 @@ class NewCommandTest : CliTestBase() {
     fun `new skips nested Git initialization with a note`() = runSlowTest {
         val workDir = (nonRepositoryTempDir / "nested-init").createDirectories()
         runCli(
-            workDir, "new", "outer", "--target-platform=desktop",
+            workDir, "new", "--no-ai", "outer", "--target-platform=desktop",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
         val outerProject = workDir / "outer"
         assertTrue((outerProject / ".git").exists(), "the outer Git repository should have been initialized")
         val result = runCli(
-            outerProject, "new", "nested", "--target-platform=desktop",
+            outerProject, "new", "--no-ai", "nested", "--target-platform=desktop",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
@@ -364,7 +364,7 @@ class NewCommandTest : CliTestBase() {
         (projectRoot / ".git").writeText("not a gitdir pointer")
 
         val result = runCli(
-            workDir, "new", "myapp", "--target-platform=desktop",
+            workDir, "new", "--no-ai", "myapp", "--target-platform=desktop",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
@@ -377,7 +377,7 @@ class NewCommandTest : CliTestBase() {
     fun `new generates a gitignore alongside the git repository`() = runSlowTest {
         val workDir = newEmptyProjectDir()
         runCli(
-            workDir, "new", "myapp", "--target-platform=desktop",
+            workDir, "new", "--no-ai", "myapp", "--target-platform=desktop",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
@@ -395,14 +395,13 @@ class NewCommandTest : CliTestBase() {
     fun `init generates a Compose Multiplatform app in the current directory`() = runSlowTest {
         val workDir = (nonRepositoryTempDir / "current-directory-init").createDirectories()
         runCli(
-            workDir, "init", "--target-platform=desktop",
+            workDir, "init", "--no-ai", "--target-platform=desktop",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
         workDir.assertContainsRelativeFiles(
             ".gitattributes",
             ".gitignore",
-            "AGENTS.md",
             "README.md",
             "desktopApp/module.yaml",
             "desktopApp/resources/logback.xml",
@@ -428,7 +427,7 @@ class NewCommandTest : CliTestBase() {
     fun `new fails without a target`() = runSlowTest {
         val workDir = newEmptyProjectDir()
         val r = runCli(
-            workDir, "new", "myapp",
+            workDir, "new", "--no-ai", "myapp",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -485,7 +484,7 @@ class NewCommandTest : CliTestBase() {
         )
         expectedReasonByProjectId.forEach { (key, value) ->
             val r = runCli(
-                workDir, "new", "myapp", "--target-platform=desktop", "--project-id=$key",
+                workDir, "new", "--no-ai", "myapp", "--target-platform=desktop", "--project-id=$key",
                 expectedExitCode = 1,
                 assertEmptyStdErr = false,
                 wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -507,7 +506,7 @@ class NewCommandTest : CliTestBase() {
         val overwriteArgumentVariants: List<List<String>> = [[], ["--overwrite"]]
         for (overwriteArgs in overwriteArgumentVariants) {
             val r = runCli(
-                workDir, "new", "myapp", "--target-platform=desktop", "--project-id=com.my_app",
+                workDir, "new", "--no-ai", "myapp", "--target-platform=desktop", "--project-id=com.my_app",
                 *overwriteArgs.toTypedArray(),
                 expectedExitCode = 1,
                 assertEmptyStdErr = false,
@@ -523,7 +522,7 @@ class NewCommandTest : CliTestBase() {
     fun `new requires a project path`() = runSlowTest {
         val workDir = newEmptyProjectDir()
         val r = runCli(
-            workDir, "new", "--target-platform=desktop",
+            workDir, "new", "--no-ai", "--target-platform=desktop",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -538,7 +537,7 @@ class NewCommandTest : CliTestBase() {
         val workDir = newEmptyProjectDir()
         val nameArgs = if (withProjectName) ["myapp"] else []
         val result = runCli(
-            workDir, "new", *nameArgs.toTypedArray(), "--target-dir=actual-name", "--target-platform=desktop",
+            workDir, "new", "--no-ai", *nameArgs.toTypedArray(), "--target-dir=actual-name", "--target-platform=desktop",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -553,7 +552,7 @@ class NewCommandTest : CliTestBase() {
     fun `new rejects a filesystem root without a project name`() = runSlowTest {
         val workDir = newEmptyProjectDir()
         val result = runCli(
-            workDir, "new", checkNotNull(workDir.root).toString(), "--from-template=jvm-cli",
+            workDir, "new", "--no-ai", checkNotNull(workDir.root).toString(), "--from-template=jvm-cli",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -580,7 +579,7 @@ class NewCommandTest : CliTestBase() {
     fun `template mode warns about ignored options and does not need targets`() = runSlowTest {
         val workDir = newEmptyProjectDir()
         val result = runCli(
-            workDir, "new", "myapp", "--from-template=jvm-cli", "--project-id=not a valid id",
+            workDir, "new", "--no-ai", "myapp", "--from-template=jvm-cli", "--project-id=not a valid id",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
         result.assertStdoutContains("--project-id is ignored when generating from a template.")
@@ -595,7 +594,7 @@ class NewCommandTest : CliTestBase() {
     fun `kmp library template suggests building rather than running`() = runSlowTest {
         val workDir = newEmptyProjectDir()
         val result = runCli(
-            workDir, "new", "mylib", "--from-template=kotlin-multiplatform-library",
+            workDir, "new", "--no-ai", "mylib", "--from-template=kotlin-multiplatform-library",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
@@ -607,7 +606,7 @@ class NewCommandTest : CliTestBase() {
     fun `new fails when both --target-platform and --from-template are given`() = runSlowTest {
         val workDir = newEmptyProjectDir()
         runCli(
-            workDir, "new", "myapp", "--target-platform=desktop", "--from-template=jvm-cli",
+            workDir, "new", "--no-ai", "myapp", "--target-platform=desktop", "--from-template=jvm-cli",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -623,7 +622,7 @@ class NewCommandTest : CliTestBase() {
         conflicting.writeText("stale content")
 
         runCli(
-            workDir, "new", "myapp", "--target-platform=desktop", "--overwrite",
+            workDir, "new", "--no-ai", "myapp", "--target-platform=desktop", "--overwrite",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 

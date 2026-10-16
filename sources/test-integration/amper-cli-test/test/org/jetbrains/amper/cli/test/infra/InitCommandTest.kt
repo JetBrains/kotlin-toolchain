@@ -15,12 +15,9 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.test.LocalAmperPublication
 import org.junit.jupiter.api.Tag
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
-import kotlin.io.path.exists
 import kotlin.io.path.isExecutable
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.readText
@@ -28,7 +25,6 @@ import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @Tag("cli-test-group-infra")
@@ -37,12 +33,11 @@ class InitCommandTest : CliTestBase() {
     @Test
     fun `init generates a project from the given template`() = runSlowTest {
         val newRoot = newEmptyProjectDir()
-        runCli(newRoot, "init", "--from-template=jvm-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
+        runCli(newRoot, "init", "--no-ai", "--from-template=jvm-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
 
         newRoot.assertContainsRelativeFiles(
             ".gitattributes",
             ".gitignore",
-            "AGENTS.md",
             "kotlin",
             "kotlin.bat",
             "module.yaml",
@@ -56,12 +51,11 @@ class InitCommandTest : CliTestBase() {
     fun `init generates a project into an existing directory with --target-dir`() = runSlowTest {
         val newRoot = newEmptyProjectDir()
         (newRoot / "foo").createDirectories()
-        runCli(newRoot, "init", "--target-dir=foo", "--from-template=jvm-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
+        runCli(newRoot, "init", "--no-ai", "--target-dir=foo", "--from-template=jvm-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion)
 
         (newRoot / "foo").assertContainsRelativeFiles(
             ".gitattributes",
             ".gitignore",
-            "AGENTS.md",
             "kotlin",
             "kotlin.bat",
             "module.yaml",
@@ -77,7 +71,7 @@ class InitCommandTest : CliTestBase() {
         val fileSystemRoot = checkNotNull(newRoot.root)
 
         val result = runCli(
-            newRoot, "init", "--target-dir=$fileSystemRoot",
+            newRoot, "init", "--no-ai", "--target-dir=$fileSystemRoot",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -92,7 +86,7 @@ class InitCommandTest : CliTestBase() {
         val newRoot = newEmptyProjectDir()
 
         val result = runCli(
-            newRoot, "init", "--target-platform=desktop",
+            newRoot, "init", "--no-ai", "--target-platform=desktop",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
 
@@ -107,7 +101,7 @@ class InitCommandTest : CliTestBase() {
         (newRoot / "My App").createDirectories()
 
         val result = runCli(
-            newRoot, "init", "--target-dir=My App", "--target-platform=android", "--target-platform=ios",
+            newRoot, "init", "--no-ai", "--target-dir=My App", "--target-platform=android", "--target-platform=ios",
            
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
@@ -130,7 +124,7 @@ class InitCommandTest : CliTestBase() {
         sentinel.writeText("existing project")
 
         val result = runCli(
-            newRoot, "init", "--target-dir=existing", "--target-platform=desktop", "--project-id=com.my_app",
+            newRoot, "init", "--no-ai", "--target-dir=existing", "--target-platform=desktop", "--project-id=com.my_app",
             "--overwrite",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
@@ -157,7 +151,7 @@ class InitCommandTest : CliTestBase() {
         bashWrapper.writeText("w1")
         batWrapper.writeText("w2")
 
-        runCli(newRoot, "init", "--from-template=jvm-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion, assertEmptyStdErr = false)
+        runCli(newRoot, "init", "--no-ai", "--from-template=jvm-cli", wrapperMode = WrapperMode.GlobalIntrinsicVersion, assertEmptyStdErr = false)
 
         assertTrue(batWrapper.readText().count { it == '\r' } > 10,
             "Windows wrapper must have \\r in line separators: $batWrapper")
@@ -177,7 +171,7 @@ class InitCommandTest : CliTestBase() {
         existingModuleFile.writeText("some text in module.yaml")
 
         val r = runCli(
-            newRoot, "init", "--from-template=jvm-cli",
+            newRoot, "init", "--no-ai", "--from-template=jvm-cli",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -204,7 +198,7 @@ class InitCommandTest : CliTestBase() {
         newRoot.resolve("src").writeText("not a directory")
 
         val r = runCli(
-            newRoot, "init", "--from-template=jvm-cli",
+            newRoot, "init", "--no-ai", "--from-template=jvm-cli",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -230,7 +224,7 @@ class InitCommandTest : CliTestBase() {
         newRoot.resolve("src/org/jetbrains").writeText("not a directory")
 
         val r = runCli(
-            newRoot, "init", "--from-template=spring-boot-kotlin",
+            newRoot, "init", "--no-ai", "--from-template=spring-boot-kotlin",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
@@ -256,7 +250,7 @@ class InitCommandTest : CliTestBase() {
         existingSourceFile.writeText("some text in main.kt")
 
         val r = runCli(
-            newRoot, "init", "--from-template=jvm-cli",
+            newRoot, "init", "--no-ai", "--from-template=jvm-cli",
             expectedExitCode = 1,
             assertEmptyStdErr = false,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
