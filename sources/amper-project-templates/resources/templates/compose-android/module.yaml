@@ -10,5 +10,6 @@ dependencies:
 settings:
   android:
     applicationId: "com.jetbrains.sample.app"
+    namespace: "com.jetbrains.sample.app"
   compose: enabled
   junit: junit-4

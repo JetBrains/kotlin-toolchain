@@ -10,3 +10,4 @@ settings:
   compose: enabled
   android:
     applicationId: {{PROJECT_ID}}
+    namespace: {{PROJECT_ID}}
