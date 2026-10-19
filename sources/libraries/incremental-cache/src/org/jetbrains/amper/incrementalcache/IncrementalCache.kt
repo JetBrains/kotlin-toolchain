@@ -20,7 +20,7 @@ import org.jetbrains.amper.telemetry.use
 import org.slf4j.LoggerFactory
 import java.nio.channels.FileChannel
 import java.nio.file.Path
-import java.util.EnumSet
+import java.util.*
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
@@ -111,11 +111,12 @@ class IncrementalCache(
                 val state = tracer.spanBuilder("inc: read-state").use {
                     stateFileChannel.readState(pathForLogs = stateFile)
                 }
+                val inputFilesState = readFileStates(inputFiles, excludedFiles = emptySet(), failOnMissing = false)
                 val cacheStatus = tracer.spanBuilder("inc: compare-state").use {
                     when {
                         forceRecalculation -> CacheMiss.RecalculationForced
                         state == null -> CacheMiss.NoPreviousState
-                        else -> assessCacheStatus(state, inputValues, inputFiles)
+                        else -> assessCacheStatus(state, inputValues, inputFiles, inputFilesState)
                     }
                 }
                 span.setAttribute("status", cacheStatus.toString())
@@ -155,7 +156,7 @@ class IncrementalCache(
                         span.addResult(result, dynamicInputsState)
 
                         tracer.spanBuilder("inc: write-state").use {
-                            val state = recordState(inputValues, inputFiles, dynamicInputsState, result)
+                            val state = recordState(inputValues, inputFiles, inputFilesState, dynamicInputsState, result)
                             stateFileChannel.writeState(state)
                         }
 
@@ -214,13 +215,14 @@ class IncrementalCache(
     private fun recordState(
         inputValues: Map<String, String>,
         inputFiles: List<Path>,
+        inputFilesState: Map<String, String>,
         dynamicInputsState: DynamicInputsState,
         result: ExecutionResult,
     ): State = State(
         codeVersion = codeVersion,
         inputValues = inputValues,
         inputFiles = inputFiles.map { it.pathString }.toSet(),
-        inputFilesState = readFileStates(paths = inputFiles, excludedFiles = emptySet(), failOnMissing = false),
+        inputFilesState = inputFilesState,
         outputValues = result.outputValues,
         outputFiles = result.outputFiles.map { it.pathString }.toSet(),
         outputFilesState = readFileStates(
@@ -237,6 +239,7 @@ class IncrementalCache(
         state: State,
         inputValues: Map<String, String>,
         inputFiles: List<Path>,
+        inputFilesState: Map<String, String>,
     ): CacheStatus {
         if (state.codeVersion != codeVersion) {
             return CacheMiss.CodeChanged
@@ -256,7 +259,7 @@ class IncrementalCache(
         if (state.inputFiles != inputFiles.map { it.pathString }.toSet()) {
             changes.add(TrackedElementType.InputFileSet)
         }
-        if (state.inputFilesState != readFileStates(inputFiles, excludedFiles = emptySet(), failOnMissing = false)) {
+        if (state.inputFilesState != inputFilesState) {
             changes.add(TrackedElementType.InputFileContents)
         }
 

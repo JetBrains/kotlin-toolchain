@@ -73,6 +73,29 @@ class IncrementalCacheTest {
         assertEquals(2, executionsCount.get())
     }
 
+    // KTC-6045
+    @Test
+    fun inputFileChangedDuringExecutionIsNotUpToDate() {
+        val file = tempDir.resolve("file.txt").also { it.writeText("1") }
+
+        fun call(duringExecution: () -> Unit = {}) = runBlocking {
+            incrementalCache.execute(key = "1", inputValues = emptyMap(), inputFiles = [file]) {
+                executionsCount.incrementAndGet()
+                duringExecution()
+                IncrementalCache.ExecutionResult([])
+            }
+        }
+
+        call { file.writeText("22") }
+        assertEquals(1, executionsCount.get())
+
+        call()
+        assertEquals(2, executionsCount.get(), "Input file changed during execution, but the next call was a cache hit")
+
+        call()
+        assertEquals(2, executionsCount.get())
+    }
+
     @Test
     fun changeCodeVersionNumber() {
         val file = tempDir.resolve("file.txt").also { it.writeText("a") }

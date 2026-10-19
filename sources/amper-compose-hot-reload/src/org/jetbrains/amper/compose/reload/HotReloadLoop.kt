@@ -252,9 +252,9 @@ class HotReloadLoop<Context : HotReloadProjectContext> private constructor(
 
         logger.debug("Finished waiting for the app/server for reload loop")
         // Drop the initial state as it is not a rebuild; the initial state is handled by the app run itself.
-        stateFlow.filterNotNull().drop(1).collectLatest { (state, recompileRequestId) ->
-            // ^ `collectLatest` ^ is here because there can be new what made during the build.
-            // In those cases we want to cancel the previous build and start anew.
+        stateFlow.filterNotNull().drop(1).collect { (state, recompileRequestId) ->
+            // FIXME(KTC-6064): We don't use `collectLatest` above ^^ because that makes us loose incremental changes.
+            //  See KTC-6045 for the reason on why this was done.
 
             val changes = runBuild(recompileRequestId) {
                 HotReloadLogWriter.captureLogsForHotReload {
