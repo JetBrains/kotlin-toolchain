@@ -236,10 +236,11 @@ class AmperProjectStructureTest {
             .asSequence()
 
     /**
-     * We are still in the Amper repo, and the libraries are not yet (or maybe ever) separated from Amper, so they still
-     * legitimately use the org.jetbrains.amper package root. Apart from that, there should be no Amper reference.
+     * We are still in the Kotlin Toolchain repo, and the libraries are not yet (or maybe ever) separated from it,
+     * so they still legitimately use the `org.jetbrains.amper` package root (or later `org.jetbrains.ktc` maybe).
+     * Apart from that, there should be no Amper/Kotlin Toolchain reference.
      */
-    private val amperExceptInPackageRegex = Regex("""\b(?:(?<!org\.jetbrains\.)[aA]mper|[kK]otlin [tT]oolchain|KTC)\b""")
+    private val amperExceptInPackageRegex = Regex("""\b(?:(?<!org\.jetbrains\.)[aA]mper|[kK]otlin [tT]oolchain|KTC(?!-\d+))\b""")
     private fun Path.linesWithKtcWords(): List<String> = readLines()
         .withIndex()
         .filter { it.value.contains(amperExceptInPackageRegex) }
