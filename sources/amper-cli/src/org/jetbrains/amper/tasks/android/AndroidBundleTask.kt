@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.tasks.android
@@ -31,7 +31,7 @@ class AndroidBundleTask(
     buildLogsRoot: AmperBuildLogsRoot,
     jdkProvider: JdkProvider,
     override val taskName: TaskName,
-) : LastPhaseAndroidDelegatedGradleTask(
+) : AndroidDelegatedGradleTask(
     module,
     buildType,
     incrementalCache,
@@ -56,4 +56,6 @@ class AndroidBundleTask(
     override fun validateArtifacts(artifacts: List<Path>) {
         checkNativeLibAbiConsistency(module = module, artifacts = artifacts)
     }
+
+    override val additionalInputFiles: List<Path> = androidFilesForPackaging(module, buildType, fragments)
 }

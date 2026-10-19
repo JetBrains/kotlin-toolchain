@@ -23,9 +23,13 @@ import org.jetbrains.amper.test.processes.checkExitCodeIsZero
 import org.jf.dexlib2.DexFileFactory
 import org.jf.dexlib2.Opcodes
 import org.junit.jupiter.api.Tag
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import java.nio.file.Path
+import java.util.zip.ZipFile
 import kotlin.io.path.PathWalkOption
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.copyTo
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.exists
@@ -338,10 +342,9 @@ class AndroidProjectsTest : CliTestBase() {
 
     @Test
     fun `Android resources are regenerated on changes`() = runSlowTest {
-        val taskName = ":simple:buildAndroidDebug"
         val result = runCli(
             projectDir = testProject("android/simple"),
-            "task", taskName,
+            "build",
             configureAndroidHome = true,
         )
 
@@ -351,7 +354,7 @@ class AndroidProjectsTest : CliTestBase() {
         // Should fail because source usage is not renamed
         runCli(
             projectDir = result.projectDir,
-            "task", taskName,
+            "build",
             configureAndroidHome = true,
             expectedExitCode = 1,
             assertEmptyStdErr = false,
@@ -363,8 +366,95 @@ class AndroidProjectsTest : CliTestBase() {
         // Should succeed
         runCli(
             projectDir = result.projectDir,
-            "task", taskName,
+            "build",
             configureAndroidHome = true,
+        )
+    }
+
+    @ParameterizedTest(name = "{displayName}; packaging={0}")
+    @EnumSource(Packaging::class)
+    fun `artifact is rebuilt when Android assets change`(packaging: Packaging) = runSlowTest {
+        val taskName = packaging.taskName("simple")
+        val result = runCli(
+            projectDir = testProject("android/simple"),
+            packaging.command,
+            configureAndroidHome = true,
+        )
+        val assetEntry = "${packaging.contentRoot}assets/new-asset.txt"
+        assertFalse(
+            zipEntryExists(result.getArtifactPath(taskName, packaging.extension), assetEntry),
+            "Unexpected $assetEntry before assets change",
+        )
+        val assetsDir = (result.projectDir / "assets").createDirectories()
+        (assetsDir / "new-asset.txt").writeText("hello")
+        val rebuiltResult = runCli(
+            projectDir = result.projectDir,
+            packaging.command,
+            configureAndroidHome = true,
+        )
+        assertTrue(
+            zipEntryExists(rebuiltResult.getArtifactPath(taskName, packaging.extension), assetEntry),
+            "Expected $assetEntry after assets change",
+        )
+    }
+
+    @ParameterizedTest(name = "{displayName}; packaging={0}")
+    @EnumSource(Packaging::class)
+    fun `artifact is rebuilt when AndroidManifest changes`(packaging: Packaging) = runSlowTest {
+        val taskName = packaging.taskName("simple")
+        val result = runCli(
+            projectDir = testProject("android/simple"),
+            packaging.command,
+            configureAndroidHome = true,
+        )
+        val permission = "android.permission.INTERNET"
+        assertFalse(
+            declaresPermission(result.getArtifactPath(taskName, packaging.extension), packaging, permission),
+            "Unexpected $permission before manifest change",
+        )
+        val manifest = result.projectDir / "src" / "AndroidManifest.xml"
+        manifest.writeText(
+            manifest.readText().replace(
+                "<application",
+                "<uses-permission android:name=\"$permission\" />\n    <application",
+            )
+        )
+        val rebuiltResult = runCli(
+            projectDir = result.projectDir,
+            packaging.command,
+            configureAndroidHome = true,
+        )
+        assertTrue(
+            declaresPermission(rebuiltResult.getArtifactPath(taskName, packaging.extension), packaging, permission),
+            "Expected $permission after manifest change",
+        )
+    }
+
+    @ParameterizedTest(name = "{displayName}; packaging={0}")
+    @EnumSource(Packaging::class)
+    fun `artifact is rebuilt when jniLibs change`(packaging: Packaging) = runSlowTest {
+        val taskName = packaging.taskName("jni-libs")
+        val result = runCli(
+            projectDir = testProject("android/jni-libs"),
+            packaging.command,
+            configureAndroidHome = true,
+        )
+        val newAbiLib = "${packaging.contentRoot}lib/armeabi-v7a/libtest.so"
+        assertFalse(
+            zipEntryExists(result.getArtifactPath(taskName, packaging.extension), newAbiLib),
+            "Unexpected $newAbiLib before jniLibs change",
+        )
+        val jniLibs = result.projectDir / "jniLibs"
+        val newAbiDir = (jniLibs / "armeabi-v7a").createDirectories()
+        (jniLibs / "arm64-v8a" / "libtest.so").copyTo(newAbiDir / "libtest.so")
+        val rebuiltResult = runCli(
+            projectDir = result.projectDir,
+            packaging.command,
+            configureAndroidHome = true,
+        )
+        assertTrue(
+            zipEntryExists(rebuiltResult.getArtifactPath(taskName, packaging.extension), newAbiLib),
+            "Expected $newAbiLib after jniLibs change",
         )
     }
 
@@ -430,10 +520,7 @@ class AndroidProjectsTest : CliTestBase() {
             "task", taskName,
             configureAndroidHome = true,
         )
-        val apkPath = result.getArtifactPath(taskName)
-        val permissions = AndroidTools.prepareForTests()
-            .aapt2("dump", "permissions", apkPath.toString())
-            .checkExitCodeIsZero().stdout
+        val permissions = apkPermissions(result.getArtifactPath(taskName))
 
         [
             "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -469,6 +556,33 @@ class AndroidProjectsTest : CliTestBase() {
         val themeReference = hex.removePrefix("0x").toInt(16)
         return themeReference
     }
+
+    enum class Packaging(val extension: String, val contentRoot: String, val command: String) {
+        Apk("apk", "", "build"),
+        Bundle("aab", "base/", "package");
+
+        fun taskName(module: String) = when (this) {
+            Apk -> ":$module:buildAndroidDebug"
+            Bundle -> ":$module:bundleAndroid"
+        }
+    }
+
+    private suspend fun declaresPermission(artifact: Path, packaging: Packaging, permission: String): Boolean =
+        when (packaging) {
+            Packaging.Apk -> permission in apkPermissions(artifact)
+            // The bundle manifest is protobuf-encoded, so the permission name is stored as plain UTF-8 text
+            Packaging.Bundle -> ZipFile(artifact.toFile()).use { zip ->
+                val manifest = zip.getEntry("base/manifest/AndroidManifest.xml")
+                zip.getInputStream(manifest).readBytes().decodeToString().contains(permission)
+            }
+        }
+
+    private suspend fun apkPermissions(apkPath: Path): String = AndroidTools.prepareForTests()
+        .aapt2("dump", "permissions", apkPath.toString())
+        .checkExitCodeIsZero().stdout
+
+    private fun zipEntryExists(zipPath: Path, entryName: String): Boolean =
+        ZipFile(zipPath.toFile()).use { it.getEntry(entryName) != null }
 
     private fun AmperCliResult.getArtifactPath(taskName: String, extension: String = "apk"): Path =
         getTaskOutputPath(taskName)
