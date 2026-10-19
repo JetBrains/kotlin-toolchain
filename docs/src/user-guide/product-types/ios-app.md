@@ -110,6 +110,40 @@ This framework is built from:
 
     All declarations from the source Kotlin code are accessible to Swift, but external dependencies are not.
 
+## Packaging
+
+On macOS, `kotlin package` (or `kotlin package --format=ipa`) archives the application with `xcodebuild archive` and
+exports a signed `.ipa` with `xcodebuild -exportArchive`. The `.ipa` is placed at
+`build/packages/ipa/<module-name>-<variant>.ipa`, for example `build/packages/ipa/ios-app-release.ipa`.
+
+A development team must be selected in the Xcode project (**Signing & Capabilities**). The signing style (automatic or
+manual) is taken from the Xcode project settings, and `-allowProvisioningUpdates` is always passed so that
+automatic signing can create or refresh provisioning profiles.
+
+Use `--ipa-export-options-plist-path` to supply an existing `ExportOptions.plist` file. The file is passed unchanged to
+`xcodebuild -exportArchive`, so it can configure the export method, signing, and other Xcode export options. For example:
+
+```bash
+kotlin package --format=ipa --ipa-export-options-plist-path=ios-app/ExportOptions.plist
+```
+
+Manual signing requires `--ipa-export-options-plist-path`; provide a plist with the provisioning profile mappings for your app.
+Without this option, development export options (`method=debugging`, `destination=export`) are generated for automatic
+signing from the Xcode project signing settings. Development exports work with a free Apple ID (Personal Team) for installing on local devices;
+App Store Connect and ad hoc exports require a paid Apple Developer Program team.
+
+For headless, cloud-managed signing, set the following environment variables:
+
+| Environment variable                  | Description                                                |
+|---------------------------------------|------------------------------------------------------------|
+| `KOTLIN_TOOLCHAIN_ASC_KEY_PATH`        | Path to the App Store Connect API private key (`.p8` file). |
+| `KOTLIN_TOOLCHAIN_ASC_KEY_ID`          | App Store Connect API key ID.                               |
+| `KOTLIN_TOOLCHAIN_ASC_KEY_ISSUER_ID`   | App Store Connect API key issuer ID.                        |
+
+These variables must be provided together when IPA packaging is selected; other package formats ignore them.
+This is the recommended setup for App Store Connect exports and CI.
+Without them, the Apple account signed into Xcode is used.
+
 ## Publishing
 
 The Kotlin Toolchain creates a regular Xcode project for an `ios/app` module. Use that project to configure

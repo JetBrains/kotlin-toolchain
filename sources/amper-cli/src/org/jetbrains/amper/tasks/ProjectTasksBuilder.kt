@@ -59,6 +59,7 @@ class ProjectTasksBuilder(
     val cinteropGenSettings: CinteropGenSettings,
     val includePluginTasks: Boolean,
     val xcodeBuildSettingsResolution: XcodeBuildSettingsResolution,
+    val packageSettings: PackageSettings = PackageSettings(),
 ) {
     val tasks = TaskGraphBuilder()
 

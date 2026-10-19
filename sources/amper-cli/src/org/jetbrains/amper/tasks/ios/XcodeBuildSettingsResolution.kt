@@ -96,6 +96,12 @@ val XcodeBuildSettingsResolution.Resolver.developmentTeam: String?
 val XcodeBuildSettingsResolution.Resolver.codeSigningAllowed: String?
     get() = getSetting("CODE_SIGNING_ALLOWED")
 
+/**
+ * The value of `CODE_SIGN_STYLE`: `Automatic` (the default) or `Manual`.
+ */
+val XcodeBuildSettingsResolution.Resolver.codeSignStyle: String?
+    get() = getSetting("CODE_SIGN_STYLE")
+
 val XcodeBuildSettingsResolution.Resolver.productName: String
     get() = getRequiredSetting(BuildSettingNames.PRODUCT_NAME)
 

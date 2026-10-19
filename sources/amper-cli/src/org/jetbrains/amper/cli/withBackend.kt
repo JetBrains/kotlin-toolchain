@@ -21,6 +21,7 @@ import org.jetbrains.amper.events.sink.plus
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.CinteropGenSettings
+import org.jetbrains.amper.tasks.PackageSettings
 import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -33,6 +34,7 @@ internal suspend fun <T> withBackend(
     globalEventSink: GlobalEventSink = NoopEventSink,
     runSettings: AllRunSettings = AllRunSettings(),
     cinteropGenSettings: CinteropGenSettings = CinteropGenSettings(),
+    packageSettings: PackageSettings = PackageSettings(),
     includePluginTasks: Boolean = true,
     xcodeBuildSettingsResolution: XcodeBuildSettingsResolution = XcodeBuildSettingsResolution,
     taskExecutionMode: TaskExecutor.Mode = TaskExecutor.Mode.FAIL_FAST,
@@ -56,6 +58,7 @@ internal suspend fun <T> withBackend(
                 ),
                 runSettings = runSettings,
                 cinteropGenSettings = cinteropGenSettings,
+                packageSettings = packageSettings,
                 includePluginTasks = includePluginTasks,
                 xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
                 taskExecutionMode = taskExecutionMode,
@@ -77,6 +80,7 @@ internal suspend fun <T> withBackendWithoutWidget(
     globalEventSink: GlobalEventSink,
     runSettings: AllRunSettings = AllRunSettings(),
     cinteropGenSettings: CinteropGenSettings = CinteropGenSettings(),
+    packageSettings: PackageSettings = PackageSettings(),
     includePluginTasks: Boolean = true,
     xcodeBuildSettingsResolution: XcodeBuildSettingsResolution = XcodeBuildSettingsResolution,
     taskExecutionMode: TaskExecutor.Mode = TaskExecutor.Mode.FAIL_FAST,
@@ -97,6 +101,7 @@ internal suspend fun <T> withBackendWithoutWidget(
         model = model,
         runSettings = runSettings,
         cinteropGenSettings = cinteropGenSettings,
+        packageSettings = packageSettings,
         includePluginTasks = includePluginTasks,
         xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
         taskExecutionMode = taskExecutionMode,

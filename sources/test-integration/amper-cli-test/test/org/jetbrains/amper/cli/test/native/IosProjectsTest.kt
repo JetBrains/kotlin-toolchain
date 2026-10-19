@@ -186,6 +186,24 @@ class IosProjectsTest : CliTestBase() {
     }
 
     @Test
+    fun `package ipa fails fast when no development team is set`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("ios/compose"),
+            "package", "--format=ipa",
+            assertEmptyStdErr = false,
+            expectedExitCode = 1,
+        )
+        result.assertStderrContains(
+            "Cannot package an .ipa for module 'compose': the `DEVELOPMENT_TEAM` build setting is not set " +
+                    "for the Release configuration in the Xcode project."
+        )
+        result.withTelemetrySpans {
+            // We must fail before archiving
+            xcodebuildSpans.assertNone()
+        }
+    }
+
+    @Test
     fun `run kotlin tests in simulator`() = runSlowTest {
         val result = runCli(
             projectDir = testProject("ios/simpleTests"),

@@ -142,6 +142,33 @@ fun ProjectTasksBuilder.setupIosTasks(moduleDependenciesMap: Map<AmperModule, Mo
                 ],
             )
 
+            if (platform == Platform.IOS_ARM64) {
+                val packageIpaTaskName = IosTaskType.PackageIpa
+                    .getTaskName(module, platform, isTest = false, buildType)
+                tasks.registerTask(
+                    task = IosPackageIpaTask(
+                        module = module,
+                        platform = platform,
+                        buildType = buildType,
+                        taskName = packageIpaTaskName,
+                        taskOutputPath = context.getTaskOutputPath(packageIpaTaskName),
+                        buildOutputRoot = context.buildOutputRoot,
+                        userCacheRoot = context.userCacheRoot,
+                        processRunner = context.processRunner,
+                        terminal = context.terminal,
+                        buildSettingsResolution = xcodeBuildSettingsResolution,
+                        settings = packageSettings.ipa,
+                    ),
+                    // Same dependencies as the build task: archive replaces the regular build here.
+                    dependsOn = listOfNotNull(
+                        preBuildTaskName,
+                        xcodeBuildSettingsResolution.taskDependency(module),
+                        ModuleTaskTypes.PrepareIosPlatform.getTaskName(module),
+                        XcodeEnvironmentTask.TASK_NAME,
+                    ),
+                )
+            }
+
             val prepareDeviceForRunTaskName = IosTaskType.PrepareDeviceForRun
                 .getTaskName(module, platform, isTest = false, buildType)
             tasks.registerTask(
@@ -186,5 +213,6 @@ internal enum class IosTaskType(
     RunIosApp("runIosApp", "running iOS app"),
     PrepareDeviceForRun("prepareIosDevice", "preparing to run iOS app"),
     PrepareComposeResources("prepareComposeResourcesForIos", "copying iOS compose resources"),
-    PreBuildIosApp("preBuildIosApp", "preparing for xcodebuild")
+    PreBuildIosApp("preBuildIosApp", "preparing for xcodebuild"),
+    PackageIpa("packageIpa", "building & packaging iOS app"),
 }

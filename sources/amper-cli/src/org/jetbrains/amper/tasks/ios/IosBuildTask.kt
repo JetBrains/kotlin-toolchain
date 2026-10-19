@@ -6,10 +6,7 @@ package org.jetbrains.amper.tasks.ios
 
 import com.github.ajalt.mordant.terminal.Terminal
 import com.jetbrains.cidr.xcode.frameworks.buildSystem.BuildSettingNames
-import kotlinx.serialization.json.Json
 import org.jetbrains.amper.ProcessRunner
-import org.jetbrains.amper.cli.context.ProjectCliContext
-import org.jetbrains.amper.cli.telemetry.setAmperModule
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.BuildTask
@@ -23,16 +20,11 @@ import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.native.swiftpm.clangArch
 import org.jetbrains.amper.tasks.native.swiftpm.xcodebuildPlatform
-import org.jetbrains.amper.telemetry.setListAttribute
-import org.jetbrains.amper.telemetry.spanBuilder
-import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
-import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
-import kotlin.io.path.pathString
 
 class IosBuildTask(
     override val platform: Platform,
@@ -53,26 +45,18 @@ class IosBuildTask(
         get() = false
 
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult = context(
+        dependenciesResult.xcodeEnvironment(),
+    ) {
         val prebuildResult = dependenciesResult.requireSingleDependency<IosPreBuildTask.Result>()
         val settings = buildSettingsResolution.getResolver(buildType, dependenciesResult)
 
         val workingDir = taskOutputPath.path.createDirectories()
-        val derivedDataPath = workingDir / "derivedData"
-        val objRootPath = workingDir / "tmp"
-        val symRootPath = workingDir / "bin"
+        val dirs = XcodebuildDirs(workingDir)
 
         val xcodebuildArgs = buildList {
-            this += XCRUN_EXECUTABLE
-            this += "xcodebuild"
-            this += "-project"; this += module.xcodeProjectPath.absolutePathString()
-            this += "-scheme"; this += IosConventions.SCHEME_NAME
-            this += "-destination"; this += "generic/platform=${platform.xcodebuildPlatform.destination}"
-            this += "-configuration"; this += buildType.name
-            this += "-derivedDataPath"; this += derivedDataPath.pathString
-            this += "${BuildSettingNames.OBJROOT}=${objRootPath.pathString}"
-            this += "${BuildSettingNames.SYMROOT}=${symRootPath.pathString}"
-            this += "KOTLIN_CLI_WRAPPER_PATH=${ProjectCliContext.wrapperScriptPath.absolutePathString()}"
+            addAll(xcodebuildCommonAppArgs(module, platform, buildType, dirs))
+            addAll(xcodebuildBuildRootArgs(dirs))
             if (platform.isIosSimulator) {
                 // Constrain built architectures to avoid universal simulator build
                 this +="${BuildSettingNames.ARCHS}=${platform.clangArch}"
@@ -88,33 +72,21 @@ class IosBuildTask(
             this += "build"
         }
 
-        val result = runXcodebuildWithLogParsing(
+        val exitCode = runXcodebuild(
+            module = module,
+            command = xcodebuildArgs,
+            workingDir = workingDir,
+            prebuildResult = prebuildResult,
             userCacheRoot = userCacheRoot,
             terminal = terminal,
-            sink = executionContext.eventSink,
-        ) { pipe ->
-            spanBuilder("xcodebuild")
-                .setAmperModule(module)
-                .setListAttribute("args", xcodebuildArgs)
-                .use { span ->
-                    processRunner.runProcess(
-                        workingDir = workingDir,
-                        command = xcodebuildArgs,
-                        span = span,
-                        configureEnvironment = {
-                            dependenciesResult.xcodeEnvironment().configureCommandEnvironment()
-                            put(IosPreBuildTask.Result.ENV_JSON_NAME, Json.encodeToString(prebuildResult))
-                        },
-                        outputMode = pipe,
-                    )
-                }
-        }
-        if (result.exitCode.value != 0) {
-            userReadableError("xcodebuild invocation failed with exit code ${result.exitCode}, check the log above.")
+            processRunner = processRunner,
+        )
+        if (exitCode != 0) {
+            userReadableError("xcodebuild invocation failed with exit code $exitCode, check the log above.")
         }
 
         return Result(
-            appPath = symRootPath / "${buildType.name}-${platform.xcodebuildPlatform.sdk}" / "${settings.productName}.app",
+            appPath = dirs.symRootPath / "${buildType.name}-${platform.xcodebuildPlatform.sdk}" / "${settings.productName}.app",
         )
     }
 

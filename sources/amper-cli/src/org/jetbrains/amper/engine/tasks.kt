@@ -48,6 +48,7 @@ interface PackageTask : Task, MaybeBuildTypeAware, MaybePlatformAware {
         ExecutableJar("executable-jar"),
         Aab("aab"),
         MavenCentralBundle("maven-central-bundle"),
+        Ipa("ipa"),
         // TODO DistZip("dist-zip"),
     }
 

@@ -41,6 +41,7 @@ import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.CinteropGenSettings
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.ModuleTaskTypes
+import org.jetbrains.amper.tasks.PackageSettings
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.compose.GenerateResClassTask
@@ -79,6 +80,10 @@ class AmperBackend(
      */
     val cinteropGenSettings: CinteropGenSettings = CinteropGenSettings(),
     /**
+     * Settings for the packaging tasks, passed from the `package` command.
+     */
+    val packageSettings: PackageSettings = PackageSettings(),
+    /**
      * Whether to include tasks that come from plugins to the task graph.
      * Affects both Amper and Maven-compat plugins.
      */
@@ -105,6 +110,7 @@ class AmperBackend(
                 cinteropGenSettings = cinteropGenSettings,
                 includePluginTasks = includePluginTasks,
                 xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
+                packageSettings = packageSettings,
             ).build()
         }
     }
@@ -197,7 +203,11 @@ class AmperBackend(
         val modulesToPackage = (modules?.map { model.getModuleByName(it) } ?: model.modules).toSet()
         val formatsToPackage = formats ?: PackageTask.Format.entries.toSet()
 
-        val taskIds = taskGraph
+        if (formats != null && PackageTask.Format.Ipa in formats) {
+            checkIpaPackagingIsPossible(explicitModules = modules?.let { modulesToPackage })
+        }
+
+        val selectedPackageTasks = taskGraph
             .tasks
             .filterIsInstance<PackageTask>()
             .filter {
@@ -208,8 +218,12 @@ class AmperBackend(
                 explicit = buildTypes,
                 default = BuildType.Release,
             )
-            .map { it.id }
-            .toSet()
+
+        if (selectedPackageTasks.any { it.format == PackageTask.Format.Ipa }) {
+            // Validate credentials before running any tasks, but only when IPA packaging was selected.
+            packageSettings.ipa.authKey
+        }
+        val taskIds = selectedPackageTasks.map { it.id }.toSet()
 
         if (taskIds.isEmpty()) {
             userReadableError("No package tasks were found")
@@ -217,6 +231,34 @@ class AmperBackend(
 
         logger.debug("Selected tasks to package: ${formatTaskNames(taskIds)}")
         taskExecutor.runTasksAndReportOnFailure(taskIds)
+    }
+
+    /**
+     * Fails fast with a user-readable error if the explicitly requested `ipa` format can't be produced.
+     */
+    private fun checkIpaPackagingIsPossible(explicitModules: Set<AmperModule>?) {
+        val ipaFormat = PackageTask.Format.Ipa.value
+        val iosAppType = ProductType.IOS_APP.value
+        val nonIosAppModule = explicitModules?.firstOrNull { it.type != ProductType.IOS_APP }
+        if (nonIosAppModule != null) {
+            userReadableError(
+                "The '$ipaFormat' package format is only supported for modules with the '$iosAppType' " +
+                        "product type, but module '${nonIosAppModule.userReadableName}' has the " +
+                        "'${nonIosAppModule.type.value}' product type."
+            )
+        }
+        if (explicitModules == null && model.modules.none { it.type == ProductType.IOS_APP }) {
+            userReadableError(
+                "The '$ipaFormat' package format is only supported for modules with the '$iosAppType' product type, " +
+                        "but there are no such modules in the project."
+            )
+        }
+        if (!OsFamily.current.isMac) {
+            userReadableError(
+                "The '$ipaFormat' package format requires macOS with Xcode installed. " +
+                        "iOS apps can't be packaged on ${OsFamily.current}."
+            )
+        }
     }
 
     /**
