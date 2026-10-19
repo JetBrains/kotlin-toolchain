@@ -13,6 +13,7 @@ import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.rendering.AnsiLevel
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.terminal.TerminalRecorder
+import org.jetbrains.amper.projectwizard.AgentsMdPath
 import org.jetbrains.amper.projectwizard.AiAgent
 import org.jetbrains.amper.test.runTestWithMdc
 import org.junit.jupiter.api.io.TempDir
@@ -112,6 +113,7 @@ class NewProjectAgentSelectionTest {
         assertTrue(output.indexOf("Project id") < output.indexOf("Install AI agent configuration?"))
         assertTrue(output.indexOf("Install AI agent configuration?") < output.indexOf("Project successfully generated"))
         assertFalse((outputDir / ".mcp.json").exists())
+        assertFalse((outputDir / AgentsMdPath).exists())
     }
 
     @ParameterizedTest

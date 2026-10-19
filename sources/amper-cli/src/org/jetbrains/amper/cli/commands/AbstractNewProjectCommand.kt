@@ -150,10 +150,11 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
         val outputDir = resolveTargetDir()
         val projectName = determineProjectName(outputDir)
         val mode = resolveMode(projectName)
+        val agents = resolveAgents()
         val schema = mode.toExtractionSchema(
             generateGitFiles = !noGit,
-            generateAiFiles = !noAi,
-            agents = resolveAgents(),
+            generateAiFiles = !noAi && agents.isNotEmpty(),
+            agents = agents,
         )
         val overwriteConflicts = overwrite || terminal.shouldOverwriteConflictingPaths(
             relativePaths = schema.relativePaths,
