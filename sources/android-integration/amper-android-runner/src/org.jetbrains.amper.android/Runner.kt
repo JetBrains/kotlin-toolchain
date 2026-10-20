@@ -96,7 +96,7 @@ fun runAndroidBuild(
             val lazyArtifacts = buildList {
                 for (target in buildRequest.targets) {
                     val androidProject = androidProjects[target] ?: continue
-                    addAll(androidProject.lazyArtifacts(connection, buildRequest, jdkDir, debug))
+                    addAll(androidProject.lazyArtifacts(connection, buildRequest, target, jdkDir, debug))
                     when(buildRequest.phase) {
                         AndroidBuildRequest.Phase.Test -> { /* nothing to do here, just return the artifact */ }
                         else -> {
@@ -176,6 +176,7 @@ configure<org.jetbrains.amper.android.gradle.AmperAndroidIntegrationExtension> {
 private fun AndroidProject.lazyArtifacts(
     connection: ProjectConnection,
     buildRequest: AndroidBuildRequest,
+    projectPath: String,
     jdkDir: Path,
     debug: Boolean = false,
 ): List<LazyArtifact> = buildList {
@@ -194,10 +195,19 @@ private fun AndroidProject.lazyArtifacts(
                 )
 
                 AndroidBuildRequest.Phase.Test -> {
-                    val actionLauncher = connection.action { it.findModel(MockableJarModel::class.java).file }
-                    actionLauncher.run(buildRequest, jdkDir, debug)?.toPath()?.let {
-                        add(DirectLazyArtifact(it))
+                    // The model is built for the Android project itself,
+                    // so that Gradle holds the lock of that project while resolving its configurations
+                    val actionLauncher = connection.action { controller ->
+                        val gradleProject = controller.findModel(GradleProject::class.java).findByPath(projectPath)
+                            ?: error("The Gradle project $projectPath is not found")
+                        controller.findModel(gradleProject, MockableJarModel::class.java).file
+                            // Android unit tests run on the JVM, where the Android SDK classes are provided by this jar,
+                            // so without it, they would fail later with an obscure NoClassDefFoundError
+                            ?: error("The mockable android.jar is not found for the Android project $projectPath")
                     }
+
+                    val mockableJar = actionLauncher.run(buildRequest, jdkDir, debug)
+                    add(DirectLazyArtifact(mockableJar.toPath()))
                 }
             }
         }

@@ -18,15 +18,15 @@ class MockableJarModelBuilder : ToolingModelBuilder {
     override fun canBuild(modelName: String): Boolean = modelName == MockableJarModel::class.java.name
 
     override fun buildAll(modelName: String, project: Project): MockableJarModel {
-        return DefaultMockableJarModel(findFirstMockableJar(project))
+        return DefaultMockableJarModel(findMockableJar(project))
     }
 
     // The mockable android.jar artifact is captured per project during variant configuration (see the plugin's
     // onVariants handler) and resolved here lazily. Under AGP 9, the `androidApis` configuration that previously
     // exposed it doesn't exist at model-query time, so we rely on the unit-test component's classpath instead.
-    private fun findFirstMockableJar(project: Project): File? = project.allprojects
-        .asSequence()
-        .mapNotNull { it.gradle.mockableJarArtifacts[it.path] }
-        .flatMap { runCatching { it.files }.getOrElse { emptySet() }.asSequence() }
-        .firstOrNull()
+    // The artifact is resolved for the given project only. A model builder holds the lock of its own project only
+    // when Gradle runs in parallel mode (e.g., `org.gradle.parallel=true` in the user's gradle.properties), so
+    // resolving a configuration of another project fails with "attempted without an exclusive lock" in that mode.
+    private fun findMockableJar(project: Project): File? =
+        project.gradle.mockableJarArtifacts[project.path]?.files?.firstOrNull()
 }
