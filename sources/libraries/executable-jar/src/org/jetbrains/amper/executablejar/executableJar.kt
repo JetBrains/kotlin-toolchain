@@ -15,15 +15,11 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.io.path.extension
+import kotlin.io.path.exists
 import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.name
 import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.writeText
-
-/**
- * The Spring Boot loader main class that serves as entrypoint to load nested jars and run the real main class.
- */
-private const val loaderMainClass: String = "org.springframework.boot.loader.launch.JarLauncher"
 
 private object ArchivePaths {
     /**
@@ -72,7 +68,7 @@ fun Path.writeExecutableJar(
             springBootLoaderJar = springBootLoaderJarUnpacked,
             tempDir = tempDir,
         )
-        writeJar(inputs, config = createJarConfig(mainClass))
+        writeJar(inputs, config = createJarConfig(mainClass, loaderMainClass(springBootLoaderJarUnpacked)))
     }
 }
 
@@ -153,7 +149,7 @@ private fun Path.fileNameWithHashSuffix(): String {
     return if (ext.isEmpty()) "$nameWithoutExtension-$sha" else "${nameWithoutExtension}-$sha.$ext"
 }
 
-private fun createJarConfig(mainClassName: String?): JarConfig = JarConfig(
+private fun createJarConfig(mainClassName: String?, loaderMainClass: String): JarConfig = JarConfig(
     mainClassFqn = loaderMainClass,
     manifestProperties = createManifestProperties(mainClassName),
     zipConfig = ZipConfig(
@@ -162,6 +158,19 @@ private fun createJarConfig(mainClassName: String?): JarConfig = JarConfig(
         compressionStrategy = Selective(["^BOOT-INF/lib/.+"]),
     ),
 )
+
+/**
+ * Finds the Spring Boot loader main class that serves as entrypoint to load nested jars and run the real main class.
+ */
+private fun loaderMainClass(springBootLoaderJarUnpacked: Path): String = when {
+    // Spring Boot 3 and 4
+    (springBootLoaderJarUnpacked / "org/springframework/boot/loader/launch/JarLauncher.class").exists() ->
+        "org.springframework.boot.loader.launch.JarLauncher"
+    // Spring Boot 2
+    (springBootLoaderJarUnpacked / "org/springframework/boot/loader/JarLauncher.class").exists() ->
+        "org.springframework.boot.loader.JarLauncher"
+    else -> error("Could not find a valid Spring Boot loader main class in $springBootLoaderJarUnpacked")
+}
 
 /**
  * Returns the default manifest properties required for Spring Boot executable JAR.

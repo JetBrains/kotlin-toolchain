@@ -14,6 +14,7 @@ import org.jetbrains.amper.executablejar.writeExecutableJar
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.findEffectiveJvmMainClass
+import org.jetbrains.amper.frontend.jvmSettings
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.run.ToolingArtifactsDownloader
@@ -50,7 +51,8 @@ class ExecutableJarTask(
             .filterIsInstance<JvmRuntimeClasspathTask.Result>()
             .flatMap { it.jvmRuntimeClasspath }
 
-        val springBootLoaderJar = artifactsDownloader.downloadSpringBootLoader()
+        val jvmRelease = module.jvmSettings.let { it.release ?: it.jdk.version }
+        val springBootLoaderJar = artifactsDownloader.downloadSpringBootLoader(jvmRelease)
         val springBootLoaderJarUnpacked = extractFileToCacheLocation(springBootLoaderJar, userCacheRoot)
 
         val outputJarPath = taskOutputRoot.path / "${module.userReadableName}-jvm-executable.jar"
@@ -58,7 +60,11 @@ class ExecutableJarTask(
         incrementalCache.executeForFiles(
             key = taskName.id.value,
             inputValues = mapOf("mainClass" to mainClass.toString()),
-            inputFiles = compiledClasses + runtimeDependencies,
+            inputFiles = buildList {
+                addAll(compiledClasses)
+                addAll(runtimeDependencies)
+                add(springBootLoaderJarUnpacked)
+            },
         ) {
             outputJarPath.createParentDirectories().writeExecutableJar(
                 compiledClasses = compiledClasses,

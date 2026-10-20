@@ -7,6 +7,7 @@ package org.jetbrains.amper.executablejar
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
+import java.util.jar.JarFile
 import java.util.zip.ZipException
 import java.util.zip.ZipFile
 import kotlin.io.path.absolutePathString
@@ -25,9 +26,7 @@ class ExecutableJarTest {
 
     private val jarFile: Path get() = tempDir / "out.jar"
 
-    private val loaderDir: Path by lazy { (tempDir / "loader").createDirectory() }
-
-    private val classesDir: Path by lazy { (tempDir / "classes").createDirectory() }
+    private val fakeClassesDir: Path by lazy { (tempDir / "classes").createDirectory() }
 
     /**
      * Creates a fake dependency jar at the given [relativePath] under a temp dir, with the given [text] as content.
@@ -46,9 +45,9 @@ class ExecutableJarTest {
         ]
 
         jarFile.writeExecutableJar(
-            compiledClasses = [classesDir],
+            compiledClasses = [fakeClassesDir],
             runtimeDependencies = dependencies,
-            springBootLoaderJarUnpacked = loaderDir,
+            springBootLoaderJarUnpacked = createFakeLoaderDir(),
             mainClass = "com.example.MainKt",
         )
 
@@ -71,9 +70,9 @@ class ExecutableJarTest {
         ]
 
         jarFile.writeExecutableJar(
-            compiledClasses = [classesDir],
+            compiledClasses = [fakeClassesDir],
             runtimeDependencies = dependencies,
-            springBootLoaderJarUnpacked = loaderDir,
+            springBootLoaderJarUnpacked = createFakeLoaderDir(),
             mainClass = "com.example.MainKt",
         )
 
@@ -102,9 +101,9 @@ class ExecutableJarTest {
         ]
 
         jarFile.writeExecutableJar(
-            compiledClasses = [classesDir],
+            compiledClasses = [fakeClassesDir],
             runtimeDependencies = dependencies,
-            springBootLoaderJarUnpacked = loaderDir,
+            springBootLoaderJarUnpacked = createFakeLoaderDir(),
             mainClass = "com.example.MainKt",
         )
 
@@ -113,13 +112,13 @@ class ExecutableJarTest {
 
     @Test
     fun `merges class roots with shared directories`() {
-        val first = classesDir / "com/example/First.class"
+        val first = fakeClassesDir / "com/example/First.class"
         first.createParentDirectories().writeText("first")
         val secondRoot = (tempDir / "other-classes").createDirectory()
         val second = secondRoot / "com/example/Second.class"
         second.createParentDirectories().writeText("second")
 
-        jarFile.writeExecutableJar([classesDir, secondRoot], [], loaderDir, "com.example.MainKt")
+        jarFile.writeExecutableJar([fakeClassesDir, secondRoot], [], createFakeLoaderDir(), "com.example.MainKt")
 
         assertEquals("first", jarFile.readEntryText("BOOT-INF/classes/com/example/First.class"))
         assertEquals("second", jarFile.readEntryText("BOOT-INF/classes/com/example/Second.class"))
@@ -135,9 +134,9 @@ class ExecutableJarTest {
         ]
 
         jarFile.writeExecutableJar(
-            compiledClasses = [classesDir],
+            compiledClasses = [fakeClassesDir],
             runtimeDependencies = dependencies,
-            springBootLoaderJarUnpacked = loaderDir,
+            springBootLoaderJarUnpacked = createFakeLoaderDir(),
             mainClass = "com.example.MainKt",
         )
 
@@ -161,9 +160,9 @@ class ExecutableJarTest {
             fakeDependency("second/lib", text = "second"),
         ]
         jarFile.writeExecutableJar(
-            compiledClasses = [classesDir],
+            compiledClasses = [fakeClassesDir],
             runtimeDependencies = dependencies,
-            springBootLoaderJarUnpacked = loaderDir,
+            springBootLoaderJarUnpacked = createFakeLoaderDir(),
             mainClass = null,
         )
         val libEntries = jarFile.libEntries()
@@ -188,9 +187,9 @@ class ExecutableJarTest {
             fakeDependency("otherPlace/second/lib", text = "second"),
         ]
         jarFile.writeExecutableJar(
-            compiledClasses = [classesDir],
+            compiledClasses = [fakeClassesDir],
             runtimeDependencies = dependencies,
-            springBootLoaderJarUnpacked = loaderDir,
+            springBootLoaderJarUnpacked = createFakeLoaderDir(),
             mainClass = null,
         )
         val libEntries = jarFile.libEntries()
@@ -205,9 +204,9 @@ class ExecutableJarTest {
 
         val otherJar = tempDir / "other.jar"
         otherJar.writeExecutableJar(
-            compiledClasses = [classesDir],
+            compiledClasses = [fakeClassesDir],
             runtimeDependencies = sameDepsDifferentPlace,
-            springBootLoaderJarUnpacked = loaderDir,
+            springBootLoaderJarUnpacked = createFakeLoaderDir(),
             mainClass = null,
         )
         assertEquals(libEntries, otherJar.libEntries())
@@ -223,9 +222,9 @@ class ExecutableJarTest {
 
         val exception = assertFailsWith<IllegalArgumentException> {
             jarFile.writeExecutableJar(
-                compiledClasses = [classesDir],
+                compiledClasses = [fakeClassesDir],
                 runtimeDependencies = dependencies,
-                springBootLoaderJarUnpacked = loaderDir,
+                springBootLoaderJarUnpacked = createFakeLoaderDir(),
                 mainClass = "com.example.MainKt",
             )
         }
@@ -243,14 +242,42 @@ class ExecutableJarTest {
 
     @Test
     fun `fails for duplicate classes instead of renaming them`() {
-        val first = classesDir / "Main.class"
+        val first = fakeClassesDir / "Main.class"
         first.writeText("first")
         val secondRoot = (tempDir / "other-classes").createDirectory()
         (secondRoot / "Main.class").writeText("second")
 
         assertFailsWith<ZipException> {
-            jarFile.writeExecutableJar([classesDir, secondRoot], [], loaderDir, "Main")
+            jarFile.writeExecutableJar([fakeClassesDir, secondRoot], [], createFakeLoaderDir(), "Main")
         }
+    }
+
+    @Test
+    fun `uses the Java 8 compatible launcher entrypoint when present`() {
+        jarFile.writeExecutableJar(
+            compiledClasses = [fakeClassesDir],
+            runtimeDependencies = [],
+            springBootLoaderJarUnpacked = createFakeLoaderDir(useLegacyLauncher = true),
+            mainClass = "com.example.MainKt",
+        )
+
+        JarFile(jarFile.toFile()).use { jar ->
+            assertEquals(
+                "org.springframework.boot.loader.JarLauncher",
+                jar.manifest.mainAttributes.getValue("Main-Class"),
+            )
+        }
+    }
+
+    private fun createFakeLoaderDir(useLegacyLauncher: Boolean = false): Path {
+        val loaderDir = tempDir / "loader"
+        val launcherPath = if (useLegacyLauncher) {
+            "org/springframework/boot/loader/JarLauncher.class"
+        } else {
+            "org/springframework/boot/loader/launch/JarLauncher.class"
+        }
+        (loaderDir / launcherPath).createParentDirectories().writeText("launcher")
+        return loaderDir
     }
 
     private fun Path.readEntryText(entryName: String): String = ZipFile(toFile()).use { zip ->

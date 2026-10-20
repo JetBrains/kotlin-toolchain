@@ -27,24 +27,25 @@ class ToolingArtifactsDownloader(
     userCacheRoot: AmperUserCacheRoot,
     private val incrementalCache: IncrementalCache,
 ) {
-
     private val mavenResolver = CliReportingMavenResolver(userCacheRoot, incrementalCache)
 
     context(_: ProblemReporter)
     suspend fun downloadHotReloadAgent(hotReloadVersion: String): List<Path> =
         downloadToolingArtifacts(
-            listOf(
+            resolveSourceMoniker = "Compose Hot Reload",
+            coordinates = [
                 MavenCoordinates("org.jetbrains.compose.hot-reload", "hot-reload-agent", hotReloadVersion),
                 MavenCoordinates("org.jetbrains.compose.hot-reload", "hot-reload-runtime-jvm", hotReloadVersion),
-            ),
+            ],
         )
 
     context(_: ProblemReporter)
     suspend fun downloadHotReloadMcp(hotReloadVersion: String): List<Path> =
         downloadToolingArtifacts(
-            listOf(
+            resolveSourceMoniker = "Compose Hot Reload",
+            coordinates = [
                 MavenCoordinates("org.jetbrains.compose.hot-reload", "hot-reload-mcp", hotReloadVersion),
-            ),
+            ],
         )
 
     context(_: ProblemReporter)
@@ -52,53 +53,65 @@ class ToolingArtifactsDownloader(
         hotReloadVersion: String,
         composeVersion: String,
     ): List<Path> = downloadToolingArtifacts(
-        listOf(
+        resolveSourceMoniker = "Compose Hot Reload",
+        coordinates = [
             MavenCoordinates("org.jetbrains.compose.hot-reload", "hot-reload-devtools", hotReloadVersion),
             MavenCoordinates("org.jetbrains.compose.desktop", "desktop-jvm-${SystemInfo.CurrentHost.familyArch}", composeVersion),
-        ),
-        buildList {
-            addAll(listOf(MavenCentral, GOOGLE_REPOSITORY, AMPER_DEV_REPOSITORY))
-        }
+        ],
+        repositories = [MavenCentral, GOOGLE_REPOSITORY, AMPER_DEV_REPOSITORY],
     )
 
     context(_: ProblemReporter)
     suspend fun downloadComposeDesktop(composeVersion: String): List<Path> = downloadToolingArtifacts(
-        listOf(
+        resolveSourceMoniker = "Compose Hot Reload",
+        coordinates = [
             MavenCoordinates(
                 "org.jetbrains.compose.desktop",
                 "desktop-jvm-${SystemInfo.CurrentHost.familyArch}",
-                composeVersion
+                composeVersion,
             ),
-        ),
-        listOf(MavenCentral, GOOGLE_REPOSITORY)
+        ],
+        repositories = [MavenCentral, GOOGLE_REPOSITORY],
     )
 
     @OptIn(DiscouragedDirectDefaultVersionAccess::class)
     context(_: ProblemReporter)
-    suspend fun downloadSpringBootLoader(): Path = downloadToolingArtifacts(
-        listOf(
-            MavenCoordinates("org.springframework.boot", "spring-boot-loader", DefaultVersions.springBoot)
-        )
+    suspend fun downloadSpringBootLoader(jvmRelease: Int): Path = downloadToolingArtifacts(
+        resolveSourceMoniker = "executable JAR",
+        coordinates = [
+            MavenCoordinates(
+                groupId = "org.springframework.boot",
+                artifactId = "spring-boot-loader",
+                // Spring Boot 2 requires minimum Java 8, while Spring Boot 3 and 4 require Java 17
+                // Check latest 2.7.x versions there: https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-loader/
+                // Note: we don't use the user's settings.spring.version here because the Spring loader is an
+                // implementation detail of our executable JAR format. We want to control how we use it. The user might
+                // not even be using Spring at all.
+                version = if (jvmRelease < 17) "2.7.18" else DefaultVersions.springBoot,
+            )
+        ]
     ).single()
 
     context(_: ProblemReporter)
     private suspend fun downloadToolingArtifacts(
+        /** To refer to this resolution in error messages: "Unable to resolve deps for <moniker>". */
+        resolveSourceMoniker: String,
         coordinates: List<MavenCoordinates>,
-        repositories: List<Repository> = listOf(MavenCentral),
+        repositories: List<Repository> = [MavenCentral],
     ): List<Path> {
         val scope = ResolutionScope.RUNTIME
         val platform = ResolutionPlatform.JVM
         return incrementalCache.execute(
             key = "resolve-$coordinates ($scope, $platform)",
             inputValues = mapOf("repositories" to repositories.joinToString(",")),
-            inputFiles = emptyList(),
+            inputFiles = [],
         ) {
             val resolved = mavenResolver.resolve(
                 coordinates = coordinates,
                 repositories = repositories,
                 scope = scope,
                 platform = platform,
-                resolveSourceMoniker = "Compose hot reload: $coordinates",
+                resolveSourceMoniker = resolveSourceMoniker,
             )
             return@execute resolved.toIncrementalCacheResult()
         }.outputFiles

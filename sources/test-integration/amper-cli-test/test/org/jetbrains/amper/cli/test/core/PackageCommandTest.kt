@@ -5,12 +5,16 @@
 package org.jetbrains.amper.cli.test.core
 
 import org.jetbrains.amper.cli.test.CliTestBase
+import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.stdlib.hashing.sha256String
 import org.junit.jupiter.api.Tag
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import kotlin.io.path.div
 import kotlin.io.path.exists
+import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -45,5 +49,21 @@ class PackageCommandTest : CliTestBase() {
 
         val hash3 = buildAndHashExecutableJar()
         assertEquals(hash3, hash2, "Executable JAR should be identical after clean")
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [8, 11, 16, 17, 21, 25])
+    fun `executable jar supports the target release`(release: Int) = runSlowTest {
+        val projectDir = testProject("jvm-hello-world")
+        (projectDir / "module.yaml").writeText("""
+            product: jvm/app
+            settings:
+              jvm:
+                release: $release
+        """.trimIndent())
+
+        // running with --variant=release to run the executable JAR
+        val result = runCli(projectDir = projectDir, "run", "--variant=release")
+        result.assertStdoutContains("Hello, world!")
     }
 }
