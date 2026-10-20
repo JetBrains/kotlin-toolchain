@@ -11,6 +11,7 @@ import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
 import com.github.ajalt.clikt.parameters.groups.single
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.switch
 import com.github.ajalt.clikt.parameters.options.transformAll
@@ -100,11 +101,12 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
                     "One of: ${KotlinMultiplatformTargetPlatform.byCliValue.keys.joinToString()}.",
         ).choice(KotlinMultiplatformTargetPlatform.byCliValue)
             .transformAll { targets -> NewProjectSource.ComposeTargets(targets.toSet()) },
-        option(
-            "--from-template",
-            help = "Generates the project from the given template instead of the parameterized Compose " +
-                    "Multiplatform flow. One of: ${cliVisibleTemplates.joinToString { it.id }}.",
-        ).choice(cliVisibleTemplates.associateBy { it.id })
+        option("--from-template")
+            .help {
+                "Generates the project from the given template instead of the parameterized Compose " +
+                        "Multiplatform flow. One of: ${cliVisibleTemplates.joinToString { it.id }}."
+            }
+            .choice(cliVisibleTemplates.associateBy { it.id })
             .convert { NewProjectSource.Template(it) },
     ).single()
 
