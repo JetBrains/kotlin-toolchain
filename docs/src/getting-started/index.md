@@ -29,7 +29,7 @@ Ready to try the Kotlin Toolchain? Choose the right approach for you:
 
     ---
 
-    Use `./kotlin init` from the [CLI](../cli/index.md#installation), or create a new Kotlin project in IntelliJ IDEA.
+    Use `kotlin init` from the [CLI](../cli/index.md#installation), or create a new Kotlin project in IntelliJ IDEA.
 
 </div>
 

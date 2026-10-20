@@ -3,43 +3,28 @@ description: The Kotlin CLI is a command-line tool to build, run, test, and pack
 ---
 # :octicons-terminal-16: Kotlin CLI
 
-The Kotlin CLI is a command-line tool to build, run, test, and package your project without an IDE.
+The Kotlin CLI is a command-line tool to build, run, test, package, and publish your projects without an IDE.
 It is useful both locally and in CI/CD pipelines.
 
 ## Installation
 
-Install the Kotlin CLI using one of the methods below.
-After installation, the `kotlin` command will be available on your `PATH`.
 
-### via SDKMAN
-
-```shell
-sdk update
-sdk install kotlintoolchain
-```
+--8<-- "includes/cli-install.md"
 
 !!! note
 
     The first time you run the Kotlin CLI, it will take some time to download the Kotlin Toolchain distribution.
     Subsequent runs will be faster, as the downloaded files will be cached locally.
 
-    If you just installed via the script, restart your shell (or run `export PATH="$HOME/.local/bin:$PATH"` on 
-    Linux/macOS) before using `kotlin`.
+### Alternative: use SDKMAN
 
-### via installer script
+If you already have SDKMAN installed, you can use it to install the CLI:
 
-The installer script downloads the Kotlin CLI wrapper and places it in `~/.local/bin` (on Linux and macOS) or an
-equivalent location on Windows.
-It also updates your shell profile to add that directory to your `PATH`, if needed.
-
---8<-- "includes/cli-install.md"
-
-??? success "IntelliJ IDEA can take care of this for you"
-
-    New projects created using the IntelliJ IDEA wizard will already contain the 
-    [wrapper scripts](provisioning.md/#whats-the-wrapper-script).
-    Also, if you create a `module.yaml` file in a blank project, IntelliJ IDEA will offer to set up the wrapper scripts
-    for you. In that case, you can use `./kotlin` from the project root without a global installation.
+```shell
+sdk selfupdate
+sdk update
+sdk install kotlintoolchain
+```
 
 ## Exploring Kotlin CLI commands
 
@@ -52,7 +37,7 @@ kotlin build --help # shows the options for the 'build' command specifically
 
 Here are the most commonly used commands:
 
-- `kotlin init` to create a new Kotlin project
+- `kotlin new` to create a new Kotlin project
 - `kotlin build` to compile and link all code in the project
 - `kotlin run` to run your application
 - `kotlin test` to run tests in the project
@@ -62,7 +47,7 @@ Here are the most commonly used commands:
 
 !!! example "Try it out!"
 
-    Create a new project using the `kotlin init` command and select the *JVM console application* template.
+    Create a new project using the `kotlin new` command and select the *JVM console application* template.
 
     Then build and run the application using `kotlin run`.
 

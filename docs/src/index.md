@@ -20,26 +20,15 @@ applications with a simple declarative configuration.
 
 ### :octicons-terminal-16: Command Line
 
-<div class="method-label">via SDKMAN</div>
+<div class="method-label">Install the CLI</div>
+
+--8<-- "includes/cli-install.md"
+
+<div class="method-label">Create your first project</div>
 
 ```shell
-sdk update
-sdk install kotlintoolchain
+kotlin new
 ```
-
-<div class="method-label">or via installer script</div>
-
-=== ":material-apple: macOS / :material-linux: Linux"
-
-    ```shell
-    curl -fsSL https://kotl.in/install.sh | sh
-    ```
-
-=== ":material-microsoft-windows: Windows"
-
-    ```powershell
-    powershell -ExecutionPolicy ByPass -c "irm 'https://kotl.in/install.ps1' | iex"
-    ```
 
 <div class="card-footer" markdown>
 [:octicons-arrow-right-16: CLI documentation](cli/index.md)
