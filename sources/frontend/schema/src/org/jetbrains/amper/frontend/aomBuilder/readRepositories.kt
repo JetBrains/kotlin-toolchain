@@ -19,6 +19,7 @@ import org.jetbrains.amper.mavencentral.MavenCentralDefaultConfiguration
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.stdlib.properties.readProperties
+import org.jetbrains.amper.stdlib.url.CustomizableUrl
 import kotlin.io.path.exists
 
 /**
@@ -95,6 +96,8 @@ internal fun Module.readPublishRepositories(): List<PublicationRepository> =
         )
     }.distinctBy { it.id }
 
+val GOOGLE_REPOSITORY_URL = CustomizableUrl("https://maven.google.com", "KOTLIN_GOOGLE_REPOSITORY_URL").url
+
 val defaultMavenRepositories = [
     ResolutionRepository(
         id = MAVEN_CENTRAL_REPOSITORY_ID,
@@ -102,6 +105,6 @@ val defaultMavenRepositories = [
     ),
     ResolutionRepository(
         id = "mavenGoogle",
-        url = "https://maven.google.com",
+        url = GOOGLE_REPOSITORY_URL,
     ),
 ]
