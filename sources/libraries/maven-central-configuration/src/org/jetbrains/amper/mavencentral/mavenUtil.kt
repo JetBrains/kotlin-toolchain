@@ -4,6 +4,8 @@
 
 package org.jetbrains.amper.mavencentral
 
+import org.jetbrains.amper.stdlib.url.CustomizableUrl
+
 /**
  * Provides URL of Maven Central.
  * By default, cache-redirector is used for accessing Maven Central.
@@ -12,17 +14,15 @@ package org.jetbrains.amper.mavencentral
  * The resulting default value might be further overridden in a particular project module by specifying
  *  a repository with ID "mavenCentral" and setting another URL there.
  */
-object MavenCentralDefaultConfiguration {
+object MavenCentralDefaultConfiguration: CustomizableUrl(
+    defaultUrl = "https://repo1.maven.org/maven2",
+    environmentVariable = "KOTLIN_DEFAULT_MAVEN_CENTRAL_URL"
+) {
 
-    val url: String
-        get() = System.getenv("KOTLIN_DEFAULT_MAVEN_CENTRAL_URL")
-            ?.takeIf { it.isNotBlank() }
-            ?: "https://repo1.maven.org/maven2"
-
-    val isDirectUrl: Boolean get() = url.trimEnd('/') in directUrls
+    override val isDirectUrl: Boolean get() = url.trimEnd('/') in directUrls
 
     private val directUrls = setOf(
-        "https://repo1.maven.org/maven2",
+        defaultUrl.trimEnd('/') ,
         "https://repo.maven.apache.org/maven2"
     )
 }
