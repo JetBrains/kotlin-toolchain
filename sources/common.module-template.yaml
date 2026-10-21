@@ -27,6 +27,8 @@ repositories:
     url: https://cache-redirector.jetbrains.com/download.jetbrains.com/teamcity-repository
   - id: amper-compose-hot-reload
     url: https://packages.jetbrains.team/maven/p/amper/compose-hot-reload
+  - id: product-analytics
+    url: https://packages.jetbrains.team/maven/p/apl/product-analytics-platform-public
 
 settings:
   publishing:

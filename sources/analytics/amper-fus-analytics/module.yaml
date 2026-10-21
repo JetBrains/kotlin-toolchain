@@ -1,0 +1,21 @@
+product: jvm/lib
+
+apply:
+  - //sources/common.module-template.yaml
+
+dependencies:
+  - //sources/amper-build-info
+  - //sources/libraries/agent-detection: exported
+  - //sources/libraries/ci-detection: exported
+  - //sources/libraries/stdlib-extended
+  - //sources/libraries/system-info
+  - //sources/libraries/windows-registry
+  - $libs.jetbrains.fus.api: exported
+  - $libs.jetbrains.fus.scheme: exported # we need access to BaseEventId
+  - $libs.jetbrains.fus.serialization.kotlin
+  - $libs.jetbrains.fus.validation: exported # to expose LogEvent
+  - $libs.slf4j.api
+  - $libs.maven.artifact
+
+plugins:
+  amper-fus-schema-generator: enabled

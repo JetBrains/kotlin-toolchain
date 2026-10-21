@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.core.PrintMessage
 import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.interactiveMultiSelectList
 import com.github.ajalt.mordant.input.interactiveSelectList
+import com.github.ajalt.mordant.rendering.Widget
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.terminal.prompt
 import com.github.ajalt.mordant.widgets.SelectList
@@ -20,6 +21,7 @@ internal fun <T : Any> Terminal.interactiveSelectList(
     items: List<T>,
     nameSelector: (T) -> String,
     descriptionSelector: ((T) -> String)? = null,
+    preSelectedItem: T? = null,
     title: String = "",
     filterable: Boolean = false,
 ): T? {
@@ -27,7 +29,7 @@ internal fun <T : Any> Terminal.interactiveSelectList(
     val choice = interactiveSelectList {
         title(title)
         if (descriptionSelector != null) {
-            entries(items.map { SelectList.Entry(nameSelector(it), descriptionSelector(it)) })
+            entries(items.map { SelectList.Entry(nameSelector(it), descriptionSelector(it), it === preSelectedItem) })
         } else {
             entries(itemsByName.keys)
         }

@@ -35,6 +35,8 @@ modules:
   - sources/amper-telemetry
   - sources/amper-test-events
   - sources/amper-wrapper
+  - sources/analytics/amper-fus-analytics
+  - sources/analytics/amper-fus-schema-generator
   - sources/android-integration/amper-android-gradle-api
   - sources/android-integration/amper-android-gradle-plugin
   - sources/android-integration/amper-android-runner
@@ -62,6 +64,7 @@ modules:
   - sources/libraries/apple-simulator-manager
   - sources/libraries/async-processes
   - sources/libraries/binary-compatibility-validation
+  - sources/libraries/ci-detection
   - sources/libraries/compose-resources
   - sources/libraries/compress
   - sources/libraries/concurrency
@@ -103,3 +106,4 @@ plugins:
   - //build-sources/generate-template-resources
   - //build-sources/project-commands
   - //build-sources/protobuf
+  - //sources/analytics/amper-fus-schema-generator

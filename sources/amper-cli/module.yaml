@@ -16,6 +16,7 @@ dependencies:
   - //sources/amper-cli-widgets
   - //sources/amper-compose-hot-reload
   - //sources/amper-events
+  - //sources/analytics/amper-fus-analytics
   - //sources/amper-jdk-provisioning
   - //sources/amper-junit-event-protocol
   - //sources/amper-kotlin-native

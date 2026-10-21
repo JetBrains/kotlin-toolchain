@@ -6,6 +6,7 @@ package org.jetbrains.amper.cli.commands
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.completion.SuspendingCompletionCommand
+import com.github.ajalt.clikt.core.PrintHelpMessage
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.obj
 import com.github.ajalt.clikt.core.subcommands
@@ -26,9 +27,12 @@ import com.sun.jna.platform.win32.Kernel32Util
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.debug.DebugProbes
 import kotlinx.datetime.LocalDateTime
+import org.jetbrains.amper.agentdetection.detectAgent
 import org.jetbrains.amper.buildinfo.AmperBuild
+import org.jetbrains.amper.cidetection.CISystem
 import org.jetbrains.amper.cli.AmperHelpFormatter
 import org.jetbrains.amper.cli.AmperVersion
+import org.jetbrains.amper.cli.analytics.CliFusReporter
 import org.jetbrains.amper.cli.commands.ide.IdeIntegrationCommand
 import org.jetbrains.amper.cli.commands.show.ShowCommand
 import org.jetbrains.amper.cli.commands.tools.ToolCommand
@@ -41,6 +45,8 @@ import org.jetbrains.amper.cli.unwrap
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withShowCommandSuggestions
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.fus.schema.FusEvents
+import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.jetbrains.amper.telemetry.useWithoutCoroutines
@@ -91,6 +97,10 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
             suggestTypoCorrection = suggestTypoCorrection.withShowCommandSuggestions()
         }
     }
+
+    // So run() gets called when users just call 'kotlin' without command instead of immediately printing the help.
+    // We do print the help manually at the end of run() here.
+    override val invokeWithoutSubcommand: Boolean = true
 
     private val consoleLogLevel by option(
         "--log-level",
@@ -151,6 +161,27 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
             } else {
                 installCoroutinesDebugProbes()
             }
+        }
+
+        spanBuilder("Setup FUS reporting").use {
+            CliFusReporter.setup(userCacheRoot = sharedCacheDir, terminal = terminal)
+        }
+
+        spanBuilder("Send baseline FUS events").use {
+            CliFusReporter.log(FusEvents.CommandInvoked) {
+                command = currentContext.invokedSubcommand?.commandName
+                subcommands =
+                    currentContext.invokedSubcommand?.currentContext?.invokedSubcommands?.map { it.commandName }
+            }
+            CliFusReporter.log(FusEvents.EnvironmentState) {
+                osFamily = SystemInfo.CurrentHost.family
+                arch = SystemInfo.CurrentHost.arch
+                ciSystem = CISystem.detect()
+                aiAgent = detectAgent()
+            }
+        }
+        if (currentContext.invokedSubcommand == null) {
+            throw PrintHelpMessage(currentContext)
         }
     }
 

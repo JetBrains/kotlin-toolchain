@@ -1,0 +1,18 @@
+product: jvm/amper-plugin
+
+apply:
+  - //sources/common.module-template.yaml
+
+description: Generates the FUS schema for analytics
+
+dependencies:
+  - //sources/amper-build-info
+  - //sources/analytics/amper-fus-analytics
+  - //sources/libraries/stdlib-extended
+  - $kotlin.serialization.json
+  - $libs.jetbrains.fus.scheme
+  - io.github.java-diff-utils:java-diff-utils:4.12
+
+settings:
+  kotlin:
+    serialization: enabled

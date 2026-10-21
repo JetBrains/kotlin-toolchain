@@ -21,6 +21,7 @@ intellij-parsing = "0.3.154"
 intellij-platform = "261.26222.65"
 intellij-xcodemodel = "241.14980"
 jetbrains-annotations = "26.1.0"
+jetbrains-fus = "2.0.249"
 jna = "5.19.1"
 junit-jupiter = "6.1.3" # The one used for Amper's own tests, not for users, so we can bump
 junit5-platform = "1.14.3" # AUTO-UPDATED by 'do syncVersions' - DO NOT RENAME NOR UPDATE HERE
@@ -86,6 +87,10 @@ intellij-platform-coreImpl = { module = "com.jetbrains.intellij.platform:core-im
 intellij-platform-util = { module = "com.jetbrains.intellij.platform:util", version.ref = "intellij-platform" }
 intellij-platform-utilEx = { module = "com.jetbrains.intellij.platform:util-ex", version.ref = "intellij-platform" }
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
+jetbrains-fus-api = { module = "com.jetbrains.fus.reporting:fus-api", version.ref = "jetbrains-fus" }
+jetbrains-fus-scheme = { module = "com.jetbrains.fus.reporting:scheme", version.ref = "jetbrains-fus" }
+jetbrains-fus-serialization-kotlin = { module = "com.jetbrains.fus.reporting:serialization-kotlin", version.ref = "jetbrains-fus" }
+jetbrains-fus-validation = { module = "com.jetbrains.fus.reporting:ap-validation-all", version.ref = "jetbrains-fus" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }

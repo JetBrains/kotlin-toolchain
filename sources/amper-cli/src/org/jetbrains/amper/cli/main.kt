@@ -10,6 +10,7 @@ import com.github.ajalt.clikt.parsers.CommandLineParser
 import com.github.ajalt.mordant.markdown.Markdown
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.util.logging.*
+import org.jetbrains.amper.cli.analytics.CliFusReporter
 import org.jetbrains.amper.cli.commands.LogsDirAwareInternalError
 import org.jetbrains.amper.cli.commands.RootCommand
 import org.jetbrains.amper.cli.logging.withoutConsoleLogging
@@ -62,7 +63,11 @@ suspend fun main(args: Array<String>) {
                 val rootCommand = spanBuilder("Initialize CLI command definitions").use {
                     RootCommand()
                 }
-                rootCommand.mainWithTelemetry(args)
+                try {
+                    rootCommand.mainWithTelemetry(args)
+                } finally {
+                    CliFusReporter.close()
+                }
             }
     } catch (e: ExitProcessButCloseTelemetrySpansException) {
         exitProcess(e.exitCode)

@@ -1,0 +1,15 @@
+tasks:
+  generateFusSchema:
+    action: !generateFusSchema
+      outputSchemaFile: ${module.rootDir}/fus-schema.json
+  checkFusSchema:
+    action: !checkFusSchema
+      existingCheckedInSchemaFile: ${module.rootDir}/fus-schema.json
+      actualSchemaTempFile: ${module.rootDir}/fus-schema.json.tmp
+
+commands:
+  - generateFusSchema
+
+checks: 
+  - name: fusSchema
+    performedBy: checkFusSchema

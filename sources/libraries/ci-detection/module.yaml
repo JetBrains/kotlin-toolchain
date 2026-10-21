@@ -1,0 +1,6 @@
+product: jvm/lib
+
+description: Detects Continuous Integration (CI) environments the current process is running in.
+
+apply:
+  - //sources/common.module-template.yaml
