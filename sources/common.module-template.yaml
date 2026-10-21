@@ -62,6 +62,8 @@ settings:
       junitPlatformVersion: 6.0.3 # Keep it aligned with JUnit libs in our catalog
       extraEnvironment:
         KOTLIN_DEFAULT_MAVEN_CENTRAL_URL: https://cache-redirector.jetbrains.com/kotlin/repo1.maven.org/maven2
+        # Playwright's default mirrors include playwright.download.prss.microsoft.com, which TC agents can't resolve
+        PLAYWRIGHT_DOWNLOAD_HOST: https://cache-redirector.jetbrains.com/playwright.azureedge.net
   java:
     compileIncrementally: false # Disabled because of AMPER-4868
   internal:
