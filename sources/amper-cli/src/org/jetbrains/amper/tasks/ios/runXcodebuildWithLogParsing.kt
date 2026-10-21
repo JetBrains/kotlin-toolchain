@@ -21,6 +21,7 @@ import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.pipe.ProcessPipe
 import org.jetbrains.amper.processes.runProcess
+import org.jetbrains.amper.stdlib.url.CustomizableUrl
 import org.jetbrains.amper.system.info.Arch
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
@@ -95,7 +96,7 @@ private suspend fun prepareLogParsingUtility(userCacheRoot: AmperUserCacheRoot):
     val version = XCBEAUTIFY_VERSION
     val archive = operationEventScope("downloading xcbeautify $version") {
         Downloader.downloadFileToCacheLocation(
-            url = "https://github.com/cpisciotta/xcbeautify/releases/download/$version/xcbeautify-$version-$archString-apple-macosx.zip",
+            url = "$XCBEAUTIFY_DOWNLOAD_ROOT_URL/$version/xcbeautify-$version-$archString-apple-macosx.zip",
             userCacheRoot = userCacheRoot,
         )
     }
@@ -155,6 +156,9 @@ private class PackageResolutionErrorWorkaround(
         private const val PACKAGE_RESOLUTION_ERROR_TEXT = "xcodebuild: error: Could not resolve package dependencies:"
     }
 }
+
+private val XCBEAUTIFY_DOWNLOAD_ROOT_URL = CustomizableUrl(
+    "https://github.com/cpisciotta/xcbeautify/releases/download", "KOTLIN_XCBEAUTIFY_DOWNLOAD_ROOT_URL").url
 
 private val logger = LoggerFactory.getLogger("runXcodebuildWithLogParsing")
 
