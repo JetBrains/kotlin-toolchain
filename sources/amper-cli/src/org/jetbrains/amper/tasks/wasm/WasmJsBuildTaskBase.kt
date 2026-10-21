@@ -77,10 +77,9 @@ abstract class WasmJsBuildTaskBase(
     private val composeResources by Selectors.fromModuleWithDependencies(
         type = MergedPreparedComposeResourcesDirArtifact::class,
         module = module,
+        moduleDependencies = moduleDependencies,
         platform = platform,
         isTest = false,
-        userCacheRoot = userCacheRoot,
-        incrementalCache = incrementalCache,
         quantifier = Quantifier.AnyOrNone,
     )
 

@@ -29,6 +29,7 @@ import org.jetbrains.amper.frontend.MAVEN_CENTRAL_REPOSITORY_ID
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.plugins.CustomCommandFromPlugin
 import org.jetbrains.amper.frontend.publishingSettings
@@ -439,8 +440,9 @@ class AmperBackend(
     }
 
     suspend fun rebuildJvmModuleForHotReload(
-        module: AmperModule,
+        moduleDependencies: ModuleDependencies,
     ) : List<IncrementalCache.Change> {
+        val module = moduleDependencies.module
         require(Platform.JVM in module.leafPlatforms) {
             "Trying to rebuild the module ${module.userReadableName} for Hot Reload but it doesn't target JVM.\n" +
                     "Supported platforms: ${module.leafPlatforms}"
@@ -448,12 +450,10 @@ class AmperBackend(
 
         val taskIds = buildSet {
             add(CommonTaskType.Compile.getTaskName(module, Platform.JVM).id)
-            module.getModuleDependencies(
+            moduleDependencies.getModuleDependencies(
                 isTest = false,
                 Platform.JVM,
                 ResolutionScope.RUNTIME,
-                context.userCacheRoot,
-                context.incrementalCache
             ).forEach { add(CommonTaskType.Compile.getTaskName(it, Platform.JVM).id) }
         }
         return runTasks(taskIds).values

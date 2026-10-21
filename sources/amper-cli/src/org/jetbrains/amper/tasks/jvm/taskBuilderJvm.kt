@@ -5,8 +5,10 @@
 package org.jetbrains.amper.tasks.jvm
 
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
+import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.doCapitalize
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.isPublishingEnabled
 import org.jetbrains.amper.frontend.schema.DependencyMode
 import org.jetbrains.amper.frontend.schema.enabled
@@ -22,7 +24,7 @@ import org.jetbrains.amper.tasks.getModuleDependencies
 import org.jetbrains.amper.tasks.getTaskName
 import org.jetbrains.amper.tasks.publishTaskNameFor
 
-fun ProjectTasksBuilder.setupJvmTasks() {
+fun ProjectTasksBuilder.setupJvmTasks(moduleDependenciesMap: Map<AmperModule, ModuleDependencies>) {
     allModules()
         .alsoPlatforms(Platform.JVM)
         .alsoTests()
@@ -56,12 +58,11 @@ fun ProjectTasksBuilder.setupJvmTasks() {
                         add(JvmSpecificTaskType.JavaAnnotationProcessorClasspath.getTaskName(module, platform, isTest))
                     }
 
-                    module.getModuleDependencies(
+                    val moduleDependencies = moduleDependenciesMap[module]!!
+                    moduleDependencies.getModuleDependencies(
                         isTest = isTest,
                         platform = platform,
                         dependencyReason = ResolutionScope.COMPILE,
-                        userCacheRoot = context.userCacheRoot,
-                        incrementalCache = context.incrementalCache,
                     ).forEach {
                         add(CommonTaskType.Compile.getTaskName(it, platform, isTest = false))
                     }
@@ -95,12 +96,11 @@ fun ProjectTasksBuilder.setupJvmTasks() {
                     }
                     add(mode.getTaskName(module, platform, isTest = false))
 
-                    module.getModuleDependencies(
+                    val moduleDependencies = moduleDependenciesMap[module]!!
+                    moduleDependencies.getModuleDependencies(
                         isTest = isTest,
                         platform = platform,
                         dependencyReason = ResolutionScope.RUNTIME,
-                        userCacheRoot = context.userCacheRoot,
-                        incrementalCache = context.incrementalCache,
                     ).forEach {
                         add(mode.getTaskName(it, platform, isTest = false))
                     }

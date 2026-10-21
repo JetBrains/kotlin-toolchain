@@ -7,7 +7,9 @@ package org.jetbrains.amper.tasks.custom
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.events.payload.TaskMonikerSpec
+import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.plugins.TaskFromPluginDescription
 import org.jetbrains.amper.frontend.plugins.generated.ShadowCompilationArtifactKind
@@ -28,7 +30,7 @@ private fun TaskFromPluginDescription.taskName() = TaskName(
     ),
 )
 
-fun ProjectTasksBuilder.setupTasksFromPlugins() {
+fun ProjectTasksBuilder.setupTasksFromPlugins(moduleDependenciesMap: Map<AmperModule, ModuleDependencies>) {
     if (!includePluginTasks) {
         return
     }
@@ -91,12 +93,11 @@ fun ProjectTasksBuilder.setupTasksFromPlugins() {
                         if (resolutionScope != ResolutionScope.COMPILE) {
                             classpathRequest.localDependencies.forEach { module ->
                                 add(CommonTaskType.Jar.getTaskName(module, Platform.JVM))
-                                module.getModuleDependencies(
+                                val moduleDependencies = moduleDependenciesMap[module]!!
+                                moduleDependencies.getModuleDependencies(
                                     isTest = false,
                                     platform = Platform.JVM,
                                     dependencyReason = resolutionScope,
-                                    userCacheRoot = context.userCacheRoot,
-                                    incrementalCache = context.incrementalCache,
                                 ).forEach {
                                     add(CommonTaskType.Jar.getTaskName(it, Platform.JVM))
                                 }

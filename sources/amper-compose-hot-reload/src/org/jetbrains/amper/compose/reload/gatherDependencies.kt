@@ -5,7 +5,6 @@
 package org.jetbrains.amper.compose.reload
 
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
-import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.CompositeVersionCatalog
 import org.jetbrains.amper.frontend.FileVersionCatalog
 import org.jetbrains.amper.frontend.InMemoryVersionCatalog
@@ -20,11 +19,8 @@ import kotlin.io.path.div
 /**
  * Gathers all the paths that Compose Hot Reload of the given module depends on.
  * Only the *build/execution* dependencies are included here.
- *
- * To get dependencies of the model itself use [modelDependencies].
  */
-context(context: HotReloadProjectContext)
-internal fun AmperModule.jvmComposeRunDependencies(): Set<Path> = buildSet {
+internal fun ModuleDependencies.jvmComposeRunDependencies(): Set<Path> = buildSet {
     val relevantModules = buildSet {
         fun addDependencies(scope: ResolutionScope) = addAll(
             with(ModuleDependencies) {
@@ -32,13 +28,10 @@ internal fun AmperModule.jvmComposeRunDependencies(): Set<Path> = buildSet {
                     isTest = false,
                     platform = Platform.JVM,
                     dependencyReason = scope,
-                    userCacheRoot = context.userCacheRoot,
-                    incrementalCache = context.incrementalCache,
-                    openTelemetry = context.openTelemetry,
                 )
             }
         )
-        add(this@jvmComposeRunDependencies)
+        add(this@jvmComposeRunDependencies.module)
         addDependencies(ResolutionScope.COMPILE)  // Needed for re-compilation
         addDependencies(ResolutionScope.RUNTIME)  // Needed because we actually reload a runtime
     }

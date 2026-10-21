@@ -36,6 +36,7 @@ import org.jetbrains.amper.util.BuildType
 
 data class ModuleSequenceCtx(
     val module: AmperModule,
+    val moduleDependencies: ModuleDependencies,
     val platform: Platform = Platform.COMMON,
     val isTest: Boolean = false,
     val buildType: BuildType = BuildType.Debug,
@@ -62,33 +63,36 @@ class ProjectTasksBuilder(
     val tasks = TaskGraphBuilder()
 
     fun build(): TaskGraph {
-        val moduleDependenciesMap = with(ModuleDependencies) {
-            val resolutionSettings = AmperResolutionSettings(context.userCacheRoot, context.incrementalCache, GlobalOpenTelemetry.get())
-            model.moduleDependencies(resolutionSettings).associateBy { it.module }
-        }
-
         setupCommonTasks(moduleDependenciesMap)
-        setupJvmTasks()
+        setupJvmTasks(moduleDependenciesMap)
         setupMavenCompatibilityTasks()
-        setupAndroidTasks()
-        setupNativeTasks()
+        setupAndroidTasks(moduleDependenciesMap)
+        setupNativeTasks(moduleDependenciesMap)
         setupSwiftPMTasks()
         setupWasmJsTasks(moduleDependenciesMap)
         setupWasmWasiTasks()
         setupJsTasks()
-        setupIosTasks()
-        setupKspTasks()
+        setupIosTasks(moduleDependenciesMap)
+        setupKspTasks(moduleDependenciesMap)
         setupJavaAnnotationProcessingTasks()
         setupComposeTasks()
         setupAmperPluginTasks()
         setupCustomTaskDependencies()
-        setupTasksFromPlugins()
+        setupTasksFromPlugins(moduleDependenciesMap)
         return tasks.build()
+    }
+
+    val moduleDependenciesMap by lazy {
+        with(ModuleDependencies) {
+            val resolutionSettings =
+                AmperResolutionSettings(context.userCacheRoot, context.incrementalCache, GlobalOpenTelemetry.get())
+            model.moduleDependencies(resolutionSettings).associateBy { it.module }
+        }
     }
 
     fun allFragments() = model.modules.asSequence().flatMap { it.fragments }
 
-    fun allModules() = model.modules.asSequence().map { ModuleSequenceCtx(it) }
+    fun allModules() = model.modules.asSequence().map { ModuleSequenceCtx(it, moduleDependenciesMap[it]!!) }
 
     fun Sequence<ModuleSequenceCtx>.alsoPlatforms(parent: Platform? = null) = flatMap { ctx ->
         ctx.module.leafPlatforms.filter { parent?.isParentOf(it) ?: true }.map { ctx.copy(platform = it) }
@@ -109,12 +113,10 @@ class ProjectTasksBuilder(
     fun Sequence<ModuleSequenceCtx>.selectModuleDependencies(
         dependencyReason: ResolutionScope,
     ): Sequence<ModuleDependencySequenceCtx> = flatMap { ctx ->
-        ctx.module.getModuleDependencies(
+        ctx.moduleDependencies.getModuleDependencies(
             ctx.isTest,
             ctx.platform,
             dependencyReason,
-            context.userCacheRoot,
-            context.incrementalCache
         ).map {
             ModuleDependencySequenceCtx(
                 module = ctx.module,

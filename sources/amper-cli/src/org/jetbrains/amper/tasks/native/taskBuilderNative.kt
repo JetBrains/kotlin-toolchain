@@ -8,6 +8,7 @@ import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.tasks.CommonTaskType
@@ -24,7 +25,7 @@ import org.jetbrains.amper.util.BuildType
 private fun isIosApp(platform: Platform, module: AmperModule) =
     platform.isDescendantOf(Platform.IOS) && module.type.isApplication()
 
-fun ProjectTasksBuilder.setupNativeTasks() {
+fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule, ModuleDependencies>) {
     tasks.registerTask(
         task = CommonizeNativeDistributionTask(
             model = model,
@@ -84,6 +85,7 @@ fun ProjectTasksBuilder.setupNativeTasks() {
             tasks.registerTask(
                 task = NativeCompileKlibTask(
                     module = module,
+                    moduleDependencies = moduleDependenciesMap[module]!!,
                     platform = platform,
                     userCacheRoot = context.userCacheRoot,
                     taskOutputRoot = context.getTaskOutputPath(compileKLibTaskName),
@@ -109,6 +111,7 @@ fun ProjectTasksBuilder.setupNativeTasks() {
                 tasks.registerTask(
                     task = NativeLinkTask(
                         module = module,
+                        moduleDependencies = moduleDependenciesMap[module]!!,
                         platform = platform,
                         userCacheRoot = context.userCacheRoot,
                         taskOutputRoot = context.getTaskOutputPath(linkTaskName),
@@ -122,12 +125,11 @@ fun ProjectTasksBuilder.setupNativeTasks() {
                         exportedKLibTaskIds = buildSet {
                             // Build the exported libraries set for iOS
                             if (compilationType == KotlinCompilationType.IOS_FRAMEWORK) {
-                                module.getModuleDependencies(
+                                val moduleDependencies = moduleDependenciesMap[module]!!
+                                moduleDependencies.getModuleDependencies(
                                     isTest = false,
                                     platform = platform,
                                     dependencyReason = ResolutionScope.COMPILE,
-                                    userCacheRoot = context.userCacheRoot,
-                                    incrementalCache = context.incrementalCache
                                 ).forEach { dependsOn ->
                                     add(NativeTaskType.CompileKLib.getTaskName(dependsOn, platform, false, buildType).id)
                                 }

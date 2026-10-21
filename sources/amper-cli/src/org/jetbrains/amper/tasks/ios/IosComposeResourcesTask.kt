@@ -8,6 +8,7 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.LeafFragment
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.stdlib.io.path.clean
 import org.jetbrains.amper.tasks.EmptyTaskResult
@@ -32,6 +33,7 @@ import kotlin.io.path.isDirectory
 class IosComposeResourcesTask(
     override val taskName: TaskName,
     private val leafFragment: LeafFragment,
+    private val moduleDependencies: ModuleDependencies,
     private val taskOutputRoot: TaskOutputRoot,
     private val incrementalCache: IncrementalCache,
     private val userCacheRoot: AmperUserCacheRoot,
@@ -39,8 +41,7 @@ class IosComposeResourcesTask(
     private val dependenciesMerged by Selectors.fromModuleWithDependencies(
         type = MergedPreparedComposeResourcesDirArtifact::class,
         leafFragment = leafFragment,
-        userCacheRoot = userCacheRoot,
-        incrementalCache = incrementalCache,
+        moduleDependencies = moduleDependencies,
         quantifier = Quantifier.AnyOrNone,
     )
 

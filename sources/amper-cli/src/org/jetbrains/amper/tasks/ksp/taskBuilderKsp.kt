@@ -5,7 +5,9 @@
 package org.jetbrains.amper.tasks.ksp
 
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
+import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.schema.UnscopedModuleDependency
 import org.jetbrains.amper.frontend.schema.enabled
@@ -18,7 +20,7 @@ import org.jetbrains.amper.tasks.getModuleDependencies
 import org.jetbrains.amper.tasks.getTaskName
 import org.jetbrains.amper.util.BuildType
 
-fun ProjectTasksBuilder.setupKspTasks() {
+fun ProjectTasksBuilder.setupKspTasks(moduleDependenciesMap: Map<AmperModule, ModuleDependencies>) {
     allModules()
         .alsoPlatforms()
         .alsoTests()
@@ -98,12 +100,11 @@ fun ProjectTasksBuilder.setupKspTasks() {
                         // test compilation depends on main classes
                         add(compilationTaskNameFor(module, platform, isTest = false, buildType = BuildType.Debug))
                     }
-                    module.getModuleDependencies(
+                    val moduleDependencies = moduleDependenciesMap[module]!!
+                    moduleDependencies.getModuleDependencies(
                         isTest = isTest,
                         platform = platform,
                         dependencyReason = ResolutionScope.COMPILE,
-                        userCacheRoot = context.userCacheRoot,
-                        incrementalCache = context.incrementalCache
                     ).forEach {
                         add(compilationTaskNameFor(it, platform, isTest = false,  buildType = BuildType.Debug))
 

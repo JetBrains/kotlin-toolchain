@@ -4,7 +4,9 @@
 
 package org.jetbrains.amper.tasks.ios
 
+import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.tasks.CommonTaskType
@@ -18,7 +20,7 @@ import org.jetbrains.amper.tasks.getTaskName
 /**
  * Set up apple-related tasks.
  */
-fun ProjectTasksBuilder.setupIosTasks() {
+fun ProjectTasksBuilder.setupIosTasks(moduleDependenciesMap: Map<AmperModule, ModuleDependencies>) {
     if (model.modules.any { module -> module.leafPlatforms.any { it.isDescendantOf(Platform.APPLE) } }) {
         tasks.registerTask(
             XcodeEnvironmentTask(
@@ -90,6 +92,7 @@ fun ProjectTasksBuilder.setupIosTasks() {
                     leafFragment = module.leafFragments.single {
                         it.platform == platform && !it.isTest
                     },
+                    moduleDependencies = moduleDependenciesMap[module]!!,
                     incrementalCache = context.incrementalCache,
                     taskOutputRoot = context.getTaskOutputPath(taskName),
                     userCacheRoot = context.userCacheRoot,

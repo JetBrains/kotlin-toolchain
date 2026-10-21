@@ -27,6 +27,7 @@ import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.frontend.friends
 import org.jetbrains.amper.frontend.isDescendantOf
@@ -52,6 +53,7 @@ import kotlin.io.path.walk
 
 internal class NativeCompileKlibTask(
     override val module: AmperModule,
+    private val moduleDependencies: ModuleDependencies,
     override val platform: Platform,
     private val userCacheRoot: AmperUserCacheRoot,
     private val taskOutputRoot: TaskOutputRoot,
@@ -82,10 +84,9 @@ internal class NativeCompileKlibTask(
     private val cinteropKlibs by Selectors.fromModuleWithDependencies(
         type = CinteropKlibsArtifact::class,
         module = module,
+        moduleDependencies = moduleDependencies,
         isTest = isTest,
         platform = platform,
-        userCacheRoot = userCacheRoot,
-        incrementalCache = incrementalCache,
         quantifier = Quantifier.AnyOrNone,
     )
 

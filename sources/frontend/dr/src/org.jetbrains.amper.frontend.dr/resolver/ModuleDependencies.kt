@@ -691,18 +691,12 @@ class ModuleDependencies private constructor(
          * scope of the given [platform], [isTest] and [dependencyReason].
          * External maven dependencies are ignored, only local modules are returned.
          */
-        fun AmperModule.getLocalModuleDependencies(
+        fun ModuleDependencies.getLocalModuleDependencies(
             isTest: Boolean,
             platform: Platform,
             dependencyReason: ResolutionScope,
-            userCacheRoot: AmperUserCacheRoot,
-            incrementalCache: IncrementalCache,
-            openTelemetry: OpenTelemetry?,
         ): Sequence<AmperModule> {
-            val resolutionSettings = AmperResolutionSettings(userCacheRoot, incrementalCache, openTelemetry)
-            val moduleDependencies = moduleDependencies(resolutionSettings)
-            return moduleDependencies
-                .forPlatform(platform = platform, isTest = isTest)
+            return forPlatform(platform = platform, isTest = isTest)
                 .forScope(scope = dependencyReason)
                 .getModuleDependencies()
         }

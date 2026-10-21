@@ -61,6 +61,7 @@ enum class KnownMavenPhase(
         PhaseTaskParameters(
             taskName = beforeTaskName,
             module = moduleCtx.module,
+            moduleDependencies = moduleCtx.moduleDependencies,
             isTest = isTest,
             incrementalCache = taskBuilder.context.incrementalCache,
             cacheRoot = taskBuilder.context.userCacheRoot,

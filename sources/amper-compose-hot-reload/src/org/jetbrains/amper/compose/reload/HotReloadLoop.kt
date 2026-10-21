@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Model
+import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.moduleDependencies
 import org.jetbrains.amper.frontend.getComposeHotReloadVersion
 import org.jetbrains.amper.fswatching.watchPaths
 import org.jetbrains.amper.incrementalcache.IncrementalCache
@@ -79,7 +81,11 @@ class HotReloadLoop<Context : HotReloadProjectContext> private constructor(
         val model: Model,
         /** App module under hot reload */
         val hotApp: AmperModule,
-    )
+    ) {
+        val hotAppDependencies by lazy {
+            with(cliContext) { hotApp.moduleDependencies(AmperResolutionSettings(userCacheRoot, incrementalCache, openTelemetry)) }
+        }
+    }
 
     private class RestartException : Exception()
 
@@ -187,10 +193,10 @@ class HotReloadLoop<Context : HotReloadProjectContext> private constructor(
 
         appOnlineMark.await()
 
-        validStateFlow.map { (model, cliContext, hotApp) ->
+        validStateFlow.map {
             PathsToWatch(
-                modelPaths = model.modelDependencies(),
-                buildPaths = context(cliContext) { hotApp.jvmComposeRunDependencies() },
+                modelPaths = it.model.modelDependencies(),
+                buildPaths = it.hotAppDependencies.jvmComposeRunDependencies(),
             )
         }.onEach {
             logger.debug("Waiting for changes...")

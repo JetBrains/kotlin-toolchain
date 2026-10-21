@@ -31,7 +31,6 @@ import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.doResolveExternalDependencies
 import org.jetbrains.amper.tasks.jvm.CompiledJvmArtifact
 import java.nio.file.Path
-import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.copyToRecursively
@@ -47,6 +46,7 @@ import kotlin.io.path.isDirectory
 class PhaseTaskParameters(
     val taskName: TaskName,
     val module: AmperModule,
+    val moduleDependencies: ModuleDependencies,
     val isTest: Boolean,
     val incrementalCache: IncrementalCache,
     val cacheRoot: AmperUserCacheRoot,
@@ -223,10 +223,9 @@ class InitialMavenPhaseTask(parameters: PhaseTaskParameters) : BeforeMavenPhaseT
     private val moduleDependenciesClasses by Selectors.fromModuleWithDependencies(
         type = CompiledJvmArtifact::class,
         leafFragment = targetFragment,
-        userCacheRoot = AmperUserCacheRoot(Path(".").absolute()),
+        moduleDependencies = parameters.moduleDependencies,
         quantifier = Quantifier.AnyOrNone,
         includeSelf = false,
-        incrementalCache = parameters.incrementalCache,
     )
 
     private fun CompiledJvmArtifact.toArtifacts(scope: String) =

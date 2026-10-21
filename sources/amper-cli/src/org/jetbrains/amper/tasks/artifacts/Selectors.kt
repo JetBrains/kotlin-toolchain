@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.tasks.artifacts
 
-import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
@@ -12,7 +11,7 @@ import org.jetbrains.amper.frontend.FragmentDependencyType
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.allFragmentDependencies
-import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.tasks.artifacts.api.ArtifactSelector
 import org.jetbrains.amper.tasks.artifacts.api.ArtifactType
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
@@ -119,18 +118,16 @@ object Selectors {
     fun <T : CompilationScopedArtifact, Q : Quantifier.Multiple> fromModuleWithDependencies(
         type: KClass<T>,
         leafFragment: LeafFragment,
-        userCacheRoot: AmperUserCacheRoot,
-        incrementalCache: IncrementalCache,
+        moduleDependencies: ModuleDependencies,
         quantifier: Q,
         includeSelf: Boolean = true,
         additionalFilter: (CompilationScopedArtifact) -> Boolean = { true },
     ): ArtifactSelector<T, Q> = fromModuleWithDependencies(
         type = type,
         module = leafFragment.module,
+        moduleDependencies = moduleDependencies,
         platform = leafFragment.platform,
         isTest = leafFragment.isTest,
-        userCacheRoot = userCacheRoot,
-        incrementalCache = incrementalCache,
         quantifier = quantifier,
         includeSelf = includeSelf,
         additionalFilter = additionalFilter,
@@ -144,24 +141,22 @@ object Selectors {
     fun <T : CompilationScopedArtifact, Q : Quantifier.Multiple> fromModuleWithDependencies(
         type: KClass<T>,
         module: AmperModule,
+        moduleDependencies: ModuleDependencies,
         platform: Platform,
         isTest: Boolean,
-        userCacheRoot: AmperUserCacheRoot,
-        incrementalCache: IncrementalCache,
         quantifier: Q,
         includeSelf: Boolean = true,
         additionalFilter: (CompilationScopedArtifact) -> Boolean = { true },
     ): ArtifactSelector<T, Q> {
         require(platform.isLeaf) { "Leaf platform required, got $platform" }
+        require(module == moduleDependencies.module) { "Module dependencies doesn't belong to the given module" }
         val modules = buildSet {
             if (includeSelf) add(module)
             addAll(
-                module.getModuleDependencies(
+                moduleDependencies.getModuleDependencies(
                     isTest = isTest,
                     platform = platform,
                     dependencyReason = ResolutionScope.RUNTIME,
-                    userCacheRoot = userCacheRoot,
-                    incrementalCache = incrementalCache
                 )
             )
         }

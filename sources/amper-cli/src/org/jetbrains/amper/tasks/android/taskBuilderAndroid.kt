@@ -13,6 +13,7 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.tasks.CommonTaskType
@@ -29,7 +30,7 @@ import org.jetbrains.amper.tasks.jvm.JvmRuntimeClasspathTask
 import org.jetbrains.amper.tasks.jvm.JvmTestTask
 import org.jetbrains.amper.util.BuildType
 
-fun ProjectTasksBuilder.setupAndroidTasks() {
+fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule, ModuleDependencies>) {
     val androidSdkPath = context.androidHomeRoot.path
     val androidSdkProvider = context.androidSdkProvider
     val needDefaultSystemImage = runSettings.deviceId == null
@@ -210,12 +211,11 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
                         // test compilation depends on main classes
                         add(CommonTaskType.Compile.getTaskName(module, platform, isTest = false, buildType))
                     }
-                    module.getModuleDependencies(
+                    val moduleDependencies = moduleDependenciesMap[module]!!
+                    moduleDependencies.getModuleDependencies(
                         isTest = isTest,
                         platform = platform,
                         dependencyReason = ResolutionScope.COMPILE,
-                        userCacheRoot = context.userCacheRoot,
-                        incrementalCache = context.incrementalCache,
                     ).forEach { dependsOn ->
                         val isAndroidDependency = platform in dependsOn.leafPlatforms
                         if (isAndroidDependency) {
@@ -283,12 +283,11 @@ fun ProjectTasksBuilder.setupAndroidTasks() {
                     }
 
                     // Module-dependencies
-                    module.getModuleDependencies(
+                    val moduleDependencies = moduleDependenciesMap[module]!!
+                    moduleDependencies.getModuleDependencies(
                         isTest = isTest,
                         platform = platform,
                         dependencyReason = ResolutionScope.RUNTIME,
-                        userCacheRoot = context.userCacheRoot,
-                        incrementalCache = context.incrementalCache,
                     ).forEach { dependsOn ->
                         val isAndroidDependency = platform in dependsOn.leafPlatforms
                         if (!isAndroidDependency) checkDependencySupportsJvm(dependsOn)

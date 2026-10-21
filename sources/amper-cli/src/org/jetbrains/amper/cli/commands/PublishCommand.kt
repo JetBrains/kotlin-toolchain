@@ -32,6 +32,8 @@ import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.klibsio.KlibsIoNotifier
 import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.maven.publish.publicationCoordinates
+import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings
+import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.moduleDependencies
 import org.jetbrains.amper.stdlib.collections.mapToSet
 import org.jetbrains.amper.tasks.getModuleDependencies
 import kotlin.collections.asSequence
@@ -178,8 +180,9 @@ private fun Collection<AmperModule>.transitiveClosure(): List<AmperModule> =
 context(cliContext: ProjectCliContext)
 private fun AmperModule.transitiveClosure(): Sequence<AmperModule> = sequence {
     yield(this@transitiveClosure)
+    val moduleDependencies = with(cliContext) { moduleDependencies(AmperResolutionSettings(userCacheRoot, incrementalCache, openTelemetry)) }
     leafPlatforms.forEach { platform ->
-        yieldAll(getModuleDependencies(isTest = false, platform = platform, dependencyReason = ResolutionScope.COMPILE))
-        yieldAll(getModuleDependencies(isTest = false, platform = platform, dependencyReason = ResolutionScope.RUNTIME))
+        yieldAll(moduleDependencies.getModuleDependencies(isTest = false, platform = platform, dependencyReason = ResolutionScope.COMPILE))
+        yieldAll(moduleDependencies.getModuleDependencies(isTest = false, platform = platform, dependencyReason = ResolutionScope.RUNTIME))
     }
 }.distinctBy { it.userReadableName }
