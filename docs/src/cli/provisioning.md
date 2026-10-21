@@ -70,6 +70,50 @@ build.
 You can disable the welcome banner by setting the `KOTLIN_CLI_NO_WELCOME_BANNER` environment variable to a non-empty value.
 For instance, `KOTLIN_CLI_NO_WELCOME_BANNER=1`.
 
+## Customizing download URLs
+
+The Kotlin Toolchain downloads tools and internal dependencies from external locations.
+Each location can be overridden with an environment variable, for instance, to use a mirror or a proxy repository.
+Blank values are ignored.
+
+!!! warning "Subject to change"
+
+    The environment variables below, their names, and their defaults are subject to change in future versions of the Kotlin Toolchain.
+    They may be replaced with a more appropriate way to customize download locations,
+    such as project settings, machine-wide settings, or another mechanism.
+
+### Repositories
+
+The table below lists environment variables that customize the URLs of built-in repositories the Kotlin Toolchain downloads from.
+Each variable affects everything downloaded from its repository.
+
+| Environment variable                         | Default                                                | Used for                                                                                          |
+|----------------------------------------------|--------------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| `KOTLIN_DEFAULT_MAVEN_CENTRAL_URL`           | `https://repo1.maven.org/maven2`                       | Maven Central: the default dependency repository, Kotlin compiler artifacts, tooling              |
+| `KOTLIN_GOOGLE_REPOSITORY_URL`               | `https://maven.google.com`                             | Google Maven: the default dependency repository, Android tooling                                  |
+| `KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL`   | `https://packages.jetbrains.team/maven/p/amper`        | Kotlin Toolchain artifacts (`<root>/amper`): tooling, plugin dependencies, `kotlin update`; Compose Hot Reload (`<root>/compose-hot-reload`) |
+| `KOTLIN_BOOTSTRAP_REPOSITORY_URL`            | `https://packages.jetbrains.team/maven/p/kt/bootstrap` | Kotlin `-dev-` versions: compiler artifacts and Kotlin/Native distributions                       |
+| `KOTLIN_TOOLCHAIN_ANDROID_DOWNLOAD_URL_ROOT` | `https://dl.google.com`                                | Android SDK packages and system images                                                            |
+| `JETBRAINS_DOWNLOAD_URL`                     | `https://download.jetbrains.com`                       | The JetBrains CDN: the list of JDKs available for [provisioning](../user-guide/advanced/jdk-provisioning.md) |
+
+### Tools
+
+The table below lists environment variables that customize the base URL of a single tool's downloads.
+The Kotlin Toolchain appends the rest of the path, such as the version and file name, to it.
+
+| Environment variable                  | Default                                                       | Used for                                                     |
+|---------------------------------------|---------------------------------------------------------------|--------------------------------------------------------------|
+| `KOTLIN_CLI_DOWNLOAD_ROOT`            | `$KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL/amper`              | Kotlin wrapper scripts and distribution in `kotlin update`   |
+| `KOTLIN_NODE_JS_DIST_URL`             | `https://nodejs.org/dist`                                     | Node.js                                                      |
+| `KOTLIN_PNPM_DOWNLOAD_ROOT_URL`       | `https://github.com/pnpm/pnpm/releases/download`              | pnpm                                                         |
+| `KOTLIN_XCBEAUTIFY_DOWNLOAD_ROOT_URL` | `https://github.com/cpisciotta/xcbeautify/releases/download`  | xcbeautify (iOS builds)                                      |
+| `KOTLIN_JAEGER_DOWNLOAD_ROOT_URL`     | `https://github.com/jaegertracing/jaeger/releases/download`   | Jaeger (`kotlin tool jaeger`)                                |
+
+`KOTLIN_CLI_DOWNLOAD_ROOT` takes precedence over `KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL`, and the `--repository` option
+of `kotlin update` takes precedence over both.
+
+A mirror specified by an environment variable must keep the layout of the original location, because the Kotlin Toolchain appends the same relative paths to it.
+
 ## Uncharted customization territories
 
 !!! danger "Use at your own risk"
