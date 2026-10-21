@@ -8,6 +8,7 @@ apply:
 dependencies:
   - //sources/amper-events: exported
   - //sources/core
+  - //sources/libraries/stdlib-extended 
   - //sources/libraries/system-info
   - //sources/libraries/telemetry
   - $libs.opentelemetry.api

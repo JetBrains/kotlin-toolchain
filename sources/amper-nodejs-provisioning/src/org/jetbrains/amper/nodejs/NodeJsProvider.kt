@@ -11,10 +11,13 @@ import org.jetbrains.amper.core.extract.ExtractOptions
 import org.jetbrains.amper.core.extract.extractFileToCacheLocation
 import org.jetbrains.amper.events.sink.OperationEventSink
 import org.jetbrains.amper.events.sink.operationEventScope
+import org.jetbrains.amper.stdlib.url.CustomizableUrl
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.telemetry.use
 import kotlin.io.path.div
+
+val NODE_JS_DIST_URL = CustomizableUrl("https://nodejs.org/dist", "KOTLIN_NODE_JS_DIST_URL").url
 
 /**
  * Downloads the Node.js distribution for the current platform and returns the path to its `node` executable.
@@ -49,7 +52,7 @@ class NodeJsProvider(
                 val distributionName = "node-v$version-$osString-$archString"
                 val archive = operationEventScope("downloading Node.JS $version") {
                     Downloader.downloadFileToCacheLocation(
-                        url = "https://nodejs.org/dist/v$version/$distributionName.$extension",
+                        url = "${NODE_JS_DIST_URL}/v$version/$distributionName.$extension",
                         userCacheRoot = userCacheRoot,
                     )
                 }
