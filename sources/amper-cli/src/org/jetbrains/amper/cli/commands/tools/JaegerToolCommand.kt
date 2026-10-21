@@ -35,6 +35,7 @@ import org.jetbrains.amper.core.extract.extractFileToCacheLocation
 import org.jetbrains.amper.intellij.CommandLineUtils
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
+import org.jetbrains.amper.stdlib.url.CustomizableUrl
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
@@ -47,6 +48,9 @@ import kotlin.io.path.isRegularFile
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.io.path.pathString
+
+private val KOTLIN_JAEGER_DOWNLOAD_ROOT_URL = CustomizableUrl(
+    "https://github.com/jaegertracing/jaeger/releases/download", "KOTLIN_JAEGER_DOWNLOAD_ROOT_URL").url
 
 internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
 
@@ -91,7 +95,7 @@ internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
             // if the port is already in use jaeger will report it by itself and fail (and we should not open the browser)
             val shouldAutoOpenBrowser = openBrowser && !jaegerPortIsReady(port)
 
-            val jaegerDistUrl = "https://github.com/jaegertracing/jaeger/releases/download/v$version/jaeger-${version}-$osString-$archString.tar.gz"
+            val jaegerDistUrl = "$KOTLIN_JAEGER_DOWNLOAD_ROOT_URL/v$version/jaeger-${version}-$osString-$archString.tar.gz"
             val file = standaloneOperationProgressWidget(terminal) {
                 Downloader.downloadFileToCacheLocation(jaegerDistUrl, userCacheRoot)
             }
