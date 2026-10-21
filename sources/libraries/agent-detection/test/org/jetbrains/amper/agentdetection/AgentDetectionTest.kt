@@ -72,6 +72,8 @@ class AgentDetectionTest {
             "GOOSE_PROVIDER",
             "JUNIE_DATA",
             "JUNIE_SHIM_PATH",
+            "MATTERHORN_TASK",
+            "MATTERHORN_SESSION_ID",
             "CLAUDECODE",
             "CLAUDE_CODE",
             "REPL_ID",
@@ -205,5 +207,21 @@ class AgentDetectionTest {
     fun `detectAgent - markers are ignored on CI but explicit AI_AGENT is honored`() {
         assertNull(detectAgent("CI" to "true", "CODEX_SANDBOX" to "1"))
         assertEquals(Agent.Codex, detectAgent("CI" to "true", "AI_AGENT" to "codex-cli"))
+    }
+
+    @Test
+    fun `junie is detected although it sets CI`() {
+        assertEquals(
+            Agent.Junie,
+            detectAgent("CI" to "1", "JUNIE_DATA" to "/home/user/.junie", "JUNIE_TMPDIR" to "/tmp/junie"),
+        )
+    }
+
+    @Test
+    fun `junie is detected by matterhorn markers although it sets CI`() {
+        assertEquals(
+            Agent.Junie,
+            detectAgent("CI" to "1", "MATTERHORN_TASK" to "task", "MATTERHORN_SESSION_ID" to "session"),
+        )
     }
 }

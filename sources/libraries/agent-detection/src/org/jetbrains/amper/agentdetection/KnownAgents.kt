@@ -77,7 +77,7 @@ internal fun AgentDetectionEnvironment.detectAgentByMarkers(): Agent? = when {
     isAnySet("AUGMENT_AGENT") -> Agent.AugmentCli
     isAnySet("OPENCODE_CLIENT", "OPENCODE") -> Agent.OpenCode
     isAnySet("GOOSE_PROVIDER") -> Agent.Goose
-    isAnySet("JUNIE_DATA", "JUNIE_SHIM_PATH") -> Agent.Junie
+    isAnySet("JUNIE_DATA", "JUNIE_SHIM_PATH", "MATTERHORN_TASK", "MATTERHORN_SESSION_ID") -> Agent.Junie
     // Pi has no dedicated variable, but it prepends its '.pi/agent' directory to the PATH
     getEnv("PATH").orEmpty().contains(PiAgentDirectoryInPath) -> Agent.Pi
     // Claude Code (and Claude Cowork, which also sets these markers)
@@ -93,5 +93,5 @@ internal fun AgentDetectionEnvironment.detectAgentByMarkers(): Agent? = when {
 }
 
 /** Returns true if any of the environment variables [names] is set and non-empty. */
-private fun AgentDetectionEnvironment.isAnySet(vararg names: String): Boolean =
+internal fun AgentDetectionEnvironment.isAnySet(vararg names: String): Boolean =
     names.any { !getEnv(it).isNullOrEmpty() }

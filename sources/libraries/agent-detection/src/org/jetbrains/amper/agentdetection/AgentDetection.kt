@@ -28,9 +28,10 @@ fun isRunByAgent(): Boolean = detectAgent() != null
  * 1. If the [AI_AGENT_VARIABLE] environment variable is non-blank and not a falsy value (`false`, `0`, `no`,
  *    `off`, `none`), an agent is detected: the matching known agent, or [Agent.Other] if the name is not known.
  *    This explicit declaration is honored even on CI.
- * 2. If the process runs on a CI server (see [isRunningOnCi]), nothing is detected: some markers of the known agents
+ * 2. If Junie's own markers are set, [Agent.Junie] is detected even on CI: Junie sets `CI=1` itself.
+ * 3. If the process runs on a CI server (see [isRunningOnCi]), nothing is detected: some markers of the known agents
  *    (such as `COPILOT_GITHUB_TOKEN`) are routinely configured on CI for unrelated reasons.
- * 3. Otherwise, the first known agent whose markers are set is detected.
+ * 4. Otherwise, the first known agent whose markers are set is detected.
  *
  * This is a port of [vercel/detect-agent](https://github.com/vercel/detect-agent).
  */
@@ -42,6 +43,11 @@ internal fun detectAgent(environment: AgentDetectionEnvironment): Agent? {
     val declaredAgent = environment.getEnv(AI_AGENT_VARIABLE)?.trim()
     if (!declaredAgent.isNullOrEmpty() && declaredAgent.lowercase() !in FalsyValues) {
         return agentByDeclaredName(declaredAgent)
+    }
+
+    // Junie sets CI itself, so its own markers must be exempt from the CI guard below.
+    if (environment.isAnySet("JUNIE_DATA", "JUNIE_SHIM_PATH", "MATTERHORN_TASK", "MATTERHORN_SESSION_ID")) {
+        return Agent.Junie
     }
 
     if (isRunningOnCi(environment)) return null
