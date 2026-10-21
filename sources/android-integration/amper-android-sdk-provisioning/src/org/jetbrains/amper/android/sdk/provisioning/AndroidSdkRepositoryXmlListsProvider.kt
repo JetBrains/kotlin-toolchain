@@ -11,6 +11,7 @@ import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.events.OperationScopedEvent
 import org.jetbrains.amper.events.sink.EventSink
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.stdlib.url.CustomizableUrl
 import org.jetbrains.amper.telemetry.use
 import java.nio.file.Path
 import kotlin.time.Clock
@@ -18,11 +19,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
 private val androidRepositoryUrl: String
-    get() {
-        val overriddenRepositoryUrl = System.getenv("KOTLIN_TOOLCHAIN_ANDROID_DOWNLOAD_URL_ROOT")
-            ?.takeIf { it.isNotBlank() }
-        return overriddenRepositoryUrl ?: "https://dl.google.com/"
-    }
+    get() = CustomizableUrl("https://dl.google.com", "KOTLIN_TOOLCHAIN_ANDROID_DOWNLOAD_URL_ROOT").url
 
 internal data class AndroidSdkRepository(
     val name: String,

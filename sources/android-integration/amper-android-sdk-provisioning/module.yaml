@@ -12,6 +12,7 @@ dependencies:
   - //sources/core
   - //sources/libraries/concurrency
   - //sources/libraries/incremental-cache: exported
+  - //sources/libraries/stdlib-extended
   - //sources/libraries/system-info
   - //sources/libraries/telemetry
   - $libs.android.tools.sdklib
