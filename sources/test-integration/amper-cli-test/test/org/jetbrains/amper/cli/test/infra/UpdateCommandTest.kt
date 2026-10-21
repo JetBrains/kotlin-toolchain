@@ -136,7 +136,7 @@ class UpdateCommandTest : CliTestBase() {
     )
 
     /**
-     * Runs the `./kotlin update` command with the given [options] and waits for the Windows wrapper to match the linux
+     * Runs the `./kotlin update` command with the given [options] and waits for the Windows wrapper to match the Linux
      * one (in case the wrapper is updated asynchronously after the update command exits).
      */
     private suspend fun runAmperUpdateAndAwaitWinWrapper(projectDir: Path, vararg options: String): UpdateResult {

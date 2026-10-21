@@ -23,6 +23,7 @@ import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.widgets.status.standaloneOperationProgressWidget
 import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.downloader.amperHttpClient
+import org.jetbrains.amper.frontend.processing.KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL
 import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.processes.ProcessLeak
 import org.jetbrains.amper.processes.ProcessResult
@@ -30,6 +31,7 @@ import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.processes.startLongLivedProcess
 import org.jetbrains.amper.stdlib.runtime.runOnJvmShutdown
+import org.jetbrains.amper.stdlib.url.CustomizableUrl
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -86,7 +88,7 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
     private val repository by option(
         "-r", "--repository",
         help = "The URL of the maven repository to download the Kotlin wrapper scripts from",
-    ).default("https://packages.jetbrains.team/maven/p/amper/amper")
+    ).default(KOTLIN_CLI_DOWNLOAD_ROOT_URL)
 
     private val desiredVersion by mutuallyExclusiveOptions(
         option("--dev", help = "Use the latest development version instead of the official release")
@@ -330,6 +332,8 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
         return if (pathString.contains(' ')) "\"$pathString\"" else pathString
     }
 }
+
+val KOTLIN_CLI_DOWNLOAD_ROOT_URL = CustomizableUrl(KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL, "KOTLIN_CLI_DOWNLOAD_ROOT").url
 
 private val xmlVersionElementRegex = Regex("<version>(.+?)</version>")
 

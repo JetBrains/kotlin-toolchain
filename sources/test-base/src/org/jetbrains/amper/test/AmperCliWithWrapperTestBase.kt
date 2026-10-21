@@ -50,9 +50,9 @@ abstract class AmperCliWithWrapperTestBase {
     private val httpServer = HttpServerExtension(
         wwwRoot = Dirs.m2repository,
         wwwInterceptor = { urlPath ->
-            val amperCliDistRegex = Regex("org/jetbrains/kotlin/(kotlin-)?cli/(?<version>[^/]+)/.*")
+            val amperCliDistRegex = Regex("org/jetbrains/kotlin/(kotlin-)?cli/(((?<version>[^/]+)/.*)|(?<mavenMetadata>maven-metadata[.]xml))")
             val match = amperCliDistRegex.matchEntire(urlPath)
-            if (match != null && match.groups["version"]!!.value != "1.0-SNAPSHOT") {
+            if (match != null && (match.groups["mavenMetadata"] != null || match.groups["version"]!!.value != "1.0-SNAPSHOT")) {
                 // we only want to serve 1.0-SNAPSHOT from local m2 (and serve other versions from the real maven)
                 WwwResult.Download(url = "https://packages.jetbrains.team/maven/p/amper/amper/$urlPath")
             } else {
