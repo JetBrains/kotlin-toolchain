@@ -10,10 +10,14 @@ import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.core.extract.extractFileToCacheLocation
 import org.jetbrains.amper.events.sink.OperationEventSink
 import org.jetbrains.amper.events.sink.operationEventScope
+import org.jetbrains.amper.stdlib.url.CustomizableUrl
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.telemetry.use
 import kotlin.io.path.div
+
+val PNPM_DOWNLOAD_ROOT_URL = CustomizableUrl(
+    "https://github.com/pnpm/pnpm/releases/download", "KOTLIN_PNPM_DOWNLOAD_ROOT_URL").url
 
 class PnpmProvider(
     private val userCacheRoot: AmperUserCacheRoot,
@@ -48,7 +52,7 @@ class PnpmProvider(
 
                 val archive = operationEventScope("downloading PNPM $version") {
                     Downloader.downloadFileToCacheLocation(
-                        url = "https://github.com/pnpm/pnpm/releases/download/v$version/pnpm-$osString-$archString.$extension",
+                        url = "$PNPM_DOWNLOAD_ROOT_URL/v$version/pnpm-$osString-$archString.$extension",
                         userCacheRoot = userCacheRoot,
                     )
                 }
