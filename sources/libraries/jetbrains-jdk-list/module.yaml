@@ -7,6 +7,7 @@ apply:
   - //sources/used-in-idea.module-template.yaml
 
 dependencies:
+  - ../stdlib-extended
   - $kotlin.serialization.json
   - $libs.ktor.client.core
   - $libs.xz

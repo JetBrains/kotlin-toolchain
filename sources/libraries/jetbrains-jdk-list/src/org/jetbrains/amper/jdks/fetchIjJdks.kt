@@ -15,10 +15,12 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import org.jetbrains.amper.stdlib.url.CustomizableUrl
 import org.tukaani.xz.SingleXZInputStream
 import java.io.InputStream
 
-const val JetBrainsJdksJsonUrl = "https://download.jetbrains.com/jdk/feed/v1/jdks.json.xz"
+val JETBRAINS_DOWNLOAD_URL = CustomizableUrl("https://download.jetbrains.com", "JETBRAINS_DOWNLOAD_URL").url
+val JetBrainsJdksJsonUrl = "$JETBRAINS_DOWNLOAD_URL/jdk/feed/v1/jdks.json.xz"
 
 private val IjJdkJson = Json {
     ignoreUnknownKeys = true
