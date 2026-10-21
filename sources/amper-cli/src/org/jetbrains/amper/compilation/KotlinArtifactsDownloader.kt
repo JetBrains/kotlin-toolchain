@@ -14,6 +14,7 @@ import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.dr.resolver.toIncrementalCacheResult
 import org.jetbrains.amper.frontend.schema.KotlinVersion
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.kotlin.native.KOTLIN_BOOTSTRAP_REPOSITORY_URL
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import java.nio.file.Path
 import kotlin.io.path.name
@@ -106,6 +107,6 @@ internal class KotlinArtifactsDownloader(
          * Repository where dev Kotlin artifacts are hosted.
          * This is useful for compiler plugin authors that need to test in advance against future versions of Kotlin.
          */
-        private val KotlinBootstrap = MavenRepository("https://packages.jetbrains.team/maven/p/kt/bootstrap")
+        private val KotlinBootstrap = MavenRepository(KOTLIN_BOOTSTRAP_REPOSITORY_URL)
     }
 }

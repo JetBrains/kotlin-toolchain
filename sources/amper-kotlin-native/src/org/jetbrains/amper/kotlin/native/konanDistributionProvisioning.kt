@@ -11,12 +11,14 @@ import org.jetbrains.amper.core.extract.extractFileToCacheLocation
 import org.jetbrains.amper.events.sink.OperationEventSink
 import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.mavencentral.MavenCentralDefaultConfiguration
+import org.jetbrains.amper.stdlib.url.CustomizableUrl
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
 
 private val MAVEN_CENTRAL_REPOSITORY_URL = MavenCentralDefaultConfiguration.url
-private const val KOTLIN_BOOTSTRAP_REPOSITORY_URL = "https://packages.jetbrains.team/maven/p/kt/bootstrap"
+val KOTLIN_BOOTSTRAP_REPOSITORY_URL = CustomizableUrl(
+    "https://packages.jetbrains.team/maven/p/kt/bootstrap", "KOTLIN_BOOTSTRAP_REPOSITORY_URL").url
 private const val KOTLIN_GROUP_ID = "org.jetbrains.kotlin"
 
 /**
