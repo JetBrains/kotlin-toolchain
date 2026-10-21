@@ -29,6 +29,13 @@ import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.schema.Repository.Companion.SpecialMavenLocalUrl
 import org.jetbrains.amper.frontend.schema.kotlin.plugins.legacySerializationFormatNone
 import org.jetbrains.amper.frontend.types.generated.*
+import org.jetbrains.amper.stdlib.url.CustomizableUrl
+
+private val KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL = CustomizableUrl(
+    "https://packages.jetbrains.team/maven/p/amper", "KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL").url
+
+val KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL = "$KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL/amper"
+val KOTLIN_TOOLCHAIN_COMPOSE_HOT_RELOAD_REPOSITORY_URL = "$KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL/compose-hot-reload"
 
 private fun kotlinDependencyOf(artifactId: String, version: TraceableString, dependencyTrace: Trace) = MavenDependency(
     coordinates = coords("org.jetbrains.kotlin", artifactId, version),
@@ -351,7 +358,7 @@ private fun implicitMavenRepositories(
             add(
                 ResolutionRepository(
                     id = "amper-hot-reload-dev",
-                    url = "https://packages.jetbrains.team/maven/p/amper/compose-hot-reload",
+                    url = KOTLIN_TOOLCHAIN_COMPOSE_HOT_RELOAD_REPOSITORY_URL,
                 )
             )
         }
@@ -368,7 +375,7 @@ private fun implicitMavenRepositories(
                 add(
                     ResolutionRepository(
                         id = "amper-maven",
-                        url = "https://packages.jetbrains.team/maven/p/amper/amper",
+                        url = KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL,
                     )
                 )
             }
