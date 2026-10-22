@@ -38,7 +38,7 @@ private data class GroupDescriptorSurrogate(
     val id: String,
     val type: String,
     val version: Int,
-    val schema: Set<EventDescriptorSurrogate>,
+    val schema: List<EventDescriptorSurrogate>,
     val description: String,
     val className: String?,
     val fileName: String?,
@@ -52,7 +52,7 @@ private data class PluginSchemeDescriptorSurrogate(val id: String)
 @Serializable
 private data class EventDescriptorSurrogate(
     val event: String,
-    val fields: Set<FieldDescriptorSurrogate>,
+    val fields: List<FieldDescriptorSurrogate>,
     val description: String,
     val category: String?,
     @SerialName("presentation_template")
@@ -62,7 +62,7 @@ private data class EventDescriptorSurrogate(
 @Serializable
 private data class FieldDescriptorSurrogate(
     val path: String,
-    val value: Set<String>,
+    val value: List<String>,
     val dataType: String,
     val shouldBeAnonymized: Boolean,
     val description: String?,
@@ -72,30 +72,30 @@ private data class FieldDescriptorSurrogate(
 private data class RecorderDescriptorSurrogate(
     val recorderId: String,
     val recorderVersion: Int,
-    val ids: Set<RecorderFieldDescriptorSurrogate>,
-    val clientData: Set<RecorderFieldDescriptorSurrogate>,
-    val systemData: Set<RecorderFieldDescriptorSurrogate>,
+    val ids: List<RecorderFieldDescriptorSurrogate>,
+    val clientData: List<RecorderFieldDescriptorSurrogate>,
+    val systemData: List<RecorderFieldDescriptorSurrogate>,
 )
 
 @Serializable
 private data class RecorderFieldDescriptorSurrogate(
     val path: String,
     val required: Boolean,
-    val values: Set<String>?,
+    val values: List<String>?,
 )
 
 private fun EventsScheme.toSurrogate() = EventsSchemeSurrogate(
     buildNumber = buildNumber,
-    scheme = scheme.map { it.toSurrogate() },
+    scheme = scheme.map { it.toSurrogate() }.sortedBy { it.id },
     commitHash = commitHash,
-    recorderScheme = recorderScheme?.map { it.toSurrogate() },
+    recorderScheme = recorderScheme?.map { it.toSurrogate() }?.sortedBy { it.recorderId },
 )
 
 private fun GroupDescriptor.toSurrogate() = GroupDescriptorSurrogate(
     id = id,
     type = type.name,
     version = version,
-    schema = schema.mapTo(LinkedHashSet()) { it.toSurrogate() },
+    schema = schema.map { it.toSurrogate() }.sortedBy { it.event },
     description = description,
     className = className,
     fileName = fileName,
@@ -107,7 +107,7 @@ private fun PluginSchemeDescriptor.toSurrogate() = PluginSchemeDescriptorSurroga
 
 private fun EventDescriptor.toSurrogate() = EventDescriptorSurrogate(
     event = event,
-    fields = fields.mapTo(LinkedHashSet()) { it.toSurrogate() },
+    fields = fields.map { it.toSurrogate() }.sortedBy { it.path },
     description = description,
     category = category?.name,
     presentationTemplate = presentation_template,
@@ -115,7 +115,7 @@ private fun EventDescriptor.toSurrogate() = EventDescriptorSurrogate(
 
 private fun FieldDescriptor.toSurrogate() = FieldDescriptorSurrogate(
     path = path,
-    value = value,
+    value = value.toList().sorted(),
     dataType = dataType.name,
     shouldBeAnonymized = shouldBeAnonymized,
     description = description,
@@ -124,13 +124,13 @@ private fun FieldDescriptor.toSurrogate() = FieldDescriptorSurrogate(
 private fun RecorderDescriptor.toSurrogate() = RecorderDescriptorSurrogate(
     recorderId = recorderId,
     recorderVersion = recorderVersion,
-    ids = ids.mapTo(LinkedHashSet()) { it.toSurrogate() },
-    clientData = clientData.mapTo(LinkedHashSet()) { it.toSurrogate() },
-    systemData = systemData.mapTo(LinkedHashSet()) { it.toSurrogate() },
+    ids = ids.map { it.toSurrogate() },
+    clientData = clientData.map { it.toSurrogate() }.sortedBy { it.path },
+    systemData = systemData.map { it.toSurrogate() }.sortedBy { it.path },
 )
 
 private fun RecorderFieldDescriptor.toSurrogate() = RecorderFieldDescriptorSurrogate(
     path = path,
     required = required,
-    values = values,
+    values = values?.toList()?.sorted(),
 )
