@@ -163,7 +163,7 @@ internal class NativeCInteropGenerateKlibTask(
                         // The klib name must be unique across the whole compilation classpath, and the bare cinterop
                         // name is not (it comes from a .def file name, which any dependency may also use).
                         add("-Xmodule-name")
-                        add(module.cinteropKlibModuleName(cinteropName))
+                        add(module.cinteropKlibUniqueName(cinteropName))
                         includeDir?.let {
                             add("-compiler-option")
                             add("-I${it.absolutePathString()}")

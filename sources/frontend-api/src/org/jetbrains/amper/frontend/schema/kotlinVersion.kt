@@ -27,9 +27,9 @@ value class KotlinLanguageVersion(
     override fun compareTo(other: KotlinLanguageVersion): Int {
         val [major, minor] = notation.split(".")
         val [otherMajor, otherMinor] = other.notation.split(".")
-        val majorResult = compareValues(major, otherMajor)
+        val majorResult = compareValues(major.toInt(), otherMajor.toInt())
         if (majorResult != 0) return majorResult
-        return compareValues(minor, otherMinor)
+        return compareValues(minor.toInt(), otherMinor.toInt())
     }
 
     companion object {
@@ -112,7 +112,15 @@ value class KotlinVersion(
      */
     fun supportsSpaceInNativeCacheOnLinux(): Boolean = this >= firstSupportingSpacesOnLinux
 
+    /**
+     * Whether the JVM compiler of this version sanitizes forbidden file name characters when deriving the
+     * `META-INF/<module-name>.kotlin_module` entry name from `-module-name` (KT-82216), which makes group-qualified
+     * JVM module names (`group:name`) safe to use.
+     */
+    fun supportsGroupQualifiedJvmModuleName(): Boolean = this >= firstWithSanitizedJvmModuleFileName
+
     companion object {
+        private val firstWithSanitizedJvmModuleFileName = KotlinVersion("2.4.0-Beta2") // See KT-82216
         private val minBtaImplWithoutCompatibilityModule = KotlinVersion("2.3.0")
         private val firstWithBtaCompilerMessageRenderer = KotlinVersion("2.4.0-Beta2")
         private val firstWithoutUnsafeUsages = KotlinVersion("2.4.0")

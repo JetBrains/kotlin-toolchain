@@ -233,6 +233,18 @@ internal fun AmperModule.klibUniqueName(isTest: Boolean): String {
 }
 
 /**
+ * The JVM `-module-name` to use when compiling this module (with a `_test` suffix for the test compilation).
+ * It is used for both the `META-INF/<module-name>.kotlin_module` entry name and the `internal` ABI.
+ *
+ * Since Kotlin 2.4, it is possible to use qualified module name,
+ * because compiler started sanitizing forbidden file name characters when deriving the `META-INF/<module-name>.kotlin_module`
+ * entry name (KT-82216).
+ */
+internal fun AmperModule.jvmModuleName(kotlinVersion: KotlinVersion, isTest: Boolean): String =
+    if (kotlinVersion.supportsGroupQualifiedJvmModuleName()) klibUniqueName(isTest)
+    else KotlinCompilationType.LIBRARY.moduleName(this, isTest)
+
+/**
  * The name that identifies the metadata klib produced for the given shared [fragment] of this module
  * (e.g. `org.jetbrains.kotlinx:atomicfu_commonMain`).
  *

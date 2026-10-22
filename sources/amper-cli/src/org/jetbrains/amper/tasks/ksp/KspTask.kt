@@ -10,8 +10,9 @@ import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.compilation.CompilationUserSettings
-import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.downloadNativeCompiler
+import org.jetbrains.amper.compilation.jvmModuleName
+import org.jetbrains.amper.compilation.klibUniqueName
 import org.jetbrains.amper.compilation.serializableCompilationSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.core.AmperUserCacheRoot
@@ -205,9 +206,12 @@ internal class KspTask(
         val kspCompilationType = KspCompilationType.forPlatform(platform)
         val sources = (fragments.flatMap { it.sourceRoots } + additionalSourceDirs.map { it.path }).filter { it.exists() }
         val sharedConfig: KspConfig.Builder.() -> Unit = {
-            // KSP processes the sources of a LIBRARY-shaped compilation (classes/klib), so it uses the same short
-            // module name as a corresponding COMPILE task.
-            moduleName = KotlinCompilationType.LIBRARY.moduleName(module, isTest)
+            // KSP sees the same module name as the compile task of the compilation it processes: the version-gated,
+            // group-qualified JVM module name for JVM/Android, and the qualified klib unique name otherwise.
+            moduleName = when (kspCompilationType) {
+                KspCompilationType.JVM -> module.jvmModuleName(compilationSettings.kotlin.compilerVersion, isTest)
+                else -> module.klibUniqueName(isTest)
+            }
 
             if (platform == Platform.COMMON) {
                 commonSourceRoots = sources

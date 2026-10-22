@@ -1,6 +1,6 @@
 product:
   type: kmp/lib
-  platforms: [ linuxX64, mingwX64, js ]
+  platforms: [ linuxX64, mingwX64, js, jvm ]
 
 settings:
   publishing:

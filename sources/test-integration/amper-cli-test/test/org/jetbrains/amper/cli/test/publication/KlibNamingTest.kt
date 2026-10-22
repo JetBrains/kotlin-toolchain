@@ -16,9 +16,12 @@ import java.util.zip.ZipFile
 import kotlin.io.path.div
 import kotlin.io.path.inputStream
 import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
 import kotlin.io.path.nameWithoutExtension
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * Tests the `unique_name` and `short_name` stamped into the manifests of the klibs produced for a module.
@@ -75,12 +78,41 @@ class KlibNamingTest : CliTestBase() {
     }
 
     @Test
+    fun `JVM module name is qualified with the publishing group`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("klib-naming"),
+            "task",
+            ":lib:jarJvm",
+            ":lib:compileJvmTest",
+        )
+
+        // Like KGP since Kotlin 2.4.0-Beta2, the JVM '-module-name' is 'org.example:lib'. The compiler derives the
+        // '.kotlin_module' entry name from it, replacing the ':' forbidden in file names (KT-82216).
+        ZipFile((result.getTaskOutputPath(":lib:jarJvm") / "lib-jvm.jar").toFile()).use { jar ->
+            assertNotNull(
+                jar.getEntry("META-INF/org.example_lib.kotlin_module"),
+                "The jar should contain the .kotlin_module entry derived from the qualified module name, " +
+                        "but its entries are: ${jar.entries().asSequence().map { it.name }.toList()}",
+            )
+        }
+
+        val testKotlinModule = result.buildDir /
+                "artifacts/CompiledJvmArtifact/libjvmTest/kotlin-output/META-INF/org.example_lib_test.kotlin_module"
+        assertTrue(
+            testKotlinModule.isRegularFile(),
+            "The test compilation should use the qualified module name 'org.example:lib_test', " +
+                    "so '$testKotlinModule' should exist",
+        )
+    }
+
+    @Test
     fun `klib unique_name stays bare without a publishing group`() = runSlowTest {
         val result = runCli(
             projectDir = testProject("klib-naming"),
             "task",
             ":lib-no-group:compileLinuxX64Debug",
             ":lib-no-group:compileJs",
+            ":lib-no-group:jarJvm",
         )
 
         val nativeKlib = result.getTaskOutputPath(":lib-no-group:compileLinuxX64Debug") / "lib-no-group.klib"
@@ -92,6 +124,15 @@ class KlibNamingTest : CliTestBase() {
 
         val jsKlibManifest = (result.getTaskOutputPath(":lib-no-group:compileJs") / "lib-no-group.klib").readKlibManifest()
         assertEquals("lib-no-group", jsKlibManifest.getProperty("unique_name"))
+
+        // without a publishing group, the JVM module name stays bare on all Kotlin versions (like KGP)
+        ZipFile((result.getTaskOutputPath(":lib-no-group:jarJvm") / "lib-no-group-jvm.jar").toFile()).use { jar ->
+            assertNotNull(
+                jar.getEntry("META-INF/lib-no-group.kotlin_module"),
+                "The jar should contain the .kotlin_module entry named after the bare module name, " +
+                        "but its entries are: ${jar.entries().asSequence().map { it.name }.toList()}",
+            )
+        }
     }
 
     @Test

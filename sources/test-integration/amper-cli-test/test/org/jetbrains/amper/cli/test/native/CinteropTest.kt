@@ -117,7 +117,7 @@ class CinteropTest : CliTestBase() {
     /**
      * Two modules declare a cinterop with the same name ('custom.def'), and the consuming module uses both.
      * The klibs must be told apart on the compilation classpath, which is why they are named after the module
-     * they belong to (see `cinteropKlibModuleName`) instead of after the bare `.def` file name.
+     * they belong to (see `cinteropKlibUniqueName`) instead of after the bare `.def` file name.
      */
     @Test
     @MacOnly
