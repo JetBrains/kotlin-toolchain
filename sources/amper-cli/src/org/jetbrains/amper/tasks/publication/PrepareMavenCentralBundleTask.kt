@@ -18,7 +18,7 @@ import org.jetbrains.amper.jar.ZipConfig
 import org.jetbrains.amper.jar.ZipInput
 import org.jetbrains.amper.jar.writeZip
 import org.jetbrains.amper.tasks.MavenPublishable
-import org.jetbrains.amper.tasks.PrepareMavenPublishablesTask
+import org.jetbrains.amper.tasks.MavenPublishablesResult
 import org.jetbrains.amper.tasks.mavenFileName
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
@@ -41,10 +41,10 @@ class PrepareMavenCentralBundleTask(
     override suspend fun run(
         dependenciesResult: List<TaskResult>,
     ): Result {
-        val allPublishables = dependenciesResult.filterIsInstance<PrepareMavenPublishablesTask.Result>()
+        val allPublishables = dependenciesResult.filterIsInstance<MavenPublishablesResult>()
             .singleOrNull()
             ?.publishables
-            ?: error("Expected single PrepareMavenPublishablesTask.Result from task dependencies")
+            ?: error("Expected single MavenPublishablesResult from task dependencies")
 
         val zip = incrementalCache.executeForFiles(
             key = "${taskName.id.value}-zip-bundle",

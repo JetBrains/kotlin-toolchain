@@ -8,28 +8,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.concurrency.flatMapConcurrently
 import org.jetbrains.amper.concurrency.mapConcurrently
-import org.jetbrains.amper.crypto.pgp.AsciiArmoredPgpKey
-import org.jetbrains.amper.crypto.pgp.PgpKeyParsingException
-import org.jetbrains.amper.crypto.pgp.PgpSigner
-import org.jetbrains.amper.crypto.pgp.PgpSigningException
-import org.jetbrains.amper.crypto.pgp.PgpSigningKeyPassphraseException
 import org.jetbrains.amper.dependency.resolution.MavenCoordinates
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.isArtifactSigningEnabled
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.schema.Checksum
 import org.jetbrains.amper.frontend.schema.effectiveArtifactId
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForSerializable
-import org.jetbrains.amper.incrementalcache.getDynamicInputs
 import org.jetbrains.amper.maven.publish.PublicationCoordinatesOverrides
 import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.maven.publish.merge
@@ -60,8 +52,6 @@ import org.jetbrains.amper.tasks.web.WebCompileKlibTask
 import org.jetbrains.kotlin.tooling.metadata.KOTLIN_TOOLING_METADATA_CLASSIFIER
 import org.jetbrains.kotlin.tooling.metadata.KotlinToolingMetadata
 import org.jetbrains.kotlin.tooling.metadata.writeTo
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createParentDirectories
@@ -69,7 +59,6 @@ import kotlin.io.path.deleteRecursively
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
-import kotlin.io.path.name
 import kotlin.io.path.readBytes
 import kotlin.io.path.writeText
 
@@ -79,8 +68,6 @@ class PrepareMavenPublishablesTask(
     private val taskOutputRoot: TaskOutputRoot,
     private val incrementalCache: IncrementalCache,
 ) : Task {
-    private val logger: Logger = LoggerFactory.getLogger(javaClass)
-
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
         val depsCoordinatesOverrides = dependenciesResult
@@ -91,8 +78,6 @@ class PrepareMavenPublishablesTask(
         val platforms = if (module.isMultiplatformPublication()) module.leafPlatforms + Platform.COMMON else module.leafPlatforms
         val coordsPerPlatform = platforms.associateWith { module.publicationCoordinates(platform = it) }
         val modulePublishablesFromOtherTasks = dependenciesResult.flatMap { it.toMavenPublishables(coordsPerPlatform) }
-
-        val signingEnabled = module.isArtifactSigningEnabled()
 
         // Only multiplatform libraries describe themselves with tooling metadata, just like in Gradle builds.
         val toolingMetadata = if (module.isMultiplatformPublication()) {
@@ -111,7 +96,6 @@ class PrepareMavenPublishablesTask(
                 "depsCoordinatesOverrides" to Json.encodeToString(depsCoordinatesOverrides),
                 "coordsPerPlatform" to Json.encodeToString(coordsPerPlatform),
                 "modulePublishablesFromOtherTasks" to Json.encodeToString(modulePublishablesFromOtherTasks),
-                "signingEnabled" to signingEnabled.toString(),
                 "moduleInfo" to Json.encodeToString(listOf(module.userReadableName, module.description)),
                 "checksums" to module.publishingSettings.checksums.joinToString(),
                 "publishSources" to module.publishingSettings.publishSources.toString(),
@@ -160,17 +144,7 @@ class PrepareMavenPublishablesTask(
                     )
                 }
 
-            // Checksums are not mandatory for the signature files themselves, and we want to limit the number
-            // of published files, so we don't generate checksums for the signatures here.
-            val meaningfulPublishablesWithSignatures = if (signingEnabled) {
-                val artifactSigner = createSignerFromEnvConfig()
-                val signatures = meaningfulPublishables.map { artifactSigner.signArtifact(it) }
-                meaningfulPublishables + signatures
-            } else {
-                meaningfulPublishables
-            }
-
-            meaningfulPublishablesWithSignatures + checksumPublishables.values.flatten()
+            meaningfulPublishables + checksumPublishables.values.flatten()
         }
 
         return Result(publishables)
@@ -341,46 +315,6 @@ class PrepareMavenPublishablesTask(
         return tempPath
     }
 
-    // We currently only support providing the signing key via environment variables.
-    // We will later add a mechanism that will allow defining custom properties or env vars, and thus specify the key
-    // on a per-module basis.
-    private suspend fun createSignerFromEnvConfig(): PgpSigner = try {
-        PgpSigner.bouncyCastle(
-            signingKey = getDynamicInputs().readEnv("KOTLIN_TOOLCHAIN_SIGNING_KEY")?.let(::AsciiArmoredPgpKey)
-                ?: userReadableError(
-                    "Artifact signing is enabled, but the KOTLIN_TOOLCHAIN_SIGNING_KEY environment variable is not provided. " +
-                            "Please set this variable to a valid PGP private key in ASCII-armored format."
-                ),
-            keyPassphrase = getDynamicInputs().readEnv("KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE")?.toCharArray(),
-        )
-    } catch (e: PgpKeyParsingException) {
-        userReadableError("Cannot sign artifacts, failed to parse PGP signing key from the KOTLIN_TOOLCHAIN_SIGNING_KEY " +
-                "environment variable: ${e.message}")
-    }
-
-    private suspend fun PgpSigner.signArtifact(artifact: MavenPublishable): MavenPublishable {
-        val signatureFileName = artifact.coordinates.mavenFileName(artifact.mavenArtifactExtension) + ".asc"
-        val signatureFilePath = taskOutputRoot.path.resolve("signatures/$signatureFileName").createParentDirectories()
-        try {
-            // TODO add some fine-grained progress reporting instead (see AMPER-5487)
-            logger.info("Signing artifact '${artifact.path.name}'…")
-            sign(artifact.path, outputSignatureFile = signatureFilePath)
-        } catch (e: PgpSigningKeyPassphraseException) {
-            if (e.passphrasePresent) {
-                userReadableError("Incorrect PGP signing key passphrase, please check the KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE environment variable", e)
-            } else {
-                userReadableError("The key provided in the KOTLIN_TOOLCHAIN_SIGNING_KEY environment variable requires a passphrase, but KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE was not set", e)
-            }
-        } catch (e: PgpSigningException) {
-            userReadableError("PGP signing failed for artifact '${artifact.path.name}': ${e.message}", e)
-        }
-        return MavenPublishable(
-            coordinates = artifact.coordinates,
-            mavenArtifactExtension = artifact.mavenArtifactExtension + ".asc",
-            path = signatureFilePath,
-        )
-    }
-
     private suspend fun generateChecksums(
         publishable: MavenPublishable,
         checksumsToPublish: List<Checksum>,
@@ -401,7 +335,14 @@ class PrepareMavenPublishablesTask(
             )
         }
 
-    class Result(val publishables: List<MavenPublishable>) : TaskResult
+    class Result(override val publishables: List<MavenPublishable>) : MavenPublishablesResult
+}
+
+/**
+ * The result of a task producing all the files of a Maven publication.
+ */
+interface MavenPublishablesResult : TaskResult {
+    val publishables: List<MavenPublishable>
 }
 
 @Serializable

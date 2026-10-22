@@ -82,6 +82,11 @@ sealed class ModuleTaskTypes(
         operationMoniker = "preparing maven publishing",
     )
 
+    data object SignMavenPublishables : ModuleTaskTypes(
+        internalName = "signMavenPublishables",
+        operationMoniker = "signing maven publishables",
+    )
+
     data object PrepareMavenCentralBundle : ModuleTaskTypes(
         internalName = "prepareMavenCentralBundle",
         operationMoniker = "preparing the bundle for Maven Central",

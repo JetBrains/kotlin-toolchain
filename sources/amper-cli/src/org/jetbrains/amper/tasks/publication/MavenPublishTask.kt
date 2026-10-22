@@ -30,7 +30,7 @@ import org.jetbrains.amper.maven.publish.deployToRemoteRepo
 import org.jetbrains.amper.maven.publish.installToMavenLocal
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.tasks.MavenPublishable
-import org.jetbrains.amper.tasks.PrepareMavenPublishablesTask
+import org.jetbrains.amper.tasks.MavenPublishablesResult
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.native.swiftpm.checkNoPublishedLocalSwiftPackages
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -79,7 +79,7 @@ class MavenPublishTask(
         }
 
         val localRepositoryPath = mavenLocalRepository.repository
-        val artifacts = dependenciesResult.filterIsInstance<PrepareMavenPublishablesTask.Result>()
+        val artifacts = dependenciesResult.filterIsInstance<MavenPublishablesResult>()
             .flatMap { it.publishables }
             // todo (AB) : [AMPER-719] Check if we could disable checksums generation in Eclise Aether library
             //  and reuse what is already calculated by PrepareMavenPublishablesTask.
@@ -157,9 +157,6 @@ class MavenPublishTask(
             )
         }
     }
-
-    private fun PrepareMavenPublishablesTask.Result.mavenArtifacts(): List<Artifact> =
-        publishables.map { it.toMavenArtifact() }
 
     private fun MavenPublishable.toMavenArtifact(): Artifact = DefaultArtifact(
         coordinates.groupId,

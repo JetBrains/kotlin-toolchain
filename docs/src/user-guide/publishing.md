@@ -187,6 +187,11 @@ variables (usually done on the CI):
 | `KOTLIN_TOOLCHAIN_SIGNING_KEY`            | The ASCII-armored PGP signing key to use to sign artifacts. You can export a private key in this format using the `gpg --export-secret-keys --armor <KEY_ID>` command. |
 | `KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE` | (optional) The passphrase to unlock the PGP key, if there is one.                                                                                                      |
 
+!!! note "Signing and Maven Local"
+
+    Artifacts published to Maven Local are never signed, so you don't need a signing key for `kotlin publish mavenLocal`.
+    To check the signatures locally, build the Maven Central bundle with `kotlin package --format=maven-central-bundle`.
+
 !!! question "How do I get a PGP signing key?"
 
     If you have never needed a PGP signing key before, it might not be obvious to get started.

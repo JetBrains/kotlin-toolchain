@@ -12,6 +12,10 @@ repositories:
     url: mavenLocal
     resolve: false
     publish: true
+  - id: repoId
+    url: REPO_URL
+    resolve: false
+    publish: true
 
 settings:
   publishing:

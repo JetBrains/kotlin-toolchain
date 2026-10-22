@@ -52,7 +52,8 @@ class PublishingSettings : SchemaNode() {
     val pom by nested<PomSettings>()
 
     @SchemaDoc(
-        "If set to true, artifacts published to Maven repositories are signed with a private PGP signing key," +
+        "If set to true, artifacts published to Maven repositories (except Maven Local) are signed with a private " +
+                "PGP signing key, " +
                 "and these signatures are published as extra artifacts." +
                 "\n\n" +
                 "The private PGP signing key must be specified via the `KOTLIN_TOOLCHAIN_SIGNING_KEY` environment variable in the " +

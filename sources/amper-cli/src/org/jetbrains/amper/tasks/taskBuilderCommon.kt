@@ -11,6 +11,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.PublicationRepository
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
+import org.jetbrains.amper.frontend.isMavenLocal
 import org.jetbrains.amper.frontend.isPublishingEnabled
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.shouldPublishSourcesJars
@@ -25,6 +26,7 @@ import org.jetbrains.amper.tasks.native.canHaveCinterop
 import org.jetbrains.amper.tasks.publication.MavenCentralPublishTask
 import org.jetbrains.amper.tasks.publication.MavenPublishTask
 import org.jetbrains.amper.tasks.publication.PrepareMavenCentralBundleTask
+import org.jetbrains.amper.tasks.publication.SignMavenPublishablesTask
 import org.jetbrains.amper.util.BuildType
 
 internal enum class CommonTaskType(
@@ -192,6 +194,16 @@ fun ProjectTasksBuilder.setupCommonTasks(moduleDependenciesMap: Map<AmperModule,
                         }
                     },
                 )
+                val signMavenPublishablesTaskName = ModuleTaskTypes.SignMavenPublishables.getTaskName(module)
+                tasks.registerTask(
+                    task = SignMavenPublishablesTask(
+                        taskName = signMavenPublishablesTaskName,
+                        module = module,
+                        taskOutputRoot = context.getTaskOutputPath(signMavenPublishablesTaskName),
+                        incrementalCache = context.incrementalCache,
+                    ),
+                    dependsOn = listOf(prepareMavenPublishablesTaskName),
+                )
 
                 if (module.publishingSettings.mavenCentral.enabled) {
                     val packageTaskName = ModuleTaskTypes.PrepareMavenCentralBundle.getTaskName(module)
@@ -202,7 +214,7 @@ fun ProjectTasksBuilder.setupCommonTasks(moduleDependenciesMap: Map<AmperModule,
                             incrementalCache = context.incrementalCache,
                             taskOutputRoot = context.getTaskOutputPath(packageTaskName),
                         ),
-                        dependsOn = listOf(prepareMavenPublishablesTaskName),
+                        dependsOn = listOf(signMavenPublishablesTaskName),
                     )
                     tasks.registerTask(
                         task = MavenCentralPublishTask(
@@ -224,7 +236,10 @@ fun ProjectTasksBuilder.setupCommonTasks(moduleDependenciesMap: Map<AmperModule,
                             incrementalCache = context.incrementalCache,
                             terminal = context.terminal,
                         ),
-                        dependsOn = listOf(prepareMavenPublishablesTaskName),
+                        // Signatures are not needed in maven local, and requiring a signing key there is inconvenient
+                        dependsOn = listOf(
+                            if (repository.isMavenLocal) prepareMavenPublishablesTaskName else signMavenPublishablesTaskName
+                        ),
                     )
                 }
             }
