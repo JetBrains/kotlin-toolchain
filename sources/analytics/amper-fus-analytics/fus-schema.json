@@ -42,15 +42,6 @@
                     "event": "ktc.environment.state",
                     "fields": [
                         {
-                            "path": "os_family",
-                            "value": [
-                                "{enum:windows|linux|macos|freebsd|solaris}"
-                            ],
-                            "dataType": "PRIMITIVE",
-                            "shouldBeAnonymized": false,
-                            "description": "The operating system family of the current machine"
-                        },
-                        {
                             "path": "ai_agent",
                             "value": [
                                 "{enum:cursor|cursor_cli|kimi|grok|gemini_cli|cline|codex|antigravity|augment_cli|opencode|goose|junie|pi|claude_code|replit|github_copilot|kiro|openclaw|devin|other}"
@@ -58,6 +49,15 @@
                             "dataType": "PRIMITIVE",
                             "shouldBeAnonymized": false,
                             "description": "The AI agent running the current CLI command, or null if no agent was detected"
+                        },
+                        {
+                            "path": "os_family",
+                            "value": [
+                                "{enum:windows|linux|macos|freebsd|solaris}"
+                            ],
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "description": "The operating system family of the current machine"
                         },
                         {
                             "path": "arch",
