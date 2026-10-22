@@ -14,11 +14,14 @@ import org.jetbrains.amper.frontend.FragmentDependencyType
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.dr.resolver.flow.toPlatform
 import org.jetbrains.amper.frontend.isDescendantOf
+import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.schema.KotlinVersion
 import org.jetbrains.amper.frontend.schema.KotlinLanguageVersion
+import org.jetbrains.amper.frontend.schema.effectiveArtifactId
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.tasks.SourceRoot
 import org.jetbrains.amper.tasks.ios.IosConventions
+import org.jetbrains.amper.tasks.metadata.sourceSetName
 import org.jetbrains.amper.tasks.wasm.WasmTarget
 import org.jetbrains.amper.util.BuildType
 import java.io.File
@@ -163,29 +166,87 @@ internal fun kotlinJvmCompilerArgs(
     ))
 }
 
+/**
+ * The kind of artifact produced by a compilation, modeled after the Kotlin/Native compiler's `-produce` option
+ * ([argName] is the value passed to that option). For web (JS/Wasm) compilations, it maps to the `-Xir-produce-*`
+ * flags instead: a klib for [LIBRARY], an executable for [BINARY].
+ */
 enum class KotlinCompilationType(val argName: String) {
     LIBRARY("library"),
     BINARY("program"),
     IOS_FRAMEWORK("framework");
 
-    fun outputFilename(module: AmperModule, platform: Platform, isTest: Boolean): String = when {
-        this == LIBRARY -> "${moduleName(module, isTest)}.klib"
-        this == IOS_FRAMEWORK -> IosConventions.KOTLIN_FRAMEWORK_NAME  // TODO: Allow customization
-        this == BINARY && platform.isDescendantOf(Platform.MINGW) -> "${moduleName(module, isTest)}.exe"
-        else -> "${moduleName(module, isTest)}.kexe"
+    /**
+     * The name of the file produced when compiling the given [module] as this [KotlinCompilationType]
+     * (e.g. `lib.klib` for [LIBRARY], `lib.kexe` for [BINARY]).
+     *
+     * The file is named after the short [moduleName]: for [LIBRARY], the same value is also passed as
+     * `-Xshort-module-name` (native) or `-ir-output-name` (web), so a klib's `short_name` and its file name are
+     * single-sourced and always agree (corresponds to KGP's `baseName`).
+     */
+    fun outputFilename(module: AmperModule, platform: Platform, isTest: Boolean): String = when (this) {
+        LIBRARY -> "${moduleName(module, isTest)}.klib"
+        IOS_FRAMEWORK -> IosConventions.KOTLIN_FRAMEWORK_NAME  // TODO: Allow customization
+        BINARY -> {
+            val extension = if (platform.isDescendantOf(Platform.MINGW)) "exe" else "kexe"
+            "${moduleName(module, isTest)}.$extension"
+        }
     }
 
+    /**
+     * The short (bare) module name to use when compiling the given [module] as this [KotlinCompilationType]
+     * (with a `_test`/`Test` suffix for the test compilation).
+     *
+     * For [LIBRARY] and [BINARY], this is the equivalent of KGP's `baseName` (the Gradle project name): the single
+     * source for both the output file names ([outputFilename], `-ir-output-name`) and the klib `short_name`
+     * (`-Xshort-module-name`), so a klib's `short_name` always agrees with its default file name.
+     * Unlike [klibUniqueName] (which owns the klib identity), this name must stay file-system safe, because it is
+     * used in file names.
+     *
+     * [IOS_FRAMEWORK] is special: the framework name feeds the generated Objective-C/Swift header, so it is
+     * additionally stripped of characters invalid in Objective-C identifiers.
+     */
     fun moduleName(module: AmperModule, isTest: Boolean): String = when(this) {
         IOS_FRAMEWORK -> if (isTest) module.nameWithoutDashes + "Test" else module.nameWithoutDashes
-        else -> module.kotlinModuleName(isTest)
+        else -> if (isTest) module.userReadableName + "_test" else module.userReadableName
     }
 
     private val AmperModule.nameWithoutDashes get() = userReadableName.replace("-", "").replace("_", "")
 }
 
-// TODO should we make it unique by using the full path?
-internal fun AmperModule.kotlinModuleName(isTest: Boolean) =
-    if (isTest) userReadableName + "_test" else userReadableName
+/**
+ * The name that identifies the klibs produced for this module (with a `_test` suffix for the test klibs).
+ *
+ * This ends up as `unique_name` in the klib manifests, and consumers record it in the `depends` field of their own
+ * manifests. It therefore follows the KGP convention `group:artifactId`, so that a library keeps its klib identity
+ * when moving between Gradle and the Kotlin Toolchain (KTC-6014). The group is omitted when the module has no
+ * publishing group configured, just like KGP omits an empty Gradle project group.
+ *
+ * This name must not be used for file names: the `:` separator is not a valid file name character on Windows.
+ */
+internal fun AmperModule.klibUniqueName(isTest: Boolean): String {
+    val artifactId = publishingSettings.effectiveArtifactId(this)
+    val baseName = if (isTest) "${artifactId}_test" else artifactId
+    val group = publishingSettings.group?.takeIf { it.isNotBlank() }
+    val klibUniqueName = if (group == null) baseName else "$group:$baseName"
+    return klibUniqueName.replace(forbiddenModuleNameChars, "_")
+}
+
+/**
+ * The name that identifies the metadata klib produced for the given shared [fragment] of this module
+ * (e.g. `org.jetbrains.kotlinx:atomicfu_commonMain`).
+ *
+ * Each shared fragment is compiled into its own metadata klib, and several of them can end up on the same consumer
+ * classpath, so the source set name is appended to the module's [klibUniqueName] to keep each klib's name unique
+ * (same as KGP).
+ */
+internal fun AmperModule.metadataKlibUniqueName(fragment: Fragment, isTest: Boolean): String =
+    "${klibUniqueName(isTest)}_${fragment.sourceSetName()}"
+
+/**
+ * Characters that are not allowed in module names, replaced with `_` (matches KGP's `filterModuleName` sanitization).
+ */
+private val forbiddenModuleNameChars = Regex("""[\\/\r\n\t]""")
 
 /**
  * Chooses the value of the Kotlin/Native compiler's `-target` option for a compilation covering [fragmentPlatforms].
@@ -274,12 +335,18 @@ internal fun kotlinNativeCompilerArgs(
         add("-friend-modules=${friendPaths.joinToString(File.pathSeparator)}")
     }
 
-    // TODO full module path including entire hierarchy? -Xshort-module-name)
+    // The short module name is the single source for both the output file name (see KotlinCompilationType.outputFilename) 
+    // and '-Xshort-module-name', so a klib's 'short_name' always agrees with its default file name. 
+    // This mirrors KGP, where 'baseName' feeds both the output file name and 'shortModuleName' of the compile task.
+    val shortModuleName = compilationType.moduleName(task.module, task.isTest)
+
     val isMetadataCompilation = fragmentPlatforms.size > 1 && fragments.size == 1
     if (isMetadataCompilation) {
-        val moduleName = "${compilationType.moduleName(task.module, task.isTest)}_${fragments.single().name}"
-        add("-module-name=$moduleName")
-        add("-Xshort-module-name=$moduleName")
+        // The klib 'unique_name' is qualified with the publishing group, while 'short_name' isn't
+        // (e.g. 'org.jetbrains.kotlinx:atomicfu_nativeMain' / 'atomicfu_nativeMain').
+        val fragment = fragments.single()
+        add("-module-name=${task.module.metadataKlibUniqueName(fragment, task.isTest)}")
+        add("-Xshort-module-name=${shortModuleName}_${fragment.sourceSetName()}")
 
         add("-Xmetadata-klib")
 
@@ -298,10 +365,15 @@ internal fun kotlinNativeCompilerArgs(
         add("-nopack")
         add("-nostdlib")
         add("-Xexport-kdoc")
+    } else if (compilationType == KotlinCompilationType.LIBRARY) {
+        // Just like KGP, the klib 'unique_name' is qualified with the publishing group, and the 'short_name' isn't.
+        add("-module-name=${task.module.klibUniqueName(task.isTest)}")
+        add("-Xshort-module-name=$shortModuleName")
     } else {
-        add("-module-name=${compilationType.moduleName(task.module, task.isTest)}")
+        // Binaries and frameworks keep the bare module name, like in KGP: they have no klib manifest to stamp, and
+        // the compiler warns that -Xshort-module-name is only supported when producing a library.
+        add("-module-name=$shortModuleName")
     }
-
 
     if (compilationType != KotlinCompilationType.LIBRARY) {
         if (task.isTest) {
@@ -379,6 +451,7 @@ internal fun kotlinWasmCompilerArgs(
     buildType: BuildType?,
     include: Path?,
     cacheDirectory: Path? = null,
+    klibUniqueName: String? = null,
 ): List<String> = buildList {
     if (!kotlinUserSettings.compilerVersion.hasSeparateWasmCompiler()) {
         add("-Xwasm")
@@ -400,6 +473,7 @@ internal fun kotlinWasmCompilerArgs(
             buildType,
             include,
             cacheDirectory,
+            klibUniqueName,
         )
     )
 }
@@ -418,6 +492,7 @@ internal fun kotlinJsCompilerArgs(
     buildType: BuildType?,
     include: Path?,
     cacheDirectory: Path? = null,
+    klibUniqueName: String? = null,
 ): List<String> = buildList {
     add("-Xir-per-file")
     add("-Xir-minimized-member-names")
@@ -444,6 +519,7 @@ internal fun kotlinJsCompilerArgs(
             buildType,
             include,
             cacheDirectory,
+            klibUniqueName,
         )
     )
 }
@@ -462,13 +538,16 @@ private fun kotlinWebCompilerArgs(
     buildType: BuildType?,
     include: Path?,
     cacheDirectory: Path?,
+    klibUniqueName: String?,
 ): List<String> = buildList {
 
     if (friendPaths.isNotEmpty()) {
         add("-Xfriend-modules=${friendPaths.joinToString(File.pathSeparator)}")
     }
 
-    // Common args last, because they contain free compiler args
+    // Note: unlike the other arg builders, the common args (and thus the user's free compiler args) are NOT last
+    // here. Every flag added below is either positional, non-overridable on purpose (like -ir-output-dir), or
+    // explicitly skipped when the user passes their own (like -Xir-module-name).
     addAll(
         kotlinCommonCompilerArgs(
             isMultiplatform = true,
@@ -479,8 +558,20 @@ private fun kotlinWebCompilerArgs(
         )
     )
 
+    // It names the output file, so it stays short (file-system safe). The value is the short module name (see
+    // KotlinCompilationType.moduleName), the same single source that WebCompileKlibTask uses to resolve the produced
+    // klib file, so the two always agree (like KGP's 'baseName').
     add("-ir-output-name")
     add(moduleName)
+
+    // The value from 'Xir-module-name' is stamped as 'unique_name' into the klib manifest,
+    // qualified with the publishing group (see AmperModule.klibUniqueName).
+    // Flag is not set if the user passes their own via free compiler args. The main reason is that even
+    // if the flag had been set before applying 'freeCompilerArgs' (which is not true at the moment) so that
+    // user defined value overrides it, the compiler would print a warning about the duplicated argument.
+    if (klibUniqueName != null && kotlinUserSettings.freeCompilerArgs.none { it.startsWith("-Xir-module-name") }) {
+        add("-Xir-module-name=$klibUniqueName")
+    }
 
     if (buildType == BuildType.Release) {
         add("-Xir-dce")
@@ -524,7 +615,9 @@ internal fun kotlinMetadataCompilerArgs(
     additionalSourceRoots: List<SourceRoot>,
     fragmentPlatforms: Set<ResolutionPlatform>,
 ): List<String> = buildList {
-    // TODO full module path including entire hierarchy? -Xshort-module-name)
+    // The name is already qualified with the publishing group and suffixed with the source set name (see the call
+    // site in MetadataCompileTask), matching KGP. There is no '-Xshort-module-name' counterpart here: that flag is
+    // Kotlin/Native-only, so K2Metadata klibs carry no 'short_name' (same as KGP's common metadata klibs).
     add("-module-name=$moduleName")
     if (classpath.isNotEmpty()) {
         add("-classpath=${classpath.joinToString(File.pathSeparator)}")

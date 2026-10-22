@@ -1,0 +1,9 @@
+product:
+  type: kmp/lib
+  platforms: [ linuxX64, mingwX64, js ]
+
+settings:
+  publishing:
+    enabled: true
+    group: org.example
+    version: 1.0.0

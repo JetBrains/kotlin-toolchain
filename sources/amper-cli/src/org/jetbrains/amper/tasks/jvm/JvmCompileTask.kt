@@ -24,6 +24,7 @@ import org.jetbrains.amper.compilation.CompilationUserSettings
 import org.jetbrains.amper.compilation.CompilerBuildProblem
 import org.jetbrains.amper.compilation.JavaUserSettings
 import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
+import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.ProblemReportingCompilerMessageRenderer
 import org.jetbrains.amper.compilation.bta.CombiningKotlinLogger
 import org.jetbrains.amper.compilation.bta.CompilationDetectingBuildMetricsCollector
@@ -36,7 +37,6 @@ import org.jetbrains.amper.compilation.bta.makeClasspathEntrySnapshot
 import org.jetbrains.amper.compilation.bta.metrics.CombiningMetricsCollector
 import org.jetbrains.amper.compilation.downloadCompilerPlugins
 import org.jetbrains.amper.compilation.kotlinJvmCompilerArgs
-import org.jetbrains.amper.compilation.kotlinModuleName
 import org.jetbrains.amper.compilation.serializableCompilationSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.concurrency.mapConcurrently
@@ -453,7 +453,10 @@ internal class JvmCompileTask(
         )
 
         val compilerArgs = kotlinJvmCompilerArgs(
-            moduleName = module.kotlinModuleName(isTest),
+            // The JVM compiler has no notion of output kind (unlike Kotlin/Native's -produce option, which
+            // KotlinCompilationType models). LIBRARY matches the library-shaped classes/jar output,
+            // and gives the plain short module name.
+            moduleName = KotlinCompilationType.LIBRARY.moduleName(module, isTest),
             isMultiplatform = isMultiplatform,
             userSettings = userSettings,
             classpath = classpath,

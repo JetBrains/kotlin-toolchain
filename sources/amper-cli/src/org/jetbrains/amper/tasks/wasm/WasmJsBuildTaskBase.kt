@@ -8,7 +8,7 @@ import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.BuildPrimitives
 import org.jetbrains.amper.CliReportingMavenResolver
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
-import org.jetbrains.amper.compilation.kotlinModuleName
+import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.extract.extractZip
 import org.jetbrains.amper.dependency.resolution.DependencyNode
@@ -245,7 +245,8 @@ abstract class WasmJsBuildTaskBase(
     abstract fun processHtmlFile()
 
     internal fun indexHtmlDefaultTemplateValues(): IndexHtmlDefaults {
-        val moduleName = module.kotlinModuleName(isTest)
+        // The .mjs file referenced here is produced by the WebLinkTask BINARY link, so the same module name is used.
+        val moduleName = KotlinCompilationType.BINARY.moduleName(module, isTest)
         val moduleFile = "$moduleName.mjs"
         val scriptLines = scriptLines(moduleFile)
         return IndexHtmlDefaults(

@@ -67,6 +67,7 @@ internal class JsCompileKlibTask(
         sourceFiles: List<Path>,
         additionalSourceRoots: List<SourceRoot>,
         moduleName: String,
+        klibUniqueName: String,
         compilationType: KotlinCompilationType,
         include: Path?,
     ): List<String> = kotlinJsCompilerArgs(
@@ -82,5 +83,6 @@ internal class JsCompileKlibTask(
         compilationType,
         buildType,
         include,
+        klibUniqueName = klibUniqueName,
     )
 }

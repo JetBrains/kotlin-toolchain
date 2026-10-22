@@ -10,8 +10,8 @@ import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.compilation.CompilationUserSettings
+import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.downloadNativeCompiler
-import org.jetbrains.amper.compilation.kotlinModuleName
 import org.jetbrains.amper.compilation.serializableCompilationSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.core.AmperUserCacheRoot
@@ -205,7 +205,9 @@ internal class KspTask(
         val kspCompilationType = KspCompilationType.forPlatform(platform)
         val sources = (fragments.flatMap { it.sourceRoots } + additionalSourceDirs.map { it.path }).filter { it.exists() }
         val sharedConfig: KspConfig.Builder.() -> Unit = {
-            moduleName = module.kotlinModuleName(isTest = isTest)
+            // KSP processes the sources of a LIBRARY-shaped compilation (classes/klib), so it uses the same short
+            // module name as a corresponding COMPILE task.
+            moduleName = KotlinCompilationType.LIBRARY.moduleName(module, isTest)
 
             if (platform == Platform.COMMON) {
                 commonSourceRoots = sources

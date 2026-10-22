@@ -1,0 +1,4 @@
+modules:
+  - lib
+  - lib-no-group
+  - lib-custom-ir-name

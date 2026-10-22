@@ -18,7 +18,7 @@ import org.jetbrains.amper.compilation.KotlinUserSettings
 import org.jetbrains.amper.compilation.ResolvedCompilerPlugin
 import org.jetbrains.amper.compilation.compiler.downloadKotlinCompiler
 import org.jetbrains.amper.compilation.downloadCompilerPlugins
-import org.jetbrains.amper.compilation.kotlinModuleName
+import org.jetbrains.amper.compilation.klibUniqueName
 import org.jetbrains.amper.compilation.serializableKotlinSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.compilation.validSourceFileExtensions
@@ -186,7 +186,9 @@ internal abstract class WebCompileKlibTask(
         }.outputFiles.singleOrNull()
 
         return Result(
-            compiledKlib = artifact?.resolve(module.kotlinModuleName(isTest) + ".klib"),
+            // outputFilename derives the file name from the same short module name that is passed as
+            // '-ir-output-name' in compileSources, so the file we resolve here always matches what the compiler wrote.
+            compiledKlib = artifact?.resolve(KotlinCompilationType.LIBRARY.outputFilename(module, platform, isTest)),
             module = module,
             isTest = isTest,
             taskId = taskName.id,
@@ -213,6 +215,7 @@ internal abstract class WebCompileKlibTask(
             repositories = module.mavenResolveRepositories.map { it.toRepository() },
         )
 
+        val compilationType = KotlinCompilationType.LIBRARY
         val compilerArgs = kotlinCompilerArgs(
             kotlinUserSettings = kotlinUserSettings,
             compilerPlugins = compilerPlugins,
@@ -222,9 +225,10 @@ internal abstract class WebCompileKlibTask(
             fragments = fragments,
             sourceFiles = sourceFiles,
             additionalSourceRoots = additionalSourceRoots,
-            moduleName = module.kotlinModuleName(isTest),
+            moduleName = compilationType.moduleName(module, isTest),
+            klibUniqueName = module.klibUniqueName(isTest),
             include = null,
-            compilationType = KotlinCompilationType.LIBRARY,
+            compilationType = compilationType,
         )
         spanBuilder("kotlin-${expectedPlatform.name.lowercase()}-compilation")
             .setAmperModule(module)
@@ -257,6 +261,7 @@ internal abstract class WebCompileKlibTask(
         sourceFiles: List<Path>,
         additionalSourceRoots: List<SourceRoot>,
         moduleName: String,
+        klibUniqueName: String,
         compilationType: KotlinCompilationType,
         include: Path?,
     ): List<String>

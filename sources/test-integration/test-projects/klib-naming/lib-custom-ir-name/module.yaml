@@ -1,0 +1,11 @@
+product:
+  type: kmp/lib
+  platforms: [ js ]
+
+settings:
+  publishing:
+    enabled: true
+    group: org.example
+    version: 1.0.0
+  kotlin:
+    freeCompilerArgs: [ -Xir-module-name=custom.explicit.name ]

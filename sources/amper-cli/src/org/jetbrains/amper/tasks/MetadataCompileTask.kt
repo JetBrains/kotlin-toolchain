@@ -18,8 +18,8 @@ import org.jetbrains.amper.compilation.compiler.downloadKotlinCompiler
 import org.jetbrains.amper.compilation.downloadCompilerPlugins
 import org.jetbrains.amper.compilation.downloadNativeCompiler
 import org.jetbrains.amper.compilation.kotlinMetadataCompilerArgs
-import org.jetbrains.amper.compilation.kotlinModuleName
 import org.jetbrains.amper.compilation.kotlinNativeCompilerArgs
+import org.jetbrains.amper.compilation.metadataKlibUniqueName
 import org.jetbrains.amper.compilation.serializableKotlinSettings
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.dependency.resolution.ResolutionPlatform
@@ -54,7 +54,6 @@ import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.KotlinJavaSourceDirArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
-import org.jetbrains.amper.tasks.metadata.sourceSetName
 import org.jetbrains.amper.tasks.native.CommonizeCInteropKlibsTask
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -331,7 +330,7 @@ internal class MetadataCompileTask(
         )
         val compilerArgs = kotlinMetadataCompilerArgs(
             kotlinUserSettings = kotlinUserSettings,
-            moduleName = "${module.kotlinModuleName(isTest)}_${fragment.sourceSetName()}",
+            moduleName = module.metadataKlibUniqueName(fragment, isTest),
             classpath = commonizedKlibs + classpath,
             compilerPlugins = compilerPlugins,
             outputPath = taskOutputRoot.path,

@@ -17,7 +17,6 @@ import org.jetbrains.amper.compilation.KotlinUserSettings
 import org.jetbrains.amper.compilation.ResolvedCompilerPlugin
 import org.jetbrains.amper.compilation.compiler.downloadKotlinCompiler
 import org.jetbrains.amper.compilation.downloadCompilerPlugins
-import org.jetbrains.amper.compilation.kotlinModuleName
 import org.jetbrains.amper.compilation.serializableKotlinSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.core.AmperUserCacheRoot
@@ -198,6 +197,7 @@ internal abstract class WebLinkTask(
             plugins = kotlinUserSettings.compilerPlugins,
             repositories = module.mavenResolveRepositories.map { it.toRepository() },
         )
+        val compilationType = KotlinCompilationType.BINARY
         val compilerArgs = kotlinCompilerArgs(
             kotlinUserSettings = kotlinUserSettings,
             compilerPlugins = compilerPlugins,
@@ -207,8 +207,8 @@ internal abstract class WebLinkTask(
             fragments = emptyList(),
             sourceFiles = emptyList(),
             additionalSourceRoots = emptyList(),
-            moduleName = module.kotlinModuleName(isTest),
-            compilationType = KotlinCompilationType.BINARY,
+            moduleName = compilationType.moduleName(module, isTest),
+            compilationType = compilationType,
             buildType = buildType,
             include = includeArtifact,
             cacheDirectory = compiledWebArtifact.kotlinIcDataDir.takeIf {

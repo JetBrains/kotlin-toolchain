@@ -67,6 +67,7 @@ internal class WasmJsCompileKlibTask(
         sourceFiles: List<Path>,
         additionalSourceRoots: List<SourceRoot>,
         moduleName: String,
+        klibUniqueName: String,
         compilationType: KotlinCompilationType,
         include: Path?,
     ): List<String> =
@@ -84,5 +85,6 @@ internal class WasmJsCompileKlibTask(
             compilationType,
             buildType,
             include,
+            klibUniqueName = klibUniqueName,
         )
 }
