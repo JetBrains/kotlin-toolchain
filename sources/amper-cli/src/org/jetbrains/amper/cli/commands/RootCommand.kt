@@ -45,6 +45,7 @@ import org.jetbrains.amper.cli.unwrap
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withShowCommandSuggestions
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.fus.client.FUS_ENABLED
 import org.jetbrains.amper.fus.schema.FusEvents
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -164,7 +165,7 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
             }
         }
 
-        if (currentContext.invokedSubcommand !is DataCollectionConsentCommand) {
+        if (FUS_ENABLED && currentContext.invokedSubcommand !is DataCollectionConsentCommand) {
             spanBuilder("Setup FUS reporting").use {
                 CliFusReporter.setup(userCacheRoot = sharedCacheDir, terminal = terminal)
             }

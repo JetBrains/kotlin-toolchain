@@ -93,6 +93,7 @@ abstract class AmperCliWithWrapperTestBase {
         this["KOTLIN_CLI_DOWNLOAD_ROOT"] = httpServer.wwwRootUrl
         this["KOTLIN_CLI_JRE_DOWNLOAD_ROOT"] = httpServer.cacheRootUrl
         this["KOTLIN_SHARED_CACHE_DIR"] = Dirs.userCacheRoot.pathString
+        this["KOTLIN_TOOLCHAIN_FUS_ENABLED"] = "false" // we don't want our tests to send FUS data
     }
 
     /**

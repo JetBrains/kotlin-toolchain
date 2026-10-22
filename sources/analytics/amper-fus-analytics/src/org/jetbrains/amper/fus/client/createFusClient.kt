@@ -42,6 +42,13 @@ import kotlin.uuid.Uuid
 
 private val logger = LoggerFactory.getLogger("FUS-setup")
 
+// TODO This can be made private once we have confirmed the consent banner
+// TODO Default to true once we confirmed things work
+val FUS_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_ENABLED")?.toBooleanStrictOrNull() ?: false
+
+// TODO Default to false (production) once we confirmed things work
+val FUS_USE_STAGING = System.getenv("KOTLIN_TOOLCHAIN_FUS_USE_STAGING")?.toBooleanStrictOrNull() ?: true
+
 internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport> = fusClient {
     config {
         // TODO check this version choice
@@ -59,13 +66,12 @@ internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport>
         // TODO check whether this is enough, we might need to make this overridable
         regionCode = if (Locale.getDefault().country == "CN") RegionCode.CN else RegionCode.ALL
 
-        isTest = true // TODO design a mechanism to switch to production
+        isTest = FUS_USE_STAGING
 
-        // Parameters indicating user consent for data collection.
-        // Always true right now because we skip the entire FUS client creation if consent is not given.
-        isLoggingEnabled = { true }
-        isRecordEnabled = { true }
-        isSendEnabled = { true }
+        // This is not based on consent because we skip the entire FUS client creation if consent is not given.
+        isLoggingEnabled = { FUS_ENABLED }
+        isRecordEnabled = { FUS_ENABLED }
+        isSendEnabled = { FUS_ENABLED }
     }
 
     components {
