@@ -14,8 +14,6 @@ import org.jetbrains.amper.crypto.pgp.PgpSigningKeyPassphraseException
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
-import org.jetbrains.amper.frontend.AmperModule
-import org.jetbrains.amper.frontend.isArtifactSigningEnabled
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForSerializable
 import org.jetbrains.amper.incrementalcache.getDynamicInputs
@@ -34,14 +32,12 @@ import kotlin.io.path.name
 
 /**
  * Signs the publishables prepared by [PrepareMavenPublishablesTask], and returns them along with their signatures.
- * If artifact signing is disabled for the [module], the publishables are returned as-is.
  *
  * This is a separate task so that publications that don't need signatures (to maven local, for instance) don't
  * require a signing key.
  */
 class SignMavenPublishablesTask(
     override val taskName: TaskName,
-    private val module: AmperModule,
     private val taskOutputRoot: TaskOutputRoot,
     private val incrementalCache: IncrementalCache,
 ) : Task {
@@ -53,10 +49,6 @@ class SignMavenPublishablesTask(
             .singleOrNull()
             ?.publishables
             ?: error("Expected single PrepareMavenPublishablesTask.Result from task dependencies")
-
-        if (!module.isArtifactSigningEnabled()) {
-            return Result(publishables)
-        }
 
         // Checksums are not mandatory for the signature files themselves, and we want to limit the number
         // of published files, so we don't generate checksums for the signatures here.

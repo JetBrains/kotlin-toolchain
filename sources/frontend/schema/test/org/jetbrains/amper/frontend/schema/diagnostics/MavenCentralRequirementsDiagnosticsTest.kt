@@ -24,6 +24,11 @@ class MavenCentralRequirementsDiagnosticsTest : FrontendTestCaseBase(Path("testR
     }
 
     @Test
+    fun `signing disabled explicitly`() {
+        diagnosticsTest(caseName = "signing-false-explicit")
+    }
+
+    @Test
     fun `explicit checksums list missing required`() {
         diagnosticsTest(caseName = "overridden-checksums-missing-required")
     }
