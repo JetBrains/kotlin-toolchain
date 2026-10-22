@@ -1118,6 +1118,17 @@ javadoc JARs, and Central Portal credentials.
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#notifying-klibsio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notifying klibs.io
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2761,6 +2772,17 @@ javadoc JARs, and Central Portal credentials.
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#notifying-klibsio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notifying klibs.io
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2988,6 +3010,31 @@ This can be done using <code>settings.publishing.mavenCentral.publishingMode: au
 the public and set in stone in Maven Central. If there is a mistake in your publication, you will not be able to 
 remove artifacts from Maven Central, because Sonatype has a strict policy about this.</p>
 </div>
+<h3 id="notifying-klibsio">Notifying klibs.io<a class="headerlink" href="#notifying-klibsio" title="Permanent link">&para;</a></h3>
+<p>If you are publishing Kotlin Multiplatform modules, you can make sure developers can easily find and use your library
+by setting <code>settings.publishing.mavenCentral.notifyKlibsIo: true</code>. This will automatically notify 
+<a href="https://klibs.io">klibs.io</a> about your publication, so your project can be listed on the platform without waiting
+for the regular Maven Central scan.</p>
+<p>Example configuration:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">publishing</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">mavenCentral</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">notifyKlibsIo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div>
+<p>You can check the indexing status of your library on klibs.io by visiting 
+<code>https://klibs.io/package/&lt;GROUP_ID&gt;/&lt;ARTIFACT_ID&gt;/&lt;VERSION&gt;/status</code>. 
+Note that for your artifacts to be indexed, they must meet the 
+<a href="https://klibs.io/faq#how-do-i-add-a-project">klibs.io criteria</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Don't forget to release your artifacts</p>
+<p>If you are using the default <code>manual</code> publishing mode, you must later confirm the publication on the 
+<a href="https://central.sonatype.com/publishing/deployments">Maven Central Publisher Portal</a> for it to be released.
+If you don't do it within <strong>4 days</strong>, klibs.io will treat the notification as invalid and will not process it.</p>
+</div>
+<p>By default, notifications are sent to the <code>https://api.klibs.io/notify/artifacts</code> endpoint. If you need to use a
+different URL, you can override it by setting the <code>KOTLIN_TOOLCHAIN_KLIBS_IO_API_URL</code> environment
+variable.</p>
 <div class="footnote">
 <hr />
 <ol>
@@ -3021,7 +3068,7 @@ artifact. You can customize this list using <code>settings.publishing.checksums<
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 8, 2026 21:08:07 UTC">October 8, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 22, 2026 08:54:37 UTC">October 22, 2026</span>
   </span>
 
     
