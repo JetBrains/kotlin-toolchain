@@ -1,0 +1,9 @@
+product: jvm/app
+
+settings:
+  kotlin:
+    version: <![Error] Kotlin compiler version `2.4.0` supports JVM target up to 26, but this module targets 100 (by setting the JVM release). Lower `settings.jvm.release` to at most 26 to keep using Kotlin `2.4.0`.!>2.4.0<!>
+  jvm:
+    release: <![Error] Kotlin compiler version `2.4.0` supports JVM target up to 26, but this module targets 100 (by setting the JVM release). Lower `settings.jvm.release` to at most 26 to keep using Kotlin `2.4.0`.!>100<!>
+    jdk:
+      version: 100

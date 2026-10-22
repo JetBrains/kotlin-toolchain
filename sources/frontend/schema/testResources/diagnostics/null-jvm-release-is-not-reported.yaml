@@ -1,0 +1,11 @@
+product: jvm/app
+
+settings:
+  kotlin:
+    version: 2.2.20
+  jvm:
+    # Explicit null doesn't mean default to target 25 (which would yield an error with Kotlin 2.2.20).
+    # Instead, it means the compiler should use its default target setting, which is 8 in most versions.
+    release: null
+    jdk:
+      version: 25

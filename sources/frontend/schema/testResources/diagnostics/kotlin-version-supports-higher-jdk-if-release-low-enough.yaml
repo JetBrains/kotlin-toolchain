@@ -1,0 +1,10 @@
+product: jvm/app
+
+settings:
+  kotlin:
+    version: 2.4.21
+  jvm:
+    # 26 is the max target for Kotlin 2.4, which makes it OK to use a higher JDK below
+    release: 26
+    jdk:
+      version: 42

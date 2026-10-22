@@ -1,0 +1,5 @@
+product: jvm/app
+
+settings:
+  kotlin:
+    version: <![Error] Kotlin compiler version `2.2.20` supports JVM target up to 24, but this module targets 25 (the default). Update Kotlin to at least `2.3.0` to keep using the default JDK 25, or set `settings.jvm.release` or `settings.jvm.jdk.version` to at most 24 to keep using Kotlin `2.2.20`.!>2.2.20<!>

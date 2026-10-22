@@ -39,7 +39,7 @@ enum class FrontendDiagnosticId : DiagnosticId {
     NotifyKlibsIoRequiresMultiplatform,
     KotlinCompilerVersionTooLow,
     KotlinIncrementalCompilationMayBehaveIncorrectly,
-    KotlinVersionDoesNotSupportJdk,
+    KotlinVersionDoesNotSupportJvmTarget,
     LocalSwiftPackageInRemotePublication,
     LocalSwiftPackageOutsideProject,
     MandatoryFieldInPropertiesFileMustBePresent,

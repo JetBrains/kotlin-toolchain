@@ -1,0 +1,8 @@
+product: jvm/app
+
+settings:
+  kotlin:
+    version: <![Error] Kotlin compiler version `2.5.0-beta2` supports JVM target up to 28, but this module targets 29 (by setting the JDK version). Set `settings.jvm.release` (or lower the JDK version) to at most 28 to keep using Kotlin `2.5.0-beta2`.!>2.5.0-beta2<!>
+  jvm:
+    jdk:
+      version: <![Error] Kotlin compiler version `2.5.0-beta2` supports JVM target up to 28, but this module targets 29 (by setting the JDK version). Set `settings.jvm.release` (or lower the JDK version) to at most 28 to keep using Kotlin `2.5.0-beta2`.!>29<!>

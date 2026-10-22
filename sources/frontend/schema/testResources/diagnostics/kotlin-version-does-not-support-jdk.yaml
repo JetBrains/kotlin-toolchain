@@ -2,7 +2,7 @@ product: jvm/app
 
 settings:
   kotlin:
-    version: <![Error] Kotlin compiler version `2.2.20` supports JDK up to 24, but this module uses JDK 25. Update Kotlin to at least `2.3.0` to use JDK 25, or lower the JDK version to 24 to keep using Kotlin `2.2.20`.!>2.2.20<!>
+    version: <![Error] Kotlin compiler version `2.2.20` supports JVM target up to 24, but this module targets 25 (by setting the JDK version). Update Kotlin to at least `2.3.0` to keep using JDK 25, or set `settings.jvm.release` or lower `settings.jvm.jdk.version` down to at most 24 to keep using Kotlin `2.2.20`.!>2.2.20<!>
   jvm:
     jdk:
-      version: <![Error] Kotlin compiler version `2.2.20` supports JDK up to 24, but this module uses JDK 25. Update Kotlin to at least `2.3.0` to use JDK 25, or lower the JDK version to 24 to keep using Kotlin `2.2.20`.!>25<!>
+      version: <![Error] Kotlin compiler version `2.2.20` supports JVM target up to 24, but this module targets 25 (by setting the JDK version). Update Kotlin to at least `2.3.0` to keep using JDK 25, or set `settings.jvm.release` or lower `settings.jvm.jdk.version` down to at most 24 to keep using Kotlin `2.2.20`.!>25<!>

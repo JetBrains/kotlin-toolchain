@@ -20,7 +20,7 @@ val AomSingleModuleDiagnosticFactories: List<AomSingleModuleDiagnosticFactory> =
     JavaIncrementalCompilationRequiresJava21Factory,
     JdkDistributionRequiresLicenseFactory,
     KotlinIncrementalCompilationMayBehaveIncorrectlyFactory,
-    KotlinVersionDoesNotSupportJdkFactory,
+    KotlinVersionDoesNotSupportJvmTargetFactory,
     LocalSwiftPackageInRemotePublicationFactory,
     SerializationVersionWithDisabledSerialization,
     SigningEnabledWithoutPropertiesFileFactory,
