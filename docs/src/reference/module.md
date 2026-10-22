@@ -863,10 +863,12 @@ Maven Central publication, and is usually the same for the whole project, thus c
 
 `settings.publishing.mavenCentral` configures publication to Maven Central (via the Publish portal):
 
-| Attribute               | Default  | Description                                                                                                                                                                            |
-|-------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `enabled: boolean`      | `false`  | Enables publication to Maven Central, which can then be triggered using `kotlin publish mavenCentral`.                                                                                 |
-| `publishingMode: enum`  | `manual` | Whether the publication should be fully automated, or pause for manual verification. With `manual`, the publication pauses after validation of the uploaded deployment bundle and awaits a manual trigger from the Central Portal UI. With `auto`, it automatically continues and publishes the deployment without manual intervention. |
+| Attribute                | Default  | Description                                                                                                                                                                                                                                                                                                                             |
+|--------------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `enabled: boolean`       | `false`  | Enables publication to Maven Central, which can then be triggered using `kotlin publish mavenCentral`.                                                                                                                                                                                                                                  |
+| `publishingMode: enum`   | `manual` | Whether the publication should be fully automated, or pause for manual verification. With `manual`, the publication pauses after validation of the uploaded deployment bundle and awaits a manual trigger from the Central Portal UI. With `auto`, it automatically continues and publishes the deployment without manual intervention. |
+| `notifyKlibsIo: boolean` | `false`  | Enables sending automatic notifications to [klibs.io](https://klibs.io) after successfully publishing to Maven Central. It sends the library's Maven coordinates, so the project can be listed on the platform without waiting for the regular Maven Central scan. Works with Kotlin Multiplatform library modules only.                |
+
 
 ### `settings.springBoot`
 

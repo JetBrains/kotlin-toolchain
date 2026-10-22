@@ -223,3 +223,35 @@ This can be done using `settings.publishing.mavenCentral.publishingMode: auto`.
     When using the `auto` mode, you will not get a chance to look at the published artifacts before they are released to
     the public and set in stone in Maven Central. If there is a mistake in your publication, you will not be able to 
     remove artifacts from Maven Central, because Sonatype has a strict policy about this.
+
+### Notifying klibs.io
+
+If you are publishing Kotlin Multiplatform modules, you can make sure developers can easily find and use your library
+by setting `settings.publishing.mavenCentral.notifyKlibsIo: true`. This will automatically notify 
+[klibs.io](https://klibs.io) about your publication, so your project can be listed on the platform without waiting
+for the regular Maven Central scan.
+
+Example configuration:
+
+```yaml
+settings:
+  publishing:
+    mavenCentral:
+      enabled: true
+      notifyKlibsIo: true
+```
+
+You can check the indexing status of your library on klibs.io by visiting 
+`https://klibs.io/package/<GROUP_ID>/<ARTIFACT_ID>/<VERSION>/status`. 
+Note that for your artifacts to be indexed, they must meet the 
+[klibs.io criteria](https://klibs.io/faq#how-do-i-add-a-project).
+
+!!! note "Don't forget to release your artifacts"
+
+    If you are using the default `manual` publishing mode, you must later confirm the publication on the 
+    [Maven Central Publisher Portal](https://central.sonatype.com/publishing/deployments) for it to be released.
+    If you don't do it within **4 days**, klibs.io will treat the notification as invalid and will not process it.
+
+By default, notifications are sent to the `https://api.klibs.io/notify/artifacts` endpoint. If you need to use a
+different URL, you can override it by setting the `KOTLIN_TOOLCHAIN_KLIBS_IO_API_URL` environment
+variable.
