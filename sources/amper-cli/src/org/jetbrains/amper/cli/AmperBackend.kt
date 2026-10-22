@@ -43,6 +43,7 @@ import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.ModuleTaskTypes
 import org.jetbrains.amper.tasks.PackageSettings
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
+import org.jetbrains.amper.tasks.PublishSettings
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.compose.GenerateResClassTask
 import org.jetbrains.amper.tasks.compose.GenerateResourceAccessorsTask
@@ -83,6 +84,7 @@ class AmperBackend(
      * Settings for the packaging tasks, passed from the `package` command.
      */
     val packageSettings: PackageSettings = PackageSettings(),
+    val publishSettings: PublishSettings = PublishSettings(),
     /**
      * Whether to include tasks that come from plugins to the task graph.
      * Affects both Amper and Maven-compat plugins.
@@ -111,6 +113,7 @@ class AmperBackend(
                 includePluginTasks = includePluginTasks,
                 xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
                 packageSettings = packageSettings,
+                publishSettings = publishSettings,
             ).build()
         }
     }

@@ -22,6 +22,7 @@ import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.CinteropGenSettings
 import org.jetbrains.amper.tasks.PackageSettings
+import org.jetbrains.amper.tasks.PublishSettings
 import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -35,6 +36,7 @@ internal suspend fun <T> withBackend(
     runSettings: AllRunSettings = AllRunSettings(),
     cinteropGenSettings: CinteropGenSettings = CinteropGenSettings(),
     packageSettings: PackageSettings = PackageSettings(),
+    publishSettings: PublishSettings = PublishSettings(),
     includePluginTasks: Boolean = true,
     xcodeBuildSettingsResolution: XcodeBuildSettingsResolution = XcodeBuildSettingsResolution,
     taskExecutionMode: TaskExecutor.Mode = TaskExecutor.Mode.FAIL_FAST,
@@ -59,6 +61,7 @@ internal suspend fun <T> withBackend(
                 runSettings = runSettings,
                 cinteropGenSettings = cinteropGenSettings,
                 packageSettings = packageSettings,
+                publishSettings = publishSettings,
                 includePluginTasks = includePluginTasks,
                 xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
                 taskExecutionMode = taskExecutionMode,
@@ -81,6 +84,7 @@ internal suspend fun <T> withBackendWithoutWidget(
     runSettings: AllRunSettings = AllRunSettings(),
     cinteropGenSettings: CinteropGenSettings = CinteropGenSettings(),
     packageSettings: PackageSettings = PackageSettings(),
+    publishSettings: PublishSettings = PublishSettings(),
     includePluginTasks: Boolean = true,
     xcodeBuildSettingsResolution: XcodeBuildSettingsResolution = XcodeBuildSettingsResolution,
     taskExecutionMode: TaskExecutor.Mode = TaskExecutor.Mode.FAIL_FAST,
@@ -102,6 +106,7 @@ internal suspend fun <T> withBackendWithoutWidget(
         runSettings = runSettings,
         cinteropGenSettings = cinteropGenSettings,
         packageSettings = packageSettings,
+        publishSettings = publishSettings,
         includePluginTasks = includePluginTasks,
         xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
         taskExecutionMode = taskExecutionMode,

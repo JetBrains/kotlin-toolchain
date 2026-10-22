@@ -8,8 +8,10 @@ import com.github.ajalt.mordant.terminal.Terminal
 import com.jetbrains.cidr.xcode.frameworks.buildSystem.BuildSettingNames
 import kotlinx.serialization.json.Json
 import org.jetbrains.amper.ProcessRunner
+import org.jetbrains.amper.appstoreconnect.AppStoreConnectAuthKey
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.telemetry.setAmperModule
+import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.frontend.AmperModule
@@ -105,4 +107,38 @@ internal suspend fun runXcodebuild(
             }
     }
     return result.exitCode.value
+}
+
+context(executionContext: TaskGraphExecutionContext, _: XcodeEnvironment)
+internal suspend fun runXcodebuildChecked(
+    module: AmperModule,
+    command: List<String>,
+    workingDir: Path,
+    prebuildResult: IosPreBuildTask.Result,
+    userCacheRoot: AmperUserCacheRoot,
+    terminal: Terminal,
+    processRunner: ProcessRunner,
+    step: String,
+) {
+    val exitCode = runXcodebuild(
+        module = module,
+        command = command,
+        workingDir = workingDir,
+        prebuildResult = prebuildResult,
+        userCacheRoot = userCacheRoot,
+        terminal = terminal,
+        processRunner = processRunner,
+    )
+    if (exitCode != 0) {
+        userReadableError("$step failed with exit code $exitCode, check the log above.")
+    }
+}
+
+internal fun provisioningArgs(authKey: AppStoreConnectAuthKey?): List<String> = buildList {
+    this += "-allowProvisioningUpdates"
+    if (authKey != null) {
+        this += "-authenticationKeyID"; this += authKey.keyId
+        this += "-authenticationKeyIssuerID"; this += authKey.issuerId
+        this += "-authenticationKeyPath"; this += authKey.keyPath.absolutePathString()
+    }
 }

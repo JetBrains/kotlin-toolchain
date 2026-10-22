@@ -19,6 +19,7 @@ import com.jetbrains.cidr.xcode.xcspec.XcodeExtensionsManager
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.userReadableError
+import org.jetbrains.amper.concurrency.AsyncConcurrentMap
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
@@ -44,24 +45,8 @@ internal class XcodeEnvironmentTask(
     override val taskName get() = TASK_NAME
 
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult = context(
-        processRunner,
-    ) {
-        val developerDirectory = selectedDeveloperDirectory()
-        val actualVersion = checkXcodeVersion()
-        val environment = XcodeEnvironment(
-            developerDirectory = developerDirectory,
-            version = actualVersion,
-        )
-        context(environment) {
-            checkXcodeLicense()
-            checkFirstLaunch()
-        }
-
-        StandaloneXcodeComponentManager.registerManager(environment.developerDirectory.absolutePathString())
-
-        return Result(environment)
-    }
+    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult =
+        Result(getXcodeEnvironment(processRunner))
 
     class Result(val environment: XcodeEnvironment) : TaskResult
 
@@ -72,6 +57,29 @@ internal class XcodeEnvironmentTask(
         )
     }
 }
+
+private val xcodeEnvironmentCache by lazy { AsyncConcurrentMap<Unit, XcodeEnvironment>(stripeCount = 1) }
+
+/**
+ * Validates and initializes the active Xcode installation once per process, without executing a task graph.
+ * Only successful initialization is cached; failures and cancellation allow a subsequent retry.
+ */
+context(_: ProblemReporter)
+internal suspend fun getXcodeEnvironment(processRunner: ProcessRunner): XcodeEnvironment =
+    xcodeEnvironmentCache.computeIfAbsent(Unit) {
+        context(processRunner) {
+            val environment = XcodeEnvironment(
+                developerDirectory = selectedDeveloperDirectory(),
+                version = checkXcodeVersion(),
+            )
+            context(environment) {
+                checkXcodeLicense()
+                checkFirstLaunch()
+            }
+            StandaloneXcodeComponentManager.registerManager(environment.developerDirectory.absolutePathString())
+            environment
+        }
+    }
 
 private val MinimumSupportedXcodeVersion = ComparableVersion("16.0")
 

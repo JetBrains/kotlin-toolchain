@@ -12,6 +12,7 @@ repositories:
 
 dependencies:
   - //sources/android-integration/amper-android-sdk-provisioning
+  - //sources/amper-app-store-connect
   - //sources/amper-build-info
   - //sources/amper-cli-widgets
   - //sources/amper-compose-hot-reload

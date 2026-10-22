@@ -127,15 +127,7 @@ class ManageXCodeProjectTask(
                 lock()
             }
 
-        val manipulator = pbxProjectFile.manipulator
-        val [target, amperPhase] = manipulator.allTargets.mapNotNull { target ->
-            target.buildPhases.find { phase ->
-                phase.scriptText()?.let { scriptText ->
-                    AMPER_PHASE_MAGIC_OLD in scriptText ||
-                            AMPER_PHASE_MAGIC in scriptText
-                } ?: false
-            }?.let { amperPhase -> target to amperPhase }
-        }.singleOrNull() ?: run {
+        val [target, amperPhase] = findKotlinIntegratedTarget(pbxProjectFile) ?: run {
             // TODO: Provide a way for the user to "fix" the corrupted project?
             userReadableError("XCodeProject '$projectDir' must contain a single target with the Kotlin Toolchain integration")
         }
@@ -385,5 +377,19 @@ class ManageXCodeProjectTask(
         private const val AMPER_PHASE_MAGIC = "!KOTLIN INTEGRATION STEP!"
 
         private val UpdatedAttribute = AttributeKey.booleanKey("updated")
+
+        /**
+         * Finds the single target in the [projectFile] that contains the Kotlin Toolchain integration build phase.
+         * Returns the target along with that phase, or `null` if there is no such target or there are several.
+         */
+        internal fun findKotlinIntegratedTarget(projectFile: PBXProjectFile): Pair<PBXTarget, PBXBuildPhase>? =
+            projectFile.manipulator.allTargets.mapNotNull { target ->
+                target.buildPhases.find { phase ->
+                    phase.scriptText()?.let { scriptText ->
+                        AMPER_PHASE_MAGIC_OLD in scriptText ||
+                                AMPER_PHASE_MAGIC in scriptText
+                    } ?: false
+                }?.let { amperPhase -> target to amperPhase }
+            }.singleOrNull()
     }
 }

@@ -5,7 +5,6 @@
 package org.jetbrains.amper.cli.commands
 
 import com.github.ajalt.clikt.core.Context
-import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.unique
@@ -18,15 +17,10 @@ import org.jetbrains.amper.cli.options.moduleOption
 import org.jetbrains.amper.cli.withBackend
 import org.jetbrains.amper.engine.PackageTask
 import org.jetbrains.amper.frontend.Model
-import org.jetbrains.amper.tasks.AppStoreConnectAuthKey
 import org.jetbrains.amper.tasks.IpaPackageSettings
 import org.jetbrains.amper.tasks.PackageSettings
-import java.nio.file.InvalidPathException
-import kotlin.io.path.Path
+import org.jetbrains.amper.tasks.ipaAuthKey
 import kotlin.io.path.absolute
-import kotlin.io.path.exists
-import kotlin.io.path.isReadable
-import kotlin.io.path.isRegularFile
 
 internal class PackageCommand : AmperModelAwareCommand(name = "package") {
 
@@ -85,43 +79,4 @@ internal class PackageCommand : AmperModelAwareCommand(name = "package") {
         }
         printSuccessfulCommandConclusion("Build successful")
     }
-
-    private fun ipaAuthKey(): AppStoreConnectAuthKey? {
-        val keyId = System.getenv(KOTLIN_TOOLCHAIN_ASC_KEY_ID_ENV)
-        val issuerId = System.getenv(KOTLIN_TOOLCHAIN_ASC_KEY_ISSUER_ID_ENV)
-        val keyPath = System.getenv(KOTLIN_TOOLCHAIN_ASC_KEY_PATH_ENV)
-        if (keyId == null && issuerId == null && keyPath == null) {
-            return null
-        }
-        if (keyId == null || issuerId == null || keyPath == null) {
-            val provided = mutableListOf<String>()
-            val missing = mutableListOf<String>()
-            (if (keyId != null) provided else missing) += KOTLIN_TOOLCHAIN_ASC_KEY_ID_ENV
-            (if (issuerId != null) provided else missing) += KOTLIN_TOOLCHAIN_ASC_KEY_ISSUER_ID_ENV
-            (if (keyPath != null) provided else missing) += KOTLIN_TOOLCHAIN_ASC_KEY_PATH_ENV
-            throw UsageError(
-                """
-                The App Store Connect authentication environment variables must be provided together, or not at all.
-                Provided: ${provided.joinToString()}.
-                Missing: ${missing.joinToString()}.
-                """.trimIndent()
-            )
-        }
-        val path = try {
-            Path(keyPath).absolute()
-        } catch (_: InvalidPathException) {
-            throw UsageError("$KOTLIN_TOOLCHAIN_ASC_KEY_PATH_ENV is set to an invalid path: $keyPath")
-        }
-        if (!path.exists()) {
-            throw UsageError("$KOTLIN_TOOLCHAIN_ASC_KEY_PATH_ENV ($path) doesn't exist.")
-        }
-        if (!path.isRegularFile() || !path.isReadable()) {
-            throw UsageError("$KOTLIN_TOOLCHAIN_ASC_KEY_PATH_ENV ($path) is not a readable file.")
-        }
-        return AppStoreConnectAuthKey(keyId = keyId, issuerId = issuerId, keyPath = path)
-    }
 }
-
-private const val KOTLIN_TOOLCHAIN_ASC_KEY_ID_ENV = "KOTLIN_TOOLCHAIN_ASC_KEY_ID"
-private const val KOTLIN_TOOLCHAIN_ASC_KEY_ISSUER_ID_ENV = "KOTLIN_TOOLCHAIN_ASC_KEY_ISSUER_ID"
-private const val KOTLIN_TOOLCHAIN_ASC_KEY_PATH_ENV = "KOTLIN_TOOLCHAIN_ASC_KEY_PATH"

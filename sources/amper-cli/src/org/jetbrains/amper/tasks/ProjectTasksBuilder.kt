@@ -60,6 +60,7 @@ class ProjectTasksBuilder(
     val includePluginTasks: Boolean,
     val xcodeBuildSettingsResolution: XcodeBuildSettingsResolution,
     val packageSettings: PackageSettings = PackageSettings(),
+    val publishSettings: PublishSettings = PublishSettings(),
 ) {
     val tasks = TaskGraphBuilder()
 

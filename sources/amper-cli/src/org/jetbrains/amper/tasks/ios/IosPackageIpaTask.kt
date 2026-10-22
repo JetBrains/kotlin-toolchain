@@ -18,14 +18,12 @@ import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.tasks.AppStoreConnectAuthKey
 import org.jetbrains.amper.tasks.IpaPackageSettings
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.util.BuildType
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
-import kotlin.io.path.absolutePathString
 import kotlin.io.path.copyTo
 import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteRecursively
@@ -35,9 +33,9 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.pathString
 
 /**
- * Packages an iOS app into a signed `.ipa` using `xcodebuild archive` and `xcodebuild -exportArchive`.
+ * Packages an iOS app into a signed `.ipa` using a shared archive and `xcodebuild -exportArchive`.
  *
- * It reuses the same Xcode project integration as [IosBuildTask], but runs the `archive` action instead of `build`.
+ * The archive is produced by [IosArchiveTask], which is also used by the TestFlight upload task.
  */
 internal class IosPackageIpaTask(
     override val module: AmperModule,
@@ -64,7 +62,8 @@ internal class IosPackageIpaTask(
         executionContext.eventSink,
         dependenciesResult.xcodeEnvironment(),
     ) {
-        val prebuildResult = dependenciesResult.requireSingleDependency<IosPreBuildTask.Result>()
+        val archiveResult = dependenciesResult.requireSingleDependency<IosArchiveTask.Result>()
+        val prebuildResult = archiveResult.prebuildResult
         val teamId = resolveSigning(
             buildSettingsResolution.getResolver(buildType, dependenciesResult),
             module.userReadableName,
@@ -73,19 +72,14 @@ internal class IosPackageIpaTask(
         )
 
         val workingDir = taskOutputPath.path.createDirectories()
-        val archivePath = (workingDir / "${module.userReadableName}.xcarchive").also(Path::deleteRecursively)
         val exportPath = (workingDir / "export").also(Path::deleteRecursively)
-
-        operationEventScope("building the archive") {
-            archive(archivePath, workingDir, prebuildResult)
-        }
 
         val exportOptionsPath = settings.exportOptionsPlistPath ?: (workingDir / "ExportOptions.plist")
         if (settings.exportOptionsPlistPath == null) {
             writeExportOptions(exportOptionsPath, teamId)
         }
         operationEventScope("exporting the archive") {
-            export(archivePath, exportPath, exportOptionsPath, workingDir, prebuildResult)
+            export(archiveResult.archivePath, exportPath, exportOptionsPath, workingDir, prebuildResult)
         }
 
         val exportedIpa = exportPath.listDirectoryEntries().singleOrNull { it.extension == "ipa" }
@@ -93,23 +87,8 @@ internal class IosPackageIpaTask(
         val ipaPath = (buildOutputRoot.path / "packages" / format.value).createDirectories() /
                 "${module.userReadableName}-${buildType.value}.ipa"
         exportedIpa.copyTo(ipaPath, StandardCopyOption.REPLACE_EXISTING)
-        terminal.success("Archive is available at $ipaPath")
+        terminal.success("IPA is available at $ipaPath")
         return Result(ipaPath = ipaPath)
-    }
-
-    context(executionContext: TaskGraphExecutionContext, _: XcodeEnvironment)
-    private suspend fun archive(
-        archivePath: Path,
-        workingDir: Path,
-        prebuildResult: IosPreBuildTask.Result,
-    ) {
-        val command = buildList {
-            addAll(xcodebuildCommonAppArgs(module, platform, buildType, XcodebuildDirs(workingDir)))
-            this += "-archivePath"; this += archivePath.pathString
-            addAll(provisioningArgs(settings.authKey))
-            this += "archive"
-        }
-        runXcodebuildChecked(command, workingDir, prebuildResult, step = "xcodebuild archive")
     }
 
     context(executionContext: TaskGraphExecutionContext, _: XcodeEnvironment)
@@ -130,18 +109,6 @@ internal class IosPackageIpaTask(
             addAll(provisioningArgs(settings.authKey))
         }
         runXcodebuildChecked(
-            command, workingDir, prebuildResult, step = "xcodebuild -exportArchive",
-        )
-    }
-
-    context(executionContext: TaskGraphExecutionContext, _: XcodeEnvironment)
-    private suspend fun runXcodebuildChecked(
-        command: List<String>,
-        workingDir: Path,
-        prebuildResult: IosPreBuildTask.Result,
-        step: String,
-    ) {
-        val exitCode = runXcodebuild(
             module = module,
             command = command,
             workingDir = workingDir,
@@ -149,10 +116,8 @@ internal class IosPackageIpaTask(
             userCacheRoot = userCacheRoot,
             terminal = terminal,
             processRunner = processRunner,
+            step = "xcodebuild -exportArchive",
         )
-        if (exitCode != 0) {
-            userReadableError("$step failed with exit code $exitCode, check the log above.")
-        }
     }
 
     private fun writeExportOptions(path: Path, teamId: String) {
@@ -181,35 +146,21 @@ internal fun resolveSigning(
 ): String {
     if (resolver.codeSignStyle.equals("Manual", ignoreCase = true) && settings.exportOptionsPlistPath == null) {
         userReadableError(
-            "Cannot package an .ipa for module '$moduleName': the Xcode project uses manual teamId " +
+            "Cannot archive the iOS app for module '$moduleName': the Xcode project uses manual teamId " +
                     "(`CODE_SIGN_STYLE=Manual`) for the ${buildType.name} configuration. " +
                     "Provide export options with --ipa-export-options-plist-path."
         )
     }
     val teamId = resolver.developmentTeam?.takeIf { it.isNotBlank() } ?: userReadableError(
-        "Cannot package an .ipa for module '$moduleName': the `DEVELOPMENT_TEAM` build setting " +
+        "Cannot archive the iOS app for module '$moduleName': the `DEVELOPMENT_TEAM` build setting " +
                 "is not set for the ${buildType.name} configuration in the Xcode project. " +
                 "Select a development team in the Xcode project editor (Signing & Capabilities) and try again."
     )
     if (resolver.codeSigningAllowed == "NO") {
         userReadableError(
-            "Cannot package an .ipa for module '$moduleName': code signing is disabled " +
+            "Cannot archive the iOS app for module '$moduleName': code signing is disabled " +
                     "(`CODE_SIGNING_ALLOWED=NO`) for the ${buildType.name} configuration in the Xcode project."
         )
     }
     return teamId
-}
-
-
-/**
- * Arguments that allow `xcodebuild` to create/update provisioning profiles,
- * using the given App Store Connect [authKey] if provided, or the Xcode account session otherwise.
- */
-private fun provisioningArgs(authKey: AppStoreConnectAuthKey?): List<String> = buildList {
-    this += "-allowProvisioningUpdates"
-    if (authKey != null) {
-        this += "-authenticationKeyID"; this += authKey.keyId
-        this += "-authenticationKeyIssuerID"; this += authKey.issuerId
-        this += "-authenticationKeyPath"; this += authKey.keyPath.absolutePathString()
-    }
 }

@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.tasks
 
+import org.jetbrains.amper.appstoreconnect.AppStoreConnectAuthKey
 import java.nio.file.Path
 
 /**
@@ -33,15 +34,3 @@ class IpaPackageSettings(
     /** Resolved only when IPA packaging is selected, so unrelated commands do not validate signing credentials. */
     val authKey: AppStoreConnectAuthKey? by lazy(authKeyProvider)
 }
-
-/**
- * App Store Connect API key, used by `xcodebuild` for authentication without an Xcode account session.
- */
-data class AppStoreConnectAuthKey(
-    val keyId: String,
-    val issuerId: String,
-    /**
-     * Absolute path to the `.p8` private key file.
-     */
-    val keyPath: Path,
-)

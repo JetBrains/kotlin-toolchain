@@ -1,0 +1,20 @@
+product: jvm/lib
+
+description: App Store Connect API access.
+
+apply:
+  - //sources/common.module-template.yaml
+
+dependencies:
+  - //sources/core
+  - $kotlin.serialization.json
+  - $libs.bouncycastle.bcpkix
+  - $libs.bouncycastle.bcprov
+  - $libs.kotlinx.coroutines.core
+  - $libs.ktor.client: exported # HttpStatusCode is part of AppStoreConnectException
+  - $libs.ktor.client.cio: runtime-only
+  - $libs.slf4j.api
+
+settings:
+  kotlin:
+    serialization: enabled

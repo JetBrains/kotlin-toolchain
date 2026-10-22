@@ -146,12 +146,60 @@ Without them, the Apple account signed into Xcode is used.
 
 ## Publishing
 
-The Kotlin Toolchain creates a regular Xcode project for an `ios/app` module. Use that project to configure
-signing, create a release archive, and upload the application to App Store Connect.
-
 You need a Mac with Xcode and an [Apple Developer Program](https://developer.apple.com/programs/) membership.
 
-### Prepare the application
+### Publish with `kotlin publish testflight`
+
+!!! info "Preview"
+
+    `kotlin publish testflight` is in preview, and is likely to change. Don't hesitate to
+    [share your feedback](https://youtrack.jetbrains.com/newIssue?project=KTC)!
+
+The special `testflight` repository ID publishes an `ios/app` module to App Store Connect and TestFlight. It is built
+into `kotlin publish` and does not need to be declared in the project's repositories. For example:
+
+```bash
+kotlin publish testflight
+```
+
+If the project has more than one iOS app module, `-m <ios-module-name` is required to specify which module to publish.
+The command checks for Xcode, ensures the automatic signing is selected,
+registers the bundle ID if needed, and uploads a release build. If the App Store Connect app record does not exist, the
+command guides you through creating it. Apple then processes the uploaded build for TestFlight.
+
+The command requires an App Store Connect team API key with API access and an Admin role for automatic provisioning.
+The key is configured with the following environment variables:
+
+| Environment variable                 | Description                                                 |
+|--------------------------------------|-------------------------------------------------------------|
+| `KOTLIN_TOOLCHAIN_ASC_KEY_PATH`      | Path to the App Store Connect API private key (`.p8` file). |
+| `KOTLIN_TOOLCHAIN_ASC_KEY_ID`        | App Store Connect API key ID.                               |
+| `KOTLIN_TOOLCHAIN_ASC_KEY_ISSUER_ID` | App Store Connect API key issuer ID.                        |
+
+In an interactive terminal session, all of these values can be specified interactively instead. The command then
+offers a wizard-like setup that guides you through the necessary steps when you publish for the first time: it prompts
+for the `.p8` key path, Key ID, and Issuer ID, saves them in `app-store-connect-auth.properties` in the module
+directory, and adds that file to `.gitignore`. It also asks you to confirm or fix other parts of the setup, such as the
+bundle ID, the app record, or the encryption declaration.
+
+When running non-interactively (for example, on CI), nothing is asked. The credentials are taken from the
+`app-store-connect-auth.properties` file in the module directory if it exists (for example, saved by an earlier
+interactive run), and from the environment variables otherwise. Values from the file take precedence over the
+environment variables. The command exits with an error if something is missing or wrong at any stage of the setup.
+
+!!! warning "Automatic signing only"
+
+    `kotlin publish testflight` supports automatic signing for straightforward setups and is intended to help you get
+    started. It does not cover manual signing or more complex publishing workflows. For those scenarios, use another
+    tool such as [fastlane](https://docs.fastlane.tools/getting-started/ios/setup/), which can integrate directly with
+    the Xcode project.
+
+### Publish manually
+
+Given that there is a regular Xcode project for an `ios/app` module, you can use it to configure signing,
+create a release archive, and upload the application to App Store Connect manually.
+
+#### Prepare the application
 
 Open the `module.xcodeproj` file of the iOS application module in Xcode, for example:
 
@@ -182,7 +230,7 @@ Register the same bundle identifier in
 then [create the application in App Store Connect](https://appstoreconnect.apple.com/apps). The bundle identifier in
 Xcode, the registered identifier, and the App Store Connect application must match.
 
-### Distribute from the command line
+#### Distribute from the command line
 
 You can ask your coding agent to archive and upload the iOS application to TestFlight, or run the commands below
 manually. Run them from the Kotlin project root and replace the module path and scheme if they differ in your project.
@@ -235,7 +283,7 @@ xcodebuild -exportArchive \
 With `destination` set to `upload`, the export command uploads the application to App Store Connect. After Apple
 finishes processing the build, it becomes available in App Store Connect and can be assigned to TestFlight testers.
 
-### Distribute from Xcode
+#### Distribute from Xcode
 
 You can perform the same archive and upload steps in Xcode:
 

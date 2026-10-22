@@ -194,7 +194,7 @@ class IosProjectsTest : CliTestBase() {
             expectedExitCode = 1,
         )
         result.assertStderrContains(
-            "Cannot package an .ipa for module 'compose': the `DEVELOPMENT_TEAM` build setting is not set " +
+            "Cannot archive the iOS app for module 'compose': the `DEVELOPMENT_TEAM` build setting is not set " +
                     "for the Release configuration in the Xcode project."
         )
         result.withTelemetrySpans {
