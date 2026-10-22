@@ -53,4 +53,11 @@ object FusConsent {
         jetBrainsConsent.writeFlag(ConsentFlag.FUS_ID, consentBannerVersion = BANNER_VERSION, state = newAnswer)
         return newAnswer
     }
+
+    /**
+     * Sets the consent flag for FUS collection to the given [state].
+     */
+    fun setState(state: ConsentState, os: OsFamily = SystemInfo.CurrentHost.family) {
+        JetBrainsConsent(os).writeFlag(ConsentFlag.FUS_ID, consentBannerVersion = BANNER_VERSION, state = state)
+    }
 }

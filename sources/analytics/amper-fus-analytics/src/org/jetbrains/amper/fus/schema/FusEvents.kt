@@ -81,6 +81,7 @@ object FusEvents {
                 "clean",
                 "clean-shared-caches",
                 "compose-hot-reload-mcp-server",
+                "data-collection-consent",
                 "do",
                 "generate-completion",
                 "ide-integration",
@@ -122,6 +123,10 @@ object FusEvents {
                 "generate-klibs",
                 "manage-xcode",
                 "prepare-compose-resources",
+                // data-collection-consent subcommands
+                "give",
+                "revoke",
+                "show",
             ],
         ))
     }

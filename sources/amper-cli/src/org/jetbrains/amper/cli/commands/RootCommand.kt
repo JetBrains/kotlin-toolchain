@@ -74,6 +74,7 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
             CleanCommand(),
             CleanSharedCachesCommand(),
             ComposeHotReloadMcpServerCommand(),
+            DataCollectionConsentCommand(),
             DoCustomCommand(),
             SuspendingCompletionCommand(
                 help = "Generate a tab-completion script for the Kotlin CLI for the given shell (bash, zsh, or fish)",
@@ -163,21 +164,23 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
             }
         }
 
-        spanBuilder("Setup FUS reporting").use {
-            CliFusReporter.setup(userCacheRoot = sharedCacheDir, terminal = terminal)
-        }
-
-        spanBuilder("Send baseline FUS events").use {
-            CliFusReporter.log(FusEvents.CommandInvoked) {
-                command = currentContext.invokedSubcommand?.commandName
-                subcommands =
-                    currentContext.invokedSubcommand?.currentContext?.invokedSubcommands?.map { it.commandName }
+        if (currentContext.invokedSubcommand !is DataCollectionConsentCommand) {
+            spanBuilder("Setup FUS reporting").use {
+                CliFusReporter.setup(userCacheRoot = sharedCacheDir, terminal = terminal)
             }
-            CliFusReporter.log(FusEvents.EnvironmentState) {
-                osFamily = SystemInfo.CurrentHost.family
-                arch = SystemInfo.CurrentHost.arch
-                ciSystem = CISystem.detect()
-                aiAgent = detectAgent()
+
+            spanBuilder("Send baseline FUS events").use {
+                CliFusReporter.log(FusEvents.CommandInvoked) {
+                    command = currentContext.invokedSubcommand?.commandName
+                    subcommands =
+                        currentContext.invokedSubcommand?.currentContext?.invokedSubcommands?.map { it.commandName }
+                }
+                CliFusReporter.log(FusEvents.EnvironmentState) {
+                    osFamily = SystemInfo.CurrentHost.family
+                    arch = SystemInfo.CurrentHost.arch
+                    ciSystem = CISystem.detect()
+                    aiAgent = detectAgent()
+                }
             }
         }
         if (currentContext.invokedSubcommand == null) {

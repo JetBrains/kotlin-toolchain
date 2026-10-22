@@ -12,7 +12,7 @@
                         {
                             "path": "command",
                             "value": [
-                                "{enum:build|check|clean|clean-shared-caches|compose-hot-reload-mcp-server|do|init|new|package|publish|show|run|tool|convert-project}"
+                                "{enum:build|check|clean|clean-shared-caches|compose-hot-reload-mcp-server|data-collection-consent|do|generate-completion|ide-integration|init|new|package|publish|run|show|task|test|tool|update}"
                             ],
                             "dataType": "PRIMITIVE",
                             "shouldBeAnonymized": false,
@@ -21,7 +21,7 @@
                         {
                             "path": "subcommand",
                             "value": [
-                                "{enum:checks|commands|dependencies|modules|settings|tasks|jaeger|jdk|keystore|klib|xcode-integration|convert-project|commonize-native-distribution|generate-klibs|manage-xcode|prepare-compose-resources}"
+                                "{enum:checks|commands|dependencies|modules|settings|tasks|jaeger|jdk|keystore|klib|xcode-integration|convert-project|commonize-native-distribution|generate-klibs|manage-xcode|prepare-compose-resources|give|revoke|show}"
                             ],
                             "dataType": "ARRAY",
                             "shouldBeAnonymized": false,
