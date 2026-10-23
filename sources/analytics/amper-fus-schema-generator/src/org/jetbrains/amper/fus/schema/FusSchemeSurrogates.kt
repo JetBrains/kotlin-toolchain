@@ -28,9 +28,9 @@ internal fun EventsScheme.toJsonString(): String = schemeJson.encodeToString(toS
 @Serializable
 private data class EventsSchemeSurrogate(
     val buildNumber: String?,
-    val scheme: List<GroupDescriptorSurrogate>,
     val commitHash: String?,
     val recorderScheme: List<RecorderDescriptorSurrogate>?,
+    val scheme: List<GroupDescriptorSurrogate>,
 )
 
 @Serializable
@@ -38,11 +38,11 @@ private data class GroupDescriptorSurrogate(
     val id: String,
     val type: String,
     val version: Int,
-    val schema: List<EventDescriptorSurrogate>,
     val description: String,
     val className: String?,
     val fileName: String?,
     val recorder: String?,
+    val schema: List<EventDescriptorSurrogate>,
     val plugin: PluginSchemeDescriptorSurrogate?,
 )
 
@@ -52,20 +52,20 @@ private data class PluginSchemeDescriptorSurrogate(val id: String)
 @Serializable
 private data class EventDescriptorSurrogate(
     val event: String,
-    val fields: List<FieldDescriptorSurrogate>,
     val description: String,
     val category: String?,
     @SerialName("presentation_template")
     val presentationTemplate: String?,
+    val fields: List<FieldDescriptorSurrogate>,
 )
 
 @Serializable
 private data class FieldDescriptorSurrogate(
     val path: String,
-    val value: List<String>,
+    val description: String?,
     val dataType: String,
     val shouldBeAnonymized: Boolean,
-    val description: String?,
+    val value: List<String>,
 )
 
 @Serializable

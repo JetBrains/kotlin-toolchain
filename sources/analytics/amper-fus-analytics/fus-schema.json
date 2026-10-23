@@ -1,89 +1,5 @@
 {
     "buildNumber": "1.0",
-    "scheme": [
-        {
-            "id": "ktc.command",
-            "type": "counter",
-            "version": 1,
-            "schema": [
-                {
-                    "event": "ktc.command.invoked",
-                    "fields": [
-                        {
-                            "path": "command",
-                            "value": [
-                                "{enum:build|check|clean|clean-shared-caches|compose-hot-reload-mcp-server|data-collection-consent|do|generate-completion|ide-integration|init|new|package|publish|run|show|task|test|tool|update}"
-                            ],
-                            "dataType": "PRIMITIVE",
-                            "shouldBeAnonymized": false,
-                            "description": "The name of the invoked command, or null if the 'kotlin' CLI was invoked without a command. Required if 'subcommand' is not empty."
-                        },
-                        {
-                            "path": "subcommand",
-                            "value": [
-                                "{enum:checks|commands|dependencies|modules|settings|tasks|jaeger|jdk|keystore|klib|xcode-integration|convert-project|commonize-native-distribution|generate-klibs|manage-xcode|prepare-compose-resources|give|revoke|show}"
-                            ],
-                            "dataType": "ARRAY",
-                            "shouldBeAnonymized": false,
-                            "description": "The name of the invoked subcommands (like 'jdk' for 'kotlin tool jdk'), or an empty list if no subcommands were passed (like 'kotlin build'). This is a list because some commands may allow multiple subcommands in the same command line."
-                        }
-                    ],
-                    "description": "A CLI command was invoked"
-                }
-            ],
-            "description": "Command execution events"
-        },
-        {
-            "id": "ktc.environment",
-            "type": "state",
-            "version": 1,
-            "schema": [
-                {
-                    "event": "ktc.environment.state",
-                    "fields": [
-                        {
-                            "path": "ai_agent",
-                            "value": [
-                                "{enum:cursor|cursor_cli|kimi|grok|gemini_cli|cline|codex|antigravity|augment_cli|opencode|goose|junie|pi|claude_code|replit|github_copilot|kiro|openclaw|devin|other}"
-                            ],
-                            "dataType": "PRIMITIVE",
-                            "shouldBeAnonymized": false,
-                            "description": "The AI agent running the current CLI command, or null if no agent was detected"
-                        },
-                        {
-                            "path": "arch",
-                            "value": [
-                                "{enum:x86_64|arm64}"
-                            ],
-                            "dataType": "PRIMITIVE",
-                            "shouldBeAnonymized": false,
-                            "description": "The CPU architecture of the current machine"
-                        },
-                        {
-                            "path": "ci_system",
-                            "value": [
-                                "{enum:appveyor|codebuild|azure_pipelines|bitbucket|buildkite|circle_ci|github|gitlab|jenkins|teamcity|travis_ci|other}"
-                            ],
-                            "dataType": "PRIMITIVE",
-                            "shouldBeAnonymized": false,
-                            "description": "The CI system the current call is running on, or null if not running on CI"
-                        },
-                        {
-                            "path": "os_family",
-                            "value": [
-                                "{enum:windows|linux|macos|freebsd|solaris}"
-                            ],
-                            "dataType": "PRIMITIVE",
-                            "shouldBeAnonymized": false,
-                            "description": "The operating system family of the current machine"
-                        }
-                    ],
-                    "description": "Environment state"
-                }
-            ],
-            "description": "Environment state events"
-        }
-    ],
     "recorderScheme": [
         {
             "recorderId": "KTC",
@@ -99,6 +15,90 @@
             ],
             "clientData": [],
             "systemData": []
+        }
+    ],
+    "scheme": [
+        {
+            "id": "ktc.command",
+            "type": "counter",
+            "version": 1,
+            "description": "Command execution events",
+            "schema": [
+                {
+                    "event": "ktc.command.invoked",
+                    "description": "A CLI command was invoked",
+                    "fields": [
+                        {
+                            "path": "command",
+                            "description": "The name of the invoked command, or null if the 'kotlin' CLI was invoked without a command. Required if 'subcommand' is not empty.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:build|check|clean|clean-shared-caches|compose-hot-reload-mcp-server|data-collection-consent|do|generate-completion|ide-integration|init|new|package|publish|run|show|task|test|tool|update}"
+                            ]
+                        },
+                        {
+                            "path": "subcommand",
+                            "description": "The name of the invoked subcommands (like 'jdk' for 'kotlin tool jdk'), or an empty list if no subcommands were passed (like 'kotlin build'). This is a list because some commands may allow multiple subcommands in the same command line.",
+                            "dataType": "ARRAY",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:checks|commands|dependencies|modules|settings|tasks|jaeger|jdk|keystore|klib|xcode-integration|convert-project|commonize-native-distribution|generate-klibs|manage-xcode|prepare-compose-resources|give|revoke|show}"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ktc.environment",
+            "type": "state",
+            "version": 1,
+            "description": "Environment state events",
+            "schema": [
+                {
+                    "event": "ktc.environment.state",
+                    "description": "Environment state",
+                    "fields": [
+                        {
+                            "path": "ai_agent",
+                            "description": "The AI agent running the current CLI command, or null if no agent was detected",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:cursor|cursor_cli|kimi|grok|gemini_cli|cline|codex|antigravity|augment_cli|opencode|goose|junie|pi|claude_code|replit|github_copilot|kiro|openclaw|devin|other}"
+                            ]
+                        },
+                        {
+                            "path": "arch",
+                            "description": "The CPU architecture of the current machine",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:x86_64|arm64}"
+                            ]
+                        },
+                        {
+                            "path": "ci_system",
+                            "description": "The CI system the current call is running on, or null if not running on CI",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:appveyor|codebuild|azure_pipelines|bitbucket|buildkite|circle_ci|github|gitlab|jenkins|teamcity|travis_ci|other}"
+                            ]
+                        },
+                        {
+                            "path": "os_family",
+                            "description": "The operating system family of the current machine",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:windows|linux|macos|freebsd|solaris}"
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
