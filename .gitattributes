@@ -25,3 +25,5 @@ mkdocs text eol=lf
 *.original_gradle.json text eol=lf
 # Gradle wrapper from BOM-generation project used for tests
 gradlew text eol=lf
+
+fus-schema.json text eol=lf

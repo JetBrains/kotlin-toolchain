@@ -1,11 +1,14 @@
 tasks:
   generateFusSchema:
     action: !generateFusSchema
-      outputSchemaFile: ${module.rootDir}/fus-schema.json
+      # We place it in the project root, so that we can register it as an artifact on TeamCity in a more robust way.
+      # Placing it in the module directory means the relative path will be hardcoded in the TeamCity configuration,
+      # which makes it harder to rename or move things.
+      outputSchemaFile: ${project.rootDir}/fus-schema.json
   checkFusSchema:
     action: !checkFusSchema
-      existingCheckedInSchemaFile: ${module.rootDir}/fus-schema.json
-      actualSchemaTempFile: ${module.rootDir}/fus-schema.json.tmp
+      existingCheckedInSchemaFile: ${project.rootDir}/fus-schema.json
+      actualSchemaTempFile: ${project.rootDir}/fus-schema.json.tmp
 
 commands:
   - generateFusSchema
