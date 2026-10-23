@@ -27,14 +27,15 @@ object FusConsent {
      * It should be followed by an interactive selection to send data or not.
      */
     const val PROMPT_BANNER_MARKDOWN_1_2 = """
-        JetBrains would like to collect basic telemetry and events data about your product use 
-        such as commands, used models or device values to improve our products.
-    
-        Data sharing preferences apply to all JetBrains products.
-        
-        Learn more in our [Product Data Collection and Usage Notice](https://www.jetbrains.com/legal/docs/terms/product_data_collection/).
-    """.trimIndent()
+        JetBrains would like to collect basic telemetry and events data about your use of our products, 
+        including collection of data such as commands, used models or device values, to improve our products.
 
+        Data sharing preferences apply to all JetBrains products you use, install or purchase.
+
+        Learn more in our [Product Data Collection and Usage Notice](https://www.jetbrains.com/legal/docs/terms/product_data_collection/).
+        
+        You can change your mind at anytime by running `kotlin data-collection-consent revoke` or `kotlin data-collection-consent give`.
+    """.trimIndent()
 
     /**
      * Detects existing FUS collection consent, and calls [prompt] if no consent was found.
