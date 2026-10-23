@@ -6,11 +6,11 @@ package org.jetbrains.amper.frontend.diagnostics
 
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.SchemaBundle
-import org.jetbrains.amper.frontend.api.Trace
 import org.jetbrains.amper.frontend.api.TraceableValue
 import org.jetbrains.amper.frontend.api.asTraceableValue
 import org.jetbrains.amper.frontend.api.isExplicitlySet
 import org.jetbrains.amper.frontend.asBuildProblemSource
+import org.jetbrains.amper.frontend.jvmSettings
 import org.jetbrains.amper.frontend.schema.JvmSettings
 import org.jetbrains.amper.frontend.schema.KotlinVersion
 import org.jetbrains.amper.frontend.types.generated.*
@@ -99,41 +99,37 @@ private data class MaxJvmTargetRange(
 object KotlinVersionDoesNotSupportJvmTargetFactory : AomSingleModuleDiagnosticFactory {
 
     override fun analyze(module: AmperModule, problemReporter: ProblemReporter) {
-        val reportedPlaces = mutableSetOf<Pair<Trace, BuildProblemSource>>()
-        module.fragments.forEach { fragment ->
-            val settings = fragment.settings
-            val kotlinVersion = settings.kotlin.version
+        // We don't have a module-level helper for Kotlin settings because not all subsettings are platform-agnostic
+        // It only works here because we only look at the version setting
+        val kotlinSettings = module.fragments.firstOrNull { !it.isTest }?.settings?.kotlin ?: return
+        val kotlinVersion = kotlinSettings.version
+        val kotlinVersionDelegate = kotlinSettings.versionDelegate
 
-            // A null release means the user wants the Kotlin compiler's own default JVM target, which doesn't depend
-            // on the JDK and is always supported, so nothing to check.
-            val currentJvmTarget = settings.jvm.release ?: return@forEach
+        val jvmSettings = module.jvmSettings
 
-            // We return early if we don't have information about the maximum JVM target of the Kotlin version
-            val maxJvmTarget = maxSupportedTargetFor(kotlinVersion) ?: return@forEach
+        // A null release means the user wants the Kotlin compiler's own default JVM target, which doesn't depend
+        // on the JDK and is always supported, so nothing to check.
+        val currentJvmTarget = jvmSettings.release ?: return
 
-            if (currentJvmTarget <= maxJvmTarget) {
-                return@forEach
-            }
-            val alreadyReported = !reportedPlaces.add(
-                settings.kotlin.versionDelegate.trace to settings.jvm.releaseDelegate.trace.asBuildProblemSource()
-            )
-            if (!alreadyReported) {
-                problemReporter.reportMessage(
-                    KotlinVersionDoesNotSupportJvmTarget(
-                        actualKotlinVersion = settings.kotlin.versionDelegate.asTraceableValue(),
-                        actualJvmReleaseVersion = TraceableValue(
-                            value = currentJvmTarget,
-                            // When the release is not set explicitly, this trace points at the JDK version that it
-                            // references, which is exactly the place the user has to change.
-                            trace = settings.jvm.releaseDelegate.trace,
-                        ),
-                        maxSupportedJvmTarget = maxJvmTarget,
-                        minKotlinVersionForJvmTarget = minKotlinVersionFor(currentJvmTarget),
-                        jvmTargetOrigin = settings.jvm.jvmTargetOrigin,
-                    )
-                )
-            }
+        // We return early if we don't have information about the maximum JVM target of the Kotlin version
+        val maxJvmTarget = maxSupportedTargetFor(kotlinVersion) ?: return
+        if (currentJvmTarget <= maxJvmTarget) {
+            return
         }
+        problemReporter.reportMessage(
+            KotlinVersionDoesNotSupportJvmTarget(
+                actualKotlinVersion = kotlinVersionDelegate.asTraceableValue(),
+                actualJvmReleaseVersion = TraceableValue(
+                    value = currentJvmTarget,
+                    // When the release is not set explicitly, this trace points at the JDK version that it
+                    // references, which is exactly the place the user has to change.
+                    trace = jvmSettings.releaseDelegate.trace,
+                ),
+                maxSupportedJvmTarget = maxJvmTarget,
+                minKotlinVersionForJvmTarget = minKotlinVersionFor(currentJvmTarget),
+                jvmTargetOrigin = jvmSettings.jvmTargetOrigin,
+            )
+        )
     }
 
     private fun maxSupportedTargetFor(kotlinVersion: KotlinVersion): Int? = MaxJvmTargetRanges
