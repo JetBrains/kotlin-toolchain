@@ -77,11 +77,6 @@ dependencies:
   - $libs.opentelemetry.sdkTrace
   - $libs.opentelemetry.kotlin
   - $libs.jna.platform
-  # for files downloading
-  - $libs.ktor.client.cio
-  - $libs.ktor.client.encoding
-  - $libs.ktor.client.auth
-  - $libs.ktor.client
   # for something else
   - $libs.android.tools.sdklib
   - $libs.android.tools.common

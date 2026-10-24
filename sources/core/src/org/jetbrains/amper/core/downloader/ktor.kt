@@ -5,6 +5,7 @@
 package org.jetbrains.amper.core.downloader
 
 import io.ktor.client.*
+import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.compression.*
 import org.jetbrains.amper.buildinfo.AmperBuild
@@ -20,7 +21,11 @@ private const val AmperUserAgent = "KotlinToolchain/${AmperBuild.userAgentVersio
  * For file downloads, use [Downloader] instead, and the shared cache.
  */
 val amperHttpClient: HttpClient by lazy {
-    HttpClient {
+    // CIO limits each response header to 8 KiB (KTOR-5613), but GitHub Releases redirects sometimes exceed it in their
+    // Content-Security-Policy header. So we can't use CIO.
+    // The Java engine doesn't support the socket timeout that we need in the Downloader.
+    // So we use the OkHttp engine.
+    HttpClient(OkHttp) {
         expectSuccess = true
 
         install(UserAgent) {

@@ -11,8 +11,7 @@ dependencies:
   - $libs.bouncycastle.bcpkix
   - $libs.bouncycastle.bcprov
   - $libs.kotlinx.coroutines.core
-  - $libs.ktor.client: exported # HttpStatusCode is part of AppStoreConnectException
-  - $libs.ktor.client.cio: runtime-only
+  - $libs.ktor.client.core: exported # HttpStatusCode is part of AppStoreConnectException
   - $libs.slf4j.api
 
 settings:

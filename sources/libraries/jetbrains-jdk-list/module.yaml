@@ -13,7 +13,7 @@ dependencies:
   - $libs.xz
 
 test-dependencies:
-  - $libs.ktor.client.cio
+  - $libs.ktor.client.java
 
 settings:
   kotlin:
