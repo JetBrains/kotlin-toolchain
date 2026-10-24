@@ -10,6 +10,8 @@ import org.jetbrains.amper.events.sink.NoopEventSink
 import org.jetbrains.amper.frontend.schema.JdkSelectionMode
 import org.jetbrains.amper.frontend.schema.JvmDistribution
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.jdks.IjJdkFamily
+import org.jetbrains.amper.jdks.IjJdkOs
 import org.jetbrains.amper.jdks.fetchIjJdks
 import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
 import org.jetbrains.amper.system.info.Arch
@@ -70,13 +72,15 @@ class JdkProviderTest {
         assertValidJdk(
             JdkProvisioningCriteria(
                 majorVersion = when (distribution) {
-                    // there is no Dragonwell JDK 25 yet
-                    JvmDistribution.AlibabaDragonwell -> ijJdks
-                        .filter { it.vendor.lowercase() == "alibaba" }
-                        .maxOf { it.jdkVersionMajor }
                     // Only the latest Oracle OpenJDK is provided in the list from JetBrains, so we use that version
                     JvmDistribution.OracleOpenJdk -> ijJdks
                         .filter { it.vendor.lowercase() == "oracle" && it.product.lowercase() == "openjdk" }
+                        .maxOf { it.jdkVersionMajor }
+                    // See IDEA-395239. The JDK list seems to lack the Microsoft JDK 25 for macOS and Windows
+                    // This is most likely because Microsoft hasn't released those OS variants for the last patch, and
+                    // IntelliJ's list doesn't provide the last patch per OS.
+                    JvmDistribution.Microsoft -> ijJdks
+                        .filter { family -> family.vendor.lowercase() == "microsoft" && family.hasPackageForCurrentOs() }
                         .maxOf { it.jdkVersionMajor }
                     else -> 25
                 },
@@ -88,6 +92,14 @@ class JdkProviderTest {
                 },
             )
         )
+    }
+
+    private fun IjJdkFamily.hasPackageForCurrentOs(): Boolean = packages.any { it.os.toOsFamily() == OsFamily.current }
+
+    private fun IjJdkOs.toOsFamily() = when (this) {
+        IjJdkOs.Windows -> OsFamily.Windows
+        IjJdkOs.MacOS -> OsFamily.MacOs
+        IjJdkOs.Linux -> OsFamily.Linux
     }
 
     /**
