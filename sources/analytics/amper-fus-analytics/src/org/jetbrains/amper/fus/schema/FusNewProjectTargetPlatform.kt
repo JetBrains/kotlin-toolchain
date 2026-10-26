@@ -4,6 +4,11 @@
 
 package org.jetbrains.amper.fus.schema
 
+enum class NewProjectCommand(override val fusId: String) : FusEnum<NewProjectCommand> {
+    New("new"),
+    Init("init"),
+}
+
 enum class FusNewProjectTargetPlatform(override val fusId: String) : FusEnum<FusNewProjectTargetPlatform> {
     Desktop("desktop"),
     Android("android"),

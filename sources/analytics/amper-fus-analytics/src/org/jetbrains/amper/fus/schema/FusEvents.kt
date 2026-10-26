@@ -219,7 +219,7 @@ object FusEvents {
 
     private val ProjectCountersGroup = group(
         id = "ktc.project",
-        version = 2,
+        version = 3,
         type = EventLogGroup.Type.COUNTER,
         description = "Project-related events of type COUNTER",
     )
@@ -231,6 +231,11 @@ object FusEvents {
     )
 
     class ProjectCreatedFields : FieldListDescription() {
+
+        var command by field(EventFields.Enum<NewProjectCommand>(
+            name = "command",
+            description = "The command that was used to generate the project.",
+        ))
 
         var templateId by field(EventFields.String(
             name = "template_id",

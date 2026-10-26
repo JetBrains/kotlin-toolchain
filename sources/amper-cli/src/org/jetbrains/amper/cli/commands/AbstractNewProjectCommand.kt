@@ -29,6 +29,7 @@ import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.widgets.withIndeterminateProgress
 import org.jetbrains.amper.fus.schema.FusEvents
 import org.jetbrains.amper.fus.schema.FusNewProjectTargetPlatform
+import org.jetbrains.amper.fus.schema.NewProjectCommand
 import org.jetbrains.amper.projectwizard.AiAgent
 import org.jetbrains.amper.projectwizard.KotlinMultiplatformTargetPlatform
 import org.jetbrains.amper.projectwizard.DefaultInteractiveKotlinMultiplatformTargets
@@ -74,7 +75,7 @@ private const val ProjectIdRequirements =
  * the flat [cliVisibleTemplates], or as a parameterized Compose Multiplatform application (see
  * [KotlinMultiplatformTargetPlatform]). They only differ in how the target directory is determined (see [resolveTargetDir]).
  */
-internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcommand(name) {
+internal sealed class AbstractNewProjectCommand(name: String) : AmperSubcommand(name) {
     private sealed interface AiConfigurationOption {
         data object NoAi : AiConfigurationOption
         data class SelectedAgents(val agents: List<AiAgent>) : AiConfigurationOption
@@ -199,6 +200,10 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
     private fun reportProjectCreated(outputDir: Path, mode: NewProjectMode, agents: Set<AiAgent>) {
         CliFusReporter.setProject(outputDir)
         CliFusReporter.log(FusEvents.ProjectCreated) {
+            command = when (this@AbstractNewProjectCommand) {
+                is InitCommand -> NewProjectCommand.Init
+                is NewCommand -> NewProjectCommand.New
+            }
             templateId = mode.templateId
             targetPlatforms = when (mode) {
                 is NewProjectMode.KotlinMultiplatformApp -> mode.targets.map { it.toFusTargetPlatform() }

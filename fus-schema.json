@@ -128,7 +128,7 @@
         {
             "id": "ktc.project",
             "type": "counter",
-            "version": 2,
+            "version": 3,
             "description": "Project-related events of type COUNTER",
             "schema": [
                 {
@@ -142,6 +142,15 @@
                             "shouldBeAnonymized": false,
                             "value": [
                                 "{enum#boolean}"
+                            ]
+                        },
+                        {
+                            "path": "command",
+                            "description": "The command that was used to generate the project.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:New|Init}"
                             ]
                         },
                         {
