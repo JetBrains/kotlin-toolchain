@@ -32,7 +32,8 @@ fun generateFusSchema(@Output outputSchemaFile: Path) {
         recorderDefinitions = FusSchemaDescription.recorderDefinitions,
         // This sets the recorder in all groups.
         // It's required to satisfy the metadata generation pipeline (which checks this)
-        recorder = FusSchemaDescription.recorderDefinitions.first().fusRecorder.id,
+        recorder = FusSchemaDescription.recorderDefinitions.singleOrNull()?.fusRecorder?.id
+            ?: error("Did we just add a second recorder? Then we need to revise the group-level recorder IDs"),
     )
     outputSchemaFile.writeText(eventsScheme.toJsonString())
 }
