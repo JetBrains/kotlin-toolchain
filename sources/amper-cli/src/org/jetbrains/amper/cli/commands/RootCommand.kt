@@ -236,6 +236,7 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
                 ci != null -> FusCommandCallerType.CI
                 else -> FusCommandCallerType.Terminal
             }
+            interactive = terminal.terminalInfo.interactive
         }
         CliFusReporter.log(FusEvents.EnvironmentState) {
             osFamily = SystemInfo.CurrentHost.family

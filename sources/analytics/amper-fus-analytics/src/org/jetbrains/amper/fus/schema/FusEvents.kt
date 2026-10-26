@@ -57,7 +57,7 @@ object FusEvents {
 
     private val CommandGroup = group(
         id = "ktc.command",
-        version = 2,
+        version = 3,
         type = EventLogGroup.Type.COUNTER,
         description = "Command execution events",
     )
@@ -99,6 +99,7 @@ object FusEvents {
                 "update",
             ],
         ))
+
         var subcommands by field(EventFields.StringList(
             name = "subcommand",
             description = "The name of the invoked subcommands (like 'jdk' for 'kotlin tool jdk'), or an empty list " +
@@ -131,10 +132,16 @@ object FusEvents {
                 "show",
             ],
         ))
+
         var callerType by field(EventFields.Enum<FusCommandCallerType>(
             name = "caller_type",
             description = "The source of the CLI call (IDE, AI Agent, regular user in the terminal, etc.)",
             transform = { it.fusId },
+        ))
+
+        var interactive by field(EventFields.Boolean(
+            name = "interactive",
+            description = "Whether the command was run in an interactive terminal.",
         ))
     }
 

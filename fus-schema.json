@@ -28,7 +28,7 @@
         {
             "id": "ktc.command",
             "type": "counter",
-            "version": 2,
+            "version": 3,
             "description": "Command execution events",
             "schema": [
                 {
@@ -51,6 +51,15 @@
                             "shouldBeAnonymized": false,
                             "value": [
                                 "{enum:build|check|clean|clean-shared-caches|compose-hot-reload-mcp-server|data-collection-consent|do|generate-completion|ide-integration|init|new|package|publish|run|show|task|test|tool|update}"
+                            ]
+                        },
+                        {
+                            "path": "interactive",
+                            "description": "Whether the command was run in an interactive terminal.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum#boolean}"
                             ]
                         },
                         {
