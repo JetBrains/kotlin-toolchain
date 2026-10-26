@@ -15,7 +15,7 @@ import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
-import org.jetbrains.amper.core.extract.extractZip
+import org.jetbrains.amper.core.extract.extractFileToLocation
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.android.AndroidTools
@@ -130,7 +130,7 @@ class AndroidProjectsTest : CliTestBase() {
         )
         val apkPath = result.getArtifactPath(taskName)
         val extractedApkPath = apkPath.parent.resolve("extractedApk")
-        extractZip(apkPath, extractedApkPath, false)
+        extractFileToLocation(apkPath, extractedApkPath)
         val themeReference = getThemeReferenceFromAndroidManifest(extractedApkPath)
         assertThemeContainsInResources(extractedApkPath / "resources.arsc", themeReference)
     }
@@ -266,7 +266,7 @@ class AndroidProjectsTest : CliTestBase() {
         )
         val apkPath = result.getArtifactPath(taskName)
         val extractedApkPath = apkPath.parent.resolve("extractedApk")
-        extractZip(apkPath, extractedApkPath, false)
+        extractFileToLocation(apkPath, extractedApkPath)
 
         // AGP packages jniLibs/<abi>/libfoo.so into lib/<abi>/libfoo.so in the APK
         assertTrue(
@@ -289,7 +289,7 @@ class AndroidProjectsTest : CliTestBase() {
         )
         val apkPath = result.getArtifactPath(taskName)
         val extractedApkPath = apkPath.parent.resolve("extractedApk")
-        extractZip(apkPath, extractedApkPath, false)
+        extractFileToLocation(apkPath, extractedApkPath)
 
         // The module has jniLibs for both arm64-v8a and x86_64, but only lists arm64-v8a in abiFilters,
         // so the x86_64 variant must not be packaged.
@@ -590,9 +590,9 @@ class AndroidProjectsTest : CliTestBase() {
             .firstOrNull { it.extension.equals(extension, ignoreCase = true) }
             ?: fail("artifact not found")
 
-    private fun assertClassContainsInApk(dalvikFqn: String, apkPath: Path) {
+    private suspend fun assertClassContainsInApk(dalvikFqn: String, apkPath: Path) {
         val extractedApkPath = apkPath.parent.resolve("extractedApk")
-        extractZip(apkPath, extractedApkPath, false)
+        extractFileToLocation(apkPath, extractedApkPath)
         val typesInDexes = extractedApkPath
             .walk()
             .filter { it.extension == "dex" }
@@ -604,18 +604,18 @@ class AndroidProjectsTest : CliTestBase() {
         assertContains(typesInDexes.toList(), dalvikFqn)
     }
 
-    private fun assertFileContainsInBundle(fileName: String, bundlePath: Path) {
+    private suspend fun assertFileContainsInBundle(fileName: String, bundlePath: Path) {
         val extractedAabPath = bundlePath.parent.resolve("extractedBundle")
-        extractZip(bundlePath, extractedAabPath, false)
+        extractFileToLocation(bundlePath, extractedAabPath)
         val files = extractedAabPath
             .walk()
             .map { it.name }
         assertContains(files.toList(), fileName)
     }
 
-    private fun assertFileWithExtensionDoesNotContainInBundle(extension: String, bundlePath: Path) {
+    private suspend fun assertFileWithExtensionDoesNotContainInBundle(extension: String, bundlePath: Path) {
         val extractedApkPath = bundlePath.parent.resolve("extractedBundle")
-        extractZip(bundlePath, extractedApkPath, false)
+        extractFileToLocation(bundlePath, extractedApkPath)
         val typesInDexes = extractedApkPath
             .walk()
             .map { it.extension }

@@ -16,7 +16,7 @@ import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertWarnings
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
-import org.jetbrains.amper.core.extract.extractZip
+import org.jetbrains.amper.core.extract.extractFileToLocation
 import org.jetbrains.amper.frontend.schema.Checksum
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.stdlib.hashing.hash
@@ -263,7 +263,7 @@ class PublishCommandTest : CliTestBase() {
             .resolve("jvm-publish-with-signing-central-bundle.zip")
 
         val bundleDir = tempRoot.resolve("jvm-publish-with-signing-central-bundle").also { it.createDirectories() }
-        extractZip(zipBundle, bundleDir, stripRoot = false)
+        extractFileToLocation(zipBundle, bundleDir)
 
         val groupDir = bundleDir.resolve("amper/test/jvm-publish-with-signing")
         groupDir.assertContainsRelativeFiles(
@@ -322,7 +322,7 @@ class PublishCommandTest : CliTestBase() {
             .resolve("jvm-publish-all-checksums-central-bundle.zip")
 
         val bundleDir = tempRoot.resolve("jvm-publish-all-checksums-central-bundle").also { it.createDirectories() }
-        extractZip(zipBundle, bundleDir, stripRoot = false)
+        extractFileToLocation(zipBundle, bundleDir)
 
         val groupDir = bundleDir.resolve("amper/test/jvm-publish-all-checksums")
         groupDir.assertContainsRelativeFiles(
@@ -425,7 +425,7 @@ class PublishCommandTest : CliTestBase() {
             .resolve("kmp-publish-with-signing-central-bundle.zip")
 
         val bundleDir = tempRoot.resolve("kmp-publish-with-signing-central-bundle").also { it.createDirectories() }
-        extractZip(zipBundle, bundleDir, stripRoot = false)
+        extractFileToLocation(zipBundle, bundleDir)
 
         val groupDir = bundleDir.resolve("amper/test/kmp-publish-with-signing")
 

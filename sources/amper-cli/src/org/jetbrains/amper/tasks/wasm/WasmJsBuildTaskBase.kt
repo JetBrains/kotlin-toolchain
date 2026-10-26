@@ -10,7 +10,7 @@ import org.jetbrains.amper.CliReportingMavenResolver
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.core.AmperUserCacheRoot
-import org.jetbrains.amper.core.extract.extractZip
+import org.jetbrains.amper.core.extract.extractFileToLocation
 import org.jetbrains.amper.dependency.resolution.DependencyNode
 import org.jetbrains.amper.dependency.resolution.MavenDependencyNode
 import org.jetbrains.amper.dependency.resolution.ResolutionPlatform
@@ -224,10 +224,9 @@ abstract class WasmJsBuildTaskBase(
     private suspend fun copySkikoWasmRuntime(skikoWasmRuntime: Path) {
         val skikoWasmRuntimeExtracted = tempRoot.path.resolve(SKIKO_WASM_RUNTIME)
 
-        extractZip(
+        extractFileToLocation(
             skikoWasmRuntime,
             skikoWasmRuntimeExtracted,
-            stripRoot = false,
         )
 
         skikoWasmRuntimeExtracted
