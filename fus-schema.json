@@ -69,7 +69,7 @@
         {
             "id": "ktc.environment",
             "type": "state",
-            "version": 1,
+            "version": 2,
             "description": "Environment state events",
             "schema": [
                 {
@@ -86,21 +86,21 @@
                             ]
                         },
                         {
-                            "path": "arch",
-                            "description": "The CPU architecture of the current machine",
-                            "dataType": "PRIMITIVE",
-                            "shouldBeAnonymized": false,
-                            "value": [
-                                "{enum:x86_64|arm64}"
-                            ]
-                        },
-                        {
                             "path": "ci_system",
                             "description": "The CI system the current call is running on, or null if not running on CI",
                             "dataType": "PRIMITIVE",
                             "shouldBeAnonymized": false,
                             "value": [
                                 "{enum:appveyor|codebuild|azure_pipelines|bitbucket|buildkite|circle_ci|github|gitlab|jenkins|teamcity|travis_ci|other}"
+                            ]
+                        },
+                        {
+                            "path": "cpu_arch",
+                            "description": "The CPU architecture of the current machine",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:x86_64|arm64}"
                             ]
                         },
                         {

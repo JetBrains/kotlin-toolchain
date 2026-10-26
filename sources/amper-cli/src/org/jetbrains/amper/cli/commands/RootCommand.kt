@@ -239,7 +239,7 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
         }
         CliFusReporter.log(FusEvents.EnvironmentState) {
             osFamily = SystemInfo.CurrentHost.family
-            arch = SystemInfo.CurrentHost.arch
+            cpuArch = SystemInfo.CurrentHost.arch
             ciSystem = ci
             aiAgent = callingAgent
         }

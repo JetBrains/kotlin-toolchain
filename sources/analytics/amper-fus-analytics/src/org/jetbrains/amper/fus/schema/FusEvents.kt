@@ -140,7 +140,7 @@ object FusEvents {
 
     private val EnvironmentGroup = group(
         id = "ktc.environment",
-        version = 1,
+        version = 2,
         type = EventLogGroup.Type.STATE,
         description = "Environment state events",
     )
@@ -168,8 +168,8 @@ object FusEvents {
             },
         ))
 
-        var arch by field(EventFields.Enum(
-            name = "arch",
+        var cpuArch by field(EventFields.Enum(
+            name = "cpu_arch",
             enumClass = Arch::class.java,
             description = "The CPU architecture of the current machine",
             transform = {
