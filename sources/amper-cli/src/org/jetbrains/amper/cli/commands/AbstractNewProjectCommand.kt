@@ -31,10 +31,10 @@ import org.jetbrains.amper.fus.schema.FusEvents
 import org.jetbrains.amper.fus.schema.FusNewProjectTargetPlatform
 import org.jetbrains.amper.fus.schema.NewProjectCommand
 import org.jetbrains.amper.projectwizard.AiAgent
-import org.jetbrains.amper.projectwizard.KotlinMultiplatformTargetPlatform
 import org.jetbrains.amper.projectwizard.DefaultInteractiveKotlinMultiplatformTargets
 import org.jetbrains.amper.projectwizard.GitInitResult
 import org.jetbrains.amper.projectwizard.InvalidProjectIdException
+import org.jetbrains.amper.projectwizard.KotlinMultiplatformTargetPlatform
 import org.jetbrains.amper.projectwizard.checkValidProjectId
 import org.jetbrains.amper.projectwizard.defaultProjectId
 import org.jetbrains.amper.projectwizard.initGitRepository
@@ -51,6 +51,12 @@ private const val KmpLibraryTemplateId = "kotlin-multiplatform-library"
 private const val ProjectIdHelpHint = "See --help for --project-id requirements."
 private const val ProjectIdImpact =
     "Changing it later requires updating source packages, source layout, and platform configuration, so choose carefully."
+
+private val AgentInitializationHint = """
+    Always pass `--agent=<your agent name>` (one of ${AiAgent.byCliValue.keys.joinToString()}; can be repeated) when creating the project. 
+    This helps with setting up AGENTS.md, skills, MCP servers and other AI features required for smoother development.
+    Only pass the `--no-ai` flag if the user asked explicitly or if your agent is not in the list of supported ones.
+""".trimIndent()
 
 // One hint for all agents. Evaluated through LiteLLM with Claude Code (opus 5.5, medium effort) and Codex
 // (gpt-6.1-sol, medium effort): desktop was added in 47/50 and 49/50 runs respectively.
@@ -83,6 +89,8 @@ internal sealed class AbstractNewProjectCommand(name: String) : AmperSubcommand(
 
     final override fun helpEpilog(context: Context): String = buildString {
         if (isRunByAgent()) {
+            appendLine(AgentInitializationHint)
+            appendLine()
             append(MobileAppHint)
         }
     }
@@ -295,11 +303,20 @@ internal sealed class AbstractNewProjectCommand(name: String) : AmperSubcommand(
         noAi -> []
         agentOptions.isNotEmpty() -> agentOptions.toSet()
         terminal.terminalInfo.interactive -> terminal.promptForAiAgents()
-        else -> userReadableError(
-            "Please specify which AI agents to configure with --agent " +
-                    "(one of: ${AiAgent.byCliValue.keys.joinToString()}; can be repeated), " +
-                    "or pass --no-ai to skip AI configuration."
-        )
+        else -> {
+            val errorMessage = if (isRunByAgent()) {
+                "Pass the AI agents for which the project should be pre-configured with `--agent` (one of: " +
+                        "${AiAgent.byCliValue.keys.joinToString()}; can be repeated). " +
+                        "If user explicitly asked to skip AI configuration or your agent is not present in the list" +
+                        "of applicable values, pass `--no-ai`."
+            } else {
+                "Please specify which AI agents to configure with --agent " +
+                        "(one of: ${AiAgent.byCliValue.keys.joinToString()}; can be repeated), " +
+                        "or pass `--no-ai` to skip AI configuration."
+            }
+
+            userReadableError(errorMessage)
+        }
     }
 
     /**
@@ -397,7 +414,8 @@ internal sealed class AbstractNewProjectCommand(name: String) : AmperSubcommand(
     }
 
     private fun promptForFirstScreen(): FirstScreenChoice {
-        val choices = listOf(FirstScreenChoice.ComposeApp) + cliVisibleTemplates.map { FirstScreenChoice.FromTemplate(it) }
+        val choices =
+            listOf(FirstScreenChoice.ComposeApp) + cliVisibleTemplates.map { FirstScreenChoice.FromTemplate(it) }
         return terminal.interactiveSelectList(
             title = "What do you want to create?",
             items = choices,
