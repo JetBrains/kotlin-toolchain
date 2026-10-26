@@ -30,6 +30,9 @@ fun generateFusSchema(@Output outputSchemaFile: Path) {
         buildNumber = fusBuildNumber,
         groups = FusSchemaDescription.groups,
         recorderDefinitions = FusSchemaDescription.recorderDefinitions,
+        // This sets the recorder in all groups.
+        // It's required to satisfy the metadata generation pipeline (which checks this)
+        recorder = FusSchemaDescription.recorderDefinitions.first().fusRecorder.id,
     )
     outputSchemaFile.writeText(eventsScheme.toJsonString())
 }

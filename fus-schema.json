@@ -30,6 +30,7 @@
             "type": "counter",
             "version": 3,
             "description": "Command execution events",
+            "recorder": "KTC",
             "schema": [
                 {
                     "event": "ktc.command.invoked",
@@ -80,6 +81,7 @@
             "type": "state",
             "version": 2,
             "description": "Environment state events",
+            "recorder": "KTC",
             "schema": [
                 {
                     "event": "ktc.environment.state",
@@ -130,6 +132,7 @@
             "type": "counter",
             "version": 3,
             "description": "Project-related events of type COUNTER",
+            "recorder": "KTC",
             "schema": [
                 {
                     "event": "ktc.project.created",
