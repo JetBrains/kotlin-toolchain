@@ -19,12 +19,16 @@ import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.terminal.prompt
 import com.github.ajalt.mordant.terminal.warning
+import org.jetbrains.amper.agentdetection.Agent
 import org.jetbrains.amper.agentdetection.isRunByAgent
+import org.jetbrains.amper.cli.analytics.CliFusReporter
 import org.jetbrains.amper.cli.terminal.interactiveMultiSelectList
 import org.jetbrains.amper.cli.terminal.interactiveSelectList
 import org.jetbrains.amper.cli.terminal.promptBoolean
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.widgets.withIndeterminateProgress
+import org.jetbrains.amper.fus.schema.FusEvents
+import org.jetbrains.amper.fus.schema.FusNewProjectTargetPlatform
 import org.jetbrains.amper.projectwizard.AiAgent
 import org.jetbrains.amper.projectwizard.KotlinMultiplatformTargetPlatform
 import org.jetbrains.amper.projectwizard.DefaultInteractiveKotlinMultiplatformTargets
@@ -181,6 +185,7 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
         }
 
         printSuccessfulCommandConclusion("Project successfully generated")
+        reportProjectCreated(outputDir, mode, agents)
 
         terminal.println()
         printNextSteps(mode, outputDir)
@@ -189,6 +194,44 @@ internal abstract class AbstractNewProjectCommand(name: String) : AmperSubcomman
         if (!noAi && mode.configuresComposeHotReloadMcp() && isRunByAgent()) {
             printMcpReloadHintForAgent(outputDir, workingDir)
         }
+    }
+
+    private fun reportProjectCreated(outputDir: Path, mode: NewProjectMode, agents: Set<AiAgent>) {
+        CliFusReporter.setProject(outputDir)
+        CliFusReporter.log(FusEvents.ProjectCreated) {
+            templateId = mode.templateId
+            targetPlatforms = when (mode) {
+                is NewProjectMode.KotlinMultiplatformApp -> mode.targets.map { it.toFusTargetPlatform() }
+                is NewProjectMode.FromTemplate -> null
+            }
+            configuredAiAgents = agents.map { it.toAgent() }
+            aiEnabled = !noAi
+            gitEnabled = !noGit
+        }
+    }
+
+    /**
+     * Converts a [KotlinMultiplatformTargetPlatform] to its corresponding [FusNewProjectTargetPlatform].
+     *
+     * This mapping is used to bridge between the target platform representations in the CLI and the FUS
+     * (Feature Usage Statistics) system for new project configurations.
+     */
+    private fun KotlinMultiplatformTargetPlatform.toFusTargetPlatform(): FusNewProjectTargetPlatform = when (this) {
+        KotlinMultiplatformTargetPlatform.ANDROID -> FusNewProjectTargetPlatform.Android
+        KotlinMultiplatformTargetPlatform.IOS -> FusNewProjectTargetPlatform.IOS
+        KotlinMultiplatformTargetPlatform.DESKTOP -> FusNewProjectTargetPlatform.Desktop
+        KotlinMultiplatformTargetPlatform.WEB  -> FusNewProjectTargetPlatform.Web
+        KotlinMultiplatformTargetPlatform.SERVER -> FusNewProjectTargetPlatform.Server
+    }
+
+    // TODO get rid of this when we generally use the Agent enum everywhere
+    private fun AiAgent.toAgent(): Agent = when (this) {
+        AiAgent.CLAUDE -> Agent.ClaudeCode
+        AiAgent.CODEX -> Agent.Codex
+        AiAgent.ANTIGRAVITY -> Agent.Antigravity
+        AiAgent.JUNIE -> Agent.Junie
+        AiAgent.PI -> Agent.Pi
+        AiAgent.OPENCODE -> Agent.OpenCode
     }
 
     /**

@@ -9,6 +9,7 @@ import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.mordant.terminal.success
 import org.jetbrains.amper.buildinfo.AmperBuild
+import org.jetbrains.amper.cli.analytics.CliFusReporter
 import org.jetbrains.amper.cli.context.AmperProjectRoot
 import org.jetbrains.amper.cli.context.CliContext
 import org.jetbrains.amper.cli.context.GlobalCliContext
@@ -59,6 +60,7 @@ internal abstract class AmperSubcommand(name: String) : SuspendingCliktCommand(n
                 problemReporter = problemReporter,
             )
         } else {
+            CliFusReporter.setProject(projectContext.projectRoot.path)
             ProjectCliContext(
                 commandName = commandName,
                 projectContext = projectContext,

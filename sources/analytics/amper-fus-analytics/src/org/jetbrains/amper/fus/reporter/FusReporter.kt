@@ -21,6 +21,7 @@ import org.jetbrains.amper.fus.cache.FusCache
 import org.jetbrains.amper.fus.client.createFusClient
 import org.jetbrains.amper.fus.schema.KtcFusRecorder
 import org.jetbrains.amper.fus.schema.MACHINE_ID_KEY
+import org.jetbrains.amper.fus.schema.PROJECT_ID_KEY
 import org.jetbrains.amper.fus.userid.MachineIdProvider
 import org.jetbrains.amper.fus.userid.isInternalUserForFUS
 import java.util.concurrent.atomic.AtomicLong
@@ -60,10 +61,13 @@ interface FusReporter {
         /**
          * Creates a [FusReporter] that uses the given [FusCache].
          *
+         * The [projectIdProvider] should return a string that identifies the current project.
+         * It will be anonymized automatically.
+         *
          * **IMPORTANT:** This requires user consent. Make sure to check for it using
          * [FusConsent][org.jetbrains.amper.fus.consent.FusConsent].
          */
-        fun createAndStart(fusCache: FusCache): FusReporter {
+        fun createAndStart(fusCache: FusCache, projectIdProvider: () -> String?): FusReporter {
             val client = createFusClient(fusCache)
 
             // No need for scheduled metadata updates for short CLI calls, we can update once per call instead.
@@ -76,7 +80,7 @@ interface FusReporter {
             // Note: it's ok to send, because we check for consent before calling this function.
             client.scheduleSend()
 
-            return DefaultFusReporter(fusCache, client)
+            return DefaultFusReporter(fusCache, client, projectIdProvider)
         }
     }
 }
@@ -84,6 +88,7 @@ interface FusReporter {
 internal class DefaultFusReporter(
     fusCache: FusCache,
     private val writer: FusClient<LogEvent, *>,
+    private val projectIdProvider: () -> String?,
     private val clock: Clock = Clock.System,
 ) : FusReporter {
     private val sessionId: String = Uuid.random().toString()
@@ -102,7 +107,12 @@ internal class DefaultFusReporter(
     private fun buildEvent(event: BaseEventId, data: Map<String, Any>): LogEvent = LogEvent(
         recorder = KtcFusRecorder,
         product = FusConstants.PRODUCT_CODE,
-        ids = mapOf(MACHINE_ID_KEY to machineId),
+        ids = buildMap {
+            put(MACHINE_ID_KEY, machineId)
+            projectIdProvider()?.let {
+                put(PROJECT_ID_KEY, it)
+            }
+        },
         internal = isInternal,
         time = clock.now().toEpochMilliseconds(),
         build = AmperBuild.mavenVersion, // TODO check this, should we trim something?

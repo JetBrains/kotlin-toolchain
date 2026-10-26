@@ -18,13 +18,20 @@ import org.jetbrains.amper.fus.cache.FusCache
 import org.jetbrains.amper.fus.consent.ConsentState
 import org.jetbrains.amper.fus.consent.FusConsent
 import org.jetbrains.amper.fus.reporter.FusReporter
+import java.nio.file.Path
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import kotlin.io.path.absolute
+import kotlin.io.path.invariantSeparatorsPathString
 
 object CliFusReporter : FusReporter {
+
     private var delegate: FusReporter? = null
+
+    @Volatile
+    private var projectId: String? = null
 
     /**
      * A lock used when setting the cache location.
@@ -44,6 +51,15 @@ object CliFusReporter : FusReporter {
     private var shouldBuffer = true
 
     private val buffer: ConcurrentLinkedQueue<PendingEvent> = ConcurrentLinkedQueue()
+
+    /**
+     * Configures the project so future events are reported with the corresponding project ID.
+     */
+    fun setProject(projectRoot: Path) {
+        // Important: this is automatically anonymized inside the FUS reporting infrastructure.
+        // It's not super important to identify the same project across machines at the moment.
+        projectId = projectRoot.absolute().invariantSeparatorsPathString
+    }
 
     /**
      * Checks or prompts for consent using the given [terminal], and initializes this reporter depending on whether the
@@ -66,7 +82,7 @@ object CliFusReporter : FusReporter {
      */
     private fun enable(cache: FusCache) {
         cacheSetLock.write {
-            delegate = FusReporter.createAndStart(cache)
+            delegate = FusReporter.createAndStart(cache, projectIdProvider = { projectId })
             while (buffer.isNotEmpty()) {
                 val event = buffer.poll()
                 delegate?.log(event.id, event.data)

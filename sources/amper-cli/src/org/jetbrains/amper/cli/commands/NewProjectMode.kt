@@ -50,6 +50,15 @@ internal class ProjectFiles(
 }
 
 /**
+ * The id of the project template that this mode generates from.
+ */
+internal val NewProjectMode.templateId: String
+    get() = when (this) {
+        is NewProjectMode.FromTemplate -> template.id
+        is NewProjectMode.KotlinMultiplatformApp -> KotlinMultiplatformTemplateId
+    }
+
+/**
  * A short, human-readable description of what this mode generates, for progress/log messages.
  */
 internal fun NewProjectMode.describe(highlight: (String) -> String): String = when (this) {

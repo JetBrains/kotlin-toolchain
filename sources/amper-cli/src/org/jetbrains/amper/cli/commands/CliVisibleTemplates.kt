@@ -8,7 +8,7 @@ import org.jetbrains.amper.templates.AmperProjectTemplate
 import org.jetbrains.amper.templates.AmperProjectTemplates
 
 /** The template that the parameterized Kotlin Multiplatform wizard generates from, instead of copying it as is. */
-private const val KotlinMultiplatformTemplateId = "kotlin-multiplatform-app"
+internal const val KotlinMultiplatformTemplateId = "kotlin-multiplatform-app"
 
 /**
  * The static templates that the CLI can copy as is: this excludes the Compose templates meant for the IDE, and the
