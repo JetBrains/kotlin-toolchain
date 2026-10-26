@@ -57,7 +57,7 @@ object FusEvents {
 
     private val CommandGroup = group(
         id = "ktc.command",
-        version = 1,
+        version = 2,
         type = EventLogGroup.Type.COUNTER,
         description = "Command execution events",
     )
@@ -130,6 +130,11 @@ object FusEvents {
                 "revoke",
                 "show",
             ],
+        ))
+        var callerType by field(EventFields.Enum<FusCommandCallerType>(
+            name = "caller_type",
+            description = "The source of the CLI call (IDE, AI Agent, regular user in the terminal, etc.)",
+            transform = { it.fusId },
         ))
     }
 

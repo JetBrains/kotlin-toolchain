@@ -28,13 +28,22 @@
         {
             "id": "ktc.command",
             "type": "counter",
-            "version": 1,
+            "version": 2,
             "description": "Command execution events",
             "schema": [
                 {
                     "event": "ktc.command.invoked",
                     "description": "A CLI command was invoked",
                     "fields": [
+                        {
+                            "path": "caller_type",
+                            "description": "The source of the CLI call (IDE, AI Agent, regular user in the terminal, etc.)",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:ai_agent|ci|ide|terminal}"
+                            ]
+                        },
                         {
                             "path": "command",
                             "description": "The name of the invoked command, or null if the 'kotlin' CLI was invoked without a command. Required if 'subcommand' is not empty.",

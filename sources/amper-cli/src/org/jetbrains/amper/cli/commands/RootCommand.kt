@@ -46,6 +46,7 @@ import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withShowCommandSuggestions
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.fus.client.FUS_ENABLED
+import org.jetbrains.amper.fus.schema.FusCommandCallerType
 import org.jetbrains.amper.fus.schema.FusEvents
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -169,19 +170,8 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
             spanBuilder("Setup FUS reporting").use {
                 CliFusReporter.setup(userCacheRoot = sharedCacheDir, terminal = terminal)
             }
-
             spanBuilder("Send baseline FUS events").use {
-                CliFusReporter.log(FusEvents.CommandInvoked) {
-                    command = currentContext.invokedSubcommand?.commandName
-                    subcommands =
-                        currentContext.invokedSubcommand?.currentContext?.invokedSubcommands?.map { it.commandName }
-                }
-                CliFusReporter.log(FusEvents.EnvironmentState) {
-                    osFamily = SystemInfo.CurrentHost.family
-                    arch = SystemInfo.CurrentHost.arch
-                    ciSystem = CISystem.detect()
-                    aiAgent = detectAgent()
-                }
+                sendBaselineFusEvents()
             }
         }
         if (currentContext.invokedSubcommand == null) {
@@ -232,6 +222,28 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
     private fun isWindowsArm64(): Boolean = isWindows() && System.getProperty("os.arch") == "aarch64"
 
     private fun isWindows(): Boolean = System.getProperty("os.name").lowercase().contains("win")
+
+    private fun sendBaselineFusEvents() {
+        val callingAgent = detectAgent()
+        val ci = CISystem.detect()
+        CliFusReporter.log(FusEvents.CommandInvoked) {
+            command = currentContext.invokedSubcommand?.commandName
+            subcommands =
+                currentContext.invokedSubcommand?.currentContext?.invokedSubcommands?.map { it.commandName }
+            callerType = when {
+                System.getenv("KOTLIN_TOOLCHAIN_CALLED_BY_IDE") == "true" -> FusCommandCallerType.Ide
+                callingAgent != null -> FusCommandCallerType.AIAgent
+                ci != null -> FusCommandCallerType.CI
+                else -> FusCommandCallerType.Terminal
+            }
+        }
+        CliFusReporter.log(FusEvents.EnvironmentState) {
+            osFamily = SystemInfo.CurrentHost.family
+            arch = SystemInfo.CurrentHost.arch
+            ciSystem = ci
+            aiAgent = callingAgent
+        }
+    }
 }
 
 private class DebuggingOptions : OptionGroup(name = "Debugging options") {
