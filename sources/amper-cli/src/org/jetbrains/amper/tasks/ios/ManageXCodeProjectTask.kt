@@ -53,6 +53,7 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.isRegularFile
+import kotlin.io.path.outputStream
 import kotlin.io.path.pathString
 import kotlin.io.path.relativeTo
 import kotlin.io.path.writeText
@@ -201,10 +202,10 @@ class ManageXCodeProjectTask(
         val src = module.rootFragment.singleSourceRoot("iOS applications must have a single source root")
         val infoPlistFile = src / "Info.plist"
         if (!infoPlistFile.exists()) {
-            // Do not override the file if already exists
-            logger.warn("The Info.plist already exists, no need to generate the default one.")
+            logger.info("Info.plist does not exist; generating a default one.")
             XMLPlistDriver().write(createDefaultPlist(), infoPlistFile.toFile())
         }
+        copyDefaultAppIcon(src)
 
         manipulator.addFile(
             path = infoPlistFile.pathString,
@@ -224,6 +225,7 @@ class ManageXCodeProjectTask(
             this[BuildSettingNames.INFOPLIST_FILE] = infoPlistFile.relativeTo(baseDir).pathString
             this[BuildSettingNames.PRODUCT_BUNDLE_IDENTIFIER] = defaultAppBundleId
             this[BuildSettingNames.SDKROOT] = iosPlatform.type.platformName  // iphoneos
+            this["IPHONEOS_DEPLOYMENT_TARGET"] = "18.0"
             this[BuildSettingNames.PRODUCT_NAME] = defaultProductName
             this[BuildSettingNames.PRODUCT_MODULE_NAME] = PRODUCT_MODULE_NAME
             this[BuildSettingNames.TARGETED_DEVICE_FAMILY] = ["1", "2"]
@@ -306,6 +308,25 @@ class ManageXCodeProjectTask(
         return pbxTarget
     }
 
+    private fun copyDefaultAppIcon(src: Path) {
+        DefaultAppIconAssetPaths.forEach { relativePath ->
+            copyDefaultAppIconAsset(src, relativePath)
+        }
+    }
+
+    private fun copyDefaultAppIconAsset(src: Path, relativePath: String) {
+        val destination = src.resolve(relativePath)
+        if (destination.exists()) return
+
+        val resource = checkNotNull(javaClass.getResource("$DEFAULT_APP_ICON_RESOURCE_PREFIX/$relativePath")) {
+            "Missing default iOS app icon resource: $relativePath"
+        }
+        destination.createParentDirectories()
+        resource.openStream().use { input ->
+            destination.outputStream().use { output -> input.copyTo(output) }
+        }
+    }
+
     private fun createDefaultPlist() = Plist().apply {
         // Base values
         this["CFBundleDevelopmentRegion"] = "$(DEVELOPMENT_LANGUAGE)"
@@ -319,6 +340,17 @@ class ManageXCodeProjectTask(
 
         // Specific values
         this["UILaunchScreen"] = mapOf<String, Any>().toPlist()
+        this["UISupportedInterfaceOrientations"] = [
+            "UIInterfaceOrientationPortrait",
+            "UIInterfaceOrientationLandscapeLeft",
+            "UIInterfaceOrientationLandscapeRight",
+        ]
+        this["UISupportedInterfaceOrientations~ipad"] = [
+            "UIInterfaceOrientationPortrait",
+            "UIInterfaceOrientationPortraitUpsideDown",
+            "UIInterfaceOrientationLandscapeLeft",
+            "UIInterfaceOrientationLandscapeRight",
+        ]
 
         // Needed for https://github.com/JetBrains/compose-multiplatform/issues/3634
         this["CADisableMinimumFrameDurationOnPhone"] = true
@@ -372,6 +404,13 @@ class ManageXCodeProjectTask(
         private const val PRODUCT_MODULE_NAME = DEFAULT_TARGET_NAME
 
         private const val KOTLIN_CLI_WRAPPER_PATH_CONF = "KOTLIN_CLI_WRAPPER_PATH"
+        private const val DEFAULT_APP_ICON_RESOURCE_PREFIX = "/templates/kotlin-multiplatform-app/app/iosApp/src"
+
+        private val DefaultAppIconAssetPaths = [
+            "Assets.xcassets/Contents.json",
+            "Assets.xcassets/AppIcon.appiconset/Contents.json",
+            "Assets.xcassets/AppIcon.appiconset/app-icon-1024.png",
+        ]
 
         private const val AMPER_PHASE_MAGIC_OLD = "!AMPER KMP INTEGRATION STEP!"
         private const val AMPER_PHASE_MAGIC = "!KOTLIN INTEGRATION STEP!"
