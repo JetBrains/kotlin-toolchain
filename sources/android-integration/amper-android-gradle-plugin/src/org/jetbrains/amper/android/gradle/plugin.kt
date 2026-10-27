@@ -4,6 +4,7 @@
 package org.jetbrains.amper.android.gradle
 
 import com.android.build.api.component.analytics.AnalyticsEnabledComponent
+import com.android.build.api.dsl.AndroidSourceDirectorySet
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.Component
@@ -48,6 +49,7 @@ import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.XMLOutputFactory
 import kotlin.io.path.Path
 import kotlin.io.path.absolute
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.isSameFileAs
@@ -239,9 +241,9 @@ class AmperAndroidIntegrationProjectPlugin @Inject constructor(private val probl
                 .singleSourceRoot("Android application must have a single source root")
                 .resolve("AndroidManifest.xml")
             it.manifest.srcFile(androidApplicationSourceRoot)
-            it.assets.setSrcDirs(setOf(module.buildDir.resolve("assets")))
-            it.res.setSrcDirs(setOf(module.buildDir.resolve("res")))
-            it.jniLibs.setSrcDirs(setOf(module.buildDir.resolve("jniLibs")))
+            it.assets.replaceDirectoriesWith(module.buildDir.resolve("assets"))
+            it.res.replaceDirectoriesWith(module.buildDir.resolve("res"))
+            it.jniLibs.replaceDirectoriesWith(module.buildDir.resolve("jniLibs"))
         }
 
         val androidComponents =
@@ -427,4 +429,9 @@ fun adjustXmlFactories() {
         XMLEventFactory::class.qualifiedName!!,
         "com.sun.xml.internal.stream.events.XMLEventFactoryImpl"
     )
+}
+
+private fun AndroidSourceDirectorySet.replaceDirectoriesWith(directory: Path) {
+    directories.clear()
+    directories.add(directory.absolutePathString())
 }
