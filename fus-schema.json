@@ -28,7 +28,7 @@
         {
             "id": "ktc.command",
             "type": "counter",
-            "version": 4,
+            "version": 5,
             "description": "Command execution events",
             "recorder": "KTC",
             "schema": [
@@ -70,6 +70,57 @@
                             "shouldBeAnonymized": false,
                             "value": [
                                 "{enum:checks|commands|dependencies|modules|settings|tasks|jaeger|jdk|keystore|klib|xcode-integration|convert-project|commonize-native-distribution|generate-klibs|manage-xcode|prepare-compose-resources|give|revoke|show}"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "event": "ktc.command.invoked.build",
+                    "description": "The `kotlin build` command was invoked",
+                    "fields": [
+                        {
+                            "path": "module_count",
+                            "description": "The number of modules built by this command.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{regexp#integer}"
+                            ]
+                        },
+                        {
+                            "path": "modules_filtered",
+                            "description": "Whether the build was restricted to specific modules on the command line.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum#boolean}"
+                            ]
+                        },
+                        {
+                            "path": "platforms",
+                            "description": "The platforms that this command builds for.",
+                            "dataType": "ARRAY",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:android|android_native_arm32|android_native_arm64|android_native_x64|android_native_x86|ios_arm64|ios_simulator_arm64|ios_x64|js|jvm|linux_arm64|linux_x64|macos_arm64|macos_x64|mingw_x64|tvos_arm64|tvos_simulator_arm64|tvos_x64|wasm_js|wasm_wasi|watchos_arm32|watchos_arm64|watchos_device_arm64|watchos_simulator_arm64}"
+                            ]
+                        },
+                        {
+                            "path": "requested_build_types",
+                            "description": "The build variants requested on the command line, or null if none was requested (in which case only the debug variant is built).",
+                            "dataType": "ARRAY",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:debug|release}"
+                            ]
+                        },
+                        {
+                            "path": "requested_platforms",
+                            "description": "The platforms requested on the command line, or null if none was requested (in which case all the platforms of the project are built). See built_platforms for the list of platforms that was effectively built.",
+                            "dataType": "ARRAY",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:android|android_native_arm32|android_native_arm64|android_native_x64|android_native_x86|ios_arm64|ios_simulator_arm64|ios_x64|js|jvm|linux_arm64|linux_x64|macos_arm64|macos_x64|mingw_x64|tvos_arm64|tvos_simulator_arm64|tvos_x64|wasm_js|wasm_wasi|watchos_arm32|watchos_arm64|watchos_device_arm64|watchos_simulator_arm64}"
                             ]
                         }
                     ]
@@ -121,6 +172,66 @@
                             "shouldBeAnonymized": false,
                             "value": [
                                 "{enum:android/app|ios/app|js/app|jvm/amper-plugin|jvm/app|jvm/lib|kmp/lib|linux/app|macos/app|wasm-js/app|wasm-wasi/app|windows/app}"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "event": "ktc.command.invoked.test",
+                    "description": "The `kotlin test` command was invoked",
+                    "fields": [
+                        {
+                            "path": "module_count",
+                            "description": "The number of modules tested by this command.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{regexp#integer}"
+                            ]
+                        },
+                        {
+                            "path": "modules_filtered",
+                            "description": "Whether the tests were restricted to specific modules on the command line (by including or excluding modules). The module names themselves are not reported.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum#boolean}"
+                            ]
+                        },
+                        {
+                            "path": "platforms",
+                            "description": "The platforms tested by this command.",
+                            "dataType": "ARRAY",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:android|android_native_arm32|android_native_arm64|android_native_x64|android_native_x86|ios_arm64|ios_simulator_arm64|ios_x64|js|jvm|linux_arm64|linux_x64|macos_arm64|macos_x64|mingw_x64|tvos_arm64|tvos_simulator_arm64|tvos_x64|wasm_js|wasm_wasi|watchos_arm32|watchos_arm64|watchos_device_arm64|watchos_simulator_arm64}"
+                            ]
+                        },
+                        {
+                            "path": "requested_build_type",
+                            "description": "The build variant requested on the command line, or null if none was requested (in which case the debug variant is tested).",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:debug|release}"
+                            ]
+                        },
+                        {
+                            "path": "requested_platforms",
+                            "description": "The platforms requested on the command line, or an empty list if none was requested (in which case tests are run for all the platforms of the project).",
+                            "dataType": "ARRAY",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:android|android_native_arm32|android_native_arm64|android_native_x64|android_native_x86|ios_arm64|ios_simulator_arm64|ios_x64|js|jvm|linux_arm64|linux_x64|macos_arm64|macos_x64|mingw_x64|tvos_arm64|tvos_simulator_arm64|tvos_x64|wasm_js|wasm_wasi|watchos_arm32|watchos_arm64|watchos_device_arm64|watchos_simulator_arm64}"
+                            ]
+                        },
+                        {
+                            "path": "used_test_filter_kinds",
+                            "description": "The kinds of test filters that were used, or an empty list if no filter was used. The filter values themselves are not reported.",
+                            "dataType": "ARRAY",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:exclude_class_pattern|exclude_tag|include_class|include_class_pattern|include_tag|include_test}"
                             ]
                         }
                     ]

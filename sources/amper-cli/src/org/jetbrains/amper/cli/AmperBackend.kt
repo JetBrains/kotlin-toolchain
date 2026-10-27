@@ -5,6 +5,10 @@
 package org.jetbrains.amper.cli
 
 import org.jetbrains.amper.buildinfo.AmperBuild
+import org.jetbrains.amper.cli.analytics.CliFusReporter
+import org.jetbrains.amper.cli.analytics.fusTestFilterKinds
+import org.jetbrains.amper.cli.analytics.toFusBuildType
+import org.jetbrains.amper.cli.analytics.toFusPlatform
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.options.UserJvmArgsOption
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
@@ -33,8 +37,10 @@ import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.plugins.CustomCommandFromPlugin
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.schema.ProductType
+import org.jetbrains.amper.fus.schema.FusEvents
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.stdlib.collections.filterIf
+import org.jetbrains.amper.stdlib.collections.mapToSet
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.CinteropGenSettings
@@ -153,6 +159,15 @@ class AmperBackend(
 
         val platformsToCompile = platforms ?: possibleCompilationPlatforms
         val modulesToCompile = (modules?.map { model.getModuleByName(it) } ?: model.modules).toSet()
+
+        // TODO select platforms and modules to compile up front in the command, and move the FUS event there
+        CliFusReporter.log(FusEvents.BuildCommandInvoked) {
+            moduleCount = modulesToCompile.size
+            modulesFiltered = modules != null
+            builtPlatforms = platformsToCompile.map { it.toFusPlatform() }
+            requestedPlatforms = platforms?.map { it.toFusPlatform() }
+            requestedBuildTypes = buildTypes?.map { it.toFusBuildType() }
+        }
 
         val taskIds = taskGraph
             .tasks
@@ -365,8 +380,9 @@ class AmperBackend(
             userReadableError("No test tasks were found in the entire project")
         }
 
+        val platformsToTest = requestedPlatforms ?: currentHostRunnablePlatforms
         val platformTestTasks = allTestTasks
-            .filter { it.platform in (requestedPlatforms ?: currentHostRunnablePlatforms) }
+            .filter { it.platform in platformsToTest }
             .filterByBuildTypeAndReport(
                 explicit = buildType?.let(::setOf),
                 default = BuildType.Debug,
@@ -393,15 +409,22 @@ class AmperBackend(
             logger.warn("The $UserJvmArgsOption option has no effect when running only non-JVM tests")
         }
 
-        val testTasks = includedTestTasks
-            .filter { task -> !excludeModules.contains(task.module.userReadableName) }
-            .map { it.id }
-            .toSet()
+        val testTasks = includedTestTasks.filter { it.module.userReadableName !in excludeModules }
         if (testTasks.isEmpty()) {
             userReadableError("No test tasks were found after applying exclude filters")
         }
 
-        taskExecutor.runTasksAndReportOnFailure(testTasks)
+        // TODO select platforms and modules to test up front in the command, and move the FUS event there
+        CliFusReporter.log(FusEvents.TestCommandInvoked) {
+            moduleCount = testTasks.mapToSet { it.module.userReadableName }.size
+            modulesFiltered = includeModules != null || excludeModules.isNotEmpty()
+            testedPlatforms = testTasks.mapToSet { it.platform.toFusPlatform() }.toList()
+            this.requestedPlatforms = requestedPlatforms?.map { it.toFusPlatform() } ?: []
+            requestedBuildType = buildType?.toFusBuildType()
+            usedTestFilterKinds = runSettings.testFilters.fusTestFilterKinds().toList()
+        }
+
+        taskExecutor.runTasksAndReportOnFailure(testTasks.mapToSet { it.id })
     }
 
     /**

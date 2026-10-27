@@ -57,7 +57,7 @@ object FusEvents {
 
     private val CommandGroup = group(
         id = "ktc.command",
-        version = 4,
+        version = 5,
         type = EventLogGroup.Type.COUNTER,
         description = "Command execution events",
     )
@@ -184,6 +184,87 @@ object FusEvents {
             name = "compose_hot_reload",
             description = "Whether the app was run with Compose Hot Reload and how.",
             transform = { it.fusId },
+        ))
+    }
+
+    val BuildCommandInvoked = CommandGroup.registerEvent(
+        eventId = "ktc.command.invoked.build",
+        creator = { BuildCommandInvokedFields() },
+        description = "The `kotlin build` command was invoked",
+    )
+
+    class BuildCommandInvokedFields : FieldListDescription() {
+
+        var moduleCount by field(EventFields.Int(
+            name = "module_count",
+            description = "The number of modules built by this command.",
+        ))
+
+        var modulesFiltered by field(EventFields.Boolean(
+            name = "modules_filtered",
+            description = "Whether the build was restricted to specific modules on the command line.",
+        ))
+
+        var builtPlatforms by field(enumSetField<FusKotlinLeafPlatform>(
+            name = "platforms",
+            description = "The platforms that this command builds for.",
+        ))
+
+        var requestedPlatforms by field(enumSetField<FusKotlinLeafPlatform>(
+            name = "requested_platforms",
+            description = "The platforms requested on the command line, or null if none was requested " +
+                    "(in which case all the platforms of the project are built). " +
+                    "See built_platforms for the list of platforms that was effectively built.",
+        ))
+
+        var requestedBuildTypes by field(enumSetField<FusBuildType>(
+            name = "requested_build_types",
+            description = "The build variants requested on the command line, or null if none was " +
+                    "requested (in which case only the debug variant is built).",
+        ))
+    }
+
+    val TestCommandInvoked = CommandGroup.registerEvent(
+        eventId = "ktc.command.invoked.test",
+        creator = { TestCommandInvokedFields() },
+        description = "The `kotlin test` command was invoked",
+    )
+
+    class TestCommandInvokedFields : FieldListDescription() {
+
+        var moduleCount by field(EventFields.Int(
+            name = "module_count",
+            description = "The number of modules tested by this command.",
+        ))
+
+        var modulesFiltered by field(EventFields.Boolean(
+            name = "modules_filtered",
+            description = "Whether the tests were restricted to specific modules on the command line (by including " +
+                    "or excluding modules). The module names themselves are not reported.",
+        ))
+
+        var testedPlatforms by field(enumSetField<FusKotlinLeafPlatform>(
+            name = "platforms",
+            description = "The platforms tested by this command.",
+        ))
+
+        var requestedPlatforms by field(enumSetField<FusKotlinLeafPlatform>(
+            name = "requested_platforms",
+            description = "The platforms requested on the command line, or an empty list if none was requested " +
+                    "(in which case tests are run for all the platforms of the project).",
+        ))
+
+        var requestedBuildType by field(EventFields.Enum<FusBuildType>(
+            name = "requested_build_type",
+            description = "The build variant requested on the command line, or null if none was requested " +
+                    "(in which case the debug variant is tested).",
+            transform = { it.fusId },
+        ))
+
+        var usedTestFilterKinds by field(enumSetField<FusTestFilterKind>(
+            name = "used_test_filter_kinds",
+            description = "The kinds of test filters that were used, or an empty list if no filter was used. " +
+                    "The filter values themselves are not reported.",
         ))
     }
 

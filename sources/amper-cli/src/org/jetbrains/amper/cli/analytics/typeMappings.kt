@@ -6,8 +6,14 @@ package org.jetbrains.amper.cli.analytics
 
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.schema.ProductType
+import org.jetbrains.amper.fus.schema.FusBuildType
 import org.jetbrains.amper.fus.schema.FusKotlinLeafPlatform
 import org.jetbrains.amper.fus.schema.FusKtcProductType
+import org.jetbrains.amper.fus.schema.FusTestFilterKind
+import org.jetbrains.amper.stdlib.collections.mapToSet
+import org.jetbrains.amper.test.FilterMode
+import org.jetbrains.amper.test.TestFilter
+import org.jetbrains.amper.util.BuildType
 
 internal fun Platform.toFusPlatform(): FusKotlinLeafPlatform = when (this) {
     Platform.ANDROID_NATIVE,
@@ -61,4 +67,24 @@ internal fun ProductType.toFusKtcProductType(): FusKtcProductType = when (this) 
     ProductType.WASM_JS_APP -> FusKtcProductType.WasmJSApp
     ProductType.WASM_WASI_APP -> FusKtcProductType.WasmWasiApp
     ProductType.JS_APP -> FusKtcProductType.JSApp
+}
+
+internal fun BuildType.toFusBuildType(): FusBuildType = when (this) {
+    BuildType.Debug -> FusBuildType.Debug
+    BuildType.Release -> FusBuildType.Release
+}
+
+internal fun List<TestFilter>.fusTestFilterKinds(): Set<FusTestFilterKind> = mapToSet {
+    when (it) {
+        is TestFilter.SpecificSuiteInclude -> FusTestFilterKind.IncludeClass
+        is TestFilter.SpecificTestInclude -> FusTestFilterKind.IncludeTest
+        is TestFilter.SuitePattern -> when (it.mode) {
+            FilterMode.Include -> FusTestFilterKind.IncludeClassPattern
+            FilterMode.Exclude -> FusTestFilterKind.ExcludeClassPattern
+        }
+        is TestFilter.TagExpression -> when (it.mode) {
+            FilterMode.Include -> FusTestFilterKind.IncludeTag
+            FilterMode.Exclude -> FusTestFilterKind.ExcludeTag
+        }
+    }
 }
