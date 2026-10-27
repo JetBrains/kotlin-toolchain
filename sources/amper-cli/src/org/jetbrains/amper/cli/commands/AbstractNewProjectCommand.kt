@@ -56,7 +56,7 @@ private const val ProjectIdImpact =
 private val AgentInitializationHint = """
     Always pass `--agent=<your agent name>` (one of ${AiAgent.byCliValue.keys.joinToString()}; can be repeated. Use `other` for agents not present in the list) when creating the project. 
     This helps with setting up AGENTS.md, skills, MCP servers and other AI features required for smoother development.
-    Only pass the `--no-ai` flag if the user asked explicitly or if your agent is not in the list of supported ones.
+    Only pass the `--no-ai` flag if the user asked explicitly.
 """.trimIndent()
 
 // One hint for all agents. Evaluated through LiteLLM with Claude Code (opus 5.5, medium effort) and Codex
