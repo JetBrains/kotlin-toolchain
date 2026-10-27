@@ -6,7 +6,6 @@ package org.jetbrains.amper.cli.test.infra
 
 import org.jetbrains.amper.agentdetection.Agent
 import org.jetbrains.amper.cli.test.CliTestBase
-import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
@@ -285,16 +284,18 @@ class NewCommandMcpConfigTest : CliTestBase() {
     }
 
     @Test
-    fun `non-interactive generation without agent options fails asking for agent or no-ai`() = runSlowTest {
+    fun `non-interactive generation without agent detected behaves as no-ai`() = runSlowTest {
         val workDir = (nonRepositoryTempDir / "no-agent-options").createDirectories()
-        val result = runCli(
+        runCli(
             workDir, "new", "myapp", "--target-platform=desktop", "--no-git",
-            expectedExitCode = 1, assertEmptyStdErr = false,
+            expectedExitCode = 0,
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,
         )
-        result.assertStderrContains("Please specify which AI agents to configure with --agent")
-        result.assertStderrContains("--no-ai")
-        assertFalse((workDir / "myapp").exists())
+        assertTrue((workDir / "myapp").exists())
+        assertFalse((workDir / "myapp" / "AGENTS.md").exists())
+        for (path in allConfigs) {
+            assertFalse((workDir / "myapp" / path).exists())
+        }
     }
 
     @ParameterizedTest

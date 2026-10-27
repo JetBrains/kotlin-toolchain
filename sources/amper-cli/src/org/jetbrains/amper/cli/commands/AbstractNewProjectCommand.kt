@@ -306,13 +306,7 @@ internal sealed class AbstractNewProjectCommand(name: String) : AmperSubcommand(
         agentOptions.isNotEmpty() -> agentOptions.toSet()
         terminal.terminalInfo.interactive -> terminal.promptForAiAgents()
         else -> {
-            val detectedAgent = detectAgent() ?: userReadableError(
-                "Please specify which AI agents to configure with --agent " +
-                        "(one of: ${AiAgent.byCliValue.keys.joinToString()}; can be repeated. " +
-                        "Use `other` for agents not present in the list), " +
-                        "or pass `--no-ai` to skip AI configuration."
-            )
-
+            val detectedAgent = detectAgent() ?: return []
             // TODO get rid of this when we generally use the Agent enum everywhere
             [when (detectedAgent) {
                 Agent.Antigravity -> AiAgent.ANTIGRAVITY
