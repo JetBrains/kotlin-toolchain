@@ -10,7 +10,7 @@ code to _processors_, which can in turn use this information to generate code, c
 The Kotlin Toolchain provides built-in support for KSP.
 
 Some popular libraries also include a KSP processor to enhance their capabilities, such as
-[Room](https://developer.android.com/jetpack/androidx/releases/room) or
+[Room](room.md) or
 [Moshi](https://github.com/square/moshi#codegen).
 
 !!! info
