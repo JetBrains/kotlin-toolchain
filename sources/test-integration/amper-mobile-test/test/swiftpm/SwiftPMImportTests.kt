@@ -13,6 +13,7 @@ import org.jetbrains.amper.cli.test.utils.assertStderrDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertWarnings
 import org.jetbrains.amper.processes.ProcessLeak
+import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.simctl.SimCtl
@@ -109,20 +110,15 @@ open class SwiftPMImportTests : IOSBaseTest() {
             device = TargetDevice.SpecificDevice(latestSimulator)
         )
 
-        assertEquals(
-            """
+        appRunResult.assertSuccessfulAppRun(
+            appBundleId = "direct-local-swiftpm-dependency",
+            expectedStdout = """
                 Hello from Swift
                 Hello from ObjC
                 Hello from Swift
                 Hello from ObjC
             """.trimIndent(),
-            appRunResult.stdout.trim().lines().dropLast(1).joinToString("\n")
         )
-        assertEquals(
-            "",
-            appRunResult.stderr,
-        )
-        assertEquals(0, appRunResult.exitCode.value)
     }
 
     @Test
@@ -257,19 +253,13 @@ open class SwiftPMImportTests : IOSBaseTest() {
             device = TargetDevice.SpecificDevice(latestSimulator)
         )
 
-        assertEquals(
-            """
+        appRunResult.assertSuccessfulAppRun(
+            appBundleId = "firebase",
+            expectedStdout = """
                 Calling Firebase from Kotlin
                 Returning from Swift
             """.trimIndent(),
-            // Last line will be "firebase: ${pid}"
-            appRunResult.stdout.trim().lines().dropLast(1).joinToString("\n")
         )
-        assertEquals(
-            "",
-            appRunResult.stderr,
-        )
-        assertEquals(0, appRunResult.exitCode.value)
     }
 
     @Test
@@ -319,21 +309,33 @@ open class SwiftPMImportTests : IOSBaseTest() {
             device = TargetDevice.SpecificDevice(latestSimulator)
         )
 
-        assertEquals(
-            """
+        appRunResult.assertSuccessfulAppRun(
+            appBundleId = "app",
+            expectedStdout = """
                 Hello from Swift
                 Hello from Swift
                 Hello from ObjC
             """.trimIndent(),
-            // Last line will be "firebase: ${pid}"
-            appRunResult.stdout.trim().lines().dropLast(1).joinToString("\n")
         )
-        assertEquals(
-            "",
-            appRunResult.stderr,
-        )
-        assertEquals(0, appRunResult.exitCode.value)
     }
+
+    /**
+     * Asserts that the app exited successfully after printing exactly [expectedStdout] and nothing to stderr.
+     *
+     * The exit code, stdout and stderr are compared together, so that a failure shows all of them: when the launch
+     * fails, `simctl` reports why on stderr and exits with a non-zero code, which is more telling than the stdout.
+     */
+    private fun ProcessResult.WithOutputs.assertSuccessfulAppRun(appBundleId: String, expectedStdout: String) {
+        // `simctl launch --console` prints "<bundleId>: <pid>" when the app has finished, but not if the launch failed
+        val pidLine = Regex("${Regex.escape(appBundleId)}: \\d+")
+        val appStdout = stdout.trim().lines().filterNot { pidLine.matches(it) }.joinToString("\n")
+        assertEquals(
+            expected = AppRunOutcome(exitCode = 0, stdout = expectedStdout, stderr = ""),
+            actual = AppRunOutcome(exitCode = exitCode.value, stdout = appStdout, stderr = stderr),
+        )
+    }
+
+    private data class AppRunOutcome(val exitCode: Int, val stdout: String, val stderr: String)
 
     internal fun AmperCliResult.readTelemetrySpans(): SpansTestCollector {
         return object : SpansTestCollector {
