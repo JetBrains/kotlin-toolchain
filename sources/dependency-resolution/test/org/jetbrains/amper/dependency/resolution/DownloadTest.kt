@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.dependency.resolution
 
+import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.HashesMismatch
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.SuccessfulDownload
@@ -20,6 +21,7 @@ import java.nio.file.Path
 import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.test.Test
@@ -107,9 +109,7 @@ class DownloadTest: BaseDRTest() {
             "/org/example/lib/1.0/lib-1.0.pom" to pom,
             "/org/example/lib/1.0/lib-1.0.pom.sha1" to pom.sha1().toByteArray(),
         )
-        val server = HttpServer.create(InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 10)
-        server.executor = Executors.newCachedThreadPool()
-        server.createContext("/") { exchange ->
+        val graph = withRepository({ exchange ->
             val content = files[exchange.requestURI.path]
             when {
                 exchange.requestMethod == "HEAD" || content == null -> exchange.sendResponseHeaders(404, -1)
@@ -120,23 +120,56 @@ class DownloadTest: BaseDRTest() {
                     exchange.responseBody.write(content)
                 }
             }
-            exchange.close()
+        }) { repository ->
+            resolve("org.example:lib:1.0", repository)
         }
-        server.start()
-        try {
-            val graph = resolve("org.example:lib:1.0", MavenRepository("http://127.0.0.1:${server.address.port}"))
-            val errors = graph.distinctBfsSequence()
-                .flatMap { node -> node.messages.filter { it.severity >= Severity.ERROR } }
-                .map { it.message }
-                .toList()
-            assertEquals([], errors)
-        } finally {
-            server.stop(0)
+        val errors = graph.distinctBfsSequence()
+            .flatMap { node -> node.messages.filter { it.severity >= Severity.ERROR } }
+            .map { it.message }
+            .toList()
+        assertEquals([], errors)
+    }
+
+    @Test
+    fun `missing maven-metadata of a snapshot is requested from a repository only once`() = runDrTest {
+        val metadataRequests = AtomicInteger()
+        withRepository({ exchange ->
+            if (exchange.requestURI.path.endsWith("/maven-metadata.xml")) {
+                metadataRequests.incrementAndGet()
+            }
+            exchange.sendResponseHeaders(404, -1)
+        }) { repository ->
+            resolve("org.example:lib:1.0-SNAPSHOT", repository)
         }
+        assertEquals(1, metadataRequests.get())
     }
 
     private fun ByteArray.sha1(): String =
         MessageDigest.getInstance("SHA-1").digest(this).joinToString("") { "%02x".format(it) }
+
+    /**
+     * Runs [block] against a repository served by a local HTTP server, which answers every request with [handler].
+     */
+    private suspend fun <T> withRepository(
+        handler: (HttpExchange) -> Unit,
+        block: suspend (MavenRepository) -> T,
+    ): T {
+        val server = HttpServer.create(InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 10)
+        server.executor = Executors.newCachedThreadPool()
+        server.createContext("/") { exchange ->
+            try {
+                handler(exchange)
+            } finally {
+                exchange.close()
+            }
+        }
+        server.start()
+        try {
+            return block(MavenRepository("http://127.0.0.1:${server.address.port}"))
+        } finally {
+            server.stop(0)
+        }
+    }
 
     private suspend fun resolve(coordinates: String, repository: MavenRepository): DependencyNode {
         val context = Context {

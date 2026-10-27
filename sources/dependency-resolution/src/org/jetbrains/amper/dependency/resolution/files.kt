@@ -1610,7 +1610,7 @@ class SnapshotDependencyFileImpl(
         diagnosticsReporter: DiagnosticReporter,
     ): String {
         if (!name.isMavenMetadata() &&
-            isMavenMetadataDownloadedOrDownload(repository, progress, cache, spanBuilderSource, diagnosticsReporter = diagnosticsReporter)
+                isMavenMetadataDownloadedOrDownload(repository, progress, cache, spanBuilderSource, diagnosticsReporter = diagnosticsReporter)
         ) {
             getSnapshotVersion()
                 ?.let { name.replace(dependency.version.orUnspecified(), it) }
@@ -1624,9 +1624,21 @@ class SnapshotDependencyFileImpl(
     private suspend fun isMavenMetadataDownloadedOrDownload(
         repository: MavenRepository, progress: Progress, cache: Cache, spanBuilderSource: SpanBuilderSource, diagnosticsReporter: DiagnosticReporter,
     ): Boolean {
-        return mavenMetadata.isDownloaded()
-                || mavenMetadata
-            .download(listOf(repository), progress, cache, spanBuilderSource, verify = false, diagnosticsReporter, mavenMetadataFilesLock)
+        if (mavenMetadata.isDownloaded()) return true
+
+        // A repository that doesn't have maven-metadata is not asked for it again during the same resolution,
+        // concurrent requests for files of the dependency wait for the first attempt instead
+        val keyName = "maven-metadata of ${dependency.coordinates} is missing in ${repository.url}"
+        val missingInRepositoryKey = Key<Unit>(keyName)
+        return cache.computeIfAbsent(Key<Mutex>(keyName)) { Mutex() }.withLock {
+            when {
+                mavenMetadata.isDownloaded() -> true
+                cache[missingInRepositoryKey] != null -> false
+                else -> mavenMetadata
+                    .download(listOf(repository), progress, cache, spanBuilderSource, verify = false, diagnosticsReporter, mavenMetadataFilesLock)
+                    .also { isDownloaded -> if (!isDownloaded) cache[missingInRepositoryKey] = Unit }
+            }
+        }
     }
 
     override suspend fun shouldOverwrite(expectedHash: Hash, actualHash: Hash): Boolean =
