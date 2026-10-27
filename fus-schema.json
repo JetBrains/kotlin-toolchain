@@ -28,13 +28,13 @@
         {
             "id": "ktc.command",
             "type": "counter",
-            "version": 3,
+            "version": 4,
             "description": "Command execution events",
             "recorder": "KTC",
             "schema": [
                 {
                     "event": "ktc.command.invoked",
-                    "description": "A CLI command was invoked",
+                    "description": "A CLI command was invoked. This event also contains contextual information like OS/arch, whether the command was run by an AI agent, CI, or IDE, etc.",
                     "fields": [
                         {
                             "path": "caller_type",
@@ -47,7 +47,7 @@
                         },
                         {
                             "path": "command",
-                            "description": "The name of the invoked command, or null if the 'kotlin' CLI was invoked without a command. Required if 'subcommand' is not empty.",
+                            "description": "The name of the invoked command, or null if the 'kotlin' CLI was invoked without a command. Required if 'subcommands' is not empty.",
                             "dataType": "PRIMITIVE",
                             "shouldBeAnonymized": false,
                             "value": [
@@ -70,6 +70,57 @@
                             "shouldBeAnonymized": false,
                             "value": [
                                 "{enum:checks|commands|dependencies|modules|settings|tasks|jaeger|jdk|keystore|klib|xcode-integration|convert-project|commonize-native-distribution|generate-klibs|manage-xcode|prepare-compose-resources|give|revoke|show}"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "event": "ktc.command.invoked.run",
+                    "description": "The `kotlin run` command was invoked",
+                    "fields": [
+                        {
+                            "path": "compose_hot_reload",
+                            "description": "Whether the app was run with Compose Hot Reload and how.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:enabled_by_default|enabled_explicitly|disabled_explicitly|not_applicable}"
+                            ]
+                        },
+                        {
+                            "path": "module_source",
+                            "description": "Whether the module to run was specified explicitly by the user on the command line, prompted interactively, or inferred because there was no ambiguity.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:cli_option|prompted|inferred}"
+                            ]
+                        },
+                        {
+                            "path": "platform",
+                            "description": "The platform that the app was run on.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:jvm|android|js|wasm_js|wasm_wasi|linux_x64|linux_arm64|macos_x64|macos_arm64|tvos_arm64|tvos_x64|tvos_simulator_arm64|ios_arm64|ios_simulator_arm64|ios_x64|watchos_arm64|watchos_arm32|watchos_device_arm64|watchos_simulator_arm64|mingw_x64|android_native_arm32|android_native_arm64|android_native_x64|android_native_x86}"
+                            ]
+                        },
+                        {
+                            "path": "platform_source",
+                            "description": "Whether the platform to run was specified explicitly by the user on the command line, prompted interactively, or inferred because there was no ambiguity.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:cli_option|prompted|inferred}"
+                            ]
+                        },
+                        {
+                            "path": "product_type",
+                            "description": "The product type of the module that was run.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:android/app|ios/app|js/app|jvm/amper-plugin|jvm/app|jvm/lib|kmp/lib|linux/app|macos/app|wasm-js/app|wasm-wasi/app|windows/app}"
                             ]
                         }
                     ]

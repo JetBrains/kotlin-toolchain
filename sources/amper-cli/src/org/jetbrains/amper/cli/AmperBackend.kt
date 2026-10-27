@@ -5,7 +5,6 @@
 package org.jetbrains.amper.cli
 
 import org.jetbrains.amper.buildinfo.AmperBuild
-import org.jetbrains.amper.cli.apprun.RunTarget
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.options.UserJvmArgsOption
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
@@ -504,10 +503,6 @@ class AmperBackend(
         return runTasks(taskIds).values
             .filterIsInstance<JvmCompileTask.Result>()
             .flatMap { result -> result.changes }
-    }
-
-    suspend fun runApplication(target: RunTarget) {
-        runApplication(target.module, target.platform, target.buildType)
     }
 
     suspend fun runApplication(moduleToRun: AmperModule, platform: Platform, buildType: BuildType?) {

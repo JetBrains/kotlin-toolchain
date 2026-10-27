@@ -20,7 +20,9 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import org.jetbrains.amper.cli.UserReadableError
-import org.jetbrains.amper.cli.apprun.RunTarget
+import org.jetbrains.amper.cli.analytics.CliFusReporter
+import org.jetbrains.amper.cli.analytics.toFusPlatform
+import org.jetbrains.amper.cli.analytics.toFusKtcProductType
 import org.jetbrains.amper.cli.childScope
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.context.copyWithNewProjectContext
@@ -48,12 +50,16 @@ import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.schema.ProductType
+import org.jetbrains.amper.fus.schema.ComposeHotReloadCliOptionSource
+import org.jetbrains.amper.fus.schema.FusEvents
+import org.jetbrains.amper.fus.schema.InteractiveCliOptionSource
 import org.jetbrains.amper.stdlib.collections.filterIf
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.tasks.AllRunSettings
 import org.jetbrains.amper.tasks.ComposeHotReloadSettings
 import org.jetbrains.amper.tasks.compose.isComposeEnabledFor
+import org.jetbrains.amper.util.BuildType
 import org.jetbrains.amper.util.currentHostRunnablePlatforms
 import kotlin.io.path.Path
 
@@ -200,6 +206,22 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
             target.platform == Platform.JVM && isComposeEnabledFor(target.module)
         }
 
+        CliFusReporter.log(FusEvents.RunCommandInvoked) {
+            productType = target.module.type.toFusKtcProductType()
+            platform = target.platform.toFusPlatform()
+            moduleSource = target.moduleSource
+            platformSource = target.platformSource
+            composeHotReload = when {
+                composeHotReloadConfiguredExplicitly && runWithComposeHotReload
+                    -> ComposeHotReloadCliOptionSource.EnabledExplicitly
+                composeHotReloadConfiguredExplicitly && !runWithComposeHotReload
+                    -> ComposeHotReloadCliOptionSource.DisabledExplicitly
+                !composeHotReloadConfiguredExplicitly && runWithComposeHotReload
+                    -> ComposeHotReloadCliOptionSource.EnabledByDefault
+                else -> ComposeHotReloadCliOptionSource.NotApplicable
+            }
+        }
+
         if (runWithComposeHotReload) {
             if (!composeHotReloadConfiguredExplicitly) {
                 terminal.print(terminal.theme.info("ℹ️ Note: "))
@@ -224,7 +246,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
             }
         } else {
             withBackend(cliContext, model, runSettings = allRunSettings()) {
-                it.runApplication(target)
+                it.runApplication(target.module, target.platform, target.buildType)
             }
         }
     }
@@ -356,10 +378,10 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
             runCatching(block).onFailure { e -> if (e !is UserReadableError) throw e }
     }
 
-    fun Model.selectRunTarget(): RunTarget {
-        val moduleToRun = selectSingleRunnableAppModule()
+    private fun Model.selectRunTarget(): RunTarget {
+        val (moduleToRun = value, moduleSource = source) = selectSingleRunnableAppModule()
         checkModuleIsRunnable(moduleToRun)
-        val platformToRun = selectPlatformToRun(moduleToRun)
+        val (platformToRun = value, platformSource = source) = selectPlatformToRun(moduleToRun)
 
         if (composeHotReloadEnabledExplicitly && !isComposeEnabledFor(moduleToRun)) {
             userReadableError("Compose must be enabled to use Compose Hot Reload mode")
@@ -367,15 +389,21 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
         if (jvmArgs.isNotEmpty() && platformToRun != Platform.JVM) {
             logger.warn("The $UserJvmArgsOption option have no effect when running a non-JVM app")
         }
-        return RunTarget(moduleToRun, platformToRun, variant)
+        return RunTarget(
+            module = moduleToRun,
+            platform = platformToRun,
+            buildType = variant,
+            moduleSource = moduleSource,
+            platformSource = platformSource,
+        )
     }
 
-    private fun Model.selectSingleRunnableAppModule(): AmperModule {
+    private fun Model.selectSingleRunnableAppModule(): WithSource<AmperModule> {
         if (module != null) {
-            return getModuleByName(module!!)
+            return getModuleByName(module!!).withSource(InteractiveCliOptionSource.ExplicitCliOption)
         }
         if (modules.size == 1) {
-            return modules.single()
+            return modules.single().withSource(InteractiveCliOptionSource.Inferred)
         }
         val runnableCandidates = findRunnableAppModulesMatchingOptionsOrFail()
         if (runnableCandidates.size != 1) {
@@ -397,9 +425,9 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                         module.userReadableName
                     }
                 }
-            )
+            ).withSource(InteractiveCliOptionSource.AskedInteractively)
         }
-        return runnableCandidates.single()
+        return runnableCandidates.single().withSource(InteractiveCliOptionSource.Inferred)
     }
 
     private fun AmperModule.isJvmComposeApp(): Boolean = type == ProductType.JVM_APP && isComposeEnabledFor(this)
@@ -535,7 +563,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
         }
     }
 
-    private fun selectPlatformToRun(moduleToRun: AmperModule): Platform {
+    private fun selectPlatformToRun(moduleToRun: AmperModule): WithSource<Platform> {
         val explicitPlatform = platform
         if (explicitPlatform != null) {
             // This is already checked, but only when the module is not explicitly specified, so we need to re-check here
@@ -549,7 +577,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                     Available platforms: ${formatPlatforms(moduleToRun.leafPlatforms)}
                 """.trimIndent())
             }
-            return explicitPlatform
+            return explicitPlatform.withSource(InteractiveCliOptionSource.ExplicitCliOption)
         }
 
         val runnablePlatforms = (moduleToRun.leafPlatforms intersect currentHostRunnablePlatforms)
@@ -591,7 +619,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                 && SystemInfo.CurrentHost.family.isMac
                 && SystemInfo.CurrentHost.arch == Arch.Arm64
             ) {
-                return Platform.MACOS_ARM64
+                return Platform.MACOS_ARM64.withSource(InteractiveCliOptionSource.Inferred)
             }
 
             // special case where we prefer to run an iOS simulator instead of a physical device by default
@@ -599,7 +627,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                 && Platform.IOS_SIMULATOR_ARM64 in effectivelyRunnablePlatforms
                 && deviceId == null
             ) {
-                return Platform.IOS_SIMULATOR_ARM64
+                return Platform.IOS_SIMULATOR_ARM64.withSource(InteractiveCliOptionSource.Inferred)
             }
 
             // TODO discriminate iosArm64 vs iosSimulatorArm64 based on --device-id if provided?
@@ -619,9 +647,11 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
                 items = effectivelyRunnablePlatforms.toList(),
                 nameSelector = { it.pretty },
                 filterable = true,
-            ) ?: throw PrintMessage("No platform selected, run operation aborted")
+            )
+                ?.withSource(InteractiveCliOptionSource.AskedInteractively)
+                ?: throw PrintMessage("No platform selected, run operation aborted")
         }
-        return effectivelyRunnablePlatforms.single()
+        return effectivelyRunnablePlatforms.single().withSource(InteractiveCliOptionSource.Inferred)
     }
 
     companion object {
@@ -635,3 +665,18 @@ private fun AmperModule.supportsDeviceIdSelection(): Boolean = leafPlatforms.any
 
 private val Platform.supportsDeviceSelection: Boolean
     get() = this == Platform.ANDROID || isDescendantOf(Platform.IOS)
+
+private fun <T> T.withSource(source: InteractiveCliOptionSource): WithSource<T> = WithSource(this, source)
+
+private class WithSource<T>(val value: T, val source: InteractiveCliOptionSource)
+
+/**
+ * Defines what to run in the project.
+ */
+private data class RunTarget(
+    val module: AmperModule,
+    val platform: Platform,
+    val buildType: BuildType?,
+    val moduleSource: InteractiveCliOptionSource,
+    val platformSource: InteractiveCliOptionSource,
+)

@@ -57,7 +57,7 @@ object FusEvents {
 
     private val CommandGroup = group(
         id = "ktc.command",
-        version = 3,
+        version = 4,
         type = EventLogGroup.Type.COUNTER,
         description = "Command execution events",
     )
@@ -65,7 +65,8 @@ object FusEvents {
     val CommandInvoked = CommandGroup.registerEvent(
         eventId = "ktc.command.invoked",
         creator = { CommandInvokedFields() },
-        description = "A CLI command was invoked",
+        description = "A CLI command was invoked. This event also contains contextual information like OS/arch, " +
+                "whether the command was run by an AI agent, CI, or IDE, etc.",
     )
 
     // TODO maybe create something more flexible to handle:
@@ -75,7 +76,7 @@ object FusEvents {
         var command by field(EventFields.String(
             name = "command",
             description = "The name of the invoked command, or null if the 'kotlin' CLI was invoked without a " +
-                    "command. Required if 'subcommand' is not empty.",
+                    "command. Required if 'subcommands' is not empty.",
             // TODO find a better way to keep this in sync with the real command list
             allowedValues = [
                 "build",
@@ -142,6 +143,47 @@ object FusEvents {
         var interactive by field(EventFields.Boolean(
             name = "interactive",
             description = "Whether the command was run in an interactive terminal.",
+        ))
+    }
+
+    val RunCommandInvoked = CommandGroup.registerEvent(
+        eventId = "ktc.command.invoked.run",
+        creator = { RunCommandInvokedFields() },
+        description = "The `kotlin run` command was invoked",
+    )
+
+    class RunCommandInvokedFields : FieldListDescription() {
+
+        var productType by field(EventFields.Enum<FusKtcProductType>(
+            name = "product_type",
+            description = "The product type of the module that was run.",
+            transform = { it.fusId },
+        ))
+
+        var platform by field(EventFields.Enum<FusKotlinLeafPlatform>(
+            name = "platform",
+            description = "The platform that the app was run on.",
+            transform = { it.fusId },
+        ))
+
+        var platformSource by field(EventFields.Enum<InteractiveCliOptionSource>(
+            name = "platform_source",
+            description = "Whether the platform to run was specified explicitly by the user on the command line, " +
+                    "prompted interactively, or inferred because there was no ambiguity.",
+            transform = { it.fusId },
+        ))
+
+        var moduleSource by field(EventFields.Enum<InteractiveCliOptionSource>(
+            name = "module_source",
+            description = "Whether the module to run was specified explicitly by the user on the command line, " +
+                    "prompted interactively, or inferred because there was no ambiguity.",
+            transform = { it.fusId },
+        ))
+
+        var composeHotReload by field(EventFields.Enum<ComposeHotReloadCliOptionSource>(
+            name = "compose_hot_reload",
+            description = "Whether the app was run with Compose Hot Reload and how.",
+            transform = { it.fusId },
         ))
     }
 
