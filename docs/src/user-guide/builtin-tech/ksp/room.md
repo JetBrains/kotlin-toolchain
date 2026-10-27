@@ -100,5 +100,7 @@ settings:
 
 ## Additional resources
 
+!!! example "Example: [Room with KMP]({{ examples_base_url }}/compose-multiplatform-room)"
+
 For the latest information on Room, please refer to the [official documentation](https://developer.android.com/training/data-storage/room)
  and the [KMP Room guide](https://developer.android.com/kotlin/multiplatform/room#defining-database).

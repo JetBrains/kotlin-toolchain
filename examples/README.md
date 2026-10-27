@@ -6,17 +6,18 @@ You can check them out right here on GitHub, or download a zipped version to ope
 
 > [!TIP]
 > The Kotlin Toolchain is designed with the tooling in mind, and a big part of the UX comes from the IDE support.
-> To make the most out of the Kotlin Toolchain, we recommend using the latest version of 
-> [IntelliJ IDEA EAP](https://www.jetbrains.com/idea/nextversion/) with the 
+> To make the most out of the Kotlin Toolchain, we recommend using the latest version of
+> [IntelliJ IDEA EAP](https://www.jetbrains.com/idea/nextversion/) with the
 > [Kotlin Toolchain plugin](https://plugins.jetbrains.com/plugin/31850-kotlin-toolchain/edit).
-> 
+>
 > If you don't use IntelliJ IDEA, explore the CLI commands you can run using `./kotlin -h` or `./kotlin <command> -h`.
 
-| Example               | Download                                                                                                                              |
-|-----------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| Compose Multiplatform | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/compose-multiplatform) |
-| Compose Android       | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/compose-android)       |
-| Compose Desktop       | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/compose-desktop)       |
-| JVM "Hello, World"    | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/jvm)                   |
-| Ktor Simplest Sample  | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/ktor-simplest-sample)  |
-| Spring PetClinic      | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/spring-petclinic)      |
+| Example               | Download                                                                                                                                   |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| Compose Multiplatform | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/compose-multiplatform)      |
+| Compose Android       | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/compose-android)            |
+| Compose Desktop       | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/compose-desktop)            |
+| JVM "Hello, World"    | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/jvm)                        |
+| Ktor Simplest Sample  | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/ktor-simplest-sample)       |
+| Spring PetClinic      | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/spring-petclinic)           |
+| Room with KMP       | [ZIP](https://hoover.fly.dev/download-zip/repo?user=JetBrains&name=kotlin-toolchain&branch=HEAD&path=/examples/compose-multiplatform-room) |

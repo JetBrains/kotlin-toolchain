@@ -1,0 +1,11 @@
+product: android/app
+
+dependencies:
+  - ../shared
+  - androidx.appcompat:appcompat:1.8.0
+  - androidx.activity:activity-compose:1.13.0
+
+settings:
+  android:
+    applicationId: com.example.app
+  compose: enabled

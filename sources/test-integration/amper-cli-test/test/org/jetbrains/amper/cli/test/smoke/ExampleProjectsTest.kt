@@ -5,19 +5,16 @@
 package org.jetbrains.amper.cli.test.smoke
 
 import org.jetbrains.amper.cli.test.CliTestBase
-import org.jetbrains.amper.cli.test.utils.assertWarnings
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.readTelemetrySpans
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.cli.test.utils.withTelemetrySpans
-import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.LocalAmperPublication
 import org.jetbrains.amper.test.MacOnly
 import org.jetbrains.amper.test.assertEqualsWithDiff
 import org.jetbrains.amper.test.spans.assertJavaCompilationSpan
 import org.jetbrains.amper.test.spans.assertSingleKotlinJvmCompilationSpan
-import org.jetbrains.amper.test.spans.assertSingleKotlinCompilation
 import org.jetbrains.amper.test.spans.kotlinJvmCompilationSpans
 import org.jetbrains.amper.test.spans.kotlinNativeCompilationSpans
 import org.jetbrains.amper.test.spans.withAmperModule
@@ -210,5 +207,15 @@ class ExampleProjectsTest : CliTestBase() {
             assertContains(stdout, "tests successful")
             assertContains(stdout, "0 tests failed")
         }
+    }
+
+    @Test
+    fun `room-multiplatform`() = runSlowTest {
+        val projectRoot = exampleProject("room-multiplatform")
+        runCli(
+            projectDir = projectRoot,
+            "build",
+            configureAndroidHome = true,
+        )
     }
 }
