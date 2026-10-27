@@ -169,7 +169,7 @@ class KotlinMultiplatformProjectGeneratorTest {
             "1".repeat(500) to "org.example.project${"1".repeat(500)}",
         )
 
-        cases.forEach { projectName, expectedId ->
+        cases.forEach { [projectName, expectedId] ->
             val actualId = defaultProjectId(projectName)
             assertEquals(expectedId, actualId, "Unexpected default for '$projectName'")
             checkValidProjectId(actualId)
@@ -247,17 +247,17 @@ class KotlinMultiplatformProjectGeneratorTest {
 
     @Test
     fun `escapes project names in every generated text format`() {
-        val projectName = "Bob's & <App> \"\\${'$'}"
+        val projectName = "Bob's & <App> \"\\$"
         val files = KotlinMultiplatformProjectGenerator.generate(
             targets = KotlinMultiplatformTargetPlatform.entries.toSet(),
             projectId = "com.acme.demo",
             projectName = projectName,
         ).associateBy { it.relativePath }
 
-        val escapedXml = "Bob&apos;s &amp; &lt;App&gt; &quot;\\${'$'}"
-        val escapedAndroidString = "Bob\\'s &amp; &lt;App&gt; \\\"\\\\${'$'}"
-        val escapedKotlinString = """Bob's & <App> \"\\\${'$'}"""
-        val escapedPbxString = """Bob's & <App> \"\\${'$'}${'$'}"""
+        val escapedXml = "Bob&apos;s &amp; &lt;App&gt; &quot;\\$"
+        val escapedAndroidString = "Bob\\'s &amp; &lt;App&gt; \\\"\\\\$"
+        val escapedKotlinString = """Bob's & <App> \"\\\$"""
+        val escapedPbxString = """Bob's & <App> \"\\$$"""
         val xcodeProject = files.getValue("app/iosApp/module.xcodeproj/project.pbxproj").text()
         assertContains(xcodeProject, "path = \"$escapedPbxString.app\";")
         assertEquals(2, Regex.fromLiteral("PRODUCT_NAME = \"$escapedPbxString\";").findAll(xcodeProject).count())
@@ -324,7 +324,7 @@ class KotlinMultiplatformProjectGeneratorTest {
 
         val withAi = mode.toExtractionSchema().files.singleOrNull { it.relativePath == "AGENTS.md" }
         assertNotNull(withAi, "AGENTS.md should come from the Kotlin Multiplatform template")
-        assertContains((withAi as GeneratedFile).text(), "Kotlin Toolchain")
+        assertContains(withAi.text(), "Kotlin Toolchain")
 
         val withoutAi = mode.toExtractionSchema(generateAiFiles = false).relativePaths
         assertFalse("AGENTS.md" in withoutAi)
@@ -413,7 +413,7 @@ class KotlinMultiplatformProjectGeneratorTest {
             projectName = "Sample App",
         )
         val files = mode.toExtractionSchema().files
-        val gitignore = assertNotNull(files.singleOrNull { it.relativePath == ".gitignore" }) as GeneratedFile
+        val gitignore = assertNotNull(files.singleOrNull { it.relativePath == ".gitignore" })
         assertEquals(KotlinMultiplatformGitIgnore + mcpConfigGitIgnoreEntries(AiAgent.entries.toSet()).joinToString("") { "$it\n" }, gitignore.text())
         assertContains(gitignore.text(), "/.mcp.json\n")
 
