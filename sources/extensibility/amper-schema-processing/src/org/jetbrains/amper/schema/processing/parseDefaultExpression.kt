@@ -67,7 +67,7 @@ internal fun parseDefaultExpression(
         is PluginData.Type.ListType -> (call as? KaFunctionCall<*>)?.let { call ->
             when (call.symbol.callableId) {
                 EMPTY_LIST -> Defaults.ListDefault(emptyList())
-                LIST_OF -> Defaults.ListDefault(call.argumentMapping.mapNotNull { [e] ->
+                LIST_OF -> Defaults.ListDefault(call.valueArgumentMapping.mapNotNull { [e] ->
                     parseDefaultExpression(e, type.elementType, nestedExpression = true)
                 })
                 else -> null
