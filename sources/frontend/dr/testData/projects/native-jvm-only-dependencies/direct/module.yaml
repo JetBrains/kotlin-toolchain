@@ -1,0 +1,7 @@
+product:
+  type: lib
+  platforms: [ macosArm64 ]
+
+# A JVM-only library (published with pom.xml only) declared directly in a native module
+dependencies:
+  - org.jetbrains.kotlin:kotlin-reflect:1.9.23

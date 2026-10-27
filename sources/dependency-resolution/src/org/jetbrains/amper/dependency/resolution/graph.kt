@@ -515,6 +515,28 @@ abstract class SerializableDependencyNodeBase(
 }
 
 /**
+ * A node is a transitive dependency if neither the root nor a module references it directly,
+ * i.e., all its parents are Maven dependencies.
+ *
+ * A platform-specific module of a KMP library is the same library, so it is transitive only if the library is,
+ * see [kmpLibraryParents].
+ */
+internal val DependencyNode.isTransitive: Boolean
+    get() = parents.isNotEmpty()
+            && parents.all { it is MavenDependencyNode }
+            && kmpLibraryParents.all { it.isTransitive }
+
+/**
+ * The KMP libraries this node is a platform-specific module of (referenced from the libraries via `available-at`).
+ * Such a parent-child relation doesn't introduce a new dependency: the node represents the same library as its parent.
+ */
+val DependencyNode.kmpLibraryParents: List<MavenDependencyNode>
+    get() {
+        val kmpLibraryCoordinates = (this as? MavenDependencyNode)?.getParentKmpLibraryCoordinates() ?: return []
+        return parents.filterIsInstance<MavenDependencyNode>().filter { it.dependency.coordinates == kmpLibraryCoordinates }
+    }
+
+/**
  * @return true if there is no path (even transitive) to the given root from the node via node's parents
  */
 fun DependencyNode.isOrphan(root: DependencyNode, visited: MutableSet<DependencyNode> = mutableSetOf()): Boolean {

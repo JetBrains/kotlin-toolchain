@@ -8,13 +8,16 @@ import org.jetbrains.amper.dependency.resolution.DependencyNode
 import org.jetbrains.amper.dependency.resolution.MavenDependencyNode
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics
+import org.jetbrains.amper.dependency.resolution.diagnostics.PlatformsAreNotSupported
 import org.jetbrains.amper.dependency.resolution.diagnostics.Severity
+import org.jetbrains.amper.dependency.resolution.distinctBfsSequence
 import org.jetbrains.amper.dependency.resolution.group
 import org.jetbrains.amper.dependency.resolution.module
 import org.jetbrains.amper.dependency.resolution.orUnspecified
 import org.jetbrains.amper.dependency.resolution.version
 import org.jetbrains.amper.frontend.dr.resolver.diagnostics.collectBuildProblems
 import org.jetbrains.amper.frontend.dr.resolver.diagnostics.reporters.DependencyBuildProblem
+import org.jetbrains.amper.frontend.dr.resolver.diagnostics.reporters.isTransitiveFor
 import org.jetbrains.amper.frontend.dr.resolver.diagnostics.reporters.ModuleDependencyWithOverriddenVersion
 import org.jetbrains.amper.frontend.messages.computeRange
 import org.jetbrains.amper.frontend.schema.DefaultVersions
@@ -538,6 +541,90 @@ class DiagnosticsTest : AbstractDependencyInsightsTest() {
         return diagnosticsReporter.problems
             .filterIsInstance<DependencyBuildProblem>()
             .filter { it.errorMessage.id == DependencyResolutionDiagnostics.UnsupportedCapabilities.id }
+            .distinctBy { it.message }
+    }
+
+    @Test
+    fun `JVM-only library declared directly in a native module is reported as an error`() = runModuleDependenciesTest {
+        val buildProblem = unsupportedPlatformsProblems(resolveNativeJvmOnlyDependencies(module = "direct")).single()
+
+        assertFalse(buildProblem.isTransitive, "Dependency org.jetbrains.kotlin:kotlin-reflect is expected to be direct")
+        assertEquals(Level.Error, buildProblem.level)
+        assertEquals(
+            """
+                Platform macosArm64 is not supported by the library org.jetbrains.kotlin:kotlin-reflect:1.9.23
+                Supported platforms: [android, jvm]
+            """.trimIndent(),
+            buildProblem.message,
+        )
+    }
+
+    @Test
+    fun `JVM-only library reached transitively in a native module is not reported`() = runModuleDependenciesTest {
+        val deps = resolveNativeJvmOnlyDependencies(module = "transitive")
+
+        assertEquals(
+            jvmOnlyLibraryMessageIds,
+            deps.distinctBfsSequence()
+                .filterIsInstance<MavenDependencyNode>()
+                .flatMap { it.dependency.messages }
+                .map { it.id }
+                .filter { it in jvmOnlyLibraryMessageIds }
+                .toSet(),
+            "Both JVM-only transitive dependencies of kotest-framework-engine are expected to have problems",
+        )
+        assertEquals([], unsupportedPlatformsProblems(deps).map { it.message })
+    }
+
+    @Test
+    fun `JVM-only library reached both directly and transitively is reported on the direct declaration only`() =
+        runModuleDependenciesTest {
+            val buildProblems = unsupportedPlatformsProblems(resolveNativeJvmOnlyDependencies(module = "both"))
+
+            assertTrue(buildProblems.isNotEmpty(), "Direct org.jetbrains.kotlin:kotlin-reflect is expected to be reported")
+            buildProblems.forEach {
+                assertFalse(it.isTransitive, "Only the direct dependency is expected to be reported: ${it.message}")
+                assertEquals(Level.Error, it.level, "Unexpected level of the problem: ${it.message}")
+            }
+        }
+
+    @Test
+    fun `platform-specific module of a directly declared KMP library is not transitive`() = runModuleDependenciesTest {
+        val deps = resolveNativeJvmOnlyDependencies(module = "transitive")
+
+        val platformSpecificNodes = deps.distinctBfsSequence()
+            .filter { it.isMavenDependency("io.kotest", "kotest-framework-engine-macosarm64") }
+            .toList()
+        assertTrue(platformSpecificNodes.isNotEmpty(), "kotest-framework-engine-macosarm64 is expected in the graph")
+        platformSpecificNodes.forEach { node ->
+            assertTrue(node.fragmentDependencies.isNotEmpty(), "$node is expected to be reached from a module")
+            node.fragmentDependencies.forEach {
+                assertFalse(node.isTransitiveFor(it), "$node is expected to be direct for $it")
+            }
+        }
+    }
+
+    private val jvmOnlyLibraryMessageIds =
+        setOf(PlatformsAreNotSupported.ID, DependencyResolutionDiagnostics.DependencyIsNotMultiplatform.id)
+
+    private suspend fun resolveNativeJvmOnlyDependencies(module: String): DependencyNode = doTest(
+        getTestProjectModel("native-jvm-only-dependencies", testDataRoot),
+        ideSyncTestResolutionInput,
+        verifyMessages = false,
+        module = module,
+        filter = ideSyncModuleResolutionFilter.copy(scope = ResolutionScope.COMPILE),
+    )
+
+    /**
+     * @return the reported problems of the JVM-only libraries in the given graph, at any level
+     */
+    private fun unsupportedPlatformsProblems(deps: DependencyNode): List<DependencyBuildProblem> {
+        val diagnosticsReporter = CollectingProblemReporter()
+        collectBuildProblems(deps, diagnosticsReporter, Level.WeakWarning)
+
+        return diagnosticsReporter.problems
+            .filterIsInstance<DependencyBuildProblem>()
+            .filter { it.errorMessage.id in jvmOnlyLibraryMessageIds }
             .distinctBy { it.message }
     }
 

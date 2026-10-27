@@ -21,7 +21,7 @@ import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 
 /**
- * Resolution of Kotlin Multiplatform libraries for iOS platforms,
+ * Resolution of Kotlin Multiplatform libraries (for iOS platforms unless stated otherwise),
  * the libraries are published into a custom mavenLocal repository with hand-written metadata
  * to mimic publications that are hard to find in the wild.
  */
@@ -119,6 +119,63 @@ class KmpLibraryTest : BaseDRTest() {
         )
     }
 
+    /**
+     * A JVM library depending on a KMP library that is not published for JVM can't be used on JVM,
+     * so the problem is reported even though the KMP library is a transitive dependency.
+     */
+    @Test
+    fun `KMP library without JVM variant reached transitively from a JVM library is reported`() = runDrTest {
+        val root = rootOfLibraryInMavenLocal(
+            "org.jetbrains.dr.test:jvm-lib-depending-on-kmp:1.0",
+            platforms = setOf(ResolutionPlatform.JVM),
+        ) { mavenLocal ->
+            LibrariesDependingOnLinuxOnlyKmpLibrary.publish(mavenLocal)
+        }
+        doTest(root, verifyMessages = false)
+
+        assertEquals(
+            [
+                "Platform jvm is not supported by the library org.jetbrains.dr.test:kmp-lib-linux-only:1.0\n" +
+                        "Supported platform: [linuxX64]",
+            ],
+            root.errorsOf("kmp-lib-linux-only"),
+        )
+    }
+
+    /**
+     * A KMP library depending on a KMP library that is not published for one of its platforms can't be used there,
+     * so the problem is reported even though the latter is a transitive dependency.
+     */
+    @Test
+    fun `KMP library without iOS variant reached transitively from a KMP library is reported`() = runDrTest {
+        val root = rootOfLibraryInMavenLocal(
+            "org.jetbrains.dr.test:kmp-lib-ios:1.0",
+            platforms = setOf(ResolutionPlatform.IOS_ARM64),
+        ) { mavenLocal ->
+            LibrariesDependingOnLinuxOnlyKmpLibrary.publish(mavenLocal)
+        }
+        doTest(root, verifyMessages = false)
+
+        assertEquals(
+            [
+                "Platform iosArm64 is not supported by the library org.jetbrains.dr.test:kmp-lib-linux-only:1.0\n" +
+                        "Supported platform: [linuxX64]",
+            ],
+            root.errorsOf("kmp-lib-linux-only"),
+        )
+    }
+
+    /**
+     * @return the detailed messages of the errors of the node of the given [module]
+     */
+    private fun DependencyNode.errorsOf(module: String): List<String> =
+        distinctBfsSequence()
+            .filterIsInstance<MavenDependencyNode>()
+            .single { it.module == module }
+            .messages
+            .filter { it.severity == Severity.ERROR }
+            .map { it.detailedMessage }
+
     private suspend fun resolveLibraryWithoutSources(declaresSourcesVariant: Boolean): DependencyNodeHolderWithContext {
         val root = rootOfLibraryInMavenLocal("org.jetbrains.dr.test:kmp-lib-no-sources:1.0") { mavenLocal ->
             LibraryWithoutSources.publish(mavenLocal, declaresSourcesVariant)
@@ -147,11 +204,12 @@ class KmpLibraryTest : BaseDRTest() {
     }
 
     /**
-     * Creates the root of the resolution of the library with the given [coordinates] for iOS platforms,
+     * Creates the root of the resolution of the library with the given [coordinates] for the given [platforms],
      * the library is looked up in a fresh mavenLocal repository, which is populated by [publish].
      */
     private fun rootOfLibraryInMavenLocal(
         coordinates: String,
+        platforms: Set<ResolutionPlatform> = setOf(ResolutionPlatform.IOS_ARM64, ResolutionPlatform.IOS_SIMULATOR_ARM64),
         publish: (MavenLocalRepository) -> Unit,
     ): RootDependencyNodeWithContext {
         val testCacheRoot = (tmpDir / UUID.randomUUID().toString().substring(0, 8)).createDirectories()
@@ -159,7 +217,7 @@ class KmpLibraryTest : BaseDRTest() {
         publish(mavenLocal)
 
         val context = context(
-            platform = setOf(ResolutionPlatform.IOS_ARM64, ResolutionPlatform.IOS_SIMULATOR_ARM64),
+            platform = platforms,
             repositories = [MAVEN_LOCAL],
             cacheBuilder = mavenLocalCacheBuilder(testCacheRoot, mavenLocal),
         )
@@ -498,6 +556,143 @@ class KmpLibraryTest : BaseDRTest() {
               }
             }
         """.trimIndent()
+    }
+
+    /**
+     * A KMP library published for `linuxX64` only, and two libraries depending on it:
+     * a JVM library published with `pom.xml` only, and a KMP library published for `iosArm64`.
+     */
+    private object LibrariesDependingOnLinuxOnlyKmpLibrary {
+
+        fun publish(mavenLocal: MavenLocalRepository) {
+            publishLinuxOnlyKmpLibrary(mavenLocal)
+            publishJvmLibrary(mavenLocal)
+            publishIosKmpLibrary(mavenLocal)
+        }
+
+        /**
+         * Platform publications are not needed: no variant of the root module metadata matches the requested platforms.
+         */
+        private fun publishLinuxOnlyKmpLibrary(mavenLocal: MavenLocalRepository) {
+            val rootDir = (mavenLocal.repository / "org/jetbrains/dr/test/kmp-lib-linux-only/1.0").createDirectories()
+            (rootDir / "kmp-lib-linux-only-1.0.pom").writeText(GRADLE_METADATA_MARKER_POM)
+            (rootDir / "kmp-lib-linux-only-1.0.module").writeText(
+                """
+                    {
+                      "formatVersion": "1.1",
+                      "component": {
+                        "group": "org.jetbrains.dr.test",
+                        "module": "kmp-lib-linux-only",
+                        "version": "1.0",
+                        "attributes": { "org.gradle.status": "release" }
+                      },
+                      "createdBy": { "kotlinToolchain": { "version": "1.0-SNAPSHOT" } },
+                      "variants": [
+                        ${LibraryWithUnsupportedCapabilities.platformVariant(
+                            name = "linuxX64ApiElements-published",
+                            nativeTarget = "linux_x64",
+                            module = "kmp-lib-linux-only-linuxx64",
+                        )}
+                      ]
+                    }
+                """.trimIndent()
+            )
+        }
+
+        private fun publishJvmLibrary(mavenLocal: MavenLocalRepository) {
+            val rootDir = (mavenLocal.repository / "org/jetbrains/dr/test/jvm-lib-depending-on-kmp/1.0").createDirectories()
+            (rootDir / "jvm-lib-depending-on-kmp-1.0.pom").writeText(
+                """
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <project xmlns="http://maven.apache.org/POM/4.0.0">
+                      <modelVersion>4.0.0</modelVersion>
+                      <groupId>org.jetbrains.dr.test</groupId>
+                      <artifactId>jvm-lib-depending-on-kmp</artifactId>
+                      <version>1.0</version>
+                      <dependencies>
+                        <dependency>
+                          <groupId>org.jetbrains.dr.test</groupId>
+                          <artifactId>kmp-lib-linux-only</artifactId>
+                          <version>1.0</version>
+                          <scope>compile</scope>
+                        </dependency>
+                      </dependencies>
+                    </project>
+                """.trimIndent()
+            )
+            (rootDir / "jvm-lib-depending-on-kmp-1.0.jar").writeText("fake jar")
+        }
+
+        private fun publishIosKmpLibrary(mavenLocal: MavenLocalRepository) {
+            val rootDir = (mavenLocal.repository / "org/jetbrains/dr/test/kmp-lib-ios/1.0").createDirectories()
+            (rootDir / "kmp-lib-ios-1.0.pom").writeText(GRADLE_METADATA_MARKER_POM)
+            (rootDir / "kmp-lib-ios-1.0.module").writeText(
+                """
+                    {
+                      "formatVersion": "1.1",
+                      "component": {
+                        "group": "org.jetbrains.dr.test",
+                        "module": "kmp-lib-ios",
+                        "version": "1.0",
+                        "attributes": { "org.gradle.status": "release" }
+                      },
+                      "createdBy": { "kotlinToolchain": { "version": "1.0-SNAPSHOT" } },
+                      "variants": [
+                        ${LibraryWithUnsupportedCapabilities.platformVariant(
+                            name = "iosArm64ApiElements-published",
+                            nativeTarget = "ios_arm64",
+                            module = "kmp-lib-ios-iosarm64",
+                        )}
+                      ]
+                    }
+                """.trimIndent()
+            )
+
+            val iosDir = (mavenLocal.repository / "org/jetbrains/dr/test/kmp-lib-ios-iosarm64/1.0").createDirectories()
+            (iosDir / "kmp-lib-ios-iosarm64-1.0.pom").writeText(GRADLE_METADATA_MARKER_POM)
+            (iosDir / "kmp-lib-ios-iosarm64-1.0.module").writeText(
+                """
+                    {
+                      "formatVersion": "1.1",
+                      "component": {
+                        "group": "org.jetbrains.dr.test",
+                        "module": "kmp-lib-ios-iosarm64",
+                        "version": "1.0",
+                        "attributes": { "org.gradle.status": "release" }
+                      },
+                      "createdBy": { "kotlinToolchain": { "version": "1.0-SNAPSHOT" } },
+                      "variants": [
+                        {
+                          "name": "iosArm64ApiElements-published",
+                          "attributes": {
+                            "artifactType": "org.jetbrains.kotlin.klib",
+                            "org.gradle.category": "library",
+                            "org.gradle.jvm.environment": "non-jvm",
+                            "org.gradle.usage": "kotlin-api",
+                            "org.jetbrains.kotlin.native.target": "ios_arm64",
+                            "org.jetbrains.kotlin.platform.type": "native"
+                          },
+                          "dependencies": [
+                            {
+                              "group": "org.jetbrains.dr.test",
+                              "module": "kmp-lib-linux-only",
+                              "version": { "requires": "1.0" }
+                            }
+                          ],
+                          "files": [
+                            {
+                              "name": "kmp-lib-ios-iosarm64-1.0.klib",
+                              "url": "kmp-lib-ios-iosarm64-1.0.klib",
+                              "size": -1
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                """.trimIndent()
+            )
+            (iosDir / "kmp-lib-ios-iosarm64-1.0.klib").writeText("fake klib of iosarm64")
+        }
     }
 
     private companion object {

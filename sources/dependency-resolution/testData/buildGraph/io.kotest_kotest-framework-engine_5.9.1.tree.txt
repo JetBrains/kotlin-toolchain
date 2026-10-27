@@ -1,0 +1,34 @@
+root
+╰─── io.kotest:kotest-framework-engine:5.9.1
+     ├─── io.kotest:kotest-assertions-shared:5.9.1
+     │    ├─── io.kotest:kotest-assertions-api:5.9.1
+     │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.9.23
+     │    ├─── org.jetbrains.kotlin:kotlin-stdlib:1.9.23
+     │    ├─── org.jetbrains.kotlin:kotlin-reflect:1.9.23
+     │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.9.23
+     │    ├─── io.kotest:kotest-common:5.9.1
+     │    │    ├─── org.jetbrains.kotlin:kotlin-stdlib:1.9.23
+     │    │    ├─── org.jetbrains.kotlin:kotlin-reflect:1.9.23 (*)
+     │    │    ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0
+     │    │         ├─── org.jetbrains.kotlinx:atomicfu:0.23.1
+     │    │         │    ├─── org.jetbrains.kotlin:kotlin-stdlib:1.9.21 -> 1.9.23
+     │    │         │    ╰─── org.jetbrains.kotlin:kotlin-stdlib-common:1.9.21
+     │    │         │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.9.21 -> 1.9.23
+     │    │         ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.9.21 -> 1.9.23
+     │    ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0 (*)
+     ├─── io.kotest:kotest-common:5.9.1 (*)
+     ├─── io.kotest:kotest-framework-api:5.9.1
+     │    ├─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0 (*)
+     │    ├─── io.kotest:kotest-assertions-shared:5.9.1 (*)
+     │    ├─── io.kotest:kotest-common:5.9.1 (*)
+     │    ├─── org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0
+     │    │    ├─── org.jetbrains.kotlinx:atomicfu:0.23.1 (*)
+     │    │    ├─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0 (*)
+     │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.9.21 -> 1.9.23
+     │    ├─── org.jetbrains.kotlin:kotlin-stdlib:1.9.23
+     │    ╰─── org.jetbrains.kotlin:kotlin-reflect:1.9.23 (*)
+     ├─── org.jetbrains.kotlin:kotlin-stdlib:1.9.23
+     ├─── org.jetbrains.kotlin:kotlin-reflect:1.9.23 (*)
+     ├─── org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.8.0
+     ├─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0 (*)
+     ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0 (*)

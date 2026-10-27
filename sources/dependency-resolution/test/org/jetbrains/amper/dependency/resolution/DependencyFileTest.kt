@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.dependency.resolution
 
+import org.jetbrains.amper.dependency.resolution.diagnostics.Message
 import org.jetbrains.amper.dependency.resolution.diagnostics.PlatformsAreNotSupported
 import org.jetbrains.amper.dependency.resolution.diagnostics.Severity
 import org.jetbrains.amper.dependency.resolution.diagnostics.detailedMessage
@@ -238,21 +239,27 @@ class DependencyFileTest: BaseDRTest() {
             resolver.buildGraph(root)
             resolver.downloadDependencies(root)
 
-            root.distinctBfsSequence().forEach {
-                if (it is MavenDependencyNode && it.module.startsWith("skiko-awt")) {
-                    val messages = it.messages.defaultFilterMessages()
-                    assertEquals(
-                        1, messages.size,
-                        "Expected exactly one error message instead of ${messages.size}: $messages"
-                    )
-                    val message = assertIs<PlatformsAreNotSupported>(messages.single(), "Unexpected error message")
-                    assertEquals(setOf(ResolutionPlatform.MACOS_ARM64), message.unsupportedPlatforms)
-                    assertEquals(setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID), message.supportedPlatforms)
-                } else {
-                    it.verifyOwnMessages()
-                }
-            }
+            // The declared JVM-only library doesn't support macosArm64
+            assertMacosArm64IsNotSupported(root.messages)
+
+            // Its JVM-only dependency org.jetbrains.skiko:skiko-awt doesn't support macosArm64 either,
+            // but it is a transitive dependency, so the problem is not among the messages of its node
+            val skikoAwt = root.distinctBfsSequence()
+                .filterIsInstance<MavenDependencyNode>()
+                .single { it.module == "skiko-awt" }
+            assertMacosArm64IsNotSupported(skikoAwt.dependency.messages)
+
+            root.distinctBfsSequence()
+                .filter { it != root }
+                .forEach { it.verifyOwnMessages() }
         }
+    }
+
+    private fun assertMacosArm64IsNotSupported(messages: List<Message>) {
+        val errors = messages.defaultFilterMessages()
+        val error = assertIs<PlatformsAreNotSupported>(errors.singleOrNull(), "Expected exactly one error message: $errors")
+        assertEquals(setOf(ResolutionPlatform.MACOS_ARM64), error.unsupportedPlatforms)
+        assertEquals(setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID), error.supportedPlatforms)
     }
 
     @Test

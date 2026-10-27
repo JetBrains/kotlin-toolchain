@@ -1,0 +1,9 @@
+product:
+  type: lib
+  platforms: [ macosArm64, macosX64 ]
+
+# JVM-only org.jetbrains.kotlin:kotlin-reflect:1.9.23 is both declared directly
+# and reached transitively via kotest-framework-engine
+dependencies:
+  - org.jetbrains.kotlin:kotlin-reflect:1.9.23
+  - io.kotest:kotest-framework-engine:5.9.1

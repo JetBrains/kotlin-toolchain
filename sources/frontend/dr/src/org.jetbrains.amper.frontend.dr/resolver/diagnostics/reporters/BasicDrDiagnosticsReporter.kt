@@ -14,6 +14,7 @@ import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutio
 import org.jetbrains.amper.dependency.resolution.diagnostics.Message
 import org.jetbrains.amper.dependency.resolution.diagnostics.detailedMessage
 import org.jetbrains.amper.dependency.resolution.group
+import org.jetbrains.amper.dependency.resolution.kmpLibraryParents
 import org.jetbrains.amper.dependency.resolution.module
 import org.jetbrains.amper.dependency.resolution.version
 import org.jetbrains.amper.frontend.api.BuiltinCatalogTrace
@@ -93,9 +94,10 @@ object BasicDrDiagnosticsReporter : DrDiagnosticsReporter {
                 val alreadyReported = context.cache.computeIfAbsent(alreadyReportedCacheKey) { mutableSetOf() }
                 if (!alreadyReported.add(AlreadyReportedKey(node, psiElement))) continue
 
+                val isTransitive = node.isTransitiveFor(directDependency)
                 for (message in importantMessages) {
                     val msgLevel = message.mapSeverityToLevel()
-                    if (node.isTransitiveFor(directDependency)) {
+                    if (isTransitive) {
                         if (!message.reportTransitive) continue
                         // If the message is already reported on the direct dependency node,
                         // skip reporting it on the transitive node.
@@ -249,5 +251,11 @@ class DependencyBuildProblem(
  */
 data class VersionDefinition(val versionElement: PsiElement, val relativePath: String)
 
+/**
+ * A platform-specific module of a KMP library is the same library,
+ * so it is transitive for the [fragmentDependency] only if the library is, see [kmpLibraryParents].
+ */
 internal fun DependencyNode.isTransitiveFor(fragmentDependency: DirectFragmentDependencyNode): Boolean =
-    this != fragmentDependency && fragmentDependency !in parents
+    this != fragmentDependency
+            && fragmentDependency !in parents
+            && kmpLibraryParents.all { it.isTransitiveFor(fragmentDependency) }

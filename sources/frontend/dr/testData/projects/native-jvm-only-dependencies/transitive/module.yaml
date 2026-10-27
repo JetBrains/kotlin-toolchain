@@ -1,0 +1,10 @@
+product:
+  type: lib
+  platforms: [ macosArm64, macosX64 ]
+
+# kotest-framework-engine itself supports native platforms,
+# but its native variants declare dependencies on JVM-only libraries:
+# org.jetbrains.kotlin:kotlin-reflect:1.9.23 (published with pom.xml only)
+# and org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.8.0 (published with JVM variants only)
+dependencies:
+  - io.kotest:kotest-framework-engine:5.9.1

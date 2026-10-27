@@ -7,7 +7,15 @@ package org.jetbrains.amper.dependency.resolution.diagnostics
 import org.jetbrains.amper.dependency.resolution.DependencyResolutionBundle
 import org.jetbrains.annotations.Nls
 
-class SimpleDiagnosticDescriptor(val id: String, val defaultSeverity: Severity)
+/**
+ * @param reportTransitive whether the message should be reported for transitive dependencies,
+ * see [Message.reportTransitive]
+ */
+class SimpleDiagnosticDescriptor(
+    val id: String,
+    val defaultSeverity: Severity,
+    val reportTransitive: Boolean = true,
+)
 
 internal fun SimpleDiagnosticDescriptor.asMessage(
     vararg messageArgs: Any?,
@@ -20,6 +28,7 @@ internal fun SimpleDiagnosticDescriptor.asMessage(
     text = DependencyResolutionBundle.message(id, *messageArgs),
     extra = extra ?: "",
     severity = overrideSeverity ?: defaultSeverity,
+    reportTransitive = reportTransitive,
     throwable = exception,
     childMessages = childMessages,
     id = id,
@@ -28,7 +37,18 @@ internal fun SimpleDiagnosticDescriptor.asMessage(
 
 object DependencyResolutionDiagnostics {
     val ContentLengthMismatch = SimpleDiagnosticDescriptor("content.length.mismatch", Severity.ERROR)
-    val DependencyIsNotMultiplatform = SimpleDiagnosticDescriptor("dependency.is.not.multiplatform", Severity.ERROR)
+
+    /**
+     * A library supporting the requested platforms might declare a dependency that isn't multiplatform
+     * (e.g., `io.kotest:kotest-framework-engine:5.9.1` declares JVM-only `org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.8.0`
+     * in 'desktopMain', a source set of its native variants).
+     * Such a dependency is simply not used in multiplatform source sets, there is nothing the user should fix.
+     */
+    val DependencyIsNotMultiplatform = SimpleDiagnosticDescriptor(
+        "dependency.is.not.multiplatform",
+        Severity.ERROR,
+        reportTransitive = false,
+    )
     val FailedRepackagingKMPLibrary = SimpleDiagnosticDescriptor("failed.repackaging.kmp.library", Severity.ERROR)
     val HashesMismatch = SimpleDiagnosticDescriptor("hashes.mismatch", Severity.ERROR)
     val KotlinMetadataHashNotResolved = SimpleDiagnosticDescriptor("kotlin.metadata.hash.not.resolved", Severity.ERROR)

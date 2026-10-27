@@ -3139,6 +3139,77 @@ class BuildGraphTest : BaseDRTest() {
         assertFiles(testInfo, root)
     }
 
+    @Test
+    fun `io_kotest kotest-framework-engine 5_9_1`(testInfo: TestInfo) = runDrTest {
+        val root = doTestByFile(
+            testInfo,
+            platform = setOf(
+                ResolutionPlatform.MACOS_ARM64,
+                ResolutionPlatform.MACOS_X64,
+            ),
+        )
+        downloadAndAssertFiles(
+            testInfo,
+            root = root
+        )
+    }
+
+    /**
+     * A platform-specific module of a KMP library (referenced from the library via `available-at`)
+     * is the same library, it is transitive only if the library itself is.
+     */
+    @Test
+    fun `platform-specific module of a KMP library is as transitive as the library`(testInfo: TestInfo) = runDrTest {
+        val root = doTest(
+            testInfo,
+            dependency = "io.kotest:kotest-framework-engine:5.9.1",
+            platform = setOf(ResolutionPlatform.MACOS_ARM64),
+            verifyMessages = false,
+        )
+
+        val isTransitiveByModule = root.distinctBfsSequence()
+            .filterIsInstance<MavenDependencyNode>()
+            .groupBy({ it.module }, { it.isTransitive })
+            .mapValues { it.value.toSet() }
+
+        val expected = mapOf(
+            "kotest-framework-engine" to setOf(false),
+            "kotest-framework-engine-macosarm64" to setOf(false),
+            "kotest-assertions-shared" to setOf(true),
+            "kotest-assertions-shared-macosarm64" to setOf(true),
+            "kotlin-reflect" to setOf(true),
+        )
+        assertEquals(expected, isTransitiveByModule.filterKeys { it in expected.keys })
+    }
+
+    /**
+     * A JVM-only library declared by a KMP library for native platforms is not used there,
+     * the problem of the library is not a problem of the transitive dependency node.
+     */
+    @Test
+    fun `JVM-only transitive dependency of a KMP library has no messages`(testInfo: TestInfo) = runDrTest {
+        val root = doTest(
+            testInfo,
+            dependency = "io.kotest:kotest-framework-engine:5.9.1",
+            platform = setOf(ResolutionPlatform.MACOS_ARM64),
+            verifyMessages = false,
+        )
+
+        val kotlinReflectNodes = root.distinctBfsSequence()
+            .filterIsInstance<MavenDependencyNode>()
+            .filter { it.module == "kotlin-reflect" }
+            .toList()
+        assertTrue(kotlinReflectNodes.isNotEmpty(), "kotlin-reflect is expected in the graph")
+        kotlinReflectNodes.forEach { node ->
+            assertEquals(
+                [PlatformsAreNotSupported.ID],
+                node.dependency.messages.map { it.id },
+                "The library itself is expected to be unsupported on macosArm64",
+            )
+            assertEquals([], node.messages.map { it.id }, "Transitive $node is expected to have no messages")
+        }
+    }
+
     private fun assertEquals(@Language("text") expected: String, root: DependencyNode) =
         assertEquals(expected, root.prettyPrint().trimEnd())
 }

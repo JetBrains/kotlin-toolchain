@@ -30,6 +30,8 @@ class PlatformsAreNotSupported private constructor(
 
     companion object {
         const val ID = "platforms.are.not.supported"
+
+        private val jvmPlatforms = setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID)
     }
 
     override val id: String = ID
@@ -56,5 +58,13 @@ class PlatformsAreNotSupported private constructor(
     val unsupportedPlatforms: Set<ResolutionPlatform>
         get() = requestedPlatforms - supportedPlatforms
 
-    override val reportTransitive: Boolean = false
+    /**
+     * A library supporting the requested platforms might declare a JVM-only dependency
+     * (e.g., declared in a source set shared between JVM and native targets).
+     * Such a dependency is simply not used on non-JVM platforms, there is nothing the user should fix.
+     *
+     * Any other unsupported platform makes the library unusable there, even if it is a transitive dependency.
+     */
+    override val reportTransitive: Boolean
+        get() = !supportedPlatforms.all { it in jvmPlatforms }
 }

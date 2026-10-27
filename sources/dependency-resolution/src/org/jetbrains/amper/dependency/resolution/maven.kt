@@ -291,8 +291,12 @@ class MavenDependencyNodeWithContext internal constructor(
         }
     )
 
+    /**
+     * The messages of the [dependency] without those that are not reported for transitive dependencies
+     * if this node is transitive (see [Message.reportTransitive]).
+     */
     override val messages: List<Message>
-        get() = dependency.messages
+        get() = dependency.messages.filter { it.reportTransitive || !isTransitive }
 
     override suspend fun resolveChildren(level: ResolutionLevel, transitive: Boolean) {
         dependency.resolveChildren(context, level, transitive)

@@ -35,6 +35,9 @@ interface Message {
 
     /**
      * Whether the message should be reported for transitive dependencies.
+     *
+     * It is `false` if the problem is expected for transitive dependencies and requires no action from the user,
+     * such a message is not among the messages of a transitive dependency node.
      */
     val reportTransitive: Boolean get() = true
 
@@ -109,6 +112,7 @@ internal data class SimpleMessage(
     val text: @Nls String,
     val extra: @Nls String = "",
     override val severity: Severity = Severity.INFO,
+    override val reportTransitive: Boolean = true,
     @Transient
     val throwable: Throwable? = null,
     private val preventCaching: Boolean = false,
