@@ -412,7 +412,7 @@ Some popular frameworks or technologies that require a Gradle plugin have a buil
 * [Compose Multiplatform](../user-guide/builtin-tech/compose-multiplatform.md)
 * [kotlinx.serialization](../user-guide/builtin-tech/kotlinx-serialization.md)
 * [kotlinx.rpc](../user-guide/builtin-tech/kotlinx-rpc.md)
-* [KSP](../user-guide/advanced/ksp.md)
+* [KSP](../user-guide/builtin-tech/ksp/index.md)
 * [Ktor](../user-guide/builtin-tech/ktor.md)
 * [Spring](../user-guide/builtin-tech/spring.md)
 * [Lombok](../user-guide/builtin-tech/lombok.md)

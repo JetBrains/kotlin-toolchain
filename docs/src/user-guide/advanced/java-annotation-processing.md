@@ -17,7 +17,7 @@ settings:
 This option is only available for java or android modules (it's a platform-specific).
 
 As with KSP, it's possible to reference a local Kotlin module as a processor. See the
-[KSP section](ksp.md#using-your-own-local-ksp-processor) for more information. Using library catalog entry is also supported.
+[KSP section](../builtin-tech/ksp/index.md#using-your-own-local-ksp-processor) for more information. Using library catalog entry is also supported.
 
 Some annotation processors can be customized by passing options.
 You can pass these options using the `processorOptions` map:

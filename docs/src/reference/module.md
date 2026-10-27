@@ -571,7 +571,7 @@ Read more about [testing support](../user-guide/testing.md).
 | `explicitApi: enum`              | `disable`                     | Enforce the [explicit API mode](https://kotlinlang.org/docs/whatsnew14.html#explicit-api-mode-for-library-authors) (`strict`, `warning`, or `disable`). Ignored for test sources. |
 | `freeCompilerArgs: string list`  | `[]`                          | Pass any [compiler option](https://kotlinlang.org/docs/compiler-reference.html#compiler-options) directly.                                                                        |
 | `jsPlainObjects: object \| enum` |                               | Enable the Kotlin JS-plain-objects compiler plugin.                                                                                                                               |
-| `ksp: object`                    |                               | Configure [Kotlin Symbol Processing](../user-guide/advanced/ksp.md).                                                                                                              |
+| `ksp: object`                    |                               | Configure [Kotlin Symbol Processing](../user-guide/builtin-tech/ksp/index.md).                                                                                                              |
 | `languageVersion: enum`          | (major.minor from `version`)  | Provide source compatibility with the specified version of Kotlin.                                                                                                                |
 | `linkerOptions: string list`     | `[]`                          | (Only for [native targets](https://kotlinlang.org/docs/native-target-support.html)) Additional arguments to pass to the linker during binary building.                            |
 | `noArg: object`                  |                               | Configure the [Kotlin no-arg compiler plugin](https://kotlinlang.org/docs/no-arg-plugin.html).                                                                                    |
@@ -693,7 +693,7 @@ settings:
 
 #### `settings.kotlin.ksp`
 
-`settings.kotlin.ksp` configures the [Kotlin Symbol Processing mechanism](../user-guide/advanced/ksp.md),
+`settings.kotlin.ksp` configures the [Kotlin Symbol Processing mechanism](../user-guide/builtin-tech/ksp/index.md),
 which allows processing Kotlin source code with custom processors (usually to generate extra code).
 
 | Attribute                               | Default | Description                                                                                                              |

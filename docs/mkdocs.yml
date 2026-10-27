@@ -138,6 +138,9 @@ nav:
           - 'Kotlin/Wasm WASI application': user-guide/product-types/wasm-wasi-app.md
       - 'Built-in technologies':
           - 'Compose Multiplatform': user-guide/builtin-tech/compose-multiplatform.md
+          - 'Kotlin Symbol Processing (KSP)':
+            - user-guide/builtin-tech/ksp/index.md
+            - 'Configuring Room': user-guide/builtin-tech/ksp/room.md
           - 'Kotlinx Serialization': user-guide/builtin-tech/kotlinx-serialization.md
           - 'Kotlinx RPC': user-guide/builtin-tech/kotlinx-rpc.md
           - 'Ktor': user-guide/builtin-tech/ktor.md
@@ -152,12 +155,9 @@ nav:
           - 'Configuration': user-guide/plugins/topics/configuration.md
           - 'References': user-guide/plugins/topics/references.md
           - 'Tasks': user-guide/plugins/topics/tasks.md
-      - 'How-to':
-          - 'Configure Room': user-guide/how-to/room.md
       - 'Advanced topics':
           - 'JDK provisioning': user-guide/advanced/jdk-provisioning.md
           - 'Java annotation processing': user-guide/advanced/java-annotation-processing.md
-          - 'Kotlin Symbol Processing (KSP)': user-guide/advanced/ksp.md
           - 'Kotlin compiler plugins': user-guide/advanced/kotlin-compiler-plugins.md
           - 'Native interoperability (cinterop)': user-guide/advanced/native-interop.md
           - 'Maven-like layout': user-guide/advanced/maven-like-layout.md

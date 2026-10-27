@@ -7,7 +7,7 @@ Its components include a runtime library and a KSP processor that should be conf
 
 ## Configuring Room
 
-You can use [a library catalog](../../user-guide/dependencies.md#library-catalogs) to simplify further declaration of dependencies in module files:
+You can use [a library catalog](../../../user-guide/dependencies.md#library-catalogs) to simplify further declaration of dependencies in module files:
 
 ```toml title="libs.versions.toml"
 [versions]

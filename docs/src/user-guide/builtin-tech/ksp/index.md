@@ -34,7 +34,7 @@ settings:
 In multiplatform modules, all settings from the `settings` section apply to all platforms by default, including KSP 
 processors.
 If you only want to add KSP processors for a specific platform, use a `settings` block with a
-[`@platform` qualifier](../multiplatform.md#platform-qualifier):
+[`@platform` qualifier](../../multiplatform.md#platform-qualifier):
 
 ```yaml title="module.yaml"
 # the Room processor will only process code that compiles to the Android platform
