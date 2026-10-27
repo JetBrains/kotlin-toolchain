@@ -30,6 +30,9 @@ project.
   `./kotlin do updateGoldFiles`
 * Tests asserting against golden files are marked with the `@Tag("gold-file")` JUnit tag.
   Add this tag to any new golden-file test. It allows `./kotlin do updateGoldFiles` to run tests based on those tags.
+* When changing anything in `FusEvents`
+  * Bump the version integer of the corresponding group
+  * Re-generate the FUS schema by running: `./kotlin do generateFusSchema`
 
 ## Specific instructions
 
