@@ -1238,6 +1238,29 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#publish-with-kotlin-publish-testflight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publish with kotlin publish testflight
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publish-manually" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publish manually
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Publish manually">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#prepare-the-application" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1267,6 +1290,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -2800,6 +2828,29 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#publish-with-kotlin-publish-testflight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publish with kotlin publish testflight
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publish-manually" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publish manually
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Publish manually">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#prepare-the-application" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2829,6 +2880,11 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -3016,10 +3072,65 @@ App Store Connect and ad hoc exports require a paid Apple Developer Program team
 This is the recommended setup for App Store Connect exports and CI.
 Without them, the Apple account signed into Xcode is used.</p>
 <h2 id="publishing">Publishing<a class="headerlink" href="#publishing" title="Permanent link">&para;</a></h2>
-<p>The Kotlin Toolchain creates a regular Xcode project for an <code>ios/app</code> module. Use that project to configure
-signing, create a release archive, and upload the application to App Store Connect.</p>
 <p>You need a Mac with Xcode and an <a href="https://developer.apple.com/programs/">Apple Developer Program</a> membership.</p>
-<h3 id="prepare-the-application">Prepare the application<a class="headerlink" href="#prepare-the-application" title="Permanent link">&para;</a></h3>
+<h3 id="publish-with-kotlin-publish-testflight">Publish with <code>kotlin publish testflight</code><a class="headerlink" href="#publish-with-kotlin-publish-testflight" title="Permanent link">&para;</a></h3>
+<div class="admonition info">
+<p class="admonition-title">Preview</p>
+<p><code>kotlin publish testflight</code> is in preview, and is likely to change. Don't hesitate to
+<a href="https://youtrack.jetbrains.com/newIssue?project=KTC">share your feedback</a>!</p>
+</div>
+<p>The special <code>testflight</code> repository ID publishes an <code>ios/app</code> module to App Store Connect and TestFlight. It is built
+into <code>kotlin publish</code> and does not need to be declared in the project's repositories. For example:</p>
+<div class="highlight"><pre><span></span><code>kotlin<span class="w"> </span>publish<span class="w"> </span>testflight
+</code></pre></div>
+<p>If the project has more than one iOS app module, <code>-m &lt;ios-module-name</code> is required to specify which module to publish.
+The command checks for Xcode, ensures the automatic signing is selected,
+registers the bundle ID if needed, and uploads a release build. If the App Store Connect app record does not exist, the
+command guides you through creating it. Apple then processes the uploaded build for TestFlight.</p>
+<p>The command requires an App Store Connect team API key with API access and an Admin role for automatic provisioning.
+The key is configured with the following environment variables:</p>
+<table>
+<thead>
+<tr>
+<th>Environment variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_ASC_KEY_PATH</code></td>
+<td>Path to the App Store Connect API private key (<code>.p8</code> file).</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_ASC_KEY_ID</code></td>
+<td>App Store Connect API key ID.</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_ASC_KEY_ISSUER_ID</code></td>
+<td>App Store Connect API key issuer ID.</td>
+</tr>
+</tbody>
+</table>
+<p>In an interactive terminal session, all of these values can be specified interactively instead. The command then
+offers a wizard-like setup that guides you through the necessary steps when you publish for the first time: it prompts
+for the <code>.p8</code> key path, Key ID, and Issuer ID, saves them in <code>app-store-connect-auth.properties</code> in the module
+directory, and adds that file to <code>.gitignore</code>. It also asks you to confirm or fix other parts of the setup, such as the
+bundle ID, the app record, or the encryption declaration.</p>
+<p>When running non-interactively (for example, on CI), nothing is asked. The credentials are taken from the
+<code>app-store-connect-auth.properties</code> file in the module directory if it exists (for example, saved by an earlier
+interactive run), and from the environment variables otherwise. Values from the file take precedence over the
+environment variables. The command exits with an error if something is missing or wrong at any stage of the setup.</p>
+<div class="admonition warning">
+<p class="admonition-title">Automatic signing only</p>
+<p><code>kotlin publish testflight</code> supports automatic signing for straightforward setups and is intended to help you get
+started. It does not cover manual signing or more complex publishing workflows. For those scenarios, use another
+tool such as <a href="https://docs.fastlane.tools/getting-started/ios/setup/">fastlane</a>, which can integrate directly with
+the Xcode project.</p>
+</div>
+<h3 id="publish-manually">Publish manually<a class="headerlink" href="#publish-manually" title="Permanent link">&para;</a></h3>
+<p>Given that there is a regular Xcode project for an <code>ios/app</code> module, you can use it to configure signing,
+create a release archive, and upload the application to App Store Connect manually.</p>
+<h4 id="prepare-the-application">Prepare the application<a class="headerlink" href="#prepare-the-application" title="Permanent link">&para;</a></h4>
 <p>Open the <code>module.xcodeproj</code> file of the iOS application module in Xcode, for example:</p>
 <div class="highlight"><pre><span></span><code>open<span class="w"> </span>ios-app/module.xcodeproj
 </code></pre></div>
@@ -3045,7 +3156,7 @@ application version.</p>
 <a href="https://developer.apple.com/account/resources/identifiers/bundleId/add/bundle">Certificates, Identifiers &amp; Profiles</a>,
 then <a href="https://appstoreconnect.apple.com/apps">create the application in App Store Connect</a>. The bundle identifier in
 Xcode, the registered identifier, and the App Store Connect application must match.</p>
-<h3 id="distribute-from-the-command-line">Distribute from the command line<a class="headerlink" href="#distribute-from-the-command-line" title="Permanent link">&para;</a></h3>
+<h4 id="distribute-from-the-command-line">Distribute from the command line<a class="headerlink" href="#distribute-from-the-command-line" title="Permanent link">&para;</a></h4>
 <p>You can ask your coding agent to archive and upload the iOS application to TestFlight, or run the commands below
 manually. Run them from the Kotlin project root and replace the module path and scheme if they differ in your project.
 You can list the available schemes with:</p>
@@ -3084,7 +3195,7 @@ You can list the available schemes with:</p>
 </code></pre></div>
 <p>With <code>destination</code> set to <code>upload</code>, the export command uploads the application to App Store Connect. After Apple
 finishes processing the build, it becomes available in App Store Connect and can be assigned to TestFlight testers.</p>
-<h3 id="distribute-from-xcode">Distribute from Xcode<a class="headerlink" href="#distribute-from-xcode" title="Permanent link">&para;</a></h3>
+<h4 id="distribute-from-xcode">Distribute from Xcode<a class="headerlink" href="#distribute-from-xcode" title="Permanent link">&para;</a></h4>
 <p>You can perform the same archive and upload steps in Xcode:</p>
 <ol>
 <li>In the macOS menu bar, select <strong>Product | Archive</strong>.</li>
@@ -3114,7 +3225,7 @@ it for App Store review.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 19, 2026 18:33:32 UTC">October 19, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 22, 2026 15:10:21 UTC">October 22, 2026</span>
   </span>
 
     
