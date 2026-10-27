@@ -9,41 +9,23 @@ import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.SuccessResult
+import org.gradle.tooling.events.problems.Details
 import org.gradle.tooling.events.problems.ProblemAggregationEvent
 import org.gradle.tooling.events.problems.ProblemEvent
-import org.gradle.tooling.events.problems.Severity.ADVICE
 import org.gradle.tooling.events.problems.Severity.ERROR
 import org.gradle.tooling.events.problems.Severity.WARNING
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.jetbrains.amper.cli.logging.infoNoConsole
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
 private val logger = LoggerFactory.getLogger(object {}.javaClass)
 
-@Suppress("UnstableApiUsage")
 internal fun ProgressEvent.handle(stdoutPath: Path, stderrPath: Path) {
-    if (this is ProblemEvent) {
-        val [definition, detailsList] = when(this) {
-            is SingleProblemEvent -> problem.definition to listOf(problem.details)
-            is ProblemAggregationEvent ->
-                problemAggregation.definition to problemAggregation.problemContext.map { it.details }
-            else -> null to emptyList()
-        }
-        val loggingFunc: (String) -> Unit = when(definition?.severity) {
-            ADVICE -> logger::info
-            WARNING -> logger::warn
-            ERROR -> logger::error
-            else -> logger::info
-        }
-        // TODO: BasePlugin.archiveBaseName will be deprecated in 9.0; however, agp now is using this field
-        // eventually, after agp upgrade it should be deleted
-        if (definition?.id?.name != "the-basepluginextension-archivesbasename-property-has-been-deprecated") {
-            detailsList.forEach { details ->
-                loggingFunc(details.details)
-            }
-        }
-    }
+    @Suppress("UnstableApiUsage")
+    if (this is ProblemEvent) log(logger)
+
     if (descriptor.name == "Run build") {
         when (this) {
             is StartEvent -> logger.infoNoConsole("Gradle build started")
@@ -68,3 +50,29 @@ internal fun ProgressEvent.handle(stdoutPath: Path, stderrPath: Path) {
         }
     }
 }
+
+@Suppress("UnstableApiUsage")
+internal fun ProblemEvent.log(logger: Logger) {
+    val [definition, messages] = when (this) {
+        is SingleProblemEvent -> problem.definition to [
+            message(problem.contextualLabel?.contextualLabel ?: problem.definition.id.displayName, problem.details),
+        ]
+        is ProblemAggregationEvent -> problemAggregation.definition to problemAggregation.problemContext.map {
+            message(problemAggregation.definition.id.displayName, it.details)
+        }
+        else -> return
+    }
+    val loggingFunc: (String) -> Unit = when {
+        // Deprecations come from AGP or KGP inside the Gradle build we generate, so users can't act on them—debug level
+        // is more than enough.
+        definition.id.group.name == "deprecation" -> logger::debug
+        definition.severity == WARNING -> logger::warn
+        definition.severity == ERROR -> logger::error
+        else -> logger::info
+    }
+    messages.distinct().forEach(loggingFunc)
+}
+
+@Suppress("UnstableApiUsage")
+private fun message(label: String?, details: Details?): String =
+    listOfNotNull(label, details?.details).joinToString(" ")
