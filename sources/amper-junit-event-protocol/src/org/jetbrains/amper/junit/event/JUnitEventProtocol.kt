@@ -90,9 +90,6 @@ object JUnitEventProtocol {
             val id: String,
             val durationMillis: Long?,
         ) : Event {
-            @Deprecated("Replace with another constructor after bootstrap")
-            constructor(id: String, description: String?): this(id, null as Long?)
-
             companion object {
                 const val TYPE = "suiteFinished"
             }

@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.junit.event
 
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.assertThrows
 import kotlin.io.path.Path
 import kotlin.test.Test
@@ -33,7 +32,7 @@ internal class JUnitEventProtocolTest {
                 location = JUnitEventProtocol.Location.Method("pkg.Suite", "test", ["java.lang.String", "😀"]),
                 teamCityName = "pkg.Suite.test()",
             ),
-            JUnitEventProtocol.Event.SuiteFinished(id = "suite", description = null),
+            JUnitEventProtocol.Event.SuiteFinished(id = "suite", durationMillis = null),
             JUnitEventProtocol.Event.Succeeded(id = "test", durationMillis = 123),
             JUnitEventProtocol.Event.Failed(
                 id = "test",
@@ -66,7 +65,6 @@ internal class JUnitEventProtocolTest {
     }
 
     @Test
-    @Disabled("Kotlin CLI needs to bootstrap to launch this test correctly. Otherwise, the old version of amper-junit-event-protocol classes added on the runtime take precedence.")
     fun `serialize-deserialize abort and skip events`() {
         val events = [
             JUnitEventProtocol.Event.TestAborted(id = "test", durationMillis = 0, abortMessage = "assumption failed"),
