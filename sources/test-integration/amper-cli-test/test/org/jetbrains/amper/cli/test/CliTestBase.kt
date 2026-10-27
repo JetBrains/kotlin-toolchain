@@ -17,6 +17,7 @@ import org.jetbrains.amper.test.JavaHomeMode
 import org.jetbrains.amper.test.LocalAmperPublication
 import org.jetbrains.amper.test.TempDirExtension
 import org.jetbrains.amper.test.android.AndroidTools
+import org.jetbrains.amper.test.deleteWithDiagnostics
 import org.jetbrains.amper.test.processes.TestReporterProcessOutputListener
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -25,8 +26,11 @@ import java.util.*
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.copyToRecursively
 import kotlin.io.path.createDirectories
+import kotlin.io.path.createTempDirectory
+import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
 import kotlin.io.path.exists
+import kotlin.io.path.name
 import kotlin.io.path.pathString
 
 @Tag("slow")
@@ -62,7 +66,13 @@ abstract class CliTestBase : AmperCliWithWrapperTestBase() {
         name: String,
         setupWrappers: Boolean = true,
     ): Path {
-        return copyProjectToTempDir(Dirs.amperTestProjectsRoot.resolve(name)).also {
+        val originalTestProjectRoot = Dirs.amperTestProjectsRoot.resolve(name)
+        return copyProjectToTempDir(
+            projectRoot = originalTestProjectRoot,
+            // Without wrappers nor project.yaml, we would face the KTC-6111 bug when using the global wrapper,
+            // so we don't want to create the temp directory under the Kotlin Toolchain project's own root.
+            avoidKtcProjectRoot = !setupWrappers && !originalTestProjectRoot.resolve("project.yaml").exists(),
+        ).also {
             if (setupWrappers) LocalAmperPublication.setupWrappersIn(it)
         }
     }
@@ -81,8 +91,38 @@ abstract class CliTestBase : AmperCliWithWrapperTestBase() {
         }
     }
 
-    protected fun copyProjectToTempDir(projectRoot: Path): Path {
-        val tempProjectDir = tempRoot / UUID.randomUUID().toString() / projectRoot.fileName
+    /**
+     * Runs the given [block] with a new temporary empty directory that is not under the Kotlin Toolchain project root.
+     * This is useful to prevent project root searches from finding our own root when going up, so we can test
+     * out-of-project behavior.
+     *
+     * Files may be created by the test in this directory, as it will automatically be cleaned up at the end of this
+     * function call.
+     */
+    protected inline fun <T> withNonProjectDir(setupWrappers: Boolean = false, block: (Path) -> T): T {
+        // Using toRealPath() here because the temp directory may be a symlink, and the paths reported by the CLI
+        // will usually be the real ones. Tests that try to compare paths in diagnostics with expected values based
+        // on this returned path would otherwise need to use toRealPath() themselves.
+        val dir = createTempDirectory("non-project-test-dir").toRealPath()
+        try {
+            if (setupWrappers) {
+                LocalAmperPublication.setupWrappersIn(dir)
+            }
+            return block(dir)
+        } finally {
+            dir.deleteWithDiagnostics()
+        }
+    }
+
+    protected fun copyProjectToTempDir(projectRoot: Path, avoidKtcProjectRoot: Boolean = false): Path {
+        val tempProjectDir = if (avoidKtcProjectRoot) {
+            // Using toRealPath() here because the temp directory may be a symlink, and the paths reported by the CLI
+            // will usually be the real ones. Tests that try to compare paths in diagnostics with expected values based
+            // on this returned path would otherwise need to use toRealPath() themselves.
+            createTempDirectory(projectRoot.name).toRealPath().also { it.toFile().deleteOnExit() }
+        } else {
+            tempRoot / UUID.randomUUID().toString() / projectRoot.fileName
+        }
         tempProjectDir.createDirectories()
         projectRoot.copyToRecursively(target = tempProjectDir, overwrite = false, followLinks = true)
         return tempProjectDir
@@ -107,10 +147,14 @@ abstract class CliTestBase : AmperCliWithWrapperTestBase() {
 
         modifyProjectBeforeRun(projectDir)
 
-        val kotlinWrapperPath = if (wrapperMode.isGlobal) {
-            tempWrappersDir / scriptNameForCurrentOs
-        } else {
-            (projectDir / scriptNameForCurrentOs).also {
+        val kotlinWrapperPath = when (wrapperMode) {
+            is WrapperMode.Global -> {
+                val containingDir = wrapperMode.customWrappersDir ?: tempWrappersDir
+                (containingDir / scriptNameForCurrentOs).also {
+                    check(it.exists()) { "Using custom wrapper mode, but the wrapper is missing in $containingDir" }
+                }
+            }
+            is WrapperMode.Local -> (projectDir / scriptNameForCurrentOs).also {
                 check(it.exists()) { "Using project-local wrapper mode, but the wrapper is missing in $projectDir" }
             }
         }
@@ -210,31 +254,55 @@ abstract class CliTestBase : AmperCliWithWrapperTestBase() {
         outputMode = ProcessOutputMode.listenAndCapture(TestReporterProcessOutputListener("xcodebuild", testReporter)),
     )
 
-    protected enum class WrapperMode {
+    protected sealed interface WrapperMode {
+
         /**
-         * Call the local wrapper present in the project root.
+         * Calls the wrapper in a special mode that makes it use its own embedded version instead of detecting the
+         * version from the project-local wrapper. This avoids warnings on missing wrappers when testing behavior of
+         * missing wrappers.
+         *
+         * Note: this is not the normal behavior of the global wrapper, but it's convenient in some tests.
          */
-        Local,
+        val useIntrinsicVersion: Boolean
+
+        /**
+         * Call the local wrapper present in the project root, failing if not found.
+         */
+        data object Local : WrapperMode {
+            override val useIntrinsicVersion: Boolean = false
+        }
 
         /**
          * Call a global wrapper (which is not in the project), and rely on version detection to use
          * the version of the wrapper that's in the project.
-         * This is the normal behavior of the global wrapper.
-         */
-        Global,
-
-        /**
-         * Call a global wrapper (which is not in the project) in a special mode that makes it use its
-         * own embedded version instead of detecting the version from the project-local wrapper.
          *
-         * Note: this is not the normal behavior of the global wrapper, but it's convenient in some tests.
+         * Use [useIntrinsicVersion] to bypass the version detection from the local project. It's not the normal
+         * behavior, but it's useful in some tests.
+         *
+         * Use [customWrappersDir] to put the global wrappers in a custom directory so you can safely modify and check
+         * them.
          */
-        GlobalIntrinsicVersion,
-    }
+        data class Global(
+            override val useIntrinsicVersion: Boolean = false,
+            val customWrappersDir: Path? = null,
+        ) : WrapperMode
 
-    private val WrapperMode.isGlobal: Boolean
-        get() = when (this) {
-            WrapperMode.Local -> false
-            else -> true
+        companion object {
+
+            /**
+             * Call a global wrapper (which is not in the project), and rely on version detection to use
+             * the version of the wrapper that's in the project.
+             * This is the normal behavior of the global wrapper.
+             */
+            val Global: WrapperMode = Global()
+
+            /**
+             * Call a global wrapper (which is not in the project) in a special mode that makes it use its
+             * own embedded version instead of detecting the version from the project-local wrapper.
+             *
+             * Note: this is not the normal behavior of the global wrapper, but it's convenient in some tests.
+             */
+            val GlobalIntrinsicVersion: WrapperMode = Global(useIntrinsicVersion = true)
         }
+    }
 }

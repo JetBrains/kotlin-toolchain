@@ -34,7 +34,7 @@ class TempDirExtension : Extension, BeforeEachCallback, AfterEachCallback {
 
     override fun afterEach(context: ExtensionContext) {
         val current = pathRef.getAndSet(null)!!
-        deleteWithDiagnostics(current)
+        current.deleteWithDiagnostics()
     }
 }
 
@@ -50,15 +50,17 @@ class TempDirTestClassExtension : Extension, BeforeAllCallback, AfterAllCallback
 
     override fun afterAll(context: ExtensionContext) {
         val current = pathRef.getAndSet(null)!!
-        deleteWithDiagnostics(current)
+        current.deleteWithDiagnostics()
     }
 }
 
-
-private fun deleteWithDiagnostics(path: Path) {
+/**
+ * Delete recursively with retries, and write a proper report if something goes wrong.
+ */
+fun Path.deleteWithDiagnostics() {
     try {
         // On Windows, directory locks might not be released instantly, so we allow some extra time
-        path.deleteRecursivelyWithRetries()
+        deleteRecursivelyWithRetries()
     } catch (e: IOException) {
         // Selectively unlock specific files (from Android build) only as an exceptional case
         // It's important to prioritize detecting these issues rather than silently ignoring them
@@ -69,11 +71,11 @@ private fun deleteWithDiagnostics(path: Path) {
             // to stop, we find the remaining files from the delegated Gradle build and unlock them by hand.
             // This is an exceptional case. In other cases, we want to know about leaked processes and fix
             // those. Unlocking all files would hide some real issues.
-            killProcessesLockingAndroidBuildFiles(path)
+            killProcessesLockingAndroidBuildFiles(this)
             // Some tools (e.g., Git) create read-only files (like .git/objects/*) that cannot be deleted
             // without first clearing the read-only attribute. Retrying won't help for these files.
-            makeAllFilesWritable(path)
-            path.deleteRecursivelyWithRetries()
+            makeAllFilesWritable(this)
+            deleteRecursivelyWithRetries()
             return
         }
         throw e

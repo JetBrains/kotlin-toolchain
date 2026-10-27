@@ -12,12 +12,15 @@ import com.github.ajalt.clikt.parameters.groups.single
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.path
 import com.github.ajalt.mordant.terminal.success
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import org.apache.maven.artifact.versioning.ComparableVersion
+import org.jetbrains.amper.cli.context.GlobalCliContext
+import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.terminal.promptBoolean
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.widgets.status.standaloneOperationProgressWidget
@@ -68,21 +71,29 @@ private sealed class DesiredVersion {
     data class SpecificVersion(val version: String) : DesiredVersion()
 }
 
+private sealed class UpdateTarget {
+    data object Self : UpdateTarget()
+    data class InTargetDir(val targetDirPath: Path) : UpdateTarget()
+}
+
+private data class Wrappers(val sh: Path?, val bat: Path?)
+
 internal class UpdateCommand : AmperSubcommand(name = "update") {
 
-    val targetDir by option(
-        "--target-dir",
-        help = "The directory in which to update (or create) the wrappers — usually a project's root directory. " +
-                "By default, wrappers are updated (or created) in the current directory.",
-    ).path(mustExist = true, canBeFile = false, canBeDir = true)
-        /*
-        We could also decide that the default is to update the currently running wrapper.
-        (it can be implemented using the `KOTLIN_CLI_WRAPPER_PATH` env variable),
-        but the benefit would be marginal, and it would break amper-from-sources.
-        Let's not do anything until we handle the global Kotlin Toolchain installation / version in
-        project.yaml story. See AMPER-5156 and AMPER-4104.
-        */
-        .default(Path("."))
+    private val updateTarget by mutuallyExclusiveOptions(
+        option("--self")
+            .help("Update the wrapper that is running this update command, even when running inside a project. " +
+                    "This is default behavior when running the command outside any project.")
+            .flag()
+            .convert { UpdateTarget.Self },
+        option("--target-dir")
+            .help("The directory in which to update (or create) the wrappers — usually a project's root directory. " +
+                    "By default, if run inside a project, the project's wrappers are updated; " +
+                    "and if run outside a project, the running wrapper updates itself.")
+            .path(mustExist = true, canBeFile = false, canBeDir = true)
+            .convert { UpdateTarget.InTargetDir(it) },
+    )
+        .single() // fail if both --target-dir and --self are used at the same time
 
     private val repository by option(
         "-r", "--repository",
@@ -103,19 +114,33 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
     private val create by option("-c", "--create", help = "Create the Kotlin wrappers if they don't exist yet")
         .flag()
 
-    override fun help(context: Context): String = "Update the Kotlin Toolchain to the latest version or a specific version."
+    override fun help(context: Context): String = """
+        Update the Kotlin Toolchain to the latest version or a specific version.
+        
+        If this command is run outside a project, the running `kotlin` command updates itself (that would usually be 
+        your globally installed `kotlin` CLI).
+        
+        If this command is run in a project (in the root directory or a subdirectory), the wrappers of the current 
+        project are updated, no matter whether you're using the local `./kotlin` or a globally installed `kotlin` CLI.
+        
+        To update the currently running wrapper while inside a project directory, use the `--self` option.
+        This means you can update the globally installed `kotlin` CLI with `kotlin update --self`.
+        **Watch out: if you do this, your project's wrapper scripts will not be updated, an the global `kotlin` CLI
+        will still use the Kotlin Toolchain version dictated by the project-local wrappers when running commands in 
+        this project.**
 
-    override fun helpEpilog(context: Context): String =
-        "This command can also be used to create Kotlin wrapper scripts in a directory if they don't exist yet."
+        This command can also be used to create Kotlin wrapper scripts in a directory if they don't exist yet.
+        Use the `--create` option to do this without being prompted.
+    """.trimIndent()
 
     private val runningWrapper by lazy { Path(System.getenv("KOTLIN_CLI_WRAPPER_PATH")).absolute() }
 
     override suspend fun run() {
-        val bashWrapperPath = targetDir.resolve("kotlin")
-        val batWrapperPath = targetDir.resolve("kotlin.bat")
-        checkNotDirectories(bashWrapperPath, batWrapperPath)
-        if (!create) {
-            confirmCreateIfMissingWrappers(bashWrapperPath, batWrapperPath)
+        val effectiveTarget = updateTarget ?: inferTarget()
+        val targetWrappers = effectiveTarget.wrappers()
+        checkNotDirectories(targetWrappers)
+        if (!create && effectiveTarget is UpdateTarget.InTargetDir) {
+            confirmCreateIfMissingWrappers(effectiveTarget, targetWrappers)
         }
 
         val version = desiredVersion.resolve()
@@ -125,8 +150,10 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
         val newBatWrapperPath = downloadWrapper(version = version, extension = ".bat").apply { setReadExecPermissions() }
         terminal.println("Download complete.")
 
-        if (bashWrapperPath.exists() && newBashWrapperPath.readText() == bashWrapperPath.readText() &&
-            batWrapperPath.exists() && newBatWrapperPath.readText() == batWrapperPath.readText()) {
+        val (targetShPath = sh, targetBatPath = bat) = targetWrappers
+        if ((targetShPath == null || targetShPath.isUpToDate(newBashWrapperPath)) &&
+            (targetBatPath == null || targetBatPath.isUpToDate(newBatWrapperPath))
+        ) {
             terminal.println("The Kotlin Toolchain is already in version $version, nothing to update")
             return
         }
@@ -142,8 +169,10 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
         // Replacing a bash script while it's running is possible. We use move commands to ensure the physical file on
         // disk is not modified, thus we can write a new physical file to the old location. Bash will keep loading the
         // old file incrementally from the old physical file using its old file descriptor, which is good.
-        spanBuilder("Replace 'kotlin' script (bash)").use {
-            copyAndReplaceSafely(source = newBashWrapperPath, target = bashWrapperPath)
+        if (targetShPath != null) {
+            spanBuilder("Replace 'kotlin' script (bash)").use {
+                copyAndReplaceSafely(source = newBashWrapperPath, target = targetShPath)
+            }
         }
 
         // Batch files are different. When running, cmd.exe reloads the file after each command and tries to resume at
@@ -157,37 +186,50 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
         // Because of this, we can never replace the running .bat script in place anymore. Even with atomic moves, the
         // new file is reloaded, so we have to spawn a process that will replace the old wrapper after the update
         // command (and the current wrapper) finished executing.
-        val batUpdateInPlaceWouldBreak = batWrapperPath.exists() && batWrapperPath.isSameFileAs(runningWrapper)
-        spanBuilder("Replace 'kotlin.bat' script").use { span ->
-            if (batUpdateInPlaceWouldBreak) {
-                copyAndReplaceLaterWindows(source = newBatWrapperPath, target = batWrapperPath)
-                span.addEvent("kotlin.bat script copy scheduled for after JVM shutdown")
-            } else {
-                copyAndReplaceSafely(source = newBatWrapperPath, target = batWrapperPath)
+        if (targetBatPath != null) {
+            val batUpdateInPlaceWouldBreak = targetBatPath.exists() && targetBatPath.isSameFileAs(runningWrapper)
+            spanBuilder("Replace 'kotlin.bat' script").use { span ->
+                if (batUpdateInPlaceWouldBreak) {
+                    copyAndReplaceLaterWindows(source = newBatWrapperPath, target = targetBatPath)
+                    span.addEvent("kotlin.bat script copy scheduled for after JVM shutdown")
+                } else {
+                    copyAndReplaceSafely(source = newBatWrapperPath, target = targetBatPath)
+                }
             }
         }
         terminal.success("Update successful")
     }
 
-    private fun checkNotDirectories(vararg wrapperPaths: Path) {
-        val clashingDirs = wrapperPaths.filter { it.exists() && it.isDirectory() }
+    private fun Path.isUpToDate(newWrapper: Path): Boolean = exists() && newWrapper.readText() == readText()
+
+    private suspend fun inferTarget(): UpdateTarget = when (val context = findCliContext()) {
+        // Maybe the 'create' flag should be replaced with a `kotlin init wrapper` command instead to avoid confusion
+        is GlobalCliContext -> if (create) UpdateTarget.InTargetDir(Path(".")) else UpdateTarget.Self
+        is ProjectCliContext -> UpdateTarget.InTargetDir(context.projectRoot.path)
+    }
+
+    private fun checkNotDirectories(wrappers: Wrappers) {
+        val clashingDirs = listOfNotNull(wrappers.sh, wrappers.bat).filter { it.exists() && it.isDirectory() }
         if (clashingDirs.isNotEmpty()) {
-            userReadableError("Kotlin wrapper scripts cannot be updated because a directory with a conflicting name exists: " +
-                    clashingDirs.first().normalize().absolutePathString()
+            userReadableError(
+                "Kotlin wrapper scripts cannot be updated because a directory with a conflicting name exists: " +
+                        clashingDirs.first().normalize().absolutePathString()
             )
         }
     }
 
-    private fun confirmCreateIfMissingWrappers(vararg wrapperPaths: Path) {
+    private fun confirmCreateIfMissingWrappers(updateTarget: UpdateTarget.InTargetDir, wrappers: Wrappers) {
+        val wrapperPaths = listOfNotNull(wrappers.sh, wrappers.bat)
         val missingScripts = wrapperPaths.filterNot { it.exists() }
         if (missingScripts.isEmpty()) {
             return
         }
-        val targetDirRef = targetDir.pathString.takeIf { it != "." } ?: "the current directory"
+        val targetDirRef = updateTarget.targetDirPath.pathString.takeIf { it != "." } ?: "the current directory"
         val prompt = if (missingScripts.size == wrapperPaths.size) {
             "Kotlin wrappers were not found in $targetDirRef.\nWould you like to create them from scratch?"
         } else {
-            "A Kotlin wrapper is missing: ${missingScripts.first().normalize().absolutePathString()}.\nUpdating will create it. Would you like to continue?"
+            "A Kotlin wrapper is missing: ${missingScripts.first().normalize().absolutePathString()}.\n" +
+                    "Updating will create it. Would you like to continue?"
         }
         val answer = terminal.promptBoolean(question = prompt, default = true)
         if (answer != true) {
@@ -199,6 +241,19 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
     private suspend fun DesiredVersion.resolve() = when (this) {
         is DesiredVersion.Latest -> getLatestVersion(includeDevVersions = includeDevVersions)
         is DesiredVersion.SpecificVersion -> version
+    }
+
+    private fun UpdateTarget.wrappers(): Wrappers = when (this) {
+        is UpdateTarget.InTargetDir -> Wrappers(
+            sh = targetDirPath.resolve("kotlin"),
+            bat = targetDirPath.resolve("kotlin.bat"),
+        )
+        UpdateTarget.Self -> Wrappers(
+            sh = runningWrapper.takeIf { it.name == "kotlin" }
+                ?: runningWrapper.resolveSibling("kotlin").takeIf { create || it.exists() },
+            bat = runningWrapper.takeIf { it.extension == "bat" }
+                ?: runningWrapper.resolveSibling("kotlin.bat").takeIf { create || it.exists() },
+        )
     }
 
     private suspend fun getLatestVersion(includeDevVersions: Boolean): String =
