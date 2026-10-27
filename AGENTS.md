@@ -66,6 +66,7 @@ project.
   extracted to a separate function
 * Avoid `return@label`. If you have a piece of code that needs it, it should probably be extracted into a separate
   function with regular `return`.
+* Keep code simple and maintainable, avoid over-complicating of logic in code, avoid introducing unnecessary terms, entities, class fields, global variables.
 
 ## Architecture guidelines
 
