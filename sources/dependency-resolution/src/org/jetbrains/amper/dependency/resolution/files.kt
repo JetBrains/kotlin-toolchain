@@ -910,13 +910,31 @@ open class DependencyFileImpl(
     ): Hash? {
         val nestedDownloadReporter = CollectingDiagnosticReporter()
 
+        val repositoriesMissingArtifact = mutableListOf<MavenRepository>()
         for (repository in repositories) {
             val expectedHash = downloadHashUnlessArtifactIsMissing(
-                repository, progress, cache, spanBuilderSource, nestedDownloadReporter
+                repository, progress, cache, spanBuilderSource, nestedDownloadReporter,
+                onArtifactMissing = { repositoriesMissingArtifact += repository },
             )
             if (expectedHash != null) {
                 return expectedHash
             }
+        }
+
+        // Hash was not resolved across all repositories. There is a small chance it could be resolved still.
+        // Some repositories (e.g., proxies) answer 404 to a HEAD request for an artifact they haven't been cached yet,
+        // even though they would serve it to a GET request.
+        // [downloadHashUnlessArtifactIsMissing] sends HEAD request for an artifact and cancels checksum downloading if that returns 404.
+        // That's why the repositories that reported the artifact missing (HEAD -> 404) are asked for checksums once again;
+        // this time parallel HEAD request for an artifact is not sent and checksums are resolved unconditionally.
+        // (the cost for correctness is quite low here: artifact missing in all repositories is a rare case for real projects
+        // and even in that case, the number of requests is only a little bit more,
+        // because [downloadHashUnlessArtifactIsMissing] cancels pending requests on getting 404)
+        val expectedHash = downloadHashInParallel(
+            repositoriesMissingArtifact, progress, cache, spanBuilderSource, nestedDownloadReporter
+        )
+        if (expectedHash != null) {
+            return expectedHash
         }
 
         diagnosticsReporter.addMessage(
@@ -934,7 +952,8 @@ open class DependencyFileImpl(
 
     /**
      * Downloads hash from the given [repository], checking in parallel whether the repository has the artifact at all.
-     * If it doesn't, there is no point in waiting for its checksums, and `null` is returned right away.
+     * If it doesn't, there is no point in waiting for its checksums: [onArtifactMissing] is called,
+     * and `null` is returned right away.
      */
     private suspend fun downloadHashUnlessArtifactIsMissing(
         repository: MavenRepository,
@@ -942,6 +961,7 @@ open class DependencyFileImpl(
         cache: Cache,
         spanBuilderSource: SpanBuilderSource,
         diagnosticsReporter: DiagnosticReporter,
+        onArtifactMissing: () -> Unit,
     ): Hash? = coroutineScope {
         val downloadHashTask = async {
             downloadHash(repository, progress, cache, spanBuilderSource, diagnosticsReporter)
@@ -958,10 +978,29 @@ open class DependencyFileImpl(
             // Only the cancellation of the checksum download means that the artifact is missing,
             // the cancellation of the caller should be propagated.
             ensureActive()
+            onArtifactMissing()
             null
         } finally {
             headTask.cancel()
         }
+    }
+
+    /**
+     * Downloads hash from all the given [repositories] at once, and returns the one from the first repository
+     * in the list that has it.
+     */
+    private suspend fun downloadHashInParallel(
+        repositories: List<MavenRepository>,
+        progress: Progress,
+        cache: Cache,
+        spanBuilderSource: SpanBuilderSource,
+        diagnosticsReporter: DiagnosticReporter,
+    ): Hash? = coroutineScope {
+        val downloadHashTasks = repositories.map { repository ->
+            async { downloadHash(repository, progress, cache, spanBuilderSource, diagnosticsReporter) }
+        }
+        downloadHashTasks.firstNotNullOfOrNull { it.await() }
+            .also { downloadHashTasks.forEach { it.cancel() } }
     }
 
     /**

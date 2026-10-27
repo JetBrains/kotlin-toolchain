@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.dependency.resolution
 
+import com.sun.net.httpserver.HttpServer
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.HashesMismatch
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.SuccessfulDownload
 import org.jetbrains.amper.dependency.resolution.diagnostics.Severity
@@ -13,8 +14,12 @@ import org.jetbrains.amper.dependency.resolution.diagnostics.UnableToResolveDepe
 import org.jetbrains.amper.test.dr.toMavenCoordinates
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.io.TempDir
+import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.nio.file.Path
+import java.security.MessageDigest
 import java.util.UUID
+import java.util.concurrent.Executors
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.test.Test
@@ -81,6 +86,73 @@ class DownloadTest: BaseDRTest() {
             "3 attempts to download the artifact should have failed due to hashes mismatch")
 
         assertFiles(testInfo, unresolvedGraph)
+    }
+
+    /**
+     * Some proxies answer 404 to a HEAD request for a file they haven't cached yet, while a GET request makes them
+     * fetch and serve it. Such a repository must not be taken for one that doesn't have the artifact.
+     */
+    @Test
+    fun `artifact is resolved from a repository that answers 404 to HEAD requests`() = runDrTest {
+        val pom = """
+            <project>
+              <modelVersion>4.0.0</modelVersion>
+              <groupId>org.example</groupId>
+              <artifactId>lib</artifactId>
+              <version>1.0</version>
+              <packaging>pom</packaging>
+            </project>
+        """.trimIndent().toByteArray()
+        val files = mapOf(
+            "/org/example/lib/1.0/lib-1.0.pom" to pom,
+            "/org/example/lib/1.0/lib-1.0.pom.sha1" to pom.sha1().toByteArray(),
+        )
+        val server = HttpServer.create(InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 10)
+        server.executor = Executors.newCachedThreadPool()
+        server.createContext("/") { exchange ->
+            val content = files[exchange.requestURI.path]
+            when {
+                exchange.requestMethod == "HEAD" || content == null -> exchange.sendResponseHeaders(404, -1)
+                else -> {
+                    // A proxy fetching the file from upstream answers slower than it answers a HEAD request
+                    Thread.sleep(300)
+                    exchange.sendResponseHeaders(200, content.size.toLong())
+                    exchange.responseBody.write(content)
+                }
+            }
+            exchange.close()
+        }
+        server.start()
+        try {
+            val graph = resolve("org.example:lib:1.0", MavenRepository("http://127.0.0.1:${server.address.port}"))
+            val errors = graph.distinctBfsSequence()
+                .flatMap { node -> node.messages.filter { it.severity >= Severity.ERROR } }
+                .map { it.message }
+                .toList()
+            assertEquals([], errors)
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    private fun ByteArray.sha1(): String =
+        MessageDigest.getInstance("SHA-1").digest(this).joinToString("") { "%02x".format(it) }
+
+    private suspend fun resolve(coordinates: String, repository: MavenRepository): DependencyNode {
+        val context = Context {
+            this.repositories = listOf(repository)
+            this.cache = getDefaultFileCacheBuilder(uniqueCacheRoot()).let {
+                {
+                    it()
+                    readOnlyExternalRepositories = emptyList()
+                }
+            }
+        }
+        val root = RootDependencyNodeWithContext(
+            templateContext = context,
+            children = listOf(context.toMavenDependencyNode(coordinates.toMavenCoordinates(), false)),
+        )
+        return Resolver().resolveDependencies(root).root
     }
 
     private suspend fun resolveDependencyHashMismatchAttempts(hashMismatchResponsesCount: Int): DependencyNode {
