@@ -55,6 +55,7 @@ import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.jvm.ProvideJdkTask
 import org.jetbrains.amper.tasks.native.CommonizeCInteropKlibsTask
+import org.jetbrains.amper.tasks.native.filterKLibs
 import org.jetbrains.amper.tasks.native.requireKotlinNativeCompiler
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -149,7 +150,7 @@ internal class MetadataCompileTask(
                 commonizedCinteropsDir?.listDirectoryEntries()
             }.flatten()
 
-        val fragmentClasspath = localClasspath + cinteropDependencies + mavenClasspath.dependencyPaths()
+        val mavenDependencyPaths = mavenClasspath.dependencyPaths()
 
         val refinesPaths = fragment
             .allFragmentDependencies(dependencyType = FragmentDependencyType.REFINE)
@@ -168,8 +169,12 @@ internal class MetadataCompileTask(
         val nativeCompiler = dependenciesResult.requireKotlinNativeCompiler(kotlinSettings.compilerVersion)
 
         return if (fragmentPlatforms.all { it.nativeTarget != null })   {
+            // JVM-only libraries might be declared by KMP libraries in source sets shared with native targets,
+            // they are not used on native platforms, as when compiling for a specific native platform
+            val fragmentClasspath = localClasspath + cinteropDependencies + mavenDependencyPaths.filterKLibs()
             compileNativeMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler)
         } else {
+            val fragmentClasspath = localClasspath + cinteropDependencies + mavenDependencyPaths
             compileCommonMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler)
         }
     }
