@@ -3,6 +3,7 @@ apply:
 
 settings:
   kotlin:
+    version: 2.4.0 # Should be aligned with the oldest version of IntelliJ platform for which we cherry-pick.
     serialization:
       version: 1.9.0 # Aligned with IntelliJ platform
   jvm:
