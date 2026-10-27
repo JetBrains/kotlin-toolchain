@@ -20,6 +20,7 @@ import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.terminal.prompt
 import com.github.ajalt.mordant.terminal.warning
 import org.jetbrains.amper.agentdetection.Agent
+import org.jetbrains.amper.agentdetection.detectAgent
 import org.jetbrains.amper.agentdetection.isRunByAgent
 import org.jetbrains.amper.cli.analytics.CliFusReporter
 import org.jetbrains.amper.cli.terminal.interactiveMultiSelectList
@@ -53,7 +54,7 @@ private const val ProjectIdImpact =
     "Changing it later requires updating source packages, source layout, and platform configuration, so choose carefully."
 
 private val AgentInitializationHint = """
-    Always pass `--agent=<your agent name>` (one of ${AiAgent.byCliValue.keys.joinToString()}; can be repeated) when creating the project. 
+    Always pass `--agent=<your agent name>` (one of ${AiAgent.byCliValue.keys.joinToString()}; can be repeated. Use `other` for agents not present in the list) when creating the project. 
     This helps with setting up AGENTS.md, skills, MCP servers and other AI features required for smoother development.
     Only pass the `--no-ai` flag if the user asked explicitly or if your agent is not in the list of supported ones.
 """.trimIndent()
@@ -245,6 +246,7 @@ internal sealed class AbstractNewProjectCommand(name: String) : AmperSubcommand(
         AiAgent.JUNIE -> Agent.Junie
         AiAgent.PI -> Agent.Pi
         AiAgent.OPENCODE -> Agent.OpenCode
+        AiAgent.OTHER -> Agent.Other
     }
 
     /**
@@ -304,18 +306,23 @@ internal sealed class AbstractNewProjectCommand(name: String) : AmperSubcommand(
         agentOptions.isNotEmpty() -> agentOptions.toSet()
         terminal.terminalInfo.interactive -> terminal.promptForAiAgents()
         else -> {
-            val errorMessage = if (isRunByAgent()) {
-                "Pass the AI agents for which the project should be pre-configured with `--agent` (one of: " +
-                        "${AiAgent.byCliValue.keys.joinToString()}; can be repeated). " +
-                        "If user explicitly asked to skip AI configuration or your agent is not present in the list" +
-                        "of applicable values, pass `--no-ai`."
-            } else {
+            val detectedAgent = detectAgent() ?: userReadableError(
                 "Please specify which AI agents to configure with --agent " +
-                        "(one of: ${AiAgent.byCliValue.keys.joinToString()}; can be repeated), " +
+                        "(one of: ${AiAgent.byCliValue.keys.joinToString()}; can be repeated. " +
+                        "Use `other` for agents not present in the list), " +
                         "or pass `--no-ai` to skip AI configuration."
-            }
+            )
 
-            userReadableError(errorMessage)
+            // TODO get rid of this when we generally use the Agent enum everywhere
+            [when (detectedAgent) {
+                Agent.Antigravity -> AiAgent.ANTIGRAVITY
+                Agent.ClaudeCode -> AiAgent.CLAUDE
+                Agent.Codex -> AiAgent.CODEX
+                Agent.Junie -> AiAgent.JUNIE
+                Agent.Pi -> AiAgent.PI
+                Agent.OpenCode -> AiAgent.OPENCODE
+                else -> AiAgent.OTHER
+            }]
         }
     }
 

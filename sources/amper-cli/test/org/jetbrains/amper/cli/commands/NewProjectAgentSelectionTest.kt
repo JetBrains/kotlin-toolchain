@@ -117,7 +117,7 @@ class NewProjectAgentSelectionTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["--no-ai", "--agent=antigravity"])
+    @ValueSource(strings = ["--no-ai", "--agent=antigravity", "--agent=other"])
     fun `explicit AI options skip both interactive AI questions`(option: String) = runTestWithMdc {
         val recorder = interactiveRecorder().apply { inputEvents.add(Cancel) }
         val outputDir = tempDir / "myapp"
@@ -132,6 +132,7 @@ class NewProjectAgentSelectionTest {
         assertEquals(Cancel, recorder.inputEvents.single())
         assertEquals(option == "--agent=antigravity", (outputDir / ".agents/mcp_config.json").exists())
         assertFalse((outputDir / ".mcp.json").exists())
+        assertEquals(option != "--no-ai", (outputDir / AgentsMdPath).exists())
     }
 
     private suspend fun runCommand(

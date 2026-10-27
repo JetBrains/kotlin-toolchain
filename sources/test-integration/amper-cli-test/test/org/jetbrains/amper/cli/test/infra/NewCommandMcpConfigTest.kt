@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.cli.test.infra
 
+import org.jetbrains.amper.agentdetection.Agent
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
@@ -12,6 +13,7 @@ import org.jetbrains.amper.system.info.SystemInfo
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
@@ -38,8 +40,13 @@ class NewCommandMcpConfigTest : CliTestBase() {
     private val sharedSchemaConfigs = [".junie/mcp/mcp.json", ".pi/mcp.json"]
     private val allAgentOptions = ["claude", "codex", "antigravity", "junie", "pi", "opencode"].map { "--agent=$it" }
     private val windows = SystemInfo.CurrentHost.family == OsFamily.Windows
-    private val allConfigs = sharedSchemaConfigs + ".mcp.json" + ".codex/config.toml" + ".agents/mcp_config.json" +
-            ".opencode/opencode.json"
+    private val allConfigs = buildList {
+        addAll(sharedSchemaConfigs)
+        add(".mcp.json")
+        add(".codex/config.toml")
+        add(".agents/mcp_config.json")
+        add(".opencode/opencode.json")
+    }
 
     /** Reads the file with line endings normalized to `\n`, since generated files use the platform line separator. */
     private fun Path.readNormalizedText(): String = readText().replace("\r\n", "\n")
@@ -123,9 +130,9 @@ class NewCommandMcpConfigTest : CliTestBase() {
             (projectDir / ".agents/mcp_config.json").readNormalizedText(),
         )
         assertEquals(
-            if (windows) """
+            if (windows) $$"""
             {
-              "${'$'}schema": "https://opencode.ai/config.json",
+              "$schema": "https://opencode.ai/config.json",
               "mcp": {
                 "compose-hot-reload": {
                   "type": "local",
@@ -145,9 +152,9 @@ class NewCommandMcpConfigTest : CliTestBase() {
               }
             }
 
-            """.trimIndent() else """
+            """.trimIndent() else $$"""
             {
-              "${'$'}schema": "https://opencode.ai/config.json",
+              "$schema": "https://opencode.ai/config.json",
               "mcp": {
                 "compose-hot-reload": {
                   "type": "local",
@@ -233,10 +240,12 @@ class NewCommandMcpConfigTest : CliTestBase() {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [
-        "--target-platform=ios", "--target-platform=android", "--target-platform=web",
-        "--target-platform=server", "--from-template=jvm-cli",
-    ])
+    @ValueSource(
+        strings = [
+            "--target-platform=ios", "--target-platform=android", "--target-platform=web",
+            "--target-platform=server", "--from-template=jvm-cli",
+        ]
+    )
     fun `projects without a JVM Compose app get only klibs MCP configs`(sourceOption: String) = runSlowTest {
         val projectDir = generate(sourceOption)
 
@@ -288,10 +297,63 @@ class NewCommandMcpConfigTest : CliTestBase() {
         assertFalse((workDir / "myapp").exists())
     }
 
+    @ParameterizedTest
+    @CsvSource(
+        value = [
+            "${Agent.ClaudeCode.name}, .mcp.json",
+            "${Agent.Codex.name}, .codex/config.toml",
+            "${Agent.Antigravity.name}, .agents/mcp_config.json",
+            "${Agent.Junie.name}, .junie/mcp/mcp.json",
+            "${Agent.Pi.name}, .pi/mcp.json",
+            "${Agent.OpenCode.name}, .opencode/opencode.json",
+            "${Agent.GeminiCli.name},",
+            "${Agent.Other.name},",
+        ]
+    )
+    fun `non-interactive generation configures the detected agent`(agent: Agent, expectedConfig: String?) =
+        runSlowTest {
+            for (command in ["new", "init"]) {
+                val workDir = (nonRepositoryTempDir / command).createDirectories()
+                val nameArgs = if (command == "new") ["myapp"] else []
+                runCliAsAgent(
+                    agent, workDir, command, *nameArgs.toTypedArray(), "--target-platform=desktop", "--no-git",
+                    wrapperMode = WrapperMode.GlobalIntrinsicVersion,
+                )
+
+                val projectDir = if (command == "new") workDir / "myapp" else workDir
+                assertTrue((projectDir / "AGENTS.md").isRegularFile())
+                for (path in allConfigs) {
+                    assertEquals(path == expectedConfig, (projectDir / path).exists(), "$agent: $path")
+                }
+            }
+        }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["--no-ai", "--agent=claude", "--agent=other"])
+    fun `explicit AI options override the detected agent`(option: String) = runSlowTest {
+        for (command in ["new", "init"]) {
+            val workDir = (nonRepositoryTempDir / command).createDirectories()
+            val nameArgs = if (command == "new") ["myapp"] else []
+            runCliAsAgent(
+                Agent.Codex, workDir, command, *nameArgs.toTypedArray(),
+                "--target-platform=desktop", "--no-git", option,
+                wrapperMode = WrapperMode.GlobalIntrinsicVersion,
+            )
+
+            val projectDir = if (command == "new") workDir / "myapp" else workDir
+            assertEquals(option != "--no-ai", (projectDir / "AGENTS.md").isRegularFile())
+            for (path in allConfigs) {
+                val expected = option == "--agent=claude" && path == ".mcp.json"
+                assertEquals(expected, (projectDir / path).exists(), "$option: $path")
+            }
+        }
+    }
+
     /** Generates a project, selecting all agents unless [options] already say which agents to use (or none). */
     private suspend fun generate(vararg options: String): Path {
         val workDir = (nonRepositoryTempDir / "work-${options.joinToString("")}").createDirectories()
-        val agentOptions: List<String> = if (options.any { it == "--no-ai" || it.startsWith("--agent=") }) [] else allAgentOptions
+        val agentOptions: List<String> =
+            if (options.any { it == "--no-ai" || it.startsWith("--agent=") }) [] else allAgentOptions
         runCli(
             workDir, "new", "myapp", *options, *agentOptions.toTypedArray(), "--no-git",
             wrapperMode = WrapperMode.GlobalIntrinsicVersion,

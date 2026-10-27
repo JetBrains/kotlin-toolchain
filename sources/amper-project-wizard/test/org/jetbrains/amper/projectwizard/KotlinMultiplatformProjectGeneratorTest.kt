@@ -512,6 +512,18 @@ class KotlinMultiplatformProjectGeneratorTest {
     }
 
     @Test
+    fun `other agent preserves shared instructions without MCP configs`() {
+        val schema = cmpDesktopMode.toExtractionSchema(agents = [AiAgent.OTHER])
+
+        assertContains(schema.relativePaths, AgentsMdPath)
+        for (mcpPath in allMcpPaths) {
+            assertFalse(mcpPath in schema.relativePaths, "$mcpPath should be absent for other agents")
+        }
+        val gitignore = schema.files.single { it.relativePath == ".gitignore" }.text()
+        assertEquals(KotlinMultiplatformGitIgnore, gitignore, "Nothing should be added to .gitignore for unknown agents")
+    }
+
+    @Test
     fun `all-agents default produces all six MCP files`() {
         val paths = cmpDesktopMode.toExtractionSchema().relativePaths
         for (mcpPath in allMcpPaths) {

@@ -6,9 +6,31 @@ package org.jetbrains.amper.projectwizard
 
 import kotlin.test.Test
 import kotlin.test.assertContains
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class McpConfigsTest {
+    @Test
+    fun `other agent has no MCP config or gitignore entries`() {
+        assertTrue(generateMcpConfigFiles([AiAgent.OTHER], hasJvmComposeApp = true).isEmpty())
+        assertTrue(mcpConfigGitIgnoreEntries([AiAgent.OTHER]).isEmpty())
+    }
+
+    @Test
+    fun `other agent does not change supported agents configurations`() {
+        val supportedAgents = AiAgent.entries.toSet() - AiAgent.OTHER
+
+        assertEquals(
+            generateMcpConfigFiles(supportedAgents, hasJvmComposeApp = true),
+            generateMcpConfigFiles(supportedAgents + AiAgent.OTHER, hasJvmComposeApp = true),
+        )
+        assertEquals(
+            mcpConfigGitIgnoreEntries(supportedAgents),
+            mcpConfigGitIgnoreEntries(supportedAgents + AiAgent.OTHER),
+        )
+    }
+
     @Test
     fun `hot reload server runs the POSIX wrapper on non-Windows`() {
         val configs = generateMcpConfigFiles(setOf(AiAgent.CLAUDE, AiAgent.CODEX), hasJvmComposeApp = true, windows = false)

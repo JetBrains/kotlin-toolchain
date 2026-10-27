@@ -61,6 +61,8 @@ fun generateMcpConfigFiles(
     val sharedConfig by lazy { servers.claudeConfig() }
     return buildMap {
         for (agent in agents) {
+            if (agent.mcpFilePath == null || agent == AiAgent.OTHER) continue
+
             val content = when (agent) {
                 AiAgent.CLAUDE, AiAgent.JUNIE, AiAgent.PI -> sharedConfig
                 AiAgent.CODEX -> servers.codexConfig()
@@ -75,7 +77,9 @@ fun generateMcpConfigFiles(
 /**
  * The `.gitignore` entries for the MCP config files that [generateMcpConfigFiles] writes for the given [agents].
  */
-fun mcpConfigGitIgnoreEntries(agents: Set<AiAgent>): List<String> = agents.map { "/${it.mcpFilePath}" }.distinct()
+fun mcpConfigGitIgnoreEntries(agents: Set<AiAgent>): List<String> = agents.mapNotNull {
+    agent -> agent.mcpFilePath?.let { "/${it}" }
+}.distinct()
 
 private fun List<McpServer>.claudeConfig(): String = jsonServers("mcpServers") { server ->
     when (server) {
