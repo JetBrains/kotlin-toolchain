@@ -1261,7 +1261,7 @@ open class DependencyFileImpl(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            logger.warn("$repository: Failed to $action $url", e)
+            logger.debug("{}: Failed to {} {}", repository, action, url, e)
             diagnosticsReporter.addMessage(
                 UnableToReachURL.asMessage(
                     url,
