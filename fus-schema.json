@@ -37,12 +37,30 @@
                     "description": "A CLI command was invoked. This event also contains contextual information like OS/arch, whether the command was run by an AI agent, CI, or IDE, etc.",
                     "fields": [
                         {
+                            "path": "ai_agent",
+                            "description": "The AI agent running the current CLI command, or null if no agent was detected",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:cursor|cursor-cli|kimi|grok|gemini-cli|cline|codex|antigravity|augment-cli|opencode|goose|junie|pi|claude-code|replit|github-copilot|kiro|openclaw|devin|other}"
+                            ]
+                        },
+                        {
                             "path": "caller_type",
                             "description": "The source of the CLI call (IDE, AI Agent, regular user in the terminal, etc.)",
                             "dataType": "PRIMITIVE",
                             "shouldBeAnonymized": false,
                             "value": [
                                 "{enum:ai_agent|ci|ide|terminal}"
+                            ]
+                        },
+                        {
+                            "path": "ci_system",
+                            "description": "The CI system the current call is running on, or null if not running on CI",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:appveyor|codebuild|azure_pipelines|bitbucket|buildkite|circle_ci|github|gitlab|jenkins|teamcity|travis_ci|other}"
                             ]
                         },
                         {
@@ -55,12 +73,30 @@
                             ]
                         },
                         {
+                            "path": "cpu_arch",
+                            "description": "The CPU architecture of the current machine",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:x86_64|arm64}"
+                            ]
+                        },
+                        {
                             "path": "interactive",
                             "description": "Whether the command was run in an interactive terminal.",
                             "dataType": "PRIMITIVE",
                             "shouldBeAnonymized": false,
                             "value": [
                                 "{enum#boolean}"
+                            ]
+                        },
+                        {
+                            "path": "os_family",
+                            "description": "The operating system family of the current machine",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:windows|linux|macos|freebsd|solaris}"
                             ]
                         },
                         {
@@ -232,57 +268,6 @@
                             "shouldBeAnonymized": false,
                             "value": [
                                 "{enum:exclude_class_pattern|exclude_tag|include_class|include_class_pattern|include_tag|include_test}"
-                            ]
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "id": "ktc.environment",
-            "type": "state",
-            "version": 2,
-            "description": "Environment state events",
-            "recorder": "KTC",
-            "schema": [
-                {
-                    "event": "ktc.environment.state",
-                    "description": "Environment state",
-                    "fields": [
-                        {
-                            "path": "ai_agent",
-                            "description": "The AI agent running the current CLI command, or null if no agent was detected",
-                            "dataType": "PRIMITIVE",
-                            "shouldBeAnonymized": false,
-                            "value": [
-                                "{enum:cursor|cursor-cli|kimi|grok|gemini-cli|cline|codex|antigravity|augment-cli|opencode|goose|junie|pi|claude-code|replit|github-copilot|kiro|openclaw|devin|other}"
-                            ]
-                        },
-                        {
-                            "path": "ci_system",
-                            "description": "The CI system the current call is running on, or null if not running on CI",
-                            "dataType": "PRIMITIVE",
-                            "shouldBeAnonymized": false,
-                            "value": [
-                                "{enum:appveyor|codebuild|azure_pipelines|bitbucket|buildkite|circle_ci|github|gitlab|jenkins|teamcity|travis_ci|other}"
-                            ]
-                        },
-                        {
-                            "path": "cpu_arch",
-                            "description": "The CPU architecture of the current machine",
-                            "dataType": "PRIMITIVE",
-                            "shouldBeAnonymized": false,
-                            "value": [
-                                "{enum:x86_64|arm64}"
-                            ]
-                        },
-                        {
-                            "path": "os_family",
-                            "description": "The operating system family of the current machine",
-                            "dataType": "PRIMITIVE",
-                            "shouldBeAnonymized": false,
-                            "value": [
-                                "{enum:windows|linux|macos|freebsd|solaris}"
                             ]
                         }
                     ]

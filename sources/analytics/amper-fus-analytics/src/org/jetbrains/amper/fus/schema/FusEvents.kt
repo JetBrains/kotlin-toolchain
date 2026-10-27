@@ -134,6 +134,62 @@ object FusEvents {
             ],
         ))
 
+        var osFamily by field(EventFields.Enum(
+            name = "os_family",
+            enumClass = OsFamily::class.java,
+            description = "The operating system family of the current machine",
+            transform = {
+                when (it) {
+                    OsFamily.MacOs -> "macos"
+                    OsFamily.Windows -> "windows"
+                    OsFamily.Linux -> "linux"
+                    OsFamily.FreeBSD -> "freebsd"
+                    OsFamily.Solaris -> "solaris"
+                }
+            },
+        ))
+
+        var cpuArch by field(EventFields.Enum(
+            name = "cpu_arch",
+            enumClass = Arch::class.java,
+            description = "The CPU architecture of the current machine",
+            transform = {
+                when (it) {
+                    Arch.X64 -> "x86_64"
+                    Arch.Arm64 -> "arm64"
+                }
+            },
+        ))
+
+        var ciSystem by field(EventFields.Enum(
+            name = "ci_system",
+            enumClass = CISystem::class.java,
+            description = "The CI system the current call is running on, or null if not running on CI",
+            transform = {
+                when (it) {
+                    CISystem.AppVeyor -> "appveyor"
+                    CISystem.AwsCodeBuild -> "codebuild"
+                    CISystem.AzurePipelines -> "azure_pipelines"
+                    CISystem.BitBucket -> "bitbucket"
+                    CISystem.BuildKite -> "buildkite"
+                    CISystem.CircleCI -> "circle_ci"
+                    CISystem.GitHub -> "github"
+                    CISystem.GitLab -> "gitlab"
+                    CISystem.Jenkins -> "jenkins"
+                    CISystem.TeamCity -> "teamcity"
+                    CISystem.TravisCI -> "travis_ci"
+                    CISystem.Other -> "other"
+                }
+            }
+        ))
+
+        var aiAgent by field(EventFields.Enum(
+            name = "ai_agent",
+            enumClass = Agent::class.java,
+            description = "The AI agent running the current CLI command, or null if no agent was detected",
+            transform = { it.fusId },
+        ))
+
         var callerType by field(EventFields.Enum<FusCommandCallerType>(
             name = "caller_type",
             description = "The source of the CLI call (IDE, AI Agent, regular user in the terminal, etc.)",
@@ -265,78 +321,6 @@ object FusEvents {
             name = "used_test_filter_kinds",
             description = "The kinds of test filters that were used, or an empty list if no filter was used. " +
                     "The filter values themselves are not reported.",
-        ))
-    }
-
-    private val EnvironmentGroup = group(
-        id = "ktc.environment",
-        version = 2,
-        type = EventLogGroup.Type.STATE,
-        description = "Environment state events",
-    )
-
-    val EnvironmentState = EnvironmentGroup.registerEvent(
-        eventId = "ktc.environment.state",
-        creator = { EnvironmentStateFields() },
-        description = "Environment state",
-    )
-
-    class EnvironmentStateFields : FieldListDescription() {
-
-        var osFamily by field(EventFields.Enum(
-            name = "os_family",
-            enumClass = OsFamily::class.java,
-            description = "The operating system family of the current machine",
-            transform = {
-                when (it) {
-                    OsFamily.MacOs -> "macos"
-                    OsFamily.Windows -> "windows"
-                    OsFamily.Linux -> "linux"
-                    OsFamily.FreeBSD -> "freebsd"
-                    OsFamily.Solaris -> "solaris"
-                }
-            },
-        ))
-
-        var cpuArch by field(EventFields.Enum(
-            name = "cpu_arch",
-            enumClass = Arch::class.java,
-            description = "The CPU architecture of the current machine",
-            transform = {
-                when (it) {
-                    Arch.X64 -> "x86_64"
-                    Arch.Arm64 -> "arm64"
-                }
-            },
-        ))
-
-        var ciSystem by field(EventFields.Enum(
-            name = "ci_system",
-            enumClass = CISystem::class.java,
-            description = "The CI system the current call is running on, or null if not running on CI",
-            transform = {
-                when (it) {
-                    CISystem.AppVeyor -> "appveyor"
-                    CISystem.AwsCodeBuild -> "codebuild"
-                    CISystem.AzurePipelines -> "azure_pipelines"
-                    CISystem.BitBucket -> "bitbucket"
-                    CISystem.BuildKite -> "buildkite"
-                    CISystem.CircleCI -> "circle_ci"
-                    CISystem.GitHub -> "github"
-                    CISystem.GitLab -> "gitlab"
-                    CISystem.Jenkins -> "jenkins"
-                    CISystem.TeamCity -> "teamcity"
-                    CISystem.TravisCI -> "travis_ci"
-                    CISystem.Other -> "other"
-                }
-            }
-        ))
-
-        var aiAgent by field(EventFields.Enum(
-            name = "ai_agent",
-            enumClass = Agent::class.java,
-            description = "The AI agent running the current CLI command, or null if no agent was detected",
-            transform = { it.fusId },
         ))
     }
 

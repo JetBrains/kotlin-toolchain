@@ -171,7 +171,7 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
                 CliFusReporter.setup(userCacheRoot = sharedCacheDir, terminal = terminal)
             }
             spanBuilder("Send baseline FUS events").use {
-                sendBaselineFusEvents()
+                sendBaselineFusEvent()
             }
         }
         if (currentContext.invokedSubcommand == null) {
@@ -223,26 +223,22 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
 
     private fun isWindows(): Boolean = System.getProperty("os.name").lowercase().contains("win")
 
-    private fun sendBaselineFusEvents() {
-        val callingAgent = detectAgent()
-        val ci = CISystem.detect()
+    private fun sendBaselineFusEvent() {
         CliFusReporter.log(FusEvents.CommandInvoked) {
             command = currentContext.invokedSubcommand?.commandName
             subcommands =
                 currentContext.invokedSubcommand?.currentContext?.invokedSubcommands?.map { it.commandName }
+            osFamily = SystemInfo.CurrentHost.family
+            cpuArch = SystemInfo.CurrentHost.arch
+            ciSystem = CISystem.detect()
+            aiAgent = detectAgent()
             callerType = when {
                 System.getenv("KOTLIN_TOOLCHAIN_CALLED_BY_IDE") == "true" -> FusCommandCallerType.Ide
-                callingAgent != null -> FusCommandCallerType.AIAgent
-                ci != null -> FusCommandCallerType.CI
+                aiAgent != null -> FusCommandCallerType.AIAgent
+                ciSystem != null -> FusCommandCallerType.CI
                 else -> FusCommandCallerType.Terminal
             }
             interactive = terminal.terminalInfo.interactive
-        }
-        CliFusReporter.log(FusEvents.EnvironmentState) {
-            osFamily = SystemInfo.CurrentHost.family
-            cpuArch = SystemInfo.CurrentHost.arch
-            ciSystem = ci
-            aiAgent = callingAgent
         }
     }
 }
