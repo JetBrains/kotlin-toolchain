@@ -7,7 +7,7 @@ apply:
   - //sources/used-in-kotlin-notebook.module-template.yaml
 
 dependencies: 
-  - ../stdlib-extended: exported
+  - //sources/libraries/stdlib-extended: exported
 
 settings:
   jvm:
