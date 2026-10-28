@@ -57,7 +57,7 @@ object FusEvents {
 
     private val CommandGroup = group(
         id = "ktc.command",
-        version = 5,
+        version = 6,
         type = EventLogGroup.Type.COUNTER,
         description = "Command execution events",
     )
@@ -199,6 +199,21 @@ object FusEvents {
         var interactive by field(EventFields.Boolean(
             name = "interactive",
             description = "Whether the command was run in an interactive terminal.",
+        ))
+
+        // We're supposed to have the full version in the basic event data, but we add this so we have a format that
+        // is aligned with oldestInstalledKtcVersion for easier comparison.
+        var currentKtcVersion by field(EventFields.String(
+            name = "ktc_version",
+            description = "The currently running version of the Kotlin Toolchain. The dev build number is trimmed.",
+            allowedValues = KnownKtcVersions,
+        ))
+
+        var oldestInstalledKtcVersion by field(EventFields.String(
+            name = "oldest_installed_ktc_version",
+            description = "The oldest version of the Kotlin Toolchain installed in the user's cache. " +
+                    "The dev build number is trimmed.",
+            allowedValues = KnownKtcVersions,
         ))
     }
 

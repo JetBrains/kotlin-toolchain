@@ -27,6 +27,7 @@ import com.sun.jna.platform.win32.Kernel32Util
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.debug.DebugProbes
 import kotlinx.datetime.LocalDateTime
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.agentdetection.detectAgent
 import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.cidetection.CISystem
@@ -48,6 +49,7 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.fus.client.FUS_ENABLED
 import org.jetbrains.amper.fus.schema.FusCommandCallerType
 import org.jetbrains.amper.fus.schema.FusEvents
+import org.jetbrains.amper.fus.schema.trimKtcVersionForFus
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -171,6 +173,7 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
                 CliFusReporter.setup(userCacheRoot = sharedCacheDir, terminal = terminal)
             }
             spanBuilder("Send baseline FUS events").use {
+                // TODO make this async?
                 sendBaselineFusEvent()
             }
         }
@@ -239,6 +242,10 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
                 else -> FusCommandCallerType.Terminal
             }
             interactive = terminal.terminalInfo.interactive
+            currentKtcVersion = AmperBuild.mavenVersion.trimKtcVersionForFus()
+            oldestInstalledKtcVersion = sharedCacheDir.cachedKtcVersions()
+                .minByOrNull { ComparableVersion(it.replace("-dev-", "-alpha")) }
+                ?.trimKtcVersionForFus()
         }
     }
 }

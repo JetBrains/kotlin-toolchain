@@ -22,6 +22,8 @@ set kotlin_cli_version={{KOTLIN_TOOLCHAIN_VERSION}}
 set kotlin_cli_sha256={{KOTLIN_TOOLCHAIN_DIST_TGZ_SHA256}}
 
 if not defined KOTLIN_CLI_DOWNLOAD_ROOT set KOTLIN_CLI_DOWNLOAD_ROOT=https://packages.jetbrains.team/maven/p/amper/amper
+
+@rem /!\ Careful: this needs to stay aligned with the other wrapper and with AmperUserCacheRoot
 if not defined KOTLIN_CLI_BOOTSTRAP_CACHE_DIR set KOTLIN_CLI_BOOTSTRAP_CACHE_DIR=%LOCALAPPDATA%\JetBrains\Kotlin\cli
 @rem remove trailing \ if present
 if [%KOTLIN_CLI_BOOTSTRAP_CACHE_DIR:~-1%] EQU [\] set KOTLIN_CLI_BOOTSTRAP_CACHE_DIR=%KOTLIN_CLI_BOOTSTRAP_CACHE_DIR:~0,-1%

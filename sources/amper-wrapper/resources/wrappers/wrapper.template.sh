@@ -94,6 +94,7 @@ fi
 
 # ********** System detection **********
 
+# /!\ Careful: the cache dir needs to stay aligned with the other wrapper and with AmperUserCacheRoot
 kernelName=$(uname -s)
 case "$kernelName" in
   Darwin* )

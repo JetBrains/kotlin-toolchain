@@ -13,6 +13,8 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
 import kotlin.io.path.pathString
 
 sealed interface AmperUserCacheInitializationResult
@@ -47,6 +49,14 @@ data class AmperUserCacheRoot(val path: Path) : AmperUserCacheInitializationResu
     val telemetryRoot by lazy { path.resolve("telemetry").createDirectories() }
 
     val fusRoot by lazy { path.resolve("fus").createDirectories() }
+
+    // /!\ Careful: this needs to be aligned with wrappers!
+    val cliBootstrapCache by lazy { path.resolve("cli").createDirectories() }
+
+    // /!\ Careful: this needs to be aligned with wrappers!
+    fun cachedKtcVersions(): List<String> = cliBootstrapCache
+        .listDirectoryEntries("kotlin-cli-*")
+        .map { it.name.removePrefix("kotlin-cli-") }
 
     // we want the CLI help to look clean
     override fun toString(): String = path.pathString
