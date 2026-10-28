@@ -49,8 +49,8 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.io.path.pathString
 
-private val KOTLIN_JAEGER_DOWNLOAD_ROOT_URL = CustomizableUrl(
-    "https://github.com/jaegertracing/jaeger/releases/download", "KOTLIN_JAEGER_DOWNLOAD_ROOT_URL").url
+private val JAEGER_DOWNLOAD_ROOT_URL = CustomizableUrl(
+    "https://github.com/jaegertracing/jaeger/releases/download", "KOTLIN_TOOLCHAIN_JAEGER_DOWNLOAD_ROOT_URL").url
 
 internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
 
@@ -95,7 +95,7 @@ internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
             // if the port is already in use jaeger will report it by itself and fail (and we should not open the browser)
             val shouldAutoOpenBrowser = openBrowser && !jaegerPortIsReady(port)
 
-            val jaegerDistUrl = "$KOTLIN_JAEGER_DOWNLOAD_ROOT_URL/v$version/jaeger-${version}-$osString-$archString.tar.gz"
+            val jaegerDistUrl = "$JAEGER_DOWNLOAD_ROOT_URL/v$version/jaeger-${version}-$osString-$archString.tar.gz"
             val file = standaloneOperationProgressWidget(terminal) {
                 Downloader.downloadFileToCacheLocation(jaegerDistUrl, userCacheRoot)
             }

@@ -17,7 +17,7 @@ import org.jetbrains.amper.telemetry.use
 import kotlin.io.path.div
 
 val PNPM_DOWNLOAD_ROOT_URL = CustomizableUrl(
-    "https://github.com/pnpm/pnpm/releases/download", "KOTLIN_PNPM_DOWNLOAD_ROOT_URL").url
+    "https://github.com/pnpm/pnpm/releases/download", "KOTLIN_TOOLCHAIN_PNPM_DOWNLOAD_ROOT_URL").url
 
 class PnpmProvider(
     private val userCacheRoot: AmperUserCacheRoot,

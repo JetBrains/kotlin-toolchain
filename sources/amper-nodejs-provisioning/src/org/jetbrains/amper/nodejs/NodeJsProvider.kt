@@ -17,7 +17,7 @@ import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.telemetry.use
 import kotlin.io.path.div
 
-val NODE_JS_DIST_URL = CustomizableUrl("https://nodejs.org/dist", "KOTLIN_NODE_JS_DIST_URL").url
+val NODE_JS_DIST_URL = CustomizableUrl("https://nodejs.org/dist", "KOTLIN_TOOLCHAIN_NODE_JS_DIST_URL").url
 
 /**
  * Downloads the Node.js distribution for the current platform and returns the path to its `node` executable.

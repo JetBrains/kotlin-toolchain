@@ -158,7 +158,7 @@ private class PackageResolutionErrorWorkaround(
 }
 
 private val XCBEAUTIFY_DOWNLOAD_ROOT_URL = CustomizableUrl(
-    "https://github.com/cpisciotta/xcbeautify/releases/download", "KOTLIN_XCBEAUTIFY_DOWNLOAD_ROOT_URL").url
+    "https://github.com/cpisciotta/xcbeautify/releases/download", "KOTLIN_TOOLCHAIN_XCBEAUTIFY_DOWNLOAD_ROOT_URL").url
 
 private val logger = LoggerFactory.getLogger("runXcodebuildWithLogParsing")
 

@@ -18,7 +18,7 @@ import org.jetbrains.amper.system.info.SystemInfo
 
 private val MAVEN_CENTRAL_REPOSITORY_URL = MavenCentralDefaultConfiguration.url
 val KOTLIN_BOOTSTRAP_REPOSITORY_URL = CustomizableUrl(
-    "https://packages.jetbrains.team/maven/p/kt/bootstrap", "KOTLIN_BOOTSTRAP_REPOSITORY_URL").url
+    "https://packages.jetbrains.team/maven/p/kt/bootstrap", "KOTLIN_TOOLCHAIN_KT_BOOTSTRAP_REPOSITORY_URL").url
 private const val KOTLIN_GROUP_ID = "org.jetbrains.kotlin"
 
 /**

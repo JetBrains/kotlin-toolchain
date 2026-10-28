@@ -19,7 +19,7 @@ import org.jetbrains.amper.stdlib.url.CustomizableUrl
 import org.tukaani.xz.SingleXZInputStream
 import java.io.InputStream
 
-val JETBRAINS_DOWNLOAD_URL = CustomizableUrl("https://download.jetbrains.com", "JETBRAINS_DOWNLOAD_URL").url
+val JETBRAINS_DOWNLOAD_URL = CustomizableUrl("https://download.jetbrains.com", "KOTLIN_TOOLCHAIN_JETBRAINS_DOWNLOAD_URL").url
 val JetBrainsJdksJsonUrl = "$JETBRAINS_DOWNLOAD_URL/jdk/feed/v1/jdks.json.xz"
 
 private val IjJdkJson = Json {
