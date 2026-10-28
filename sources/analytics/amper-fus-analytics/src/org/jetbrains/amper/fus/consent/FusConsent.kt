@@ -13,14 +13,9 @@ import org.jetbrains.amper.system.info.SystemInfo
  */
 object FusConsent {
 
-    private const val BANNER_VERSION = "1.2"
-
-    /**
-     * The versions of the consent flags that we can reuse for our event data collection.
-     *
-     * We can reuse existing FUS flags of our banner, but also version 1.1 currently in use in our IDEs.
-     */
-    private val USABLE_CONSENT_VERSIONS = setOf(BANNER_VERSION, "1.1")
+    // FIXME Technically, this is incorrect, because our banner is not the same as the IDE's 1.1 banner.
+    //   This will be fixed when the IDE banners are updated and we bump to the new version as well.
+    private const val BANNER_VERSION = "1.1"
 
     /**
      * The text (in Markdown format) to show when prompting the user for consent.
@@ -47,9 +42,12 @@ object FusConsent {
     ): ConsentState? {
         val jetBrainsConsent = JetBrainsConsent(os)
         val fusFlag = jetBrainsConsent.readFlag(ConsentFlag.FUS_ID)
-        if (fusFlag != null && fusFlag.version in USABLE_CONSENT_VERSIONS) {
+
+        // We accept existing consent of our own version or other 1.x consent banners, in case minor changes are made
+        if (fusFlag != null && (fusFlag.version == BANNER_VERSION || fusFlag.version.startsWith("1."))) {
             return fusFlag.state
         }
+
         val newAnswer = prompt() ?: return null
         jetBrainsConsent.writeFlag(ConsentFlag.FUS_ID, consentBannerVersion = BANNER_VERSION, state = newAnswer)
         return newAnswer
