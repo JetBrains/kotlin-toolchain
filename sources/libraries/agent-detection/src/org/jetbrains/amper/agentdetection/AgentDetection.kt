@@ -4,46 +4,11 @@
 
 package org.jetbrains.amper.agentdetection
 
-import java.nio.file.Path
-import kotlin.io.path.exists
-
 /**
  * The name of the environment variable that any tool can set to identify itself as an AI agent.
  * See the [AI_AGENT proposal](https://github.com/vercel/detect-agent#the-ai_agent-standard).
  */
 private const val AI_AGENT_VARIABLE: String = "AI_AGENT"
-
-/**
- * The name of the environment variable that disables agent detection when set to `false`.
- * This is meant for internal use, such as tests that need to run as if no agent was present.
- */
-private const val AGENT_DETECTION_ENABLED_VARIABLE: String = "KOTLIN_TOOLCHAIN_AGENT_DETECTION_ENABLED"
-
-/**
- * The parts of the runtime environment that agent detection relies on.
- *
- * This is an interface so that detection can be tested without touching the real environment.
- */
-internal interface AgentDetectionEnvironment {
-
-    /** Returns the value of the environment variable [name], or null if it is not set. */
-    fun getEnv(name: String): String?
-
-    /** Returns true if a file or directory exists at [path]. */
-    fun fileExists(path: Path): Boolean
-
-    /** Returns true if the standard output of this process is attached to an interactive terminal. */
-    fun isStdoutTerminal(): Boolean
-}
-
-/**
- * The real environment of the current process.
- */
-private object SystemAgentDetectionEnvironment : AgentDetectionEnvironment {
-    override fun getEnv(name: String): String? = System.getenv(name)
-    override fun fileExists(path: Path): Boolean = path.exists()
-    override fun isStdoutTerminal(): Boolean = System.console()?.isTerminal == true
-}
 
 /**
  * Returns true if this process seems to be run by an AI agent. See [detectAgent] for details.
@@ -72,7 +37,7 @@ fun isRunByAgent(): Boolean = detectAgent() != null
 fun detectAgent(): Agent? = detectAgent(SystemAgentDetectionEnvironment)
 
 internal fun detectAgent(environment: AgentDetectionEnvironment): Agent? {
-    if (environment.getEnv(AGENT_DETECTION_ENABLED_VARIABLE)?.trim().equals("false", ignoreCase = true)) return null
+    if (isDetectionDisabled(environment)) return null
 
     val declaredAgent = environment.getEnv(AI_AGENT_VARIABLE)?.trim()
     if (!declaredAgent.isNullOrEmpty() && declaredAgent.lowercase() !in FalsyValues) {

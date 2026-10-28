@@ -21,6 +21,7 @@ import com.github.ajalt.mordant.terminal.prompt
 import com.github.ajalt.mordant.terminal.warning
 import org.jetbrains.amper.agentdetection.Agent
 import org.jetbrains.amper.agentdetection.detectAgent
+import org.jetbrains.amper.agentdetection.detectInstalledAgents
 import org.jetbrains.amper.agentdetection.isRunByAgent
 import org.jetbrains.amper.cli.analytics.CliFusReporter
 import org.jetbrains.amper.cli.terminal.interactiveMultiSelectList
@@ -39,6 +40,7 @@ import org.jetbrains.amper.projectwizard.KotlinMultiplatformTargetPlatform
 import org.jetbrains.amper.projectwizard.checkValidProjectId
 import org.jetbrains.amper.projectwizard.defaultProjectId
 import org.jetbrains.amper.projectwizard.initGitRepository
+import org.jetbrains.amper.stdlib.collections.mapToSet
 import org.jetbrains.amper.templates.AmperProjectTemplate
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -249,6 +251,17 @@ internal sealed class AbstractNewProjectCommand(name: String) : AmperSubcommand(
         AiAgent.OTHER -> Agent.Other
     }
 
+    // TODO get rid of this when we generally use the Agent enum everywhere
+    private fun Agent.toAiAgent(): AiAgent = when (this) {
+        Agent.Antigravity -> AiAgent.ANTIGRAVITY
+        Agent.ClaudeCode -> AiAgent.CLAUDE
+        Agent.Codex -> AiAgent.CODEX
+        Agent.Junie -> AiAgent.JUNIE
+        Agent.Pi -> AiAgent.PI
+        Agent.OpenCode -> AiAgent.OPENCODE
+        else -> AiAgent.OTHER
+    }
+
     /**
      * Prints a note addressed to the AI agent that runs this command, explaining that MCP servers configured by the
      * freshly generated project (such as the Compose Hot Reload) are not picked up by the current agent session, and
@@ -304,19 +317,14 @@ internal sealed class AbstractNewProjectCommand(name: String) : AmperSubcommand(
     private fun resolveAgents(): Set<AiAgent> = when {
         noAi -> []
         agentOptions.isNotEmpty() -> agentOptions.toSet()
-        terminal.terminalInfo.interactive -> terminal.promptForAiAgents()
+        terminal.terminalInfo.interactive -> terminal.promptForAiAgents(
+            preselected = detectInstalledAgents().mapToSet { it.toAiAgent() }.ifEmpty { [AiAgent.OTHER] }
+        )
         else -> {
             val detectedAgent = detectAgent() ?: return []
-            // TODO get rid of this when we generally use the Agent enum everywhere
-            [when (detectedAgent) {
-                Agent.Antigravity -> AiAgent.ANTIGRAVITY
-                Agent.ClaudeCode -> AiAgent.CLAUDE
-                Agent.Codex -> AiAgent.CODEX
-                Agent.Junie -> AiAgent.JUNIE
-                Agent.Pi -> AiAgent.PI
-                Agent.OpenCode -> AiAgent.OPENCODE
-                else -> AiAgent.OTHER
-            }]
+            // When the project is created via agent, it makes sense to initialize the configuration
+            // only for that running agent
+            [detectedAgent.toAiAgent()]
         }
     }
 
@@ -451,12 +459,12 @@ internal fun Terminal.promptForKotlinMultiplatformTargets(): Set<KotlinMultiplat
     }
 }
 
-internal fun Terminal.promptForAiAgents(): Set<AiAgent> {
+internal fun Terminal.promptForAiAgents(preselected: Set<AiAgent>): Set<AiAgent> {
     val install = promptBoolean("Install AI agent configuration?", default = true)
         ?: throw PrintMessage("Command aborted.")
     if (!install) return []
 
-    var preselected = AiAgent.entries.toSet()
+    var preselected = preselected
     while (true) {
         val selected = interactiveMultiSelectList(
             title = "Please select at least one AI agent using ${theme.info("[Space]")}, " +

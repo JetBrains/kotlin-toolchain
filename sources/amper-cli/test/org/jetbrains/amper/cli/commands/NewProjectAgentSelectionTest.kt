@@ -34,14 +34,15 @@ class NewProjectAgentSelectionTest {
     lateinit var tempDir: Path
 
     @Test
-    fun `enter accepts installation and all agents are preselected`() {
+    fun `enter accepts installation and the given agents are preselected`() {
         val recorder = interactiveRecorder("").apply {
             inputEvents.addAll([KeyboardEvent("Enter"), Cancel])
         }
 
-        val selected = Terminal(terminalInterface = recorder).promptForAiAgents()
+        val selected = Terminal(terminalInterface = recorder)
+            .promptForAiAgents(preselected = setOf(AiAgent.CODEX, AiAgent.JUNIE))
 
-        assertEquals(AiAgent.entries.toSet(), selected)
+        assertEquals(setOf(AiAgent.CODEX, AiAgent.JUNIE), selected)
         assertEquals(Cancel, recorder.inputEvents.single())
         assertContains(recorder.output(), "Install AI agent configuration? (Y/n)")
     }
@@ -52,7 +53,7 @@ class NewProjectAgentSelectionTest {
             inputEvents.addAll([KeyboardEvent(" "), KeyboardEvent("Enter"), Cancel])
         }
 
-        val selected = Terminal(terminalInterface = recorder).promptForAiAgents()
+        val selected = Terminal(terminalInterface = recorder).promptForAiAgents(preselected = AiAgent.entries.toSet())
 
         assertEquals(AiAgent.entries.toSet() - AiAgent.CLAUDE, selected)
         assertEquals(Cancel, recorder.inputEvents.single())
@@ -62,7 +63,7 @@ class NewProjectAgentSelectionTest {
     fun `declining installation skips the agent picker`() {
         val recorder = interactiveRecorder("n").apply { inputEvents.add(Cancel) }
 
-        val selected = Terminal(terminalInterface = recorder).promptForAiAgents()
+        val selected = Terminal(terminalInterface = recorder).promptForAiAgents(preselected = AiAgent.entries.toSet())
 
         assertTrue(selected.isEmpty())
         assertFalse("Please select at least one AI agent" in recorder.output())
@@ -72,11 +73,11 @@ class NewProjectAgentSelectionTest {
     @Test
     fun `EOF and cancellation abort instead of accepting defaults`() {
         assertFailsWith<PrintMessage> {
-            Terminal(terminalInterface = interactiveRecorder()).promptForAiAgents()
+            Terminal(terminalInterface = interactiveRecorder()).promptForAiAgents(preselected = AiAgent.entries.toSet())
         }
         val recorder = interactiveRecorder("y").apply { inputEvents.add(Cancel) }
         assertFailsWith<PrintMessage> {
-            Terminal(terminalInterface = recorder).promptForAiAgents()
+            Terminal(terminalInterface = recorder).promptForAiAgents(preselected = AiAgent.entries.toSet())
         }
     }
 
@@ -90,7 +91,7 @@ class NewProjectAgentSelectionTest {
             inputEvents.addAll([KeyboardEvent("Enter"), KeyboardEvent(" "), KeyboardEvent("Enter"), Cancel])
         }
 
-        val selected = Terminal(terminalInterface = recorder).promptForAiAgents()
+        val selected = Terminal(terminalInterface = recorder).promptForAiAgents(preselected = AiAgent.entries.toSet())
 
         assertEquals(setOf(AiAgent.CLAUDE), selected)
         assertEquals(Cancel, recorder.inputEvents.single())

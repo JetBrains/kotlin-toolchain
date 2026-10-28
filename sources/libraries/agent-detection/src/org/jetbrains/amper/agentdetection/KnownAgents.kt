@@ -14,27 +14,29 @@ private val DevinMarkerFile = Path("/opt/.devin")
  *
  * @property aiAgentName the canonical value of the `AI_AGENT` variable that identifies this agent.
  * See the [AI_AGENT standard](https://github.com/vercel/detect-agent#the-ai_agent-standard).
+ * @property executable the name (without extension) of the executable of this agent, used to detect whether it is
+ * installed (see [detectInstalledAgents]), or null if it's not a command-line tool we can look for.
  */
-enum class Agent(val aiAgentName: String) {
+enum class Agent(val aiAgentName: String, val executable: String? = null) {
     Cursor("cursor"),
-    CursorCli("cursor-cli"),
-    Kimi("kimi"),
-    Grok("grok"),
-    GeminiCli("gemini_cli"),
-    Cline("cline"),
-    Codex("codex_cli"),
-    Antigravity("antigravity"),
-    AugmentCli("augment-cli"),
-    OpenCode("open_code"),
-    Goose("goose"),
-    Junie("junie"),
-    Pi("pi"),
-    ClaudeCode("claude_code"),
+    CursorCli("cursor-cli", executable = "cursor-agent"),
+    Kimi("kimi", executable = "kimi"),
+    Grok("grok", executable = "grok"),
+    GeminiCli("gemini_cli", executable = "gemini"),
+    Cline("cline", executable = "cline"),
+    Codex("codex_cli", executable = "codex"),
+    Antigravity("antigravity", executable = "antigravity"),
+    AugmentCli("augment-cli", executable = "auggie"),
+    OpenCode("open_code", executable = "opencode"),
+    Goose("goose", executable = "goose"),
+    Junie("junie", executable = "junie"),
+    Pi("pi", executable = "pi"),
+    ClaudeCode("claude_code", executable = "claude"),
     Replit("replit"),
-    GitHubCopilot("github-copilot"),
-    Kiro("kiro"),
-    OpenClaw("openclaw"),
-    Devin("devin"),
+    GitHubCopilot("github-copilot", executable = "copilot"),
+    Kiro("kiro", executable = "kiro-cli"),
+    OpenClaw("openclaw", executable = "openclaw"),
+    Devin("devin", executable = "devin"),
 
     /** An agent that we don't know specifically, but that identified itself via the `AI_AGENT` variable. */
     Other("other"),

@@ -13,16 +13,6 @@ import kotlin.test.assertTrue
 
 class AgentDetectionTest {
 
-    private class FakeEnvironment(
-        val env: Map<String, String> = emptyMap(),
-        val existingFiles: Set<Path> = [],
-        val stdoutIsTerminal: Boolean = true,
-    ) : AgentDetectionEnvironment {
-        override fun getEnv(name: String): String? = env[name]
-        override fun fileExists(path: Path): Boolean = path in existingFiles
-        override fun isStdoutTerminal(): Boolean = stdoutIsTerminal
-    }
-
     private fun detect(
         vararg env: Pair<String, String>,
         existingFiles: Set<Path> = [],
