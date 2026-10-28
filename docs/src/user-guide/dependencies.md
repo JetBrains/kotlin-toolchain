@@ -395,7 +395,7 @@ repositories:
 ```
 
 This is handy to consume libraries that you install locally, for example while testing them before a release.
-The same URL can also be used to [publish](publishing.md#publishing-to-the-local-maven-repository) into it.
+The same URL can also be used to [publish](publishing/libraries.md#publishing-to-the-local-maven-repository) into it.
 
 ### Authentication
 
@@ -561,7 +561,7 @@ fun sha256(value: String): String {
 
 ### Publishing libraries with SwiftPM dependencies
 
-When a [published library](publishing.md) declares SwiftPM dependencies, they are published alongside its artifacts so
+When a [published library](publishing/libraries.md) declares SwiftPM dependencies, they are published alongside its artifacts so
 that consumers of the library know which Swift packages they have to fetch and link. Nothing needs to be configured for
 this: the SwiftPM dependencies of the library are described in an additional `-swiftpm-metadata.json` artifact, in the
 same format as the one published by the Kotlin Gradle Plugin.

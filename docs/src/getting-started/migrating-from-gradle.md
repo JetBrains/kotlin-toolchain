@@ -267,7 +267,7 @@ You can now remove your Gradle wrapper and configuration files.
 
 [^1]: The tasks in the Kotlin toolchain are internal. What you want to run is commands instead. You can use
 `kotlin --help` to learn about built-in commands, or run `kotlin show commands` to show the custom commands from plugins.
-[^2]: After setting up the [publishing configuration](../user-guide/publishing.md).
+[^2]: After setting up the [publishing configuration](../user-guide/publishing/libraries.md).
 
 ## Migration reference
 

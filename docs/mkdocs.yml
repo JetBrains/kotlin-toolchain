@@ -124,7 +124,10 @@ nav:
       - 'Multiplatform modules': user-guide/multiplatform.md
       - 'Testing': user-guide/testing.md
       - 'Templates': user-guide/templates.md
-      - 'Publishing': user-guide/publishing.md
+      - 'Publishing':
+          - 'Android application': user-guide/publishing/android-application.md
+          - 'iOS application': user-guide/publishing/ios-application.md
+          - 'Libraries': user-guide/publishing/libraries.md
       - 'Product types':
           - 'Overview': user-guide/product-types/overview.md
           - 'Android application': user-guide/product-types/android-app.md

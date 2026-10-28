@@ -827,7 +827,7 @@ settings:
 ### `settings.publishing`
 
 `settings.publishing` configures the publication of the module to Maven repositories.
-Read more in the [Publishing](../user-guide/publishing.md) section.
+Read more in the [Publishing libraries](../user-guide/publishing/libraries.md) guide.
 
 | Attribute              | Default          | Description                                                                                                                                                                                                                                    |
 |------------------------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

@@ -23,4 +23,4 @@ Read more about multiplatform topics in the general [Multiplatform modules](../m
 ## Publishing
 
 The `kotlin publish <repository>` command can be used to publish the library to a Maven repository.
-Read more about this in the [publishing](../publishing.md) guide.
+Read more about this in the [publishing](../publishing/libraries.md) guide.

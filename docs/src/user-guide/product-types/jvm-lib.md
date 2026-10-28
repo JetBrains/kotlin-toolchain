@@ -38,7 +38,7 @@ my-module/
 
 The `kotlin package` command isn't defined _by default_ for JVM libraries.
 
-If [publishing](../publishing.md) to Maven Central is enabled, then `kotlin package` creates a Maven Central ZIP bundle
+If [publishing](../publishing/libraries.md) to Maven Central is enabled, then `kotlin package` creates a Maven Central ZIP bundle
 that is ready to be uploaded to the Central Portal.
 More specifically, enabling Maven Central publication provides the `maven-central-bundle` packaging format, and because
 it's the only one, it means the `kotlin package` command is effectively `kotlin package --format=maven-central-bundle`.
@@ -46,4 +46,4 @@ it's the only one, it means the `kotlin package` command is effectively `kotlin 
 ## Publishing
 
 The `kotlin publish <repository>` command can be used to publish the library to a Maven repository.
-Read more about this in the [publishing](../publishing.md) guide.
+Read more about this in the [publishing](../publishing/libraries.md) guide.
