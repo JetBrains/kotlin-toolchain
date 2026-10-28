@@ -42,21 +42,10 @@ class ExampleProjectsTest : CliTestBase() {
     companion object {
 
         private val knownWarnings = listOf(
-            // TODO fix Android Gradle builds to avoid this warning - we should use Gradle 9 anyway
-            // https://youtrack.jetbrains.com/issue/AMPER-4751/Gradle-warning-in-Android-based-example-projects
-            // https://youtrack.jetbrains.com/issue/AMPER-4752/Upgrade-to-Gradle-9-in-Android-delegated-builds
-            "Starting with Gradle 9.0, this property will be ignored by Gradle",
-            // From iOS builds - shouldn't really be a warning at all
-            "The Info.plist already exists, no need to generate the default one.",
-            // Probably shouldn't warn in debug mode - is this an Amper bug or a config issue?
-            // https://youtrack.jetbrains.com/issue/AMPER-4753/iOS-warning-in-compose-multiplatform-example-project
+            // This one is expected as we build the project for iosArm64 target which is not installable on a device without signing.
+            // https://youtrack.jetbrains.com/issue/KTC-4753/iOS-warning-in-compose-multiplatform-example-project
             "`DEVELOPMENT_TEAM` build setting is not detected in the Xcode project. Adding `CODE_SIGNING_ALLOWED=NO` to disable signing. You can still sign the app manually later.",
-            // Maybe this can be fixed with iOS project configuration
-            // https://youtrack.jetbrains.com/issue/AMPER-4757/iOS-warning-in-compose-multiplatform-example-project-All-interface-orientations-must-be-supported
-            "All interface orientations must be supported unless the app requires full screen",
-
-            // this is the reason why we don't see it in Gradle:
-            // https://youtrack.jetbrains.com/projects/KT/issues/KT-76197/Write-Kotlin-compiler-warnings-and-errors-to-Problems-API
+            // This warning is legitimate for the Kotlin version of spring-petclinic, and is also reported in Gradle.
             "static fun deserialize(bytes: ByteArray?): Any?' is deprecated. Deprecated in Java.",
         )
 
