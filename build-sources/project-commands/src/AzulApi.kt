@@ -14,7 +14,7 @@ object AzulApi {
     enum class Os(val azulApiName: String, val filenameValue: String, val archiveType: String) {
         Windows(azulApiName = "windows", filenameValue = "win", archiveType = "zip"),
         Linux(azulApiName = "linux-glibc", filenameValue = "linux", archiveType = "tar.gz"),
-        MacOs(azulApiName = "osx", filenameValue = "macosx", archiveType = "tar.gz"),
+        MacOs(azulApiName = "macos", filenameValue = "macosx", archiveType = "tar.gz"),
     }
 
     enum class Arch(val azulApiName: String, val filenameValue: String) {
@@ -35,12 +35,20 @@ object AzulApi {
     }
 
     private fun fetchJreChecksum(zuluVersion: String, javaVersion: String, os: Os, arch: Arch): String {
-        val uuid = fetchJreUuid(zuluVersion, javaVersion, os, arch)
+        val packageListUrl = packageListUrl(javaVersion, zuluVersion, os, arch)
+        val uuid = fetchJsonField(url = packageListUrl, fieldName = "package_uuid")
         val packageMetadataUrl = "https://api.azul.com/metadata/v1/zulu/packages/$uuid"
         val downloadUrl = fetchJsonField(url = packageMetadataUrl, fieldName = "download_url")
         val expectedDownloadUrl = downloadUrlFor(zuluVersion, javaVersion, os, arch)
         check(downloadUrl == expectedDownloadUrl) {
-            "Incorrect package found, download URL is not as expected:\nExpected: $expectedDownloadUrl\nBut was:  $downloadUrl"
+            """
+                Incorrect package found for $os/$arch, download URL is not as expected:
+                Expected: $expectedDownloadUrl
+                But was:  $downloadUrl
+                
+                See package list for $os/$arch: $packageListUrl
+                See package metadata for $uuid: $packageMetadataUrl
+            """
         }
         return fetchJsonField(
             url = packageMetadataUrl,
@@ -48,11 +56,8 @@ object AzulApi {
         )
     }
 
-    private fun downloadUrlFor(zuluVersion: String, javaVersion: String, os: Os, arch: Arch): String =
-        "https://cdn.azul.com/zulu/bin/zulu$zuluVersion-ca-jre$javaVersion-${os.filenameValue}_${arch.filenameValue}.${os.archiveType}"
-
-    private fun fetchJreUuid(zuluVersion: String, javaVersion: String, os: Os, arch: Arch): String = fetchJsonField(
-        url = "https://api.azul.com/metadata/v1/zulu/packages/?" +
+    private fun packageListUrl(javaVersion: String, zuluVersion: String, os: Os, arch: Arch): String =
+        "https://api.azul.com/metadata/v1/zulu/packages/?" +
                 "java_version=$javaVersion" +
                 "&distro_version=$zuluVersion" +
                 "&os=${os.azulApiName}" +
@@ -63,9 +68,10 @@ object AzulApi {
                 "&crac_supported=false" +
                 "&release_status=ga" +
                 "&page=1" +
-                "&page_size=1",
-        fieldName = "package_uuid",
-    )
+                "&page_size=1"
+
+    private fun downloadUrlFor(zuluVersion: String, javaVersion: String, os: Os, arch: Arch): String =
+        "https://cdn.azul.com/zulu/bin/zulu$zuluVersion-ca-jre$javaVersion-${os.filenameValue}_${arch.filenameValue}.${os.archiveType}"
 
     private fun fetchJsonField(url: String, fieldName: String): String {
         val json = fetchContent(url)
