@@ -8,6 +8,7 @@ import com.github.ajalt.mordant.terminal.Terminal
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
@@ -47,7 +48,22 @@ class PrepareIOSPlatformTask(
             )
         }
 
-        var missingAnyIosDevicePlaceholder = destinations.find { it.isIosWithError() }
+        var missingAnyIosDevicePlaceholder = if (contextOf<XcodeEnvironment>().version < ComparableVersion("27.0")) {
+            /*
+             For Xcode versions < 27.0:
+             If there is no latest (corresponding to the Xcode version) iOS Simulator platform installed,
+             then destinations are reported like this:
+             ```text
+             Ineligible destinations for the "app" scheme:
+                     { platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device, error:iOS 26.5 is not installed. Please download and install the platform from Xcode > Settings > Components. }
+             ```
+             And no build is possible.
+             So if this is the case, we need to ensure the platform is downloaded before we build anything.
+
+             This behavior is fixed since 27.0, so this task doesn't really do anything besides listing destinations.
+            */
+            destinations.find { it.placeholderIosDeviceWithError() }
+        } else null
 
         if (missingAnyIosDevicePlaceholder == null) {
             return Result(
@@ -69,7 +85,7 @@ class PrepareIOSPlatformTask(
                     projectDir = module.xcodeProjectPath,
                     schemeName = IosConventions.SCHEME_NAME,
                 )
-                missingAnyIosDevicePlaceholder = destinations.find { it.isIosWithError() }
+                missingAnyIosDevicePlaceholder = destinations.find { it.placeholderIosDeviceWithError() }
                 if (missingAnyIosDevicePlaceholder == null) {
                     break
                 }
@@ -153,4 +169,5 @@ private const val MAX_DESTINATION_RETRIES = 20
 // NBSP is here as well because `-downloadPlatform` uses it in its output, and it's not included into `\s` in regex.
 private val DownloadPercentRegex = """(\d+,\d+)[\u00A0\s]*?%""".toRegex()
 
-private fun XcodeDestination.isIosWithError() = platform == XcodebuildPlatform.iOS && error != null
+private fun XcodeDestination.placeholderIosDeviceWithError() =
+    platform == XcodebuildPlatform.iOS && error != null && isBuildOnly
