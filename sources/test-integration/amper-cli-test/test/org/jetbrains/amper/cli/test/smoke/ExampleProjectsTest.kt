@@ -47,6 +47,12 @@ class ExampleProjectsTest : CliTestBase() {
             "`DEVELOPMENT_TEAM` build setting is not detected in the Xcode project. Adding `CODE_SIGNING_ALLOWED=NO` to disable signing. You can still sign the app manually later.",
             // This warning is legitimate for the Kotlin version of spring-petclinic, and is also reported in Gradle.
             "static fun deserialize(bytes: ByteArray?): Any?' is deprecated. Deprecated in Java.",
+            // This one is expected due to a bug in Skia fork build for iOS simulator maintained by Skiko.
+            // The given object file lacks minimal iOS version argument and is marked with the Xcode version used for building it.
+            // The file itself contains only data and doesn't contain any symbols that actually link with the iOS platform.
+            // The issue is reported to the Skiko team.
+            // https://youtrack.jetbrains.com/issue/KTC-6096
+            "(libicu.icudtl_dat.o)) was built for newer 'iOS-simulator' version (18.5) than being linked (18.0)",
         )
 
         // Linking and xcodebuild produce some warnings on stderr (said warnings are ignored specifically)
