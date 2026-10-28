@@ -67,6 +67,9 @@ suspend fun <R> runXcodebuildWithLogParsing(
             workingDir = Path("."),
             command = [
                 executable.pathString,
+                // By default, xcbeautify detects the environment and chooses the renderer based on it.
+                // We want to process the output ourselves, so we enforce the terminal renderer.
+                "--renderer", "terminal",
                 "--disable-logging", // disable big version banner - we do it ourselves
                 "--quiet",
             ],
