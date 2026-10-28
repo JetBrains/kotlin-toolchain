@@ -5,6 +5,7 @@
 package org.jetbrains.amper.cli.publish.ios
 
 import com.github.ajalt.mordant.markdown.Markdown
+import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.table.table
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.terminal.muted
@@ -28,6 +29,7 @@ import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.terminal.printCompletedMilestone
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.widgets.status.standaloneOperationProgressWidget
+import org.jetbrains.amper.cli.widgets.withStyle
 import org.jetbrains.amper.cli.withBackend
 import org.jetbrains.amper.events.sink.OperationEventSink
 import org.jetbrains.amper.events.sink.operationEventScope
@@ -97,13 +99,12 @@ private suspend fun epilogue(
            |
            |Apple is processing the build now. This usually takes a few minutes, but in rare cases can take longer ⏳
         """.trimMargin()
-    )
-    terminal.println(terminal.theme.success(terminal.render(uploadedMessage)))
+    ).withStyle(terminal.theme.success)
+    terminal.println(uploadedMessage)
     terminal.println(
         Markdown(
             """
                |What's next:
-               |
                |- **Test the build:** add testers (including yourself) on the [TestFlight page]($testFlightUrl), 
                |  then install it with the [TestFlight app](https://apps.apple.com/app/testflight/id899247664). 
                |  Testers outside your team need a [Beta App Review](https://developer.apple.com/help/app-store-connect/test-a-beta-version/invite-external-testers/) first.
@@ -124,23 +125,37 @@ private suspend fun epilogue(
             )
         }
     }
-    terminal.println(
-        Markdown(
-            when (waitResult) {
-                TestflightBuildWaitResult.Ready ->
-                    "🎉 **`${publication.app.name}` is ready!** You can now test it via [TestFlight]($testFlightUrl) " +
-                            "or [submit it for App Review](https://appstoreconnect.apple.com/apps/${publication.app.id}/distribution)."
-                is TestflightBuildWaitResult.Failed ->
-                    "⚠️ Apple couldn't process this build (state: `${waitResult.processingState}`). See the build " +
-                            "details in [TestFlight]($testFlightUrl) for the errors, then upload a fixed build."
-                TestflightBuildWaitResult.TimedOut ->
-                    "⏳ Apple is still processing the build. Check [TestFlight]($testFlightUrl) again later."
-                is TestflightBuildWaitResult.LookupFailed ->
-                    "✅ The upload is complete, but I couldn't check its processing status: `${waitResult.message}`. " +
-                            "Check [TestFlight]($testFlightUrl) again later."
-            }
+    terminal.println()
+    when (waitResult) {
+        TestflightBuildWaitResult.Ready -> {
+            terminal.print(
+                Markdown("🎉 ${publication.app.name} is ready!")
+                    .withStyle(terminal.theme.success + TextStyles.bold.style)
+            )
+            terminal.print(" ")
+            terminal.println(
+                Markdown(
+                    "You can now test it via [TestFlight]($testFlightUrl) or " +
+                            "[submit it for App Review](https://appstoreconnect.apple.com/apps/${publication.app.id}/distribution)."
+                )
+            )
+        }
+        is TestflightBuildWaitResult.Failed -> terminal.println(
+            Markdown(
+                "⚠️ Apple couldn't process this build (state: `${waitResult.processingState}`). See the build " +
+                        "details in [TestFlight]($testFlightUrl) for the errors, then upload a fixed build."
+            )
         )
-    )
+        TestflightBuildWaitResult.TimedOut -> terminal.println(
+            Markdown("⏳ Apple is still processing the build. Check [TestFlight]($testFlightUrl) again later.")
+        )
+        is TestflightBuildWaitResult.LookupFailed -> terminal.println(
+            Markdown(
+                "✅ The upload is complete, but I couldn't check its processing status: `${waitResult.message}`. " +
+                        "Check [TestFlight]($testFlightUrl) again later."
+            )
+        )
+    }
 }
 
 /**
