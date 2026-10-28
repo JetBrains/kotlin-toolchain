@@ -2461,6 +2461,45 @@ itself. This is why we recommend checking the Kotlin wrapper script into your pr
 </li>
       
         <li class="md-nav__item">
+  <a href="#customizing-download-urls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Customizing download URLs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Customizing download URLs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#repositories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repositories
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#uncharted-customization-territories" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2794,6 +2833,45 @@ itself. This is why we recommend checking the Kotlin wrapper script into your pr
 </li>
       
         <li class="md-nav__item">
+  <a href="#customizing-download-urls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Customizing download URLs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Customizing download URLs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#repositories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repositories
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tools
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#uncharted-customization-territories" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2926,6 +3004,101 @@ This might be too much output if you're running Kotlin CLI in a CI environment, 
 build.</p>
 <p>You can disable the welcome banner by setting the <code>KOTLIN_CLI_NO_WELCOME_BANNER</code> environment variable to a non-empty value.
 For instance, <code>KOTLIN_CLI_NO_WELCOME_BANNER=1</code>.</p>
+<h2 id="customizing-download-urls">Customizing download URLs<a class="headerlink" href="#customizing-download-urls" title="Permanent link">&para;</a></h2>
+<p>The Kotlin Toolchain downloads tools and internal dependencies from external locations.
+Each location can be overridden with an environment variable, for instance, to use a mirror or a proxy repository.
+Blank values are ignored.</p>
+<div class="admonition warning">
+<p class="admonition-title">Subject to change</p>
+<p>The environment variables below, their names, and their defaults are subject to change in future versions of the Kotlin Toolchain.
+They may be replaced with a more appropriate way to customize download locations,
+such as project settings, machine-wide settings, or another mechanism.</p>
+</div>
+<h3 id="repositories">Repositories<a class="headerlink" href="#repositories" title="Permanent link">&para;</a></h3>
+<p>The table below lists environment variables that customize the URLs of built-in repositories the Kotlin Toolchain downloads from.
+Each variable affects everything downloaded from its repository.</p>
+<table>
+<thead>
+<tr>
+<th>Environment variable</th>
+<th>Default</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>KOTLIN_DEFAULT_MAVEN_CENTRAL_URL</code></td>
+<td><code>https://repo1.maven.org/maven2</code></td>
+<td>Maven Central: the default dependency repository, Kotlin compiler artifacts, tooling</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_GOOGLE_REPOSITORY_URL</code></td>
+<td><code>https://maven.google.com</code></td>
+<td>Google Maven: the default dependency repository, Android tooling</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_REPOSITORY_URL</code></td>
+<td><code>https://packages.jetbrains.team/maven/p/amper/amper</code></td>
+<td>Kotlin Toolchain artifacts: tooling, plugin dependencies</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_KT_BOOTSTRAP_REPOSITORY_URL</code></td>
+<td><code>https://packages.jetbrains.team/maven/p/kt/bootstrap</code></td>
+<td>Kotlin <code>-dev-</code> versions: compiler artifacts and Kotlin/Native distributions</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_ANDROID_DOWNLOAD_URL_ROOT</code></td>
+<td><code>https://dl.google.com</code></td>
+<td>Android SDK packages and system images</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_JETBRAINS_DOWNLOAD_URL</code></td>
+<td><code>https://download.jetbrains.com</code></td>
+<td>The JetBrains CDN: the list of JDKs available for <a href="../../user-guide/advanced/jdk-provisioning/">provisioning</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="tools">Tools<a class="headerlink" href="#tools" title="Permanent link">&para;</a></h3>
+<p>The table below lists environment variables that customize the base URL of a single tool's downloads.
+The Kotlin Toolchain appends the rest of the path, such as the version and file name, to it.</p>
+<table>
+<thead>
+<tr>
+<th>Environment variable</th>
+<th>Default</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>KOTLIN_CLI_DOWNLOAD_ROOT</code></td>
+<td><code>https://packages.jetbrains.team/maven/p/amper/amper</code></td>
+<td>Kotlin wrapper scripts and distribution in <code>kotlin update</code></td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_NODE_JS_DIST_URL</code></td>
+<td><code>https://nodejs.org/dist</code></td>
+<td>Node.js (artifact location: <code>&lt;URL&gt;/v$version/node-v$version-$os-$arch.$extension"</code>)</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_PNPM_DOWNLOAD_ROOT_URL</code></td>
+<td><code>https://github.com/pnpm/pnpm/releases/download</code></td>
+<td>pnpm (artifact location: <code>&lt;URL&gt;/v$version/pnpm-$os-$arch.$extension"</code>)</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_XCBEAUTIFY_DOWNLOAD_ROOT_URL</code></td>
+<td><code>https://github.com/cpisciotta/xcbeautify/releases/download</code></td>
+<td>xcbeautify (iOS builds. artifact location: <code>&lt;URL&gt;/$version/xcbeautify-$version-$arch-apple-macosx.zip</code>)</td>
+</tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_JAEGER_DOWNLOAD_ROOT_URL</code></td>
+<td><code>https://github.com/jaegertracing/jaeger/releases/download</code></td>
+<td>Jaeger (<code>kotlin tool jaeger</code>, artifact location: <code>&lt;URL&gt;v$version/jaeger-$version-$os-$arch.tar.gz</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>--repository</code> option of <code>kotlin update</code> takes precedence over <code>KOTLIN_CLI_DOWNLOAD_ROOT</code>.</p>
+<p>A mirror specified by an environment variable must keep the layout of the original location, because the Kotlin Toolchain appends the same relative paths to it.</p>
 <h2 id="uncharted-customization-territories">Uncharted customization territories<a class="headerlink" href="#uncharted-customization-territories" title="Permanent link">&para;</a></h2>
 <div class="admonition danger">
 <p class="admonition-title">Use at your own risk</p>
@@ -2983,7 +3156,7 @@ Changing this variable allows you to use your own Maven repository to host the K
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="August 31, 2026 15:24:21 UTC">August 31, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 28, 2026 13:21:55 UTC">October 28, 2026</span>
   </span>
 
     
