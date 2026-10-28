@@ -34,9 +34,6 @@ import org.jetbrains.amper.stdlib.url.CustomizableUrl
 val KOTLIN_TOOLCHAIN_REPOSITORY_URL = CustomizableUrl(
     "https://packages.jetbrains.team/maven/p/amper/amper",
     "KOTLIN_TOOLCHAIN_REPOSITORY_URL").url
-val KOTLIN_TOOLCHAIN_COMPOSE_HOT_RELOAD_REPOSITORY_URL = CustomizableUrl(
-    "https://packages.jetbrains.team/maven/p/amper/compose-hot-reload",
-    "KOTLIN_TOOLCHAIN_COMPOSE_HOT_RELOAD_REPOSITORY_URL").url
 
 private fun kotlinDependencyOf(artifactId: String, version: TraceableString, dependencyTrace: Trace) = MavenDependency(
     coordinates = coords("org.jetbrains.kotlin", artifactId, version),
@@ -351,19 +348,6 @@ private fun implicitMavenRepositories(
     fragments: List<Fragment>,
 ): List<ResolutionRepository> {
     return buildList {
-        val isHotReloadRuntimeApiPresent = fragments
-            .flatMap { it.externalDependencies }
-            .filterIsInstance<MavenDependency>()
-            .any { it.coordinates.groupAndArtifact == "org.jetbrains.compose.hot-reload:hot-reload-runtime-api" }
-        if (isHotReloadRuntimeApiPresent) {
-            add(
-                ResolutionRepository(
-                    id = "amper-hot-reload-dev",
-                    url = KOTLIN_TOOLCHAIN_COMPOSE_HOT_RELOAD_REPOSITORY_URL,
-                )
-            )
-        }
-
         if (productType == ProductType.JVM_AMPER_PLUGIN) {
             if (AmperBuild.isSNAPSHOT) {
                 add(

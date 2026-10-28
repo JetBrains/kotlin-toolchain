@@ -92,7 +92,6 @@ Each variable affects everything downloaded from its repository.
 | `KOTLIN_DEFAULT_MAVEN_CENTRAL_URL`           | `https://repo1.maven.org/maven2`                       | Maven Central: the default dependency repository, Kotlin compiler artifacts, tooling              |
 | `KOTLIN_TOOLCHAIN_GOOGLE_REPOSITORY_URL`               | `https://maven.google.com`                             | Google Maven: the default dependency repository, Android tooling                                  |
 | `KOTLIN_TOOLCHAIN_REPOSITORY_URL`   | `https://packages.jetbrains.team/maven/p/amper/amper`        | Kotlin Toolchain artifacts: tooling, plugin dependencies |
-| `KOTLIN_TOOLCHAIN_COMPOSE_HOT_RELOAD_REPOSITORY_URL`   | `https://packages.jetbrains.team/maven/p/amper/compose-hot-reload`        | Kotlin Toolchain Compose Hot Reload artifacts|
 | `KOTLIN_TOOLCHAIN_KT_BOOTSTRAP_REPOSITORY_URL`            | `https://packages.jetbrains.team/maven/p/kt/bootstrap` | Kotlin `-dev-` versions: compiler artifacts and Kotlin/Native distributions                       |
 | `KOTLIN_TOOLCHAIN_ANDROID_DOWNLOAD_URL_ROOT` | `https://dl.google.com`                                | Android SDK packages and system images                                                            |
 | `KOTLIN_TOOLCHAIN_JETBRAINS_DOWNLOAD_URL`                     | `https://download.jetbrains.com`                       | The JetBrains CDN: the list of JDKs available for [provisioning](../user-guide/advanced/jdk-provisioning.md) |
