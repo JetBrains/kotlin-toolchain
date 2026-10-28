@@ -4,4 +4,4 @@
 
 package org.jetbrains.amper.tasks.web
 
-internal const val NODE_JS_VERSION = "26.5.1"
+internal const val NODE_JS_VERSION = "26.12.1"

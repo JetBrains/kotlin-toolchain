@@ -14,7 +14,7 @@ import org.slf4j.Logger
 import java.nio.file.Path
 import kotlin.io.path.pathString
 
-internal const val PNPM_VERSION = "11.9.0"
+internal const val PNPM_VERSION = "11.28.8"
 
 internal suspend fun ProcessRunner.disablePnpmUpdateNotifier(
     workingDir: Path,
