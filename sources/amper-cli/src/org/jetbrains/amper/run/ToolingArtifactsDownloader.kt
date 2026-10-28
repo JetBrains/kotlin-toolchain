@@ -14,7 +14,7 @@ import org.jetbrains.amper.dependency.resolution.ResolutionPlatform
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.aomBuilder.GOOGLE_REPOSITORY_URL
 import org.jetbrains.amper.frontend.dr.resolver.toIncrementalCacheResult
-import org.jetbrains.amper.frontend.processing.KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL
+import org.jetbrains.amper.frontend.processing.KOTLIN_TOOLCHAIN_REPOSITORY_URL
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.frontend.schema.DiscouragedDirectDefaultVersionAccess
 import org.jetbrains.amper.incrementalcache.IncrementalCache
@@ -23,7 +23,7 @@ import org.jetbrains.amper.system.info.SystemInfo
 import java.nio.file.Path
 
 val GOOGLE_REPOSITORY = MavenRepository(GOOGLE_REPOSITORY_URL)
-val AMPER_DEV_REPOSITORY = MavenRepository(KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL)
+val AMPER_DEV_REPOSITORY = MavenRepository(KOTLIN_TOOLCHAIN_REPOSITORY_URL)
 
 class ToolingArtifactsDownloader(
     userCacheRoot: AmperUserCacheRoot,

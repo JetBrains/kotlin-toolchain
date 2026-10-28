@@ -31,9 +31,9 @@ import org.jetbrains.amper.frontend.schema.kotlin.plugins.legacySerializationFor
 import org.jetbrains.amper.frontend.types.generated.*
 import org.jetbrains.amper.stdlib.url.CustomizableUrl
 
-val KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL = CustomizableUrl(
+val KOTLIN_TOOLCHAIN_REPOSITORY_URL = CustomizableUrl(
     "https://packages.jetbrains.team/maven/p/amper/amper",
-    "KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL").url
+    "KOTLIN_TOOLCHAIN_REPOSITORY_URL").url
 val KOTLIN_TOOLCHAIN_COMPOSE_HOT_RELOAD_REPOSITORY_URL = CustomizableUrl(
     "https://packages.jetbrains.team/maven/p/amper/compose-hot-reload",
     "KOTLIN_TOOLCHAIN_COMPOSE_HOT_RELOAD_REPOSITORY_URL").url
@@ -376,7 +376,7 @@ private fun implicitMavenRepositories(
                 add(
                     ResolutionRepository(
                         id = "amper-maven",
-                        url = KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL,
+                        url = KOTLIN_TOOLCHAIN_REPOSITORY_URL,
                     )
                 )
             }
