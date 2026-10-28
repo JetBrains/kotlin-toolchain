@@ -135,7 +135,7 @@ fun MavenRepositorySystem.createMavenExecutionRequest(localRepositoryPath: Path)
 
 private fun createDefaultMavenExecutionRequest(): DefaultMavenExecutionRequest {
     val request = DefaultMavenExecutionRequest()
-    if (!MavenCentralDefaultConfiguration.isDirectUrl) {
+    if (!MavenCentralDefaultConfiguration.isDefaultUrl) {
         request.addMirror(
             Mirror().also {
                 it.id = "central-mirror"

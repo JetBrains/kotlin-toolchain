@@ -19,10 +19,10 @@ object MavenCentralDefaultConfiguration: CustomizableUrl(
     environmentVariable = "KOTLIN_DEFAULT_MAVEN_CENTRAL_URL"
 ) {
 
-    override val isDirectUrl: Boolean get() = url.trimEnd('/') in directUrls
+    override val isDefaultUrl: Boolean get() = url in directUrls
 
     private val directUrls = setOf(
-        defaultUrl.trimEnd('/') ,
+        defaultUrl,
         "https://repo.maven.apache.org/maven2"
     )
 }

@@ -83,7 +83,7 @@ internal object MavenModelReader {
 
 fun createDefaultMavenExecutionRequest(): DefaultMavenExecutionRequest {
     val request = DefaultMavenExecutionRequest()
-    if (!MavenCentralDefaultConfiguration.isDirectUrl) {
+    if (!MavenCentralDefaultConfiguration.isDefaultUrl) {
         request.addMirror(
             Mirror().also {
                 it.id = "central-mirror"

@@ -123,7 +123,7 @@ class AmperAndroidIntegrationProjectPlugin @Inject constructor(private val probl
         val buildDir = rootProjectBuildDir / project.path.replace(":", "_")
         project.layout.buildDirectory.set(buildDir.toFile())
         project.repositories.google()
-        if (!MavenCentralDefaultConfiguration.isDirectUrl) {
+        if (!MavenCentralDefaultConfiguration.isDefaultUrl) {
             project.repositories.maven { repo ->
                 repo.name = "Maven Central (proxy)"
                 repo.setUrl(MavenCentralDefaultConfiguration.url)
