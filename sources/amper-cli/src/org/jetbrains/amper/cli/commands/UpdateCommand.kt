@@ -333,7 +333,7 @@ internal class UpdateCommand : AmperSubcommand(name = "update") {
     }
 }
 
-val KOTLIN_CLI_DOWNLOAD_ROOT_URL = CustomizableUrl(KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL, "KOTLIN_CLI_DOWNLOAD_ROOT").url
+private val KOTLIN_CLI_DOWNLOAD_ROOT_URL = CustomizableUrl(KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL, "KOTLIN_CLI_DOWNLOAD_ROOT").url
 
 private val xmlVersionElementRegex = Regex("<version>(.+?)</version>")
 
