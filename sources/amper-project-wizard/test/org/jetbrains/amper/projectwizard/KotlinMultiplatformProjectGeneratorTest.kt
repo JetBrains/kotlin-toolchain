@@ -4,10 +4,14 @@
 
 package org.jetbrains.amper.projectwizard
 
+import kotlinx.coroutines.runBlocking
+import org.eclipse.jgit.api.Git
 import org.jetbrains.amper.templates.TemplatePlaceholder
+import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
+import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -418,6 +422,40 @@ class KotlinMultiplatformProjectGeneratorTest {
         assertContains(gitignore.text(), "/.mcp.json\n")
 
         assertFalse(files.any { it.relativePath.startsWith(".idea/") })
+    }
+
+    @Test
+    fun `initialized Git repository stages generated files except ignored ones`(@TempDir projectDir: Path) = runBlocking {
+        KotlinMultiplatformApp(
+            targets = KotlinMultiplatformTargetPlatform.entries.toSet(),
+            projectId = TestProjectId,
+            projectName = "Sample App",
+        ).toExtractionSchema().extractTo(projectDir)
+
+        assertEquals(GitInitResult.Initialized, initGitRepository(projectDir))
+
+        val status = Git.open(projectDir.toFile()).use { it.status().call() }
+        val expectedStaged = [
+            ".gitignore",
+            ".gitattributes",
+            "AGENTS.md",
+            "README.md",
+            "project.yaml",
+            "core/src/GreetingUtil.kt",
+            "app/shared/module.yaml",
+            "app/shared/src/App.kt",
+            "app/androidApp/res/values/strings.xml",
+            "app/iosApp/module.xcodeproj/project.pbxproj",
+            "app/iosApp/module.xcodeproj/xcshareddata/xcschemes/app.xcscheme",
+        ]
+        for (path in expectedStaged) {
+            assertContains(status.added, path, "$path should be staged")
+        }
+        for (mcpPath in allMcpPaths) {
+            assertContains(status.ignoredNotInIndex, mcpPath, "$mcpPath should be ignored and not staged")
+        }
+        assertEquals(status.added, status.uncommittedChanges, "Unexpected unstaged changes")
+        assertTrue(status.untracked.isEmpty(), "Unexpected untracked files: ${status.untracked}")
     }
 
     @Test

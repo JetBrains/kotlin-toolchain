@@ -30,7 +30,7 @@ suspend fun initGitRepository(projectDir: Path): GitInitResult = withContext(Dis
             GitInitResult.SkippedInsideExistingWorkTree
         } else {
             Git.init().setDirectory(projectDir.toFile()).setInitialBranch(InitialBranch).call().use { git ->
-                git.normalizeLineEndings()
+                git.stageAllWithNormalizedLineEndings()
             }
             GitInitResult.Initialized
         }
@@ -44,20 +44,12 @@ suspend fun initGitRepository(projectDir: Path): GitInitResult = withContext(Dis
 }
 
 /**
- * Hack to normalize line endings in the repository to comply with the `.gitattributes` file.
+ * Stages all files, and checks them out again so that their line endings in the working tree comply with the
+ * `.gitattributes` file.
  */
-private fun Git.normalizeLineEndings() {
+private fun Git.stageAllWithNormalizedLineEndings() {
     add().addFilepattern(".").call()
     checkout().setAllPaths(true).call()
-
-    val index = repository.lockDirCache()
-    try {
-        index.clear()
-        index.write()
-        if (!index.commit()) throw IOException("Could not clear the temporary Git index")
-    } finally {
-        index.unlock()
-    }
 }
 
 private fun Path.isInsideGitWorkTree(): Boolean =

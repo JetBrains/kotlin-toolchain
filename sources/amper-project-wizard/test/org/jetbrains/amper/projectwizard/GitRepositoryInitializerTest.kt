@@ -39,9 +39,26 @@ class GitRepositoryInitializerTest {
         assertEquals(GitInitResult.Initialized, result)
         assertEquals("echo first\r\necho second\r\n", (tempDir / "script.bat").readText())
         assertEquals("first\nsecond\n", (tempDir / "source.kt").readText())
+    }
+
+    @Test
+    fun `stages all generated files`() = runBlocking {
+        (tempDir / ".gitattributes").writeText("* text=auto eol=lf\n*.bat text eol=crlf\n")
+        (tempDir / "script.bat").writeText("echo first\necho second\n")
+        (tempDir / "source.kt").writeText("first\r\nsecond\r\n")
+
+        val result = initGitRepository(tempDir)
+
+        assertEquals(GitInitResult.Initialized, result)
         Git.open(tempDir.toFile()).use { git ->
-            val addedFiles = git.status().call().added
-            assertTrue(addedFiles.isEmpty(), "Line-ending normalization must not stage generated files: $addedFiles")
+            val status = git.status().call()
+            assertEquals(setOf(".gitattributes", "script.bat", "source.kt"), status.added)
+            assertEquals(
+                status.uncommittedChanges,
+                status.added,
+                "Unexpected unstaged changes: ${status.uncommittedChanges}"
+            )
+            assertTrue(status.untracked.isEmpty(), "Unexpected untracked files: ${status.untracked}")
         }
     }
 }
