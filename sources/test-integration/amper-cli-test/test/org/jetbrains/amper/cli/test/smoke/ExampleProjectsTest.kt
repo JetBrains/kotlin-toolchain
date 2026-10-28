@@ -55,6 +55,16 @@ class ExampleProjectsTest : CliTestBase() {
             "(libicu.icudtl_dat.o)) was built for newer 'iOS-simulator' version (18.5) than being linked (18.0)",
         )
 
+        // Gradle deprecations come from AGP and KGP inside the Gradle build we generate, so they are hidden from users
+        // (see KTC-6084).
+        private val knownGradleDeprecations = setOf(
+            // From AGP and KGP, fixed in AGP 9.5.0-rc02+ and KGP 2.3.20+
+            "The Configuration.setVisible(boolean) method has been deprecated. This is scheduled to be removed in Gradle 11.",
+        )
+
+        // Must match the prefix used for Gradle deprecations in gradleProgressEvent.kt
+        private const val GRADLE_DEPRECATION_LOG_PREFIX = "Gradle deprecation: "
+
         // Linking and xcodebuild produce some warnings on stderr (said warnings are ignored specifically)
         private val knownProjectsWithNonEmptyStderr = setOf("compose-desktop")
 
@@ -76,6 +86,14 @@ class ExampleProjectsTest : CliTestBase() {
         val warnings = buildResult.stdoutClean.lines().filter { "WARN" in it }
         val unexpectedWarnings = warnings.filterNot { knownWarnings.any { warning -> it.contains(warning) } }
         assertEqualsWithDiff(unexpectedWarnings, emptyList(), "Unexpected warnings in $projectName")
+
+        val unexpectedDeprecations = buildResult.debugLogs
+            .map { it.message.trim() }
+            .filter { it.startsWith(GRADLE_DEPRECATION_LOG_PREFIX) }
+            .map { it.removePrefix(GRADLE_DEPRECATION_LOG_PREFIX) }
+            .filterNot { it in knownGradleDeprecations }
+            .distinct()
+        assertEqualsWithDiff(unexpectedDeprecations, emptyList(), "Unexpected Gradle deprecations in $projectName")
     }
 
     @Test

@@ -65,7 +65,7 @@ internal fun ProblemEvent.log(logger: Logger) {
     val loggingFunc: (String) -> Unit = when {
         // Deprecations come from AGP or KGP inside the Gradle build we generate, so users can't act on them—debug level
         // is more than enough.
-        definition.id.group.name == "deprecation" -> logger::debug
+        definition.id.group.name == "deprecation" -> { message -> logger.debug("Gradle deprecation: $message") }
         definition.severity == WARNING -> logger::warn
         definition.severity == ERROR -> logger::error
         else -> logger::info
