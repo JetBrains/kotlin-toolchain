@@ -105,10 +105,10 @@ The Kotlin Toolchain appends the rest of the path, such as the version and file 
 | Environment variable                  | Default                                                       | Used for                                                     |
 |---------------------------------------|---------------------------------------------------------------|--------------------------------------------------------------|
 | `KOTLIN_CLI_DOWNLOAD_ROOT`            | `https://packages.jetbrains.team/maven/p/amper/amper`              | Kotlin wrapper scripts and distribution in `kotlin update`   |
-| `KOTLIN_TOOLCHAIN_NODE_JS_DIST_URL`             | `https://nodejs.org/dist`                                     | Node.js                                                      |
-| `KOTLIN_TOOLCHAIN_PNPM_DOWNLOAD_ROOT_URL`       | `https://github.com/pnpm/pnpm/releases/download`              | pnpm                                                         |
-| `KOTLIN_TOOLCHAIN_XCBEAUTIFY_DOWNLOAD_ROOT_URL` | `https://github.com/cpisciotta/xcbeautify/releases/download`  | xcbeautify (iOS builds)                                      |
-| `KOTLIN_TOOLCHAIN_JAEGER_DOWNLOAD_ROOT_URL`     | `https://github.com/jaegertracing/jaeger/releases/download`   | Jaeger (`kotlin tool jaeger`)                                |
+| `KOTLIN_TOOLCHAIN_NODE_JS_DIST_URL`             | `https://nodejs.org/dist`                                     | Node.js (artifact location: `<URL>/v$version/node-v$version-$os-$arch.$extension"`)                                                     |
+| `KOTLIN_TOOLCHAIN_PNPM_DOWNLOAD_ROOT_URL`       | `https://github.com/pnpm/pnpm/releases/download`              | pnpm (artifact location: `<URL>/v$version/pnpm-$os-$arch.$extension"`)                                                       |
+| `KOTLIN_TOOLCHAIN_XCBEAUTIFY_DOWNLOAD_ROOT_URL` | `https://github.com/cpisciotta/xcbeautify/releases/download`  | xcbeautify (iOS builds. artifact location: `<URL>/$version/xcbeautify-$version-$arch-apple-macosx.zip`)                                      |
+| `KOTLIN_TOOLCHAIN_JAEGER_DOWNLOAD_ROOT_URL`     | `https://github.com/jaegertracing/jaeger/releases/download`   | Jaeger (`kotlin tool jaeger`, artifact location: `<URL>v$version/jaeger-$version-$os-$arch.tar.gz`)                                |
 
 The `--repository` option of `kotlin update` takes precedence over `KOTLIN_CLI_DOWNLOAD_ROOT`.
 
