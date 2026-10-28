@@ -59,6 +59,51 @@ kotlin_cli_cache_dir="${KOTLIN_CLI_BOOTSTRAP_CACHE_DIR:-$default_kotlin_cli_cach
 
 # ********** Provision JRE for the Kotlin CLI **********
 
+if [ "$simpleOs" = "windows" ]; then
+  java_binary="java.exe"
+else
+  java_binary="java"
+fi
+
+# Prints the path to the actual JRE home inside the given extracted JRE directory. The home is not always the
+# directory itself: the archive may contain a single nested directory, and macOS JREs nest it in Contents/Home.
+find_real_jre_home() {
+  extracted_jre_dir="$1"
+  real_jre_home=
+  for d in "$extracted_jre_dir" "$extracted_jre_dir"/* "$extracted_jre_dir"/Contents/Home "$extracted_jre_dir"/*/Contents/Home; do
+    if [ -e "$d/bin/$java_binary" ]; then
+      real_jre_home="$d"
+    fi
+  done
+
+  if [ -z "$real_jre_home" ]; then
+    die "Unable to find bin/$java_binary under $extracted_jre_dir"
+  fi
+  echo "$real_jre_home"
+}
+
+# KTC-6075 Temporary fix for CVE-2026-114820. These compromised CA certificates were not removed yet from the public
+# Zulu 25 distribution, so we remove them ourselves from the JRE that we just extracted.
+# NOTE: This must be run under the download_and_extract lock.
+remove_compromised_ca_certificates() {
+  java_home=$(find_real_jre_home "$1")
+  keytool_exe="$java_home/bin/keytool"
+
+  certs_dump=$("$keytool_exe" -list -v -cacerts -storepass changeit)
+  for fp in \
+    86:A1:EC:BA:08:9C:4A:8D:3B:BE:27:34:C6:12:BA:34:1D:81:3E:04:3C:F9:E8:A8:62:CD:5C:57:A3:6B:BE:6B \
+    D7:A7:A0:FB:5D:7E:27:31:D7:71:E9:48:4E:BC:DE:F7:1D:5F:0C:3E:0A:29:48:78:2B:C8:3E:E0:EA:69:9E:F4; do
+    # Aliases may contain spaces, hence the read loop instead of a simple word-splitting 'for' loop
+    aliases=$(printf '%s\n' "$certs_dump" | awk -v fp="$fp" '/^Alias name:/{a=substr($0,13)} index($0,fp){print a}')
+    while IFS= read -r alias; do
+      [ -n "$alias" ] || continue
+      "$keytool_exe" -delete -alias "$alias" -cacerts -storepass changeit
+    done <<EOF
+$aliases
+EOF
+  done
+}
+
 if [ "x${KOTLIN_CLI_JAVA_HOME:-}" = "x" ]; then
   case $arch in
     x86_64 | x64)    jre_arch="x64" ;;
@@ -87,33 +132,14 @@ if [ "x${KOTLIN_CLI_JAVA_HOME:-}" = "x" ]; then
   jre_url="$KOTLIN_CLI_JRE_DOWNLOAD_ROOT/cdn.azul.com/zulu/bin/zulu$zulu_version-ca-jre$java_version-${jre_os}_$jre_arch.$jre_archive_type"
   jre_target_dir="$kotlin_cli_cache_dir/zulu$zulu_version-ca-jre$java_version-${jre_os}_$jre_arch"
 
-  download_and_extract "Kotlin CLI runtime v$zulu_version" "$jre_url" "$jre_sha256" 256 "$kotlin_cli_cache_dir" "$jre_target_dir" "false"
+  download_and_extract "Kotlin CLI runtime v$zulu_version" "$jre_url" "$jre_sha256" 256 "$kotlin_cli_cache_dir" "$jre_target_dir" "false" remove_compromised_ca_certificates
 
-  if [ "$simpleOs" = "windows" ]; then
-    java_binary="java.exe"
-  else
-    java_binary="java"
-  fi
-
-  effective_kotlin_cli_java_home=
-  for d in "$jre_target_dir" "$jre_target_dir"/* "$jre_target_dir"/Contents/Home "$jre_target_dir"/*/Contents/Home; do
-    if [ -e "$d/bin/$java_binary" ]; then
-      effective_kotlin_cli_java_home="$d"
-    fi
-  done
-
-  if [ "x${effective_kotlin_cli_java_home:-}" = "x" ]; then
-    die "Unable to find bin/$java_binary under $jre_target_dir"
-  fi
+  effective_kotlin_cli_java_home=$(find_real_jre_home "$jre_target_dir")
 else
   effective_kotlin_cli_java_home="$KOTLIN_CLI_JAVA_HOME"
 fi
 
-if [ "$simpleOs" = "windows" ]; then
-  java_exe="$effective_kotlin_cli_java_home/bin/java.exe"
-else
-  java_exe="$effective_kotlin_cli_java_home/bin/java"
-fi
+java_exe="$effective_kotlin_cli_java_home/bin/$java_binary"
 if [ '!' -x "$java_exe" ]; then
   die "Unable to find bin/java executable at $java_exe"
 fi

@@ -9,6 +9,7 @@ test-dependencies:
   - //sources/amper-jdk-provisioning
   - //sources/amper-wrapper
   - //sources/core
+  - //sources/libraries/stdlib-extended
   - //sources/libraries/system-info
   - //sources/test-base
 

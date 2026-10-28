@@ -9,6 +9,9 @@ download_and_extract() {
   cache_dir="$5"
   extract_dir="$6"
   show_banner_on_cache_miss="$7"
+  # Optional name of a function to run on the extracted files before the extraction dir is marked as complete.
+  # It is called with the extraction directory as single argument.
+  post_process="${8:-}"
 
   if [ -e "$extract_dir/.flag" ] && [ "$(cat "$extract_dir/.flag")" = "${file_sha}" ]; then
     # Everything is up-to-date in $extract_dir, do nothing
@@ -119,6 +122,12 @@ EOF
   esac
 
   rm -f "$temp_file"
+
+  # Note: a failing post-processing triggers the EXIT trap, which removes the incomplete extraction dir.
+  # This is why we run it before writing the .flag file, which marks the extraction dir as complete.
+  if [ -n "$post_process" ]; then
+    "$post_process" "$extract_dir"
+  fi
 
   echo "$file_sha" >"$extract_dir/.flag"
 
