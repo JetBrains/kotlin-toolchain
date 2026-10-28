@@ -69,7 +69,7 @@ internal suspend fun obtainAuthKey(authPropertiesPath: Path): AppStoreConnectAut
         val inputs = values.toMutableMap()
         while (authKeyFrom(inputs) == null) {
             for (field in AuthFields) {
-                if (!validAuthValue(field, inputs[field])) {
+                while (!validAuthValue(field, inputs[field])) {
                     inputs[field] = ask(field.label)
                     if (!validAuthValue(field, inputs[field])) {
                         message(
