@@ -91,7 +91,8 @@ Each variable affects everything downloaded from its repository.
 |----------------------------------------------|--------------------------------------------------------|---------------------------------------------------------------------------------------------------|
 | `KOTLIN_DEFAULT_MAVEN_CENTRAL_URL`           | `https://repo1.maven.org/maven2`                       | Maven Central: the default dependency repository, Kotlin compiler artifacts, tooling              |
 | `KOTLIN_TOOLCHAIN_GOOGLE_REPOSITORY_URL`               | `https://maven.google.com`                             | Google Maven: the default dependency repository, Android tooling                                  |
-| `KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL`   | `https://packages.jetbrains.team/maven/p/amper`        | Kotlin Toolchain artifacts (`<root>/amper`): tooling, plugin dependencies, `kotlin update`; Compose Hot Reload (`<root>/compose-hot-reload`) |
+| `KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL`   | `https://packages.jetbrains.team/maven/p/amper/amper`        | Kotlin Toolchain artifacts: tooling, plugin dependencies |
+| `KOTLIN_TOOLCHAIN_COMPOSE_HOT_RELOAD_REPOSITORY_URL`   | `https://packages.jetbrains.team/maven/p/amper/compose-hot-reload`        | Kotlin Toolchain Compose Hot Reload artifacts|
 | `KOTLIN_TOOLCHAIN_KT_BOOTSTRAP_REPOSITORY_URL`            | `https://packages.jetbrains.team/maven/p/kt/bootstrap` | Kotlin `-dev-` versions: compiler artifacts and Kotlin/Native distributions                       |
 | `KOTLIN_TOOLCHAIN_ANDROID_DOWNLOAD_URL_ROOT` | `https://dl.google.com`                                | Android SDK packages and system images                                                            |
 | `KOTLIN_TOOLCHAIN_JETBRAINS_DOWNLOAD_URL`                     | `https://download.jetbrains.com`                       | The JetBrains CDN: the list of JDKs available for [provisioning](../user-guide/advanced/jdk-provisioning.md) |
@@ -103,14 +104,13 @@ The Kotlin Toolchain appends the rest of the path, such as the version and file 
 
 | Environment variable                  | Default                                                       | Used for                                                     |
 |---------------------------------------|---------------------------------------------------------------|--------------------------------------------------------------|
-| `KOTLIN_CLI_DOWNLOAD_ROOT`            | `$KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL/amper`              | Kotlin wrapper scripts and distribution in `kotlin update`   |
+| `KOTLIN_CLI_DOWNLOAD_ROOT`            | `https://packages.jetbrains.team/maven/p/amper/amper`              | Kotlin wrapper scripts and distribution in `kotlin update`   |
 | `KOTLIN_TOOLCHAIN_NODE_JS_DIST_URL`             | `https://nodejs.org/dist`                                     | Node.js                                                      |
 | `KOTLIN_TOOLCHAIN_PNPM_DOWNLOAD_ROOT_URL`       | `https://github.com/pnpm/pnpm/releases/download`              | pnpm                                                         |
 | `KOTLIN_TOOLCHAIN_XCBEAUTIFY_DOWNLOAD_ROOT_URL` | `https://github.com/cpisciotta/xcbeautify/releases/download`  | xcbeautify (iOS builds)                                      |
 | `KOTLIN_TOOLCHAIN_JAEGER_DOWNLOAD_ROOT_URL`     | `https://github.com/jaegertracing/jaeger/releases/download`   | Jaeger (`kotlin tool jaeger`)                                |
 
-`KOTLIN_CLI_DOWNLOAD_ROOT` takes precedence over `KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL`, and the `--repository` option
-of `kotlin update` takes precedence over both.
+The `--repository` option of `kotlin update` takes precedence over `KOTLIN_CLI_DOWNLOAD_ROOT`.
 
 A mirror specified by an environment variable must keep the layout of the original location, because the Kotlin Toolchain appends the same relative paths to it.
 

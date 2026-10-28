@@ -31,11 +31,12 @@ import org.jetbrains.amper.frontend.schema.kotlin.plugins.legacySerializationFor
 import org.jetbrains.amper.frontend.types.generated.*
 import org.jetbrains.amper.stdlib.url.CustomizableUrl
 
-private val KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL = CustomizableUrl(
-    "https://packages.jetbrains.team/maven/p/amper", "KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL").url
-
-val KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL = "$KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL/amper"
-val KOTLIN_TOOLCHAIN_COMPOSE_HOT_RELOAD_REPOSITORY_URL = "$KOTLIN_TOOLCHAIN_DEV_REPOSITORY_ROOT_URL/compose-hot-reload"
+val KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL = CustomizableUrl(
+    "https://packages.jetbrains.team/maven/p/amper/amper",
+    "KOTLIN_TOOLCHAIN_DEV_REPOSITORY_URL").url
+val KOTLIN_TOOLCHAIN_COMPOSE_HOT_RELOAD_REPOSITORY_URL = CustomizableUrl(
+    "https://packages.jetbrains.team/maven/p/amper/compose-hot-reload",
+    "KOTLIN_TOOLCHAIN_COMPOSE_HOT_RELOAD_REPOSITORY_URL").url
 
 private fun kotlinDependencyOf(artifactId: String, version: TraceableString, dependencyTrace: Trace) = MavenDependency(
     coordinates = coords("org.jetbrains.kotlin", artifactId, version),
