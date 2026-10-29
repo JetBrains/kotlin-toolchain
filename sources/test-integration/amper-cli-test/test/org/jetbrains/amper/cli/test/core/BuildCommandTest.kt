@@ -263,6 +263,22 @@ class AmperBuildTest : CliTestBase() {
     }
 
     @Test
+    fun `incremental jvm build snapshots a module dependency once for all its dependents`() = runSlowTest {
+        val projectDir = testProject("incremental-compilation")
+        val result = runCli(projectDir = projectDir, "build")
+
+        val kotlinOutputSnapshots = (result.buildDir / "ic-cache/classpath-snapshots")
+            .listDirectoryEntries("*kotlin-output-*.abi")
+            .map { it.name }
+        // 'shared' main classes are on the classpath of both 'app' and 'shared' tests, so we should have a single module ABI
+        assertEquals(1, kotlinOutputSnapshots.size, "Expected a single snapshot of 'shared' classes, got: $kotlinOutputSnapshots")
+        assertTrue(
+            kotlinOutputSnapshots.single().startsWith("shared"),
+            "Snapshot should be named after the dependency module, got: ${kotlinOutputSnapshots.single()}",
+        )
+    }
+
+    @Test
     fun `incremental java build restores deleted output class files`() = runSlowTest {
         val projectDir = testProject("java-incremental-compilation")
         val resultRun = runCli(projectDir = projectDir, "run")

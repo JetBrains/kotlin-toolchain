@@ -8,7 +8,6 @@ import com.github.ajalt.mordant.terminal.Terminal
 import io.opentelemetry.api.OpenTelemetry
 import io.opentelemetry.api.trace.SpanBuilder
 import kotlinx.serialization.json.Json
-import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.BuildPrimitives
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
@@ -595,8 +594,8 @@ internal class JvmCompileTask(
                         entryPath = entryPath,
                         entryMoniker = if (entryPath.isDirectory()) {
                             // Directories are kotlin-output and java-output under a module name (in general), so we
-                            // prepend the module name to make it more recognizable
-                            "${module.userReadableName}${if (isTest) "-test" else ""}-${entryPath.name}"
+                            // prepend the module name (which is the parent directory) to make it more recognizable
+                            "${entryPath.parent.name}-${entryPath.name}"
                         } else {
                             entryPath.name
                         },
