@@ -11,11 +11,33 @@ import org.jetbrains.amper.dependency.resolution.MavenDependency
 import org.jetbrains.amper.dependency.resolution.ResolutionPlatform
 import org.jetbrains.annotations.Nls
 
+/**
+ * This diagnostic represent the situation where some subset of requested platforms are not supported
+ * by library dependency.
+ * It is always reported for the direct dependencies, and it may or may not be reported for transitive ones.
+ *
+ * Mismatching transitive dependencies are allowed because libraries with such deps exist in a wild:
+ *   -- KMP libraries referencing non-KMP (pom.xml only) libraries
+ *      (`io.kotest:kotest-framework-engine:5.9.1` declares `org.jetbrains.kotlin:kotlin-reflect:1.9.23`
+ *      in 'desktopMain', a source set of its native variants);)
+ *   -- a dependency of a source set that is visible for a shared source set only because
+ *      one of its platforms publishes no source sets in the project structure metadata, as in KGP
+ *      (`org.jetbrains.compose.ui:ui-util:1.12.1` declares `ui-uikit` in 'iosMain', visible for android+ios).
+ *
+ * Such a dependency doesn't break the build: it contributes nothing where it isn't supported:
+ * - a JVM-only JAR is skipped by non-JVM compilations,
+ * - a KMP library missing some platforms of a shared source set is not visible there,
+ * The resolution for each platform reports the problems of its own dependencies.
+ *
+ * As a direct dependency is always reported, a library published by the Kotlin Toolchain never declares
+ * such a dependency itself.
+ */
 @Serializable
 class PlatformsAreNotSupported private constructor(
     val coordinates: MavenCoordinates,
     val requestedPlatforms: Set<ResolutionPlatform>,
     val supportedPlatforms: Set<ResolutionPlatform>,
+    override val reportTransitive: Boolean = false,
 ) : Message {
 
     /**
@@ -25,13 +47,17 @@ class PlatformsAreNotSupported private constructor(
     constructor(
         dependency: MavenDependency,
         supportedPlatforms: Set<ResolutionPlatform>,
+        reportTransitive: Boolean,
         alreadyReportedPlatforms: Set<ResolutionPlatform> = emptySet(),
-    ) : this(dependency.coordinates, dependency.resolutionConfig.platforms - alreadyReportedPlatforms, supportedPlatforms)
+    ) : this(
+        coordinates = dependency.coordinates,
+        requestedPlatforms = dependency.resolutionConfig.platforms - alreadyReportedPlatforms,
+        supportedPlatforms = supportedPlatforms,
+        reportTransitive = reportTransitive,
+    )
 
     companion object {
         const val ID = "platforms.are.not.supported"
-
-        private val jvmPlatforms = setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID)
     }
 
     override val id: String = ID
@@ -57,14 +83,4 @@ class PlatformsAreNotSupported private constructor(
 
     val unsupportedPlatforms: Set<ResolutionPlatform>
         get() = requestedPlatforms - supportedPlatforms
-
-    /**
-     * A library supporting the requested platforms might declare a JVM-only dependency
-     * (e.g., declared in a source set shared between JVM and native targets).
-     * Such a dependency is simply not used on non-JVM platforms, there is nothing the user should fix.
-     *
-     * Any other unsupported platform makes the library unusable there, even if it is a transitive dependency.
-     */
-    override val reportTransitive: Boolean
-        get() = !supportedPlatforms.all { it in jvmPlatforms }
 }

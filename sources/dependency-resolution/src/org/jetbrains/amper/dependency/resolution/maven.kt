@@ -1309,11 +1309,7 @@ class MavenDependencyImpl internal constructor(
                 }
             }
         } else {
-            // Single platform (or jvm+android) context
-            if (context.settings.platforms.size == 1
-                // [KTC-4474] Supporting JVM dependencies in jvm+android fragments.
-                || context.settings.platforms == setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID))
-            {
+            if (context.settings.isSinglePlatformContext()) {
                 val swiftPMMetadata = moduleMetadata.variants.firstOrNull { it.getAttributeValue(Usage) == Usage.SwiftPMDependenciesMetadata }
                 if (swiftPMMetadata != null) {
                     swiftPMDependenciesMetadata = getDependencyFile(this, swiftPMMetadata.files.single(), false)
@@ -1468,6 +1464,10 @@ class MavenDependencyImpl internal constructor(
                 PlatformsAreNotSupported(
                     this,
                     supportedPlatforms = supportedPlatforms,
+                    // Not reported for a transitive dependency:
+                    // - in a shared fragment, where it is just not visible (as in KGP);
+                    // - if it is JVM-only, since it is not used on non-JVM platforms.
+                    reportTransitive = settings.isSinglePlatformContext() && !supportedPlatforms.all { it.isJvmLike() },
                     alreadyReportedPlatforms = platformsBlockedByCapabilities,
                 )
             )
@@ -2444,6 +2444,24 @@ class MavenDependencyImpl internal constructor(
      */
     private fun isSpecialKmpLibrary(): Boolean = isKotlinTestAnnotationsCommon() || isKotlinStdlibCommon()
 
+    /**
+     * JAR-packed dependencies without metadata can't be compiled against on non-JVM platforms
+     * (the JAR stays among the files of the dependency though, it might contain resources, e.g., of Skiko runtime).
+     */
+    private fun isJarResolvedForNonJvmPlatforms(): Boolean =
+        packaging == "jar"
+                && !isSpecialKmpLibrary()
+                && !settings.platforms.all { it.isJvmLike() }
+
+    private fun ResolutionPlatform.isJvmLike() = this == ResolutionPlatform.JVM || this == ResolutionPlatform.ANDROID
+
+    /**
+     * Single platform (or jvm+android) context, the dependency is resolved to its platform variant.
+     * [KTC-4474] jvm+android fragments support JVM dependencies.
+     */
+    private fun Settings.isSinglePlatformContext() =
+        platforms.size == 1 || platforms == setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID)
+
     private suspend fun resolveUsingPom(
         text: String,
         context: Context,
@@ -2487,19 +2505,15 @@ class MavenDependencyImpl internal constructor(
 
         state = getTargetState(level, transitive)
 
-        if (packaging == "jar" && !isSpecialKmpLibrary()) {
-            // effective packaging type is 'jar'
-            val nonJvmPlatforms =
-                context.settings.platforms.filter { it != ResolutionPlatform.JVM && it != ResolutionPlatform.ANDROID }
-            // JAR-packed dependencies without metadata shouldn't be used for non-JVM platforms
-            if (nonJvmPlatforms.isNotEmpty()) {
-                diagnosticsReporter.addMessage(
-                    PlatformsAreNotSupported(
-                        this,
-                        supportedPlatforms = setOf(ResolutionPlatform.ANDROID, ResolutionPlatform.JVM)
-                    )
+        if (isJarResolvedForNonJvmPlatforms()) {
+            diagnosticsReporter.addMessage(
+                PlatformsAreNotSupported(
+                    this,
+                    supportedPlatforms = setOf(ResolutionPlatform.ANDROID, ResolutionPlatform.JVM),
+                    // the JAR is not used by non-JVM compilations (the compile tasks skip it)
+                    reportTransitive = false,
                 )
-            }
+            )
         }
 
         // We have used a pom file for resolving dependency, => lower severity of module-metadata-related issues.

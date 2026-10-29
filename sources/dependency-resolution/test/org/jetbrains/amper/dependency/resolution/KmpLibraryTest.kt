@@ -4,6 +4,8 @@
 
 package org.jetbrains.amper.dependency.resolution
 
+import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics
+import org.jetbrains.amper.dependency.resolution.diagnostics.PlatformsAreNotSupported
 import org.jetbrains.amper.dependency.resolution.diagnostics.Severity
 import org.jetbrains.amper.dependency.resolution.diagnostics.UnableToDownloadChecksums
 import org.jetbrains.amper.dependency.resolution.diagnostics.detailedMessage
@@ -19,6 +21,7 @@ import kotlin.io.path.div
 import kotlin.io.path.outputStream
 import kotlin.io.path.writeText
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Resolution of Kotlin Multiplatform libraries (for iOS platforms unless stated otherwise),
@@ -166,6 +169,88 @@ class KmpLibraryTest : BaseDRTest() {
     }
 
     /**
+     * A KMP library might declare a JVM-only dependency for a native platform,
+     * no variant of such a dependency published with Gradle metadata matches the native platform (Gradle fails here).
+     * The dependency is not used on the native platform, so its problem is not reported for the transitive node,
+     * and it contributes no files.
+     */
+    @Test
+    fun `JVM-only library with Gradle metadata reached transitively from a KMP library for native is not reported`() =
+        runDrTest {
+            val root = rootOfLibraryInMavenLocal(
+                "org.jetbrains.dr.test:kmp-lib-linux:1.0",
+                platforms = setOf(ResolutionPlatform.LINUX_X64),
+            ) { mavenLocal ->
+                KmpLibraryWithJvmOnlyDependency.publish(mavenLocal)
+            }
+            doTest(root, verifyMessages = false)
+
+            val jvmLibrary = root.distinctBfsSequence()
+                .filterIsInstance<MavenDependencyNode>()
+                .single { it.module == "jvm-lib-with-gradle-metadata" }
+            assertEquals(
+                [PlatformsAreNotSupported.ID],
+                jvmLibrary.dependency.messages.map { it.id },
+                "The library itself is expected to be unsupported on linuxX64",
+            )
+            assertEquals([], jvmLibrary.messages.map { it.id }, "Transitive $jvmLibrary is expected to have no messages")
+            val files = jvmLibrary.dependency.files()
+            assertTrue(files.isEmpty(), "$jvmLibrary is expected to have no files, but has: $files")
+        }
+
+    /**
+     * `org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9` publishes its common metadata in the legacy jar format only,
+     * which is not supported, so the problem is reported even though it is a transitive dependency.
+     */
+    @Test
+    fun `KMP library with legacy common metadata reached transitively for a shared fragment is reported`() =
+        runDrTest {
+            val root = rootOfLibraryWithLegacyDependency(
+                platforms = setOf(ResolutionPlatform.IOS_ARM64, ResolutionPlatform.IOS_X64),
+            )
+
+            assertEquals(
+                [DependencyResolutionDiagnostics.KotlinMetadataNotResolved.id],
+                root.errorIdsOf("kotlinx-coroutines-core"),
+            )
+        }
+
+    /**
+     * The resolution for a single platform uses the platform artifacts of
+     * `org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9`, the format of its common metadata doesn't matter there.
+     */
+    @Test
+    fun `KMP library with legacy common metadata reached transitively for a single platform is not a problem`() =
+        runDrTest {
+            val root = rootOfLibraryWithLegacyDependency(platforms = setOf(ResolutionPlatform.IOS_ARM64))
+
+            assertEquals([], root.errorIdsOf("kotlinx-coroutines-core"))
+        }
+
+    private suspend fun rootOfLibraryWithLegacyDependency(platforms: Set<ResolutionPlatform>): DependencyNode {
+        val root = rootOfLibraryInMavenLocal(
+            "org.jetbrains.dr.test:kmp-lib-legacy-dependency:1.0",
+            platforms = platforms,
+            repositories = [MAVEN_LOCAL, REDIRECTOR_MAVEN_CENTRAL],
+        ) { mavenLocal ->
+            KmpLibraryWithLegacyDependency.publish(mavenLocal)
+        }
+        doTest(root, verifyMessages = false)
+        return root
+    }
+
+    /**
+     * @return the ids of the errors of the node of the given [module]
+     */
+    private fun DependencyNode.errorIdsOf(module: String): List<String> =
+        distinctBfsSequence()
+            .filterIsInstance<MavenDependencyNode>()
+            .single { it.module == module }
+            .messages
+            .filter { it.severity == Severity.ERROR }
+            .map { it.id }
+
+    /**
      * @return the detailed messages of the errors of the node of the given [module]
      */
     private fun DependencyNode.errorsOf(module: String): List<String> =
@@ -205,11 +290,12 @@ class KmpLibraryTest : BaseDRTest() {
 
     /**
      * Creates the root of the resolution of the library with the given [coordinates] for the given [platforms],
-     * the library is looked up in a fresh mavenLocal repository, which is populated by [publish].
+     * the library is published by [publish] into a fresh mavenLocal repository, and resolved from the [repositories].
      */
     private fun rootOfLibraryInMavenLocal(
         coordinates: String,
         platforms: Set<ResolutionPlatform> = setOf(ResolutionPlatform.IOS_ARM64, ResolutionPlatform.IOS_SIMULATOR_ARM64),
+        repositories: List<Repository> = [MAVEN_LOCAL],
         publish: (MavenLocalRepository) -> Unit,
     ): RootDependencyNodeWithContext {
         val testCacheRoot = (tmpDir / UUID.randomUUID().toString().substring(0, 8)).createDirectories()
@@ -218,7 +304,7 @@ class KmpLibraryTest : BaseDRTest() {
 
         val context = context(
             platform = platforms,
-            repositories = [MAVEN_LOCAL],
+            repositories = repositories,
             cacheBuilder = mavenLocalCacheBuilder(testCacheRoot, mavenLocal),
         )
         return RootDependencyNodeWithContext(
@@ -693,6 +779,275 @@ class KmpLibraryTest : BaseDRTest() {
             )
             (iosDir / "kmp-lib-ios-iosarm64-1.0.klib").writeText("fake klib of iosarm64")
         }
+    }
+
+    /**
+     * A KMP library published for `linuxX64` whose `linuxX64` variant depends on a JVM-only library
+     * published with Gradle metadata, all variants of which declare the `jvm` platform type
+     * (like `org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.8.0`).
+     */
+    private object KmpLibraryWithJvmOnlyDependency {
+
+        fun publish(mavenLocal: MavenLocalRepository) {
+            publishJvmLibrary(mavenLocal)
+            publishKmpLibrary(mavenLocal)
+        }
+
+        private fun publishJvmLibrary(mavenLocal: MavenLocalRepository) {
+            val rootDir = (mavenLocal.repository / "org/jetbrains/dr/test/jvm-lib-with-gradle-metadata/1.0").createDirectories()
+            (rootDir / "jvm-lib-with-gradle-metadata-1.0.pom").writeText(GRADLE_METADATA_MARKER_POM)
+            (rootDir / "jvm-lib-with-gradle-metadata-1.0.module").writeText(
+                """
+                    {
+                      "formatVersion": "1.1",
+                      "component": {
+                        "group": "org.jetbrains.dr.test",
+                        "module": "jvm-lib-with-gradle-metadata",
+                        "version": "1.0",
+                        "attributes": { "org.gradle.status": "release" }
+                      },
+                      "createdBy": { "gradle": { "version": "9.8.0" } },
+                      "variants": [
+                        ${jvmVariant(name = "apiElements", usage = "java-api")},
+                        ${jvmVariant(name = "runtimeElements", usage = "java-runtime")}
+                      ]
+                    }
+                """.trimIndent()
+            )
+            (rootDir / "jvm-lib-with-gradle-metadata-1.0.jar").writeText("fake jar")
+        }
+
+        private fun jvmVariant(name: String, usage: String) = """
+            {
+              "name": "$name",
+              "attributes": {
+                "org.gradle.category": "library",
+                "org.gradle.dependency.bundling": "external",
+                "org.gradle.jvm.environment": "standard-jvm",
+                "org.gradle.libraryelements": "jar",
+                "org.gradle.usage": "$usage",
+                "org.jetbrains.kotlin.platform.type": "jvm"
+              },
+              "files": [
+                {
+                  "name": "jvm-lib-with-gradle-metadata-1.0.jar",
+                  "url": "jvm-lib-with-gradle-metadata-1.0.jar",
+                  "size": -1
+                }
+              ]
+            }
+        """.trimIndent()
+
+        private fun publishKmpLibrary(mavenLocal: MavenLocalRepository) {
+            val rootDir = (mavenLocal.repository / "org/jetbrains/dr/test/kmp-lib-linux/1.0").createDirectories()
+            (rootDir / "kmp-lib-linux-1.0.pom").writeText(GRADLE_METADATA_MARKER_POM)
+            (rootDir / "kmp-lib-linux-1.0.module").writeText(
+                """
+                    {
+                      "formatVersion": "1.1",
+                      "component": {
+                        "group": "org.jetbrains.dr.test",
+                        "module": "kmp-lib-linux",
+                        "version": "1.0",
+                        "attributes": { "org.gradle.status": "release" }
+                      },
+                      "createdBy": { "kotlinToolchain": { "version": "1.0-SNAPSHOT" } },
+                      "variants": [
+                        ${LibraryWithUnsupportedCapabilities.platformVariant(
+                            name = "linuxX64ApiElements-published",
+                            nativeTarget = "linux_x64",
+                            module = "kmp-lib-linux-linuxx64",
+                        )}
+                      ]
+                    }
+                """.trimIndent()
+            )
+
+            val linuxDir = (mavenLocal.repository / "org/jetbrains/dr/test/kmp-lib-linux-linuxx64/1.0").createDirectories()
+            (linuxDir / "kmp-lib-linux-linuxx64-1.0.pom").writeText(GRADLE_METADATA_MARKER_POM)
+            (linuxDir / "kmp-lib-linux-linuxx64-1.0.module").writeText(
+                """
+                    {
+                      "formatVersion": "1.1",
+                      "component": {
+                        "group": "org.jetbrains.dr.test",
+                        "module": "kmp-lib-linux-linuxx64",
+                        "version": "1.0",
+                        "attributes": { "org.gradle.status": "release" }
+                      },
+                      "createdBy": { "kotlinToolchain": { "version": "1.0-SNAPSHOT" } },
+                      "variants": [
+                        {
+                          "name": "linuxX64ApiElements-published",
+                          "attributes": {
+                            "artifactType": "org.jetbrains.kotlin.klib",
+                            "org.gradle.category": "library",
+                            "org.gradle.jvm.environment": "non-jvm",
+                            "org.gradle.usage": "kotlin-api",
+                            "org.jetbrains.kotlin.native.target": "linux_x64",
+                            "org.jetbrains.kotlin.platform.type": "native"
+                          },
+                          "dependencies": [
+                            {
+                              "group": "org.jetbrains.dr.test",
+                              "module": "jvm-lib-with-gradle-metadata",
+                              "version": { "requires": "1.0" }
+                            }
+                          ],
+                          "files": [
+                            {
+                              "name": "kmp-lib-linux-linuxx64-1.0.klib",
+                              "url": "kmp-lib-linux-linuxx64-1.0.klib",
+                              "size": -1
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                """.trimIndent()
+            )
+            (linuxDir / "kmp-lib-linux-linuxx64-1.0.klib").writeText("fake klib of linuxx64")
+        }
+    }
+
+    /**
+     * A KMP library published for `iosArm64` and `iosX64` (both supported by `kotlinx-coroutines-core:1.3.9`),
+     * its 'commonMain' depends on `org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9`.
+     */
+    private object KmpLibraryWithLegacyDependency {
+
+        private val targets = mapOf("iosarm64" to "ios_arm64", "iosx64" to "ios_x64")
+
+        fun publish(mavenLocal: MavenLocalRepository) {
+            val rootDir = (mavenLocal.repository / "org/jetbrains/dr/test/kmp-lib-legacy-dependency/1.0").createDirectories()
+            (rootDir / "kmp-lib-legacy-dependency-1.0.pom").writeText(GRADLE_METADATA_MARKER_POM)
+            (rootDir / "kmp-lib-legacy-dependency-1.0.module").writeText(rootModuleMetadata())
+            writeAllMetadataJar(
+                rootDir / "kmp-lib-legacy-dependency-1.0.jar",
+                PROJECT_STRUCTURE_METADATA,
+                sourceSets = ["commonMain", "iosMain"],
+            )
+
+            targets.forEach { target ->
+                val module = "kmp-lib-legacy-dependency-${target.key}"
+                val targetDir = (mavenLocal.repository / "org/jetbrains/dr/test/$module/1.0").createDirectories()
+                (targetDir / "$module-1.0.pom").writeText(GRADLE_METADATA_MARKER_POM)
+                (targetDir / "$module-1.0.module").writeText(platformModuleMetadata(module, target.value))
+                (targetDir / "$module-1.0.klib").writeText("fake klib of ${target.key}")
+            }
+        }
+
+        private const val COROUTINES_DEPENDENCY = """
+            {
+              "group": "org.jetbrains.kotlinx",
+              "module": "kotlinx-coroutines-core",
+              "version": { "requires": "1.3.9" }
+            }
+        """
+
+        private fun rootModuleMetadata() = """
+            {
+              "formatVersion": "1.1",
+              "component": {
+                "group": "org.jetbrains.dr.test",
+                "module": "kmp-lib-legacy-dependency",
+                "version": "1.0",
+                "attributes": { "org.gradle.status": "release" }
+              },
+              "createdBy": { "kotlinToolchain": { "version": "1.0-SNAPSHOT" } },
+              "variants": [
+                {
+                  "name": "metadataApiElements",
+                  "attributes": {
+                    "org.gradle.category": "library",
+                    "org.gradle.jvm.environment": "non-jvm",
+                    "org.gradle.usage": "kotlin-metadata",
+                    "org.jetbrains.kotlin.platform.type": "common"
+                  },
+                  "dependencies": [ $COROUTINES_DEPENDENCY ],
+                  "files": [
+                    {
+                      "name": "kmp-lib-legacy-dependency-metadata-1.0.jar",
+                      "url": "kmp-lib-legacy-dependency-1.0.jar",
+                      "size": -1
+                    }
+                  ]
+                },
+                ${targets.map { target ->
+                    LibraryWithUnsupportedCapabilities.platformVariant(
+                        name = "${target.value.toVariantPrefix()}ApiElements-published",
+                        nativeTarget = target.value,
+                        module = "kmp-lib-legacy-dependency-${target.key}",
+                    )
+                }.joinToString(",\n")}
+              ]
+            }
+        """.trimIndent()
+
+        private fun platformModuleMetadata(module: String, nativeTarget: String) = """
+            {
+              "formatVersion": "1.1",
+              "component": {
+                "group": "org.jetbrains.dr.test",
+                "module": "$module",
+                "version": "1.0",
+                "attributes": { "org.gradle.status": "release" }
+              },
+              "createdBy": { "kotlinToolchain": { "version": "1.0-SNAPSHOT" } },
+              "variants": [
+                {
+                  "name": "${nativeTarget.toVariantPrefix()}ApiElements-published",
+                  "attributes": {
+                    "artifactType": "org.jetbrains.kotlin.klib",
+                    "org.gradle.category": "library",
+                    "org.gradle.jvm.environment": "non-jvm",
+                    "org.gradle.usage": "kotlin-api",
+                    "org.jetbrains.kotlin.native.target": "$nativeTarget",
+                    "org.jetbrains.kotlin.platform.type": "native"
+                  },
+                  "dependencies": [ $COROUTINES_DEPENDENCY ],
+                  "files": [
+                    {
+                      "name": "$module-1.0.klib",
+                      "url": "$module-1.0.klib",
+                      "size": -1
+                    }
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+
+        /** `ios_arm64` -> `iosArm64` */
+        private fun String.toVariantPrefix() =
+            split("_").mapIndexed { i, part -> if (i == 0) part else part.replaceFirstChar { it.uppercase() } }.joinToString("")
+
+        private val PROJECT_STRUCTURE_METADATA = """
+            {
+              "projectStructure": {
+                "formatVersion": "0.3.3",
+                "isPublishedAsRoot": "true",
+                "variants": [
+                  { "name": "iosArm64ApiElements", "sourceSet": [ "iosMain", "commonMain" ] },
+                  { "name": "iosX64ApiElements", "sourceSet": [ "iosMain", "commonMain" ] }
+                ],
+                "sourceSets": [
+                  {
+                    "name": "commonMain",
+                    "dependsOn": [],
+                    "moduleDependency": [ "org.jetbrains.kotlinx:kotlinx-coroutines-core" ],
+                    "binaryLayout": "klib"
+                  },
+                  {
+                    "name": "iosMain",
+                    "dependsOn": [ "commonMain" ],
+                    "moduleDependency": [ "org.jetbrains.kotlinx:kotlinx-coroutines-core" ],
+                    "binaryLayout": "klib"
+                  }
+                ]
+              }
+            }
+        """.trimIndent()
     }
 
     private companion object {

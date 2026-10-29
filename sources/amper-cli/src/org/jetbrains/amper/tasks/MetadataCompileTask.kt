@@ -150,7 +150,7 @@ internal class MetadataCompileTask(
                 commonizedCinteropsDir?.listDirectoryEntries()
             }.flatten()
 
-        val mavenDependencyPaths = mavenClasspath.dependencyPaths()
+        val fragmentClasspath = localClasspath + cinteropDependencies + mavenClasspath.dependencyPaths().filterKLibs()
 
         val refinesPaths = fragment
             .allFragmentDependencies(dependencyType = FragmentDependencyType.REFINE)
@@ -169,12 +169,8 @@ internal class MetadataCompileTask(
         val nativeCompiler = dependenciesResult.requireKotlinNativeCompiler(kotlinSettings.compilerVersion)
 
         return if (fragmentPlatforms.all { it.nativeTarget != null })   {
-            // JVM-only libraries might be declared by KMP libraries in source sets shared with native targets,
-            // they are not used on native platforms, as when compiling for a specific native platform
-            val fragmentClasspath = localClasspath + cinteropDependencies + mavenDependencyPaths.filterKLibs()
             compileNativeMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler)
         } else {
-            val fragmentClasspath = localClasspath + cinteropDependencies + mavenDependencyPaths
             compileCommonMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler)
         }
     }

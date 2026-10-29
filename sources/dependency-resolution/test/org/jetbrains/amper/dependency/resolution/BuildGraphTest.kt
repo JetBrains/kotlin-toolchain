@@ -3210,6 +3210,63 @@ class BuildGraphTest : BaseDRTest() {
         }
     }
 
+    /**
+     * This test checks that a library published with `pom.xml` only
+     * keeps its JAR when resolved for non-JVM platforms (for a single platform and for a shared fragment):
+     * compilations skip the JAR, but other tasks might use it,
+     * e.g., `org.jetbrains.skiko:skiko-js-wasm-runtime` packs the Wasm runtime of Skiko into a JAR.
+     *
+     * In particular, `org.jetbrains.kotlin:kotlin-reflect:1.9.23` is reached from `io.kotest:kotest-framework-engine:5.9.1`.
+     */
+    @Test
+    fun `library published with pom xml only keeps its JAR for non-JVM platforms`(testInfo: TestInfo) = runDrTest {
+        listOf(
+            setOf(ResolutionPlatform.MACOS_ARM64),
+            setOf(ResolutionPlatform.MACOS_ARM64, ResolutionPlatform.MACOS_X64),
+        ).forEach { platforms ->
+            val root = doTest(
+                testInfo,
+                dependency = "io.kotest:kotest-framework-engine:5.9.1",
+                platform = platforms,
+                verifyMessages = false,
+            )
+            root.distinctBfsSequence()
+                .filterIsInstance<MavenDependencyNode>()
+                .filter { it.module == "kotlin-reflect" }
+                .forEach { node ->
+                    assertEquals(["jar"], node.dependency.files().map { it.extension }, "$node resolved for $platforms")
+                }
+        }
+    }
+
+    /**
+     * `org.jetbrains.compose.ui:ui-util:1.12.1` declares `org.jetbrains.compose.ui:ui-uikit` in its 'iosMain' source set,
+     * and its android variants declare no source sets at all, so 'iosMain' is visible for android+iosArm64 (as in KGP).
+     * `ui-uikit` doesn't support android, but it is not used by android compilation either,
+     * so the problem of the library is not a problem of the transitive dependency in the multiplatform resolution.
+     */
+    @Test
+    fun `KMP transitive dependency missing a platform has no messages in multiplatform resolution`(testInfo: TestInfo) =
+        runDrTest {
+            val root = doTest(
+                testInfo,
+                dependency = "org.jetbrains.compose.ui:ui-util:1.12.1",
+                platform = setOf(ResolutionPlatform.ANDROID, ResolutionPlatform.IOS_ARM64),
+                repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_DL_GOOGLE_ANDROID),
+                verifyMessages = false,
+            )
+
+            val uiKitNode = root.distinctBfsSequence()
+                .filterIsInstance<MavenDependencyNode>()
+                .single { it.module == "ui-uikit" }
+            assertEquals(
+                [PlatformsAreNotSupported.ID],
+                uiKitNode.dependency.messages.map { it.id },
+                "The library itself is expected to be unsupported on android",
+            )
+            assertEquals([], uiKitNode.messages.map { it.id }, "Transitive $uiKitNode is expected to have no messages")
+        }
+
     private fun assertEquals(@Language("text") expected: String, root: DependencyNode) =
         assertEquals(expected, root.prettyPrint().trimEnd())
 }
