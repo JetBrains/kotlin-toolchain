@@ -59,16 +59,6 @@ abstract class FragmentScopedArtifact(
 }
 
 /**
- * An artifact is associated with a [module].
- */
-abstract class ModuleScopedArtifact(
-    buildOutputRoot: AmperBuildOutputRoot,
-    val module: AmperModule,
-) : ArtifactBase(buildOutputRoot) {
-    override fun idComponents() = [module.userReadableName]
-}
-
-/**
  * An artifact is associated with a module, leaf platform, and test modifier.
  * Basically, it is bound to the compilation for the specified leaf fragment.
  */
