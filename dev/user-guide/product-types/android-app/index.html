@@ -941,9 +941,33 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../publishing/" class="md-nav__link">
+    
+    
+      
         
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
   
   
   <span class="md-ellipsis">
@@ -957,7 +981,107 @@
   
   
 
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Publishing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../publishing/android-application/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Android application
+  
+
+    
+  </span>
+  
+  
+
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../publishing/ios-application/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    iOS application
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../publishing/libraries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Libraries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1233,45 +1357,6 @@
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Publishing">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#configure-the-application" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configure the application
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#upload-the-bundle" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Upload the bundle
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#build-from-intellij-idea-or-android-studio" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Build from IntelliJ IDEA or Android Studio
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2874,45 +2959,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Publishing">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#configure-the-application" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configure the application
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#upload-the-bundle" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Upload the bundle
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#build-from-intellij-idea-or-android-studio" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Build from IntelliJ IDEA or Android Studio
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -3141,41 +3187,8 @@ Losing the upload key requires an upload-key reset in Google Play Console.</p>
 to learn more.</p>
 </div>
 <h2 id="publishing">Publishing<a class="headerlink" href="#publishing" title="Permanent link">&para;</a></h2>
-<p>Publish an <code>android/app</code> module to Google Play as a signed Android App Bundle (AAB). You need a Google Play Console
-developer account.</p>
-<h3 id="configure-the-application">Configure the application<a class="headerlink" href="#configure-the-application" title="Permanent link">&para;</a></h3>
-<p>Set a unique application ID and an initial version in <code>android-app/module.yaml</code>:</p>
-<div class="highlight"><span class="filename">android-app/module.yaml</span><pre><span></span><code><span class="nt">product</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">android/app</span>
-
-<span class="nt">settings</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">android</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">applicationId</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">com.example.myapp</span>
-<span class="w">    </span><span class="nt">versionCode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
-<span class="w">    </span><span class="nt">versionName</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0"</span>
-</code></pre></div>
-<p>The <code>applicationId</code> uniquely identifies the application in Google Play and cannot be changed after you upload the
-first artifact.</p>
-<p>Before uploading the application:</p>
-<ol>
-<li><a href="#signing">Prepare signing</a>: create <code>android-app/keystore.properties</code> and generate the upload key in
-   <code>android-app/release.keystore</code>.</li>
-<li><a href="#packaging">Package the application</a> with <code>kotlin package -m android-app</code>. This produces a signed release AAB and
-   prints its path. Use that AAB for the upload.</li>
-</ol>
-<h3 id="upload-the-bundle">Upload the bundle<a class="headerlink" href="#upload-the-bundle" title="Permanent link">&para;</a></h3>
-<p>If you haven't created the application yet, open <a href="https://play.google.com/console/">Google Play Console</a> and select
-<strong>Create app</strong> to set it up before uploading your first bundle.</p>
-<p>Open the application in Google Play Console, go to <strong>Test and release</strong>, and select the appropriate testing or
-production track. Create a release and upload the generated <code>.aab</code> file.</p>
-<p>Google Play validates and processes the bundle before making the release available to testers or users.</p>
-<div class="admonition note">
-<p class="admonition-title">For future uploads</p>
-<p>Increase <code>versionCode</code> in <code>android-app/module.yaml</code> before every new upload: Google Play rejects bundles with a
-previously used version code. Update the user-facing <code>versionName</code> when publishing a new application version.</p>
-</div>
-<h3 id="build-from-intellij-idea-or-android-studio">Build from IntelliJ IDEA or Android Studio<a class="headerlink" href="#build-from-intellij-idea-or-android-studio" title="Permanent link">&para;</a></h3>
-<p>Generating a signed bundle from <strong>Build | Generate Signed App Bundle or APK</strong> is not supported for Kotlin Toolchain
-projects yet. Use the Kotlin CLI to create the AAB.</p>
+<p>See the <a href="../../publishing/android-application/">Publishing an Android application</a> guide to publish your application
+to Google Play.</p>
 <h2 id="parcelize">Parcelize<a class="headerlink" href="#parcelize" title="Permanent link">&para;</a></h2>
 <p>If you want to automatically generate your <code>Parcelable</code> implementations, you can enable
 <a href="https://developer.android.com/kotlin/parcelize">Parcelize</a> as follows:</p>
@@ -3253,7 +3266,7 @@ your <code>google-services.json</code> file in the module containing an <code>an
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 30, 2026 09:35:23 UTC">September 30, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 28, 2026 12:10:04 UTC">October 28, 2026</span>
   </span>
 
     
