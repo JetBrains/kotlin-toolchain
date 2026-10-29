@@ -26,17 +26,15 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.frontend.isDescendantOf
-import org.jetbrains.amper.frontend.jdkSettings
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jdk.provisioning.Jdk
-import org.jetbrains.amper.jdk.provisioning.JdkProvider
-import org.jetbrains.amper.jvm.getJdkOrUserError
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.stdlib.io.path.clean
@@ -49,6 +47,7 @@ import org.jetbrains.amper.tasks.artifacts.KotlinJavaSourceDirArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.identificationPhrase
+import org.jetbrains.amper.tasks.jvm.JdkTaskResult
 import org.jetbrains.amper.tasks.native.filterKLibs
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -64,7 +63,6 @@ internal abstract class WebCompileKlibTask(
     override val module: AmperModule,
     override val platform: Platform,
     private val userCacheRoot: AmperUserCacheRoot,
-    private val jdkProvider: JdkProvider,
     private val taskOutputRoot: TaskOutputRoot,
     private val incrementalCache: IncrementalCache,
     override val taskName: TaskName,
@@ -128,7 +126,7 @@ internal abstract class WebCompileKlibTask(
 
         val kotlinUserSettings = fragments.singleLeafFragment().serializableKotlinSettings()
 
-        val jdk = jdkProvider.getJdkOrUserError(module.jdkSettings, sink = executionContext.eventSink)
+        val jdk = dependenciesResult.requireSingleDependency<JdkTaskResult>().jdk
 
         val libraryPaths = compiledKlibModuleDependencies + externalDependencies
 

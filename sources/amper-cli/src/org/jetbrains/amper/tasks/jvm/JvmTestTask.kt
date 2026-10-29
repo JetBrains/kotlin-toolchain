@@ -16,13 +16,11 @@ import org.jetbrains.amper.dependency.resolution.MavenRepository
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.engine.TestTask
+import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.testJdkSettings
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.jdk.provisioning.JdkProvider
-import org.jetbrains.amper.jvm.getJdkOrUserError
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
@@ -61,7 +59,6 @@ class JvmTestTask(
     private val buildOutputRoot: AmperBuildOutputRoot,
     private val runSettings: JvmTestRunSettings,
     private val incrementalCache: IncrementalCache,
-    private val jdkProvider: JdkProvider,
     override val module: AmperModule,
     override val taskName: TaskName,
     override val platform: Platform = Platform.JVM,
@@ -113,7 +110,7 @@ class JvmTestTask(
         // TODO use maven instead of packing this in the distribution?
         val amperJUnitListenersJars = extractJUnitListenersClasspath()
 
-        val jdk = jdkProvider.getJdkOrUserError(module.testJdkSettings, sink = executionContext.eventSink)
+        val jdk = dependenciesResult.requireSingleDependency<JdkTaskResult>().jdk
 
         taskOutputRoot.path.clean()
 

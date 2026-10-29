@@ -18,6 +18,8 @@ import org.jetbrains.amper.tasks.android.AndroidModuleTaskType
 import org.jetbrains.amper.tasks.compilationTaskNameFor
 import org.jetbrains.amper.tasks.getModuleDependencies
 import org.jetbrains.amper.tasks.getTaskName
+import org.jetbrains.amper.tasks.jvm.provideDefaultJdkTaskName
+import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.util.BuildType
 
 fun ProjectTasksBuilder.setupKspTasks(moduleDependenciesMap: Map<AmperModule, ModuleDependencies>) {
@@ -81,10 +83,11 @@ fun ProjectTasksBuilder.setupKspTasks(moduleDependenciesMap: Map<AmperModule, Mo
                     taskName = kspTaskName,
                     incrementalCache = context.incrementalCache,
                     tempRoot = context.projectTempRoot,
-                    jdkProvider = context.jdkProvider,
                     processRunner = context.processRunner
                 ),
                 dependsOn = buildList {
+                    add(provideJdkTaskName(fragments.first().settings.jvm.jdk))
+                    add(provideDefaultJdkTaskName)
                     add(CommonTaskType.KspProcessorClasspath.getTaskName(module, platform, isTest))
 
                     // we also need all compile dependencies when passing code to KSP (for resolution)

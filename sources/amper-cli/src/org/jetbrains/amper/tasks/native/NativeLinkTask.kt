@@ -25,6 +25,7 @@ import org.jetbrains.amper.dependency.resolution.MavenLocalRepository
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
@@ -33,7 +34,6 @@ import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toR
 import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.kotlin.native.KonanDistribution
 import org.jetbrains.amper.stdlib.io.path.clean
 import org.jetbrains.amper.stdlib.io.path.cleanDirectoryExcept
@@ -48,6 +48,7 @@ import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.identificationPhrase
 import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.tasks.ios.productBundleIdentifier
+import org.jetbrains.amper.tasks.jvm.DefaultJdkTaskResult
 import org.jetbrains.amper.tasks.native.swiftpm.SwiftPMImportParsedLdCallArtifact
 import org.jetbrains.amper.tasks.native.swiftpm.parsedLdCallArtifact
 import org.jetbrains.amper.util.BuildType
@@ -80,7 +81,6 @@ internal class NativeLinkTask(
     val exportedKLibTaskIds: Set<TaskId>,
     private val kotlinArtifactsDownloader: KotlinArtifactsDownloader =
         KotlinArtifactsDownloader(userCacheRoot, incrementalCache),
-    private val jdkProvider: JdkProvider,
     private val processRunner: ProcessRunner,
     private val xcodeBuildSettingsResolution: XcodeBuildSettingsResolution,
 ): ArtifactTaskBase(), BuildTask {
@@ -222,7 +222,7 @@ internal class NativeLinkTask(
 
             val artifactPath = taskOutputRoot.path.resolve(compilationType.outputFilename(module, platform, isTest))
 
-            val nativeCompiler = downloadNativeCompiler(kotlinUserSettings.compilerVersion, userCacheRoot, jdkProvider)
+            val nativeCompiler = downloadNativeCompiler(kotlinUserSettings.compilerVersion, userCacheRoot, dependenciesResult.requireSingleDependency<DefaultJdkTaskResult>().jdk)
             val compilerPlugins = kotlinArtifactsDownloader.downloadCompilerPlugins(
                 plugins = kotlinUserSettings.compilerPlugins,
                 repositories = module.mavenResolveRepositories.map { it.toRepository() },

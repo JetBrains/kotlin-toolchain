@@ -8,10 +8,10 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.option
-import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.cli.commands.AmperSubcommand
 import org.jetbrains.amper.cli.context.GlobalCliContext
 import org.jetbrains.amper.cli.context.ProjectCliContext
+import org.jetbrains.amper.cli.getDefaultJdkInCommand
 import org.jetbrains.amper.cli.project.preparePluginsAndReadModel
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.widgets.status.standaloneOperationProgressWidget
@@ -20,7 +20,6 @@ import org.jetbrains.amper.frontend.kotlinVersion
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.frontend.schema.DiscouragedDirectDefaultVersionAccess
 import org.jetbrains.amper.intellij.CommandLineUtils
-import org.jetbrains.amper.jvm.getDefaultJdk
 import org.jetbrains.amper.kotlin.native.downloadAndExtractKotlinNative
 import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.processes.output.ProcessOutputMode
@@ -71,12 +70,8 @@ internal class KlibToolCommand : AmperSubcommand(name = "klib") {
             userReadableError("The klib tool is not present or not executable: $klibExecutable")
         }
 
-        val jdk = standaloneOperationProgressWidget(cliContext.terminal) {
-            context(cliContext.problemReporter) {
-                // we always use the default JDK to run the Kotln/Native compiler
-                cliContext.jdkProvider.getDefaultJdk()
-            }
-        }
+        // we always use the default JDK to run the Kotln/Native compiler
+        val jdk = getDefaultJdkInCommand(cliContext)
 
         val cmd = listOf(klibExecutable.pathString) + klibArguments
         val result = runProcess(

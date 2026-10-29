@@ -7,11 +7,13 @@ package org.jetbrains.amper.tasks.js
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.jdkSettings
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.LinkTaskType
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
 import org.jetbrains.amper.tasks.getTaskName
+import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.util.BuildType
 
 fun ProjectTasksBuilder.setupJsTasks() {
@@ -31,11 +33,11 @@ fun ProjectTasksBuilder.setupJsTasks() {
                     taskName = compileKLibTaskName,
                     tempRoot = context.projectTempRoot,
                     isTest = isTest,
-                    jdkProvider = context.jdkProvider,
                     processRunner = context.processRunner,
                     terminal = context.terminal,
                 ),
                 dependsOn = buildList {
+                    add(provideJdkTaskName(module.jdkSettings))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {
                         // todo (AB) : Check if this is required for test KLib compilation
@@ -56,12 +58,12 @@ fun ProjectTasksBuilder.setupJsTasks() {
                         taskName = linkAppTaskName,
                         tempRoot = context.projectTempRoot,
                         isTest = isTest,
-                        jdkProvider = context.jdkProvider,
                         compileKLibTaskId = compileKLibTaskName.id,
                         processRunner = context.processRunner,
                         buildType = BuildType.Release,
                     ),
                     dependsOn = buildList {
+                        add(provideJdkTaskName(module.jdkSettings))
                         add(compileKLibTaskName)
                         add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                         if (isTest) {

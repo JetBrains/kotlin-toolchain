@@ -10,8 +10,10 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.doCapitalize
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.isPublishingEnabled
+import org.jetbrains.amper.frontend.jdkSettings
 import org.jetbrains.amper.frontend.schema.DependencyMode
 import org.jetbrains.amper.frontend.schema.enabled
+import org.jetbrains.amper.frontend.testJdkSettings
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.NoopTask
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
@@ -42,12 +44,12 @@ fun ProjectTasksBuilder.setupJvmTasks(moduleDependenciesMap: Map<AmperModule, Mo
                     taskName = compileTaskName,
                     incrementalCache = context.incrementalCache,
                     buildOutputRoot = context.buildOutputRoot,
-                    jdkProvider = context.jdkProvider,
                     processRunner = context.processRunner,
                     terminal = context.terminal,
                     openTelemetry = context.openTelemetry,
                 ),
                 dependsOn = buildList {
+                    add(provideJdkTaskName(module.jdkSettings))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {
                         // test compilation depends on main classes
@@ -203,7 +205,10 @@ fun ProjectTasksBuilder.setupJvmTasks(moduleDependenciesMap: Map<AmperModule, Mo
                         jdkProvider = context.jdkProvider,
                         processRunner = context.processRunner,
                     ),
-                    CommonTaskType.RuntimeClasspath.getTaskName(module, platform),
+                    dependsOn = listOf(
+                        CommonTaskType.RuntimeClasspath.getTaskName(module, platform),
+                        provideJdkTaskName(module.jdkSettings),
+                    ),
                 )
 
                 val executableJarTaskName = JvmSpecificTaskType.ExecutableJar.getTaskName(module, platform)
@@ -235,7 +240,7 @@ fun ProjectTasksBuilder.setupJvmTasks(moduleDependenciesMap: Map<AmperModule, Mo
                         jdkProvider = context.jdkProvider,
                         processRunner = context.processRunner,
                     ),
-                    dependsOn = listOf(executableJarTaskName)
+                    dependsOn = listOf(executableJarTaskName, provideJdkTaskName(module.jdkSettings))
                 )
             }
 
@@ -269,12 +274,12 @@ fun ProjectTasksBuilder.setupJvmTasks(moduleDependenciesMap: Map<AmperModule, Mo
                     taskOutputRoot = context.getTaskOutputPath(testTaskName),
                     runSettings = runSettings,
                     incrementalCache = context.incrementalCache,
-                    jdkProvider = context.jdkProvider,
                     processRunner = context.processRunner,
                 ),
                 listOf(
                     CommonTaskType.Compile.getTaskName(module, platform, true),
                     CommonTaskType.RuntimeClasspath.getTaskName(module, platform, true),
+                    provideJdkTaskName(module.testJdkSettings),
                 )
             )
         }

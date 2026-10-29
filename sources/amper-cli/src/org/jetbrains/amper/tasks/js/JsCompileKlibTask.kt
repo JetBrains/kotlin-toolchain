@@ -18,7 +18,6 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.tasks.SourceRoot
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
@@ -34,7 +33,6 @@ internal class JsCompileKlibTask(
     taskName: TaskName,
     tempRoot: AmperProjectTempRoot,
     isTest: Boolean,
-    jdkProvider: JdkProvider,
     processRunner: ProcessRunner,
     buildType: BuildType? = null,
     kotlinArtifactsDownloader: KotlinArtifactsDownloader = KotlinArtifactsDownloader(userCacheRoot, incrementalCache),
@@ -43,7 +41,6 @@ internal class JsCompileKlibTask(
     module,
     platform,
     userCacheRoot,
-    jdkProvider,
     taskOutputRoot,
     incrementalCache,
     taskName,

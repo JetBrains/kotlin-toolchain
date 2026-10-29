@@ -16,12 +16,13 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.schema.KotlinVersion
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.jdk.provisioning.JdkProvider
+import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.kotlin.native.asCommonizerTarget
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
@@ -29,6 +30,7 @@ import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
 import org.jetbrains.amper.tasks.EmptyTaskResult
 import org.jetbrains.amper.tasks.TaskResult
+import org.jetbrains.amper.tasks.jvm.DefaultJdkTaskResult
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -44,7 +46,6 @@ class CommonizeNativeDistributionTask(
     private val userCacheRoot: AmperUserCacheRoot,
     private val tempRoot: AmperProjectTempRoot,
     private val incrementalCache: IncrementalCache,
-    private val jdkProvider: JdkProvider,
     private val processRunner: ProcessRunner,
 ) : Task {
     companion object {
@@ -57,10 +58,11 @@ class CommonizeNativeDistributionTask(
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+        val jdk = dependenciesResult.requireSingleDependency<DefaultJdkTaskResult>().jdk
         coroutineScope {
             model.nativePlatformSetsToCommonizeByKotlinVersion().forEach { [kotlinVersion, sharedPlatformSets] ->
                 launch {
-                    commonize(kotlinVersion, sharedPlatformSets)
+                    commonize(kotlinVersion, sharedPlatformSets, jdk)
                 }
             }
         }
@@ -68,11 +70,11 @@ class CommonizeNativeDistributionTask(
     }
 
     context(_: TaskGraphExecutionContext)
-    private suspend fun commonize(kotlinVersion: KotlinVersion, sharedPlatformSets: Set<List<Platform>>) {
+    private suspend fun commonize(kotlinVersion: KotlinVersion, sharedPlatformSets: Set<List<Platform>>, jdk: Jdk) {
         val sharedPlatforms = sharedPlatformSets.map { it.asCommonizerTarget() }.toSet()
 
         // TODO Maybe this should be separated into something more than a suspend function.
-        val compiler = downloadNativeCompiler(kotlinVersion, userCacheRoot, jdkProvider)
+        val compiler = downloadNativeCompiler(kotlinVersion, userCacheRoot, jdk)
         val commonizerClasspath = kotlinDownloader.downloadKotlinCommonizerEmbeddable(kotlinVersion)
 
         compiler.konanDistribution.commonizerCache.writeCacheForUncachedTargets(sharedPlatforms) { todoOutputTargets ->

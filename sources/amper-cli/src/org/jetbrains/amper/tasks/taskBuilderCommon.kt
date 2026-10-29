@@ -19,6 +19,8 @@ import org.jetbrains.amper.frontend.shouldPublishSourcesJars
 import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
 import org.jetbrains.amper.tasks.android.AndroidModuleTaskType
+import org.jetbrains.amper.tasks.jvm.provideDefaultJdkTaskName
+import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
 import org.jetbrains.amper.tasks.metadata.allMetadataFragments
 import org.jetbrains.amper.tasks.native.CommonizeNativeDistributionTask
@@ -93,10 +95,11 @@ fun ProjectTasksBuilder.setupCommonTasks(moduleDependenciesMap: Map<AmperModule,
                     taskOutputRoot = context.getTaskOutputPath(taskName),
                     incrementalCache = context.incrementalCache,
                     tempRoot = context.projectTempRoot,
-                    jdkProvider = context.jdkProvider,
                     processRunner = context.processRunner,
                 ),
                 dependsOn = buildList {
+                    add(provideJdkTaskName(it.settings.jvm.jdk))
+                    add(provideDefaultJdkTaskName)
                     val allFragmentDependencies = with(ModuleDependencies) {
                         // todo (AB) : [AMPER-721] Check that native-only and mixed metadata-compilation
                         //  works with this compile dependencies classpath. Perhaps, all true native compile dependencies

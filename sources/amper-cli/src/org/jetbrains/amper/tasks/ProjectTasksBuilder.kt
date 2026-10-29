@@ -25,6 +25,9 @@ import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.tasks.ios.setupIosTasks
 import org.jetbrains.amper.tasks.java.setupJavaAnnotationProcessingTasks
 import org.jetbrains.amper.tasks.js.setupJsTasks
+import org.jetbrains.amper.tasks.jvm.ProvideDefaultJdkTask
+import org.jetbrains.amper.tasks.jvm.ProvideJdkTask
+import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.tasks.jvm.setupJvmTasks
 import org.jetbrains.amper.tasks.ksp.setupKspTasks
 import org.jetbrains.amper.tasks.maven.setupMavenCompatibilityTasks
@@ -65,6 +68,7 @@ class ProjectTasksBuilder(
     val tasks = TaskGraphBuilder()
 
     fun build(): TaskGraph {
+        setupJdkTasks()
         setupCommonTasks(moduleDependenciesMap)
         setupJvmTasks(moduleDependenciesMap)
         setupMavenCompatibilityTasks()
@@ -82,6 +86,18 @@ class ProjectTasksBuilder(
         setupCustomTaskDependencies()
         setupTasksFromPlugins(moduleDependenciesMap)
         return tasks.build()
+    }
+
+    /**
+     * Registers project-scoped JDK provisioning tasks: one for the default JDK,
+     * and one for each distinct JDK settings used across the project.
+     */
+    private fun setupJdkTasks() {
+        tasks.registerTask(ProvideDefaultJdkTask(context.jdkProvider))
+        allFragments()
+            .map { it.settings.jvm.jdk }
+            .distinctBy { provideJdkTaskName(it).id }
+            .forEach { tasks.registerTask(ProvideJdkTask(jdkSettings = it, jdkProvider = context.jdkProvider)) }
     }
 
     val moduleDependenciesMap by lazy {

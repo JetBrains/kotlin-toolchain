@@ -14,7 +14,9 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
+import org.jetbrains.amper.frontend.jdkSettings
 import org.jetbrains.amper.frontend.schema.ProductType
+import org.jetbrains.amper.frontend.testJdkSettings
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.ModuleSequenceCtx
@@ -28,6 +30,7 @@ import org.jetbrains.amper.tasks.jvm.JvmClassesJarTask
 import org.jetbrains.amper.tasks.jvm.JvmCompileTask
 import org.jetbrains.amper.tasks.jvm.JvmRuntimeClasspathTask
 import org.jetbrains.amper.tasks.jvm.JvmTestTask
+import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.util.BuildType
 
 fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule, ModuleDependencies>) {
@@ -98,7 +101,6 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                     userCacheRoot = context.userCacheRoot,
                     taskOutputRoot = context.getTaskOutputPath(prepareTaskName),
                     buildLogsRoot = context.currentLogsRoot,
-                    jdkProvider = context.jdkProvider,
                 ),
                 dependsOn = listOf(
                     AndroidModuleTaskType.InstallBuildTools.getTaskName(module, platform, isTest),
@@ -106,6 +108,7 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                     AndroidGlobalTaskType.InstallPlatformTools,
                     AndroidModuleTaskType.InstallPlatform.getTaskName(module, platform, isTest),
                     CommonTaskType.Dependencies.getTaskName(module, platform, isTest),
+                    provideJdkTaskName(module.jdkSettings),
                 )
             )
         }
@@ -130,11 +133,11 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                     userCacheRoot = context.userCacheRoot,
                     taskOutputPath = context.getTaskOutputPath(taskName),
                     buildLogsRoot = context.currentLogsRoot,
-                    jdkProvider = context.jdkProvider,
                     taskName = taskName,
                 ),
                 dependsOn = listOf(
                     CommonTaskType.RuntimeClasspath.getTaskName(module, platform, isTest, buildType),
+                    provideJdkTaskName(module.jdkSettings),
                 )
             )
         }
@@ -166,9 +169,11 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                         userCacheRoot = context.userCacheRoot,
                         taskOutputRoot = context.getTaskOutputPath(mockablePlatformJarTaskName),
                         buildLogsRoot = context.currentLogsRoot,
-                        jdkProvider = context.jdkProvider,
                     ),
-                    dependsOn = CommonTaskType.Dependencies.getTaskName(module, platform, false)
+                    dependsOn = listOf(
+                        CommonTaskType.Dependencies.getTaskName(module, platform, false),
+                        provideJdkTaskName(module.jdkSettings),
+                    ),
                 )
             }
         }
@@ -193,7 +198,6 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                     taskName = compileTaskName,
                     incrementalCache = context.incrementalCache,
                     buildOutputRoot = context.buildOutputRoot,
-                    jdkProvider = context.jdkProvider,
                     buildType = buildType,
                     platform = platform,
                     processRunner = context.processRunner,
@@ -201,6 +205,7 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                     openTelemetry = context.openTelemetry,
                 ),
                 dependsOn = buildList {
+                    add(provideJdkTaskName(module.jdkSettings))
                     add(AndroidModuleTaskType.InstallPlatform.getTaskName(module, platform, isTest))
                     add(CommonTaskType.TransformDependencies.getTaskName(module, platform, isTest))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
@@ -371,7 +376,6 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                     taskOutputRoot = context.getTaskOutputPath(testTaskName),
                     runSettings = runSettings,
                     incrementalCache = context.incrementalCache,
-                    jdkProvider = context.jdkProvider,
                     platform = Platform.ANDROID,
                     buildType = buildType,
                     processRunner = context.processRunner,
@@ -379,6 +383,7 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                 dependsOn = listOf(
                     CommonTaskType.Compile.getTaskName(module, platform, true, buildType),
                     CommonTaskType.RuntimeClasspath.getTaskName(module, platform, true, buildType),
+                    provideJdkTaskName(module.testJdkSettings),
                 ),
             )
         }
@@ -399,11 +404,11 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                     userCacheRoot = context.userCacheRoot,
                     taskOutputPath = context.getTaskOutputPath(taskName),
                     buildLogsRoot = context.currentLogsRoot,
-                    jdkProvider = context.jdkProvider,
                     taskName = taskName,
                 ),
                 dependsOn = listOf(
                     CommonTaskType.RuntimeClasspath.getTaskName(module, Platform.ANDROID, false, BuildType.Release),
+                    provideJdkTaskName(module.jdkSettings),
                 )
             )
         }

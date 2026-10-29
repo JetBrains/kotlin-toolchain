@@ -43,19 +43,17 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.aomBuilder.javaAnnotationProcessingGeneratedSourcesPath
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
-import org.jetbrains.amper.frontend.jdkSettings
 import org.jetbrains.amper.incrementalcache.CacheHit
 import org.jetbrains.amper.incrementalcache.CacheMiss
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.TrackedElementType
 import org.jetbrains.amper.jdk.provisioning.Jdk
-import org.jetbrains.amper.jdk.provisioning.JdkProvider
-import org.jetbrains.amper.jvm.getJdkOrUserError
 import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.problems.reporting.plus
@@ -132,7 +130,6 @@ internal class JvmCompileTask(
     private val kotlinArtifactsDownloader: KotlinArtifactsDownloader =
         KotlinArtifactsDownloader(userCacheRoot, incrementalCache),
     private val buildOutputRoot: AmperBuildOutputRoot,
-    private val jdkProvider: JdkProvider,
     override val buildType: BuildType? = null,
     override val platform: Platform = Platform.JVM,
     private val processRunner: ProcessRunner,
@@ -222,7 +219,7 @@ internal class JvmCompileTask(
             )
         }
 
-        val jdk = jdkProvider.getJdkOrUserError(jdkSettings = module.jdkSettings, sink = executionContext.eventSink)
+        val jdk = dependenciesResult.requireSingleDependency<JdkTaskResult>().jdk
 
         val javaAnnotationProcessorsGeneratedDir =
             fragments.singleLeafFragment().javaAnnotationProcessingGeneratedSourcesPath(buildOutputRoot.path)

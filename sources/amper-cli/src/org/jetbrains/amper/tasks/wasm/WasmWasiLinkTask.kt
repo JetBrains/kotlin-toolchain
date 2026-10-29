@@ -19,7 +19,6 @@ import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.tasks.SourceRoot
 import org.jetbrains.amper.tasks.web.WebLinkTask
 import org.jetbrains.amper.util.BuildType
@@ -29,7 +28,6 @@ internal class WasmWasiLinkTask(
     module: AmperModule,
     platform: Platform,
     userCacheRoot: AmperUserCacheRoot,
-    jdkProvider: JdkProvider,
     buildOutputRoot: AmperBuildOutputRoot,
     incrementalCache: IncrementalCache,
     taskName: TaskName,
@@ -44,7 +42,6 @@ internal class WasmWasiLinkTask(
     module,
     platform,
     userCacheRoot,
-    jdkProvider,
     buildOutputRoot,
     incrementalCache,
     taskName,

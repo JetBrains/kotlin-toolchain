@@ -7,12 +7,11 @@ package org.jetbrains.amper.cli.commands
 import com.github.ajalt.clikt.core.Context
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.cli.context.ProjectCliContext
+import org.jetbrains.amper.cli.getDefaultJdkInCommand
 import org.jetbrains.amper.cli.options.ProjectLayoutOptions
 import org.jetbrains.amper.cli.project.preparePluginsAndReadModel
 import org.jetbrains.amper.cli.userReadableError
-import org.jetbrains.amper.cli.widgets.status.standaloneOperationProgressWidget
 import org.jetbrains.amper.frontend.getComposeHotReloadVersion
-import org.jetbrains.amper.jvm.getDefaultJdk
 import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
@@ -67,11 +66,7 @@ internal class ComposeHotReloadMcpServerCommand : AmperProjectAwareCommand(name 
                     "Minimal version with MCP support is '$MinimalHotReloadVersionWithMcpSupport'")
         }
 
-        val jdk = standaloneOperationProgressWidget(cliContext.terminal) {
-            context(cliContext.problemReporter) {
-                cliContext.jdkProvider.getDefaultJdk()
-            }
-        }
+        val jdk = getDefaultJdkInCommand(cliContext)
 
         val downloader = ToolingArtifactsDownloader(
             userCacheRoot = cliContext.userCacheRoot,

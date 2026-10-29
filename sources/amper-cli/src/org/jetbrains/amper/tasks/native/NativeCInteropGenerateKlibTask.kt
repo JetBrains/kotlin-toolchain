@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.tasks.native
 
-import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.UserReadableError
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
@@ -18,13 +17,13 @@ import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.GenerateKlibsForIdeTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.schema.KotlinVersion
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
-import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.stdlib.collections.distinctBy
 import org.jetbrains.amper.stdlib.io.path.cleanDirectoryExcept
 import org.jetbrains.amper.stdlib.io.path.createRegularFileIfNotExists
@@ -35,6 +34,7 @@ import org.jetbrains.amper.tasks.artifacts.CinteropDefFileArtifact
 import org.jetbrains.amper.tasks.artifacts.CinteropKlibsArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
+import org.jetbrains.amper.tasks.jvm.DefaultJdkTaskResult
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -56,7 +56,6 @@ internal class NativeCInteropGenerateKlibTask(
     private val userCacheRoot: AmperUserCacheRoot,
     private val incrementalCache: IncrementalCache,
     override val taskName: TaskName,
-    private val jdkProvider: JdkProvider,
     private val processRunner: ProcessRunner,
     private val ignorePlatformFailures: Boolean,
 ) : ArtifactTaskBase(), BuildTask, GenerateKlibsForIdeTask {
@@ -152,7 +151,7 @@ internal class NativeCInteropGenerateKlibTask(
                     outputKlib.createParentDirectories()
 
                     val nativeCompiler =
-                        downloadNativeCompiler(kotlinCompilerVersion, userCacheRoot, jdkProvider)
+                        downloadNativeCompiler(kotlinCompilerVersion, userCacheRoot, dependenciesResult.requireSingleDependency<DefaultJdkTaskResult>().jdk)
                     val args = buildList {
                         add("-def")
                         add(defFile.path.pathString)

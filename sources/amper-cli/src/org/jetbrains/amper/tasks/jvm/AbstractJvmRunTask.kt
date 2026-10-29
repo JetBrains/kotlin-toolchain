@@ -13,14 +13,13 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.RunTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.jdkSettings
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.jvm.getEffectiveJvmMainClass
-import org.jetbrains.amper.jvm.getJdkOrUserError
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.ProcessInput
@@ -49,7 +48,7 @@ abstract class AbstractJvmRunTask(
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
         val result = processRunner.runJava(
-            jdk = getJdk(),
+            jdk = getJdk(dependenciesResult),
             workingDir = runSettings.workingDir,
             mainClass = getMainClass(dependenciesResult),
             classpath = getClasspath(dependenciesResult),
@@ -71,9 +70,8 @@ abstract class AbstractJvmRunTask(
     }
 
     context(executionContext: TaskGraphExecutionContext)
-    protected open suspend fun getJdk(): Jdk = context(executionContext.eventSink) {
-        jdkProvider.getJdkOrUserError(module.jdkSettings)
-    }
+    protected open suspend fun getJdk(dependenciesResult: List<TaskResult>): Jdk =
+        dependenciesResult.requireSingleDependency<JdkTaskResult>().jdk
 
     context(_: ProblemReporter)
     protected open suspend fun getJvmArgs(dependenciesResult: List<TaskResult>): List<String> = buildList {

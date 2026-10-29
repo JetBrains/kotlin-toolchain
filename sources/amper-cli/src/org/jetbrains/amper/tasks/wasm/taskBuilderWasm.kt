@@ -14,14 +14,15 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
+import org.jetbrains.amper.frontend.jdkSettings
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.LinkTaskType
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.getTaskName
+import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
 import org.jetbrains.amper.tasks.web.WebLinkTask
 import org.jetbrains.amper.util.BuildType
@@ -32,7 +33,6 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
         module: AmperModule,
         platform: Platform,
         userCacheRoot: AmperUserCacheRoot,
-        jdkProvider: JdkProvider,
         taskOutputRoot: TaskOutputRoot,
         incrementalCache: IncrementalCache,
         taskName: TaskName,
@@ -45,7 +45,6 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
         module: AmperModule,
         platform: Platform,
         userCacheRoot: AmperUserCacheRoot,
-        jdkProvider: JdkProvider,
         buildOutputRoot: AmperBuildOutputRoot,
         incrementalCache: IncrementalCache,
         taskName: TaskName,
@@ -66,7 +65,6 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
                     module,
                     platform,
                     context.userCacheRoot,
-                    context.jdkProvider,
                     context.getTaskOutputPath(compileKLibTaskName),
                     context.incrementalCache,
                     compileKLibTaskName,
@@ -76,6 +74,7 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
                     context.terminal,
                 ),
                 dependsOn = buildList {
+                    add(provideJdkTaskName(module.jdkSettings))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {
                         // todo (AB) : Check if this is required for test KLib compilation
@@ -99,7 +98,6 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
                         module,
                         platform,
                         context.userCacheRoot,
-                        context.jdkProvider,
                         context.buildOutputRoot,
                         context.incrementalCache,
                         linkAppTaskName,
@@ -110,6 +108,7 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
                         buildType,
                     ),
                     dependsOn = buildList {
+                        add(provideJdkTaskName(module.jdkSettings))
                         add(compileKLibTaskName)
                         add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                         if (isTest) {

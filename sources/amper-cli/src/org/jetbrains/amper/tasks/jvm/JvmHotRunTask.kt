@@ -132,7 +132,7 @@ class JvmHotRunTask(
     }
 
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun getJdk(): Jdk = operationEventScope(
+    override suspend fun getJdk(dependenciesResult: List<TaskResult>): Jdk = operationEventScope(
         moniker = "provisioning Hot Reload runtime",
         sink = executionContext.eventSink,
     ) {

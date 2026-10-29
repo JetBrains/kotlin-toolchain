@@ -20,6 +20,7 @@ import org.jetbrains.amper.tasks.TaskNameFactory
 import org.jetbrains.amper.tasks.getModuleDependencies
 import org.jetbrains.amper.tasks.getTaskName
 import org.jetbrains.amper.tasks.ios.IosTaskType
+import org.jetbrains.amper.tasks.jvm.provideDefaultJdkTaskName
 import org.jetbrains.amper.util.BuildType
 
 private fun isIosApp(platform: Platform, module: AmperModule) =
@@ -32,9 +33,9 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
             userCacheRoot = context.userCacheRoot,
             incrementalCache = context.incrementalCache,
             tempRoot = context.projectTempRoot,
-            jdkProvider = context.jdkProvider,
             processRunner = context.processRunner,
-        )
+        ),
+        dependsOn = [provideDefaultJdkTaskName],
     )
 
     allModules().alsoPlatforms(Platform.NATIVE).withEach {
@@ -48,10 +49,10 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
                 userCacheRoot = context.userCacheRoot,
                 incrementalCache = context.incrementalCache,
                 taskName = cinteropTaskName,
-                jdkProvider = context.jdkProvider,
                 processRunner = context.processRunner,
                 ignorePlatformFailures = cinteropGenSettings.ignorePlatformFailures,
-            )
+            ),
+            dependsOn = [provideDefaultJdkTaskName],
         )
     }
 
@@ -65,14 +66,13 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
             CommonizeCInteropKlibsTask(
                 buildOutputRoot = context.buildOutputRoot,
                 userCacheRoot = context.userCacheRoot,
-                jdkProvider = context.jdkProvider,
                 incrementalCache = context.incrementalCache,
                 processRunner = context.processRunner,
                 tempRoot = context.projectTempRoot,
                 module = module,
                 taskName = taskName,
             ),
-            dependsOn = [CommonizeNativeDistributionTask.TASK_NAME],
+            dependsOn = [CommonizeNativeDistributionTask.TASK_NAME, provideDefaultJdkTaskName],
         )
     }
 
@@ -94,11 +94,11 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
                     tempRoot = context.projectTempRoot,
                     isTest = isTest,
                     buildType = buildType,
-                    jdkProvider = context.jdkProvider,
                     processRunner = context.processRunner,
                     terminal = context.terminal,
                 ),
                 dependsOn = buildList {
+                    add(provideDefaultJdkTaskName)
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {
                         // todo (AB) : Check if this is required for test KLib compilation
@@ -135,11 +135,11 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
                                 }
                             }
                         },
-                        jdkProvider = context.jdkProvider,
                         processRunner = context.processRunner,
                         xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
                     ),
                     dependsOn = buildList {
+                        add(provideDefaultJdkTaskName)
                         add(compileKLibTaskName)
                         add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                         if (isTest) {

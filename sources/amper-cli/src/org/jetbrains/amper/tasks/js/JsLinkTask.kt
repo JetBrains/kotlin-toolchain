@@ -19,7 +19,6 @@ import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.tasks.SourceRoot
 import org.jetbrains.amper.tasks.web.WebLinkTask
 import org.jetbrains.amper.util.BuildType
@@ -34,7 +33,6 @@ internal class JsLinkTask(
     taskName: TaskName,
     tempRoot: AmperProjectTempRoot,
     isTest: Boolean,
-    jdkProvider: JdkProvider,
     processRunner: ProcessRunner,
     buildType: BuildType,
     compileKLibTaskId: TaskId,
@@ -44,7 +42,6 @@ internal class JsLinkTask(
     module,
     platform,
     userCacheRoot,
-    jdkProvider,
     buildOutputRoot,
     incrementalCache,
     taskName,

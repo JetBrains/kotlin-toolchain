@@ -14,7 +14,6 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.util.BuildType
 import java.nio.file.Path
@@ -30,7 +29,6 @@ class AndroidBuildTask(
     userCacheRoot: AmperUserCacheRoot,
     taskOutputPath: TaskOutputRoot,
     buildLogsRoot: AmperBuildLogsRoot,
-    jdkProvider: JdkProvider,
     override val taskName: TaskName,
 ) : AndroidDelegatedGradleTask(
     module,
@@ -42,7 +40,6 @@ class AndroidBuildTask(
     userCacheRoot,
     taskOutputPath,
     buildLogsRoot,
-    jdkProvider,
     taskName,
 ), BuildTask {
     override val platform: Platform
