@@ -49,6 +49,7 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.fus.client.FUS_ENABLED
 import org.jetbrains.amper.fus.schema.FusCommandCallerType
 import org.jetbrains.amper.fus.schema.FusEvents
+import org.jetbrains.amper.fus.schema.FusIdeCode
 import org.jetbrains.amper.fus.schema.trimKtcVersionForFus
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -235,8 +236,15 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
             cpuArch = SystemInfo.CurrentHost.arch
             ciSystem = CISystem.detect()
             aiAgent = detectAgent()
+            ide = when(System.getenv("KOTLIN_TOOLCHAIN_FUS_CALLING_IDE_PRODUCT_CODE")?.takeIf { it.isNotBlank() }) {
+                null -> null
+                "IU" -> FusIdeCode.IntelliJUltimate
+                "IC" -> FusIdeCode.IntelliJCommunity
+                "AI" -> FusIdeCode.AndroidStudio
+                else -> FusIdeCode.Other
+            }
             callerType = when {
-                System.getenv("KOTLIN_TOOLCHAIN_CALLED_BY_IDE") == "true" -> FusCommandCallerType.Ide
+                ide != null -> FusCommandCallerType.Ide
                 aiAgent != null -> FusCommandCallerType.AIAgent
                 ciSystem != null -> FusCommandCallerType.CI
                 else -> FusCommandCallerType.Terminal

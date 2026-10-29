@@ -57,7 +57,7 @@ object FusEvents {
 
     private val CommandGroup = group(
         id = "ktc.command",
-        version = 6,
+        version = 7,
         type = EventLogGroup.Type.COUNTER,
         description = "Command execution events",
     )
@@ -187,6 +187,12 @@ object FusEvents {
             name = "ai_agent",
             enumClass = Agent::class.java,
             description = "The AI agent running the current CLI command, or null if no agent was detected",
+            transform = { it.fusId },
+        ))
+
+        var ide by field(EventFields.Enum<FusIdeCode>(
+            name = "ide",
+            description = "The IDE running the current CLI command, or null if no IDE was detected",
             transform = { it.fusId },
         ))
 

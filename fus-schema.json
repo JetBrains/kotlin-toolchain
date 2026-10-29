@@ -28,7 +28,7 @@
         {
             "id": "ktc.command",
             "type": "counter",
-            "version": 6,
+            "version": 7,
             "description": "Command execution events",
             "recorder": "KTC",
             "schema": [
@@ -79,6 +79,15 @@
                             "shouldBeAnonymized": false,
                             "value": [
                                 "{enum:x86_64|arm64}"
+                            ]
+                        },
+                        {
+                            "path": "ide",
+                            "description": "The IDE running the current CLI command, or null if no IDE was detected",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:idea-ultimate|idea-community|android-studio|other}"
                             ]
                         },
                         {
