@@ -150,13 +150,12 @@ fun KeyValue.asCompleteForMap(
 }
 
 /**
- * Copies the key-value as a *complete* one designated for [CompleteObjectNode], using the supplied [value].
+ * Tries to copy the key-value as a *complete* one designated for [CompleteObjectNode], using the supplied [value].
+ * Return `null` when there is no declaration for the property.
  */
-fun KeyValue.asCompleteForObject(
+fun KeyValue.tryAsCompletePropertyKeyValue(
     value: CompleteTreeNode,
-): CompletePropertyKeyValue = CompletePropertyKeyValueImpl(key, keyTrace, value, checkNotNull(propertyDeclaration) {
-    "`propertyDeclaration` is null"
-}, trace)
+): CompletePropertyKeyValue? = CompletePropertyKeyValueImpl(key, keyTrace, value, propertyDeclaration ?: return null, trace)
 
 private data class KeyValueImpl(
     override val key: String,

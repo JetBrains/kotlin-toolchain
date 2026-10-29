@@ -105,7 +105,20 @@ private fun ensureCompleteTreeNode(
                         hasMissingRequiredProps = true
                         continue
                     }
-                    completeKeyValues[property.name] = mapLikePropertyValue.asCompleteForObject(completeChild)
+                    
+                    // Property value cannot be converted to `CompletePropertyKeyValue` 
+                    // when property was treated as map property at the moment of its creation, thus
+                    // being created without declaration.
+                    //
+                    // For example, `description` set in module template will be treated as unknown map property.
+                    val asCompleteValue = mapLikePropertyValue.tryAsCompletePropertyKeyValue(completeChild)
+                    
+                    // For now, we can skip here safely, since unknown properties are reported, 
+                    // except for plugin descriptor files, and those don't have merging
+                    // (so we won't end in a situation where there is a valid map value being merged in an object property)
+                    if (asCompleteValue != null) {
+                        completeKeyValues[property.name] = asCompleteValue
+                    }
                 }
                 // Group missing properties by trace and report once per group
                 missingProperties.groupBy { it.trace }.values.forEach { group ->
