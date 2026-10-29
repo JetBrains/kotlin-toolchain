@@ -279,6 +279,16 @@ class AmperBuildTest : CliTestBase() {
     }
 
     @Test
+    fun `incremental jvm build snapshots the same classpath entry separately per Kotlin version`() = runSlowTest {
+        val projectDir = testProject("incremental-compilation-multiple-kotlin-versions")
+        val result = runCli(projectDir = projectDir, "build")
+
+        val datetimeSnapshots = (result.buildDir / "ic-cache/classpath-snapshots")
+            .listDirectoryEntries("kotlinx-datetime-jvm-*.abi")
+        assertEquals(2, datetimeSnapshots.size, "Expected one snapshot per Kotlin version, got: $datetimeSnapshots")
+    }
+
+    @Test
     fun `incremental java build restores deleted output class files`() = runSlowTest {
         val projectDir = testProject("java-incremental-compilation")
         val resultRun = runCli(projectDir = projectDir, "run")

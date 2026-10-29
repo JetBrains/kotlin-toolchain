@@ -1,0 +1,9 @@
+product: jvm/lib
+
+settings:
+  kotlin:
+    version: 2.4.0
+    compileIncrementally: true
+
+dependencies:
+  - org.jetbrains.kotlinx:kotlinx-datetime:0.4.0

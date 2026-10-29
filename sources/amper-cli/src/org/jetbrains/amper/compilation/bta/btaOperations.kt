@@ -9,7 +9,6 @@ import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.stdlib.hashing.sha256String
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
-import org.jetbrains.kotlin.buildtools.api.ExecutionPolicy
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinLogger
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
@@ -22,7 +21,6 @@ import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshotti
 import java.nio.file.Path
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
-import kotlin.io.path.isDirectory
 import kotlin.io.path.name
 import kotlin.io.path.pathString
 
@@ -51,16 +49,15 @@ internal suspend fun KotlinToolchains.BuildSession.makeClasspathEntrySnapshot(
     logger: KotlinLogger? = null,
 ): Path {
     val jvmToolchain = kotlinToolchains.getToolchain<JvmPlatformToolchain>()
-    val uniqueName = "$entryMoniker-${entryPath.pathString.sha256String()}"
+    val compilerVersion = kotlinToolchains.getCompilerVersion()
+    val uniqueName = "$entryMoniker-${entryPath.pathString.sha256String()}-$compilerVersion"
     val snapshotFilePath = outputDir / "$uniqueName.abi"
     incrementalCache.executeForFiles(
-        // This key is voluntarily not tied to the current module, so it's reusable.
+        // This key is voluntarily not tied to the module we're about to compile, so it's reusable.
         // It has to contain the identity of the thing we're taking the snapshot of, because it serves for
         // synchronization with other modules (and state tracking).
         key = "kotlin-jvm-classpath-snapshotting-$uniqueName",
-        inputValues = mapOf(
-            "kotlinVersion" to kotlinToolchains.getCompilerVersion(),
-        ),
+        inputValues = emptyMap(),
         inputFiles = listOf(entryPath),
     ) {
         spanBuilder("Snapshot classpath entry")
