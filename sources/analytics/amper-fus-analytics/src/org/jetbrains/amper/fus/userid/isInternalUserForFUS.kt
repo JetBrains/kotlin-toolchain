@@ -5,9 +5,11 @@
 package org.jetbrains.amper.fus.userid
 
 /**
- * Returns `true` if the current process is detected to be from an internal JetBrains user.
+ * `true` if the current process is detected to be from an internal JetBrains user.
  */
-internal fun isInternalUserForFUS(): Boolean {
+internal val isInternalUserForFUS: Boolean by lazy { detectInternalUserForFUS() }
+
+private fun detectInternalUserForFUS(): Boolean {
     val ktcInternalUserEnvVar = System.getenv("KOTLIN_TOOLCHAIN_INTERNAL_USER")
     if (ktcInternalUserEnvVar != null) {
         return ktcInternalUserEnvVar.equals("true", ignoreCase = true) || ktcInternalUserEnvVar == "1"

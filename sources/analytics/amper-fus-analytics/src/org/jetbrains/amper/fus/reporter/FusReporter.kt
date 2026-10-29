@@ -98,7 +98,6 @@ internal class DefaultFusReporter(
     // LSP server's FusEventFactory.
     private val machineId: String = MachineIdProvider.getOrCreateMachineId(fusCache)
     private val bucket: Int = userIdToBucket(machineId)
-    private val isInternal: Boolean = isInternalUserForFUS()
 
     override fun log(event: BaseEventId, data: Map<String, Any>) {
         writer.queueEvent(buildEvent(event, data))
@@ -113,7 +112,7 @@ internal class DefaultFusReporter(
                 put(PROJECT_ID_KEY, it)
             }
         },
-        internal = isInternal,
+        internal = isInternalUserForFUS,
         time = clock.now().toEpochMilliseconds(),
         build = AmperBuild.mavenVersion, // TODO check this, should we trim something?
         session = sessionId,

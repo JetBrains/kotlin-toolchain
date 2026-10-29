@@ -114,7 +114,7 @@ internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport>
         // Debug level for external users so it's not printed to the console.
         // For internal users, we make the error more visible.
         // Revisit this when we separate logging from console output better.
-        val level = if (isInternalUserForFUS()) Level.ERROR else Level.DEBUG
+        val level = if (isInternalUserForFUS) Level.ERROR else Level.DEBUG
         logger.atLevel(level).log("Error loading FUS metadata: {}", loadError)
     }
 }
