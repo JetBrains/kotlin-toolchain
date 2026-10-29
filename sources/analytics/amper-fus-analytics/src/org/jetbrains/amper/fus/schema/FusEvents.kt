@@ -357,6 +357,7 @@ object FusEvents {
         var command by field(EventFields.Enum<NewProjectCommand>(
             name = "command",
             description = "The command that was used to generate the project.",
+            transform = { it.fusId }
         ))
 
         var templateId by field(EventFields.String(

@@ -318,7 +318,7 @@
                             "dataType": "PRIMITIVE",
                             "shouldBeAnonymized": false,
                             "value": [
-                                "{enum:New|Init}"
+                                "{enum:new|init}"
                             ]
                         },
                         {
