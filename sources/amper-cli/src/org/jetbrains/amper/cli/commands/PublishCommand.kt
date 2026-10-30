@@ -14,6 +14,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.unique
 import io.ktor.client.plugins.*
 import io.ktor.client.statement.*
+import org.jetbrains.amper.cli.analytics.CliFusReporter
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.getModuleByName
 import org.jetbrains.amper.cli.options.moduleOption
@@ -33,6 +34,9 @@ import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.moduleDependencies
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.schema.ProductType
+import org.jetbrains.amper.fus.schema.FusEvents
+import org.jetbrains.amper.fus.schema.FusPublicationType
+import org.jetbrains.amper.fus.schema.FusTransitiveOption
 import org.jetbrains.amper.klibsio.KlibsIoNotifier
 import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.maven.publish.publicationCoordinates
@@ -118,6 +122,16 @@ internal class PublishCommand : AmperModelAwareCommand(name = "publish") {
     """.trimIndent()
 
     override suspend fun run(cliContext: ProjectCliContext, model: Model) {
+        CliFusReporter.log(FusEvents.PublishCommandInvoked) {
+            type = if (repositoryId == IOS_TESTFLIGHT_REPO) FusPublicationType.Ios else FusPublicationType.Maven
+            modulesFiltered = moduleNames.isNotEmpty()
+            transitive = when (this@PublishCommand.transitive) {
+                true -> FusTransitiveOption.Enabled
+                false -> FusTransitiveOption.Disabled
+                null -> FusTransitiveOption.Auto
+            }
+        }
+
         if (repositoryId == IOS_TESTFLIGHT_REPO) {
             if (transitive != null) {
                 logger.warn("WARNING: `--transitive` is ignored for iOS publishing.")

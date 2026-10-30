@@ -57,7 +57,7 @@ object FusEvents {
 
     private val CommandGroup = group(
         id = "ktc.command",
-        version = 8,
+        version = 9,
         type = EventLogGroup.Type.COUNTER,
         description = "Command execution events",
     )
@@ -344,6 +344,35 @@ object FusEvents {
             name = "used_test_filter_kinds",
             description = "The kinds of test filters that were used, or an empty list if no filter was used. " +
                     "The filter values themselves are not reported.",
+        ))
+    }
+
+    val PublishCommandInvoked = CommandGroup.registerEvent(
+        eventId = "ktc.command.invoked.publish",
+        creator = { PublishCommandInvokedFields() },
+        description = "The `kotlin publish` command was invoked",
+    )
+
+    class PublishCommandInvokedFields : FieldListDescription() {
+
+        var type by field(EventFields.Enum<FusPublicationType>(
+            name = "type",
+            description = "The kind of publication that was requested. " +
+                    "This is 'ios' or 'maven', based on the special 'testflight' repository ID.",
+            transform = { it.fusId },
+        ))
+
+        var modulesFiltered by field(EventFields.Boolean(
+            name = "modules_filtered",
+            description = "Whether the publication was restricted to specific modules on the command line. " +
+                    "The module names themselves are not reported.",
+        ))
+
+        var transitive by field(EventFields.Enum<FusTransitiveOption>(
+            name = "transitive",
+            description = "Whether the `--transitive`/`--non-transitive` option was used, and with which value. " +
+                    "'auto' means that neither option was passed on the command line.",
+            transform = { it.fusId },
         ))
     }
 
