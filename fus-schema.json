@@ -439,7 +439,7 @@
         {
             "id": "ktc.project",
             "type": "counter",
-            "version": 3,
+            "version": 4,
             "description": "Project-related events of type COUNTER",
             "recorder": "KTC",
             "schema": [

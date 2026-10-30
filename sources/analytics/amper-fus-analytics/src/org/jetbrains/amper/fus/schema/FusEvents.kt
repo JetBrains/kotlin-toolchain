@@ -424,7 +424,7 @@ object FusEvents {
 
     private val ProjectCountersGroup = group(
         id = "ktc.project",
-        version = 3,
+        version = 4,
         type = EventLogGroup.Type.COUNTER,
         description = "Project-related events of type COUNTER",
     )
