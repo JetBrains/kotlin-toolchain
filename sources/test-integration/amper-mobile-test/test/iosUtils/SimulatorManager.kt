@@ -17,6 +17,7 @@ import org.jetbrains.amper.simctl.model.SimDevice
 import org.jetbrains.amper.simctl.model.SimDeviceId
 import org.jetbrains.amper.simctl.model.SimulatorPlatforms
 import kotlin.io.path.Path
+import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
 import kotlin.time.Duration.Companion.seconds
@@ -27,7 +28,14 @@ import kotlin.time.Duration.Companion.seconds
 internal object SimulatorManager {
     private val simulatorPath by lazy {
         runBlocking {
-            Path(runProcess(command = listOf("xcode-select", "-p"), outputMode = ProcessOutputMode.capture()).stdout.trim()).resolve("Applications/Simulator.app")
+            // Xcode.app/Contents/Developer
+            val xcodeRoot = Path(runProcess(command = listOf("xcode-select", "-p"), outputMode = ProcessOutputMode.capture()).stdout.trim())
+            val simulatorPaths = [
+                xcodeRoot / "Applications" / "Simulator.app",
+                // Xcode 27+
+                xcodeRoot.parent / "Applications" / "DeviceHub.app"
+            ]
+            simulatorPaths.firstOrNull { it.exists() } ?: error("Simulator app not found at $simulatorPaths")
         }
     }
 
@@ -36,10 +44,6 @@ internal object SimulatorManager {
      */
     @ProcessLeak
     suspend fun launchLatestIPhoneSimulator(): SimDeviceId {
-        if (!simulatorPath.exists()) {
-            error("Simulator app not found at $simulatorPath")
-        }
-
         // The iOS Simulator that is launched must be the latest version available in the system because the Kotlin
         // Toolchain builds the app file targeting the highest available iOS version by default.
 
