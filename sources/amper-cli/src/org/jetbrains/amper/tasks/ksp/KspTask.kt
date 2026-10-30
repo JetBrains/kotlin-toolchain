@@ -53,8 +53,8 @@ import org.jetbrains.amper.tasks.artifacts.KotlinJavaSourceDirArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.identificationPhrase
-import org.jetbrains.amper.tasks.jvm.JdkTaskResult
 import org.jetbrains.amper.tasks.jvm.JvmCompileTask
+import org.jetbrains.amper.tasks.jvm.ProvideJdkTask
 import org.jetbrains.amper.tasks.native.NativeCompileKlibTask
 import org.jetbrains.amper.tasks.native.requireKotlinNativeCompiler
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
@@ -123,7 +123,7 @@ internal class KspTask(
 
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
-        val jdk = dependenciesResult.requireSingleDependency<JdkTaskResult>().jdk
+        val jdk = dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
 
         val kspVersion = fragments.singleLeafFragment().settings.kotlin.ksp.version
         val kspJars = downloadKspCli(kspVersion)

@@ -53,7 +53,7 @@ import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.KotlinJavaSourceDirArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
-import org.jetbrains.amper.tasks.jvm.JdkTaskResult
+import org.jetbrains.amper.tasks.jvm.ProvideJdkTask
 import org.jetbrains.amper.tasks.native.CommonizeCInteropKlibsTask
 import org.jetbrains.amper.tasks.native.requireKotlinNativeCompiler
 import org.jetbrains.amper.telemetry.setListAttribute
@@ -164,7 +164,7 @@ internal class MetadataCompileTask(
         val friendPaths =
             fragment.friends.map { localDependencies.findMetadataResultForFragment(it).metadataOutputRoot }
 
-        val jdk = dependenciesResult.requireSingleDependency<JdkTaskResult>().jdk
+        val jdk = dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
         val nativeCompiler = dependenciesResult.requireKotlinNativeCompiler(kotlinSettings.compilerVersion)
 
         return if (fragmentPlatforms.all { it.nativeTarget != null })   {

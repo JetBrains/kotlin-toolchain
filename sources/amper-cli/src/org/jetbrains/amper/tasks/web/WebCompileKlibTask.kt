@@ -47,7 +47,7 @@ import org.jetbrains.amper.tasks.artifacts.KotlinJavaSourceDirArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.identificationPhrase
-import org.jetbrains.amper.tasks.jvm.JdkTaskResult
+import org.jetbrains.amper.tasks.jvm.ProvideJdkTask
 import org.jetbrains.amper.tasks.native.filterKLibs
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -126,7 +126,7 @@ internal abstract class WebCompileKlibTask(
 
         val kotlinUserSettings = fragments.singleLeafFragment().serializableKotlinSettings()
 
-        val jdk = dependenciesResult.requireSingleDependency<JdkTaskResult>().jdk
+        val jdk = dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
 
         val libraryPaths = compiledKlibModuleDependencies + externalDependencies
 

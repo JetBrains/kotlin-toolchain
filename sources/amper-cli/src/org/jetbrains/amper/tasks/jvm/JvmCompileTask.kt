@@ -219,7 +219,7 @@ internal class JvmCompileTask(
             )
         }
 
-        val jdk = dependenciesResult.requireSingleDependency<JdkTaskResult>().jdk
+        val jdk = dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
 
         val javaAnnotationProcessorsGeneratedDir =
             fragments.singleLeafFragment().javaAnnotationProcessingGeneratedSourcesPath(buildOutputRoot.path)

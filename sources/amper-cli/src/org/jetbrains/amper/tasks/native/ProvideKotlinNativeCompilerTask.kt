@@ -10,21 +10,29 @@ import org.jetbrains.amper.core.downloader.Downloader
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
-import org.jetbrains.amper.engine.requireSingleDependency
+import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.schema.KotlinVersion
+import org.jetbrains.amper.jdk.provisioning.JdkProvider
+import org.jetbrains.amper.jvm.FreestandingJdkProvisioning
+import org.jetbrains.amper.jvm.getDefaultJdk
 import org.jetbrains.amper.kotlin.native.downloadAndExtractKotlinNative
 import org.jetbrains.amper.tasks.TaskResult
-import org.jetbrains.amper.tasks.jvm.DefaultJdkTaskResult
 
 internal class ProvideKotlinNativeCompilerTask(
     private val kotlinVersion: KotlinVersion,
     private val userCacheRoot: AmperUserCacheRoot,
+    private val jdkProvider: JdkProvider,
 ) : Task {
     override val taskName: TaskName = kotlinNativeCompilerProvisionTaskName(kotlinVersion)
 
+    @OptIn(FreestandingJdkProvisioning::class)
     context(executionContext: TaskGraphExecutionContext)
     override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
-        val jdk = dependenciesResult.requireSingleDependency<DefaultJdkTaskResult>().jdk
+        val jdk = context(executionContext.problemReporter, executionContext.eventSink) {
+            operationEventScope("provisioning runtime for Kotlin Native compiler") {
+                jdkProvider.getDefaultJdk()
+            }
+        }
         // TODO: Should we use KONAN_DATA_DIR here instead of Amper user cache folder? See AMPER-5319.
         val konanDistribution = context(executionContext.eventSink) {
             Downloader.downloadAndExtractKotlinNative(kotlinVersion.notation, userCacheRoot)

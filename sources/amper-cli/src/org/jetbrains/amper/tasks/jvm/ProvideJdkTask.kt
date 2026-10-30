@@ -12,7 +12,6 @@ import org.jetbrains.amper.frontend.schema.JdkSettings
 import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.jdk.provisioning.JdkProvider
 import org.jetbrains.amper.jdk.provisioning.orElse
-import org.jetbrains.amper.jvm.getDefaultJdk
 import org.jetbrains.amper.tasks.TaskResult
 
 /**
@@ -28,38 +27,16 @@ internal class ProvideJdkTask(
     override val taskName: TaskName = provideJdkTaskName(jdkSettings)
 
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult =
-        JdkTaskResult(
-            jdk = context(executionContext.eventSink) {
-                jdkProvider.getJdk(jdkSettings).orElse { errorMessage ->
-                    userReadableError(errorMessage)
-                }
+    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult = Result(
+        jdk = context(executionContext.eventSink) {
+            jdkProvider.getJdk(jdkSettings).orElse { errorMessage ->
+                userReadableError(errorMessage)
             }
-        )
+        }
+    )
+
+    class Result(val jdk: Jdk) : TaskResult
 }
-
-internal class JdkTaskResult(val jdk: Jdk) : TaskResult
-
-/**
- * Finds or provisions the default JDK, used by tools that don't depend on the user's JDK settings.
- */
-internal class ProvideDefaultJdkTask(
-    private val jdkProvider: JdkProvider,
-) : Task {
-
-    override val taskName: TaskName = provideDefaultJdkTaskName
-
-    context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult =
-        DefaultJdkTaskResult(jdk = jdkProvider.getDefaultJdk(sink = executionContext.eventSink))
-}
-
-internal class DefaultJdkTaskResult(val jdk: Jdk) : TaskResult
-
-internal val provideDefaultJdkTaskName = TaskName(
-    internalName = "provideDefaultJdk",
-    operationMoniker = "provisioning default JDK",
-)
 
 /**
  * The name of the [ProvideJdkTask] for the given [jdkSettings].
@@ -74,5 +51,6 @@ private fun JdkSettings.encodeToInternalName(): String {
     // the order of distributions matters (it's a priority), so it is preserved
     val distributionsPart = distributions?.joinToString("-") { it.value.schemaValue } ?: "any"
     val licensesPart = acknowledgedLicenses.map { it.schemaValue }.distinct().sorted().joinToString("-")
-    return "provideJdk$version-${selectionMode.schemaValue}-distributions-$distributionsPart-licenses-$licensesPart"
+    val licensesSuffix = if (licensesPart.isEmpty()) "" else "-licenses-$licensesPart"
+    return "provideJdk$version-${selectionMode.schemaValue}-distributions-$distributionsPart$licensesSuffix"
 }

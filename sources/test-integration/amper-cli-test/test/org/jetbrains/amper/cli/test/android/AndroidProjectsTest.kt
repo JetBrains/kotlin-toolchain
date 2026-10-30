@@ -207,14 +207,14 @@ class AndroidProjectsTest : CliTestBase() {
             configureAndroidHome = true,
         )
         // debug
-        result.assertStdoutContains("task :simple:buildAndroidDebug -> :simple:runtimeClasspathAndroid")
-        result.assertStdoutContains("task :simple:compileAndroidDebug -> :simple:installPlatformAndroid, :simple:transformDependenciesAndroid, :simple:resolveDependenciesAndroid, :simple:prepareAndroidDebug")
-        result.assertStdoutContains("task :simple:prepareAndroidDebug -> :simple:installBuildToolsAndroid, installCmdlineTools, installPlatformTools, :simple:installPlatformAndroid, :simple:resolveDependenciesAndroid")
+        result.assertStdoutContains("task :simple:buildAndroidDebug -> :simple:runtimeClasspathAndroidDebug, provideJdk25-auto-distributions-any")
+        result.assertStdoutContains("task :simple:compileAndroidDebug -> provideJdk25-auto-distributions-any, :simple:installPlatformAndroid, :simple:transformDependenciesAndroid, :simple:resolveDependenciesAndroid, :simple:prepareAndroidDebug")
+        result.assertStdoutContains("task :simple:prepareAndroidDebug -> :simple:installBuildToolsAndroid, installCmdlineTools, installPlatformTools, :simple:installPlatformAndroid, :simple:resolveDependenciesAndroid, provideJdk25-auto-distributions-any")
         result.assertStdoutContains("task :simple:runAndroidDebug -> :simple:installSystemImageAndroid, installEmulator, :simple:buildAndroidDebug")
         // release
-        result.assertStdoutContains("task :simple:buildAndroidRelease -> :simple:runtimeClasspathAndroid")
-        result.assertStdoutContains("task :simple:compileAndroidRelease -> :simple:installPlatformAndroid, :simple:transformDependenciesAndroid, :simple:resolveDependenciesAndroid, :simple:prepareAndroidRelease")
-        result.assertStdoutContains("task :simple:prepareAndroidRelease -> :simple:installBuildToolsAndroid, installCmdlineTools, installPlatformTools, :simple:installPlatformAndroid, :simple:resolveDependenciesAndroid")
+        result.assertStdoutContains("task :simple:buildAndroidRelease -> :simple:runtimeClasspathAndroidRelease, provideJdk25-auto-distributions-any")
+        result.assertStdoutContains("task :simple:compileAndroidRelease -> provideJdk25-auto-distributions-any, :simple:installPlatformAndroid, :simple:transformDependenciesAndroid, :simple:resolveDependenciesAndroid, :simple:prepareAndroidRelease")
+        result.assertStdoutContains("task :simple:prepareAndroidRelease -> :simple:installBuildToolsAndroid, installCmdlineTools, installPlatformTools, :simple:installPlatformAndroid, :simple:resolveDependenciesAndroid, provideJdk25-auto-distributions-any")
         result.assertStdoutContains("task :simple:runAndroidRelease -> :simple:installSystemImageAndroid, installEmulator, :simple:buildAndroidRelease")
 
         // transform dependencies

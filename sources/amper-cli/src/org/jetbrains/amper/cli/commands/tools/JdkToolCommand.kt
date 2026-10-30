@@ -9,9 +9,9 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import org.jetbrains.amper.cli.commands.AmperSubcommand
-import org.jetbrains.amper.cli.getDefaultJdkInCommand
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.intellij.CommandLineUtils
+import org.jetbrains.amper.jvm.getDefaultJdkInCommand
 import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess

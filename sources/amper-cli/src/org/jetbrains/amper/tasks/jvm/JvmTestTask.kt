@@ -110,7 +110,7 @@ class JvmTestTask(
         // TODO use maven instead of packing this in the distribution?
         val amperJUnitListenersJars = extractJUnitListenersClasspath()
 
-        val jdk = dependenciesResult.requireSingleDependency<JdkTaskResult>().jdk
+        val jdk = dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
 
         taskOutputRoot.path.clean()
 

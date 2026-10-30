@@ -71,7 +71,7 @@ abstract class AbstractJvmRunTask(
 
     context(executionContext: TaskGraphExecutionContext)
     protected open suspend fun getJdk(dependenciesResult: List<TaskResult>): Jdk =
-        dependenciesResult.requireSingleDependency<JdkTaskResult>().jdk
+        dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
 
     context(_: ProblemReporter)
     protected open suspend fun getJvmArgs(dependenciesResult: List<TaskResult>): List<String> = buildList {

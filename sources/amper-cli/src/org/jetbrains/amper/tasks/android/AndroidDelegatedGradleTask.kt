@@ -25,8 +25,8 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.processes.GradleDaemonShutdownHook
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
-import org.jetbrains.amper.tasks.jvm.JdkTaskResult
 import org.jetbrains.amper.tasks.jvm.JvmRuntimeClasspathTask
+import org.jetbrains.amper.tasks.jvm.ProvideJdkTask
 import org.jetbrains.amper.util.BuildType
 import org.jetbrains.amper.util.toAndroidRequestBuildType
 import org.slf4j.LoggerFactory
@@ -81,7 +81,7 @@ abstract class AndroidDelegatedGradleTask(
             if (servicesJsonPath.exists()) servicesJsonPath else null
         }
 
-        val jdk = dependenciesResult.requireSingleDependency<JdkTaskResult>().jdk
+        val jdk = dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
 
         val executionResult = incrementalCache.execute(
             key = taskName.id.value,

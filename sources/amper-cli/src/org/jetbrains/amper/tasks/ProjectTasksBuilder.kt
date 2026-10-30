@@ -25,9 +25,7 @@ import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.tasks.ios.setupIosTasks
 import org.jetbrains.amper.tasks.java.setupJavaAnnotationProcessingTasks
 import org.jetbrains.amper.tasks.js.setupJsTasks
-import org.jetbrains.amper.tasks.jvm.ProvideDefaultJdkTask
 import org.jetbrains.amper.tasks.jvm.ProvideJdkTask
-import org.jetbrains.amper.tasks.jvm.provideDefaultJdkTaskName
 import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.tasks.jvm.setupJvmTasks
 import org.jetbrains.amper.tasks.ksp.setupKspTasks
@@ -92,11 +90,9 @@ class ProjectTasksBuilder(
     }
 
     /**
-     * Registers project-scoped JDK provisioning tasks: one for the default JDK,
-     * and one for each distinct JDK settings used across the project.
+     * Registers project-scoped JDK provisioning tasks: one for each distinct JDK settings used across the project.
      */
     private fun setupJdkTasks() {
-        tasks.registerTask(ProvideDefaultJdkTask(context.jdkProvider))
         allFragments()
             .map { it.settings.jvm.jdk }
             .distinctBy { provideJdkTaskName(it).id }
@@ -109,8 +105,7 @@ class ProjectTasksBuilder(
             .distinct()
             .forEach { kotlinVersion ->
                 tasks.registerTask(
-                    task = ProvideKotlinNativeCompilerTask(kotlinVersion, context.userCacheRoot),
-                    dependsOn = [provideDefaultJdkTaskName],
+                    ProvideKotlinNativeCompilerTask(kotlinVersion, context.userCacheRoot, context.jdkProvider)
                 )
             }
     }

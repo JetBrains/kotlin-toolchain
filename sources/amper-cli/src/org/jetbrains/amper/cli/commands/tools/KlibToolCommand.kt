@@ -11,7 +11,6 @@ import com.github.ajalt.clikt.parameters.options.option
 import org.jetbrains.amper.cli.commands.AmperSubcommand
 import org.jetbrains.amper.cli.context.GlobalCliContext
 import org.jetbrains.amper.cli.context.ProjectCliContext
-import org.jetbrains.amper.cli.getDefaultJdkInCommand
 import org.jetbrains.amper.cli.project.preparePluginsAndReadModel
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.widgets.status.standaloneOperationProgressWidget
@@ -20,6 +19,7 @@ import org.jetbrains.amper.frontend.kotlinVersion
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.frontend.schema.DiscouragedDirectDefaultVersionAccess
 import org.jetbrains.amper.intellij.CommandLineUtils
+import org.jetbrains.amper.jvm.getDefaultJdkInCommand
 import org.jetbrains.amper.kotlin.native.downloadAndExtractKotlinNative
 import org.jetbrains.amper.processes.ProcessInput
 import org.jetbrains.amper.processes.output.ProcessOutputMode
