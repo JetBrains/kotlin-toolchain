@@ -22,6 +22,7 @@ import jetbrains.buildServer.messages.serviceMessages.TestSuiteStarted
 import org.jetbrains.amper.events.sink.EventSink
 import org.jetbrains.amper.testevents.TestDescriptor
 import org.jetbrains.amper.testevents.TestEvent
+import org.jetbrains.amper.testevents.TestEventWithDescriptor
 import org.jetbrains.amper.testevents.TestId
 import org.jetbrains.amper.testevents.TestLocationHint
 import org.jetbrains.amper.testevents.TestSkipped
@@ -57,6 +58,7 @@ class TeamCityMessageProcessor(
 
     private val runningTests = mutableMapOf<TestId, TestState>()
     private val runningSuites = mutableSetOf<TestId>()
+    private val pendingSuiteStarts = mutableMapOf<TestId, AmperTestSuiteStarted>()
 
     fun parse(line: String, stderr: Boolean) {
         smParser.parse(line, object : ServiceMessageParserCallback {
@@ -108,15 +110,15 @@ class TeamCityMessageProcessor(
             val parentId = message.parentId()
             val testId = message.findTestIdOrAddToNonFlowStack { it.nonEmptySuiteName() }
             runningSuites.add(testId)
-            emit(
-                AmperTestSuiteStarted(
-                    TestDescriptor(
-                        id = testId,
-                        parentId = parentId,
-                        displayName = message.displayName(),
-                        location = message.suiteLocationHint()
-                            ?: message.suiteDerivedLocationHint(testId)
-                    )
+            // We don't report suite started immediately, as it might be an empty suite in case of improper support for
+            // filtering. Thus, we postpone the suite reporting until at least a single test is reported under it.
+            pendingSuiteStarts[testId] = AmperTestSuiteStarted(
+                TestDescriptor(
+                    id = testId,
+                    parentId = parentId,
+                    displayName = message.displayName(),
+                    location = message.suiteLocationHint()
+                        ?: message.suiteDerivedLocationHint(testId)
                 )
             )
         }
@@ -138,7 +140,11 @@ class TeamCityMessageProcessor(
                 logger.warn("Received suite $id finished for unknown suite")
                 return
             }
-            emit(AmperTestSuiteFinished(id))
+            // Do not report suite finished if it has no tests under it
+            // (emit removes its parent from `pendingSuiteStarts`).
+            if (pendingSuiteStarts.remove(id) == null) {
+                emit(AmperTestSuiteFinished(id))
+            }
         }
 
         override fun visitTestStarted(message: TestStarted) {
@@ -402,7 +408,15 @@ class TeamCityMessageProcessor(
         return nonFlowIdStack.lastOrNull()
     }
 
-    private fun emit(event: TestEvent) = eventSink.emit(event)
+    private fun emit(event: TestEvent) {
+        val suiteId = if (event is TestEventWithDescriptor) event.descriptor.parentId else event.testId
+        val suiteStart = pendingSuiteStarts.remove(suiteId)
+        if (suiteStart != null) {
+            // Report the suite started if non-suite started event is reported as its child.
+            emit(suiteStart)
+        }
+        eventSink.emit(event)
+    }
 
     private fun TestId?.child(name: String): TestId =
         this?.copy(value = "$value.$name") ?: TestId(name)
