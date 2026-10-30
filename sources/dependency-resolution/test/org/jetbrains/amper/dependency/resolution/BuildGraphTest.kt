@@ -3183,6 +3183,29 @@ class BuildGraphTest : BaseDRTest() {
     }
 
     /**
+     * This test checks that in jvm+android resolution context:
+     * - a KMP library is resolved to its JVM module,
+     * - and this module is recognized as a part of the KMP library (not as a separate transitive dependency).
+     *
+     * In particular, `com.squareup.okio:okio:3.9.1` is resolved to `com.squareup.okio:okio-jvm:3.9.1`.
+     */
+    @Test
+    fun `platform-specific module of a KMP library in jvm+android resolution`(testInfo: TestInfo) = runDrTest {
+        val root = doTest(
+            testInfo,
+            dependency = "com.squareup.okio:okio:3.9.1",
+            platform = setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID),
+            verifyMessages = false,
+        )
+
+        val okioJvm = root.distinctBfsSequence()
+            .filterIsInstance<MavenDependencyNode>()
+            .single { it.module == "okio-jvm" }
+        assertEquals("com.squareup.okio:okio:3.9.1", okioJvm.getParentKmpLibraryCoordinates()?.toString())
+        assertTrue(!okioJvm.isTransitive, "$okioJvm is the platform-specific module of a direct dependency")
+    }
+
+    /**
      * A JVM-only library declared by a KMP library for native platforms is not used there,
      * the problem of the library is not a problem of the transitive dependency node.
      */

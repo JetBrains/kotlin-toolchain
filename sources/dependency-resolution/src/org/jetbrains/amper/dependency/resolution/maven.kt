@@ -339,12 +339,12 @@ class MavenDependencyNodeWithContext internal constructor(
     }
 
     /**
-     * NB: This method currently works properly only in the single-platform resolution context.
+     * NB: This method currently works properly only in the single-platform (or jvm+android) resolution context.
      *
      * todo (AB) : Replace with proper isKmpLibrary() condition that takes multi-platform context into account
      */
     fun isKmpLibrary(): Boolean = when {
-        context.settings.platforms.size == 1 -> dependency.filesRaw(false).isEmpty()
+        context.settings.isSinglePlatformContext() -> dependency.filesRaw(false).isEmpty()
         else -> false
     }
 
@@ -362,7 +362,7 @@ class MavenDependencyNodeWithContext internal constructor(
     override fun getParentKmpLibraryCoordinates(): MavenCoordinates? {
         // When the node is resolved in the multiplatform context, it's unlikely that any platforms-specific artifacts
         // will be resolved for KMP libraries. Thus, there will be no nodes to call this method on.
-        if (context.settings.platforms.size != 1) return null
+        if (!context.settings.isSinglePlatformContext()) return null
 
         val thisCoordinates = dependency.coordinates
         for (parent in parents) {
@@ -402,6 +402,7 @@ class MavenDependencyNodeWithContext internal constructor(
      * This is because declared dependencies are published, not resolved ones.
      */
     override fun getMavenCoordinatesForPublishing(): MavenCoordinates {
+        // Note: no exception for jvm+android context here (original dependency coordinates are returned)
         if (context.settings.platforms.size == 1 && isKmpLibrary()) {
             val childrenOriginalCoordinates = children
                 .filterIsInstance<MavenDependencyNodeWithContext>()
@@ -2452,13 +2453,6 @@ class MavenDependencyImpl internal constructor(
 
     private fun ResolutionPlatform.isJvmLike() = this == ResolutionPlatform.JVM || this == ResolutionPlatform.ANDROID
 
-    /**
-     * Single platform (or jvm+android) context, the dependency is resolved to its platform variant.
-     * [KTC-4474] jvm+android fragments support JVM dependencies.
-     */
-    private fun Settings.isSinglePlatformContext() =
-        platforms.size == 1 || platforms == setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID)
-
     private suspend fun resolveUsingPom(
         text: String,
         context: Context,
@@ -2569,7 +2563,7 @@ class MavenDependencyImpl internal constructor(
         val allFiles = filesRaw(withSources) + kmpResourcesFiles
         val notDownloaded = allFiles
             .filter {
-                (context.settings.platforms.size == 1 // Verification of multiplatform hash is done at the file-producing stage
+                (context.settings.isSinglePlatformContext() // Verification of multiplatform hash is done at the file-producing stage
                         || it.settings[KmpSourceSetName] == null) // (except for artifact with all sources that is not marked with any kmpSourceSet)
                         && !it.isDownloadedWithVerification(settings = context.settings)
             }
@@ -2786,6 +2780,13 @@ private val allApplePlatforms = ResolutionPlatform.entries.filter {
 internal fun Version.resolve() = strictly?.resolveSingleVersion()
     ?: requires?.resolveSingleVersion()
     ?: prefers?.resolveSingleVersion()
+
+/**
+ * Single platform (or jvm+android) context, the dependency is resolved to its platform variant.
+ * [KTC-4474] jvm+android fragments support JVM dependencies.
+ */
+private fun Settings.isSinglePlatformContext() =
+    platforms.size == 1 || platforms == setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID)
 
 internal fun Version.asString(): String =
     strictly?.let { "{strictly $strictly} -> $strictly" }
