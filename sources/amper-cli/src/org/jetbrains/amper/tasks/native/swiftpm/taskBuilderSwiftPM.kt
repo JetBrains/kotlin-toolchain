@@ -64,9 +64,11 @@ fun ProjectTasksBuilder.setupSwiftPMTasks() {
                 task = FetchPackageTask(
                     module = module,
                     taskName = fetchPackageTaskName,
+                    userCacheRoot = context.userCacheRoot,
                     taskOutputRoot = context.getTaskOutputPath(fetchPackageTaskName),
                     incrementalCache = context.incrementalCache,
-                )
+                ),
+                dependsOn = XcodeEnvironmentTask.TASK_NAME,
             )
 
             module.leafAppleFragments().groupBy {

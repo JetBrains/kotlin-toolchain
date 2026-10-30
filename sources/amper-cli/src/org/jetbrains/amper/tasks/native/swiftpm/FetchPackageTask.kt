@@ -4,15 +4,18 @@
 
 package org.jetbrains.amper.tasks.native.swiftpm
 
+import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.cli.telemetry.setAmperModule
 import org.jetbrains.amper.cli.userReadableError
+import org.jetbrains.amper.concurrency.FileMutexGroup
+import org.jetbrains.amper.concurrency.withDoubleLock
+import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.processes.LoggingProcessOutputListener
-import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
@@ -25,18 +28,20 @@ import org.jetbrains.amper.tasks.artifacts.api.Artifact
 import org.jetbrains.amper.tasks.artifacts.api.ArtifactSelector
 import org.jetbrains.amper.tasks.artifacts.api.ArtifactType
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
+import org.jetbrains.amper.tasks.ios.xcodeEnvironment
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.nio.file.Path
 import kotlin.io.path.deleteRecursively
+import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.pathString
 
 class FetchedSwiftPMPackage(
     override val path: Path,
-    val module: AmperModule
+    val module: AmperModule,
 ) : Artifact {
     val workspaceStateJson: Path = path.resolve("workspace-state.json")
 }
@@ -51,9 +56,10 @@ fun internalFetchedPackage(module: AmperModule) = ArtifactSelector(
 class FetchPackageTask(
     val module: AmperModule,
     taskOutputRoot: TaskOutputRoot,
+    private val userCacheRoot: AmperUserCacheRoot,
     private val incrementalCache: IncrementalCache,
     override val taskName: TaskName,
-): ArtifactTaskBase() {
+) : ArtifactTaskBase() {
     private val generatedPackage by generatedPackage<InternalSwiftPMImportPackage>(module)
     private val swiftPMDependenciesArtifact by swiftPMDependenciesArtifact(module)
 
@@ -88,6 +94,7 @@ class FetchPackageTask(
                 fetchPackage(
                     syntheticImportProjectRoot = syntheticImportProjectRoot,
                     swiftPMDependenciesCheckout = swiftPMDependenciesCheckout,
+                    xcodeVersion = dependenciesResult.xcodeEnvironment().version,
                 )
                 val lockFile = syntheticImportProjectRoot.resolve("Package.resolved")
                 listOfNotNull(
@@ -110,66 +117,62 @@ class FetchPackageTask(
     private suspend fun fetchPackage(
         syntheticImportProjectRoot: Path,
         swiftPMDependenciesCheckout: Path,
+        xcodeVersion: ComparableVersion,
     ) {
-        var result: ProcessResult
-        var retryCount = 0
-        do {
-            var raceDownloadFailureHappened = false
-            result = runProcess(
-                workingDir = syntheticImportProjectRoot,
-                configureEnvironment = { remove("SDKROOT") },
-                command = [
-                    "/usr/bin/swift",
-                    "package",
-                    "--scratch-path", swiftPMDependenciesCheckout.pathString,
-                    "resolve",
-                ],
-                outputMode = ProcessOutputMode.listen(
-                    LoggingProcessOutputListener(
-                        logger,
-                        "SwiftPM import fetch: ",
-                        stdoutLoggingLevel = Level.DEBUG,
-                        stderrLoggingLevel = Level.DEBUG,
-                    ) + object : ProcessOutputListener {
-                        override fun onStdoutLine(line: String, pid: Long) {
-                            // SwiftPM doesn't output logs to stdout
-                        }
+        if (xcodeVersion >= FirstXcodeWithConcurrencySafeArtifactCache) {
+            fetchPackage(syntheticImportProjectRoot, swiftPMDependenciesCheckout)
+        } else {
+            // Pre Swift 6.4, SwiftPM resolution is not concurrency safe. Thus, we guard each resolution with a lock
+            // to at least ensure that multiple modules with the same dependency do not conflict.
+            // https://github.com/swiftlang/swift-package-manager/issues/10138
+            FileMutexGroup.Default.withDoubleLock(userCacheRoot.path / "swiftPMResolution.lock") {
+                fetchPackage(syntheticImportProjectRoot, swiftPMDependenciesCheckout)
+            }
+        }
+    }
 
-                        override fun onStderrLine(line: String, pid: Long) {
-                            printErrorLine(line)
-                        }
+    private suspend fun fetchPackage(
+        syntheticImportProjectRoot: Path,
+        swiftPMDependenciesCheckout: Path,
+    ) {
+        val result = runProcess(
+            workingDir = syntheticImportProjectRoot,
+            configureEnvironment = { remove("SDKROOT") },
+            command = [
+                "/usr/bin/swift",
+                "package",
+                "--scratch-path", swiftPMDependenciesCheckout.pathString,
+                "resolve",
+            ],
+            outputMode = ProcessOutputMode.listen(
+                LoggingProcessOutputListener(
+                    logger,
+                    "SwiftPM import fetch: ",
+                    stdoutLoggingLevel = Level.DEBUG,
+                    stderrLoggingLevel = Level.DEBUG,
+                ) + object : ProcessOutputListener {
+                    override fun onStdoutLine(line: String, pid: Long) {
+                        // SwiftPM doesn't output logs to stdout
+                    }
 
-                        private fun printErrorLine(line: String) {
-                            val trimmedLine = line.trim()
-                            val errors = listOf("error:", "fatal:")
-                            if (errors.any { trimmedLine.startsWith(it) }) {
-                                if ("already exists in file system" in trimmedLine) {
-                                    raceDownloadFailureHappened = true
-                                }
-                                logger.error(line)
-                            }
-                            val warnings = listOf("warning:")
-                            if (warnings.any { trimmedLine.startsWith(it) }) {
-                                logger.warn(line)
-                            }
+                    override fun onStderrLine(line: String, pid: Long) {
+                        printErrorLine(line)
+                    }
+
+                    private fun printErrorLine(line: String) {
+                        val trimmedLine = line.trim()
+                        val errors = ["error:", "fatal:"]
+                        if (errors.any { trimmedLine.startsWith(it) }) {
+                            logger.error(line)
+                        }
+                        val warnings = ["warning:"]
+                        if (warnings.any { trimmedLine.startsWith(it) }) {
+                            logger.warn(line)
                         }
                     }
-                )
+                }
             )
-            if (result.exitCode.value == 0) {
-                // Good path, exit cleanly
-                return
-            }
-            if (raceDownloadFailureHappened) {
-                // There is a flaky issue inside swiftPM resolve itself
-                // See https://github.com/swiftlang/swift-package-manager/issues/10138
-                logger.warn("Retrying fetching SwiftPM dependencies")
-                retryCount++
-            } else {
-                // No flaky failure detected, no sense in retrying, abort immediately
-                break
-            }
-        } while (retryCount < MAX_SPM_FETCH_RETRY_COUNT)
+        )
 
         if (result.exitCode.value != 0) {
             userReadableError("SwiftPM fetch failed, see errors above")
@@ -179,4 +182,10 @@ class FetchPackageTask(
     private val logger = LoggerFactory.getLogger(javaClass)
 }
 
-private const val MAX_SPM_FETCH_RETRY_COUNT = 5
+/**
+ * The first Xcode version in which SwiftPM's global binary artifact cache is safe for concurrent use.
+ *
+ * Technically, we should check Swift version, but as we consider Xcode to be the provisioner of Swift, we can rely
+ * on that instead.
+ */
+private val FirstXcodeWithConcurrencySafeArtifactCache = ComparableVersion("27.0")
