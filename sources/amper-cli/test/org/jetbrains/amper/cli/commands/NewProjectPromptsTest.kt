@@ -127,15 +127,15 @@ class NewProjectPromptsTest {
     }
 
     @Test
-    fun `project path prompt retries and returns the resolved path`() {
+    fun `project name prompt retries and returns the resolved path`() {
         val recorder = interactiveRecorder(inputLines = ["\u0000", "foo/bar"])
         val workingDir = Path("/work")
 
-        val projectPath = Terminal(terminalInterface = recorder).promptForProjectPath(workingDir)
+        val projectName = Terminal(terminalInterface = recorder).promptForProjectName(workingDir)
 
-        assertEquals(workingDir.resolve("foo/bar"), projectPath)
-        assertContains(recorder.output(), "Project path is not valid on this system. Please try again.")
-        assertEquals(2, recorder.output().occurrencesOf("Project path: "))
+        assertEquals(workingDir.resolve("foo/bar"), projectName)
+        assertContains(recorder.output(), "Project name is not valid on this system. Please try again.")
+        assertEquals(2, recorder.output().occurrencesOf("Project name: "))
     }
 
     @Test
@@ -147,8 +147,8 @@ class NewProjectPromptsTest {
         ).apply { inputLines.addAll(["hello", ""]) }
         val terminal = Terminal(terminalInterface = recorder)
 
-        terminal.prompt(prompt = ProjectPathPrompt)
-        assertEquals("Project path: ", recorder.output())
+        terminal.prompt(prompt = ProjectNamePrompt)
+        assertEquals("Project name: ", recorder.output())
 
         recorder.clearOutput()
         val projectId = defaultProjectId("project")

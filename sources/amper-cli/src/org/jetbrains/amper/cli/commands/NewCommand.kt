@@ -17,7 +17,7 @@ import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import kotlin.io.path.Path
 
-internal const val ProjectPathPrompt = "Project path"
+internal const val ProjectNamePrompt = "Project name"
 
 internal class NewCommand : AbstractNewProjectCommand(name = "new") {
 
@@ -36,7 +36,7 @@ internal class NewCommand : AbstractNewProjectCommand(name = "new") {
             if (!terminal.terminalInfo.interactive) {
                 userReadableError("Please specify the project path, e.g. `kotlin new my-project`.")
             }
-            return terminal.promptForProjectPath(workingDir)
+            return terminal.promptForProjectName(workingDir)
         }
         if (projectPath.isBlank()) userReadableError("Project path must not be blank.")
         try {
@@ -47,18 +47,18 @@ internal class NewCommand : AbstractNewProjectCommand(name = "new") {
     }
 }
 
-internal fun Terminal.promptForProjectPath(workingDir: Path): Path {
+internal fun Terminal.promptForProjectName(workingDir: Path): Path {
     while (true) {
-        val input = prompt(prompt = ProjectPathPrompt)?.trim()
+        val input = prompt(prompt = ProjectNamePrompt)?.trim()
             ?: throw PrintMessage("Command aborted.")
         if (input.isBlank()) {
-            warning("Project path must not be blank. Please try again.")
+            warning("Project name must not be blank. Please try again.")
             continue
         }
         try {
             return workingDir.resolve(input)
         } catch (_: InvalidPathException) {
-            warning("Project path is not valid on this system. Please try again.")
+            warning("Project name is not valid on this system. Please try again.")
         }
     }
 }
