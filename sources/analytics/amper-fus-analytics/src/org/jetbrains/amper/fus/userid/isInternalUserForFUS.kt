@@ -4,15 +4,19 @@
 
 package org.jetbrains.amper.fus.userid
 
+import java.lang.System
+
 /**
  * `true` if the current process is detected to be from an internal JetBrains user.
  */
 internal val isInternalUserForFUS: Boolean by lazy { detectInternalUserForFUS() }
 
 private fun detectInternalUserForFUS(): Boolean {
-    val ktcInternalUserEnvVar = System.getenv("KOTLIN_TOOLCHAIN_INTERNAL_USER")
-    if (ktcInternalUserEnvVar != null) {
-        return ktcInternalUserEnvVar.equals("true", ignoreCase = true) || ktcInternalUserEnvVar == "1"
+    if (System.getenv("KOTLIN_TOOLCHAIN_INTERNAL_USER")?.toBooleanStrictOrNull() == true) {
+        return true
+    }
+    if (System.getenv("KOTLIN_FROM_SOURCES")?.toBooleanStrictOrNull() == true) {
+        return true
     }
     // we also detect internal JetBrains users that don't set up their CI with special env vars
     if (System.getenv("TEAMCITY_VERSION") != null) {
