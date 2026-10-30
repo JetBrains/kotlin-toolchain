@@ -28,7 +28,7 @@
         {
             "id": "ktc.command",
             "type": "counter",
-            "version": 9,
+            "version": 10,
             "description": "Command execution events",
             "recorder": "KTC",
             "schema": [
@@ -328,6 +328,39 @@
                             "shouldBeAnonymized": false,
                             "value": [
                                 "{enum:exclude_class_pattern|exclude_tag|include_class|include_class_pattern|include_tag|include_test}"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "event": "ktc.command.result",
+                    "description": "A CLI command completed. This event is reported for any command, and complements the corresponding 'ktc.command.invoked*' events with the outcome of the execution.",
+                    "fields": [
+                        {
+                            "path": "command",
+                            "description": "The name of the command that completed, or null if the 'kotlin' CLI was invoked without a command. Required if 'subcommands' is not empty.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:build|check|clean|clean-shared-caches|compose-hot-reload-mcp-server|data-collection-consent|do|generate-completion|ide-integration|init|new|package|publish|run|show|task|test|tool|update}"
+                            ]
+                        },
+                        {
+                            "path": "result",
+                            "description": "The outcome of the command execution.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:success|failure|canceled}"
+                            ]
+                        },
+                        {
+                            "path": "subcommand",
+                            "description": "The name of the subcommands that completed (like 'jdk' for 'kotlin tool jdk'), or an empty list if no subcommands were passed (like 'kotlin build'). This is a list because some commands may allow multiple subcommands in the same command line.",
+                            "dataType": "ARRAY",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:checks|commands|dependencies|modules|settings|tasks|jaeger|jdk|keystore|klib|xcode-integration|convert-project|commonize-native-distribution|generate-klibs|manage-xcode|prepare-compose-resources|give|revoke|show}"
                             ]
                         }
                     ]

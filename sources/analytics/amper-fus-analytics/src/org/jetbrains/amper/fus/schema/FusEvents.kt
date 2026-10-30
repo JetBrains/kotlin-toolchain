@@ -57,7 +57,7 @@ object FusEvents {
 
     private val CommandGroup = group(
         id = "ktc.command",
-        version = 9,
+        version = 10,
         type = EventLogGroup.Type.COUNTER,
         description = "Command execution events",
     )
@@ -77,28 +77,7 @@ object FusEvents {
             name = "command",
             description = "The name of the invoked command, or null if the 'kotlin' CLI was invoked without a " +
                     "command. Required if 'subcommands' is not empty.",
-            // TODO find a better way to keep this in sync with the real command list
-            allowedValues = [
-                "build",
-                "check",
-                "clean",
-                "clean-shared-caches",
-                "compose-hot-reload-mcp-server",
-                "data-collection-consent",
-                "do",
-                "generate-completion",
-                "ide-integration",
-                "init",
-                "new",
-                "package",
-                "publish",
-                "run",
-                "show",
-                "task",
-                "test",
-                "tool",
-                "update",
-            ],
+            allowedValues = KnownCommands,
         ))
 
         var subcommands by field(EventFields.StringList(
@@ -106,32 +85,7 @@ object FusEvents {
             description = "The name of the invoked subcommands (like 'jdk' for 'kotlin tool jdk'), or an empty list " +
                     "if no subcommands were passed (like 'kotlin build'). This is a list because some commands may " +
                     "allow multiple subcommands in the same command line.",
-            // TODO find a better way to keep this in sync with the real command list
-            allowedValues = [
-                // show subcommands
-                "checks",
-                "commands",
-                "dependencies",
-                "modules",
-                "settings",
-                "tasks",
-                // tool subcommands
-                "jaeger",
-                "jdk",
-                "keystore",
-                "klib",
-                "xcode-integration",
-                "convert-project",
-                // IDE integration subcommands
-                "commonize-native-distribution",
-                "generate-klibs",
-                "manage-xcode",
-                "prepare-compose-resources",
-                // data-collection-consent subcommands
-                "give",
-                "revoke",
-                "show",
-            ],
+            allowedValues = KnownSubcommands,
         ))
 
         var osFamily by field(EventFields.Enum(
@@ -372,6 +326,37 @@ object FusEvents {
             name = "transitive",
             description = "Whether the `--transitive`/`--non-transitive` option was used, and with which value. " +
                     "'auto' means that neither option was passed on the command line.",
+            transform = { it.fusId },
+        ))
+    }
+
+    val CommandResult = CommandGroup.registerEvent(
+        eventId = "ktc.command.result",
+        creator = { CommandResultFields() },
+        description = "A CLI command completed. This event is reported for any command, and complements the " +
+                "corresponding 'ktc.command.invoked*' events with the outcome of the execution.",
+    )
+
+    class CommandResultFields : FieldListDescription() {
+
+        var command by field(EventFields.String(
+            name = "command",
+            description = "The name of the command that completed, or null if the 'kotlin' CLI was invoked without " +
+                    "a command. Required if 'subcommands' is not empty.",
+            allowedValues = KnownCommands,
+        ))
+
+        var subcommands by field(EventFields.StringList(
+            name = "subcommand",
+            description = "The name of the subcommands that completed (like 'jdk' for 'kotlin tool jdk'), or an " +
+                    "empty list if no subcommands were passed (like 'kotlin build'). This is a list because some " +
+                    "commands may allow multiple subcommands in the same command line.",
+            allowedValues = KnownSubcommands,
+        ))
+
+        var result by field(EventFields.Enum<FusCommandResult>(
+            name = "result",
+            description = "The outcome of the command execution.",
             transform = { it.fusId },
         ))
     }

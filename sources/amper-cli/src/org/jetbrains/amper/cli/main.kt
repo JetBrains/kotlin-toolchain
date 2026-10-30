@@ -5,7 +5,11 @@
 package org.jetbrains.amper.cli
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
+import com.github.ajalt.clikt.core.Abort
 import com.github.ajalt.clikt.core.CliktError
+import com.github.ajalt.clikt.core.PrintCompletionMessage
+import com.github.ajalt.clikt.core.PrintMessage
+import com.github.ajalt.clikt.parsers.CommandInvocation
 import com.github.ajalt.clikt.parsers.CommandLineParser
 import com.github.ajalt.mordant.markdown.Markdown
 import com.github.ajalt.mordant.terminal.Terminal
@@ -17,6 +21,8 @@ import org.jetbrains.amper.cli.logging.withoutConsoleLogging
 import org.jetbrains.amper.cli.telemetry.TelemetryEnvironment
 import org.jetbrains.amper.cli.terminal.createMordantTerminal
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.fus.schema.FusCommandResult
+import org.jetbrains.amper.fus.schema.FusEvents
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -24,6 +30,7 @@ import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
 import java.nio.file.Path
 import java.time.Instant
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger("main")
@@ -105,7 +112,9 @@ private suspend fun SuspendingCliktCommand.mainWithTelemetry(args: Array<String>
         .use {
             try {
                 CommandLineParser.run(result.invocation) { it.run() }
+                reportFusCommandResult(result.invocation)
             } catch (e: CliktError) {
+                reportFusCommandResult(result.invocation, e)
                 command.echoFormattedHelp(e)
 
                 // We don't want to throw the exception from the "run command" span unconditionally because some errors
@@ -118,8 +127,43 @@ private suspend fun SuspendingCliktCommand.mainWithTelemetry(args: Array<String>
                     // because it bypasses any finally blocks, and thus prevents our telemetry spans from completing.
                     throw ExitProcessButCloseTelemetrySpansException(e.statusCode)
                 }
+            } catch (e: Throwable) {
+                reportFusCommandResult(result.invocation, e)
+                throw e
             }
         }
+}
+
+/**
+ * Reports the outcome of the command execution to FUS, based on the [exception] that terminated the command.
+ * A null [exception] means the command completed successfully.
+ *
+ * The [rootInvocation] is the invocation of the root 'kotlin' command, used to report which command was run.
+ */
+private fun reportFusCommandResult(rootInvocation: CommandInvocation<*>, exception: Throwable? = null) {
+    // The root command is the 'kotlin' CLI itself, so the command the user asked for is its first subcommand.
+    val commandInvocation = rootInvocation.subcommandInvocations.firstOrNull()
+    CliFusReporter.log(FusEvents.CommandResult) {
+        command = commandInvocation?.command?.commandName
+        subcommands = commandInvocation?.subcommandInvocations?.map { it.command.commandName }
+        result = exception.toFusCommandResult()
+    }
+}
+
+/**
+ * The [FusCommandResult] corresponding to the exception that terminated a command, or [FusCommandResult.Success] if the
+ * command completed without throwing (null receiver).
+ */
+private fun Throwable?.toFusCommandResult(): FusCommandResult = when (this) {
+    null -> FusCommandResult.Success
+    // The shell completion script is printed by throwing this, which is a normal successful outcome.
+    is PrintCompletionMessage -> FusCommandResult.Success
+    // Clikt's Abort, and all the PrintMessage errors of this CLI, are thrown to stop the command gracefully when the
+    // user cancels an interactive prompt. Nothing went wrong in those cases, so they are not failures.
+    is CancellationException, is Abort, is PrintMessage -> FusCommandResult.Canceled
+    // Clikt uses a zero status code for errors that only print something and exit normally, like the help message.
+    is CliktError -> if (statusCode == 0) FusCommandResult.Success else FusCommandResult.Failure
+    else -> FusCommandResult.Failure
 }
 
 /**
