@@ -26,6 +26,75 @@
     ],
     "scheme": [
         {
+            "id": "ktc.anonymous",
+            "type": "state",
+            "version": 1,
+            "description": "Fully anonymous events for aggregated statistics that don't require user consent",
+            "recorder": "KTC",
+            "schema": [
+                {
+                    "event": "ktc.anonymous.consent.state",
+                    "description": "The current state of the user's consent for statistical analysis only. This event is reported at most once per day and contains no identifier.",
+                    "fields": [
+                        {
+                            "path": "caller_type",
+                            "description": "The source of the CLI call (IDE, AI Agent, regular user in the terminal, etc.)",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:ai_agent|ci|ide|terminal}"
+                            ]
+                        },
+                        {
+                            "path": "consent_state",
+                            "description": "Whether the user accepted or rejected the collection of usage statistics, or was not asked yet (for example, because the terminal was not interactive).",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:accepted|rejected|not_asked}"
+                            ]
+                        },
+                        {
+                            "path": "ide",
+                            "description": "The IDE running the current CLI command, or null if no IDE was detected",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:idea-ultimate|idea-community|android-studio|other}"
+                            ]
+                        },
+                        {
+                            "path": "interactive",
+                            "description": "Whether the command was run in an interactive terminal.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum#boolean}"
+                            ]
+                        },
+                        {
+                            "path": "ktc_version",
+                            "description": "The currently running version of the Kotlin Toolchain. The dev build number is trimmed.",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:LOCAL-SNAPSHOT|0.11.0-dev|0.11.0|0.11.1|0.11.2|0.11.3|0.11.4|0.11.5|0.12.0-dev|0.12.0|0.12.1|0.12.2|0.12.3|0.12.4|0.12.5|0.13.0-dev|0.13.0|0.13.1|0.13.2|0.13.3|0.13.4|0.13.5|0.14.0-dev|0.14.0|0.14.1|0.14.2|0.14.3|0.14.4|0.14.5|0.15.0-dev|0.15.0|0.15.1|0.15.2|0.15.3|0.15.4|0.15.5|0.16.0-dev|0.16.0|0.16.1|0.16.2|0.16.3|0.16.4|0.16.5}"
+                            ]
+                        },
+                        {
+                            "path": "os_family",
+                            "description": "The operating system family of the current machine",
+                            "dataType": "PRIMITIVE",
+                            "shouldBeAnonymized": false,
+                            "value": [
+                                "{enum:windows|macos|unix_like}"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "id": "ktc.command",
             "type": "counter",
             "version": 10,

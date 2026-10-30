@@ -6,32 +6,20 @@ package org.jetbrains.amper.fus.reporter
 
 import com.jetbrains.fus.reporting.FusClient
 import com.jetbrains.fus.reporting.model.lion4.LogEvent
-import com.jetbrains.fus.reporting.model.lion4.LogEventAction
-import com.jetbrains.fus.reporting.model.lion4.LogEventGroup
-import com.jetbrains.fus.reporting.model.lion4.LogEventSystemData
-import com.jetbrains.fus.reporting.model.userIdToBucket
 import com.jetbrains.fus.reporting.schema.BaseEventId
 import com.jetbrains.fus.reporting.schema.EventId
-import com.jetbrains.fus.reporting.schema.EventLogGroup
 import com.jetbrains.fus.reporting.schema.FieldListDescription
 import com.jetbrains.fus.reporting.schema.VarargEventId
-import org.jetbrains.amper.buildinfo.AmperBuild
-import org.jetbrains.amper.fus.FusConstants
 import org.jetbrains.amper.fus.cache.FusCache
 import org.jetbrains.amper.fus.client.createFusClient
-import org.jetbrains.amper.fus.schema.KtcFusRecorder
-import org.jetbrains.amper.fus.schema.MACHINE_ID_KEY
-import org.jetbrains.amper.fus.schema.PROJECT_ID_KEY
 import org.jetbrains.amper.fus.userid.MachineIdProvider
 import org.jetbrains.amper.fus.userid.isInternalUserForFUS
-import java.util.concurrent.atomic.AtomicLong
-import kotlin.time.Clock
-import kotlin.uuid.Uuid
+import org.slf4j.LoggerFactory
 
 /**
  * Allows logging feature usage statistics.
  */
-interface FusReporter {
+interface FusReporter : AutoCloseable {
 
     /**
      * Reports the given [event] with the given [data].
@@ -49,15 +37,26 @@ interface FusReporter {
      * Reports the given [event], configuring its data using [buildData].
      */
     fun <D : FieldListDescription> log(event: VarargEventId<D>, buildData: D.() -> Unit) {
-        log(event, event.buildEventData(buildData))
+        try {
+            log(event, event.buildEventData(buildData))
+        } catch (e: Exception) {
+            if (isInternalUserForFUS) {
+                logger.error("Failed to log event $event", e)
+            } else {
+                logger.debug("ERROR: cannot log event {}", event, e)
+            }
+        }
     }
 
     /**
      * Closes the reporter and flushes all pending events.
      */
-    fun close()
+    override fun close()
 
     companion object {
+
+        private val logger = LoggerFactory.getLogger(FusReporter::class.java)
+
         /**
          * Creates a [FusReporter] that uses the given [FusCache].
          *
@@ -88,52 +87,21 @@ interface FusReporter {
 internal class DefaultFusReporter(
     fusCache: FusCache,
     private val writer: FusClient<LogEvent, *>,
-    private val projectIdProvider: () -> String?,
-    private val clock: Clock = Clock.System,
+    projectIdProvider: () -> String?,
 ) : FusReporter {
-    private val sessionId: String = Uuid.random().toString()
-    private val systemEventId = AtomicLong()
-
-    // We use the same algorithm as IntelliJ's `EventLogConfiguration.generateMachineId`, and the same fallback as the
-    // LSP server's FusEventFactory.
-    private val machineId: String = MachineIdProvider.getOrCreateMachineId(fusCache)
-    private val bucket: Int = userIdToBucket(machineId)
+    private val eventFactory = LogEventFactory(
+        // We use the same algorithm as IntelliJ's `EventLogConfiguration.generateMachineId`, and the same fallback as
+        // the LSP server's FusEventFactory.
+        machineIdProvider = { MachineIdProvider.getOrCreateMachineId(fusCache) },
+        projectIdProvider = projectIdProvider,
+    )
 
     override fun log(event: BaseEventId, data: Map<String, Any>) {
-        writer.queueEvent(buildEvent(event, data))
+        writer.queueEvent(eventFactory.create(event, data))
     }
 
-    private fun buildEvent(event: BaseEventId, data: Map<String, Any>): LogEvent = LogEvent(
-        recorder = KtcFusRecorder,
-        product = FusConstants.PRODUCT_CODE,
-        ids = buildMap {
-            put(MACHINE_ID_KEY, machineId)
-            projectIdProvider()?.let {
-                put(PROJECT_ID_KEY, it)
-            }
-        },
-        internal = isInternalUserForFUS,
-        time = clock.now().toEpochMilliseconds(),
-        build = AmperBuild.mavenVersion, // TODO check this, should we trim something?
-        session = sessionId,
-        group = event.group.toLogEventGroup(),
-        bucket = bucket,
-        event = LogEventAction(
-            id = event.eventId,
-            data = data.toMutableMap(),
-        ),
-        system_data = buildMap {
-            putAll(LogEventSystemData(system_event_id = systemEventId.getAndIncrement().toString()).toMap().orEmpty())
-        }
-    )
-
-    private fun EventLogGroup.toLogEventGroup(): LogEventGroup = LogEventGroup(
-        id = id,
-        version = version,
-        state = type == EventLogGroup.Type.STATE,
-    )
-
-   override fun close() {
+    override fun close() {
         writer.close()
     }
 }
+

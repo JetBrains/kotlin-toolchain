@@ -34,6 +34,7 @@ import org.jetbrains.amper.cidetection.CISystem
 import org.jetbrains.amper.cli.AmperHelpFormatter
 import org.jetbrains.amper.cli.AmperVersion
 import org.jetbrains.amper.cli.analytics.CliFusReporter
+import org.jetbrains.amper.cli.analytics.FusEnvironmentDetection
 import org.jetbrains.amper.cli.commands.ide.IdeIntegrationCommand
 import org.jetbrains.amper.cli.commands.show.ShowCommand
 import org.jetbrains.amper.cli.commands.tools.ToolCommand
@@ -234,21 +235,10 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
                 currentContext.invokedSubcommand?.currentContext?.invokedSubcommands?.map { it.commandName }
             osFamily = SystemInfo.CurrentHost.family
             cpuArch = SystemInfo.CurrentHost.arch
-            ciSystem = CISystem.detect()
-            aiAgent = detectAgent()
-            ide = when(System.getenv("KOTLIN_TOOLCHAIN_FUS_CALLING_IDE_PRODUCT_CODE")?.takeIf { it.isNotBlank() }) {
-                null -> null
-                "IU" -> FusIdeCode.IntelliJUltimate
-                "IC" -> FusIdeCode.IntelliJCommunity
-                "AI" -> FusIdeCode.AndroidStudio
-                else -> FusIdeCode.Other
-            }
-            callerType = when {
-                ide != null -> FusCommandCallerType.Ide
-                aiAgent != null -> FusCommandCallerType.AIAgent
-                ciSystem != null -> FusCommandCallerType.CI
-                else -> FusCommandCallerType.Terminal
-            }
+            ciSystem = FusEnvironmentDetection.ciSystem
+            aiAgent = FusEnvironmentDetection.aiAgent
+            ide = FusEnvironmentDetection.ide
+            callerType = FusEnvironmentDetection.callerType
             interactive = terminal.terminalInfo.interactive
             currentKtcVersion = AmperBuild.mavenVersion.trimKtcVersionForFus()
             oldestInstalledKtcVersion = sharedCacheDir.cachedKtcVersions()

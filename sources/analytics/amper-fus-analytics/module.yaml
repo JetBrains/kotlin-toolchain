@@ -19,3 +19,7 @@ dependencies:
 
 plugins:
   amper-fus-schema-generator: enabled
+
+test-dependencies:
+  - //sources/test-base
+  - $libs.kotlinx.coroutines.test

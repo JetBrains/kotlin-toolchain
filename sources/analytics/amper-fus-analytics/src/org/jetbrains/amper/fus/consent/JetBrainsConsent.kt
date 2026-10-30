@@ -123,6 +123,6 @@ internal data class ConsentFlag(
 }
 
 enum class ConsentState(internal val valueInFile: String) {
-    Given("1"),
+    Accepted("1"),
     Rejected("0"),
 }

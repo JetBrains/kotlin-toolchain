@@ -39,7 +39,7 @@ private class GiveConsentCommand: AmperSubcommand(name = "give") {
 
     override suspend fun run() {
         terminal.println(Markdown(FusConsent.PROMPT_BANNER_MARKDOWN_1_2))
-        FusConsent.setState(ConsentState.Given)
+        FusConsent.setState(ConsentState.Accepted)
         terminal.println()
         terminal.success("You have accepted these terms.")
         terminal.println()
@@ -65,7 +65,7 @@ private class ShowConsentCommand: AmperSubcommand(name = "show") {
         terminal.println()
         val state = FusConsent.detect()
         when (state) {
-            ConsentState.Given -> {
+            ConsentState.Accepted -> {
                 terminal.success("You have accepted these terms.")
                 terminal.println()
                 terminal.println(Markdown("You can revoke your consent at any time by running `kotlin data-collection-consent revoke`."))

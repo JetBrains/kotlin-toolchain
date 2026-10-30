@@ -29,6 +29,7 @@ object FusSchemaDescription {
 
     val recorderDefinitions = [
         RecorderDefinition(KtcFusRecorder).also {
+            // `machine_id` is required, but for anonymous events it is a fixed single value for all users
             it.registerId(field = EventFields.AnonymizedId(MACHINE_ID_KEY), required = true)
             it.registerId(field = EventFields.AnonymizedId(PROJECT_ID_KEY), required = false)
         }
@@ -53,6 +54,66 @@ object FusEvents {
         )
         allGroups.add(group)
         return group
+    }
+
+    /**
+     * Fully anonymous events for aggregated statistics that don't require user consent.
+     *
+     * **IMPORTANT:** events of this group are sent regardless of the user's consent, so they must not contain any
+     * identifier (no machine ID, project ID, session ID, etc.), not even synthetic random ones. It must also not be
+     * possible to connect these events with any other event. They must only be used for aggregated counting purposes.
+     */
+    internal val AnonymousGroup = group(
+        id = "ktc.anonymous",
+        version = 1,
+        type = EventLogGroup.Type.STATE,
+        description = "Fully anonymous events for aggregated statistics that don't require user consent",
+    )
+
+    val ConsentState = AnonymousGroup.registerEvent(
+        eventId = "ktc.anonymous.consent.state",
+        creator = { ConsentStateFields() },
+        description = "The current state of the user's consent for statistical analysis only. This event is " +
+                "reported at most once per day and contains no identifier.",
+    )
+
+    class ConsentStateFields : FieldListDescription() {
+        var consentState by field(EventFields.Enum<FusConsentState>(
+            name = "consent_state",
+            description = "Whether the user accepted or rejected the collection of usage statistics, or was not " +
+                    "asked yet (for example, because the terminal was not interactive).",
+            transform = { it.fusId },
+        ))
+
+        var currentKtcVersion by field(EventFields.String(
+            name = "ktc_version",
+            description = "The currently running version of the Kotlin Toolchain. The dev build number is trimmed.",
+            allowedValues = KnownKtcVersions,
+        ))
+
+        var osFamily by field(EventFields.Enum(
+            name = "os_family",
+            enumClass = AnonymousOsFamily::class.java,
+            description = "The operating system family of the current machine",
+            transform = { it.fusId },
+        ))
+
+        var ide by field(EventFields.Enum<FusIdeCode>(
+            name = "ide",
+            description = "The IDE running the current CLI command, or null if no IDE was detected",
+            transform = { it.fusId },
+        ))
+
+        var callerType by field(EventFields.Enum<FusCommandCallerType>(
+            name = "caller_type",
+            description = "The source of the CLI call (IDE, AI Agent, regular user in the terminal, etc.)",
+            transform = { it.fusId },
+        ))
+
+        var interactive by field(EventFields.Boolean(
+            name = "interactive",
+            description = "Whether the command was run in an interactive terminal.",
+        ))
     }
 
     private val CommandGroup = group(

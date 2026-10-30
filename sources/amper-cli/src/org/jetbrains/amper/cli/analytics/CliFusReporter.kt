@@ -10,14 +10,22 @@ import com.github.ajalt.mordant.terminal.Terminal
 import com.jetbrains.fus.reporting.schema.BaseEventId
 import com.jetbrains.fus.reporting.schema.FieldListDescription
 import com.jetbrains.fus.reporting.schema.VarargEventId
+import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.cli.analytics.CliFusReporter.delegate
 import org.jetbrains.amper.cli.analytics.CliFusReporter.enable
 import org.jetbrains.amper.cli.terminal.interactiveSelectList
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.fus.cache.FusCache
 import org.jetbrains.amper.fus.consent.ConsentState
+import org.jetbrains.amper.fus.consent.ConsentStateReportThrottle
 import org.jetbrains.amper.fus.consent.FusConsent
 import org.jetbrains.amper.fus.reporter.FusReporter
+import org.jetbrains.amper.fus.schema.AnonymousOsFamily
+import org.jetbrains.amper.fus.schema.FusConsentState
+import org.jetbrains.amper.fus.schema.FusEvents
+import org.jetbrains.amper.fus.schema.trimKtcVersionForFus
+import org.jetbrains.amper.system.info.OsFamily
+import org.jetbrains.amper.system.info.SystemInfo
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -67,13 +75,17 @@ object CliFusReporter : FusReporter {
      *
      * * if consent was given, the FUS infrastructure is initialized, and all previously buffered events are sent
      * * if consent was rejected, this [FusReporter] becomes a no-op, and all previously buffered events are discarded
+     *
+     * In both cases, the consent state itself is reported (at most once per day) using an event without identifiers.
      */
     fun setup(userCacheRoot: AmperUserCacheRoot, terminal: Terminal) {
         val consentState = FusConsent.detect { terminal.promptForConsent() }
+        val cache = FusCache(userCacheRoot.fusRoot)
         when (consentState) {
-            ConsentState.Given -> enable(FusCache(userCacheRoot.fusRoot))
+            ConsentState.Accepted -> enable(cache)
             ConsentState.Rejected, null -> cancel()
         }
+        reportConsentStateIfDue(cache, consentState, terminal.terminalInfo.interactive)
     }
 
     /**
@@ -99,6 +111,48 @@ object CliFusReporter : FusReporter {
             delegate = null
             shouldBuffer = false
             buffer.clear()
+        }
+    }
+
+    /**
+     * Reports the [consentState] if it wasn't reported in the last 24h.
+     *
+     * The consent state event contains no identifier, so it is sent even if consent was not given.
+     * In that case, a temporary reporter is used to send only this event.
+     */
+    private fun reportConsentStateIfDue(cache: FusCache, consentState: ConsentState?, interactive: Boolean) {
+        val throttle = ConsentStateReportThrottle(cache)
+        if (!throttle.isReportDue()) {
+            return
+        }
+        if (consentState == ConsentState.Accepted) {
+            logConsentState(reporter = this, consentState, interactive)
+        } else {
+            FusReporter.createAndStart(cache, projectIdProvider = { null }).use { reporter ->
+                logConsentState(reporter, consentState, interactive)
+            }
+        }
+        throttle.markReported()
+    }
+
+    private fun logConsentState(reporter: FusReporter, consent: ConsentState?, isInteractive: Boolean) {
+        reporter.log(FusEvents.ConsentState) {
+            consentState = when (consent) {
+                ConsentState.Accepted -> FusConsentState.Accepted
+                ConsentState.Rejected -> FusConsentState.Rejected
+                null -> FusConsentState.NotAsked
+            }
+            currentKtcVersion = AmperBuild.mavenVersion.trimKtcVersionForFus()
+            osFamily = when (SystemInfo.CurrentHost.family) {
+                OsFamily.Windows -> AnonymousOsFamily.Windows
+                OsFamily.MacOs -> AnonymousOsFamily.MacOS
+                OsFamily.FreeBSD,
+                OsFamily.Linux -> AnonymousOsFamily.UnixLike
+                OsFamily.Solaris -> null // will be removed soon
+            }
+            interactive = isInteractive
+            ide = FusEnvironmentDetection.ide
+            callerType = FusEnvironmentDetection.callerType
         }
     }
 
@@ -139,10 +193,10 @@ private fun Terminal.promptForConsent(): ConsentState? {
     }
     println(Markdown(FusConsent.PROMPT_BANNER_MARKDOWN_1_2))
     val result = interactiveSelectList(
-        items = [ConsentState.Given, ConsentState.Rejected],
+        items = [ConsentState.Accepted, ConsentState.Rejected],
         nameSelector = {
             when (it) {
-                ConsentState.Given -> "Send data"
+                ConsentState.Accepted -> "Send data"
                 ConsentState.Rejected -> "Don't send data"
             }
         },
