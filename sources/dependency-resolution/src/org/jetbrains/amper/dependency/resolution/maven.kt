@@ -1395,15 +1395,6 @@ class MavenDependencyImpl internal constructor(
                         kotlinMetadataVariant,
                         diagnosticsReporter
                     )
-
-                    // Add KMP sources
-                    val sourcesDependencyFile =
-                        getKotlinMetadataSourcesVariant(moduleMetadata.variants, ResolutionPlatform.COMMON)
-                            ?.let { getKotlinMetadataFile(it, diagnosticsReporter) }
-                            ?.let { getDependencyFile(this, it, isDocumentation = true) }
-                            ?: getAutoAddedSourcesDependencyFile()
-
-                    sourceSetsFiles = sourceSetsFiles.toMutableList() + listOf(sourcesDependencyFile)
                 } else {
                     // source sets were not resolved, a corresponding error was reported (apart from an exceptional case of jvm+android)
                 }
@@ -1796,6 +1787,9 @@ class MavenDependencyImpl internal constructor(
         val platformsWithoutVariants = resolvedVariants.filterValues { it.isEmpty() }
         if (platformsWithoutVariants.isNotEmpty()) {
             reportVariantMismatchForLibrary(diagnosticsReporter, moduleMetadata, context.settings, platformsWithoutVariants.keys)
+            // The library is not visible in the source set shared between the platforms, some of which it doesn't support
+            // (as in KGP): it contributes neither files nor dependencies.
+            return
         }
 
         val allPsmVariants = kotlinProjectStructureMetadata.projectStructure.variants.associateBy { it.name }
@@ -1882,6 +1876,15 @@ class MavenDependencyImpl internal constructor(
                 }
             // todo (AB) : take kotlinMetadataVariant.dependencyConstraints into account as well? What subset on constraints should be taken into account?
         }
+
+        // Add KMP sources
+        val sourcesDependencyFile =
+            getKotlinMetadataSourcesVariant(moduleMetadata.variants, ResolutionPlatform.COMMON)
+                ?.let { getKotlinMetadataFile(it, diagnosticsReporter) }
+                ?.let { getDependencyFile(this, it, isDocumentation = true) }
+                ?: getAutoAddedSourcesDependencyFile()
+
+        sourceSetsFiles = sourceSetsFiles.toMutableList() + listOf(sourcesDependencyFile)
     }
 
     /**

@@ -3267,6 +3267,46 @@ class BuildGraphTest : BaseDRTest() {
             assertEquals([], uiKitNode.messages.map { it.id }, "Transitive $uiKitNode is expected to have no messages")
         }
 
+    /**
+     * This test checks that a transitive KMP library contributes neither files nor dependencies
+     * to the multiplatform resolution if it doesn't support one of the platforms (as in KGP).
+     *
+     * In particular, `org.jetbrains.compose.ui:ui-uikit:1.12.1` doesn't support android.
+     * It is reached from `org.jetbrains.compose.ui:ui-util:1.12.1` in android+iosArm64 resolution context.
+     */
+    @Test
+    fun `KMP library missing a platform contributes nothing to multiplatform resolution`(testInfo: TestInfo) =
+        runDrTest {
+            val uiKitNode = resolveUiUtil(testInfo, setOf(ResolutionPlatform.ANDROID, ResolutionPlatform.IOS_ARM64))
+
+            val files = uiKitNode.dependency.files(withSources = true)
+            assertTrue(files.isEmpty(), "$uiKitNode is expected to have no files: $files")
+            assertTrue(uiKitNode.children.isEmpty(), "$uiKitNode is expected to have no children")
+        }
+
+    /**
+     * This test checks that the same KMP library is used in the resolution for a platform it supports (iosArm64).
+     */
+    @Test
+    fun `KMP library is used for a platform it supports`(testInfo: TestInfo) = runDrTest {
+        val uiKitNode = resolveUiUtil(testInfo, setOf(ResolutionPlatform.IOS_ARM64))
+
+        assertTrue(uiKitNode.children.isNotEmpty(),"Dependencies of $uiKitNode are expected to be a part of the graph")
+    }
+
+    private suspend fun resolveUiUtil(testInfo: TestInfo, platforms: Set<ResolutionPlatform>): MavenDependencyNode {
+        val root = doTest(
+            testInfo,
+            dependency = "org.jetbrains.compose.ui:ui-util:1.12.1",
+            platform = platforms,
+            repositories = listOf(REDIRECTOR_MAVEN_CENTRAL, REDIRECTOR_DL_GOOGLE_ANDROID),
+            verifyMessages = false,
+        )
+        return root.distinctBfsSequence()
+            .filterIsInstance<MavenDependencyNode>()
+            .single { it.module == "ui-uikit" }
+    }
+
     private fun assertEquals(@Language("text") expected: String, root: DependencyNode) =
         assertEquals(expected, root.prettyPrint().trimEnd())
 }
