@@ -9,18 +9,16 @@ import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
-import org.jetbrains.amper.compilation.downloadNativeCompiler
+import org.jetbrains.amper.compilation.KotlinNativeCompiler
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.GenerateKlibsForIdeTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
-import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.commonizedCinteropLibrariesRoot
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
-import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.kotlin.native.CommonizerTarget
 import org.jetbrains.amper.kotlin.native.asCommonizerTarget
 import org.jetbrains.amper.kotlin.native.dependencyLibrariesForCommonization
@@ -36,7 +34,6 @@ import org.jetbrains.amper.tasks.artifacts.CinteropKlibsArtifact
 import org.jetbrains.amper.tasks.artifacts.api.ArtifactSelector
 import org.jetbrains.amper.tasks.artifacts.api.ArtifactType
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
-import org.jetbrains.amper.tasks.jvm.DefaultJdkTaskResult
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -119,8 +116,9 @@ class CommonizeCInteropKlibsTask(
         // TODO: Cluster sets of commonization targets if they are non-intersecting?
         //  this way there is no benefit of not re-reading klibs (no shared klibs)
         //  and there might be a benefit of incremental granularity.
-        val jdk = dependenciesResult.requireSingleDependency<DefaultJdkTaskResult>().jdk
-        val relevantOutputs = allKlibsFlat.takeIf { it.isNotEmpty() }?.let { commonize(it, jdk) }.orEmpty()
+        val relevantOutputs = allKlibsFlat.takeIf { it.isNotEmpty() }
+            ?.let { commonize(it, dependenciesResult.requireKotlinNativeCompiler(kotlinVersion)) }
+            .orEmpty()
 
         cleanDirectoryExcept(taskOutputRoot, keepPaths = relevantOutputs)
 
@@ -132,7 +130,7 @@ class CommonizeCInteropKlibsTask(
     context(_: TaskGraphExecutionContext)
     private suspend fun commonize(
         klibs: List<CinteropKlib>,
-        jdk: Jdk,
+        compiler: KotlinNativeCompiler,
     ): List<Path> {
 
         val groupedByName: Map<String, List<CinteropKlib>> = klibs.groupBy(
@@ -148,7 +146,6 @@ class CommonizeCInteropKlibsTask(
             return []
         }
 
-        val compiler = downloadNativeCompiler(kotlinVersion, userCacheRoot, jdk)
         val commonizerClasspath = kotlinDownloader.downloadKotlinCommonizerEmbeddable(kotlinVersion)
 
         val [targets: Set<CommonizerTarget>, outputs: Set<Path>] = run {

@@ -10,15 +10,11 @@ import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.cli.telemetry.setAmperModule
 import org.jetbrains.amper.cli.telemetry.setProcessResultAttributes
 import org.jetbrains.amper.cli.userReadableError
-import org.jetbrains.amper.core.AmperUserCacheRoot
-import org.jetbrains.amper.core.downloader.Downloader
-import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.schema.KotlinVersion
 import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.jdk.provisioning.majorVersion
 import org.jetbrains.amper.kotlin.native.KonanDistribution
-import org.jetbrains.amper.kotlin.native.downloadAndExtractKotlinNative
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.processes.ProcessResult
@@ -33,26 +29,6 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.pathString
-
-context(executionContext: TaskGraphExecutionContext)
-suspend fun downloadNativeCompiler(
-    kotlinVersion: KotlinVersion,
-    userCacheRoot: AmperUserCacheRoot,
-    /**
-     * According to the Kotlin/Native team, there are no special requirements for this JDK, but they mostly test with 11.
-     * Usually, this is the default JDK.
-     */
-    jdk: Jdk,
-): KotlinNativeCompiler {
-    // TODO: Should we use KONAN_DATA_DIR here and elsewhere instead of Amper user cache folder?
-    //  (as well as for the location of downloading compiler distribution itself.
-    //  See AMPER-5319.
-    val konanDistribution = context(executionContext.eventSink) {
-        Downloader.downloadAndExtractKotlinNative(kotlinVersion.notation, userCacheRoot)
-            ?: error("kotlin native compiler is not available for the current platform")
-    }
-    return KotlinNativeCompiler(konanDistribution, jdk)
-}
 
 class KotlinNativeCompiler(
     val konanDistribution: KonanDistribution,

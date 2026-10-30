@@ -122,7 +122,7 @@ private fun LeafFragment.toProjectTarget(kotlinVersion: KotlinVersion, konanAbiV
         target = KGP_NATIVE_TARGET,
         platformType = "native",
         // The Kotlin/Native distribution is downloaded as 'kotlin-native-prebuilt' in the configured Kotlin version
-        // (see downloadNativeCompiler), so the version of the Kotlin/Native compiler is the Kotlin version.
+        // (see ProvideKotlinNativeCompilerTask), so the version of the Kotlin/Native compiler is the Kotlin version.
         extras = konanAbiVersion?.let {
             TargetExtras(
                 native = NativeExtras(

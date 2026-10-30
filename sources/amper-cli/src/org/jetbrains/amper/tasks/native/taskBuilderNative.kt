@@ -11,6 +11,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.isDescendantOf
+import org.jetbrains.amper.frontend.kotlinVersion
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.LinkTaskType
 import org.jetbrains.amper.tasks.ModuleTaskTypes
@@ -20,7 +21,6 @@ import org.jetbrains.amper.tasks.TaskNameFactory
 import org.jetbrains.amper.tasks.getModuleDependencies
 import org.jetbrains.amper.tasks.getTaskName
 import org.jetbrains.amper.tasks.ios.IosTaskType
-import org.jetbrains.amper.tasks.jvm.provideDefaultJdkTaskName
 import org.jetbrains.amper.util.BuildType
 
 private fun isIosApp(platform: Platform, module: AmperModule) =
@@ -35,7 +35,8 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
             tempRoot = context.projectTempRoot,
             processRunner = context.processRunner,
         ),
-        dependsOn = [provideDefaultJdkTaskName],
+        dependsOn = model.nativePlatformSetsToCommonizeByKotlinVersion()
+            .keys.map(::kotlinNativeCompilerProvisionTaskName),
     )
 
     allModules().alsoPlatforms(Platform.NATIVE).withEach {
@@ -46,13 +47,12 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
                 platform = platform,
                 fragments = module.fragmentsTargeting(platform, false),
                 buildOutputRoot = context.buildOutputRoot,
-                userCacheRoot = context.userCacheRoot,
                 incrementalCache = context.incrementalCache,
                 taskName = cinteropTaskName,
                 processRunner = context.processRunner,
                 ignorePlatformFailures = cinteropGenSettings.ignorePlatformFailures,
             ),
-            dependsOn = [provideDefaultJdkTaskName],
+            dependsOn = [kotlinNativeCompilerProvisionTaskName(module.kotlinVersion)],
         )
     }
 
@@ -72,7 +72,10 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
                 module = module,
                 taskName = taskName,
             ),
-            dependsOn = [CommonizeNativeDistributionTask.TASK_NAME, provideDefaultJdkTaskName],
+            dependsOn = [
+                CommonizeNativeDistributionTask.TASK_NAME,
+                kotlinNativeCompilerProvisionTaskName(module.kotlinVersion),
+            ],
         )
     }
 
@@ -98,7 +101,7 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
                     terminal = context.terminal,
                 ),
                 dependsOn = buildList {
-                    add(provideDefaultJdkTaskName)
+                    add(kotlinNativeCompilerProvisionTaskName(module.kotlinVersion))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {
                         // todo (AB) : Check if this is required for test KLib compilation
@@ -139,7 +142,7 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
                         xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
                     ),
                     dependsOn = buildList {
-                        add(provideDefaultJdkTaskName)
+                        add(kotlinNativeCompilerProvisionTaskName(module.kotlinVersion))
                         add(compileKLibTaskName)
                         add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                         if (isTest) {

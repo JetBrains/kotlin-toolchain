@@ -13,10 +13,10 @@ import org.jetbrains.amper.cli.telemetry.setAmperModule
 import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.KotlinCompilationType
+import org.jetbrains.amper.compilation.KotlinNativeCompiler
 import org.jetbrains.amper.compilation.KotlinUserSettings
 import org.jetbrains.amper.compilation.compiler.downloadKotlinCompiler
 import org.jetbrains.amper.compilation.downloadCompilerPlugins
-import org.jetbrains.amper.compilation.downloadNativeCompiler
 import org.jetbrains.amper.compilation.kotlinMetadataCompilerArgs
 import org.jetbrains.amper.compilation.kotlinNativeCompilerArgs
 import org.jetbrains.amper.compilation.metadataKlibUniqueName
@@ -53,9 +53,9 @@ import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.KotlinJavaSourceDirArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
-import org.jetbrains.amper.tasks.jvm.DefaultJdkTaskResult
 import org.jetbrains.amper.tasks.jvm.JdkTaskResult
 import org.jetbrains.amper.tasks.native.CommonizeCInteropKlibsTask
+import org.jetbrains.amper.tasks.native.requireKotlinNativeCompiler
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -165,12 +165,12 @@ internal class MetadataCompileTask(
             fragment.friends.map { localDependencies.findMetadataResultForFragment(it).metadataOutputRoot }
 
         val jdk = dependenciesResult.requireSingleDependency<JdkTaskResult>().jdk
-        val nativeCompilerJdk = dependenciesResult.requireSingleDependency<DefaultJdkTaskResult>().jdk
+        val nativeCompiler = dependenciesResult.requireKotlinNativeCompiler(kotlinSettings.compilerVersion)
 
         return if (fragmentPlatforms.all { it.nativeTarget != null })   {
-            compileNativeMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompilerJdk)
+            compileNativeMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler)
         } else {
-            compileCommonMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompilerJdk)
+            compileCommonMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler)
         }
     }
 
@@ -182,7 +182,7 @@ internal class MetadataCompileTask(
         kotlinSettings: KotlinUserSettings,
         fragmentPlatforms: Set<ResolutionPlatform>,
         jdk: Jdk,
-        nativeCompilerJdk: Jdk,
+        nativeCompiler: KotlinNativeCompiler,
     ): Result {
         val inputValues = mapOf(
             "jdk.version" to jdk.version,
@@ -207,7 +207,7 @@ internal class MetadataCompileTask(
                 }
                 compileCommonSources(
                     jdk = jdk,
-                    nativeCompilerJdk = nativeCompilerJdk,
+                    nativeCompiler = nativeCompiler,
                     kotlinUserSettings = kotlinSettings,
                     sourceDirectories = sourceDirs,
                     additionalSourceRoots = additionalKotlinJavaSourceDirs.map { SourceRoot(it.fragmentName, it.path) },
@@ -247,7 +247,7 @@ internal class MetadataCompileTask(
         refinesPaths: List<Path>,
         fragmentPlatforms: Set<ResolutionPlatform>,
         jdk: Jdk,
-        nativeCompilerJdk: Jdk,
+        nativeCompiler: KotlinNativeCompiler,
     ) {
         // In Kotlin >= 2.2, we need to list all source files (not just dirs), and konanc only accepts *.kt entries.
         // Any other file lying around in the source directories (.DS_Store, .gitkeep, notes...) would be rejected
@@ -257,7 +257,6 @@ internal class MetadataCompileTask(
             return
         }
 
-        val nativeCompiler = downloadNativeCompiler(kotlinUserSettings.compilerVersion, userCacheRoot, nativeCompilerJdk)
         val commonizedKlibs = nativeCompiler.konanDistribution.librariesForMetadataCompilation(fragmentPlatforms)
 
         val compilerPlugins = kotlinArtifactsDownloader.downloadCompilerPlugins(
@@ -308,7 +307,7 @@ internal class MetadataCompileTask(
     context(_: TaskGraphExecutionContext)
     private suspend fun compileCommonSources(
         jdk: Jdk,
-        nativeCompilerJdk: Jdk,
+        nativeCompiler: KotlinNativeCompiler,
         kotlinUserSettings: KotlinUserSettings,
         sourceDirectories: List<Path>,
         additionalSourceRoots: List<SourceRoot>,
@@ -325,7 +324,6 @@ internal class MetadataCompileTask(
             return
         }
 
-        val nativeCompiler = downloadNativeCompiler(kotlinUserSettings.compilerVersion, userCacheRoot, nativeCompilerJdk)
         val commonizedKlibs = nativeCompiler.konanDistribution.librariesForMetadataCompilation(fragmentPlatforms)
 
         val kotlinCompiler = kotlinArtifactsDownloader.downloadKotlinCompiler(kotlinUserSettings.compilerVersion, jdk)
@@ -374,7 +372,7 @@ internal class MetadataCompileTask(
         kotlinSettings: KotlinUserSettings,
         fragmentPlatforms: Set<ResolutionPlatform>,
         jdk: Jdk,
-        nativeCompilerJdk: Jdk,
+        nativeCompiler: KotlinNativeCompiler,
     ): Result {
         val inputValues = mapOf(
             "jdk.version" to jdk.version,
@@ -406,7 +404,7 @@ internal class MetadataCompileTask(
                     refinesPaths = refinesPaths,
                     fragmentPlatforms = fragmentPlatforms,
                     jdk = jdk,
-                    nativeCompilerJdk = nativeCompilerJdk,
+                    nativeCompiler = nativeCompiler,
                 )
             } else {
                 logger.debug("No sources were found for ${fragment.identificationPhrase()}, skipping compilation")

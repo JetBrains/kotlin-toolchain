@@ -27,10 +27,12 @@ import org.jetbrains.amper.tasks.java.setupJavaAnnotationProcessingTasks
 import org.jetbrains.amper.tasks.js.setupJsTasks
 import org.jetbrains.amper.tasks.jvm.ProvideDefaultJdkTask
 import org.jetbrains.amper.tasks.jvm.ProvideJdkTask
+import org.jetbrains.amper.tasks.jvm.provideDefaultJdkTaskName
 import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.tasks.jvm.setupJvmTasks
 import org.jetbrains.amper.tasks.ksp.setupKspTasks
 import org.jetbrains.amper.tasks.maven.setupMavenCompatibilityTasks
+import org.jetbrains.amper.tasks.native.ProvideKotlinNativeCompilerTask
 import org.jetbrains.amper.tasks.native.setupNativeTasks
 import org.jetbrains.amper.tasks.native.swiftpm.setupSwiftPMTasks
 import org.jetbrains.amper.tasks.wasm.setupWasmJsTasks
@@ -69,6 +71,7 @@ class ProjectTasksBuilder(
 
     fun build(): TaskGraph {
         setupJdkTasks()
+        setupKotlinNativeCompilerTasks()
         setupCommonTasks(moduleDependenciesMap)
         setupJvmTasks(moduleDependenciesMap)
         setupMavenCompatibilityTasks()
@@ -98,6 +101,18 @@ class ProjectTasksBuilder(
             .map { it.settings.jvm.jdk }
             .distinctBy { provideJdkTaskName(it).id }
             .forEach { tasks.registerTask(ProvideJdkTask(jdkSettings = it, jdkProvider = context.jdkProvider)) }
+    }
+
+    private fun setupKotlinNativeCompilerTasks() {
+        allFragments()
+            .map { it.settings.kotlin.version }
+            .distinct()
+            .forEach { kotlinVersion ->
+                tasks.registerTask(
+                    task = ProvideKotlinNativeCompilerTask(kotlinVersion, context.userCacheRoot),
+                    dependsOn = [provideDefaultJdkTaskName],
+                )
+            }
     }
 
     val moduleDependenciesMap by lazy {

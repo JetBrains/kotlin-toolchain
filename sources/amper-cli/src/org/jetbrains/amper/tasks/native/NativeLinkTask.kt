@@ -14,7 +14,6 @@ import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.KotlinUserSettings
 import org.jetbrains.amper.compilation.NativeCompilerCaches
 import org.jetbrains.amper.compilation.downloadCompilerPlugins
-import org.jetbrains.amper.compilation.downloadNativeCompiler
 import org.jetbrains.amper.compilation.kotlinNativeCompilerArgs
 import org.jetbrains.amper.compilation.nativeCompilerCachesFor
 import org.jetbrains.amper.compilation.optimizationEnabled
@@ -25,7 +24,6 @@ import org.jetbrains.amper.dependency.resolution.MavenLocalRepository
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
-import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
@@ -48,7 +46,6 @@ import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.identificationPhrase
 import org.jetbrains.amper.tasks.ios.XcodeBuildSettingsResolution
 import org.jetbrains.amper.tasks.ios.productBundleIdentifier
-import org.jetbrains.amper.tasks.jvm.DefaultJdkTaskResult
 import org.jetbrains.amper.tasks.native.swiftpm.SwiftPMImportParsedLdCallArtifact
 import org.jetbrains.amper.tasks.native.swiftpm.parsedLdCallArtifact
 import org.jetbrains.amper.util.BuildType
@@ -222,7 +219,7 @@ internal class NativeLinkTask(
 
             val artifactPath = taskOutputRoot.path.resolve(compilationType.outputFilename(module, platform, isTest))
 
-            val nativeCompiler = downloadNativeCompiler(kotlinUserSettings.compilerVersion, userCacheRoot, dependenciesResult.requireSingleDependency<DefaultJdkTaskResult>().jdk)
+            val nativeCompiler = dependenciesResult.requireKotlinNativeCompiler(kotlinUserSettings.compilerVersion)
             val compilerPlugins = kotlinArtifactsDownloader.downloadCompilerPlugins(
                 plugins = kotlinUserSettings.compilerPlugins,
                 repositories = module.mavenResolveRepositories.map { it.toRepository() },

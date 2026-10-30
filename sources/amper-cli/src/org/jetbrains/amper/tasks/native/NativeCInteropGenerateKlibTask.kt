@@ -9,15 +9,12 @@ import org.jetbrains.amper.cli.UserReadableError
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.cli.userReadableError
-import org.jetbrains.amper.compilation.downloadNativeCompiler
 import org.jetbrains.amper.compilation.serializableKotlinSettings
 import org.jetbrains.amper.concurrency.mapConcurrently
-import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.GenerateKlibsForIdeTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
-import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
@@ -34,7 +31,6 @@ import org.jetbrains.amper.tasks.artifacts.CinteropDefFileArtifact
 import org.jetbrains.amper.tasks.artifacts.CinteropKlibsArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
-import org.jetbrains.amper.tasks.jvm.DefaultJdkTaskResult
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -53,7 +49,6 @@ internal class NativeCInteropGenerateKlibTask(
     override val platform: Platform,
     private val fragments: List<Fragment>,
     private val buildOutputRoot: AmperBuildOutputRoot,
-    private val userCacheRoot: AmperUserCacheRoot,
     private val incrementalCache: IncrementalCache,
     override val taskName: TaskName,
     private val processRunner: ProcessRunner,
@@ -133,6 +128,7 @@ internal class NativeCInteropGenerateKlibTask(
 
         val targetLeafFragment = module.leafFragments.single { it.platform == platform && !it.isTest }
         val kotlinCompilerVersion = targetLeafFragment.serializableKotlinSettings().compilerVersion
+        val nativeCompiler = dependenciesResult.requireKotlinNativeCompiler(kotlinCompilerVersion)
 
         val results = inputDefFiles.mapConcurrently { defFile ->
             val cinteropName = defFile.path.nameWithoutExtension
@@ -150,8 +146,6 @@ internal class NativeCInteropGenerateKlibTask(
                     val outputKlib = outputKlibsDirectoryArtifact.path / module.cinteropKlibFileName(cinteropName)
                     outputKlib.createParentDirectories()
 
-                    val nativeCompiler =
-                        downloadNativeCompiler(kotlinCompilerVersion, userCacheRoot, dependenciesResult.requireSingleDependency<DefaultJdkTaskResult>().jdk)
                     val args = buildList {
                         add("-def")
                         add(defFile.path.pathString)

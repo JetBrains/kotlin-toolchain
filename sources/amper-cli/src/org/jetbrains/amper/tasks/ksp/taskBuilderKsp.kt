@@ -9,6 +9,7 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.isDescendantOf
+import org.jetbrains.amper.frontend.kotlinVersion
 import org.jetbrains.amper.frontend.schema.UnscopedModuleDependency
 import org.jetbrains.amper.frontend.schema.enabled
 import org.jetbrains.amper.tasks.CommonTaskType
@@ -18,8 +19,8 @@ import org.jetbrains.amper.tasks.android.AndroidModuleTaskType
 import org.jetbrains.amper.tasks.compilationTaskNameFor
 import org.jetbrains.amper.tasks.getModuleDependencies
 import org.jetbrains.amper.tasks.getTaskName
-import org.jetbrains.amper.tasks.jvm.provideDefaultJdkTaskName
 import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
+import org.jetbrains.amper.tasks.native.kotlinNativeCompilerProvisionTaskName
 import org.jetbrains.amper.util.BuildType
 
 fun ProjectTasksBuilder.setupKspTasks(moduleDependenciesMap: Map<AmperModule, ModuleDependencies>) {
@@ -87,7 +88,9 @@ fun ProjectTasksBuilder.setupKspTasks(moduleDependenciesMap: Map<AmperModule, Mo
                 ),
                 dependsOn = buildList {
                     add(provideJdkTaskName(fragments.first().settings.jvm.jdk))
-                    add(provideDefaultJdkTaskName)
+                    if (platform.isDescendantOf(Platform.NATIVE)) {
+                        add(kotlinNativeCompilerProvisionTaskName(module.kotlinVersion))
+                    }
                     add(CommonTaskType.KspProcessorClasspath.getTaskName(module, platform, isTest))
 
                     // we also need all compile dependencies when passing code to KSP (for resolution)

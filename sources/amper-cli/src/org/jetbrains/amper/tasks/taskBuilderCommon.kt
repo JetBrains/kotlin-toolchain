@@ -19,13 +19,13 @@ import org.jetbrains.amper.frontend.shouldPublishSourcesJars
 import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
 import org.jetbrains.amper.tasks.android.AndroidModuleTaskType
-import org.jetbrains.amper.tasks.jvm.provideDefaultJdkTaskName
 import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
 import org.jetbrains.amper.tasks.metadata.allMetadataFragments
 import org.jetbrains.amper.tasks.native.CommonizeNativeDistributionTask
 import org.jetbrains.amper.tasks.native.NativeTaskType
 import org.jetbrains.amper.tasks.native.canHaveCinterop
+import org.jetbrains.amper.tasks.native.kotlinNativeCompilerProvisionTaskName
 import org.jetbrains.amper.tasks.publication.MavenCentralPublishTask
 import org.jetbrains.amper.tasks.publication.MavenPublishTask
 import org.jetbrains.amper.tasks.publication.PrepareMavenCentralBundleTask
@@ -99,7 +99,7 @@ fun ProjectTasksBuilder.setupCommonTasks(moduleDependenciesMap: Map<AmperModule,
                 ),
                 dependsOn = buildList {
                     add(provideJdkTaskName(it.settings.jvm.jdk))
-                    add(provideDefaultJdkTaskName)
+                    add(kotlinNativeCompilerProvisionTaskName(it.settings.kotlin.version))
                     val allFragmentDependencies = with(ModuleDependencies) {
                         // todo (AB) : [AMPER-721] Check that native-only and mixed metadata-compilation
                         //  works with this compile dependencies classpath. Perhaps, all true native compile dependencies

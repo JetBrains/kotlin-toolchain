@@ -13,7 +13,6 @@ import org.jetbrains.amper.cli.terminal.printCompilationSuccess
 import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.downloadCompilerPlugins
-import org.jetbrains.amper.compilation.downloadNativeCompiler
 import org.jetbrains.amper.compilation.kotlinNativeCompilerArgs
 import org.jetbrains.amper.compilation.serializableKotlinSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
@@ -22,7 +21,6 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
-import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.LeafFragment
@@ -44,7 +42,6 @@ import org.jetbrains.amper.tasks.artifacts.KotlinJavaSourceDirArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.identificationPhrase
-import org.jetbrains.amper.tasks.jvm.DefaultJdkTaskResult
 import org.jetbrains.amper.util.BuildType
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -163,7 +160,7 @@ internal class NativeCompileKlibTask(
 
             val artifact = taskOutputRoot.path.resolve(KotlinCompilationType.LIBRARY.outputFilename(module, platform, isTest))
 
-            val nativeCompiler = downloadNativeCompiler(kotlinUserSettings.compilerVersion, userCacheRoot, dependenciesResult.requireSingleDependency<DefaultJdkTaskResult>().jdk)
+            val nativeCompiler = dependenciesResult.requireKotlinNativeCompiler(kotlinUserSettings.compilerVersion)
             val compilerPlugins = kotlinArtifactsDownloader.downloadCompilerPlugins(
                 plugins = kotlinUserSettings.compilerPlugins,
                 repositories = module.mavenResolveRepositories.map { it.toRepository() },

@@ -9,8 +9,7 @@ import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.cli.logging.infoNoConsole
-import org.jetbrains.amper.compilation.CompilationUserSettings
-import org.jetbrains.amper.compilation.downloadNativeCompiler
+import org.jetbrains.amper.compilation.KotlinNativeCompiler
 import org.jetbrains.amper.compilation.jvmModuleName
 import org.jetbrains.amper.compilation.klibUniqueName
 import org.jetbrains.amper.compilation.serializableCompilationSettings
@@ -31,7 +30,6 @@ import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toR
 import org.jetbrains.amper.frontend.dr.resolver.toIncrementalCacheResult
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
-import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.kotlin.native.toKonanPlatform
 import org.jetbrains.amper.ksp.Ksp
 import org.jetbrains.amper.ksp.KspCommonConfig
@@ -55,10 +53,10 @@ import org.jetbrains.amper.tasks.artifacts.KotlinJavaSourceDirArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.identificationPhrase
-import org.jetbrains.amper.tasks.jvm.DefaultJdkTaskResult
 import org.jetbrains.amper.tasks.jvm.JdkTaskResult
 import org.jetbrains.amper.tasks.jvm.JvmCompileTask
 import org.jetbrains.amper.tasks.native.NativeCompileKlibTask
+import org.jetbrains.amper.tasks.native.requireKotlinNativeCompiler
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -172,7 +170,7 @@ internal class KspTask(
             kspProcessorClasspath = kspProcessorClasspath,
             // TODO make sure we use the same JDK as for Kotlin compilation when it becomes customizable
             kotlinCompilationJdkHome = jdk.homeDir,
-            nativeCompilerJdk = dependenciesResult.requireSingleDependency<DefaultJdkTaskResult>().jdk,
+            dependenciesResult = dependenciesResult,
         )
 
         return Result(
@@ -203,7 +201,7 @@ internal class KspTask(
         kspOutputPaths: KspOutputPaths,
         kspProcessorClasspath: List<Path>,
         kotlinCompilationJdkHome: Path,
-        nativeCompilerJdk: Jdk,
+        dependenciesResult: List<TaskResult>,
     ) {
         val compilationSettings = fragments.singleLeafFragment().serializableCompilationSettings()
         val kspCompilationType = KspCompilationType.forPlatform(platform)
@@ -246,9 +244,11 @@ internal class KspTask(
                 sharedConfig()
                 targetName = platform.schemaValue
 
+                val nativeCompiler = dependenciesResult
+                    .requireKotlinNativeCompiler(fragments.singleLeafFragment().settings.kotlin.version)
                 // Add stdlib and platform libs manually like in the KSP Gradle plugin (AMPER-4398).
                 // https://github.com/google/ksp/blob/e1b8468309aeff7912420a202300751783d0b2c9/gradle-plugin/src/main/kotlin/com/google/devtools/ksp/gradle/KspAATask.kt#L474-L486
-                libraries = compileLibraries + provisionRequiredNativePlatformLibs(compilationSettings, nativeCompilerJdk)
+                libraries = compileLibraries + provisionRequiredNativePlatformLibs(nativeCompiler)
             }
         }
         val legacyListMode = KspConfig.needsLegacyListMode(kspVersion)
@@ -293,13 +293,8 @@ internal class KspTask(
      *
      * KSP needs this to know about stdlib declarations (see AMPER-4398 for example failures).
      */
-    context(_: TaskGraphExecutionContext)
-    private suspend fun provisionRequiredNativePlatformLibs(
-        compilationSettings: CompilationUserSettings,
-        nativeCompilerJdk: Jdk,
-    ): List<Path> {
-        val kotlinVersion = compilationSettings.kotlin.compilerVersion
-        val konanData = downloadNativeCompiler(kotlinVersion, userCacheRoot, nativeCompilerJdk).konanDistribution
+    private fun provisionRequiredNativePlatformLibs(nativeCompiler: KotlinNativeCompiler): List<Path> {
+        val konanData = nativeCompiler.konanDistribution
         return buildList {
             if (konanData.stdlibDir.exists()) {
                 add(konanData.stdlibDir)
