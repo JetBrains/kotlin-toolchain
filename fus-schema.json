@@ -28,7 +28,7 @@
         {
             "id": "ktc.command",
             "type": "counter",
-            "version": 7,
+            "version": 8,
             "description": "Command execution events",
             "recorder": "KTC",
             "schema": [
@@ -147,7 +147,7 @@
                             "dataType": "PRIMITIVE",
                             "shouldBeAnonymized": false,
                             "value": [
-                                "{regexp#integer}"
+                                "{enum:0|1|2|3-5|6-10|11-20|21-50|51-100|101-300|301+}"
                             ]
                         },
                         {
@@ -249,7 +249,7 @@
                             "dataType": "PRIMITIVE",
                             "shouldBeAnonymized": false,
                             "value": [
-                                "{regexp#integer}"
+                                "{enum:0|1|2|3-5|6-10|11-20|21-50|51-100|101-300|301+}"
                             ]
                         },
                         {

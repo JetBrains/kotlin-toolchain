@@ -38,6 +38,7 @@ import org.jetbrains.amper.frontend.plugins.CustomCommandFromPlugin
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.fus.schema.FusEvents
+import org.jetbrains.amper.fus.schema.FusModuleCountBucket
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.stdlib.collections.filterIf
 import org.jetbrains.amper.stdlib.collections.mapToSet
@@ -162,7 +163,7 @@ class AmperBackend(
 
         // TODO select platforms and modules to compile up front in the command, and move the FUS event there
         CliFusReporter.log(FusEvents.BuildCommandInvoked) {
-            moduleCount = modulesToCompile.size
+            moduleCount = FusModuleCountBucket.of(modulesToCompile.size)
             modulesFiltered = modules != null
             builtPlatforms = platformsToCompile.map { it.toFusPlatform() }
             requestedPlatforms = platforms?.map { it.toFusPlatform() }
@@ -416,7 +417,7 @@ class AmperBackend(
 
         // TODO select platforms and modules to test up front in the command, and move the FUS event there
         CliFusReporter.log(FusEvents.TestCommandInvoked) {
-            moduleCount = testTasks.mapToSet { it.module.userReadableName }.size
+            moduleCount = FusModuleCountBucket.of(testTasks.mapToSet { it.module.userReadableName }.size)
             modulesFiltered = includeModules != null || excludeModules.isNotEmpty()
             testedPlatforms = testTasks.mapToSet { it.platform.toFusPlatform() }.toList()
             this.requestedPlatforms = requestedPlatforms?.map { it.toFusPlatform() } ?: []

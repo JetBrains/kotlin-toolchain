@@ -57,7 +57,7 @@ object FusEvents {
 
     private val CommandGroup = group(
         id = "ktc.command",
-        version = 7,
+        version = 8,
         type = EventLogGroup.Type.COUNTER,
         description = "Command execution events",
     )
@@ -272,9 +272,10 @@ object FusEvents {
 
     class BuildCommandInvokedFields : FieldListDescription() {
 
-        var moduleCount by field(EventFields.Int(
+        var moduleCount by field(EventFields.Enum<FusModuleCountBucket>(
             name = "module_count",
             description = "The number of modules built by this command.",
+            transform = { it.fusId },
         ))
 
         var modulesFiltered by field(EventFields.Boolean(
@@ -309,9 +310,10 @@ object FusEvents {
 
     class TestCommandInvokedFields : FieldListDescription() {
 
-        var moduleCount by field(EventFields.Int(
+        var moduleCount by field(EventFields.Enum<FusModuleCountBucket>(
             name = "module_count",
             description = "The number of modules tested by this command.",
+            transform = { it.fusId },
         ))
 
         var modulesFiltered by field(EventFields.Boolean(
