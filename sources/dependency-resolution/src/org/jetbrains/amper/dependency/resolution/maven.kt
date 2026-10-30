@@ -1396,7 +1396,7 @@ class MavenDependencyImpl internal constructor(
                         diagnosticsReporter
                     )
                 } else {
-                    // source sets were not resolved, a corresponding error was reported (apart from an exceptional case of jvm+android)
+                    // source sets were not resolved, a corresponding error was reported
                 }
             }
         }
@@ -1733,7 +1733,7 @@ class MavenDependencyImpl internal constructor(
         diagnosticsReporter: DiagnosticReporter,
     ): Pair<Variant, DependencyFileImpl>? {
         val kotlinMetadataVariant =
-            getKotlinMetadataVariant(moduleMetadata.variants, platform, context, diagnosticsReporter)
+            getKotlinMetadataVariant(moduleMetadata.variants, platform, diagnosticsReporter)
                 ?: return null  // the children list is empty in case kmp common variant is not resolved
         val kotlinMetadataFile = getKotlinMetadataFile(kotlinMetadataVariant, diagnosticsReporter)
             ?: return null  // the children list is empty if kmp common variant file is not resolved
@@ -1959,22 +1959,16 @@ class MavenDependencyImpl internal constructor(
     private fun getKotlinMetadataVariant(
         validVariants: List<Variant>,
         platform: ResolutionPlatform,
-        context: Context,
         diagnosticReporter: DiagnosticReporter,
     ): Variant? {
         if (this.isKotlinTestAnnotationsCommon()) return null
-        val metadataVariants = validVariants.filter { it.isKotlinMetadata(platform) }
-        return metadataVariants.firstOrNull() ?: run {
-            val resolvingForJvm =
-                context.settings.platforms == setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID)
-            diagnosticReporter.addMessage(
-                DependencyIsNotMultiplatform.asMessage(
-                    this,
-                    overrideSeverity = Severity.WARNING.takeIf { resolvingForJvm }
-                )
-            )
-            null
+
+        val metadataVariant = validVariants.firstOrNull { it.isKotlinMetadata(platform) }
+        if (metadataVariant == null) {
+            diagnosticReporter.addMessage(DependencyIsNotMultiplatform.asMessage(this))
         }
+
+        return metadataVariant
     }
 
     private fun getKotlinMetadataSourcesVariant(
@@ -2607,7 +2601,7 @@ class MavenDependencyImpl internal constructor(
         level: ResolutionLevel,
         diagnosticsReporter: DiagnosticReporter,
     ) {
-        if (context.settings.platforms.size > 1
+        if (!context.settings.isSinglePlatformContext()
             && downloadSources
             && this.settings[KmpSourceSetName] == null
             && this.isSourcesDependencyFile()
