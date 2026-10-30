@@ -57,6 +57,7 @@ object DependencyResolutionDiagnostics {
     val KotlinProjectStructureMetadataMissing = SimpleDiagnosticDescriptor("kotlin.project.structure.metadata.missing", Severity.ERROR)
     val ModuleFileNotDownloaded = SimpleDiagnosticDescriptor("module.file.not.downloaded", Severity.ERROR)
     val MoreThanOneVariant = SimpleDiagnosticDescriptor("more.than.one.variant", Severity.WARNING)
+    val NoMatchingVariantForPlatform = SimpleDiagnosticDescriptor("no.matching.variant.for.platform", Severity.ERROR)
     val NoVariantForPlatform = SimpleDiagnosticDescriptor("no.variant.for.platform", Severity.ERROR)
     val PomWasFoundButMetadataIsMissing = SimpleDiagnosticDescriptor("pom.was.found.but.metadata.is.missing", Severity.WARNING)
     val PomWasNotFound = SimpleDiagnosticDescriptor("pom.was.not.found", Severity.WARNING)

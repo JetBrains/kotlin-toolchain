@@ -242,15 +242,15 @@ class DependencyFileTest: BaseDRTest() {
             // The declared JVM-only library doesn't support macosArm64
             assertMacosArm64IsNotSupported(root.messages)
 
-            // Its JVM-only dependency org.jetbrains.skiko:skiko-awt doesn't support macosArm64 either,
-            // but it is a transitive dependency, so the problem is not among the messages of its node
+            // Its JVM-only dependency org.jetbrains.skiko:skiko-awt published with Gradle metadata
+            // doesn't support macosArm64 either, it is reported even though it is a transitive dependency (as in Gradle)
             val skikoAwt = root.distinctBfsSequence()
                 .filterIsInstance<MavenDependencyNode>()
                 .single { it.module == "skiko-awt" }
-            assertMacosArm64IsNotSupported(skikoAwt.dependency.messages)
+            assertMacosArm64IsNotSupported(skikoAwt.messages)
 
             root.distinctBfsSequence()
-                .filter { it != root }
+                .filter { it != root && it != skikoAwt }
                 .forEach { it.verifyOwnMessages() }
         }
     }
@@ -258,7 +258,7 @@ class DependencyFileTest: BaseDRTest() {
     private fun assertMacosArm64IsNotSupported(messages: List<Message>) {
         val errors = messages.defaultFilterMessages()
         val error = assertIs<PlatformsAreNotSupported>(errors.singleOrNull(), "Expected exactly one error message: $errors")
-        assertEquals(setOf(ResolutionPlatform.MACOS_ARM64), error.unsupportedPlatforms)
+        assertEquals(setOf(ResolutionPlatform.MACOS_ARM64), error.requestedUnsupportedPlatforms)
         assertEquals(setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID), error.supportedPlatforms)
     }
 

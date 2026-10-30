@@ -2855,7 +2855,7 @@ class BuildGraphTest : BaseDRTest() {
             verifyMessages = false,
         )
         val message = assertTheOnlyNonInfoMessage<PlatformsAreNotSupported>(root, Severity.ERROR)
-        assertEquals(setOf(ResolutionPlatform.WATCHOS_ARM64), message.unsupportedPlatforms)
+        assertEquals(setOf(ResolutionPlatform.WATCHOS_ARM64), message.requestedUnsupportedPlatforms)
         assertEquals(
             setOf(
                 ResolutionPlatform.JVM,
@@ -2918,7 +2918,7 @@ class BuildGraphTest : BaseDRTest() {
                 ResolutionPlatform.ANDROID_ARM64,
                 ResolutionPlatform.WATCHOS_ARM64,
             ),
-            message.unsupportedPlatforms
+            message.requestedUnsupportedPlatforms
         )
         assertEquals(
             setOf(
@@ -2956,7 +2956,7 @@ class BuildGraphTest : BaseDRTest() {
             verifyMessages = false,
         )
         val message = assertTheOnlyNonInfoMessage<PlatformsAreNotSupported>(root, Severity.ERROR)
-        assertEquals(setOf(ResolutionPlatform.IOS_ARM64), message.unsupportedPlatforms)
+        assertEquals(setOf(ResolutionPlatform.IOS_ARM64), message.requestedUnsupportedPlatforms)
         assertEquals(setOf(ResolutionPlatform.JVM, ResolutionPlatform.ANDROID), message.supportedPlatforms)
     }
 

@@ -99,28 +99,71 @@ class KmpLibraryTest : BaseDRTest() {
                 "The library org.jetbrains.dr.test:kmp-lib-capabilities:1.0 cannot be used for iosArm64: " +
                         "its matching variants declare capabilities, which is not supported yet (KTC-5532)",
                 "Platform iosSimulatorArm64 is not supported by the library org.jetbrains.dr.test:kmp-lib-capabilities:1.0\n" +
-                        "Supported platform: [linuxX64]",
+                        "Supported platforms: [iosArm64, linuxX64]",
             ],
             errors,
         )
     }
 
     /**
-     * No platform remains supported once the one blocked by capabilities is left aside.
+     * The only platform of the library is blocked by capabilities, it is still listed as supported by the library.
      */
     @Test
-    fun `platform without variant is reported apart from the only published platform blocked by capabilities`() = runDrTest {
+    fun `platform blocked by capabilities is listed as supported`() = runDrTest {
         val errors = resolveLibraryWithUnsupportedCapabilities(publishesLinuxX64 = false)
 
         assertEquals(
             [
                 "The library org.jetbrains.dr.test:kmp-lib-capabilities:1.0 cannot be used for iosArm64: " +
                         "its matching variants declare capabilities, which is not supported yet (KTC-5532)",
-                "No variant for the platform iosSimulatorArm64 is provided by the library org.jetbrains.dr.test:kmp-lib-capabilities:1.0",
+                "Platform iosSimulatorArm64 is not supported by the library org.jetbrains.dr.test:kmp-lib-capabilities:1.0\n" +
+                        "Supported platform: [iosArm64]",
             ],
             errors,
         )
     }
+
+    /**
+     * The only variant of the library for the platform is a `kotlin-cinterop` one, which can't be used.
+     */
+    @Test
+    fun `platform with unusable variants is reported`() = runDrTest {
+        val root = rootOfLibraryInMavenLocal(
+            "org.jetbrains.dr.test:kmp-lib-cinterop-only:1.0",
+            platforms = setOf(ResolutionPlatform.IOS_SIMULATOR_ARM64),
+        ) { mavenLocal ->
+            LibraryWithCinteropOnlyVariant.publish(mavenLocal)
+        }
+        doTest(root, verifyMessages = false)
+
+        assertEquals(
+            [
+                "The library org.jetbrains.dr.test:kmp-lib-cinterop-only:1.0 provides variants for the platform iosSimulatorArm64, " +
+                        "but none of them can be used",
+            ],
+            root.errorsOf("kmp-lib-cinterop-only"),
+        )
+    }
+
+    /**
+     * A transitive dependency not supporting some platforms of a shared fragment is not visible there,
+     * this holds when the rest of its platforms are blocked by capabilities as well.
+     * Only the capabilities problem is reported (it is reported for transitive dependencies too).
+     */
+    @Test
+    fun `unsupported platform of a transitive library is not reported for a shared fragment`() =
+        runDrTest {
+            val root = rootOfLibraryInMavenLocal("org.jetbrains.dr.test:jvm-lib-depending-on-kmp-capabilities:1.0") { mavenLocal ->
+                LibraryWithUnsupportedCapabilities.publish(mavenLocal, publishesLinuxX64 = false)
+                LibraryWithUnsupportedCapabilities.publishJvmLibraryDependingOnIt(mavenLocal)
+            }
+            doTest(root, verifyMessages = false)
+
+            assertEquals(
+                [DependencyResolutionDiagnostics.UnsupportedCapabilities.id],
+                root.errorIdsOf("kmp-lib-capabilities"),
+            )
+        }
 
     /**
      * A JVM library depending on a KMP library that is not published for JVM can't be used on JVM,
@@ -170,12 +213,11 @@ class KmpLibraryTest : BaseDRTest() {
 
     /**
      * A KMP library might declare a JVM-only dependency for a native platform,
-     * no variant of such a dependency published with Gradle metadata matches the native platform (Gradle fails here).
-     * The dependency is not used on the native platform, so its problem is not reported for the transitive node,
-     * and it contributes no files.
+     * no variant of such a dependency published with Gradle metadata matches the native platform.
+     * It is reported even though it is a transitive dependency, as Gradle fails here as well.
      */
     @Test
-    fun `JVM-only library with Gradle metadata reached transitively from a KMP library for native is not reported`() =
+    fun `JVM-only library with Gradle metadata reached transitively from a KMP library for native is reported`() =
         runDrTest {
             val root = rootOfLibraryInMavenLocal(
                 "org.jetbrains.dr.test:kmp-lib-linux:1.0",
@@ -185,17 +227,7 @@ class KmpLibraryTest : BaseDRTest() {
             }
             doTest(root, verifyMessages = false)
 
-            val jvmLibrary = root.distinctBfsSequence()
-                .filterIsInstance<MavenDependencyNode>()
-                .single { it.module == "jvm-lib-with-gradle-metadata" }
-            assertEquals(
-                [PlatformsAreNotSupported.ID],
-                jvmLibrary.dependency.messages.map { it.id },
-                "The library itself is expected to be unsupported on linuxX64",
-            )
-            assertEquals([], jvmLibrary.messages.map { it.id }, "Transitive $jvmLibrary is expected to have no messages")
-            val files = jvmLibrary.dependency.files()
-            assertTrue(files.isEmpty(), "$jvmLibrary is expected to have no files, but has: $files")
+            assertEquals([PlatformsAreNotSupported.ID], root.errorIdsOf("jvm-lib-with-gradle-metadata"))
         }
 
     /**
@@ -545,14 +577,46 @@ class KmpLibraryTest : BaseDRTest() {
             )
         }
 
-        fun platformVariant(name: String, nativeTarget: String, module: String, extraCapabilities: String = "") = """
+        /** Installs a JVM library published with `pom.xml` only, depending on the library. */
+        fun publishJvmLibraryDependingOnIt(mavenLocal: MavenLocalRepository) {
+            val rootDir = (mavenLocal.repository / "org/jetbrains/dr/test/jvm-lib-depending-on-kmp-capabilities/1.0")
+                .createDirectories()
+            (rootDir / "jvm-lib-depending-on-kmp-capabilities-1.0.pom").writeText(
+                """
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <project xmlns="http://maven.apache.org/POM/4.0.0">
+                      <modelVersion>4.0.0</modelVersion>
+                      <groupId>org.jetbrains.dr.test</groupId>
+                      <artifactId>jvm-lib-depending-on-kmp-capabilities</artifactId>
+                      <version>1.0</version>
+                      <dependencies>
+                        <dependency>
+                          <groupId>org.jetbrains.dr.test</groupId>
+                          <artifactId>kmp-lib-capabilities</artifactId>
+                          <version>1.0</version>
+                          <scope>compile</scope>
+                        </dependency>
+                      </dependencies>
+                    </project>
+                """.trimIndent()
+            )
+            (rootDir / "jvm-lib-depending-on-kmp-capabilities-1.0.jar").writeText("fake jar")
+        }
+
+        fun platformVariant(
+            name: String,
+            nativeTarget: String,
+            module: String,
+            extraCapabilities: String = "",
+            usage: String = "kotlin-api",
+        ) = """
             {
               "name": "$name",
               "attributes": {
                 "artifactType": "org.jetbrains.kotlin.klib",
                 "org.gradle.category": "library",
                 "org.gradle.jvm.environment": "non-jvm",
-                "org.gradle.usage": "kotlin-api",
+                "org.gradle.usage": "$usage",
                 "org.jetbrains.kotlin.native.target": "$nativeTarget",
                 "org.jetbrains.kotlin.platform.type": "native"
               },
@@ -642,6 +706,41 @@ class KmpLibraryTest : BaseDRTest() {
               }
             }
         """.trimIndent()
+    }
+
+    /**
+     * A KMP library whose only `iosSimulatorArm64` variant has the `kotlin-cinterop` usage,
+     * which matches no resolution scope.
+     * Platform publications are not needed: the variant of the root module metadata is rejected before reaching them.
+     */
+    private object LibraryWithCinteropOnlyVariant {
+
+        fun publish(mavenLocal: MavenLocalRepository) {
+            val rootDir = (mavenLocal.repository / "org/jetbrains/dr/test/kmp-lib-cinterop-only/1.0").createDirectories()
+            (rootDir / "kmp-lib-cinterop-only-1.0.pom").writeText(GRADLE_METADATA_MARKER_POM)
+            (rootDir / "kmp-lib-cinterop-only-1.0.module").writeText(
+                """
+                    {
+                      "formatVersion": "1.1",
+                      "component": {
+                        "group": "org.jetbrains.dr.test",
+                        "module": "kmp-lib-cinterop-only",
+                        "version": "1.0",
+                        "attributes": { "org.gradle.status": "release" }
+                      },
+                      "createdBy": { "kotlinToolchain": { "version": "1.0-SNAPSHOT" } },
+                      "variants": [
+                        ${LibraryWithUnsupportedCapabilities.platformVariant(
+                            name = "iosSimulatorArm64CInteropApiElements-published",
+                            nativeTarget = "ios_simulator_arm64",
+                            module = "kmp-lib-cinterop-only-iossimulatorarm64",
+                            usage = "kotlin-cinterop",
+                        )}
+                      ]
+                    }
+                """.trimIndent()
+            )
+        }
     }
 
     /**

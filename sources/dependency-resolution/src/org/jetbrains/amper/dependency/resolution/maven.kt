@@ -40,6 +40,7 @@ import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutio
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.KotlinProjectStructureMetadataMissing
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.ModuleFileNotDownloaded
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.MoreThanOneVariant
+import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.NoMatchingVariantForPlatform
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.NoVariantForPlatform
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.PomWasFoundButMetadataIsMissing
 import org.jetbrains.amper.dependency.resolution.diagnostics.DependencyResolutionDiagnostics.PomWasNotFound
@@ -56,6 +57,7 @@ import org.jetbrains.amper.dependency.resolution.diagnostics.PlatformsAreNotSupp
 import org.jetbrains.amper.dependency.resolution.diagnostics.PomResolvedWithMetadataErrors
 import org.jetbrains.amper.dependency.resolution.diagnostics.RegularDependencyDeclaredAsBom
 import org.jetbrains.amper.dependency.resolution.diagnostics.Severity
+import org.jetbrains.amper.dependency.resolution.diagnostics.SimpleDiagnosticDescriptor
 import org.jetbrains.amper.dependency.resolution.diagnostics.UnableToResolveDependency
 import org.jetbrains.amper.dependency.resolution.diagnostics.asMessage
 import org.jetbrains.amper.dependency.resolution.diagnostics.hasErrors
@@ -1412,6 +1414,14 @@ class MavenDependencyImpl internal constructor(
         }
     }
 
+    /**
+     * Reports each platform the library has no variant resolved for ([missingPlatforms]), depending on the reason:
+     * - its variant is blocked by capabilities: [UnsupportedCapabilities];
+     * - the library declares no platforms: [NoVariantForPlatform]
+     *   (library's variants lack Kotlin platform type attribute [KotlinPlatformType] which is true for pure jvm libraries);
+     * - the library declares some platforms, but not this one: [PlatformsAreNotSupported];
+     * - the library declares the platform, but none of its variants can be used: [NoMatchingVariantForPlatform].
+     */
     private fun reportVariantMismatchForLibrary(
         diagnosticsReporter: DiagnosticReporter,
         module: Module,
@@ -1429,6 +1439,8 @@ class MavenDependencyImpl internal constructor(
             return
         }
 
+        // Checked first: a variant without the Kotlin platform type (e.g., of a Java library) matches any platform,
+        // it is not among the declared platforms, but might be blocked by capabilities
         val platformsBlockedByCapabilities = missingPlatforms.filter { platform ->
             findBlockingFilter(module, settings, platform) == VariantFilter.Capability
         }.toSet()
@@ -1441,34 +1453,47 @@ class MavenDependencyImpl internal constructor(
         val otherMissingPlatforms = missingPlatforms - platformsBlockedByCapabilities
         if (otherMissingPlatforms.isEmpty()) return
 
-        val supportedPlatforms = buildSet {
+        // The platforms the library declares, whether their variants match the resolution or not
+        val declaredPlatforms = buildSet {
             libraryVariants.mapNotNullTo(this) { variant -> getLeafPlatformFromVariant(variant) }
-            // The variants of the platforms blocked by capabilities can't be used, so those platforms are not supported
-            removeAll(platformsBlockedByCapabilities)
             // This check might be more sophisticated,
             // but for the time being we suppose that all JVM libraries can be used on Android
-            if (ResolutionPlatform.JVM in this && ResolutionPlatform.ANDROID !in platformsBlockedByCapabilities) {
+            if (ResolutionPlatform.JVM in this) {
                 add(ResolutionPlatform.ANDROID)
             }
         }
-        if (supportedPlatforms.isNotEmpty()) {
-            diagnosticsReporter.addMessage(
-                PlatformsAreNotSupported(
-                    this,
-                    supportedPlatforms = supportedPlatforms,
-                    // Not reported for a transitive dependency:
-                    // - in a shared fragment, where it is just not visible (as in KGP);
-                    // - if it is JVM-only, since it is not used on non-JVM platforms.
-                    reportTransitive = settings.isSinglePlatformContext() && !supportedPlatforms.all { it.isJvmLike() },
-                    alreadyReportedPlatforms = platformsBlockedByCapabilities,
-                )
-            )
+        if (declaredPlatforms.isEmpty()) {
+            // The library declares no platform known to the Kotlin Toolchain
+            // (Kotlin platform type attribute [KotlinPlatformType] is missing)
+            reportForPlatforms(diagnosticsReporter, NoVariantForPlatform, otherMissingPlatforms)
             return
         }
 
-        // It's a fallback that actually shouldn't ever occur. It is possible that it can be safely deleted.
-        otherMissingPlatforms.forEach {
-            diagnosticsReporter.addMessage(NoVariantForPlatform.asMessage(it.pretty, this))
+        val unsupportedMissingPlatforms = otherMissingPlatforms - declaredPlatforms
+        if (unsupportedMissingPlatforms.isNotEmpty()) {
+            diagnosticsReporter.addMessage(
+                PlatformsAreNotSupported(
+                    coordinates = coordinates,
+                    requestedUnsupportedPlatforms = unsupportedMissingPlatforms,
+                    supportedPlatforms = declaredPlatforms,
+                    // Not reported for a transitive dependency for a shared fragment: the library is just left out of it (as KGP does)
+                    reportTransitive = settings.isSinglePlatformContext(),
+                )
+            )
+        }
+
+        val supportedMissingPlatforms = otherMissingPlatforms intersect declaredPlatforms
+        // The library declares these platforms, but none of their variants matches the resolution
+        reportForPlatforms(diagnosticsReporter, NoMatchingVariantForPlatform, supportedMissingPlatforms)
+    }
+
+    private fun reportForPlatforms(
+        diagnosticsReporter: DiagnosticReporter,
+        diagnostic: SimpleDiagnosticDescriptor,
+        platforms: Set<ResolutionPlatform>,
+    ) {
+        platforms.forEach {
+            diagnosticsReporter.addMessage(diagnostic.asMessage(it.pretty, this))
         }
     }
 
@@ -2499,7 +2524,8 @@ class MavenDependencyImpl internal constructor(
         if (isJarResolvedForNonJvmPlatforms()) {
             diagnosticsReporter.addMessage(
                 PlatformsAreNotSupported(
-                    this,
+                    coordinates = coordinates,
+                    requestedUnsupportedPlatforms = settings.platforms.filterNot { it.isJvmLike() }.toSet(),
                     supportedPlatforms = setOf(ResolutionPlatform.ANDROID, ResolutionPlatform.JVM),
                     // the JAR is not used by non-JVM compilations (the compile tasks skip it)
                     reportTransitive = false,
