@@ -9,6 +9,7 @@ import jetbrains.buildServer.messages.serviceMessages.ServiceMessage
 import jetbrains.buildServer.messages.serviceMessages.ServiceMessageTypes
 import jetbrains.buildServer.messages.serviceMessages.TestFailed
 import jetbrains.buildServer.messages.serviceMessages.TestFinished
+import jetbrains.buildServer.messages.serviceMessages.TestIgnored
 import jetbrains.buildServer.messages.serviceMessages.TestStarted
 import jetbrains.buildServer.messages.serviceMessages.TestStdErr
 import jetbrains.buildServer.messages.serviceMessages.TestStdOut
@@ -20,6 +21,7 @@ import org.jetbrains.amper.testevents.TestDescriptor
 import org.jetbrains.amper.testevents.TestEvent
 import org.jetbrains.amper.testevents.TestId
 import org.jetbrains.amper.testevents.TestLocationHint
+import org.jetbrains.amper.testevents.TestSkipped
 import org.jetbrains.amper.testevents.TestStderrEvent
 import org.jetbrains.amper.testevents.TestStdoutEvent
 import kotlin.test.Test
@@ -32,7 +34,11 @@ import org.jetbrains.amper.testevents.TestSuiteStarted as AmperTestSuiteStarted
 
 class StructuredNativeTestProcessOutputListenerTest {
     private val renderer = RecordingRenderer()
-    val processor = TeamCityMessageProcessor(renderer)
+    private val failures = mutableListOf<Pair<TestId, String>>()
+    val processor = TeamCityMessageProcessor(
+        eventSink = renderer,
+        onTestFailed = { id, message -> failures += id to message.failureMessage },
+    )
     private val listener = StructuredNativeTestProcessOutputListener(processor)
     private val runId get() = renderer.events.firstNotNullOf { it.testId }.runId
 
@@ -284,6 +290,241 @@ class StructuredNativeTestProcessOutputListenerTest {
         )
     }
 
+    @Test
+    fun `omits suites with no tests after filtering including empty ancestors`() {
+        [
+            TestSuiteStarted("probe"),
+            TestSuiteStarted("AsyncFailureTest"),
+            TestSuiteFinished("AsyncFailureTest"),
+            TestSuiteFinished("probe"),
+        ].forEach { listener.onStdoutLine(it.asString(), pid = 1) }
+
+        assertEquals([], renderer.events)
+    }
+
+    @Test
+    fun `reports selected tests immediately with their ancestors but without empty siblings`() {
+        [
+            TestSuiteStarted("probe"),
+            TestSuiteStarted("AsyncFailureTest"),
+            TestSuiteFinished("AsyncFailureTest"),
+            TestSuiteStarted("ProbeTest"),
+            TestStarted("synchronous", false, null),
+        ].forEach { listener.onStdoutLine(it.asString(), pid = 1) }
+
+        val probeId = TestId(runId, "probe")
+        val probeTestId = TestId(runId, "probe.ProbeTest")
+        val synchronousId = TestId(runId, "probe.ProbeTest.synchronous")
+        val startedEvents: List<TestEvent> = [
+            AmperTestSuiteStarted(
+                TestDescriptor(probeId, null, "probe", TestLocationHint.Class("probe")),
+            ),
+            AmperTestSuiteStarted(
+                TestDescriptor(probeTestId, probeId, "ProbeTest", TestLocationHint.Class("probe.ProbeTest")),
+            ),
+            AmperTestStarted(
+                TestDescriptor(
+                    synchronousId,
+                    probeTestId,
+                    "synchronous",
+                    TestLocationHint.Method("probe.ProbeTest", "synchronous"),
+                ),
+            ),
+        ]
+        assertEquals(startedEvents, renderer.events)
+
+        [
+            TestFinished("synchronous", 42),
+            TestSuiteStarted("EmptyNestedSuite"),
+            TestSuiteFinished("EmptyNestedSuite"),
+            TestSuiteFinished("ProbeTest"),
+            TestSuiteStarted("OtherFilteredTest"),
+            TestSuiteFinished("OtherFilteredTest"),
+            TestSuiteFinished("probe"),
+        ].forEach { listener.onStdoutLine(it.asString(), pid = 1) }
+
+        val finishedEvents: List<TestEvent> = [
+            AmperTestFinished.Succeeded(synchronousId, 42.milliseconds),
+            AmperTestSuiteFinished(probeTestId),
+            AmperTestSuiteFinished(probeId),
+        ]
+        assertEquals(startedEvents + finishedEvents, renderer.events)
+    }
+
+    @Test
+    fun `keeps suites containing only skipped tests and clears the skipped test from the stack`() {
+        [
+            TestSuiteStarted("probe"),
+            TestSuiteStarted("IgnoredTest"),
+            TestIgnored("ignored", "disabled"),
+            TestSuiteFinished("IgnoredTest"),
+            TestSuiteStarted("FilteredTest"),
+            TestSuiteFinished("FilteredTest"),
+            TestSuiteFinished("probe"),
+        ].forEach { listener.onStdoutLine(it.asString(), pid = 1) }
+
+        val probeId = TestId(runId, "probe")
+        val ignoredSuiteId = TestId(runId, "probe.IgnoredTest")
+        assertEquals(
+            [
+                AmperTestSuiteStarted(
+                    TestDescriptor(probeId, null, "probe", TestLocationHint.Class("probe")),
+                ),
+                AmperTestSuiteStarted(
+                    TestDescriptor(
+                        ignoredSuiteId,
+                        probeId,
+                        "IgnoredTest",
+                        TestLocationHint.Class("probe.IgnoredTest"),
+                    ),
+                ),
+                TestSkipped(
+                    TestDescriptor(TestId(runId, "probe.IgnoredTest.ignored"), ignoredSuiteId, "ignored"),
+                    "disabled",
+                ),
+                AmperTestSuiteFinished(ignoredSuiteId),
+                AmperTestSuiteFinished(probeId),
+            ],
+            renderer.events,
+        )
+    }
+
+    @Test
+    fun `keeps failure details and test output while omitting an empty concurrent flow`() {
+        val failed = TestFailed("fails", "failure")
+            .withFlowId("test")
+            .withAttributes(
+                mapOf(
+                    "details" to "stack",
+                    "expected" to "yes",
+                    "actual" to "no",
+                ),
+            )
+        [
+            flowStarted("root"),
+            TestSuiteStarted("Root").withFlowId("root"),
+            flowStarted("empty", parent = "root"),
+            TestSuiteStarted("Empty").withFlowId("empty"),
+            flowStarted("suite", parent = "root"),
+            TestSuiteStarted("Suite").withFlowId("suite").withLocationHint("ktest:suite://probe.ProbeTest"),
+            flowStarted("test", parent = "suite"),
+            TestStarted("fails", false, "ktest:test://probe.ProbeTest.fails").withFlowId("test"),
+            TestSuiteFinished("Empty").withFlowId("empty"),
+            flowFinished("empty"),
+            TestStdOut("fails", "stdout").withFlowId("test"),
+            TestStdErr("fails", "stderr").withFlowId("test"),
+            failed,
+            TestFinished("fails", 12).withFlowId("test"),
+            flowFinished("test"),
+            TestSuiteFinished("Suite").withFlowId("suite"),
+            flowFinished("suite"),
+            TestSuiteFinished("Root").withFlowId("root"),
+            flowFinished("root"),
+        ].forEach { listener.onStdoutLine(it.asString(), pid = 1) }
+
+        val rootId = TestId(runId, "root")
+        val suiteId = TestId(runId, "suite")
+        val testId = TestId(runId, "test")
+        assertEquals(
+            [
+                AmperTestSuiteStarted(TestDescriptor(rootId, null, "Root")),
+                AmperTestSuiteStarted(
+                    TestDescriptor(suiteId, rootId, "Suite", TestLocationHint.Class("probe.ProbeTest")),
+                ),
+                AmperTestStarted(
+                    TestDescriptor(
+                        testId,
+                        suiteId,
+                        "fails",
+                        TestLocationHint.Method("probe.ProbeTest", "fails"),
+                    ),
+                ),
+                TestStdoutEvent(testId, "stdout"),
+                TestStderrEvent(testId, "stderr"),
+                AmperTestFinished.Failed(testId, 12.milliseconds, "failure", "stack", "yes", "no"),
+                AmperTestSuiteFinished(suiteId),
+                AmperTestSuiteFinished(rootId),
+            ],
+            renderer.events,
+        )
+        assertEquals([testId to "failure"], failures)
+    }
+
+    @Test
+    fun `preserves suite stdout and stderr even without tests`() {
+        [
+            TestSuiteStarted("probe"),
+            TestSuiteStarted("Setup"),
+        ].forEach { listener.onStdoutLine(it.asString(), pid = 1) }
+        listener.onStdoutLine("setup stdout", pid = 1)
+        listener.onStderrLine("setup stderr", pid = 1)
+        [
+            TestSuiteFinished("Setup"),
+            TestSuiteFinished("probe"),
+        ].forEach { listener.onStdoutLine(it.asString(), pid = 1) }
+
+        val probeId = TestId(runId, "probe")
+        val setupId = TestId(runId, "probe.Setup")
+        assertEquals(
+            [
+                AmperTestSuiteStarted(
+                    TestDescriptor(probeId, null, "probe", TestLocationHint.Class("probe")),
+                ),
+                AmperTestSuiteStarted(
+                    TestDescriptor(setupId, probeId, "Setup", TestLocationHint.Class("probe.Setup")),
+                ),
+                TestStdoutEvent(setupId, "setup stdout${System.lineSeparator()}"),
+                TestStderrEvent(setupId, "setup stderr${System.lineSeparator()}"),
+                AmperTestSuiteFinished(setupId),
+                AmperTestSuiteFinished(probeId),
+            ],
+            renderer.events,
+        )
+    }
+
+    @Test
+    fun `preserves suite service message output without tests in a flow`() {
+        [
+            flowStarted("suite"),
+            TestSuiteStarted("Setup").withFlowId("suite"),
+            TestStdErr("Setup", "setup failed").withFlowId("suite"),
+            TestSuiteFinished("Setup").withFlowId("suite"),
+            flowFinished("suite"),
+        ].forEach { listener.onStdoutLine(it.asString(), pid = 1) }
+
+        val suiteId = TestId(runId, "suite")
+        assertEquals(
+            [
+                AmperTestSuiteStarted(TestDescriptor(suiteId, null, "Setup")),
+                TestStderrEvent(suiteId, "setup failed"),
+                AmperTestSuiteFinished(suiteId),
+            ],
+            renderer.events,
+        )
+    }
+
+    @Test
+    fun `does not attach unscoped output to a pending flow suite`() {
+        [
+            flowStarted("suite"),
+            TestSuiteStarted("Filtered").withFlowId("suite"),
+        ].forEach { listener.onStdoutLine(it.asString(), pid = 1) }
+        listener.onStdoutLine("process stdout", pid = 1)
+        listener.onStderrLine("process stderr", pid = 1)
+        [
+            TestSuiteFinished("Filtered").withFlowId("suite"),
+            flowFinished("suite"),
+        ].forEach { listener.onStdoutLine(it.asString(), pid = 1) }
+
+        assertEquals(
+            [
+                TestStdoutEvent(null, "process stdout${System.lineSeparator()}"),
+                TestStderrEvent(null, "process stderr${System.lineSeparator()}"),
+            ],
+            renderer.events,
+        )
+    }
+
     private class RecordingRenderer : EventSink<TestEvent> {
         val events: List<TestEvent>
             field = mutableListOf()
@@ -310,12 +551,15 @@ class StructuredNativeTestProcessOutputListenerTest {
     private fun <T : MessageWithAttributes> T.withFlowId(flowId: String): T = apply { setFlowId(flowId) }
 
     private fun <T : MessageWithAttributes> T.withLocationHint(locationHint: String): ServiceMessage =
+        withAttributes(mapOf("locationHint" to locationHint))
+
+    private fun MessageWithAttributes.withAttributes(extra: Map<String, String>): ServiceMessage =
         object : ServiceMessage(
             messageName,
             buildMap {
                 putAll(attributes)
-                put("locationHint", locationHint)
-            }
+                putAll(extra)
+            },
         ) {}
 
     private fun TeamCityMessageProcessor.parseStdOut(line: String) = parse(line, stderr = false)
