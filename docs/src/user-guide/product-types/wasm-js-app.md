@@ -108,44 +108,9 @@ There are no extra packaging facilities at the moment, and the `package` command
 
 ## Testing
 
-Kotlin/Wasm browser tests are supported starting with Kotlin Toolchain 0.13.0.
-Write tests using `kotlin.test` in the `test/` folder and run them with:
+Write tests using `kotlin.test` in the `test/` folder and run them with the `kotlin test` command.
+See [Testing](../testing.md) for how to run and select tests, and for test dependencies and shared test settings.
 
-```shell
-./kotlin test
-```
-
-The CLI builds the test application and runs it in a headless Chromium browser using Playwright.
+The command builds the test application and runs it in a headless Chromium browser using Playwright.
 Node.js, pnpm, Playwright, and a compatible Chromium distribution are downloaded automatically as needed.
 The browser is currently not configurable.
-
-To run tests from a single module, use `./kotlin test -m my-module`.
-
-### Selecting tests
-
-Use `--include-classes` and `--exclude-classes` to select tests by fully qualified class or suite name.
-For Kotlin/Wasm, these patterns support `*` to match multiple characters, but do not currently support `?`.
-Quote patterns to prevent the shell from expanding them:
-
-```shell
-./kotlin test -m my-module --include-classes 'com.example.*Test'
-```
-
-To run a specific test, use `--include-test` with its fully qualified method name:
-
-```shell
-./kotlin test -m my-module --include-test com.example.UtilTest.myTest
-```
-
-### Test output
-
-By default, test results are printed in a human-readable format.
-Use `--format teamcity` for machine-readable TeamCity service messages on standard output:
-
-```shell
-./kotlin test -m my-module --format teamcity
-```
-
-In Kotlin Toolchain 0.13.0, Kotlin/Wasm tests do not generate JUnit XML report files.
-
-See `./kotlin test --help` for CLI options and [Testing](../testing.md) for test dependencies and shared test settings.
