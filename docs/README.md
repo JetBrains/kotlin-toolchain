@@ -107,6 +107,32 @@ Example: if `0.10.0` is our current `latest`:
 * releasing `0.10.1` updates the `latest` alias to `0.10.1`
 * releasing `0.9.2` does **not** update the `latest` alias (it just replaces `0.9.1` with `0.9.2`)
 
+### Search engines (SEO)
+
+Mike's `canonical_version` is configured as `!ENV [MKDOCS_CANONICAL_VERSION, latest]`: release builds use `latest`
+as the canonical version, so all release copies (including older ones) point search engines to the corresponding
+`/latest/` page. The default is `latest`; the `publish-docs` workflow sets `MKDOCS_CANONICAL_VERSION=dev` for `main` so
+the development copy remains self-canonical.
+
+Pages built from `main` also get `<meta name="robots" content="noindex, follow">` from `overrides/main.html`. This keeps
+the dev guide out of search results while allowing crawlers to follow its links. The `robots.txt` at the site root must
+not disallow `/dev/`, because crawlers need to fetch those pages to see the `noindex` directive.
+
+The files in `site-root/` are published automatically from `main` to the root of `gh-pages`: `redirect.html` supplies
+the instant root redirect and canonical, `robots.txt` allows crawling and references the root sitemap, and `sitemap.xml`
+is a sitemap index pointing to `/latest/sitemap.xml`. Mike uses the canonical URLs when generating that sitemap, so it
+lists `/latest/` URLs rather than version-specific release paths.
+
+After merging SEO changes into `main`, cherry-pick the canonicalization commit onto the existing `release/*` branches,
+starting with the release currently aliased as `latest`. Only backport the canonical configuration, its workflow
+environment variables, and the local preview dependency updates; the remaining SEO changes stay on `main`.
+Each branch's deployment uses its own configuration, so merging into `main` alone does not update existing release copies.
+
+Push the backports and wait for `publish-docs` to complete: changes under `docs/` trigger it automatically.
+If needed, run it manually with `workflow_dispatch`, selecting the release branch after backporting the changes.
+Verify that `/latest/` pages have `/latest/` canonical URLs and that `/latest/sitemap.xml` lists `/latest/` URLs.
+After deployment, request reindexing in Google Search Console.
+
 ### Warning banner for non-latest versions
 
 Readers who land on a copy of the website that is not the one aliased as `latest` get a warning banner at the top of

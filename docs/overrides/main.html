@@ -1,5 +1,13 @@
 {% extends "base.html" %}
 
+{# See ../README.md#search-engines-seo for why dev pages are noindexed. #}
+{% block extrahead %}
+  {{ super() }}
+  {% if config.extra.docs_version_id == "dev" %}
+    <meta name="robots" content="noindex, follow">
+  {% endif %}
+{% endblock %}
+
 {% block analytics %}
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':

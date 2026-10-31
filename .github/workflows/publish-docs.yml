@@ -105,3 +105,23 @@ jobs:
           echo "Source branch: $MKDOCS_GIT_BRANCH"
 
           mike deploy "$version_id" --title "$version_title" --update --push
+
+      - name: Publish root redirect and crawler files
+        if: github.ref_name == 'main'
+        working-directory: docs
+        run: |
+          mike set-default latest -T site-root/redirect.html
+
+          worktree_dir="$(mktemp -d)"
+          git worktree add "$worktree_dir" gh-pages
+          trap 'git worktree remove --force "$worktree_dir"' EXIT
+
+          cp site-root/robots.txt "$worktree_dir/robots.txt"
+          cp site-root/sitemap.xml "$worktree_dir/sitemap.xml"
+
+          git -C "$worktree_dir" add robots.txt sitemap.xml
+          if ! git -C "$worktree_dir" diff --cached --quiet; then
+            git -C "$worktree_dir" commit -m "Publish root robots.txt and sitemap index"
+          fi
+
+          git -C "$worktree_dir" push origin gh-pages
