@@ -39,6 +39,7 @@ You will need to have Docker installed. Make sure you checked the `Need Docker s
 > mkdocs-macros-plugin
 > mkdocs-git-revision-date-localized-plugin
 > mkdocs-git-committers-plugin-2
+> mike
 > ```
 > Then use the `mkdocs serve` command from this package instead of the `./mkdocs` script (check the command inside the
 > script to see which arguments we use).
