@@ -61,6 +61,9 @@ theme:
         name: Switch to system preference
 
 plugins:
+  - mike:
+      # Release builds canonicalize to latest; the publish-docs workflow overrides this to dev for main.
+      canonical_version: !ENV [MKDOCS_CANONICAL_VERSION, latest]
   - macros # for variable substitution in Markdown files
   - git-revision-date-localized: # to have the "last update" date in the footer of each page
       enabled: !ENV [CI, false] # we don't put the whole repo in the docker container locally, so there is no git repo
