@@ -40,6 +40,7 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
 
     val hasAndroidModules = allModules().alsoPlatforms(Platform.ANDROID).any()
     if (hasAndroidModules) {
+        tasks.registerTask(InstallGradleDistributionTask(context.userCacheRoot))
         tasks.registerTask(
             GetAndroidPlatformFileFromPackageTask(
                 AndroidSdkPackageRequest.CommandLineTools("latest"),
@@ -109,6 +110,7 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                     AndroidModuleTaskType.InstallPlatform.getTaskName(module, platform, isTest),
                     CommonTaskType.Dependencies.getTaskName(module, platform, isTest),
                     provideJdkTaskName(module.jdkSettings),
+                    AndroidGlobalTaskType.InstallGradleDistribution,
                 )
             )
         }
@@ -138,6 +140,7 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                 dependsOn = listOf(
                     CommonTaskType.RuntimeClasspath.getTaskName(module, platform, isTest, buildType),
                     provideJdkTaskName(module.jdkSettings),
+                    AndroidGlobalTaskType.InstallGradleDistribution,
                 )
             )
         }
@@ -173,6 +176,7 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                     dependsOn = listOf(
                         CommonTaskType.Dependencies.getTaskName(module, platform, false),
                         provideJdkTaskName(module.jdkSettings),
+                        AndroidGlobalTaskType.InstallGradleDistribution,
                     ),
                 )
             }
@@ -409,6 +413,7 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                 dependsOn = listOf(
                     CommonTaskType.RuntimeClasspath.getTaskName(module, Platform.ANDROID, false, BuildType.Release),
                     provideJdkTaskName(module.jdkSettings),
+                    AndroidGlobalTaskType.InstallGradleDistribution,
                 )
             )
         }
@@ -493,6 +498,7 @@ private fun ModuleSequenceCtx.checkDependencySupportsJvm(dependsOn: AmperModule)
 
 
 internal object AndroidGlobalTaskType {
+    val InstallGradleDistribution = TaskName("installGradleDistribution", "Installing Gradle for Android")
     val InstallCmdlineTools = TaskName("installCmdlineTools", "Installing `cmdline-tools` for Android")
     val InstallEmulator = TaskName("installEmulator", "Installing Android Emulator")
     val InstallPlatformTools = TaskName("installPlatformTools", "Installing `platform-tools` for Android")

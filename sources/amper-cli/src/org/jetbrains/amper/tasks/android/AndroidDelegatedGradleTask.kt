@@ -82,12 +82,14 @@ abstract class AndroidDelegatedGradleTask(
         }
 
         val jdk = dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
+        val gradleHome = dependenciesResult.requireSingleDependency<InstallGradleDistributionTask.Result>().gradleHome
 
         val executionResult = incrementalCache.execute(
             key = taskName.id.value,
             inputValues = mapOf(
                 "jdk.version" to jdk.version,
                 "jdk.home" to jdk.homeDir.pathString,
+                "gradle.home" to gradleHome.pathString,
                 "androidConfig" to fragments.joinToString { it.settings.android.toStableJsonLikeString() },
             ),
             inputFiles = runtimeClasspath + additionalInputFiles + listOfNotNull(googleServicesJson),
@@ -119,6 +121,7 @@ abstract class AndroidDelegatedGradleTask(
                         gradleLogStdoutPath = gradleLogStdoutPath,
                         gradleLogStderrPath = gradleLogStderrPath,
                         jdkDir = jdk.homeDir,
+                        gradleInstallation = gradleHome,
                         gradlePluginJars = ExtraClasspath.ANDROID_INTEGRATION_GRADLE_PLUGIN.findJarsInDistribution(),
                         eventHandler = { it.handle(gradleLogStdoutPath, gradleLogStderrPath) },
                     )
