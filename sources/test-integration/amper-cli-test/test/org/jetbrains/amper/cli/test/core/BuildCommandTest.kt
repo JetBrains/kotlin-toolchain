@@ -83,7 +83,7 @@ class AmperBuildTest : CliTestBase() {
     @Test
     fun `internal declarations are accessible in native test source sets`() = runSlowTest {
         runCli(
-            projectDir = testProject("ktc-5395"),
+            projectDir = testProject("simple-mp-test"),
             "build", "--platform=linuxX64",
         )
     }

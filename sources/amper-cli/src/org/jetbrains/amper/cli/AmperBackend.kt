@@ -466,7 +466,10 @@ class AmperBackend(
                 CheckEntry.Tests ->
                     taskGraph.tasks.filterIsInstance<TestTask>().filter {
                         it.module in selectedModules && it.platform in currentHostRunnablePlatforms
-                    }.map { it.id }
+                    }.filterByBuildTypeAndReport(
+                        explicit = null,
+                        default = BuildType.Debug,
+                    ).map { it.id }
             }
         }.toSet()
 
