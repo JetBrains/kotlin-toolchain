@@ -23,6 +23,7 @@ import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.processes.TestReporterProcessOutputListener
 import org.jetbrains.amper.test.spans.SpansTestCollector
 import org.jetbrains.amper.test.spans.spansNamed
+import org.junit.jupiter.api.Disabled
 import kotlin.io.path.appendText
 import kotlin.io.path.div
 import kotlin.io.path.exists
@@ -263,6 +264,7 @@ open class SwiftPMImportTests : IOSBaseTest() {
     }
 
     @Test
+    @Disabled("Flaky: KTC-5807")
     fun `smoke test google maps integration`() = runBlocking {
         val project = copyProjectToTempDir(ProjectSource.Local(Dirs.amperTestProjectsRoot / "swiftpm-integration-tests/google-maps"))
         runAmper(
