@@ -11,7 +11,9 @@ import com.jetbrains.fus.reporting.schema.EventId
 import com.jetbrains.fus.reporting.schema.FieldListDescription
 import com.jetbrains.fus.reporting.schema.VarargEventId
 import org.jetbrains.amper.fus.cache.FusCache
+import org.jetbrains.amper.fus.client.FUS_DEBUG_ENABLED
 import org.jetbrains.amper.fus.client.createFusClient
+import org.jetbrains.amper.fus.client.logReportedFusEvent
 import org.jetbrains.amper.fus.userid.MachineIdProvider
 import org.jetbrains.amper.fus.userid.isInternalUserForFUS
 import org.slf4j.LoggerFactory
@@ -97,7 +99,13 @@ internal class DefaultFusReporter(
     )
 
     override fun log(event: BaseEventId, data: Map<String, Any>) {
-        writer.queueEvent(eventFactory.create(event, data))
+        val logEvent = eventFactory.create(event, data)
+        // We log the event here and not from the FUS client, because the client silently drops the events that it
+        // can't validate, and those are exactly the ones we want to see when debugging.
+        if (FUS_DEBUG_ENABLED) {
+            logReportedFusEvent(logEvent)
+        }
+        writer.queueEvent(logEvent)
     }
 
     override fun close() {

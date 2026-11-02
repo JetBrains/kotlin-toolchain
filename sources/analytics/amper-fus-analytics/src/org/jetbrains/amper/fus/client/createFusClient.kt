@@ -8,6 +8,7 @@ import com.intellij.internal.statistic.eventLog.connection.metadata.EventLogBuil
 import com.jetbrains.fus.reporting.FusClient
 import com.jetbrains.fus.reporting.METADATA_LOADED_TOPIC
 import com.jetbrains.fus.reporting.METADATA_LOAD_FAILED_TOPIC
+import com.jetbrains.fus.reporting.RAW_EVENT_TOPIC
 import com.jetbrains.fus.reporting.RegionCode
 import com.jetbrains.fus.reporting.components
 import com.jetbrains.fus.reporting.config
@@ -44,8 +45,21 @@ private val logger = LoggerFactory.getLogger("FUS-setup")
 
 val FUS_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_ENABLED")?.toBooleanStrictOrNull() ?: true
 
+/**
+ * Whether the recorded events may be uploaded to the FUS servers.
+ *
+ * This is enabled by default, and can be turned off to record and inspect events (see [FUS_DEBUG_ENABLED])
+ * without sending anything. This is how our own tests exercise the FUS reporting.
+ */
+private val FUS_SEND_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_SEND_ENABLED")?.toBooleanStrictOrNull() ?: true
+
 // TODO Default to false (production) once we confirmed things work
 private val FUS_USE_STAGING = System.getenv("KOTLIN_TOOLCHAIN_FUS_USE_STAGING")?.toBooleanStrictOrNull() ?: true
+
+/**
+ * Whether the individual FUS events should be logged for debugging purposes.
+ */
+internal val FUS_DEBUG_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_DEBUG_ENABLED")?.toBooleanStrictOrNull() ?: false
 
 internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport> = fusClient {
     config {
@@ -69,7 +83,7 @@ internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport>
         // This is not based on consent because we skip the entire FUS client creation if consent is not given.
         isLoggingEnabled = { FUS_ENABLED }
         isRecordEnabled = { FUS_ENABLED }
-        isSendEnabled = { FUS_ENABLED }
+        isSendEnabled = { FUS_ENABLED && FUS_SEND_ENABLED }
     }
 
     components {
@@ -114,6 +128,11 @@ internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport>
         // Revisit this when we separate logging from console output better.
         val level = if (isInternalUserForFUS) Level.ERROR else Level.DEBUG
         logger.atLevel(level).log("Error loading FUS metadata: {}", loadError)
+    }
+    if (FUS_DEBUG_ENABLED) {
+        messageHandler(topic = RAW_EVENT_TOPIC) { event ->
+            logValidatedFusEvent(event.event as LogEvent)
+        }
     }
 }
 

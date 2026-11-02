@@ -21,6 +21,8 @@ test-dependencies:
   - //sources/libraries/telemetry
   - //sources/test-base
   - $libs.bouncycastle.bcpg # for test key generation
+  - $libs.jetbrains.fus.serialization.kotlin # to parse the FUS events from the CLI debug logs
+  - $libs.jetbrains.fus.validation # for the FUS LogEvent model
   - $libs.junit.jupiter.params
   - $libs.kotlinx.coroutines.test
   - $libs.maven.artifact # just for ComparableVersion
