@@ -28,9 +28,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.debug.DebugProbes
 import kotlinx.datetime.LocalDateTime
 import org.apache.maven.artifact.versioning.ComparableVersion
-import org.jetbrains.amper.agentdetection.detectAgent
 import org.jetbrains.amper.buildinfo.AmperBuild
-import org.jetbrains.amper.cidetection.CISystem
 import org.jetbrains.amper.cli.AmperHelpFormatter
 import org.jetbrains.amper.cli.AmperVersion
 import org.jetbrains.amper.cli.analytics.CliFusReporter
@@ -48,9 +46,7 @@ import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withShowCommandSuggestions
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.fus.client.FUS_ENABLED
-import org.jetbrains.amper.fus.schema.FusCommandCallerType
 import org.jetbrains.amper.fus.schema.FusEvents
-import org.jetbrains.amper.fus.schema.FusIdeCode
 import org.jetbrains.amper.fus.schema.trimKtcVersionForFus
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.telemetry.spanBuilder

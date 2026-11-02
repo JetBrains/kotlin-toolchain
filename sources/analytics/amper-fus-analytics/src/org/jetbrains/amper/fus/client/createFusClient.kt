@@ -42,12 +42,10 @@ import kotlin.uuid.Uuid
 
 private val logger = LoggerFactory.getLogger("FUS-setup")
 
-// TODO This can be made private once we have confirmed the consent banner
-// TODO Default to true once we confirmed things work
-val FUS_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_ENABLED")?.toBooleanStrictOrNull() ?: false
+val FUS_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_ENABLED")?.toBooleanStrictOrNull() ?: true
 
 // TODO Default to false (production) once we confirmed things work
-val FUS_USE_STAGING = System.getenv("KOTLIN_TOOLCHAIN_FUS_USE_STAGING")?.toBooleanStrictOrNull() ?: true
+private val FUS_USE_STAGING = System.getenv("KOTLIN_TOOLCHAIN_FUS_USE_STAGING")?.toBooleanStrictOrNull() ?: true
 
 internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport> = fusClient {
     config {
