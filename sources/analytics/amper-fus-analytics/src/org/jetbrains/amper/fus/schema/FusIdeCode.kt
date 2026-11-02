@@ -5,8 +5,8 @@
 package org.jetbrains.amper.fus.schema
 
 enum class FusIdeCode(override val fusId: String) : FusEnum<FusIdeCode> {
-    IntelliJUltimate("idea-ultimate"),
-    IntelliJCommunity("idea-community"),
-    AndroidStudio("android-studio"),
+    IntelliJUltimate("idea_ultimate"),
+    IntelliJCommunity("idea_community"),
+    AndroidStudio("android_studio"),
     Other("other")
 }

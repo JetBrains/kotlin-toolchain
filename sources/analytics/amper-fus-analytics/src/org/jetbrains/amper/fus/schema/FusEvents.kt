@@ -118,7 +118,7 @@ object FusEvents {
 
     private val CommandGroup = group(
         id = "ktc.command",
-        version = 10,
+        version = 11,
         type = EventLogGroup.Type.COUNTER,
         description = "Command execution events",
     )

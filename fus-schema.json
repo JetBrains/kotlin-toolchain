@@ -60,7 +60,7 @@
                             "dataType": "PRIMITIVE",
                             "shouldBeAnonymized": false,
                             "value": [
-                                "{enum:idea-ultimate|idea-community|android-studio|other}"
+                                "{enum:idea_ultimate|idea_community|android_studio|other}"
                             ]
                         },
                         {
@@ -97,7 +97,7 @@
         {
             "id": "ktc.command",
             "type": "counter",
-            "version": 10,
+            "version": 11,
             "description": "Command execution events",
             "recorder": "KTC",
             "schema": [
@@ -156,7 +156,7 @@
                             "dataType": "PRIMITIVE",
                             "shouldBeAnonymized": false,
                             "value": [
-                                "{enum:idea-ultimate|idea-community|android-studio|other}"
+                                "{enum:idea_ultimate|idea_community|android_studio|other}"
                             ]
                         },
                         {
