@@ -6,7 +6,6 @@ package iosUtils
 
 import TestBase
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.amper.processes.ProcessLeak
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
 import org.jetbrains.amper.simctl.SimCtl
@@ -30,7 +29,6 @@ open class IOSBaseTest : TestBase() {
      * If [iosAppModuleName] is specified, the corresponding module is used as the iOS app to test, otherwise the root
      * module is expected to be the iOS app.
      */
-    @OptIn(ProcessLeak::class)
     internal fun runIosAppTests(
         projectSource: ProjectSource,
         bundleIdentifier: String,

@@ -5,52 +5,27 @@
 package iosUtils
 
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.apache.maven.artifact.versioning.ComparableVersion
-import org.jetbrains.amper.processes.ProcessLeak
-import org.jetbrains.amper.processes.output.ProcessOutputMode
-import org.jetbrains.amper.processes.runProcess
-import org.jetbrains.amper.processes.startLongLivedProcess
 import org.jetbrains.amper.simctl.SimCtl
 import org.jetbrains.amper.simctl.model.ProductFamilies
 import org.jetbrains.amper.simctl.model.SimDevice
 import org.jetbrains.amper.simctl.model.SimDeviceId
 import org.jetbrains.amper.simctl.model.SimulatorPlatforms
-import kotlin.io.path.Path
-import kotlin.io.path.div
-import kotlin.io.path.exists
-import kotlin.io.path.pathString
 import kotlin.time.Duration.Companion.seconds
 
 /**
  * Manages the iOS emulator lifecycle and provides helper methods
  */
 internal object SimulatorManager {
-    private val simulatorPath by lazy {
-        runBlocking {
-            // Xcode.app/Contents/Developer
-            val xcodeRoot = Path(runProcess(command = listOf("xcode-select", "-p"), outputMode = ProcessOutputMode.capture()).stdout.trim())
-            val simulatorPaths = [
-                xcodeRoot / "Applications" / "Simulator.app",
-                // Xcode 27+
-                xcodeRoot.parent / "Applications" / "DeviceHub.app"
-            ]
-            simulatorPaths.firstOrNull { it.exists() } ?: error("Simulator app not found at $simulatorPaths")
-        }
-    }
-
     /**
      * Launches the iOS Simulator with the specified device.
      */
-    @ProcessLeak
     suspend fun launchLatestIPhoneSimulator(): SimDeviceId {
         // The iOS Simulator that is launched must be the latest version available in the system because the Kotlin
         // Toolchain builds the app file targeting the highest available iOS version by default.
 
         val deviceId = getLatestIPhoneWithLatestIOS()
         SimCtl.bootSimulator(deviceId, failIfAlreadyBooted = false)
-
-        startLongLivedProcess(command = listOf("open", simulatorPath.pathString))
 
         repeat(3) { attempt ->
             delay(5.seconds)

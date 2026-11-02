@@ -12,7 +12,6 @@ import org.jetbrains.amper.cli.test.utils.assertErrors
 import org.jetbrains.amper.cli.test.utils.assertStderrDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertWarnings
-import org.jetbrains.amper.processes.ProcessLeak
 import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
@@ -34,7 +33,6 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 
-@ProcessLeak
 open class SwiftPMImportTests : IOSBaseTest() {
 
     @Test
