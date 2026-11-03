@@ -70,10 +70,8 @@ suspend fun main(args: Array<String>) {
                 val rootCommand = spanBuilder("Initialize CLI command definitions").use {
                     RootCommand()
                 }
-                try {
+                CliFusReporter.use {
                     rootCommand.mainWithTelemetry(args)
-                } finally {
-                    CliFusReporter.close()
                 }
             }
     } catch (e: ExitProcessButCloseTelemetrySpansException) {
