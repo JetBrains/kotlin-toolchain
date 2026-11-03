@@ -55,8 +55,7 @@ val FUS_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_ENABLED")?.toBooleanStrict
  */
 private val FUS_SEND_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_SEND_ENABLED")?.toBooleanStrictOrNull() ?: true
 
-// TODO Default to false (production) once we confirmed things work
-private val FUS_USE_STAGING = System.getenv("KOTLIN_TOOLCHAIN_FUS_USE_STAGING")?.toBooleanStrictOrNull() ?: true
+private val FUS_USE_STAGING = System.getenv("KOTLIN_TOOLCHAIN_FUS_USE_STAGING")?.toBooleanStrictOrNull() ?: false
 
 /**
  * Whether the individual FUS events should be logged for debugging purposes.
