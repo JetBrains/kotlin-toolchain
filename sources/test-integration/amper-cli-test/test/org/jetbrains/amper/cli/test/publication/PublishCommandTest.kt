@@ -770,6 +770,29 @@ class PublishCommandTest : CliTestBase() {
         """.trimIndent(), pom.readText().trim())
     }
 
+    @Test
+    fun `publish without --module ignores modules with publishing disabled`() = runSlowTest {
+        val mavenLocalForTest = createTempMavenLocalDir()
+        val groupDir = mavenLocalForTest.resolve("amper/test/jvm-publish-partially-publishable")
+
+        // The 'app' module has publishing disabled and doesn't declare the 'mavenLocal' repository, which must not
+        // prevent the publication of the other modules (see KTC-6059).
+        runCli(
+            projectDir = testProject("jvm-publish-partially-publishable"),
+            "publish", "mavenLocal",
+            amperJvmArgs = listOf(mavenRepoLocalJvmArg(mavenLocalForTest)),
+        )
+
+        groupDir.assertContainsRelativeFiles(
+            "lib/1.0/_remote.repositories",
+            "lib/1.0/lib-1.0-javadoc.jar",
+            "lib/1.0/lib-1.0.jar",
+            "lib/1.0/lib-1.0.module",
+            "lib/1.0/lib-1.0.pom",
+            "lib/maven-metadata-local.xml",
+        )
+    }
+
     /**
      * This test checks that a dependency declared several times with different scopes is represented with a
      * single dependency element in the generated pom.xml

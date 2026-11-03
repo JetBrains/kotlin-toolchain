@@ -32,6 +32,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.aomBuilder.defaultMavenRepositories
 import org.jetbrains.amper.frontend.dr.resolver.AmperResolutionSettings
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.moduleDependencies
+import org.jetbrains.amper.frontend.isPublishingEnabled
 import org.jetbrains.amper.frontend.publishingSettings
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.fus.schema.FusEvents
@@ -224,7 +225,7 @@ internal class PublishCommand : AmperModelAwareCommand(name = "publish") {
 
     private fun selectModulesToPublish(model: Model, cliContext: ProjectCliContext): List<AmperModule> {
         if (moduleNames.isEmpty()) {
-            return model.modules
+            return model.modules.filter { it.isPublishingEnabled() }
         }
         val explicitModules = moduleNames.map { model.getModuleByName(it) }
         if (transitive == false) {
