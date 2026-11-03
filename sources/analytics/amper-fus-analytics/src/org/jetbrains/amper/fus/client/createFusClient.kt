@@ -92,10 +92,10 @@ internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport>
             JvmHttpClient(userAgent = "${config.productName}/${config.productVersion}")
         }
         fileStorage {
-            JvmFileStorage(fusCache.metadataDir)
+            JvmFileStorage(if (FUS_USE_STAGING) fusCache.metadataStagingDir else fusCache.metadataDir)
         }
         eventLogFileStorage {
-            JvmFileStorage(fusCache.eventLogDir)
+            JvmFileStorage(if (FUS_USE_STAGING) fusCache.eventLogStagingDir else fusCache.eventLogDir)
         }
         // TODO bundle the metadata so we don't pay the initial fetch
 //        bundledFileStorage {

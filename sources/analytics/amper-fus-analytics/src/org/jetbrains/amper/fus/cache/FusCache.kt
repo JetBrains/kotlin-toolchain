@@ -14,5 +14,8 @@ class FusCache(private val root: Path) {
     val consentStateLastReportFile = root / "consent-state-last-report"
 
     val metadataDir by lazy { (root / "metadata").createDirectories() }
+    val metadataStagingDir by lazy { (root / "metadata-staging").createDirectories() }
+
     val eventLogDir by lazy { (root / "events").createDirectories() }
+    val eventLogStagingDir by lazy { (root / "events-staging").createDirectories() }
 }
