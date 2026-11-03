@@ -2806,6 +2806,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#settingsandroiddesugaring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings.android.desugaring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#settingsandroidsigning" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3343,6 +3354,17 @@
     <span class="md-ellipsis">
       
         settings.android.parcelize
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settingsandroiddesugaring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        settings.android.desugaring
       
     </span>
   </a>
@@ -4139,6 +4161,11 @@ Read more in the <a href="../../user-guide/testing/">Testing</a> section.</p>
 <td>Configure <a href="https://developer.android.com/kotlin/parcelize">Parcelize</a>.</td>
 </tr>
 <tr>
+<td><code>desugaring: object \| string</code></td>
+<td>(disabled)</td>
+<td>Configure <a href="https://developer.android.com/studio/write/java8-support">core library desugaring</a> to use Java 8+ APIs, such as <code>java.time</code>, on older Android versions.</td>
+</tr>
+<tr>
 <td><code>buildToolsVersion: string</code></td>
 <td>37.0.0</td>
 <td>Version of <a href="https://developer.android.com/tools/releases/build-tools">SDK Build Tools</a> to use.</td>
@@ -4254,6 +4281,61 @@ platform in the module. The value can be the simple <code>enabled</code> string,
 <span class="w">    </span><span class="nt">parcelize</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">      </span><span class="nt">additionalAnnotations</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">com.example.MyCommonParcelize</span><span class="w"> </span><span class="p p-Indicator">]</span>
+</code></pre></div>
+<h4 id="settingsandroiddesugaring"><code>settings.android.desugaring</code><a class="headerlink" href="#settingsandroiddesugaring" title="Permanent link">&para;</a></h4>
+<p><code>settings.android.desugaring</code> configures <a href="https://developer.android.com/studio/write/java8-support">core library desugaring</a>,
+which makes Java 8+ APIs, such as <code>java.time</code>, available on older Android versions. In libraries, enabling it also
+declares this requirement for the applications that consume the library. The value can be the simple <code>enabled</code>
+string, or an object with the following attributes:</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled: boolean</code></td>
+<td><code>false</code></td>
+<td>Whether to enable core library desugaring. When enabled, Java 8+ APIs, such as <code>java.time</code>, can be used on Android versions that don't support them natively.</td>
+</tr>
+<tr>
+<td><code>library: string</code></td>
+<td><code>com.android.tools:desugar_jdk_libs:2.1.5</code></td>
+<td>The <a href="https://github.com/google/desugar_jdk_libs">desugar_jdk_libs</a> library that provides implementations of the desugared APIs, as <code>groupId:artifactId[:version]</code> Maven coordinates or a catalog reference. The version is optional and defaults to the version shown in the Default column. See below for choosing the artifact and the version.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Choosing the <code>library</code>.</strong> The artifact selects the set of the desugared APIs: the default <code>desugar_jdk_libs</code>
+covers the commonly used ones, such as <code>java.time</code>, <code>desugar_jdk_libs_nio</code> extends it with <code>java.nio</code> APIs,
+and <code>desugar_jdk_libs_minimal</code> includes the smallest set. The version can be omitted to use the default one.
+<a href="https://d.android.com/r/tools/api-desugaring-flavors">Read more</a>.</p>
+<p>The version determines which Java APIs are available on older Android devices:
+newer releases of <a href="https://github.com/google/desugar_jdk_libs/blob/master/CHANGELOG.md">desugar_jdk_libs</a>
+include more of them. See also the <a href="https://developer.android.com/studio/write/java8-support-table">list of desugared APIs</a>.</p>
+<ul>
+<li>The <strong>default version</strong> is kept compatible with the Android Gradle plugin used by the toolchain and is a
+  good choice in most cases.</li>
+<li>A <strong>newer version</strong> includes all APIs from the older releases. If a dependency asks for one, the build
+  message names the minimal version to set.</li>
+<li>An <strong>older version</strong> is never required, includes fewer APIs, and makes sense only as a deliberate choice,
+  such as a library keeping the requirement for its consumers low.</li>
+</ul>
+<p>In libraries, the chosen library coordinates are also declared to the applications that consume the
+library, so keeping the defaults is friendly to them as well.</p>
+<div class="highlight"><span class="filename">Short form</span><pre><span></span><code><span class="c1"># Enables core library desugaring</span>
+<span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">android</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">desugaring</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">enabled</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Full form</span><pre><span></span><code><span class="c1"># Enables core library desugaring with a specific desugar_jdk_libs artifact and version</span>
+<span class="nt">settings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">android</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">desugaring</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">library</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">com.android.tools:desugar_jdk_libs_nio:2.0.3</span>
 </code></pre></div>
 <h4 id="settingsandroidsigning"><code>settings.android.signing</code><a class="headerlink" href="#settingsandroidsigning" title="Permanent link">&para;</a></h4>
 <p><code>settings.android.signing</code> configures signing of Android apps <a href="https://developer.android.com/studio/publish/app-signing">Read more</a></p>
@@ -5355,7 +5437,7 @@ Maven Central publication, and is usually the same for the whole project, thus c
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 28, 2026 12:10:04 UTC">October 28, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 3, 2026 12:23:06 UTC">November 3, 2026</span>
   </span>
 
     
