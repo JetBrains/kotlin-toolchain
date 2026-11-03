@@ -318,7 +318,7 @@ class AmperBackend(
         } else {
             for (module in modules) {
                 if (module.mavenPublishRepositories.none { it.id == repositoryId }) {
-                    if (module.mavenResolveRepositories.any { it.id == repositoryId }) {
+                    if (module.hasRepositoryWithId(repositoryId)) {
                         // TODO: Include trace info here?
                         userReadableError(
                             "Cannot publish to repository '${repositoryId}' because it's not marked as publishable. " +
@@ -674,3 +674,11 @@ class AmperBackend(
 
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 }
+
+/**
+ * Whether a repository with the given [repositoryId] is known to this module, whether it is declared in the module
+ * configuration (for any purpose), or implicitly available for dependency resolution.
+ */
+private fun AmperModule.hasRepositoryWithId(repositoryId: String): Boolean =
+    mavenResolveRepositories.any { it.id == repositoryId }
+            || commonModuleNode.repositories.orEmpty().any { it.id == repositoryId }

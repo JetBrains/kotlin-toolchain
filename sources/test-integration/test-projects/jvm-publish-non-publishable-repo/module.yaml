@@ -1,0 +1,14 @@
+product: jvm/lib
+
+repositories:
+  - id: resolveOnlyRepo
+    url: https://repo.example.com/resolve-only
+  - id: disabledRepo
+    url: https://repo.example.com/disabled
+    resolve: false
+
+settings:
+  publishing:
+    enabled: true
+    group: "amper.test.jvm-publish-non-publishable-repo"
+    version: "1.0"

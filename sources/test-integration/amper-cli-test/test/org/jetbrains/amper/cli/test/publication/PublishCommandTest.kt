@@ -1305,6 +1305,50 @@ class PublishCommandTest : CliTestBase() {
         """.trimIndent())
     }
 
+    @Test
+    fun `publish to a declared repository with resolve enabled but publish disabled should fail with a clear message`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("jvm-publish-non-publishable-repo"),
+            "publish", "resolveOnlyRepo",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        result.assertStderrContains(
+            "ERROR: Cannot publish to repository 'resolveOnlyRepo' because it's not marked as publishable. " +
+                    "Please check your configuration and make sure that `publish: true` is set for this repository."
+        )
+    }
+
+    @Test
+    fun `publish to a declared repository with both resolve and publish disabled should fail with a clear message`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("jvm-publish-non-publishable-repo"),
+            "publish", "disabledRepo",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        result.assertStderrContains(
+            "ERROR: Cannot publish to repository 'disabledRepo' because it's not marked as publishable. " +
+                    "Please check your configuration and make sure that `publish: true` is set for this repository."
+        )
+    }
+
+    @Test
+    fun `publish to an undeclared repository should fail with a clear message`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("jvm-publish-non-publishable-repo"),
+            "publish", "unknownRepo",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+
+        result.assertStderrContains(
+            "ERROR: Module 'jvm-publish-non-publishable-repo' does not have repository with id 'unknownRepo'"
+        )
+    }
+
     private fun createAuthenticator(
         expectedUser: String = "http-user",
         expectedPassword: String = "http-password",

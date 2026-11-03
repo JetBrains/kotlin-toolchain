@@ -1,0 +1,5 @@
+product: jvm/app
+
+# This module has no publishing settings nor publication repositories on purpose: `publish` must simply skip it.
+dependencies:
+  - ../lib

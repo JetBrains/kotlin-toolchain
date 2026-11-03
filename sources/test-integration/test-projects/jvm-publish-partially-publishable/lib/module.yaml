@@ -1,0 +1,13 @@
+product: jvm/lib
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: false
+    publish: true
+
+settings:
+  publishing:
+    enabled: true
+    group: "amper.test.jvm-publish-partially-publishable"
+    version: "1.0"
