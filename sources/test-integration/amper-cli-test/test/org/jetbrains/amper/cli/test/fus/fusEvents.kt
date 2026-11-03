@@ -8,13 +8,9 @@ import com.jetbrains.fus.reporting.model.lion4.LogEvent
 import com.jetbrains.fus.reporting.serialization.FusKotlinSerializer
 import org.jetbrains.amper.test.AmperCliResult
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import kotlin.test.fail
-
-/**
- * The marker of the debug logs that the CLI writes for each reported FUS event, followed by the event as JSON.
- * See `logReportedFusEvent` in the `amper-fus-analytics` module.
- */
-private const val REPORTED_FUS_EVENT_LOG_PREFIX = "[FUS][reported] "
 
 private val fusSerializer = FusKotlinSerializer()
 
@@ -23,23 +19,58 @@ private val fusSerializer = FusKotlinSerializer()
  *
  * Note that these are the events that the CLI reports, which is not necessarily what is sent to the FUS servers:
  * the FUS client drops the events that it cannot validate against the FUS metadata.
+ * See [validatedFusEvents] for the events as they are effectively sent.
  *
  * This requires the CLI to have been run with FUS debug logging enabled and with a debug console log level.
  */
 internal val AmperCliResult.reportedFusEvents: List<LogEvent>
-    get() = stdout.lineSequence()
-        // The CLI prints these logs through Mordant, which may add a level prefix or styling around them.
-        .mapNotNull { line ->
-            line.substringAfter(REPORTED_FUS_EVENT_LOG_PREFIX, missingDelimiterValue = "").ifEmpty { null }
-        }
-        .map { fusSerializer.fromJson(it.trim(), LogEvent::class) }
-        .toList()
+    get() = fusEventsLoggedWith("[FUS][reported] ")
+
+/**
+ * The FUS events as the FUS client recorded them, after anonymization and validation against the FUS metadata.
+ * This is what is effectively sent to the FUS servers.
+ *
+ * Compared to [reportedFusEvents], the identifiers are anonymized, and the values that the FUS metadata doesn't
+ * describe are replaced by `validation.*` markers. Events whose group the metadata doesn't describe at all are
+ * missing from this list.
+ *
+ * Beware: the FUS client doesn't reliably record the last event of a run (usually `ktc.command.result`) before the
+ * CLI exits, so don't assert on it from this list.
+ *
+ * This requires the CLI to have been run with FUS debug logging enabled and with a debug console log level.
+ */
+internal val AmperCliResult.validatedFusEvents: List<LogEvent>
+    get() = fusEventsLoggedWith("[FUS][validated] ")
+
+private fun AmperCliResult.fusEventsLoggedWith(logPrefix: String): List<LogEvent> = stdout.lineSequence()
+    // The CLI prints these logs through Mordant, which may add a level prefix or styling around them.
+    .mapNotNull { line -> line.substringAfter(logPrefix, missingDelimiterValue = "").ifEmpty { null } }
+    .map { fusSerializer.fromJson(it.trim(), LogEvent::class) }
+    .toList()
 
 /** The ID of the event itself, such as `ktc.command.invoked`. */
 internal val LogEvent.eventId: String get() = event.id
 
 /** The data of the event, with plain Kotlin values (strings, booleans, numbers, and lists thereof). */
 internal val LogEvent.data: Map<String, Any> get() = event.data
+
+/** This event serialized as JSON, the way the FUS client sends it. */
+internal fun LogEvent.toJson(): String = fusSerializer.toJson(this)
+
+/**
+ * The shape of the identifiers that the FUS client anonymizes with the local salt, as described by the `hash` regex
+ * of the FUS metadata. The `#S`/`#C` suffixes tell the FUS servers which salt was used.
+ */
+private val AnonymizedIdRegex = Regex("""[0-9a-f]{64}(#[SC])+""")
+
+/**
+ * Asserts that the given [idValue] was anonymized by the FUS client, and thus cannot be traced back to its original value.
+ * The [idName] is only used in the failure message.
+ */
+internal fun assertIsAnonymizedId(idValue: String?, idName: String) {
+    assertNotNull(idValue, "The '$idName' identifier is missing from the FUS event")
+    assertTrue(AnonymizedIdRegex.matches(idValue), "The '$idName' identifier should be anonymized, but was '$idValue'")
+}
 
 /**
  * Asserts that the data of this event is exactly the given [expectedData], apart from the [ignoredKeys].
@@ -74,7 +105,7 @@ internal fun List<LogEvent>.assertEventIds(vararg eventIds: String) {
 }
 
 private fun List<LogEvent>.describeAll(): String = if (isEmpty()) {
-    " No FUS event was reported at all."
+    " No FUS events at all in this list."
 } else {
-    joinToString(prefix = " The reported events were:\n", separator = "\n") { "  - ${fusSerializer.toJson(it)}" }
+    joinToString(prefix = " The events in this list were:\n", separator = "\n") { "  - ${fusSerializer.toJson(it)}" }
 }
