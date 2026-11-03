@@ -26,6 +26,8 @@ import org.jetbrains.amper.fus.schema.FusEvents
 import org.jetbrains.amper.fus.schema.trimKtcVersionForFus
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
+import org.jetbrains.amper.telemetry.spanBuilder
+import org.jetbrains.amper.telemetry.useWithoutCoroutines
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -179,9 +181,11 @@ object CliFusReporter : FusReporter {
     private class PendingEvent(val id: BaseEventId, val data: Map<String, Any>)
 
     override fun close() {
-        cacheSetLock.write {
-            delegate?.close()
-            delegate = null
+        spanBuilder("Closing FUS client").useWithoutCoroutines {
+            cacheSetLock.write {
+                delegate?.close()
+                delegate = null
+            }
         }
     }
 }
