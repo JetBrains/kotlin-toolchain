@@ -1,7 +1,13 @@
 product: jvm/lib
 
+description: Signing of files using the PGP standard.
+
 apply:
   - //sources/common.module-template.yaml
 
 dependencies:
   - $libs.bouncycastle.bcpg
+
+test-dependencies:
+  - $libs.junit.jupiter.params
+  - $libs.kotlinx.coroutines.test

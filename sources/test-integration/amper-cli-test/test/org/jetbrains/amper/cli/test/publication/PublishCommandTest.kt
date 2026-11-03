@@ -307,6 +307,64 @@ class PublishCommandTest : CliTestBase() {
     }
 
     @Test
+    fun `prepare maven central bundle signed with an explicitly selected signing subkey`() = runSlowTest {
+        val openPgpApi = BcOpenPGPApi()
+        // A sign-and-certify primary key AND a signing subkey: both could sign, so one must be selected explicitly.
+        val testPgpKey = openPgpApi.generateKey().signOnlyKey().addSigningSubkey().build()
+        val signingSubkey = testPgpKey.signingKeys.single { !it.isPrimaryKey }
+
+        val result = runCli(
+            projectDir = testProject("jvm-publish-with-signing"),
+            "package", "--format=maven-central-bundle",
+            configureEnvironment = {
+                put("KOTLIN_TOOLCHAIN_SIGNING_KEY", testPgpKey.toAsciiArmoredString())
+                // the long key ID form, as printed by `gpg --list-keys --keyid-format=long`
+                put("KOTLIN_TOOLCHAIN_SIGNING_KEY_ID", signingSubkey.keyIdentifier.keyId.toHexString())
+            },
+        )
+
+        val zipBundle = result
+            .getTaskOutputPath(":jvm-publish-with-signing:prepareMavenCentralBundle")
+            .resolve("jvm-publish-with-signing-central-bundle.zip")
+
+        val bundleDir = tempRoot.resolve("jvm-publish-subkey-central-bundle").also { it.createDirectories() }
+        extractFileToLocation(zipBundle, bundleDir)
+
+        val jar = bundleDir.resolve("amper/test/jvm-publish-with-signing/artifactName/2.2/artifactName-2.2.jar")
+        val jarSignature = jar.resolveSibling("${jar.name}.asc")
+        assertSignatureIsValid(jar, jarSignature, verificationCertificate = testPgpKey)
+
+        val signature = verifySignature(jar, jarSignature, verificationCertificate = testPgpKey).single()
+        assertEquals(
+            signingSubkey.keyIdentifier,
+            signature.issuer.keyIdentifier,
+            "The artifacts should be signed with the subkey given in KOTLIN_TOOLCHAIN_SIGNING_KEY_ID",
+        )
+    }
+
+    @Test
+    fun `signing fails when several signing subkeys could be used and none is selected`() = runSlowTest {
+        val openPgpApi = BcOpenPGPApi()
+        val testPgpKey = openPgpApi.generateKey().signOnlyKey().addSigningSubkey().build()
+
+        val result = runCli(
+            projectDir = testProject("jvm-publish-with-signing"),
+            "package", "--format=maven-central-bundle",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+            configureEnvironment = { put("KOTLIN_TOOLCHAIN_SIGNING_KEY", testPgpKey.toAsciiArmoredString()) },
+        )
+
+        val signingKeyIds = testPgpKey.signingKeys.joinToString("\n") { it.keyIdentifier.toString() }.prependIndent("  ")
+        result.assertStderrContains(
+            "Cannot sign artifacts, the provided PGP key contains 2 signing (sub-)keys that could be used, " +
+                    "so the one to sign with must be specified explicitly.\n" +
+                    "Please set the KOTLIN_TOOLCHAIN_SIGNING_KEY_ID environment variable to the ID of the " +
+                    "(sub-)key to sign with, among the following:\n$signingKeyIds"
+        )
+    }
+
+    @Test
     fun `prepare maven central bundle with all checksums`() = runSlowTest {
         val openPgpApi = BcOpenPGPApi()
         val testPgpKey = openPgpApi.generateKey().signOnlyKey().build()

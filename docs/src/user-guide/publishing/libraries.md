@@ -186,6 +186,7 @@ variables (usually done on the CI):
 | `KOTLIN_TOOLCHAIN_MAVEN_CENTRAL_PASSWORD` | The `password` part of your Central Portal [user token](https://central.sonatype.org/publish/generate-portal-token/).                                                  |
 | `KOTLIN_TOOLCHAIN_SIGNING_KEY`            | The ASCII-armored PGP signing key to use to sign artifacts. You can export a private key in this format using the `gpg --export-secret-keys --armor <KEY_ID>` command. |
 | `KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE` | (optional) The passphrase to unlock the PGP key, if there is one.                                                                                                      |
+| `KOTLIN_TOOLCHAIN_SIGNING_KEY_ID`         | (optional) The ID of the signing (sub-)key to use, if `KOTLIN_TOOLCHAIN_SIGNING_KEY` contains several usable ones. See [Using a signing subkey](#using-a-signing-subkey). |
 
 !!! note "Signing and Maven Local"
 
@@ -197,6 +198,29 @@ variables (usually done on the CI):
     If you have never needed a PGP signing key before, it might not be obvious to get started.
     Follow the instructions to [create and prepare a key](https://central.sonatype.org/publish/requirements/gpg) on the 
     Maven Central website.
+
+#### Using a signing subkey
+
+A PGP key can contain several subkeys. Artifacts are signed with the only signing-capable subkey that carries its
+secret key material, so you usually don't have to configure anything.
+
+In particular, you can keep your primary key offline or on a hardware token, and only export the signing subkey:
+
+```shell
+gpg --export-secret-subkeys --armor '<SUBKEY_ID>!'
+```
+
+Such an export also contains the primary key, but only as a stub without any secret key material. Stubs are never
+used for signing.
+
+If several signing subkeys of your key can be used, publication fails with an error listing them, and you must pick
+one explicitly with `KOTLIN_TOOLCHAIN_SIGNING_KEY_ID`. All the forms printed by `gpg --list-keys` are accepted: a
+short key ID, a long key ID, or a full fingerprint.
+
+!!! warning "Avoid subkeys for Maven and Nexus"
+
+    Maven and the Nexus Repository Manager can only verify signatures against primary keys.
+    Avoid signing with a subkey if you want to make sure these tools recognize your signature. 
 
 ### Publishing command
 

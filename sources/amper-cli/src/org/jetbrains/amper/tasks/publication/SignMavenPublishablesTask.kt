@@ -6,11 +6,17 @@ package org.jetbrains.amper.tasks.publication
 
 import kotlinx.serialization.json.Json
 import org.jetbrains.amper.cli.userReadableError
+import org.jetbrains.amper.crypto.pgp.AmbiguousSigningKeyException
 import org.jetbrains.amper.crypto.pgp.AsciiArmoredPgpKey
+import org.jetbrains.amper.crypto.pgp.InvalidKeyIdException
+import org.jetbrains.amper.crypto.pgp.NoUsableSigningKeyException
+import org.jetbrains.amper.crypto.pgp.PgpKeyId
 import org.jetbrains.amper.crypto.pgp.PgpKeyParsingException
 import org.jetbrains.amper.crypto.pgp.PgpSigner
 import org.jetbrains.amper.crypto.pgp.PgpSigningException
 import org.jetbrains.amper.crypto.pgp.PgpSigningKeyPassphraseException
+import org.jetbrains.amper.crypto.pgp.PgpSigningKeySelectionException
+import org.jetbrains.amper.crypto.pgp.SelectedKeyNotUsableException
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
@@ -80,10 +86,35 @@ class SignMavenPublishablesTask(
                             "Please set this variable to a valid PGP private key in ASCII-armored format."
                 ),
             keyPassphrase = getDynamicInputs().readEnv("KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE")?.toCharArray(),
+            signingKeyId = getDynamicInputs().readEnv("KOTLIN_TOOLCHAIN_SIGNING_KEY_ID")
+                ?.takeIf { it.isNotBlank() }
+                ?.let(::PgpKeyId),
         )
     } catch (e: PgpKeyParsingException) {
         userReadableError("Cannot sign artifacts, failed to parse PGP signing key from the KOTLIN_TOOLCHAIN_SIGNING_KEY " +
                 "environment variable: ${e.message}")
+    } catch (e: PgpSigningKeySelectionException) {
+        userReadableError("Cannot sign artifacts, ${e.message}.${e.keySelectionHint()}", e)
+    }
+
+    private fun PgpSigningKeySelectionException.keySelectionHint(): String = when (this) {
+        is AmbiguousSigningKeyException ->
+            "\nPlease set the KOTLIN_TOOLCHAIN_SIGNING_KEY_ID environment variable to the ID of the (sub-)key to " +
+                    "sign with, among the following:\n${candidateKeyIds.joinToString("\n").prependIndent("  ")}"
+        is SelectedKeyNotUsableException -> when {
+            availableSigningKeyIds.isEmpty() ->
+                "\nPlease set the KOTLIN_TOOLCHAIN_SIGNING_KEY environment variable to a PGP private key that " +
+                        "contains a signing (sub-)key with its secret key material."
+            else ->
+                "\nPlease set the KOTLIN_TOOLCHAIN_SIGNING_KEY_ID environment variable to the ID of one of the " +
+                        "following usable signing (sub-)keys:\n${availableSigningKeyIds.joinToString("\n").prependIndent("  ")}"
+        }
+        is NoUsableSigningKeyException ->
+            "\nPlease set the KOTLIN_TOOLCHAIN_SIGNING_KEY environment variable to a PGP private key that " +
+                    "contains a signing (sub-)key with its secret key material."
+        is InvalidKeyIdException ->
+            "\nPlease set the KOTLIN_TOOLCHAIN_SIGNING_KEY_ID environment variable to a valid hexadecimal short ID, " +
+                    "long ID, or fingerprint."
     }
 
     private suspend fun PgpSigner.signArtifact(artifact: MavenPublishable): MavenPublishable {

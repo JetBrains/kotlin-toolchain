@@ -59,7 +59,9 @@ class PublishingSettings : SchemaNode() {
                 "The private PGP signing key must be specified via the `KOTLIN_TOOLCHAIN_SIGNING_KEY` environment variable in the " +
                 "ASCII-armored format.\n" +
                 "If the key is encrypted, its passphrase must be specified via the `KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE` " +
-                "environment variable."
+                "environment variable.\n" +
+                "If the key contains multiple signing subkeys, the one to sign with must be specified via the " +
+                "`KOTLIN_TOOLCHAIN_SIGNING_KEY_ID` environment variable."
     )
     val signArtifacts by value(default = false)
 

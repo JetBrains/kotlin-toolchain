@@ -4,10 +4,13 @@
 
 package org.jetbrains.amper.crypto.pgp
 
-import org.bouncycastle.openpgp.api.OpenPGPKey
+import org.bouncycastle.openpgp.api.KeyPassphraseProvider
+import org.bouncycastle.openpgp.api.OpenPGPApi
+import org.bouncycastle.openpgp.api.OpenPGPKey.OpenPGPSecretKey
 import org.bouncycastle.openpgp.api.OpenPGPKeyReader
 import org.bouncycastle.openpgp.api.OpenPGPSignature
 import org.bouncycastle.openpgp.api.bc.BcOpenPGPApi
+import org.bouncycastle.openpgp.api.bc.BcOpenPGPImplementation
 import org.bouncycastle.openpgp.api.exception.KeyPassphraseException
 import java.io.IOException
 import java.nio.file.Path
@@ -32,16 +35,31 @@ interface PgpSigner {
          * Creates a [PgpSigner] that uses the given PGP [signingKey] for signing.
          * If the [signingKey] is encrypted, the [keyPassphrase] to decrypt it must be provided.
          *
+         * A PGP key can contain several (sub-)keys, in which case the one to sign with is selected as follows:
+         *  * if [signingKeyId] is provided, the (sub-)key with that ID is used;
+         *  * otherwise, the only signing-capable (sub-)key that has secret key material is used.
+         *
          * @throws PgpKeyParsingException if the key could not be parsed
+         * @throws PgpSigningKeySelectionException if the (sub-)key to sign with cannot be determined
          */
-        fun bouncyCastle(signingKey: AsciiArmoredPgpKey, keyPassphrase: CharArray?): PgpSigner {
+        fun bouncyCastle(
+            signingKey: AsciiArmoredPgpKey,
+            keyPassphrase: CharArray?,
+            signingKeyId: PgpKeyId? = null,
+        ): PgpSigner {
+            val implementation = BcOpenPGPImplementation()
+            val policy = implementation.policy()
             val key = try {
-                OpenPGPKeyReader().parseKey(signingKey.text)
+                OpenPGPKeyReader(implementation, policy).parseKey(signingKey.text)
             } catch (e: IOException) {
-                throw PgpKeyParsingException(e)
+                throw PgpKeyParsingException(cause = e)
             }
 
-            return BouncyCastlePgpSigner(key, keyPassphrase)
+            return BouncyCastlePgpSigner(
+                openPgpApi = BcOpenPGPApi(implementation, policy),
+                signingKey = key.selectSigningKey(signingKeyId, policy),
+                pgpKeyPassphrase = keyPassphrase,
+            )
         }
     }
 }
@@ -65,7 +83,7 @@ value class AsciiArmoredPgpKey(val text: String)
 /**
  * Thrown when an ASCII-armored PGP key cannot be parsed.
  */
-class PgpKeyParsingException(cause: Throwable) : Exception(cause.message, cause)
+class PgpKeyParsingException(message: String? = null, cause: Throwable) : Exception(message ?: cause.message, cause)
 
 /**
  * Thrown when signing fails.
@@ -78,18 +96,17 @@ open class PgpSigningException(cause: Throwable) : Exception(
 class PgpSigningKeyPassphraseException(val passphrasePresent: Boolean, cause: Throwable) : PgpSigningException(cause)
 
 private class BouncyCastlePgpSigner(
+    private val openPgpApi: OpenPGPApi,
     /**
-     * The private PGP key to use for signing artifacts.
+     * The private PGP (sub-)key to use for signing artifacts.
      * If it is encrypted, the passphrase must also be provided (see [pgpKeyPassphrase]).
      */
-    private val signingKey: OpenPGPKey,
+    private val signingKey: OpenPGPSecretKey,
     /**
      * The passphrase to use for decrypting the private PGP key (should only be provided if [signingKey] is encrypted).
      */
     private val pgpKeyPassphrase: CharArray?,
 ) : PgpSigner {
-
-    private val openPgpApi = BcOpenPGPApi()
 
     override suspend fun sign(inputFile: Path, outputSignatureFile: Path) {
         val signature = sign(inputFile)
@@ -97,8 +114,11 @@ private class BouncyCastlePgpSigner(
     }
 
     private fun sign(file: Path): OpenPGPSignature = try {
-        // sign() mutates the generator, so we must create a new one every time, unfortunately
-        val signingGenerator = openPgpApi.createDetachedSignature().addSigningKey(signingKey) { pgpKeyPassphrase }
+        // sign() mutates the generator, so we must create a new one every time, unfortunately.
+        // We add the resolved (sub-)key directly instead of the whole PGP key, because BouncyCastle's default subkey
+        // selection would pick every signing-capable (sub-)key, including stubs without secret key material.
+        val signingGenerator = openPgpApi.createDetachedSignature()
+            .addSigningKey(signingKey, KeyPassphraseProvider { pgpKeyPassphrase }, null)
 
         file.inputStream().use { fileStream ->
             // we are guaranteed to have a single signature because we provided a single signing key
