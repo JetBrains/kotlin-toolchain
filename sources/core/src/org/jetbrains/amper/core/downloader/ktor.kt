@@ -8,7 +8,12 @@ import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.compression.*
+import okhttp3.Dispatcher
 import org.jetbrains.amper.buildinfo.AmperBuild
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.SynchronousQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -26,6 +31,14 @@ val amperHttpClient: HttpClient by lazy {
     // The Java engine doesn't support the socket timeout that we need in the Downloader.
     // So we use the OkHttp engine.
     HttpClient(OkHttp) {
+        engine {
+            config {
+                // By default, OkHttp uses non-daemon threads, which holds the JVM up for 1 minute after the last
+                // request completes. This makes calls like `kotlin update` hang after success.
+                dispatcher(Dispatcher(okHttpDaemonThreadPool()))
+            }
+        }
+
         expectSuccess = true
 
         install(UserAgent) {
@@ -54,3 +67,20 @@ val amperHttpClient: HttpClient by lazy {
         }
     }
 }
+
+/**
+ * Creates a thread pool equivalent to OkHttp's default dispatcher executor, but with daemon threads.
+ *
+ * OkHttp's default executor uses non-daemon threads with a 60s keep-alive, which prevents the JVM from exiting for
+ * up to a minute after the last request completes.
+ */
+private fun okHttpDaemonThreadPool(): ExecutorService = ThreadPoolExecutor(
+    /* corePoolSize = */ 0,
+    /* maximumPoolSize = */ Int.MAX_VALUE,
+    /* keepAliveTime = */ 60,
+    /* unit = */ TimeUnit.SECONDS,
+    /* workQueue = */ SynchronousQueue(),
+    /* threadFactory = */ { runnable ->
+        Thread(runnable, "OkHttp Dispatcher").apply { isDaemon = true }
+    },
+)
