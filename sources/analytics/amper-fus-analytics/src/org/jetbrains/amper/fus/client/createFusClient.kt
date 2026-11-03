@@ -8,6 +8,8 @@ import com.intellij.internal.statistic.eventLog.connection.metadata.EventLogBuil
 import com.jetbrains.fus.reporting.FusClient
 import com.jetbrains.fus.reporting.METADATA_LOADED_TOPIC
 import com.jetbrains.fus.reporting.METADATA_LOAD_FAILED_TOPIC
+import com.jetbrains.fus.reporting.METADATA_UPDATED_TOPIC
+import com.jetbrains.fus.reporting.METADATA_UPDATE_FAILED_TOPIC
 import com.jetbrains.fus.reporting.RAW_EVENT_TOPIC
 import com.jetbrains.fus.reporting.RegionCode
 import com.jetbrains.fus.reporting.components
@@ -123,11 +125,18 @@ internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport>
         logger.debug("FUS metadata was loaded with version {}", version)
     }
     messageHandler(topic = METADATA_LOAD_FAILED_TOPIC) { loadError ->
+        // This is normal on cold cache
+        logger.debug("Error loading FUS metadata: {}", loadError)
+    }
+    messageHandler(topic = METADATA_UPDATED_TOPIC) { version ->
+        logger.debug("FUS metadata was updated with version {}", version)
+    }
+    messageHandler(topic = METADATA_UPDATE_FAILED_TOPIC) { loadError ->
         // Debug level for external users so it's not printed to the console.
         // For internal users, we make the error more visible.
         // Revisit this when we separate logging from console output better.
         val level = if (isInternalUserForFUS) Level.ERROR else Level.DEBUG
-        logger.atLevel(level).log("Error loading FUS metadata: {}", loadError)
+        logger.atLevel(level).log("Error updating FUS metadata: {}", loadError)
     }
     if (FUS_DEBUG_ENABLED) {
         messageHandler(topic = RAW_EVENT_TOPIC) { event ->
