@@ -96,7 +96,7 @@ internal fun Module.readPublishRepositories(): List<PublicationRepository> =
         )
     }.distinctBy { it.id }
 
-val GOOGLE_REPOSITORY_URL = CustomizableUrl("https://maven.google.com", "KOTLIN_TOOLCHAIN_GOOGLE_REPOSITORY_URL").url
+val GOOGLE_REPOSITORY_URL = CustomizableUrl("https://maven.google.com", "KOTLIN_TOOLCHAIN_GOOGLE_REPOSITORY_URL")
 
 val defaultMavenRepositories = [
     ResolutionRepository(
@@ -105,6 +105,6 @@ val defaultMavenRepositories = [
     ),
     ResolutionRepository(
         id = "mavenGoogle",
-        url = GOOGLE_REPOSITORY_URL,
+        url = GOOGLE_REPOSITORY_URL.url,
     ),
 ]

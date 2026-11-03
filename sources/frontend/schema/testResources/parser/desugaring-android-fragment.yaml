@@ -1,0 +1,8 @@
+product:
+  type: "kmp/lib"
+  platforms: [ "android", "jvm" ]
+
+settings@android:
+  android:
+    desugaring:
+      enabled: true

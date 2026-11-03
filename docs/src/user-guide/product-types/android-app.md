@@ -282,6 +282,24 @@ settings:
 ```
 
 
+## Core library desugaring
+
+Java 8+ APIs, such as `java.time` or `java.util.stream`, are not available on older Android versions.
+[Core library desugaring](https://developer.android.com/studio/write/java8-support) makes them available by
+rewriting their usages to a backported implementation bundled into the app. Enable it as follows:
+
+```yaml
+settings:
+  android:
+    desugaring: enabled
+```
+
+The bundled [desugar_jdk_libs](https://github.com/google/desugar_jdk_libs) library can be replaced with the
+`library` option, see the [settings reference](../../reference/module.md#settingsandroiddesugaring)
+for details. In libraries, enabling desugaring also declares the requirement for the
+applications that consume them, so those applications are asked to enable desugaring as well.
+
+
 ## Google Services and Firebase
 
 To enable the [`google-services` plugin](https://developers.google.com/android/guides/google-services-plugin), place

@@ -306,6 +306,7 @@ Read more in the [Testing](../user-guide/testing.md) section.
 | `resourcePackaging: object`   | (empty)                 | Configure how duplicate Java resources from dependencies are packaged in an Android app. See [Resolving duplicate Java resources](../user-guide/product-types/android-app.md#resolving-duplicate-java-resources).                               |
 | `abiFilters: string list`     | (all ABIs)              | The Android ABIs to package native libraries for. When unset, all ABIs are packaged. See [Filtering native library ABIs](../user-guide/product-types/android-app.md#filtering-native-library-abis). |
 | `parcelize: object \| string` | (disabled)              | Configure [Parcelize](https://developer.android.com/kotlin/parcelize).                                                                                                                                                                          |
+| `desugaring: object \| string` | (disabled)            | Configure [core library desugaring](https://developer.android.com/studio/write/java8-support) to use Java 8+ APIs, such as `java.time`, on older Android versions.                                                                              |
 | `buildToolsVersion: string`   | 37.0.0                  | Version of [SDK Build Tools](https://developer.android.com/tools/releases/build-tools) to use.                                                                                                                                                  |
 
 #### `settings.android.compileSdk`
@@ -376,6 +377,53 @@ settings:
     parcelize:
       enabled: true
       additionalAnnotations: [ com.example.MyCommonParcelize ]
+```
+
+#### `settings.android.desugaring`
+
+`settings.android.desugaring` configures [core library desugaring](https://developer.android.com/studio/write/java8-support),
+which makes Java 8+ APIs, such as `java.time`, available on older Android versions. In libraries, enabling it also
+declares this requirement for the applications that consume the library. The value can be the simple `enabled`
+string, or an object with the following attributes:
+
+| Attribute            | Default | Description |
+|----------------------|---------|-------------|
+| `enabled: boolean`   | `false` | Whether to enable core library desugaring. When enabled, Java 8+ APIs, such as `java.time`, can be used on Android versions that don't support them natively. |
+| `library: string`    | `com.android.tools:desugar_jdk_libs:2.1.5` | The [desugar_jdk_libs](https://github.com/google/desugar_jdk_libs) library that provides implementations of the desugared APIs, as `groupId:artifactId[:version]` Maven coordinates or a catalog reference. The version is optional and defaults to the version shown in the Default column. See below for choosing the artifact and the version. |
+
+**Choosing the `library`.** The artifact selects the set of the desugared APIs: the default `desugar_jdk_libs`
+covers the commonly used ones, such as `java.time`, `desugar_jdk_libs_nio` extends it with `java.nio` APIs,
+and `desugar_jdk_libs_minimal` includes the smallest set. The version can be omitted to use the default one.
+[Read more](https://d.android.com/r/tools/api-desugaring-flavors).
+
+The version determines which Java APIs are available on older Android devices:
+newer releases of [desugar_jdk_libs](https://github.com/google/desugar_jdk_libs/blob/master/CHANGELOG.md)
+include more of them. See also the [list of desugared APIs](https://developer.android.com/studio/write/java8-support-table).
+
+* The **default version** is kept compatible with the Android Gradle plugin used by the toolchain and is a
+  good choice in most cases.
+* A **newer version** includes all APIs from the older releases. If a dependency asks for one, the build
+  message names the minimal version to set.
+* An **older version** is never required, includes fewer APIs, and makes sense only as a deliberate choice,
+  such as a library keeping the requirement for its consumers low.
+
+In libraries, the chosen library coordinates are also declared to the applications that consume the
+library, so keeping the defaults is friendly to them as well.
+
+```yaml title="Short form"
+# Enables core library desugaring
+settings:
+  android:
+    desugaring: enabled
+```
+
+```yaml title="Full form"
+# Enables core library desugaring with a specific desugar_jdk_libs artifact and version
+settings:
+  android:
+    desugaring:
+      enabled: true
+      library: com.android.tools:desugar_jdk_libs_nio:2.0.3
 ```
 
 #### `settings.android.signing`

@@ -9,6 +9,14 @@ settings@android:
       apiLevel: 37  # default
       minorApiLevel: 0  # default
       sdkExtension: null  # default
+    desugaring:
+      enabled: false  # default
+      library:
+        artifactId: desugar_jdk_libs  # default
+        classifier: null  # default
+        groupId: com.android.tools  # default
+        packagingType: null  # default
+        version: 2.1.5  # default version
     maxSdk: null  # default
     minSdk: 24  # default
     namespace: com.example.app  # default, from ${applicationId} @ module.yaml
@@ -454,6 +462,14 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
       apiLevel: 37  # default
       minorApiLevel: 0  # default
       sdkExtension: null  # default
+    desugaring:
+      enabled: false  # default
+      library:
+        artifactId: desugar_jdk_libs  # default
+        classifier: null  # default
+        groupId: com.android.tools  # default
+        packagingType: null  # default
+        version: 2.1.5  # default version
     maxSdk: null  # default
     minSdk: 24  # default
     namespace: null  # default, from ${applicationId}
@@ -704,6 +720,14 @@ settings@android:
       apiLevel: 37  # default
       minorApiLevel: 0  # default
       sdkExtension: null  # default
+    desugaring:
+      enabled: false  # default
+      library:
+        artifactId: desugar_jdk_libs  # default
+        classifier: null  # default
+        groupId: com.android.tools  # default
+        packagingType: null  # default
+        version: 2.1.5  # default version
     maxSdk: null  # default
     minSdk: 24  # default
     namespace: null  # default, from ${applicationId}

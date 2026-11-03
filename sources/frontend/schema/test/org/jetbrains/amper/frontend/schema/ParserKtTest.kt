@@ -191,6 +191,31 @@ internal class ParserKtTest : FrontendTestCaseBase(Path("testResources") / "pars
     }
 
     @Test
+    fun `desugaring enabled`() {
+        aomTest("desugaring-enabled")
+    }
+
+    @Test
+    fun `desugaring options`() {
+        aomTest("desugaring-options")
+    }
+
+    @Test
+    fun `desugaring library without version`() {
+        aomTest("desugaring-library-no-version")
+    }
+
+    @Test
+    fun `desugaring in android fragment settings`() {
+        aomTest("desugaring-android-fragment")
+    }
+
+    @Test
+    fun `desugaring library in android fragment settings`() {
+        aomTest("desugaring-fragment-library")
+    }
+
+    @Test
     fun `test with android version override`() {
         aomTest("overriding-android-sdk-compile-version", expectedError = "Version for `compileSdk` (27) should be at least `minSdk` version (30)")
     }

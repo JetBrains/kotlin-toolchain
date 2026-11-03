@@ -1,0 +1,3 @@
+[libraries]
+desugar-libs = "com.android.tools:desugar_jdk_libs_nio:2.0.3"
+desugar-libs-no-version = { module = "com.android.tools:desugar_jdk_libs" }

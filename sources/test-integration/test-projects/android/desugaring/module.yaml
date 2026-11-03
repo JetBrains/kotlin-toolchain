@@ -1,0 +1,15 @@
+product: android/app
+
+settings:
+  android:
+    applicationId: com.jetbrains.sample.app
+    # The explicit library without a version exercises the notation and its version default end-to-end.
+    desugaring:
+      enabled: true
+      library: com.android.tools:desugar_jdk_libs
+
+dependencies:
+  - androidx.appcompat:appcompat:1.6.1
+  # Its AAR metadata requires core library desugaring (and desugar_jdk_libs 2.1.3 or above),
+  # so the build fails unless the desugaring setting is passed to AGP.
+  - com.google.android.gms:play-services-nearby:19.4.0

@@ -33,6 +33,7 @@ import org.jetbrains.amper.frontend.diagnostics.TreeDiagnosticFactories
 import org.jetbrains.amper.frontend.diagnostics.UnresolvedModuleDependency
 import org.jetbrains.amper.frontend.plus
 import org.jetbrains.amper.frontend.processing.addImplicitDependencies
+import org.jetbrains.amper.frontend.processing.configureDesugaringDefaults
 import org.jetbrains.amper.frontend.processing.configureLombokDefaults
 import org.jetbrains.amper.frontend.processing.configurePluginDefaults
 import org.jetbrains.amper.frontend.processing.configureSpringBootDefaults
@@ -187,6 +188,7 @@ internal fun readModuleMergedTree(
         .substituteComposeOsSpecific()  // must be after catalog substitution
         .configureSpringBootDefaults(preProcessedCommonSettings.springBoot)
         .configureLombokDefaults(preProcessedCommonSettings.lombok)
+        .configureDesugaringDefaults(preProcessedCommonSettings.android.desugaring)
 
     // Create a common `Module` schema node needed later for `AmperModule` configuration.
     val processedCommonTree = refiner.refineTree(processedTree, setOf(moduleCtx))

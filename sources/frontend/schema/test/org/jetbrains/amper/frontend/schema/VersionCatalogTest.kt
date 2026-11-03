@@ -33,4 +33,20 @@ internal class VersionCatalogTest : FrontendTestCaseBase(Path("testResources") /
             projectVersionsCatalog = frontendPathResolver.parseGradleVersionCatalog(catalogFile)
         }
     }
+
+    @Test
+    fun `check desugaring library from version catalog`() {
+        aomTest("desugaring-catalog-library") {
+            val catalogFile = frontendPathResolver.loadVirtualFile(base / "desugaring-catalog.toml")
+            projectVersionsCatalog = frontendPathResolver.parseGradleVersionCatalog(catalogFile)
+        }
+    }
+
+    @Test
+    fun `check desugaring library from version catalog without version`() {
+        aomTest("desugaring-catalog-library-no-version") {
+            val catalogFile = frontendPathResolver.loadVirtualFile(base / "desugaring-catalog.toml")
+            projectVersionsCatalog = frontendPathResolver.parseGradleVersionCatalog(catalogFile)
+        }
+    }
 }

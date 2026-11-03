@@ -1,0 +1,65 @@
+Fragments:
+  main
+    External dependencies:
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+    Src folders:
+      src
+    Fragment dependencies:
+    Settings: {
+      android: {
+        applicationId: com.jetbrains.sample.app
+        desugaring: {
+          enabled: true
+          library: {
+            artifactId: desugar_jdk_libs
+            groupId: com.android.tools
+            version: <default> 2.1.5
+          }
+        }
+        namespace: <default> com.jetbrains.sample.app
+        targetSdk: <default> 37
+      }
+    }
+
+  test
+    External dependencies:
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-stdlib:2.4.20, trace=DefaultTrace, compile=true, runtime=true, exported=false)
+      MavenDependency(coordinates=org.jetbrains.kotlin:kotlin-test-junit5:2.4.20, trace=TransformedValueTrace(description=because the test engine is junit-5, sourceValue=SchemaValue(property = org.jetbrains.amper.frontend.schema.Settings.junit, value = JUNIT5), definitionTrace=DefaultTrace, precedingValue=null), compile=true, runtime=true, exported=false)
+    Src folders:
+      test
+    Fragment dependencies:
+      main (FRIEND)
+    Settings: {
+      android: {
+        applicationId: com.jetbrains.sample.app
+        desugaring: {
+          enabled: true
+          library: {
+            artifactId: desugar_jdk_libs
+            groupId: com.android.tools
+            version: <default> 2.1.5
+          }
+        }
+        namespace: <default> com.jetbrains.sample.app
+        targetSdk: <default> 37
+      }
+    }
+
+Artifacts:
+  isTest: false
+  [android]
+    Fragments:
+      main
+  isTest: true
+  [android]
+    Fragments:
+      test
+Repositories for resolution:
+  - id: mavenCentral
+    url: https://cache-redirector.jetbrains.com/kotlin/repo1.maven.org/maven2
+  - id: mavenGoogle
+    url: https://maven.google.com

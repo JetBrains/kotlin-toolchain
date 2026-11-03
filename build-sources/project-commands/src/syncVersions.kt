@@ -63,6 +63,7 @@ class VersionUpdater(val amperRootDir: Path) {
             text
                 .replaceDefaultVersionVariable(variableName = "androidBuildTools", newValue = defaultVersions.android.buildTools)
                 .replaceDefaultVersionIntVariable(variableName = "androidCompileApiLevel", newValue = defaultVersions.android.compileApiLevel)
+                .replaceDefaultVersionVariable(variableName = "androidDesugarJdkLibs", newValue = defaultVersions.android.desugarJdkLibs)
                 .replaceDefaultVersionIntVariable(variableName = "androidMinApiLevel", newValue = defaultVersions.android.minApiLevel)
                 .replaceDefaultVersionVariable(variableName = "compose", newValue = defaultVersions.compose)
                 .replaceDefaultVersionVariable(variableName = "composeHotReload", newValue = defaultVersions.composeHotReload)

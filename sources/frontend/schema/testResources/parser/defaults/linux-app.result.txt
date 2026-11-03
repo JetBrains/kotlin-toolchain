@@ -16,6 +16,16 @@ Fragments:
           minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
+        desugaring: <default> {
+          enabled: <default> false
+          library: <default> {
+            artifactId: <default> desugar_jdk_libs
+            classifier: <default> null
+            groupId: <default> com.android.tools
+            packagingType: <default> null
+            version: <default> 2.1.5
+          }
+        }
         maxSdk: <default> null
         minSdk: <default> 24
         namespace: <default> null
@@ -218,6 +228,16 @@ Fragments:
           minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
+        desugaring: <default> {
+          enabled: <default> false
+          library: <default> {
+            artifactId: <default> desugar_jdk_libs
+            classifier: <default> null
+            groupId: <default> com.android.tools
+            packagingType: <default> null
+            version: <default> 2.1.5
+          }
+        }
         maxSdk: <default> null
         minSdk: <default> 24
         namespace: <default> null
@@ -418,6 +438,16 @@ Fragments:
           minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
+        desugaring: <default> {
+          enabled: <default> false
+          library: <default> {
+            artifactId: <default> desugar_jdk_libs
+            classifier: <default> null
+            groupId: <default> com.android.tools
+            packagingType: <default> null
+            version: <default> 2.1.5
+          }
+        }
         maxSdk: <default> null
         minSdk: <default> 24
         namespace: <default> null
@@ -617,6 +647,16 @@ Fragments:
           apiLevel: <default> 37
           minorApiLevel: <default> 0
           sdkExtension: <default> null
+        }
+        desugaring: <default> {
+          enabled: <default> false
+          library: <default> {
+            artifactId: <default> desugar_jdk_libs
+            classifier: <default> null
+            groupId: <default> com.android.tools
+            packagingType: <default> null
+            version: <default> 2.1.5
+          }
         }
         maxSdk: <default> null
         minSdk: <default> 24
@@ -821,6 +861,16 @@ Fragments:
           minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
+        desugaring: <default> {
+          enabled: <default> false
+          library: <default> {
+            artifactId: <default> desugar_jdk_libs
+            classifier: <default> null
+            groupId: <default> com.android.tools
+            packagingType: <default> null
+            version: <default> 2.1.5
+          }
+        }
         maxSdk: <default> null
         minSdk: <default> 24
         namespace: <default> null
@@ -1024,6 +1074,16 @@ Fragments:
           minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
+        desugaring: <default> {
+          enabled: <default> false
+          library: <default> {
+            artifactId: <default> desugar_jdk_libs
+            classifier: <default> null
+            groupId: <default> com.android.tools
+            packagingType: <default> null
+            version: <default> 2.1.5
+          }
+        }
         maxSdk: <default> null
         minSdk: <default> 24
         namespace: <default> null
@@ -1223,6 +1283,16 @@ Fragments:
           apiLevel: <default> 37
           minorApiLevel: <default> 0
           sdkExtension: <default> null
+        }
+        desugaring: <default> {
+          enabled: <default> false
+          library: <default> {
+            artifactId: <default> desugar_jdk_libs
+            classifier: <default> null
+            groupId: <default> com.android.tools
+            packagingType: <default> null
+            version: <default> 2.1.5
+          }
         }
         maxSdk: <default> null
         minSdk: <default> 24
@@ -1427,6 +1497,16 @@ Fragments:
           minorApiLevel: <default> 0
           sdkExtension: <default> null
         }
+        desugaring: <default> {
+          enabled: <default> false
+          library: <default> {
+            artifactId: <default> desugar_jdk_libs
+            classifier: <default> null
+            groupId: <default> com.android.tools
+            packagingType: <default> null
+            version: <default> 2.1.5
+          }
+        }
         maxSdk: <default> null
         minSdk: <default> 24
         namespace: <default> null
@@ -1626,6 +1706,16 @@ Fragments:
           apiLevel: <default> 37
           minorApiLevel: <default> 0
           sdkExtension: <default> null
+        }
+        desugaring: <default> {
+          enabled: <default> false
+          library: <default> {
+            artifactId: <default> desugar_jdk_libs
+            classifier: <default> null
+            groupId: <default> com.android.tools
+            packagingType: <default> null
+            version: <default> 2.1.5
+          }
         }
         maxSdk: <default> null
         minSdk: <default> 24
@@ -1829,6 +1919,16 @@ Fragments:
           apiLevel: <default> 37
           minorApiLevel: <default> 0
           sdkExtension: <default> null
+        }
+        desugaring: <default> {
+          enabled: <default> false
+          library: <default> {
+            artifactId: <default> desugar_jdk_libs
+            classifier: <default> null
+            groupId: <default> com.android.tools
+            packagingType: <default> null
+            version: <default> 2.1.5
+          }
         }
         maxSdk: <default> null
         minSdk: <default> 24

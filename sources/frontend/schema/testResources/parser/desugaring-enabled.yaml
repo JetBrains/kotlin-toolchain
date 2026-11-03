@@ -1,0 +1,6 @@
+product: android/app
+
+settings:
+  android:
+    applicationId: com.jetbrains.sample.app
+    desugaring: enabled

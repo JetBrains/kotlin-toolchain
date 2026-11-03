@@ -111,6 +111,11 @@ class AndroidSettings : SchemaNode() {
             "implement the `Parcelable` interface for classes annotated with `@Parcelize`.")
     val parcelize: ParcelizeSettings by nested()
 
+    @SchemaDoc("Configure [core library desugaring](https://developer.android.com/studio/write/java8-support) " +
+            "to use Java 8+ APIs, such as `java.time`, on older Android versions. " +
+            "For libraries, enabling it declares the desugaring requirement for the applications that consume them.")
+    val desugaring: DesugaringSettings by nested()
+
     // The default should be at least as high as the minimal version supported by the AGP we use:
     // https://developer.android.com/build/releases/gradle-plugin (see SDK Build Tools Minimum version field)
     @SchemaDoc("Version of [SDK Build Tools](https://developer.android.com/tools/releases/build-tools) to use.")
@@ -168,6 +173,35 @@ class ParcelizeSettings : SchemaNode() {
             "add its fully-qualified name here so that Parcelize recognizes it.")
     val additionalAnnotations: List<TraceableString> by value(default = emptyList())
 }
+
+class DesugaringSettings : SchemaNode() {
+
+    @Shorthand
+    @SchemaDoc("Enables core library desugaring. When enabled, Java 8+ APIs, such as `java.time`, " +
+            "can be used on Android versions that don't support them natively.")
+    val enabled by value(default = false)
+
+    @SchemaDoc("The [desugar_jdk_libs](https://github.com/google/desugar_jdk_libs) library that provides " +
+            "implementations of the desugared APIs, in the `groupId:artifactId[:version]` Maven coordinates, " +
+            "or a catalog reference. The set of the desugared APIs is selected by the artifact: " +
+            "`desugar_jdk_libs`, `desugar_jdk_libs_minimal`, or `desugar_jdk_libs_nio`. " +
+            "An omitted version or library defaults to `com.android.tools:desugar_jdk_libs` " +
+            "with the default version of the toolchain. " +
+            "[Read more](https://d.android.com/r/tools/api-desugaring-flavors)")
+    val library by nullableValue<UnscopedExternalDependency>()
+}
+
+/**
+ * The Maven coordinates of the desugaring library recorded in the AAR metadata of desugared libraries.
+ */
+val DesugaringSettings.desugarJdkLibsCoordinates: String
+    get() = when (val library = library) {
+        is UnscopedExternalMavenDependency -> library.coordinates
+        // The library and its version are defaulted by the frontend, so both branches below are not reachable
+        // for a normally processed module.
+        is UnscopedCatalogDependency -> error("Catalog dependencies should be substituted earlier")
+        null -> error("The desugaring library should have been defaulted by the frontend")
+    }
 
 class AndroidJavaResourcesPackagingSettings : SchemaNode() {
     @SchemaDoc("The set of excluded patterns. " +

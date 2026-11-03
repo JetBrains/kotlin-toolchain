@@ -106,6 +106,56 @@ class AndroidProjectsTest : CliTestBase() {
         assertClassContainsInApk("Lcom/netease/nrtc/engine/rawapi/RtcConfig;", apkPath)
     }
 
+    /**
+     * The project enables core library desugaring and depends on play-services-nearby, whose AAR metadata requires
+     * desugaring, so the build fails unless the setting reaches the delegated AGP build (KTC-6110).
+     */
+    @Test
+    fun `desugared classes are packaged into the apk`() = runSlowTest {
+        val taskName = ":desugaring:buildAndroidDebug"
+        val result = runCli(
+            projectDir = testProject("android/desugaring"),
+            "task", taskName,
+            configureAndroidHome = true,
+        )
+        val apkPath = result.getArtifactPath(taskName)
+        // java.time references are rewritten by D8 to the j$/time classes of the desugared library,
+        // which AGP packages as a separate dex only when desugaring is enabled.
+        assertClassContainsInApk("Lj\$/time/LocalDate;", apkPath)
+    }
+
+    /**
+     * The library requires core library desugaring, which must be recorded in its AAR metadata, so AGP rejects
+     * applications that consume the library without enabling desugaring themselves.
+     */
+    @Test
+    fun `library desugaring requirement is propagated to the app`() = runSlowTest {
+        val taskName = ":app:buildAndroidDebug"
+        val failedResult = runCli(
+            projectDir = testProject("android/desugaring-library"),
+            "task", taskName,
+            configureAndroidHome = true,
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+        failedResult.assertStderrContains("requires core library desugaring to be enabled")
+
+        val appModuleYaml = failedResult.projectDir / "app" / "module.yaml"
+        appModuleYaml.writeText(
+            appModuleYaml.readText().replace(
+                "applicationId: com.jetbrains.sample.app",
+                "applicationId: com.jetbrains.sample.app\n    desugaring: enabled",
+            )
+        )
+
+        val result = runCli(
+            projectDir = failedResult.projectDir,
+            "task", taskName,
+            configureAndroidHome = true,
+        )
+        assertClassContainsInApk("Lj\$/time/LocalDate;", result.getArtifactPath(taskName))
+    }
+
     @Test
     fun `appcompat compiles successfully and contains dependencies`() = runSlowTest {
         val taskName = ":appcompat:buildAndroidDebug"

@@ -1,0 +1,7 @@
+product:
+  type: kmp/lib
+  platforms: [android]
+
+settings:
+  android:
+    desugaring: enabled

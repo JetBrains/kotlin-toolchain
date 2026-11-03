@@ -40,6 +40,9 @@ plugins:
           # There is also this link: https://developer.android.com/tools/releases/platforms, however, it seems to be updated with a delay
           # It might be worth also checking https://apilevels.com/ for the latest stable.
           compileApiLevel: 37
+          # https://github.com/google/desugar_jdk_libs/blob/master/CHANGELOG.md
+          # The desugar library spec format must be supported by the D8 version bundled with our AGP (see 'agp' in libs.versions.toml).
+          desugarJdkLibs: 2.1.5
           # https://apilevels.com/ or Android Studio Project wizard should be consulted to choose the default.
           # Also, you might refer to [com.android.sdklib.SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION].
           minApiLevel: 24

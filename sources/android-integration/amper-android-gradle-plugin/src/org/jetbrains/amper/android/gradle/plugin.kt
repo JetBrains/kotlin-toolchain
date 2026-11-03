@@ -29,9 +29,11 @@ import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.LocalModuleDependency
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.frontend.aomBuilder.GOOGLE_REPOSITORY_URL
 import org.jetbrains.amper.frontend.aomBuilder.readProjectModel
 import org.jetbrains.amper.frontend.project.AmperProjectContext
 import org.jetbrains.amper.frontend.schema.ProductType
+import org.jetbrains.amper.frontend.schema.desugarJdkLibsCoordinates
 import org.jetbrains.amper.frontend.schema.effectiveNamespace
 import org.jetbrains.amper.frontend.schema.keyAlias
 import org.jetbrains.amper.frontend.schema.keyPassword
@@ -108,6 +110,8 @@ val AmperModule.buildDir: Path get() = buildFile.parent
 
 private const val SIGNING_CONFIG_NAME = "sign"
 
+private const val CORE_LIBRARY_DESUGARING_CONFIGURATION = "coreLibraryDesugaring"
+
 /**
  * AGP's `onVariants` callback delivers either the real variant (which implements [ComponentCreationConfig]) or, when
  * Gradle build profiling is enabled, an [AnalyticsEnabledComponent] wrapper around it. Unwrap to reach AGP's internal
@@ -122,7 +126,16 @@ class AmperAndroidIntegrationProjectPlugin @Inject constructor(private val probl
         val rootProjectBuildDir = project.rootProject.layout.buildDirectory.asFile.get().toPath()
         val buildDir = rootProjectBuildDir / project.path.replace(":", "_")
         project.layout.buildDirectory.set(buildDir.toFile())
-        project.repositories.google()
+
+        if (!GOOGLE_REPOSITORY_URL.isDefaultUrl) {
+            project.repositories.maven { repo ->
+                repo.name = "Maven Google (proxy)"
+                repo.setUrl(GOOGLE_REPOSITORY_URL.url)
+            }
+        } else {
+            project.repositories.google()
+        }
+
         if (!MavenCentralDefaultConfiguration.isDefaultUrl) {
             project.repositories.maven { repo ->
                 repo.name = "Maven Central (proxy)"
@@ -206,6 +219,17 @@ class AmperAndroidIntegrationProjectPlugin @Inject constructor(private val probl
             ndk.abiFilters.addAll(androidSettings.abiFilters.map { it.value })
         }
         androidExtension.namespace = androidSettings.effectiveNamespace(module)
+
+        val desugaring = androidSettings.desugaring
+        if (desugaring.enabled) {
+            androidExtension.compileOptions.isCoreLibraryDesugaringEnabled = true
+            // The desugared library is consumed by AGP's dexing from a dedicated configuration, not from the
+            // regular classpaths, which is why it has no dependency in the DSL and is declared here instead.
+            project.dependencies.add(
+                CORE_LIBRARY_DESUGARING_CONFIGURATION,
+                desugaring.desugarJdkLibsCoordinates,
+            )
+        }
 
         androidExtension.packaging.resources {
             val resourcePackaging = androidSettings.resourcePackaging

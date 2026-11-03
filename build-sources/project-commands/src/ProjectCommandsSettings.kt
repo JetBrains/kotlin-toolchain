@@ -65,5 +65,6 @@ interface DefaultVersions {
 interface AndroidVersions {
     val buildTools: String
     val compileApiLevel: Int
+    val desugarJdkLibs: String
     val minApiLevel: Int
 }

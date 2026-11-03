@@ -1,0 +1,8 @@
+product: android/app
+
+settings:
+  android:
+    applicationId: com.jetbrains.sample.app
+    desugaring:
+      enabled: true
+      library: com.android.tools:desugar_jdk_libs_nio:2.0.3

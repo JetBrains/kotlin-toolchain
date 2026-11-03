@@ -22,7 +22,7 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.system.info.SystemInfo
 import java.nio.file.Path
 
-val GOOGLE_REPOSITORY = MavenRepository(GOOGLE_REPOSITORY_URL)
+val GOOGLE_REPOSITORY = MavenRepository(GOOGLE_REPOSITORY_URL.url)
 val AMPER_DEV_REPOSITORY = MavenRepository(KOTLIN_TOOLCHAIN_REPOSITORY_URL)
 
 class ToolingArtifactsDownloader(

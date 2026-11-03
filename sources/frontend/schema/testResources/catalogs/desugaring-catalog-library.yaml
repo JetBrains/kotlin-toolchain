@@ -1,0 +1,8 @@
+product: android/app
+
+settings:
+  android:
+    applicationId: com.example.app
+    desugaring:
+      enabled: true
+      library: $libs.desugar.libs

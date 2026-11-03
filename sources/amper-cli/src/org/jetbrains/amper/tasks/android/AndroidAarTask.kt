@@ -13,6 +13,7 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.schema.ProductType
+import org.jetbrains.amper.frontend.schema.desugarJdkLibsCoordinates
 import org.jetbrains.amper.frontend.schema.effectiveNamespace
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jar.ZipInput
@@ -97,6 +98,7 @@ internal class AndroidAarTask(
         } else {
             androidSettings.effectiveNamespace(module)
         }
+        val desugaring = androidSettings.desugaring
         val inputValues = mapOf(
             "outputPath" to outputAarPath.pathString,
             "requiredPackagingDirs" to Json.encodeToString(
@@ -105,6 +107,7 @@ internal class AndroidAarTask(
             "android.minSdk" to androidSettings.minSdk.toString(),
             "android.targetSdk" to androidSettings.targetSdk.toString(),
             "android.namespace" to namespace,
+            "android.desugaring" to "${desugaring.enabled}:${desugaring.desugarJdkLibsCoordinates}",
         )
         incrementalCache.execute(taskName.id.value, inputValues, inputFiles) {
             outputAarPath.deleteIfExists()
@@ -123,6 +126,26 @@ internal class AndroidAarTask(
                         </manifest>
                     """.trimIndent()
                 )
+                val aarMetadataFile = if (module.type != ProductType.ANDROID_APP && desugaring.enabled) {
+                    // The metadata makes AGP enforce the desugaring requirement in the applications that consume
+                    // this AAR. The properties mirror the ones AGP writes for its own libraries. The AGP floor is
+                    // the oldest version that enforces the desugar_jdk_libs checks (8.3.0); older versions ignore them.
+                    (tempDir / "aar-metadata.properties").apply {
+                        writeText(
+                            """
+                                aarFormatVersion=1.0
+                                aarMetadataVersion=1.0
+                                minCompileSdk=${androidSettings.compileSdk.apiLevel.versionNumber}
+                                minCompileSdkExtension=${androidSettings.compileSdk.sdkExtension ?: 0}
+                                minAndroidGradlePluginVersion=8.3.0
+                                coreLibraryDesugaringEnabled=true
+                                desugarJdkLib=${desugaring.desugarJdkLibsCoordinates}
+                            """.trimIndent()
+                        )
+                    }
+                } else {
+                    null
+                }
                 val assetsDir = Path("assets")
                 outputAarPath.writeZip(
                     inputs = buildList {
@@ -134,6 +157,12 @@ internal class AndroidAarTask(
                             path = manifestStubFile,
                             destPathInArchive = manifestStubFile.fileName,
                         )
+                        aarMetadataFile?.let { file ->
+                            this += ZipInput(
+                                path = file,
+                                destPathInArchive = Path("META-INF/com/android/build/gradle/aar-metadata.properties"),
+                            )
+                        }
                         additionalAssets.forEach { asset ->
                             asset.assetsRoots.forEach { assetsRoot ->
                                 this += ZipInput(
