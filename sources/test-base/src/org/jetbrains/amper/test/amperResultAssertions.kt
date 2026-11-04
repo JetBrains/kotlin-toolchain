@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.cli.test.utils
@@ -8,6 +8,7 @@ import org.jetbrains.amper.test.AmperCliResult
 import org.slf4j.event.Level
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 fun AmperCliResult.assertSomeStdoutLineContains(text: String) {
@@ -43,6 +44,12 @@ fun AmperCliResult.assertStderrContains(text: String) {
     assertTrue("Stderr does not contain the text '$text':\n" + stderr.trim()) {
         text in stderr
     }
+}
+
+fun AmperCliResult.assertStderrContains(regex: Regex): MatchResult {
+    val match = regex.find(stderr)
+    assertNotNull(match, "Stderr does not contain the pattern '${regex.pattern}':\n" + stderr.trim())
+    return match
 }
 
 fun AmperCliResult.assertStderrDoesNotContain(text: String) {

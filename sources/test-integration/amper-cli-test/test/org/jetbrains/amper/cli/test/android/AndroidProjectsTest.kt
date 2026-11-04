@@ -197,31 +197,33 @@ class AndroidProjectsTest : CliTestBase() {
             assertEmptyStdErr = false,
         )
 
-        if ("preview" in result.stderr) {
-            // As we fetch the latest cmdline-tools, we might get preview license for it.
-            val expectedError = unacceptedLicenseMessage(
-                mapOf(
-                    "android-sdk-license" to ["build-tools;37.0.0", "platform-tools", "platforms;android-37.0"],
-                    "android-sdk-preview-license" to ["cmdline-tools;latest"]
-                )
-            )
-            result.assertStderrContains(expectedError)
-        } else {
-            val expectedError = unacceptedLicenseMessage(
-                mapOf("android-sdk-license" to ["build-tools;37.0.0", "cmdline-tools;latest", "platform-tools", "platforms;android-37.0"])
-            )
-            result.assertStderrContains(expectedError)
-        }
+        val match = result.assertStderrContains(unacceptedLicensesErrorMessage)
+        val unacceptedLicenses = unacceptedLicenseLine.findAll(match.value)
+            .flatMap { match ->
+                val licenseName = match.groups["licenseName"]!!.value
+                match.groups["packages"]!!.value.split(", ").map {
+                    UnacceptedLicense(licenseName, it)
+                }
+            }
+            .toList()
+
+        // There could also be "android-sdk-preview-license" sometimes if some components become preview,
+        // This is why we don't check too strictly here.
+        assertContains(unacceptedLicenses.map { it.licenseName }, "android-sdk-license")
+
+        val expectedComponents = [
+            "build-tools;37.0.0",
+            "cmdline-tools;latest",
+            "platform-tools",
+            "platforms;android-37.0",
+        ]
+        assertEquals(unacceptedLicenses.map { it.requiredBy }.sorted(), expectedComponents)
     }
 
-    private fun unacceptedLicenseMessage(licenseMap: Map<String, List<String>>) = buildString {
-        appendLine("ERROR: Some licenses have not been accepted in the Android SDK:")
-        for ([licenseKey, packages] in licenseMap) {
-            appendLine(" • $licenseKey (required by: $packages)")
-        }
-        appendLine()
-        append("These licenses are required to proceed with the command.")
-    }
+    private val unacceptedLicenseLine = Regex("""• (?<licenseName>\S+) \(required by: \[(?<packages>[^]]+)]\)""")
+    private val unacceptedLicensesErrorMessage = Regex("""ERROR: Some licenses have not been accepted in the Android SDK:\s+(${unacceptedLicenseLine.pattern}\s+)+These licenses are required to proceed with the command.""")
+
+    private data class UnacceptedLicense(val licenseName: String, val requiredBy: String)
 
     @Test
     fun `bundle without signing enabled has no signature`() = runSlowTest {
