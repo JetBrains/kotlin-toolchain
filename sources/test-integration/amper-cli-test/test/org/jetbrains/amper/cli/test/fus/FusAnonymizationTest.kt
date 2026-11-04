@@ -82,9 +82,11 @@ class FusAnonymizationTest : AbstractFusEventsTest() {
         val result = runCliWithFus(
             testProject("jvm-hello-world"), "show", "modules",
             sharedCacheDir = newIsolatedFusCacheDir(),
+            consent = TestConsent.Rejected,
         )
 
-        val sent = result.validatedFusEvents.assertSingle("ktc.anonymous.consent.state")
+        // we check reported events, not validated, because even at the report level the IDs shouldn't be present
+        val sent = result.reportedFusEvents.assertSingle("ktc.anonymous.consent.state")
         // The machine ID is a required field, so the CLI reports the same constant for everyone. Anonymizing it here
         // would turn it back into a per-user value and defeat its purpose, hence the 'skipAnonymizationIds' setting.
         assertEquals(
