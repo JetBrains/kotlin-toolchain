@@ -215,7 +215,7 @@ private fun Fragment.calculateImplicitDependencies(): List<MavenDependencyBase> 
             dependencyTrace = jsPlainObjectsDependencyTrace,
         ))
     }
-    if (settings.kotlin.powerAssert.enabled) {
+    if (settings.kotlin.powerAssert.enabled && settings.kotlin.version.requiresPowerAssertRuntime()) {
         val powerAssertDependencyTrace = TransformedValueTrace(
             description = "because PowerAssert is enabled",
             sourceValue = settings.kotlin.powerAssert.enabledDelegate,

@@ -119,6 +119,11 @@ value class KotlinVersion(
      */
     fun supportsGroupQualifiedJvmModuleName(): Boolean = this >= firstWithSanitizedJvmModuleFileName
 
+    /**
+     * Whether this version requires injecting `kotlin-power-assert-runtime`
+     */
+    fun requiresPowerAssertRuntime(): Boolean = this >= firstWithPowerAssertRuntime
+
     companion object {
         private val firstWithSanitizedJvmModuleFileName = KotlinVersion("2.4.0-Beta2") // See KT-82216
         private val minBtaImplWithoutCompatibilityModule = KotlinVersion("2.3.0")
@@ -130,5 +135,6 @@ value class KotlinVersion(
         private val firstSupportingSpacesOnLinux = KotlinVersion("2.4.20-Beta2") // See KT-86824
         private val firstSupportingNativeDependenciesCaching = KotlinVersion("2.4.20-RC2") // See KT-88316
         private val firstWithPackedKlibByDefaultForWeb = KotlinVersion("2.4.20")
+        private val firstWithPowerAssertRuntime = KotlinVersion("2.4.0")
     }
 }
