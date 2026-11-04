@@ -70,7 +70,7 @@ internal fun JetBrainsConsent.readFlag(id: String): ConsentFlag? = readFlags()?.
  * The [consentBannerVersion] should match the version of the consent banner that was shown to the user.
  */
 internal fun JetBrainsConsent.writeFlag(id: String, consentBannerVersion: String, state: ConsentState) {
-    val oldFlags = readFlags() ?: return
+    val oldFlags = readFlags() ?: []
     val flagsMap = oldFlags.associateByTo(mutableMapOf()) { it.id }
     flagsMap[id] = ConsentFlag(id, consentBannerVersion, state, System.currentTimeMillis())
     writeFlags(flagsMap.values)
