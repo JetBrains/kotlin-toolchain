@@ -6,6 +6,7 @@ package org.jetbrains.amper.fus.consent
 
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
+import org.jetbrains.amper.system.info.getSharedUserAppDataRoot
 
 /**
  * Gives access to the state of the Feature Usage Statistics (FUS) collection consent given by the user.
@@ -40,7 +41,7 @@ object FusConsent {
         os: OsFamily = SystemInfo.CurrentHost.family,
         prompt: () -> ConsentState? = { null },
     ): ConsentState? {
-        val jetBrainsConsent = JetBrainsConsent(os)
+        val jetBrainsConsent = jetBrainsConsent(os)
         val fusFlag = jetBrainsConsent.readFlag(ConsentFlag.FUS_ID)
 
         // We accept existing consent of our own version or other 1.x consent banners, in case minor changes are made
@@ -57,6 +58,8 @@ object FusConsent {
      * Sets the consent flag for FUS collection to the given [state].
      */
     fun setState(state: ConsentState, os: OsFamily = SystemInfo.CurrentHost.family) {
-        JetBrainsConsent(os).writeFlag(ConsentFlag.FUS_ID, consentBannerVersion = BANNER_VERSION, state = state)
+        jetBrainsConsent(os).writeFlag(ConsentFlag.FUS_ID, consentBannerVersion = BANNER_VERSION, state = state)
     }
+
+    private fun jetBrainsConsent(os: OsFamily): JetBrainsConsent = JetBrainsConsent(os.getSharedUserAppDataRoot())
 }

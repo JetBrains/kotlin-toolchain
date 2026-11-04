@@ -4,9 +4,6 @@
 
 package org.jetbrains.amper.fus.consent
 
-import org.jetbrains.amper.system.info.OsFamily
-import org.jetbrains.amper.system.info.SystemInfo
-import org.jetbrains.amper.system.info.getSharedUserAppDataRoot
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.file.Path
@@ -21,7 +18,7 @@ private val logger = LoggerFactory.getLogger("FUS-consent")
 /**
  * Provides access to the data-sharing consent file shared by all JetBrains products.
  */
-internal class JetBrainsConsent(os: OsFamily = SystemInfo.CurrentHost.family) {
+internal class JetBrainsConsent(sharedAppDataDir: Path) {
 
     /**
      * The data-sharing consent file shared by all JetBrains products.
@@ -29,7 +26,7 @@ internal class JetBrainsConsent(os: OsFamily = SystemInfo.CurrentHost.family) {
      * See `com.intellij.ide.gdpr.ConsentOptions.getConfirmedConsentsFile` in the monorepo.
      * https://github.com/JetBrains/intellij-community/blob/4af2a7334574fc190881928c0f0a82cb2ff59223/platform/platform-impl/src/com/intellij/ide/gdpr/ConsentOptions.java#L79-L81
      */
-    private val dataSharingConsentFile: Path = os.getSharedUserAppDataRoot() / "JetBrains/consentOptions/accepted"
+    private val dataSharingConsentFile: Path = sharedAppDataDir / "JetBrains/consentOptions/accepted"
 
     /**
      * Reads the consent flags from the consent file shared by all JetBrains products,
@@ -65,15 +62,20 @@ internal class JetBrainsConsent(os: OsFamily = SystemInfo.CurrentHost.family) {
 internal fun JetBrainsConsent.readFlag(id: String): ConsentFlag? = readFlags()?.find { id == it.id }
 
 /**
- * Writes (or overwrites) the consent state for the flag with the given [id],
+ * Writes (or overwrites) the consent [state] for the flag with the given [id],
  * creating the consent file if it doesn't exist.
  *
  * The [consentBannerVersion] should match the version of the consent banner that was shown to the user.
  */
-internal fun JetBrainsConsent.writeFlag(id: String, consentBannerVersion: String, state: ConsentState) {
+internal fun JetBrainsConsent.writeFlag(
+    id: String,
+    consentBannerVersion: String,
+    state: ConsentState,
+    timestamp: Long = System.currentTimeMillis(),
+) {
     val oldFlags = readFlags() ?: []
     val flagsMap = oldFlags.associateByTo(mutableMapOf()) { it.id }
-    flagsMap[id] = ConsentFlag(id, consentBannerVersion, state, System.currentTimeMillis())
+    flagsMap[id] = ConsentFlag(id, consentBannerVersion, state, timestamp)
     writeFlags(flagsMap.values)
 }
 
