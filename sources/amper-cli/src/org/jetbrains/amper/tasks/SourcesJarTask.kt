@@ -11,6 +11,9 @@ import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jar.JarConfig
 import org.jetbrains.amper.jar.ZipInput
 import org.jetbrains.amper.problems.reporting.ProblemReporter
+import org.jetbrains.amper.tasks.artifacts.KotlinJavaSourceDirArtifact
+import org.jetbrains.amper.tasks.artifacts.Selectors
+import org.jetbrains.amper.tasks.artifacts.api.Quantifier
 import org.jetbrains.amper.tasks.metadata.sourceSetName
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -28,18 +31,31 @@ class SourcesJarTask(
     incrementalCache: IncrementalCache,
 ) : AbstractJarTask(taskName, incrementalCache) {
 
+    private val generatedSourceDirs by Selectors.fromMatchingFragments(
+        type = KotlinJavaSourceDirArtifact::class,
+        module = module,
+        isTest = false,
+        hasPlatforms = setOf(platform),
+        quantifier = Quantifier.AnyOrNone,
+    )
+
     context(_: ProblemReporter)
-    override suspend fun assembleInputDirs(dependenciesResult: List<TaskResult>): List<ZipInput> =
-        module.fragments
+    override suspend fun assembleInputDirs(dependenciesResult: List<TaskResult>): List<ZipInput> {
+        val generatedRootsByFragment = generatedSourceDirs.groupBy { it.fragment }
+        return module.fragments
             .asSequence()
             .filter { !it.isTest && platform in it.platforms }
             .sortedBy { it.name }
             // To match current KMP publications, sources for common should be in "/commonMain", jvm in "/jvmMain" etc.
             // TODO check whether this is necessary, or if using the src directory name would be understood by IDEs
             // TODO: Migrate to KotlinJavaSourcesDirArtifact
-            .flatMap { f -> f.sourceRoots.map { ZipInput(path = it, destPathInArchive = Path(f.sourceSetName())) } }
+            .flatMap { f ->
+                val generatedRoots = generatedRootsByFragment[f].orEmpty().map { it.path }
+                (f.sourceRoots + generatedRoots).distinct().map { ZipInput(path = it, destPathInArchive = Path(f.sourceSetName())) }
+            }
             .filter { it.path.exists() }
             .toList()
+    }
 
     // Matches the current format of KMP jar publications from the KMP Gradle plugin (except for the version)
     // TODO add version here?

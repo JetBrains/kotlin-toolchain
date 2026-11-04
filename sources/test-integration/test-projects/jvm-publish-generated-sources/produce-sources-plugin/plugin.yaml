@@ -1,0 +1,10 @@
+tasks:
+  produceSources:
+    action: !com.example.amper.plugin.produce_sources.produce
+      kotlin: ${taskOutputDir}/kotlin
+      resources: ${taskOutputDir}/resources
+
+generated:
+  sources:
+    - language: kotlin
+      directory: ${tasks.produceSources.action.kotlin}

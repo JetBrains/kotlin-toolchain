@@ -1,0 +1,17 @@
+product: jvm/lib
+
+plugins:
+  produce-sources-plugin: enabled
+
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    resolve: false
+    publish: true
+
+settings:
+  publishing:
+    enabled: true
+    publishSources: true
+    group: "amper.test.jvm-publish-generated-sources"
+    version: "1.0"

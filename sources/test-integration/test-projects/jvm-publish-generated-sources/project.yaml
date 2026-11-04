@@ -1,0 +1,6 @@
+modules:
+  - lib
+  - produce-sources-plugin
+
+plugins:
+  - produce-sources-plugin

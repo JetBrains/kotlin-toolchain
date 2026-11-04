@@ -13,6 +13,7 @@ import org.jetbrains.amper.jar.JarConfig
 import org.jetbrains.amper.jar.ZipInput
 import org.jetbrains.amper.jar.writeJar
 import org.jetbrains.amper.problems.reporting.ProblemReporter
+import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import java.nio.file.Path
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.pathString
@@ -20,7 +21,7 @@ import kotlin.io.path.pathString
 abstract class AbstractJarTask(
     override val taskName: TaskName,
     private val incrementalCache: IncrementalCache,
-) : Task {
+) : ArtifactTaskBase() {
 
     context(_: ProblemReporter)
     protected abstract suspend fun assembleInputDirs(dependenciesResult: List<TaskResult>): List<ZipInput>
