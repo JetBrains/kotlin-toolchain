@@ -4,20 +4,20 @@
 
 package org.jetbrains.amper.fus.userid
 
+import org.jetbrains.amper.apple.ffm.CoreFoundation
+import org.jetbrains.amper.apple.ffm.CoreFoundation.KCF_STRING_ENCODING_UTF8
+import org.jetbrains.amper.apple.ffm.IOKit
+import org.jetbrains.amper.apple.ffm.withCFString
+import org.jetbrains.amper.apple.ffm.withService
 import java.lang.foreign.Arena
-import java.lang.foreign.FunctionDescriptor
-import java.lang.foreign.Linker
 import java.lang.foreign.MemorySegment
-import java.lang.foreign.SymbolLookup
-import java.lang.foreign.ValueLayout.*
-import java.lang.invoke.MethodHandle
 
 /**
  * The macOS machine id, read from the I/O Registry with IOKit and CoreFoundation downcalls.
  * The first call loads both frameworks.
  */
 internal object MacOSMachineId {
-    private const val KCF_STRING_ENCODING_UTF8 = 0x08000100
+
     private const val UUID_BUFFER_SIZE: Long = 256
 
     /**
@@ -27,95 +27,25 @@ internal object MacOSMachineId {
      */
     fun findUuid(): String? {
         Arena.ofConfined().use { arena ->
-            // IOServiceGetMatchingService consumes one reference of the matching dictionary.
-            val serviceName = arena.allocateFrom("IOPlatformExpertDevice")
-            val serviceMatching = IOKit.IOServiceMatching.invokeExact(serviceName) as MemorySegment?
-            val service = IOKit.IOServiceGetMatchingService.invokeExact(0, serviceMatching) as Int
-            if (service == 0) {
-                return null
-            }
-            try {
-                val key = CoreFoundation.CFStringCreateWithCString.invokeExact(
-                    MemorySegment.NULL, arena.allocateFrom("IOPlatformUUID"), KCF_STRING_ENCODING_UTF8
-                ) as MemorySegment?
-                try {
-                    val uuid = IOKit.IORegistryEntryCreateCFProperty.invokeExact(
-                        service,
-                        key,
-                        MemorySegment.NULL,
-                        0
-                    ) as MemorySegment
+            IOKit.withService("IOPlatformExpertDevice", arena = arena) { ioPlatformExpertDeviceService ->
+                if (ioPlatformExpertDeviceService == 0) {
+                    return null
+                }
+                CoreFoundation.withCFString("IOPlatformUUID", arena = arena) { ioPlatformUuidKey ->
+                    val uuid = IOKit.IORegistryEntryCreateCFProperty(ioPlatformExpertDeviceService, ioPlatformUuidKey)
                     if (uuid == MemorySegment.NULL) {
                         return null
                     }
                     try {
                         val buffer = arena.allocate(UUID_BUFFER_SIZE)
-                        val copied = CoreFoundation.CFStringGetCString.invokeExact(
-                            uuid,
-                            buffer,
-                            UUID_BUFFER_SIZE,
-                            KCF_STRING_ENCODING_UTF8
-                        ) as Byte
-                        return if (copied.toInt() != 0) buffer.getString(0) else null
+                        // asking for UTF-8 because buffer.getString() expects UTF-8
+                        val copied = CoreFoundation.CFStringGetCString(uuid, buffer, encoding = KCF_STRING_ENCODING_UTF8)
+                        return if (copied) buffer.getString(0) else null
                     } finally {
-                        CoreFoundation.CFRelease.invokeExact(uuid)
+                        CoreFoundation.CFRelease(uuid)
                     }
-                } finally {
-                    CoreFoundation.CFRelease.invokeExact(key)
                 }
-            } finally {
-                IOKit.IOObjectRelease.invokeExact(service)
             }
         }
     }
-}
-
-private val LINKER: Linker = Linker.nativeLinker()
-
-private fun SymbolLookup.downcall(name: String, descriptor: FunctionDescriptor): MethodHandle =
-    LINKER.downcallHandle(findOrThrow(name), descriptor)
-
-/**
- * Downcalls into the IOKit framework.
- */
-private object IOKit {
-
-    private val lookup: SymbolLookup = SymbolLookup.libraryLookup(
-        "/System/Library/Frameworks/IOKit.framework/IOKit",
-        Arena.global(),
-    )
-
-    val IOServiceMatching: MethodHandle = lookup.downcall(
-        "IOServiceMatching", FunctionDescriptor.of(ADDRESS, ADDRESS),
-    )
-    val IOServiceGetMatchingService: MethodHandle = lookup.downcall(
-        "IOServiceGetMatchingService", FunctionDescriptor.of(JAVA_INT, JAVA_INT, ADDRESS),
-    )
-    val IORegistryEntryCreateCFProperty: MethodHandle = lookup.downcall(
-        "IORegistryEntryCreateCFProperty", FunctionDescriptor.of(ADDRESS, JAVA_INT, ADDRESS, ADDRESS, JAVA_INT),
-    )
-    val IOObjectRelease: MethodHandle = lookup.downcall(
-        "IOObjectRelease", FunctionDescriptor.of(JAVA_INT, JAVA_INT),
-    )
-}
-
-/**
- * Downcalls into the CoreFoundation framework.
- */
-private object CoreFoundation {
-
-    private val lookup: SymbolLookup = SymbolLookup.libraryLookup(
-        "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation",
-        Arena.global(),
-    )
-
-    val CFStringCreateWithCString: MethodHandle = lookup.downcall(
-        "CFStringCreateWithCString", FunctionDescriptor.of(ADDRESS, ADDRESS, ADDRESS, JAVA_INT),
-    )
-    val CFStringGetCString: MethodHandle = lookup.downcall(
-        "CFStringGetCString", FunctionDescriptor.of(JAVA_BYTE, ADDRESS, ADDRESS, JAVA_LONG, JAVA_INT),
-    )
-    val CFRelease: MethodHandle = lookup.downcall(
-        "CFRelease", FunctionDescriptor.ofVoid(ADDRESS),
-    )
 }

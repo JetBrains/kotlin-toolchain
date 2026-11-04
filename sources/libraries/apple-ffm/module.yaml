@@ -1,0 +1,6 @@
+product: jvm/lib
+
+description: Type-safe wrappers for some Apple APIs implemented using the Foreign Function and Memory API.
+
+apply:
+  - //sources/common.module-template.yaml

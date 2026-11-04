@@ -62,6 +62,7 @@ modules:
   - sources/java-incremental-compilation/jvm-inc-builder
   - sources/libraries/agent-detection
   - sources/libraries/android-emulator-manager
+  - sources/libraries/apple-ffm
   - sources/libraries/apple-simulator-manager
   - sources/libraries/async-processes
   - sources/libraries/binary-compatibility-validation

@@ -5,6 +5,7 @@ apply:
 
 dependencies:
   - //sources/amper-build-info
+  - //sources/libraries/apple-ffm
   - //sources/libraries/agent-detection: exported
   - //sources/libraries/ci-detection: exported
   - //sources/libraries/stdlib-extended
