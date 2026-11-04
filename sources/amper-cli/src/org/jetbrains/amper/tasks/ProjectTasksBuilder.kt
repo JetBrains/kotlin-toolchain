@@ -26,6 +26,7 @@ import org.jetbrains.amper.tasks.ios.setupIosTasks
 import org.jetbrains.amper.tasks.java.setupJavaAnnotationProcessingTasks
 import org.jetbrains.amper.tasks.js.setupJsTasks
 import org.jetbrains.amper.tasks.jvm.ProvideJdkTask
+import org.jetbrains.amper.tasks.jvm.ProvideKotlinToolchainsTask
 import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.tasks.jvm.setupJvmTasks
 import org.jetbrains.amper.tasks.ksp.setupKspTasks
@@ -69,7 +70,7 @@ class ProjectTasksBuilder(
 
     fun build(): TaskGraph {
         setupJdkTasks()
-        setupKotlinNativeCompilerTasks()
+        setupKotlinCompilerProvisioningTasks()
         setupCommonTasks(moduleDependenciesMap)
         setupJvmTasks(moduleDependenciesMap)
         setupMavenCompatibilityTasks()
@@ -99,13 +100,18 @@ class ProjectTasksBuilder(
             .forEach { tasks.registerTask(ProvideJdkTask(jdkSettings = it, jdkProvider = context.jdkProvider)) }
     }
 
-    private fun setupKotlinNativeCompilerTasks() {
+    private fun setupKotlinCompilerProvisioningTasks() {
         allFragments()
             .map { it.settings.kotlin.version }
             .distinct()
             .forEach { kotlinVersion ->
+                // We don't bother looking at platforms;
+                // some tasks may be unused if there is no native/jvm fragment for this version.
                 tasks.registerTask(
                     ProvideKotlinNativeCompilerTask(kotlinVersion, context.userCacheRoot, context.jdkProvider)
+                )
+                tasks.registerTask(
+                    ProvideKotlinToolchainsTask(kotlinVersion, context.userCacheRoot, context.incrementalCache)
                 )
             }
     }

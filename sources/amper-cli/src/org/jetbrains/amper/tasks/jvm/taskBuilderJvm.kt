@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.tasks.jvm
 
+import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
@@ -33,13 +34,13 @@ fun ProjectTasksBuilder.setupJvmTasks(moduleDependenciesMap: Map<AmperModule, Mo
         .alsoTests()
         .withEach {
             val fragments = module.fragments.filter { it.isTest == isTest && it.platforms.contains(platform) }
+            val leafFragment = fragments.singleLeafFragment()
             val compileTaskName = CommonTaskType.Compile.getTaskName(module, platform, isTest)
             tasks.registerTask(
                 JvmCompileTask(
                     module = module,
                     isTest = isTest,
                     fragments = fragments,
-                    userCacheRoot = context.userCacheRoot,
                     projectRoot = context.projectRoot,
                     tempRoot = context.projectTempRoot,
                     taskName = compileTaskName,
@@ -50,9 +51,8 @@ fun ProjectTasksBuilder.setupJvmTasks(moduleDependenciesMap: Map<AmperModule, Mo
                     openTelemetry = context.openTelemetry,
                 ),
                 dependsOn = buildList {
-                    add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(
-                        module.leafFragments.single { it.platform == platform && it.isTest == isTest }
-                    ))
+                    add(kotlinToolchainsProvisionTaskName(leafFragment.settings.kotlin.version))
+                    add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(leafFragment))
                     add(provideJdkTaskName(module.jdkSettings))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {

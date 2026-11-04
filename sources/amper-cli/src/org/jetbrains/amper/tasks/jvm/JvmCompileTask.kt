@@ -22,7 +22,6 @@ import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.compilation.CompilationUserSettings
 import org.jetbrains.amper.compilation.CompilerBuildProblem
 import org.jetbrains.amper.compilation.JavaUserSettings
-import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.ProblemReportingCompilerMessageRenderer
 import org.jetbrains.amper.compilation.ResolvedCompilerPlugin
 import org.jetbrains.amper.compilation.bta.CombiningKotlinLogger
@@ -31,7 +30,6 @@ import org.jetbrains.amper.compilation.bta.ErrorsCollectorKotlinLogger
 import org.jetbrains.amper.compilation.bta.OpenTelemetryBuildMetricsCollector
 import org.jetbrains.amper.compilation.bta.TerminalPrintingKotlinLogger
 import org.jetbrains.amper.compilation.bta.asKotlinLogger
-import org.jetbrains.amper.compilation.bta.loadMaybeCachedImpl
 import org.jetbrains.amper.compilation.bta.makeClasspathEntrySnapshot
 import org.jetbrains.amper.compilation.bta.metrics.CombiningMetricsCollector
 import org.jetbrains.amper.compilation.jvmModuleName
@@ -39,7 +37,6 @@ import org.jetbrains.amper.compilation.kotlinJvmCompilerArgs
 import org.jetbrains.amper.compilation.serializableCompilationSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.concurrency.mapConcurrently
-import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
@@ -122,13 +119,10 @@ internal class JvmCompileTask(
     override val module: AmperModule,
     override val isTest: Boolean,
     private val fragments: List<Fragment>,
-    private val userCacheRoot: AmperUserCacheRoot,
     private val projectRoot: AmperProjectRoot,
     private val tempRoot: AmperProjectTempRoot,
     override val taskName: TaskName,
     private val incrementalCache: IncrementalCache,
-    private val kotlinArtifactsDownloader: KotlinArtifactsDownloader =
-        KotlinArtifactsDownloader(userCacheRoot, incrementalCache),
     private val buildOutputRoot: AmperBuildOutputRoot,
     override val buildType: BuildType? = null,
     override val platform: Platform = Platform.JVM,
@@ -224,6 +218,10 @@ internal class JvmCompileTask(
         val javaAnnotationProcessorsGeneratedDir =
             fragments.singleLeafFragment().javaAnnotationProcessingGeneratedSourcesPath(buildOutputRoot.path)
 
+        val kotlinToolchainsResult = dependenciesResult.requireSingleDependency<ProvideKotlinToolchainsTask.Result>()
+        val compilerPlugins =
+            dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins
+
         val inputValues = mapOf(
             "jdk.version" to jdk.version,
             "jdk.home" to jdk.homeDir.pathString,
@@ -231,6 +229,7 @@ internal class JvmCompileTask(
             "task.output.root" to taskOutputRoot.pathString,
             "target.platforms" to module.leafPlatforms.map { it.name }.sorted().joinToString(),
             "java.annotation.processor.generated.dir" to javaAnnotationProcessorsGeneratedDir.pathString,
+            "toolchains.identifiy" to kotlinToolchainsResult.identity,
             "plugins.config" to Json.encodeToString(compilerPlugins.map { it.config }),
         )
 
@@ -286,7 +285,8 @@ internal class JvmCompileTask(
                     sourceDirectories = nonEmptySourceDirs,
                     additionalSources = additionalSources,
                     userSettings = userSettings,
-                    compilerPlugins = dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins,
+                    kotlinToolchains = kotlinToolchainsResult.toolchains,
+                    compilerPlugins = compilerPlugins,
                     classpath = classpath,
                     friendPaths = productionJvmCompileResult?.classesOutputRoots.orEmpty(),
                     javaAnnotationProcessorClasspath = javaAnnotationProcessorClasspath,
@@ -361,6 +361,7 @@ internal class JvmCompileTask(
         sourceDirectories: List<Path>,
         additionalSources: List<SourceRoot>,
         userSettings: CompilationUserSettings,
+        kotlinToolchains: KotlinToolchains,
         compilerPlugins: List<ResolvedCompilerPlugin>,
         classpath: List<Path>,
         friendPaths: List<Path>,
@@ -387,6 +388,7 @@ internal class JvmCompileTask(
 
             val result = compileKotlinSources(
                 userSettings = userSettings,
+                kotlinToolchains = kotlinToolchains,
                 compilerPlugins = compilerPlugins,
                 isMultiplatform = isMultiplatform,
                 classpath = classpath,
@@ -420,6 +422,7 @@ internal class JvmCompileTask(
     context(problemReporter: ProblemReporter)
     private suspend fun compileKotlinSources(
         userSettings: CompilationUserSettings,
+        kotlinToolchains: KotlinToolchains,
         compilerPlugins: List<ResolvedCompilerPlugin>,
         isMultiplatform: Boolean,
         classpath: List<Path>,
@@ -430,10 +433,6 @@ internal class JvmCompileTask(
     ): CompilationResult {
         logger.debug("Compiling Kotlin/JVM sources for module '${module.userReadableName}'...")
 
-        val kotlinToolchains = KotlinToolchains.loadMaybeCachedImpl(
-            kotlinVersion = userSettings.kotlin.compilerVersion,
-            downloader = kotlinArtifactsDownloader,
-        )
 
         // TODO should we allow users to choose in-process vs daemon?
         // TODO settings for daemon JVM args?

@@ -7,6 +7,7 @@ package org.jetbrains.amper.tasks.android
 import com.android.prefs.AndroidLocationsSingleton
 import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkPackageRequest
 import org.jetbrains.amper.android.sdk.provisioning.AndroidSdkProvider
+import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.engine.TaskGraphBuilder
 import org.jetbrains.amper.engine.TaskName
@@ -31,6 +32,7 @@ import org.jetbrains.amper.tasks.jvm.JvmClassesJarTask
 import org.jetbrains.amper.tasks.jvm.JvmCompileTask
 import org.jetbrains.amper.tasks.jvm.JvmRuntimeClasspathTask
 import org.jetbrains.amper.tasks.jvm.JvmTestTask
+import org.jetbrains.amper.tasks.jvm.kotlinToolchainsProvisionTaskName
 import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.util.BuildType
 
@@ -188,6 +190,7 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
         .alsoBuildTypes()
         .withEach {
             val fragments = module.fragments.filter { it.isTest == isTest && it.platforms.contains(platform) }
+            val leafFragment = fragments.singleLeafFragment()
 
             // compile
             val compileTaskName = CommonTaskType.Compile.getTaskName(module, platform, isTest, buildType)
@@ -197,7 +200,6 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                     module = module,
                     isTest = isTest,
                     fragments = fragments,
-                    userCacheRoot = context.userCacheRoot,
                     projectRoot = context.projectRoot,
                     tempRoot = context.projectTempRoot,
                     taskName = compileTaskName,
@@ -212,9 +214,8 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                 dependsOn = buildList {
                     add(provideJdkTaskName(module.jdkSettings))
                     add(AndroidModuleTaskType.InstallPlatform.getTaskName(module, platform, isTest))
-                    add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(
-                        module.leafFragments.single { it.platform == platform && it.isTest == isTest }
-                    ))
+                    add(kotlinToolchainsProvisionTaskName(leafFragment.settings.kotlin.version))
+                    add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(leafFragment))
                     add(CommonTaskType.TransformDependencies.getTaskName(module, platform, isTest))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (module.type != ProductType.KMP_LIB && !isTest) {
