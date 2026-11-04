@@ -11,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.amper.cli.widgets.PlatformProgressReporter
-import org.jetbrains.amper.cli.widgets.TerminalCursorManager
+import org.jetbrains.amper.cli.widgets.TerminalModeManager
 import org.jetbrains.amper.cli.widgets.status.tracking.GlobalTrackerSink
 import org.jetbrains.amper.events.GlobalScopedEvent
 import org.jetbrains.amper.events.sink.GlobalEventSink
@@ -29,7 +29,7 @@ class ProgressWidgetSink(
 ) : GlobalEventSink {
     private val delegate = StatusTrackerDelegateImpl(terminal, timeSource)
     private val stateTracker = GlobalTrackerSink(delegate = delegate)
-    private val cursor = TerminalCursorManager(terminal)
+    private val terminalMode = TerminalModeManager(terminal)
     private val platformProgressReporter = PlatformProgressReporter(terminal)
 
     private val animation = terminal.animation<BuildState> { state ->
@@ -55,7 +55,7 @@ class ProgressWidgetSink(
                             // that are launched from the task.
                             hideAnimation()
                         } else {
-                            cursor.ensureHidden()
+                            terminalMode.ensureEnteredRaw()
                             animation.update(build)
 
                             platformProgressReporter.update(
@@ -67,6 +67,7 @@ class ProgressWidgetSink(
 
                         lastUpdated = timeSource.markNow()
                     }
+                    terminalMode.handleInputIfRawMode()
                     delay(WidgetTimings.WidgetMinFrameUpdateInterval)
                 }
             } finally {
@@ -84,7 +85,7 @@ class ProgressWidgetSink(
 
     private fun hideAnimation() {
         animation.clear()
-        cursor.ensureShown()
+        terminalMode.ensureExitedRaw()
         platformProgressReporter.update(PlatformProgressReporter.Progress.Hidden)
     }
 

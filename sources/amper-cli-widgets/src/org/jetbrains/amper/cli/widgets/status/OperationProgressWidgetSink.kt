@@ -10,7 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.amper.cli.widgets.TerminalCursorManager
+import org.jetbrains.amper.cli.widgets.TerminalModeManager
 import org.jetbrains.amper.cli.widgets.status.tracking.NestedStatusEntriesStateTrackerSink
 import org.jetbrains.amper.events.OperationScopedEvent
 import org.jetbrains.amper.events.sink.OperationEventSink
@@ -31,7 +31,7 @@ class OperationProgressWidgetSink(
 ) : OperationEventSink {
     private val delegate = StatusTrackerDelegateImpl(terminal, timeSource)
     private val stateTracker = NestedStatusEntriesStateTrackerSink(delegate = delegate)
-    private val cursor = TerminalCursorManager(terminal)
+    private val terminalMode = TerminalModeManager(terminal)
 
     private val animation = terminal.animation<Collection<StatusEntryState>> { state ->
         state.renderEntries(timeSource, terminal = terminal)
@@ -51,11 +51,12 @@ class OperationProgressWidgetSink(
                             // Clear the widget if no operations are active
                             hideAnimation()
                         } else {
-                            cursor.ensureHidden()
+                            terminalMode.ensureEnteredRaw()
                             animation.update(entries)
                         }
                         lastUpdated = timeSource.markNow()
                     }
+                    terminalMode.handleInputIfRawMode()
                     delay(WidgetTimings.WidgetMinFrameUpdateInterval)
                 }
             } finally {
@@ -70,6 +71,6 @@ class OperationProgressWidgetSink(
 
     private fun hideAnimation() {
         animation.clear()
-        cursor.ensureShown()
+        terminalMode.ensureExitedRaw()
     }
 }
