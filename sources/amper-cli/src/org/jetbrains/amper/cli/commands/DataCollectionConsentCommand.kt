@@ -42,8 +42,6 @@ private class GiveConsentCommand: AmperSubcommand(name = "give") {
         FusConsent.setState(ConsentState.Accepted)
         terminal.println()
         terminal.success("You have accepted these terms.")
-        terminal.println()
-        terminal.println("You can change your consent at any time by running `amper data-collection-consent revoke`.")
     }
 }
 
@@ -65,19 +63,9 @@ private class ShowConsentCommand: AmperSubcommand(name = "show") {
         terminal.println()
         val state = FusConsent.detect()
         when (state) {
-            ConsentState.Accepted -> {
-                terminal.success("You have accepted these terms.")
-                terminal.println()
-                terminal.println(Markdown("You can revoke your consent at any time by running `kotlin data-collection-consent revoke`."))
-            }
-            ConsentState.Rejected -> {
-                terminal.warning("You have rejected these terms.")
-                terminal.println()
-                terminal.println(Markdown("You can change your mind at any time by running `kotlin data-collection-consent give`."))
-            }
-            null -> {
-                terminal.info("You have not yet answered this question.")
-            }
+            ConsentState.Accepted -> terminal.success("You have accepted these terms.")
+            ConsentState.Rejected -> terminal.warning("You have rejected these terms.")
+            null -> terminal.info("You have not yet answered this question.")
         }
     }
 }
