@@ -50,6 +50,7 @@ internal class JetBrainsConsent(os: OsFamily = SystemInfo.CurrentHost.family) {
         try {
             val serializedFlags = flags.joinToString(";") { it.serialize() }
             dataSharingConsentFile.createParentDirectories().writeText(serializedFlags)
+            logger.debug("New consent flags written to {}: {}", dataSharingConsentFile, serializedFlags)
         } catch (e: IOException) {
             // Failing to write consent (e.g. in case of permission issues) isn't an error to users
             logger.debug("Could not write consent flags to file: {}", dataSharingConsentFile, e)
