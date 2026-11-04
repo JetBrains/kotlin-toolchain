@@ -161,16 +161,7 @@ class AmperBackend(
         val platformsToCompile = platforms ?: possibleCompilationPlatforms
         val modulesToCompile = (modules?.map { model.getModuleByName(it) } ?: model.modules).toSet()
 
-        // TODO select platforms and modules to compile up front in the command, and move the FUS event there
-        CliFusReporter.log(FusEvents.BuildCommandInvoked) {
-            moduleCount = FusModuleCountBucket.of(modulesToCompile.size)
-            modulesFiltered = modules != null
-            builtPlatforms = platformsToCompile.map { it.toFusPlatform() }
-            requestedPlatforms = platforms?.map { it.toFusPlatform() }
-            requestedBuildTypes = buildTypes?.map { it.toFusBuildType() }
-        }
-
-        val taskIds = taskGraph
+        val tasks = taskGraph
             .tasks
             .filterIsInstance<BuildTask>()
             .filter {
@@ -180,8 +171,17 @@ class AmperBackend(
                 explicit = buildTypes,
                 default = BuildType.Debug,
             )
-            .map { it.id }
-            .toSet()
+
+        // TODO select platforms and modules to compile up front in the command, and move the FUS event there
+        CliFusReporter.log(FusEvents.BuildCommandInvoked) {
+            moduleCount = FusModuleCountBucket.of(modulesToCompile.size)
+            modulesFiltered = modules != null
+            builtPlatforms = tasks.map { it.platform.toFusPlatform() }
+            requestedPlatforms = platforms?.map { it.toFusPlatform() }
+            requestedBuildTypes = buildTypes?.map { it.toFusBuildType() }
+        }
+
+        val taskIds = tasks.mapToSet { it.id }
         logger.debug("Selected tasks to compile: ${formatTaskNames(taskIds)}")
 
         if (taskIds.isEmpty()) {

@@ -107,9 +107,7 @@ class CommandFusEventsTest : AbstractFusEventsTest() {
         assertEquals(false, event.data["modules_filtered"])
         assertNull(event.data["requested_platforms"], "No platform was requested on the command line")
         assertNull(event.data["requested_build_types"], "No build variant was requested on the command line")
-        // 'platforms' currently reports every platform that the host could build, and not the platforms of the
-        // project, so we can only check that the single platform of this project is part of it.
-        assertContains(event.data["platforms"] as List<*>, "jvm")
+        assertEquals(event.data["platforms"], ["jvm"])
 
         result.reportedFusEvents.assertSingle("ktc.command.result").assertData(
             "command" to "build",
