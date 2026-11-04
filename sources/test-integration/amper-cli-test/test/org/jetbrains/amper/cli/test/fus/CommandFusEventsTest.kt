@@ -47,7 +47,7 @@ class CommandFusEventsTest : AbstractFusEventsTest() {
         val completed = result.reportedFusEvents.assertSingle("ktc.command.result")
         completed.assertData(
             "command" to "show",
-            "subcommand" to listOf("modules"),
+            "subcommand" to ["modules"],
             "result" to "success",
         )
         assertEquals(invoked.session, completed.session, "All events of a run must share the same session ID")

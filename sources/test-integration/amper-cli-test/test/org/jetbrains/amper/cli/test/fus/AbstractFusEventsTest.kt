@@ -85,7 +85,11 @@ abstract class AbstractFusEventsTest : CliTestBase() {
                 // where the shared JetBrains consent file is looked up (except on macOS, see 'user.home' above)
                 put("XDG_DATA_HOME", fakeUserHome.pathString)
                 put("APPDATA", fakeUserHome.pathString)
+
+                // cleanup inherited environment variables to create a baseline for tests
+                remove("KOTLIN_TOOLCHAIN_FUS_CALLING_IDE_PRODUCT_CODE")
                 hideCiAndInternalUserEnvironment()
+
                 configureEnvironment()
             },
         )

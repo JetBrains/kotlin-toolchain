@@ -7,6 +7,8 @@ package org.jetbrains.amper.cli.test.fus
 import com.jetbrains.fus.reporting.model.lion4.LogEvent
 import com.jetbrains.fus.reporting.serialization.FusKotlinSerializer
 import org.jetbrains.amper.test.AmperCliResult
+import org.jetbrains.amper.test.generateUnifiedDiff
+import org.junit.jupiter.api.AssertionFailureBuilder
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -76,7 +78,16 @@ internal fun assertIsAnonymizedId(idValue: String?, idName: String) {
  * Asserts that the data of this event is exactly the given [expectedData], apart from the [ignoredKeys].
  */
 internal fun LogEvent.assertData(vararg expectedData: Pair<String, Any>, ignoredKeys: Set<String> = emptySet()) {
-    assertEquals(expectedData.toMap(), data - ignoredKeys, "Unexpected data in the '$eventId' FUS event")
+    val actual = data - ignoredKeys
+    val expectedLines = expectedData.map { "${it.first}=${it.second}" }.sorted()
+    val actualLines = actual.map { "${it.key}=${it.value}" }.sorted()
+    if (expectedData.toMap() != actual) {
+        AssertionFailureBuilder.assertionFailure()
+            .message("Unexpected data in the '$eventId' FUS event. Diff:\n${generateUnifiedDiff(expectedLines, "expected", actualLines, "actual")}")
+            .expected(expectedLines.joinToString("\n"))
+            .actual(actualLines.joinToString("\n"))
+            .buildAndThrow()
+    }
 }
 
 /**
