@@ -9,11 +9,9 @@ import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.cli.userReadableError
-import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.KotlinUserSettings
 import org.jetbrains.amper.compilation.NativeCompilerCaches
-import org.jetbrains.amper.compilation.downloadCompilerPlugins
 import org.jetbrains.amper.compilation.kotlinNativeCompilerArgs
 import org.jetbrains.amper.compilation.nativeCompilerCachesFor
 import org.jetbrains.amper.compilation.optimizationEnabled
@@ -24,17 +22,18 @@ import org.jetbrains.amper.dependency.resolution.MavenLocalRepository
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
-import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.kotlin.native.KonanDistribution
 import org.jetbrains.amper.stdlib.io.path.clean
 import org.jetbrains.amper.stdlib.io.path.cleanDirectoryExcept
+import org.jetbrains.amper.tasks.DownloadCompilerPluginsTask
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
@@ -76,8 +75,6 @@ internal class NativeLinkTask(
      * Task names that produce klibs that need to be exposed as API in the resulting artifact.
      */
     val exportedKLibTaskIds: Set<TaskId>,
-    private val kotlinArtifactsDownloader: KotlinArtifactsDownloader =
-        KotlinArtifactsDownloader(userCacheRoot, incrementalCache),
     private val processRunner: ProcessRunner,
     private val xcodeBuildSettingsResolution: XcodeBuildSettingsResolution,
 ): ArtifactTaskBase(), BuildTask {
@@ -189,7 +186,14 @@ internal class NativeLinkTask(
             if (dependencyCacheRoots.isEmpty()) []
             else dependencyCacheRoots.map { it.pathString } + nativeIcCacheDir.pathString
 
-        val inputFiles = listOfNotNull(includeArtifact, swiftPMImportParsedLdCall?.path) + compiledKLibs
+        val compilerPlugins = dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins
+
+        val inputFiles = buildList {
+            includeArtifact?.let(::add)
+            swiftPMImportParsedLdCall?.path?.let(::add)
+            addAll(compiledKLibs)
+            for ((classpath) in compilerPlugins) addAll(classpath)
+        }
         val artifact = incrementalCache.execute(
             key = taskName.id.value,
             inputValues = mapOf(
@@ -198,6 +202,7 @@ internal class NativeLinkTask(
                 "task.output.root" to taskOutputRoot.path.pathString,
                 "binary.options" to Json.encodeToString(binaryOptions),
                 "native.caches" to Json.encodeToString(nativeCachePaths),
+                "plugins.config" to Json.encodeToString(compilerPlugins.map { it.config }),
             ),
             inputFiles = inputFiles,
         ) {
@@ -220,10 +225,6 @@ internal class NativeLinkTask(
             val artifactPath = taskOutputRoot.path.resolve(compilationType.outputFilename(module, platform, isTest))
 
             val nativeCompiler = dependenciesResult.requireKotlinNativeCompiler(kotlinUserSettings.compilerVersion)
-            val compilerPlugins = kotlinArtifactsDownloader.downloadCompilerPlugins(
-                plugins = kotlinUserSettings.compilerPlugins,
-                repositories = module.mavenResolveRepositories.map { it.toRepository() },
-            )
             val swiftPMLinkerOpts = swiftPMImportParsedLdCall?.parsedLdCall?.ldArgsForExecutable ?: emptyList()
 
             val nativeCaches = nativeCachesFor(

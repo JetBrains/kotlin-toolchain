@@ -14,6 +14,7 @@ import org.jetbrains.amper.frontend.jdkSettings
 import org.jetbrains.amper.frontend.schema.DependencyMode
 import org.jetbrains.amper.frontend.schema.enabled
 import org.jetbrains.amper.frontend.testJdkSettings
+import org.jetbrains.amper.tasks.CommonFragmentTaskType
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.NoopTask
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
@@ -49,6 +50,9 @@ fun ProjectTasksBuilder.setupJvmTasks(moduleDependenciesMap: Map<AmperModule, Mo
                     openTelemetry = context.openTelemetry,
                 ),
                 dependsOn = buildList {
+                    add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(
+                        module.leafFragments.single { it.platform == platform && it.isTest == isTest }
+                    ))
                     add(provideJdkTaskName(module.jdkSettings))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {

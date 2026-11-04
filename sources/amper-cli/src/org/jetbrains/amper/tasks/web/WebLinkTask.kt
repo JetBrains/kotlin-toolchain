@@ -16,7 +16,6 @@ import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.KotlinUserSettings
 import org.jetbrains.amper.compilation.ResolvedCompilerPlugin
 import org.jetbrains.amper.compilation.compiler.downloadKotlinCompiler
-import org.jetbrains.amper.compilation.downloadCompilerPlugins
 import org.jetbrains.amper.compilation.serializableKotlinSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.core.AmperUserCacheRoot
@@ -28,7 +27,6 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
-import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.incrementalcache.CacheMiss
 import org.jetbrains.amper.incrementalcache.IncrementalCache
@@ -38,6 +36,7 @@ import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.stdlib.io.path.clean
+import org.jetbrains.amper.tasks.DownloadCompilerPluginsTask
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.SourceRoot
 import org.jetbrains.amper.tasks.TaskResult
@@ -136,16 +135,22 @@ internal abstract class WebLinkTask(
 
         val kotlinUserSettings = fragments.singleLeafFragment().serializableKotlinSettings()
         val jdk = dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
+        val compilerPlugins = dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins
 
         logger.debug("${expectedPlatform.name} link '${module.userReadableName}' -- ${fragments.joinToString(" ") { it.name }}")
 
-        val inputs = compiledKLibs + listOfNotNull(includeArtifact)
+        val inputs = buildList {
+            addAll(compiledKLibs)
+            add(includeArtifact)
+            for ((classpath) in compilerPlugins) addAll(classpath)
+        }
 
         val artifact = incrementalCache.executeForFiles(
             key = taskName.id.value,
             inputValues = mapOf(
                 "kotlin.settings" to Json.encodeToString<KotlinUserSettings>(kotlinUserSettings),
                 "task.output.root" to taskOutputRoot.pathString,
+                "plugins.config" to Json.encodeToString(compilerPlugins.map { it.config }),
             ),
             inputFiles = inputs,
         ) {
@@ -166,6 +171,7 @@ internal abstract class WebLinkTask(
             compileSources(
                 jdk,
                 kotlinUserSettings = kotlinUserSettings,
+                compilerPlugins = dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins,
                 librariesPaths = externalKLibs + inputs,
                 includeArtifact = includeArtifact,
                 compileIncrementally = kotlinUserSettings.compileIncrementally,
@@ -183,6 +189,7 @@ internal abstract class WebLinkTask(
     private suspend fun compileSources(
         jdk: Jdk,
         kotlinUserSettings: KotlinUserSettings,
+        compilerPlugins: List<ResolvedCompilerPlugin>,
         librariesPaths: List<Path>,
         includeArtifact: Path?,
         compileIncrementally: Boolean,
@@ -190,10 +197,6 @@ internal abstract class WebLinkTask(
         val compiler = kotlinArtifactsDownloader.downloadKotlinCompiler(
             version = kotlinUserSettings.compilerVersion,
             jdk = jdk,
-        )
-        val compilerPlugins = kotlinArtifactsDownloader.downloadCompilerPlugins(
-            plugins = kotlinUserSettings.compilerPlugins,
-            repositories = module.mavenResolveRepositories.map { it.toRepository() },
         )
         val compilationType = KotlinCompilationType.BINARY
         val compilerArgs = kotlinCompilerArgs(

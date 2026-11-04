@@ -4,17 +4,12 @@
 
 package org.jetbrains.amper.compilation
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.Serializable
-import org.jetbrains.amper.dependency.resolution.Repository
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.kotlin.CompilerPluginConfig
 import org.jetbrains.amper.frontend.kotlin.ParcelizeCompilerPluginConfig
 import org.jetbrains.amper.frontend.kotlin.compilerPluginsConfigurations
-import org.jetbrains.amper.problems.reporting.ProblemReporter
 import java.nio.file.Path
 
 /**
@@ -76,36 +71,14 @@ private fun CompilerPluginConfig.toSerializableCompilerPluginConfig(): SCompiler
  */
 internal data class ResolvedCompilerPlugin(
     /**
-     * The plugin ID used to associate arguments with the corresponding plugin.
-     * It is exposed by each plugin's implementation in their `CommandLineProcessor.pluginId` property.
+     * Compiler plugin's config.
+     *
+     * @see SCompilerPluginConfig.id
+     * @see SCompilerPluginConfig.options
      */
-    val id: String,
+    val config: SCompilerPluginConfig,
     /**
      * The classpath of the plugin to pass to the compiler (including the plugin jar and its dependencies).
      */
     val classpath: List<Path>,
-    /**
-     * Options configured for this compiler plugin.
-     */
-    val options: List<SCompilerPluginConfig.Option> = emptyList(), // not a map because options can be repeated
 )
-
-/**
- * Downloads the jars of each compiler plugin and their dependencies, and returns ready-to-use
- * [ResolvedCompilerPlugin]s.
- */
-context(_: ProblemReporter)
-internal suspend fun KotlinArtifactsDownloader.downloadCompilerPlugins(
-    plugins: List<SCompilerPluginConfig>,
-    repositories: List<Repository>,
-): List<ResolvedCompilerPlugin> = coroutineScope {
-    plugins.map {
-        async {
-            ResolvedCompilerPlugin(
-                id = it.id,
-                classpath = downloadKotlinCompilerPlugin(pluginConfig = it, repositories = repositories),
-                options = it.options
-            )
-        }
-    }.awaitAll()
-}

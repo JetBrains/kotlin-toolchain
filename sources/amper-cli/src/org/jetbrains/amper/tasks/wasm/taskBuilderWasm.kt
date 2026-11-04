@@ -16,6 +16,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.jdkSettings
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.tasks.CommonFragmentTaskType
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.LinkTaskType
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
@@ -74,6 +75,9 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
                     context.terminal,
                 ),
                 dependsOn = buildList {
+                    add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(
+                        module.leafFragments.single { it.platform == platform && it.isTest == isTest }
+                    ))
                     add(provideJdkTaskName(module.jdkSettings))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {
@@ -108,6 +112,9 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
                         buildType,
                     ),
                     dependsOn = buildList {
+                        add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(
+                            module.leafFragments.single { it.platform == platform && it.isTest == isTest }
+                        ))
                         add(provideJdkTaskName(module.jdkSettings))
                         add(compileKLibTaskName)
                         add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))

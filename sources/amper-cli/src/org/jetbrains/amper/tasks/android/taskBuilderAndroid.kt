@@ -18,6 +18,7 @@ import org.jetbrains.amper.frontend.jdkSettings
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.testJdkSettings
 import org.jetbrains.amper.system.info.Arch
+import org.jetbrains.amper.tasks.CommonFragmentTaskType
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.ModuleSequenceCtx
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
@@ -211,6 +212,9 @@ fun ProjectTasksBuilder.setupAndroidTasks(moduleDependenciesMap: Map<AmperModule
                 dependsOn = buildList {
                     add(provideJdkTaskName(module.jdkSettings))
                     add(AndroidModuleTaskType.InstallPlatform.getTaskName(module, platform, isTest))
+                    add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(
+                        module.leafFragments.single { it.platform == platform && it.isTest == isTest }
+                    ))
                     add(CommonTaskType.TransformDependencies.getTaskName(module, platform, isTest))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (module.type != ProductType.KMP_LIB && !isTest) {

@@ -24,6 +24,7 @@ import org.jetbrains.amper.compilation.CompilerBuildProblem
 import org.jetbrains.amper.compilation.JavaUserSettings
 import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.ProblemReportingCompilerMessageRenderer
+import org.jetbrains.amper.compilation.ResolvedCompilerPlugin
 import org.jetbrains.amper.compilation.bta.CombiningKotlinLogger
 import org.jetbrains.amper.compilation.bta.CompilationDetectingBuildMetricsCollector
 import org.jetbrains.amper.compilation.bta.ErrorsCollectorKotlinLogger
@@ -33,7 +34,6 @@ import org.jetbrains.amper.compilation.bta.asKotlinLogger
 import org.jetbrains.amper.compilation.bta.loadMaybeCachedImpl
 import org.jetbrains.amper.compilation.bta.makeClasspathEntrySnapshot
 import org.jetbrains.amper.compilation.bta.metrics.CombiningMetricsCollector
-import org.jetbrains.amper.compilation.downloadCompilerPlugins
 import org.jetbrains.amper.compilation.jvmModuleName
 import org.jetbrains.amper.compilation.kotlinJvmCompilerArgs
 import org.jetbrains.amper.compilation.serializableCompilationSettings
@@ -48,7 +48,6 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.aomBuilder.javaAnnotationProcessingGeneratedSourcesPath
-import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.incrementalcache.CacheHit
 import org.jetbrains.amper.incrementalcache.CacheMiss
 import org.jetbrains.amper.incrementalcache.IncrementalCache
@@ -63,6 +62,7 @@ import org.jetbrains.amper.processes.withJavaArgFile
 import org.jetbrains.amper.tasks.ClasspathElementType
 import org.jetbrains.amper.tasks.ClasspathProvider
 import org.jetbrains.amper.tasks.CommonTaskUtils.userReadableList
+import org.jetbrains.amper.tasks.DownloadCompilerPluginsTask
 import org.jetbrains.amper.tasks.SourceRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
@@ -230,12 +230,19 @@ internal class JvmCompileTask(
             "user.settings" to Json.encodeToString(userSettings),
             "task.output.root" to taskOutputRoot.pathString,
             "target.platforms" to module.leafPlatforms.map { it.name }.sorted().joinToString(),
-            "java.annotation.processor.generated.dir" to javaAnnotationProcessorsGeneratedDir.pathString
+            "java.annotation.processor.generated.dir" to javaAnnotationProcessorsGeneratedDir.pathString,
+            "plugins.config" to Json.encodeToString(compilerPlugins.map { it.config }),
         )
 
         val sources = fragments.flatMap { it.sourceRoots }.map { it.toAbsolutePath() } + additionalSources.map { it.path }
         val resources = fragments.map { it.resourcesPath }.map { it.toAbsolutePath() } + additionalResources.map { it.path }
-        val inputFiles = sources + resources + classpath + javaAnnotationProcessorClasspath
+        val inputFiles = buildList {
+            addAll(sources)
+            addAll(resources)
+            addAll(classpath)
+            addAll(javaAnnotationProcessorClasspath)
+            for ((classpath) in compilerPlugins) addAll(classpath)
+        }
 
         val result = incrementalCache.execute(taskName.id.value, inputValues, inputFiles) {
             javaAnnotationProcessorsGeneratedDir.deleteRecursively()
@@ -279,6 +286,7 @@ internal class JvmCompileTask(
                     sourceDirectories = nonEmptySourceDirs,
                     additionalSources = additionalSources,
                     userSettings = userSettings,
+                    compilerPlugins = dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins,
                     classpath = classpath,
                     friendPaths = productionJvmCompileResult?.classesOutputRoots.orEmpty(),
                     javaAnnotationProcessorClasspath = javaAnnotationProcessorClasspath,
@@ -353,6 +361,7 @@ internal class JvmCompileTask(
         sourceDirectories: List<Path>,
         additionalSources: List<SourceRoot>,
         userSettings: CompilationUserSettings,
+        compilerPlugins: List<ResolvedCompilerPlugin>,
         classpath: List<Path>,
         friendPaths: List<Path>,
         javaAnnotationProcessorClasspath: List<Path>,
@@ -378,6 +387,7 @@ internal class JvmCompileTask(
 
             val result = compileKotlinSources(
                 userSettings = userSettings,
+                compilerPlugins = compilerPlugins,
                 isMultiplatform = isMultiplatform,
                 classpath = classpath,
                 jdk = jdk,
@@ -410,6 +420,7 @@ internal class JvmCompileTask(
     context(problemReporter: ProblemReporter)
     private suspend fun compileKotlinSources(
         userSettings: CompilationUserSettings,
+        compilerPlugins: List<ResolvedCompilerPlugin>,
         isMultiplatform: Boolean,
         classpath: List<Path>,
         jdk: Jdk,
@@ -442,11 +453,6 @@ internal class JvmCompileTask(
                 add(TerminalPrintingKotlinLogger(terminal, module))
             }
         })
-
-        val compilerPlugins = kotlinArtifactsDownloader.downloadCompilerPlugins(
-            plugins = userSettings.kotlin.compilerPlugins,
-            repositories = module.mavenResolveRepositories.map { it.toRepository() },
-        )
 
         val compilerArgs = kotlinJvmCompilerArgs(
             moduleName = module.jvmModuleName(userSettings.kotlin.compilerVersion, isTest),

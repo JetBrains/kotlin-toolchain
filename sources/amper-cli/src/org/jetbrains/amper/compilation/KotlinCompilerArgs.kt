@@ -5,7 +5,6 @@
 package org.jetbrains.amper.compilation
 
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
-import org.jetbrains.amper.compilation.compiler.KotlinCompiler
 import org.jetbrains.amper.dependency.resolution.ResolutionPlatform
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.frontend.AmperModule
@@ -15,8 +14,8 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.dr.resolver.flow.toPlatform
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.publishingSettings
-import org.jetbrains.amper.frontend.schema.KotlinVersion
 import org.jetbrains.amper.frontend.schema.KotlinLanguageVersion
+import org.jetbrains.amper.frontend.schema.KotlinVersion
 import org.jetbrains.amper.frontend.schema.effectiveArtifactId
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.tasks.SourceRoot
@@ -111,9 +110,9 @@ private fun kotlinCommonCompilerArgs(
         plugin.classpath.forEach { path ->
             add("-Xplugin=${path.absolutePathString()}")
         }
-        plugin.options.forEach { opt ->
+        plugin.config.options.forEach { opt ->
             add("-P")
-            add("plugin:${plugin.id}:${opt.name}=${opt.value}")
+            add("plugin:${plugin.config.id}:${opt.name}=${opt.value}")
         }
     }
     kotlinUserSettings.freeCompilerArgs.forEach {

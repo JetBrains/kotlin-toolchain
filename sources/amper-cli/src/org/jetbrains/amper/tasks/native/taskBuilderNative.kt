@@ -12,6 +12,7 @@ import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
 import org.jetbrains.amper.frontend.fragmentsTargeting
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.kotlinVersion
+import org.jetbrains.amper.tasks.CommonFragmentTaskType
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.LinkTaskType
 import org.jetbrains.amper.tasks.ModuleTaskTypes
@@ -85,12 +86,14 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
         .alsoTests()
         .withEach {
             val compileKLibTaskName = NativeTaskType.CompileKLib.getTaskName(module, platform, isTest, buildType)
+            val compilerPluginsTaskName = CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(
+                module.leafFragments.single { it.platform == platform && it.isTest == isTest }
+            )
             tasks.registerTask(
                 task = NativeCompileKlibTask(
                     module = module,
                     moduleDependencies = moduleDependenciesMap[module]!!,
                     platform = platform,
-                    userCacheRoot = context.userCacheRoot,
                     taskOutputRoot = context.getTaskOutputPath(compileKLibTaskName),
                     incrementalCache = context.incrementalCache,
                     taskName = compileKLibTaskName,
@@ -101,6 +104,7 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
                     terminal = context.terminal,
                 ),
                 dependsOn = buildList {
+                    add(compilerPluginsTaskName)
                     add(kotlinNativeCompilerProvisionTaskName(module.kotlinVersion))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {
@@ -142,6 +146,7 @@ fun ProjectTasksBuilder.setupNativeTasks(moduleDependenciesMap: Map<AmperModule,
                         xcodeBuildSettingsResolution = xcodeBuildSettingsResolution,
                     ),
                     dependsOn = buildList {
+                        add(compilerPluginsTaskName)
                         add(kotlinNativeCompilerProvisionTaskName(module.kotlinVersion))
                         add(compileKLibTaskName)
                         add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))

@@ -59,9 +59,20 @@ internal enum class CommonFragmentTaskType(
     override val operationMoniker: String,
 ) : TaskNameFactory.Fragment {
     CompileMetadata("compileMetadata", "compiling Kotlin metadata"),
+    DownloadCompilerPlugins("downloadCompilerPlugins", "resolving Kotlin compiler plugins"),
 }
 
 fun ProjectTasksBuilder.setupCommonTasks(moduleDependenciesMap: Map<AmperModule, ModuleDependencies>) {
+    allFragments().forEach { fragment ->
+        tasks.registerTask(
+            DownloadCompilerPluginsTask(
+                taskName = CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(fragment),
+                fragment = fragment,
+                userCacheRoot = context.userCacheRoot,
+                incrementalCache = context.incrementalCache,
+            )
+        )
+    }
     allModules()
         .alsoPlatforms()
         .alsoTests()
@@ -98,6 +109,7 @@ fun ProjectTasksBuilder.setupCommonTasks(moduleDependenciesMap: Map<AmperModule,
                     processRunner = context.processRunner,
                 ),
                 dependsOn = buildList {
+                    add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(it))
                     add(provideJdkTaskName(it.settings.jvm.jdk))
                     add(kotlinNativeCompilerProvisionTaskName(it.settings.kotlin.version))
                     val allFragmentDependencies = with(ModuleDependencies) {

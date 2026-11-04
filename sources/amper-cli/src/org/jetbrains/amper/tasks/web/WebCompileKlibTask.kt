@@ -17,7 +17,6 @@ import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.KotlinUserSettings
 import org.jetbrains.amper.compilation.ResolvedCompilerPlugin
 import org.jetbrains.amper.compilation.compiler.downloadKotlinCompiler
-import org.jetbrains.amper.compilation.downloadCompilerPlugins
 import org.jetbrains.amper.compilation.klibUniqueName
 import org.jetbrains.amper.compilation.serializableKotlinSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
@@ -31,13 +30,13 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
-import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.stdlib.io.path.clean
+import org.jetbrains.amper.tasks.DownloadCompilerPluginsTask
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.SourceRoot
 import org.jetbrains.amper.tasks.TaskOutputRoot
@@ -143,14 +142,20 @@ internal abstract class WebCompileKlibTask(
         } else null
 
         val sources = fragments.flatMap { it.sourceRoots } + additionalSources.map { it.path }
+        val compilerPlugins = dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins
 
         val artifact = incrementalCache.execute(
             key = taskName.id.value,
             inputValues = mapOf(
                 "kotlin.settings" to Json.encodeToString(kotlinUserSettings),
                 "task.output.root" to taskOutputRoot.path.pathString,
+                "plugins.config" to Json.encodeToString(compilerPlugins.map { it.config }),
             ),
-            inputFiles = sources + libraryPaths,
+            inputFiles = buildList {
+                addAll(sources)
+                addAll(libraryPaths)
+                for ((classpath) in compilerPlugins) addAll(classpath)
+            },
         ) {
             taskOutputRoot.path.clean()
 
@@ -171,6 +176,7 @@ internal abstract class WebCompileKlibTask(
             compileSources(
                 jdk = jdk,
                 kotlinUserSettings = kotlinUserSettings,
+                compilerPlugins = dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins,
                 sourceFiles = sourceFiles,
                 fragments = fragments,
                 additionalSourceRoots = additionalSources,
@@ -198,6 +204,7 @@ internal abstract class WebCompileKlibTask(
     private suspend fun compileSources(
         jdk: Jdk,
         kotlinUserSettings: KotlinUserSettings,
+        compilerPlugins: List<ResolvedCompilerPlugin>,
         sourceFiles: List<Path>,
         fragments: List<Fragment>,
         additionalSourceRoots: List<SourceRoot>,
@@ -208,11 +215,6 @@ internal abstract class WebCompileKlibTask(
             version = kotlinUserSettings.compilerVersion,
             jdk = jdk,
         )
-        val compilerPlugins = kotlinArtifactsDownloader.downloadCompilerPlugins(
-            plugins = kotlinUserSettings.compilerPlugins,
-            repositories = module.mavenResolveRepositories.map { it.toRepository() },
-        )
-
         val compilationType = KotlinCompilationType.LIBRARY
         val compilerArgs = kotlinCompilerArgs(
             kotlinUserSettings = kotlinUserSettings,

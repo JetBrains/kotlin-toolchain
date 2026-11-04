@@ -8,6 +8,7 @@ import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.jdkSettings
+import org.jetbrains.amper.tasks.CommonFragmentTaskType
 import org.jetbrains.amper.tasks.CommonTaskType
 import org.jetbrains.amper.tasks.LinkTaskType
 import org.jetbrains.amper.tasks.ProjectTasksBuilder
@@ -23,6 +24,9 @@ fun ProjectTasksBuilder.setupJsTasks() {
         .alsoTests()
         .withEach {
             val compileKLibTaskName = CommonTaskType.Compile.getTaskName(module, platform, isTest)
+            val compilerPluginsTaskName = CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(
+                module.leafFragments.single { it.platform == platform && it.isTest == isTest }
+            )
             tasks.registerTask(
                 task = JsCompileKlibTask(
                     module = module,
@@ -37,6 +41,7 @@ fun ProjectTasksBuilder.setupJsTasks() {
                     terminal = context.terminal,
                 ),
                 dependsOn = buildList {
+                    add(compilerPluginsTaskName)
                     add(provideJdkTaskName(module.jdkSettings))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {
@@ -63,6 +68,7 @@ fun ProjectTasksBuilder.setupJsTasks() {
                         buildType = BuildType.Release,
                     ),
                     dependsOn = buildList {
+                        add(compilerPluginsTaskName)
                         add(provideJdkTaskName(module.jdkSettings))
                         add(compileKLibTaskName)
                         add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))

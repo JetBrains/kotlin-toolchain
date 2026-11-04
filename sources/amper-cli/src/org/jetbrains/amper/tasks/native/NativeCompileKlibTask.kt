@@ -10,28 +10,26 @@ import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.cli.terminal.printCompilationSuccess
-import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.KotlinCompilationType
-import org.jetbrains.amper.compilation.downloadCompilerPlugins
 import org.jetbrains.amper.compilation.kotlinNativeCompilerArgs
 import org.jetbrains.amper.compilation.serializableKotlinSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.compilation.validSourceFileExtensions
-import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
-import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.frontend.friends
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.stdlib.io.path.clean
+import org.jetbrains.amper.tasks.DownloadCompilerPluginsTask
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.SourceRoot
 import org.jetbrains.amper.tasks.TaskOutputRoot
@@ -53,15 +51,12 @@ internal class NativeCompileKlibTask(
     override val module: AmperModule,
     private val moduleDependencies: ModuleDependencies,
     override val platform: Platform,
-    private val userCacheRoot: AmperUserCacheRoot,
     private val taskOutputRoot: TaskOutputRoot,
     private val incrementalCache: IncrementalCache,
     override val taskName: TaskName,
     private val tempRoot: AmperProjectTempRoot,
     override val isTest: Boolean,
     override val buildType: BuildType,
-    private val kotlinArtifactsDownloader: KotlinArtifactsDownloader =
-        KotlinArtifactsDownloader(userCacheRoot, incrementalCache),
     private val processRunner: ProcessRunner,
     private val terminal: Terminal,
 ): ArtifactTaskBase(), BuildTask {
@@ -137,14 +132,20 @@ internal class NativeCompileKlibTask(
         }
 
         val sources = fragments.flatMap { it.sourceRoots } + additionalSources.map { it.path }
+        val compilerPlugins = dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins
 
         val artifact = incrementalCache.execute(
             key = taskName.id.value,
             inputValues = mapOf(
                 "kotlin.settings" to Json.encodeToString(kotlinUserSettings),
                 "task.output.root" to taskOutputRoot.path.pathString,
+                "plugins.config" to Json.encodeToString(compilerPlugins.map { it.config }),
             ),
-            inputFiles = sources + libraryPaths,
+            inputFiles = buildList {
+                addAll(sources)
+                addAll(libraryPaths)
+                for ((classpath) in compilerPlugins) addAll(classpath)
+            },
         ) {
             taskOutputRoot.path.clean()
 
@@ -161,10 +162,6 @@ internal class NativeCompileKlibTask(
             val artifact = taskOutputRoot.path.resolve(KotlinCompilationType.LIBRARY.outputFilename(module, platform, isTest))
 
             val nativeCompiler = dependenciesResult.requireKotlinNativeCompiler(kotlinUserSettings.compilerVersion)
-            val compilerPlugins = kotlinArtifactsDownloader.downloadCompilerPlugins(
-                plugins = kotlinUserSettings.compilerPlugins,
-                repositories = module.mavenResolveRepositories.map { it.toRepository() },
-            )
             val args = kotlinNativeCompilerArgs(
                 buildType = buildType,
                 kotlinUserSettings = kotlinUserSettings,

@@ -15,8 +15,8 @@ import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.KotlinNativeCompiler
 import org.jetbrains.amper.compilation.KotlinUserSettings
+import org.jetbrains.amper.compilation.ResolvedCompilerPlugin
 import org.jetbrains.amper.compilation.compiler.downloadKotlinCompiler
-import org.jetbrains.amper.compilation.downloadCompilerPlugins
 import org.jetbrains.amper.compilation.kotlinMetadataCompilerArgs
 import org.jetbrains.amper.compilation.kotlinNativeCompilerArgs
 import org.jetbrains.amper.compilation.metadataKlibUniqueName
@@ -35,7 +35,6 @@ import org.jetbrains.amper.frontend.FragmentDependencyType
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.allFragmentDependencies
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
-import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies.Companion.toRepository
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencyNode
 import org.jetbrains.amper.frontend.dr.resolver.flow.toPlatform
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
@@ -167,11 +166,12 @@ internal class MetadataCompileTask(
 
         val jdk = dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
         val nativeCompiler = dependenciesResult.requireKotlinNativeCompiler(kotlinSettings.compilerVersion)
+        val compilerPlugins = dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins
 
         return if (fragmentPlatforms.all { it.nativeTarget != null })   {
-            compileNativeMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler)
+            compileNativeMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler, compilerPlugins)
         } else {
-            compileCommonMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler)
+            compileCommonMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler, compilerPlugins)
         }
     }
 
@@ -184,17 +184,25 @@ internal class MetadataCompileTask(
         fragmentPlatforms: Set<ResolutionPlatform>,
         jdk: Jdk,
         nativeCompiler: KotlinNativeCompiler,
+        compilerPlugins: List<ResolvedCompilerPlugin>,
     ): Result {
         val inputValues = mapOf(
             "jdk.version" to jdk.version,
             "jdk.home" to jdk.homeDir.pathString,
             "user.settings" to Json.encodeToString(kotlinSettings),
             "task.output.root" to taskOutputRoot.path.pathString,
+            "plugins.config" to Json.encodeToString(compilerPlugins.map { it.config }),
         )
 
         val sourceDirs =
             fragment.sourceRoots.map { it.toAbsolutePath() } + additionalKotlinJavaSourceDirs.map { it.path }
-        val inputFiles = sourceDirs + fragmentClasspath + refinesPaths + friendPaths
+        val inputFiles = buildList {
+            addAll(sourceDirs)
+            addAll(fragmentClasspath)
+            addAll(refinesPaths)
+            addAll(friendPaths)
+            for ((classpath) in compilerPlugins) addAll(classpath)
+        }
 
         incrementalCache.execute(taskName.id.value, inputValues, inputFiles) {
             taskOutputRoot.path.clean()
@@ -210,6 +218,7 @@ internal class MetadataCompileTask(
                     jdk = jdk,
                     nativeCompiler = nativeCompiler,
                     kotlinUserSettings = kotlinSettings,
+                    compilerPlugins = compilerPlugins,
                     sourceDirectories = sourceDirs,
                     additionalSourceRoots = additionalKotlinJavaSourceDirs.map { SourceRoot(it.fragmentName, it.path) },
                     classpath = fragmentClasspath,
@@ -241,6 +250,7 @@ internal class MetadataCompileTask(
     context(_: TaskGraphExecutionContext)
     private suspend fun compileNativeSharedSources(
         kotlinUserSettings: KotlinUserSettings,
+        compilerPlugins: List<ResolvedCompilerPlugin>,
         sourceDirectories: List<Path>,
         additionalSourceRoots: List<SourceRoot>,
         classpath: List<Path>,
@@ -260,10 +270,6 @@ internal class MetadataCompileTask(
 
         val commonizedKlibs = nativeCompiler.konanDistribution.librariesForMetadataCompilation(fragmentPlatforms)
 
-        val compilerPlugins = kotlinArtifactsDownloader.downloadCompilerPlugins(
-            plugins = kotlinUserSettings.compilerPlugins,
-            repositories = module.mavenResolveRepositories.map { it.toRepository() },
-        )
 
         // This manifest file clears 'native_targets' in the resulting klib manifest (see kotlinNativeCompilerArgs).
         // It must not live under taskOutputRoot: with '-nopack', that directory *is* the resulting klib.
@@ -310,6 +316,7 @@ internal class MetadataCompileTask(
         jdk: Jdk,
         nativeCompiler: KotlinNativeCompiler,
         kotlinUserSettings: KotlinUserSettings,
+        compilerPlugins: List<ResolvedCompilerPlugin>,
         sourceDirectories: List<Path>,
         additionalSourceRoots: List<SourceRoot>,
         classpath: List<Path>,
@@ -328,10 +335,6 @@ internal class MetadataCompileTask(
         val commonizedKlibs = nativeCompiler.konanDistribution.librariesForMetadataCompilation(fragmentPlatforms)
 
         val kotlinCompiler = kotlinArtifactsDownloader.downloadKotlinCompiler(kotlinUserSettings.compilerVersion, jdk)
-        val compilerPlugins = kotlinArtifactsDownloader.downloadCompilerPlugins(
-            plugins = kotlinUserSettings.compilerPlugins,
-            repositories = module.mavenResolveRepositories.map { it.toRepository() },
-        )
         val compilerArgs = kotlinMetadataCompilerArgs(
             kotlinUserSettings = kotlinUserSettings,
             moduleName = module.metadataKlibUniqueName(fragment, isTest),
@@ -374,17 +377,25 @@ internal class MetadataCompileTask(
         fragmentPlatforms: Set<ResolutionPlatform>,
         jdk: Jdk,
         nativeCompiler: KotlinNativeCompiler,
+        compilerPlugins: List<ResolvedCompilerPlugin>,
     ): Result {
         val inputValues = mapOf(
             "jdk.version" to jdk.version,
             "jdk.home" to jdk.homeDir.pathString,
             "user.settings" to Json.encodeToString(kotlinSettings),
             "task.output.root" to taskOutputRoot.path.pathString,
+            "plugins.config" to Json.encodeToString(compilerPlugins.map { it.config }),
         )
 
         val sourceDirs =
             fragment.sourceRoots.map { it.toAbsolutePath() } + additionalKotlinJavaSourceDirs.map { it.path }
-        val inputFiles = sourceDirs + fragmentClasspath + refinesPaths + friendPaths
+        val inputFiles = buildList {
+            addAll(sourceDirs)
+            addAll(fragmentClasspath)
+            addAll(refinesPaths)
+            addAll(friendPaths)
+            for ((classpath) in compilerPlugins) addAll(classpath)
+        }
 
         incrementalCache.execute(taskName.id.value, inputValues, inputFiles) {
             taskOutputRoot.path.clean()
@@ -398,6 +409,7 @@ internal class MetadataCompileTask(
                 }
                 compileNativeSharedSources(
                     kotlinUserSettings = kotlinSettings,
+                    compilerPlugins = compilerPlugins,
                     sourceDirectories = sourceDirs,
                     additionalSourceRoots = additionalKotlinJavaSourceDirs.map { SourceRoot(it.fragmentName, it.path) },
                     classpath = fragmentClasspath,
