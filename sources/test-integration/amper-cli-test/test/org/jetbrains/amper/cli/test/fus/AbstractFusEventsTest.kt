@@ -8,7 +8,6 @@ import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
-import org.jetbrains.amper.test.AmperCliResult
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
@@ -23,8 +22,8 @@ import kotlin.io.path.writeText
 /**
  * End-to-end tests for the FUS events reported by the CLI.
  *
- * These tests run the real CLI with FUS enabled, and read the events back from the FUS debug logs, which the CLI
- * writes when `KOTLIN_TOOLCHAIN_FUS_DEBUG_ENABLED` is set.
+ * These tests run the real CLI with FUS enabled, and read the events back from the dump file that the CLI writes
+ * when `KOTLIN_TOOLCHAIN_FUS_DUMP_FILE` is set.
  * Nothing is ever uploaded: `KOTLIN_TOOLCHAIN_FUS_SEND_ENABLED` is forced to false.
  */
 @Tag("cli-test-group-fus")
@@ -38,8 +37,8 @@ abstract class AbstractFusEventsTest : CliTestBase() {
     lateinit var nonRepositoryTempDir: Path
 
     /**
-     * Runs the CLI like [runCli] does, but with FUS recording and FUS debug logging enabled, so that the reported
-     * events can be read from [reportedFusEvents]. Nothing is ever sent to the FUS servers.
+     * Runs the CLI like [runCli] does, but with FUS recording enabled and the FUS events dumped to a file, so that
+     * the reported events can be read from the returned [FusCliResult]. Nothing is ever sent to the FUS servers.
      *
      * The data collection [consent] is faked in a throw-away directory, so that the real consent of the user running
      * these tests is neither read nor modified.
@@ -58,18 +57,17 @@ abstract class AbstractFusEventsTest : CliTestBase() {
         amperJvmArgs: List<String> = emptyList(),
         wrapperMode: WrapperMode = WrapperMode.Local,
         configureEnvironment: MutableMap<String, String>.() -> Unit = {},
-    ): AmperCliResult {
+    ): FusCliResult {
         consent.writeConsentFileIn(fakeUserHome)
 
+        val eventsDumpFile = nonRepositoryTempDir / "fus-events-${UUID.randomUUID()}.txt"
         val allArgs = buildList {
-            // the FUS debug logs are logged at the DEBUG level, and only the console gets them early enough
-            add("--log-level=debug")
             if (sharedCacheDir != null) {
                 add("--shared-cache-dir=${sharedCacheDir.pathString}")
             }
             addAll(args)
         }
-        return runCli(
+        val cliResult = runCli(
             projectDir,
             args = allArgs.toTypedArray(),
             expectedExitCode = expectedExitCode,
@@ -80,7 +78,7 @@ abstract class AbstractFusEventsTest : CliTestBase() {
             amperJvmArgs = amperJvmArgs + "-Duser.home=\"${fakeUserHome.absolutePathString()}\"",
             configureEnvironment = {
                 put("KOTLIN_TOOLCHAIN_FUS_ENABLED", "true")
-                put("KOTLIN_TOOLCHAIN_FUS_DEBUG_ENABLED", "true")
+                put("KOTLIN_TOOLCHAIN_FUS_DUMP_FILE", eventsDumpFile.pathString)
                 put("KOTLIN_TOOLCHAIN_FUS_SEND_ENABLED", "false")
                 // where the shared JetBrains consent file is looked up (except on macOS, see 'user.home' above)
                 put("XDG_DATA_HOME", fakeUserHome.pathString)
@@ -88,11 +86,16 @@ abstract class AbstractFusEventsTest : CliTestBase() {
 
                 // cleanup inherited environment variables to create a baseline for tests
                 remove("KOTLIN_TOOLCHAIN_FUS_CALLING_IDE_PRODUCT_CODE")
-                hideCiAndInternalUserEnvironment()
+                remove("KOTLIN_FROM_SOURCES")
+                remove("KOTLIN_TOOLCHAIN_INTERNAL_USER")
+                for (ciMarker in CiEnvVars) {
+                    remove(ciMarker)
+                }
 
                 configureEnvironment()
             },
         )
+        return FusCliResult(cliResult, eventsDumpFile)
     }
 
     /**
@@ -153,20 +156,6 @@ enum class TestConsent {
         val consentFile = appDataRoot / "JetBrains/consentOptions/accepted"
         consentFile.createParentDirectories()
             .writeText("rsch.send.usage.stat:1.1:$valueInFile:${System.currentTimeMillis()}")
-    }
-}
-
-/**
- * Removes the environment variables that would make the CLI report a CI system, an internal JetBrains user, or a
- * different caller type, so that the reported events are the same whether the tests run locally or on CI.
- *
- * See `CISystem.detect` and `isInternalUserForFUS` in the sources.
- */
-private fun MutableMap<String, String>.hideCiAndInternalUserEnvironment() {
-    remove("KOTLIN_FROM_SOURCES")
-    remove("KOTLIN_TOOLCHAIN_INTERNAL_USER")
-    for (ciMarker in CiEnvVars) {
-        remove(ciMarker)
     }
 }
 

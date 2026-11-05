@@ -9,6 +9,9 @@ import com.jetbrains.fus.reporting.serialization.FusKotlinSerializer
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.generateUnifiedDiff
 import org.junit.jupiter.api.AssertionFailureBuilder
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.readLines
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -17,38 +20,55 @@ import kotlin.test.fail
 private val fusSerializer = FusKotlinSerializer()
 
 /**
- * The FUS events that the CLI reported during this run, in the order in which they were reported.
- *
- * Note that these are the events that the CLI reports, which is not necessarily what is sent to the FUS servers:
- * the FUS client drops the events that it cannot validate against the FUS metadata.
- * See [validatedFusEvents] for the events as they are effectively sent.
- *
- * This requires the CLI to have been run with FUS debug logging enabled and with a debug console log level.
+ * The result of a CLI run with FUS enabled, with the events that the CLI dumped into [eventsDumpFile] during the run.
  */
-internal val AmperCliResult.reportedFusEvents: List<LogEvent>
-    get() = fusEventsLoggedWith("[FUS][reported] ")
+class FusCliResult(
+    val cliResult: AmperCliResult,
+    private val eventsDumpFile: Path,
+) {
+    private val eventsByTag by lazy { readDumpedEvents() }
 
-/**
- * The FUS events as the FUS client recorded them, after anonymization and validation against the FUS metadata.
- * This is what is effectively sent to the FUS servers.
- *
- * Compared to [reportedFusEvents], the identifiers are anonymized, and the values that the FUS metadata doesn't
- * describe are replaced by `validation.*` markers. Events whose group the metadata doesn't describe at all are
- * missing from this list.
- *
- * Beware: the FUS client doesn't reliably record the last event of a run (usually `ktc.command.result`) before the
- * CLI exits, so don't assert on it from this list.
- *
- * This requires the CLI to have been run with FUS debug logging enabled and with a debug console log level.
- */
-internal val AmperCliResult.validatedFusEvents: List<LogEvent>
-    get() = fusEventsLoggedWith("[FUS][validated] ")
+    /**
+     * The FUS events that the CLI reported during this run, in the order in which they were reported.
+     *
+     * Note that these are the events that the CLI reports, which is not necessarily what is sent to the FUS servers:
+     * the FUS client drops the events that it cannot validate against the FUS metadata.
+     * See [validatedFusEvents] for the events as they are effectively sent.
+     */
+    val reportedFusEvents: List<LogEvent> by lazy { eventsByTag["reported"] ?: [] }
 
-private fun AmperCliResult.fusEventsLoggedWith(logPrefix: String): List<LogEvent> = stdout.lineSequence()
-    // The CLI prints these logs through Mordant, which may add a level prefix or styling around them.
-    .mapNotNull { line -> line.substringAfter(logPrefix, missingDelimiterValue = "").ifEmpty { null } }
-    .map { fusSerializer.fromJson(it.trim(), LogEvent::class) }
-    .toList()
+    /**
+     * The FUS events as the FUS client recorded them, after anonymization and validation against the FUS metadata.
+     * This is what is effectively sent to the FUS servers.
+     *
+     * Compared to [reportedFusEvents], the identifiers are anonymized, and the values that the FUS metadata doesn't
+     * describe are replaced by `validation.*` markers. Events whose group the metadata doesn't describe at all are
+     * missing from this list.
+     *
+     * Beware: the FUS client doesn't reliably record the last event of a run (usually `ktc.command.result`) before the
+     * CLI exits, so don't assert on it from this list.
+     */
+    val validatedFusEvents: List<LogEvent> by lazy { eventsByTag["validated"] ?: [] }
+
+    private fun readDumpedEvents(): Map<String, List<LogEvent>> {
+        if (!eventsDumpFile.exists()) {
+            fail("The CLI didn't dump any FUS event: no file was created at $eventsDumpFile")
+        }
+        return eventsDumpFile.readLines()
+            .map { dumpLineRegex.matchEntire(it) ?: error("couldn't parse FUS event dump line: $it") }
+            .map { match ->
+                val tag = match.groups["tag"]?.value ?: error("missing group 'tag'")
+                val eventJson = match.groups["eventJson"]?.value ?: error("missing group 'eventJson'")
+                tag to fusSerializer.fromJson(eventJson, LogEvent::class)
+            }
+            .groupBy(keySelector = { it.first }, valueTransform = { it.second })
+    }
+
+    companion object {
+        // See FusEventDumpFile.dump for the format definition
+        private val dumpLineRegex = Regex("""^\[pid-\d+]\[(?<tag>[^]]+)] (?<eventJson>.*)""")
+    }
+}
 
 /** The ID of the event itself, such as `ktc.command.invoked`. */
 internal val LogEvent.eventId: String get() = event.id

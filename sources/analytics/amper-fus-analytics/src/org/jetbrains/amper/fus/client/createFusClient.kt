@@ -50,17 +50,12 @@ val FUS_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_ENABLED")?.toBooleanStrict
 /**
  * Whether the recorded events may be uploaded to the FUS servers.
  *
- * This is enabled by default, and can be turned off to record and inspect events (see [FUS_DEBUG_ENABLED])
+ * This is enabled by default, and can be turned off to record and inspect events (see [fusEventDumpFile])
  * without sending anything. This is how our own tests exercise the FUS reporting.
  */
 private val FUS_SEND_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_SEND_ENABLED")?.toBooleanStrictOrNull() ?: true
 
 private val FUS_USE_STAGING = System.getenv("KOTLIN_TOOLCHAIN_FUS_USE_STAGING")?.toBooleanStrictOrNull() ?: false
-
-/**
- * Whether the individual FUS events should be logged for debugging purposes.
- */
-internal val FUS_DEBUG_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_DEBUG_ENABLED")?.toBooleanStrictOrNull() ?: false
 
 internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport> = fusClient {
     config {
@@ -137,9 +132,10 @@ internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport>
         val level = if (isInternalUserForFUS) Level.ERROR else Level.DEBUG
         logger.atLevel(level).log("Error updating FUS metadata: {}", loadError)
     }
-    if (FUS_DEBUG_ENABLED) {
+    val eventDump = fusEventDumpFile
+    if (eventDump != null) {
         messageHandler(topic = RAW_EVENT_TOPIC) { event ->
-            logValidatedFusEvent(event.event as LogEvent)
+            eventDump.dumpValidatedEvent(event.event as LogEvent)
         }
     }
 }
