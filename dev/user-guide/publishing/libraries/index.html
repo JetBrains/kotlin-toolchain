@@ -1215,6 +1215,23 @@ javadoc JARs, and Central Portal credentials.
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Passing credentials">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-a-signing-subkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using a signing subkey
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2954,6 +2971,23 @@ javadoc JARs, and Central Portal credentials.
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Passing credentials">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-a-signing-subkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using a signing subkey
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -3184,6 +3218,10 @@ variables (usually done on the CI):</p>
 <td><code>KOTLIN_TOOLCHAIN_SIGNING_KEY_PASSPHRASE</code></td>
 <td>(optional) The passphrase to unlock the PGP key, if there is one.</td>
 </tr>
+<tr>
+<td><code>KOTLIN_TOOLCHAIN_SIGNING_KEY_ID</code></td>
+<td>(optional) The ID of the signing (sub-)key to use, if <code>KOTLIN_TOOLCHAIN_SIGNING_KEY</code> contains several usable ones. See <a href="#using-a-signing-subkey">Using a signing subkey</a>.</td>
+</tr>
 </tbody>
 </table>
 <div class="admonition note">
@@ -3196,6 +3234,22 @@ To check the signatures locally, build the Maven Central bundle with <code>kotli
 <p>If you have never needed a PGP signing key before, it might not be obvious to get started.
 Follow the instructions to <a href="https://central.sonatype.org/publish/requirements/gpg">create and prepare a key</a> on the 
 Maven Central website.</p>
+</div>
+<h4 id="using-a-signing-subkey">Using a signing subkey<a class="headerlink" href="#using-a-signing-subkey" title="Permanent link">&para;</a></h4>
+<p>A PGP key can contain several subkeys. Artifacts are signed with the only signing-capable subkey that carries its
+secret key material, so you usually don't have to configure anything.</p>
+<p>In particular, you can keep your primary key offline or on a hardware token, and only export the signing subkey:</p>
+<div class="highlight"><pre><span></span><code>gpg<span class="w"> </span>--export-secret-subkeys<span class="w"> </span>--armor<span class="w"> </span><span class="s1">'&lt;SUBKEY_ID&gt;!'</span>
+</code></pre></div>
+<p>Such an export also contains the primary key, but only as a stub without any secret key material. Stubs are never
+used for signing.</p>
+<p>If several signing subkeys of your key can be used, publication fails with an error listing them, and you must pick
+one explicitly with <code>KOTLIN_TOOLCHAIN_SIGNING_KEY_ID</code>. All the forms printed by <code>gpg --list-keys</code> are accepted: a
+short key ID, a long key ID, or a full fingerprint.</p>
+<div class="admonition warning">
+<p class="admonition-title">Avoid subkeys for Maven and Nexus</p>
+<p>Maven and the Nexus Repository Manager can only verify signatures against primary keys.
+Avoid signing with a subkey if you want to make sure these tools recognize your signature. </p>
 </div>
 <h3 id="publishing-command">Publishing command<a class="headerlink" href="#publishing-command" title="Permanent link">&para;</a></h3>
 <p>Use the following command to publish all modules that have <code>mavenCentral</code> publication enabled:</p>
@@ -3279,7 +3333,7 @@ artifact. You can customize this list using <code>settings.publishing.checksums<
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 22, 2026 14:46:21 UTC">October 22, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 3, 2026 11:43:49 UTC">November 3, 2026</span>
   </span>
 
     
