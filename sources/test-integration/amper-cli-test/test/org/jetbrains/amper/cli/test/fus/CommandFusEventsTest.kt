@@ -27,9 +27,7 @@ class CommandFusEventsTest : AbstractFusEventsTest() {
         assertEquals("ktc.command", invoked.group.id)
         invoked.assertData(
             "command" to "show",
-            // The subcommands are not known yet when this event is reported, because it happens before the subcommand
-            // parses its own command line. See the 'ktc.command.result' event for the actual subcommands.
-            "subcommand" to emptyList<String>(),
+            "subcommand" to ["modules"],
             "os_family" to expectedOsFamily,
             "cpu_arch" to expectedCpuArch,
             "caller_type" to "terminal",
@@ -41,7 +39,7 @@ class CommandFusEventsTest : AbstractFusEventsTest() {
         // No CI system and no AI agent are reported, because the test environment hides them (see runCliWithFus).
         assertEquals(false, invoked.internal, "The test environment must not look like an internal JetBrains user")
         assertNotNull(invoked.session, "Regular events must have a session ID")
-        // Like the subcommands, the project is not known yet when this event is reported.
+        // The project is not known yet when this event is reported.
         assertEquals(setOf("machine_id"), invoked.ids.keys)
 
         val completed = result.reportedFusEvents.assertSingle("ktc.command.result")

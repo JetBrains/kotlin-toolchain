@@ -4,17 +4,17 @@
 
 package org.jetbrains.amper.cli
 
-import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Abort
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.PrintCompletionMessage
 import com.github.ajalt.clikt.core.PrintMessage
-import com.github.ajalt.clikt.parsers.CommandInvocation
 import com.github.ajalt.clikt.parsers.CommandLineParser
 import com.github.ajalt.mordant.markdown.Markdown
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.util.logging.*
 import org.jetbrains.amper.cli.analytics.CliFusReporter
+import org.jetbrains.amper.cli.analytics.InvokedCommand
+import org.jetbrains.amper.cli.analytics.toInvokedCommand
 import org.jetbrains.amper.cli.commands.LogsDirAwareInternalError
 import org.jetbrains.amper.cli.commands.RootCommand
 import org.jetbrains.amper.cli.logging.withoutConsoleLogging
@@ -97,22 +97,25 @@ suspend fun main(args: Array<String>) {
  */
 // This implementation is inlined from CoreSuspendingCliktCommand.main() and CommandLineParser.main()
 // to isolate the parsing of CLI arguments for telemetry purposes.
-private suspend fun SuspendingCliktCommand.mainWithTelemetry(args: Array<String>) {
+private suspend fun RootCommand.mainWithTelemetry(args: Array<String>) {
     val command = this
     val result = spanBuilder("Parse CLI arguments").use { span ->
         CommandLineParser.parse(command, args.asList()).also { r ->
             span.setListAttribute("errors", r.invocation.errors.map { it.toString() })
         }
     }
+    val invokedCommand = result.invocation.toInvokedCommand()
+    command.invokedCommand = invokedCommand
+
     spanBuilder("Run command")
-        .setAttribute("command", result.invocation.command.commandName)
-        .setListAttribute("subcommands", result.invocation.subcommandInvocations.map { it.command.commandName })
+        .setAttribute("command", invokedCommand?.name ?: "(root)")
+        .setListAttribute("subcommands", invokedCommand?.subcommands ?: [])
         .use {
             try {
                 CommandLineParser.run(result.invocation) { it.run() }
-                reportFusCommandResult(result.invocation)
+                reportFusCommandResult(invokedCommand)
             } catch (e: CliktError) {
-                reportFusCommandResult(result.invocation, e)
+                reportFusCommandResult(invokedCommand, e)
                 command.echoFormattedHelp(e)
 
                 // We don't want to throw the exception from the "run command" span unconditionally because some errors
@@ -126,24 +129,20 @@ private suspend fun SuspendingCliktCommand.mainWithTelemetry(args: Array<String>
                     throw ExitProcessButCloseTelemetrySpansException(e.statusCode)
                 }
             } catch (e: Throwable) {
-                reportFusCommandResult(result.invocation, e)
+                reportFusCommandResult(invokedCommand, e)
                 throw e
             }
         }
 }
 
 /**
- * Reports the outcome of the command execution to FUS, based on the [exception] that terminated the command.
+ * Reports the outcome of the execution of [invokedCommand] to FUS, based on the [exception] that terminated it.
  * A null [exception] means the command completed successfully.
- *
- * The [rootInvocation] is the invocation of the root 'kotlin' command, used to report which command was run.
  */
-private fun reportFusCommandResult(rootInvocation: CommandInvocation<*>, exception: Throwable? = null) {
-    // The root command is the 'kotlin' CLI itself, so the command the user asked for is its first subcommand.
-    val commandInvocation = rootInvocation.subcommandInvocations.firstOrNull()
+private fun reportFusCommandResult(invokedCommand: InvokedCommand?, exception: Throwable? = null) {
     CliFusReporter.log(FusEvents.CommandResult) {
-        command = commandInvocation?.command?.commandName
-        subcommands = commandInvocation?.subcommandInvocations?.map { it.command.commandName }
+        command = invokedCommand?.name
+        subcommands = invokedCommand?.subcommands ?: []
         result = exception.toFusCommandResult()
     }
 }

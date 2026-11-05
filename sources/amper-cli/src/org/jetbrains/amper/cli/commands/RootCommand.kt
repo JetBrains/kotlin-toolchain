@@ -33,6 +33,7 @@ import org.jetbrains.amper.cli.AmperHelpFormatter
 import org.jetbrains.amper.cli.AmperVersion
 import org.jetbrains.amper.cli.analytics.CliFusReporter
 import org.jetbrains.amper.cli.analytics.FusEnvironmentDetection
+import org.jetbrains.amper.cli.analytics.InvokedCommand
 import org.jetbrains.amper.cli.commands.ide.IdeIntegrationCommand
 import org.jetbrains.amper.cli.commands.show.ShowCommand
 import org.jetbrains.amper.cli.commands.tools.ToolCommand
@@ -59,6 +60,15 @@ import java.io.PrintStream
 import kotlin.io.path.Path
 
 internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
+
+    /**
+     * The command that the user invoked, or null if the CLI was invoked without any command.
+     *
+     * This must be set by the caller based on the parsed command line, because the Clikt context doesn't know about
+     * the nested subcommands yet when [run] is executed: subcommands only register themselves in their parent's
+     * context when they are run, which happens after this root command's [run].
+     */
+    var invokedCommand: InvokedCommand? = null
 
     init {
         versionOption(
@@ -226,9 +236,8 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
 
     private fun sendBaselineFusEvent() {
         CliFusReporter.log(FusEvents.CommandInvoked) {
-            command = currentContext.invokedSubcommand?.commandName
-            subcommands =
-                currentContext.invokedSubcommand?.currentContext?.invokedSubcommands?.map { it.commandName }
+            command = invokedCommand?.name
+            subcommands = invokedCommand?.subcommands
             osFamily = SystemInfo.CurrentHost.family
             cpuArch = SystemInfo.CurrentHost.arch
             ciSystem = FusEnvironmentDetection.ciSystem
