@@ -118,7 +118,7 @@ object FusEvents {
 
     private val CommandGroup = group(
         id = "ktc.command",
-        version = 11,
+        version = 12,
         type = EventLogGroup.Type.COUNTER,
         description = "Command execution events",
     )
@@ -142,10 +142,11 @@ object FusEvents {
         ))
 
         var subcommands by field(EventFields.StringList(
-            name = "subcommand",
-            description = "The name of the invoked subcommands (like 'jdk' for 'kotlin tool jdk'), or an empty list " +
-                    "if no subcommands were passed (like 'kotlin build'). This is a list because some commands may " +
-                    "allow multiple subcommands in the same command line.",
+            name = "subcommands",
+            description = "The name of the invoked subcommands (like 'jdk' for 'kotlin tool jdk', or 'modules' for " +
+                    "'kotlin show modules'), or an empty list if no subcommands were passed (like 'kotlin build', " +
+                    "'kotlin test', etc.). This is a list because some commands may allow multiple subcommands in the " +
+                    "same command line.",
             allowedValues = KnownSubcommands,
         ))
 
@@ -408,10 +409,11 @@ object FusEvents {
         ))
 
         var subcommands by field(EventFields.StringList(
-            name = "subcommand",
-            description = "The name of the subcommands that completed (like 'jdk' for 'kotlin tool jdk'), or an " +
-                    "empty list if no subcommands were passed (like 'kotlin build'). This is a list because some " +
-                    "commands may allow multiple subcommands in the same command line.",
+            name = "subcommands",
+            description = "The name of the subcommands that completed (like 'jdk' for 'kotlin tool jdk', or 'modules' " +
+                    "for 'kotlin show modules'), or an empty list if no subcommands were passed (like 'kotlin build', " +
+                    "'kotlin test', etc.). This is a list because some commands may allow multiple subcommands in the " +
+                    "same command line.",
             allowedValues = KnownSubcommands,
         ))
 

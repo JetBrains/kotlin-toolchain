@@ -27,7 +27,7 @@ class CommandFusEventsTest : AbstractFusEventsTest() {
         assertEquals("ktc.command", invoked.group.id)
         invoked.assertData(
             "command" to "show",
-            "subcommand" to ["modules"],
+            "subcommands" to ["modules"],
             "os_family" to expectedOsFamily,
             "cpu_arch" to expectedCpuArch,
             "caller_type" to "terminal",
@@ -45,7 +45,7 @@ class CommandFusEventsTest : AbstractFusEventsTest() {
         val completed = result.reportedFusEvents.assertSingle("ktc.command.result")
         completed.assertData(
             "command" to "show",
-            "subcommand" to ["modules"],
+            "subcommands" to ["modules"],
             "result" to "success",
         )
         assertEquals(invoked.session, completed.session, "All events of a run must share the same session ID")
@@ -62,7 +62,7 @@ class CommandFusEventsTest : AbstractFusEventsTest() {
 
         result.reportedFusEvents.assertSingle("ktc.command.result").assertData(
             "command" to "build",
-            "subcommand" to emptyList<String>(),
+            "subcommands" to emptyList<String>(),
             "result" to "failure",
         )
     }
@@ -109,7 +109,7 @@ class CommandFusEventsTest : AbstractFusEventsTest() {
 
         result.reportedFusEvents.assertSingle("ktc.command.result").assertData(
             "command" to "build",
-            "subcommand" to emptyList<String>(),
+            "subcommands" to emptyList<String>(),
             "result" to "success",
         )
     }
