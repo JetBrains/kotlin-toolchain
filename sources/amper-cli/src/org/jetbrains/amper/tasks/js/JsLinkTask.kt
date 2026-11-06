@@ -7,12 +7,10 @@ package org.jetbrains.amper.tasks.js
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
-import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.KotlinUserSettings
 import org.jetbrains.amper.compilation.ResolvedCompilerPlugin
 import org.jetbrains.amper.compilation.kotlinJsCompilerArgs
-import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
@@ -27,7 +25,6 @@ import java.nio.file.Path
 internal class JsLinkTask(
     module: AmperModule,
     platform: Platform,
-    userCacheRoot: AmperUserCacheRoot,
     buildOutputRoot: AmperBuildOutputRoot,
     incrementalCache: IncrementalCache,
     taskName: TaskName,
@@ -36,12 +33,9 @@ internal class JsLinkTask(
     processRunner: ProcessRunner,
     buildType: BuildType,
     compileKLibTaskId: TaskId,
-    kotlinArtifactsDownloader: KotlinArtifactsDownloader =
-        KotlinArtifactsDownloader(userCacheRoot, incrementalCache),
 ) : WebLinkTask(
     module,
     platform,
-    userCacheRoot,
     buildOutputRoot,
     incrementalCache,
     taskName,
@@ -50,7 +44,6 @@ internal class JsLinkTask(
     buildType,
     processRunner,
     compileKLibTaskId,
-    kotlinArtifactsDownloader,
 ) {
     override val expectedPlatform: Platform
         get() = Platform.JS

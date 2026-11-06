@@ -15,6 +15,7 @@ import org.jetbrains.amper.tasks.ProjectTasksBuilder
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
 import org.jetbrains.amper.tasks.getTaskName
 import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
+import org.jetbrains.amper.tasks.kotlinCompilerEmbeddableProvisionTaskName
 import org.jetbrains.amper.util.BuildType
 
 fun ProjectTasksBuilder.setupJsTasks() {
@@ -24,14 +25,12 @@ fun ProjectTasksBuilder.setupJsTasks() {
         .alsoTests()
         .withEach {
             val compileKLibTaskName = CommonTaskType.Compile.getTaskName(module, platform, isTest)
-            val compilerPluginsTaskName = CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(
-                module.leafFragments.single { it.platform == platform && it.isTest == isTest }
-            )
+            val leafFragment = module.leafFragments.single { it.platform == platform && it.isTest == isTest }
+            val compilerPluginsTaskName = CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(leafFragment)
             tasks.registerTask(
                 task = JsCompileKlibTask(
                     module = module,
                     platform = platform,
-                    userCacheRoot = context.userCacheRoot,
                     taskOutputRoot = context.getTaskOutputPath(compileKLibTaskName),
                     incrementalCache = context.incrementalCache,
                     taskName = compileKLibTaskName,
@@ -42,6 +41,7 @@ fun ProjectTasksBuilder.setupJsTasks() {
                 ),
                 dependsOn = buildList {
                     add(compilerPluginsTaskName)
+                    add(kotlinCompilerEmbeddableProvisionTaskName(leafFragment.settings.kotlin.version))
                     add(provideJdkTaskName(module.jdkSettings))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {
@@ -57,7 +57,6 @@ fun ProjectTasksBuilder.setupJsTasks() {
                     task = JsLinkTask(
                         module = module,
                         platform = platform,
-                        userCacheRoot = context.userCacheRoot,
                         buildOutputRoot = context.buildOutputRoot,
                         incrementalCache = context.incrementalCache,
                         taskName = linkAppTaskName,
@@ -69,6 +68,7 @@ fun ProjectTasksBuilder.setupJsTasks() {
                     ),
                     dependsOn = buildList {
                         add(compilerPluginsTaskName)
+                        add(kotlinCompilerEmbeddableProvisionTaskName(leafFragment.settings.kotlin.version))
                         add(provideJdkTaskName(module.jdkSettings))
                         add(compileKLibTaskName)
                         add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))

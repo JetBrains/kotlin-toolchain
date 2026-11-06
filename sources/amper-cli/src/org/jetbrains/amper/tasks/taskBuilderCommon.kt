@@ -11,6 +11,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.PublicationRepository
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencies
+import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.frontend.isArtifactSigningEnabled
 import org.jetbrains.amper.frontend.isMavenLocal
 import org.jetbrains.amper.frontend.isPublishingEnabled
@@ -112,6 +113,10 @@ fun ProjectTasksBuilder.setupCommonTasks(moduleDependenciesMap: Map<AmperModule,
                     add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(it))
                     add(provideJdkTaskName(it.settings.jvm.jdk))
                     add(kotlinNativeCompilerProvisionTaskName(it.settings.kotlin.version))
+                    val platforms = it.platforms.mapNotNull { platform -> platform.toResolutionPlatform() }
+                    if (platforms.any { platform -> platform.nativeTarget == null }) {
+                        add(kotlinCompilerEmbeddableProvisionTaskName(it.settings.kotlin.version))
+                    }
                     val allFragmentDependencies = with(ModuleDependencies) {
                         // todo (AB) : [AMPER-721] Check that native-only and mixed metadata-compilation
                         //  works with this compile dependencies classpath. Perhaps, all true native compile dependencies

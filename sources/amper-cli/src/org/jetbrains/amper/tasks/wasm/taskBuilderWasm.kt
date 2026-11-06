@@ -8,13 +8,13 @@ import com.github.ajalt.mordant.terminal.Terminal
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
-import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.jdkSettings
+import org.jetbrains.amper.frontend.kotlinVersion
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.tasks.CommonFragmentTaskType
 import org.jetbrains.amper.tasks.CommonTaskType
@@ -24,6 +24,7 @@ import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.getTaskName
 import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
+import org.jetbrains.amper.tasks.kotlinCompilerEmbeddableProvisionTaskName
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
 import org.jetbrains.amper.tasks.web.WebLinkTask
 import org.jetbrains.amper.util.BuildType
@@ -33,7 +34,6 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
     createCompileTask: (
         module: AmperModule,
         platform: Platform,
-        userCacheRoot: AmperUserCacheRoot,
         taskOutputRoot: TaskOutputRoot,
         incrementalCache: IncrementalCache,
         taskName: TaskName,
@@ -45,7 +45,6 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
     createLinkTask: (
         module: AmperModule,
         platform: Platform,
-        userCacheRoot: AmperUserCacheRoot,
         buildOutputRoot: AmperBuildOutputRoot,
         incrementalCache: IncrementalCache,
         taskName: TaskName,
@@ -65,7 +64,6 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
                 task = createCompileTask(
                     module,
                     platform,
-                    context.userCacheRoot,
                     context.getTaskOutputPath(compileKLibTaskName),
                     context.incrementalCache,
                     compileKLibTaskName,
@@ -78,6 +76,7 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
                     add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(
                         module.leafFragments.single { it.platform == platform && it.isTest == isTest }
                     ))
+                    add(kotlinCompilerEmbeddableProvisionTaskName(module.kotlinVersion))
                     add(provideJdkTaskName(module.jdkSettings))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {
@@ -101,7 +100,6 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
                     task = createLinkTask(
                         module,
                         platform,
-                        context.userCacheRoot,
                         context.buildOutputRoot,
                         context.incrementalCache,
                         linkAppTaskName,
@@ -115,6 +113,7 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
                         add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(
                             module.leafFragments.single { it.platform == platform && it.isTest == isTest }
                         ))
+                        add(kotlinCompilerEmbeddableProvisionTaskName(module.kotlinVersion))
                         add(provideJdkTaskName(module.jdkSettings))
                         add(compileKLibTaskName)
                         add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))

@@ -7,12 +7,10 @@ package org.jetbrains.amper.tasks.wasm
 import com.github.ajalt.mordant.terminal.Terminal
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperProjectTempRoot
-import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.KotlinUserSettings
 import org.jetbrains.amper.compilation.ResolvedCompilerPlugin
 import org.jetbrains.amper.compilation.kotlinWasmCompilerArgs
-import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
@@ -27,7 +25,6 @@ import java.nio.file.Path
 internal class WasmJsCompileKlibTask(
     module: AmperModule,
     platform: Platform,
-    userCacheRoot: AmperUserCacheRoot,
     taskOutputRoot: TaskOutputRoot,
     incrementalCache: IncrementalCache,
     taskName: TaskName,
@@ -36,18 +33,15 @@ internal class WasmJsCompileKlibTask(
     processRunner: ProcessRunner,
     terminal: Terminal,
     buildType: BuildType? = null,
-    kotlinArtifactsDownloader: KotlinArtifactsDownloader = KotlinArtifactsDownloader(userCacheRoot, incrementalCache),
 ) : WebCompileKlibTask(
     module,
     platform,
-    userCacheRoot,
     taskOutputRoot,
     incrementalCache,
     taskName,
     tempRoot,
     isTest,
     buildType,
-    kotlinArtifactsDownloader,
     processRunner,
     terminal,
 ) {

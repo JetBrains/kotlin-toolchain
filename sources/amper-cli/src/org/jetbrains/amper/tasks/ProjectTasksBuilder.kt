@@ -106,12 +106,15 @@ class ProjectTasksBuilder(
             .distinct()
             .forEach { kotlinVersion ->
                 // We don't bother looking at platforms;
-                // some tasks may be unused if there is no native/jvm fragment for this version.
+                // some tasks may be unused if there is no matching fragment for this version.
                 tasks.registerTask(
                     ProvideKotlinNativeCompilerTask(kotlinVersion, context.userCacheRoot, context.jdkProvider)
                 )
                 tasks.registerTask(
                     ProvideKotlinToolchainsTask(kotlinVersion, context.userCacheRoot, context.incrementalCache)
+                )
+                tasks.registerTask(
+                    ProvideEmbeddableKotlinCompilerTask(kotlinVersion, context.userCacheRoot, context.incrementalCache)
                 )
             }
     }

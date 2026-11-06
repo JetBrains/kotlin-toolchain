@@ -12,16 +12,14 @@ import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.cli.telemetry.setAmperModule
 import org.jetbrains.amper.cli.terminal.printCompilationSuccess
 import org.jetbrains.amper.cli.userReadableError
-import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.KotlinUserSettings
 import org.jetbrains.amper.compilation.ResolvedCompilerPlugin
-import org.jetbrains.amper.compilation.compiler.downloadKotlinCompiler
+import org.jetbrains.amper.compilation.compiler.KotlinCompiler
 import org.jetbrains.amper.compilation.klibUniqueName
 import org.jetbrains.amper.compilation.serializableKotlinSettings
 import org.jetbrains.amper.compilation.singleLeafFragment
 import org.jetbrains.amper.compilation.validSourceFileExtensions
-import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.BuildTask
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
@@ -32,11 +30,11 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
 import org.jetbrains.amper.stdlib.io.path.clean
 import org.jetbrains.amper.tasks.DownloadCompilerPluginsTask
+import org.jetbrains.amper.tasks.ProvideEmbeddableKotlinCompilerTask
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.SourceRoot
 import org.jetbrains.amper.tasks.TaskOutputRoot
@@ -61,15 +59,12 @@ import kotlin.io.path.walk
 internal abstract class WebCompileKlibTask(
     override val module: AmperModule,
     override val platform: Platform,
-    private val userCacheRoot: AmperUserCacheRoot,
     private val taskOutputRoot: TaskOutputRoot,
     private val incrementalCache: IncrementalCache,
     override val taskName: TaskName,
     private val tempRoot: AmperProjectTempRoot,
     override val isTest: Boolean,
     override val buildType: BuildType? = null,
-    private val kotlinArtifactsDownloader: KotlinArtifactsDownloader =
-        KotlinArtifactsDownloader(userCacheRoot, incrementalCache),
     private val processRunner: ProcessRunner,
     private val terminal: Terminal,
 ) : ArtifactTaskBase(), BuildTask {
@@ -126,6 +121,7 @@ internal abstract class WebCompileKlibTask(
         val kotlinUserSettings = fragments.singleLeafFragment().serializableKotlinSettings()
 
         val jdk = dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
+        val compiler = dependenciesResult.requireSingleDependency<ProvideEmbeddableKotlinCompilerTask.Result>()
 
         val libraryPaths = compiledKlibModuleDependencies + externalDependencies
 
@@ -154,6 +150,7 @@ internal abstract class WebCompileKlibTask(
             inputFiles = buildList {
                 addAll(sources)
                 addAll(libraryPaths)
+                addAll(compiler.compilerJars)
                 for ((classpath) in compilerPlugins) addAll(classpath)
             },
         ) {
@@ -174,9 +171,9 @@ internal abstract class WebCompileKlibTask(
             logger.infoNoConsole("Compiling module '${module.userReadableName}' for platform '${platform.pretty}'...")
 
             compileSources(
-                jdk = jdk,
+                compiler = compiler.compiler(jdk),
                 kotlinUserSettings = kotlinUserSettings,
-                compilerPlugins = dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins,
+                compilerPlugins = compilerPlugins,
                 sourceFiles = sourceFiles,
                 fragments = fragments,
                 additionalSourceRoots = additionalSources,
@@ -202,7 +199,7 @@ internal abstract class WebCompileKlibTask(
 
     context(_: ProblemReporter)
     private suspend fun compileSources(
-        jdk: Jdk,
+        compiler: KotlinCompiler,
         kotlinUserSettings: KotlinUserSettings,
         compilerPlugins: List<ResolvedCompilerPlugin>,
         sourceFiles: List<Path>,
@@ -211,10 +208,6 @@ internal abstract class WebCompileKlibTask(
         librariesPaths: List<Path>,
         friendPaths: List<Path>,
     ) {
-        val compiler = kotlinArtifactsDownloader.downloadKotlinCompiler(
-            version = kotlinUserSettings.compilerVersion,
-            jdk = jdk,
-        )
         val compilationType = KotlinCompilationType.LIBRARY
         val compilerArgs = kotlinCompilerArgs(
             kotlinUserSettings = kotlinUserSettings,

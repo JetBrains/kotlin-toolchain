@@ -11,12 +11,11 @@ import org.jetbrains.amper.cli.context.AmperProjectTempRoot
 import org.jetbrains.amper.cli.logging.infoNoConsole
 import org.jetbrains.amper.cli.telemetry.setAmperModule
 import org.jetbrains.amper.cli.userReadableError
-import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.KotlinCompilationType
 import org.jetbrains.amper.compilation.KotlinNativeCompiler
 import org.jetbrains.amper.compilation.KotlinUserSettings
 import org.jetbrains.amper.compilation.ResolvedCompilerPlugin
-import org.jetbrains.amper.compilation.compiler.downloadKotlinCompiler
+import org.jetbrains.amper.compilation.compiler.KotlinCompiler
 import org.jetbrains.amper.compilation.kotlinMetadataCompilerArgs
 import org.jetbrains.amper.compilation.kotlinNativeCompilerArgs
 import org.jetbrains.amper.compilation.metadataKlibUniqueName
@@ -80,8 +79,6 @@ internal class MetadataCompileTask(
     private val tempRoot: AmperProjectTempRoot,
     private val taskOutputRoot: TaskOutputRoot,
     private val incrementalCache: IncrementalCache,
-    private val kotlinArtifactsDownloader: KotlinArtifactsDownloader =
-        KotlinArtifactsDownloader(userCacheRoot, incrementalCache),
     private val processRunner: ProcessRunner,
 ): ArtifactTaskBase(), BuildTask {
 
@@ -171,7 +168,8 @@ internal class MetadataCompileTask(
         return if (fragmentPlatforms.all { it.nativeTarget != null })   {
             compileNativeMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler, compilerPlugins)
         } else {
-            compileCommonMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler, compilerPlugins)
+            val compiler = dependenciesResult.requireSingleDependency<ProvideEmbeddableKotlinCompilerTask.Result>()
+            compileCommonMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler, compilerPlugins, compiler)
         }
     }
 
@@ -185,6 +183,7 @@ internal class MetadataCompileTask(
         jdk: Jdk,
         nativeCompiler: KotlinNativeCompiler,
         compilerPlugins: List<ResolvedCompilerPlugin>,
+        compiler: ProvideEmbeddableKotlinCompilerTask.Result,
     ): Result {
         val inputValues = mapOf(
             "jdk.version" to jdk.version,
@@ -201,6 +200,7 @@ internal class MetadataCompileTask(
             addAll(fragmentClasspath)
             addAll(refinesPaths)
             addAll(friendPaths)
+            addAll(compiler.compilerJars)
             for ((classpath) in compilerPlugins) addAll(classpath)
         }
 
@@ -215,7 +215,7 @@ internal class MetadataCompileTask(
                     }
                 }
                 compileCommonSources(
-                    jdk = jdk,
+                    kotlinCompiler = compiler.compiler(jdk),
                     nativeCompiler = nativeCompiler,
                     kotlinUserSettings = kotlinSettings,
                     compilerPlugins = compilerPlugins,
@@ -313,7 +313,7 @@ internal class MetadataCompileTask(
 
     context(_: TaskGraphExecutionContext)
     private suspend fun compileCommonSources(
-        jdk: Jdk,
+        kotlinCompiler: KotlinCompiler,
         nativeCompiler: KotlinNativeCompiler,
         kotlinUserSettings: KotlinUserSettings,
         compilerPlugins: List<ResolvedCompilerPlugin>,
@@ -334,7 +334,6 @@ internal class MetadataCompileTask(
 
         val commonizedKlibs = nativeCompiler.konanDistribution.librariesForMetadataCompilation(fragmentPlatforms)
 
-        val kotlinCompiler = kotlinArtifactsDownloader.downloadKotlinCompiler(kotlinUserSettings.compilerVersion, jdk)
         val compilerArgs = kotlinMetadataCompilerArgs(
             kotlinUserSettings = kotlinUserSettings,
             moduleName = module.metadataKlibUniqueName(fragment, isTest),

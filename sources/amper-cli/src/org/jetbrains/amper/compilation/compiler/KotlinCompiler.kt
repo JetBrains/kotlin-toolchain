@@ -5,7 +5,6 @@
 package org.jetbrains.amper.compilation.compiler
 
 import org.jetbrains.amper.ProcessRunner
-import org.jetbrains.amper.compilation.KotlinArtifactsDownloader
 import org.jetbrains.amper.compilation.ProblemReportingCompilerOutputListener
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
@@ -14,7 +13,6 @@ import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.jdk.provisioning.majorVersion
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.processes.ArgsMode
-import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runJava
@@ -22,22 +20,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.Path
-
-/**
- * Downloads the implementation of the embeddable Kotlin compiler in the given [version].
- *
- * The [version] should match the Kotlin version requested by the user, it is the version of the Kotlin compiler
- * that will be used behind the scenes.
- */
-context(_: ProblemReporter)
-internal suspend fun KotlinArtifactsDownloader.downloadKotlinCompiler(
-    version: KotlinVersion,
-    jdk: Jdk,
-): KotlinCompiler = KotlinCompiler(
-    compilerJars = downloadKotlinCompilerEmbeddable(version),
-    kotlinVersion = version,
-    jdk = jdk,
-)
 
 /**
  * A type-safe wrapper around the Kotlin compiler CLI.
