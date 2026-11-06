@@ -20,7 +20,6 @@ import org.jetbrains.amper.frontend.shouldPublishSourcesJars
 import org.jetbrains.amper.maven.publish.isMultiplatformPublication
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
 import org.jetbrains.amper.tasks.android.AndroidModuleTaskType
-import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.tasks.metadata.AssembleAllMetadataTask
 import org.jetbrains.amper.tasks.metadata.allMetadataFragments
 import org.jetbrains.amper.tasks.native.CommonizeNativeDistributionTask
@@ -111,7 +110,6 @@ fun ProjectTasksBuilder.setupCommonTasks(moduleDependenciesMap: Map<AmperModule,
                 ),
                 dependsOn = buildList {
                     add(CommonFragmentTaskType.DownloadCompilerPlugins.getTaskName(it))
-                    add(provideJdkTaskName(it.settings.jvm.jdk))
                     add(kotlinNativeCompilerProvisionTaskName(it.settings.kotlin.version))
                     val platforms = it.platforms.mapNotNull { platform -> platform.toResolutionPlatform() }
                     if (platforms.any { platform -> platform.nativeTarget == null }) {

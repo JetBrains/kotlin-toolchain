@@ -40,7 +40,6 @@ import org.jetbrains.amper.tasks.SourceRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.identificationPhrase
-import org.jetbrains.amper.tasks.jvm.ProvideJdkTask
 import org.jetbrains.amper.tasks.native.filterKLibs
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
@@ -126,8 +125,7 @@ internal abstract class WebLinkTask(
         val compiledKLibs = compileKLibDependencies.mapNotNull { it.compiledKlib }
 
         val kotlinUserSettings = fragments.singleLeafFragment().serializableKotlinSettings()
-        val jdk = dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
-        val compiler = dependenciesResult.requireSingleDependency<ProvideEmbeddableKotlinCompilerTask.Result>()
+        val compiler = dependenciesResult.requireSingleDependency<ProvideEmbeddableKotlinCompilerTask.Result>().compiler
         val compilerPlugins = dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins
 
         logger.debug("${expectedPlatform.name} link '${module.userReadableName}' -- ${fragments.joinToString(" ") { it.name }}")
@@ -166,7 +164,7 @@ internal abstract class WebLinkTask(
             val artifactPath = compiledWebArtifact.kotlinCompilerOutputRoot
 
             compileSources(
-                compiler.compiler(jdk),
+                compiler,
                 kotlinUserSettings = kotlinUserSettings,
                 compilerPlugins = compilerPlugins,
                 librariesPaths = externalKLibs + inputs,

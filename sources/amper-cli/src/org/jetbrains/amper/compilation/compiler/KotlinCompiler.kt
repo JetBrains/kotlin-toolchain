@@ -25,9 +25,9 @@ import kotlin.io.path.Path
  * A type-safe wrapper around the Kotlin compiler CLI.
  */
 internal class KotlinCompiler(
-    private val compilerJars: List<Path>,
-    private val kotlinVersion: KotlinVersion,
-    private val jdk: Jdk,
+    val compilerJars: List<Path>,
+    val kotlinVersion: KotlinVersion,
+    val jdk: Jdk,
 ) {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(KotlinCompiler::class.java)

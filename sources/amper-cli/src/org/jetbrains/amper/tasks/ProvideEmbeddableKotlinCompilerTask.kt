@@ -10,10 +10,9 @@ import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.engine.Task
 import org.jetbrains.amper.engine.TaskGraphExecutionContext
 import org.jetbrains.amper.engine.TaskName
+import org.jetbrains.amper.engine.requireSingleDependency
 import org.jetbrains.amper.frontend.schema.KotlinVersion
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.jdk.provisioning.Jdk
-import java.nio.file.Path
 
 internal class ProvideEmbeddableKotlinCompilerTask(
     private val version: KotlinVersion,
@@ -24,12 +23,13 @@ internal class ProvideEmbeddableKotlinCompilerTask(
     private val downloader = KotlinArtifactsDownloader(userCacheRoot, incrementalCache)
 
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): Result =
-        Result(version, downloader.downloadKotlinCompilerEmbeddable(version))
-
-    class Result(private val version: KotlinVersion, val compilerJars: List<Path>) : TaskResult {
-        fun compiler(jdk: Jdk) = KotlinCompiler(compilerJars, version, jdk)
+    override suspend fun run(dependenciesResult: List<TaskResult>): Result {
+        val jdk = dependenciesResult.requireSingleDependency<ProvideKotlinCompilerRuntimeTask.Result>().jdk
+        val compilerJars = downloader.downloadKotlinCompilerEmbeddable(version)
+        return Result(KotlinCompiler(compilerJars, version, jdk))
     }
+
+    class Result(val compiler: KotlinCompiler) : TaskResult
 }
 
 internal fun kotlinCompilerEmbeddableProvisionTaskName(version: KotlinVersion): TaskName = TaskName(

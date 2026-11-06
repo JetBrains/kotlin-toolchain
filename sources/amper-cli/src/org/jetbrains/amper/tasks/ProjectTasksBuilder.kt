@@ -101,6 +101,7 @@ class ProjectTasksBuilder(
     }
 
     private fun setupKotlinCompilerProvisioningTasks() {
+        tasks.registerTask(ProvideKotlinCompilerRuntimeTask(context.jdkProvider))
         allFragments()
             .map { it.settings.kotlin.version }
             .distinct()
@@ -108,13 +109,15 @@ class ProjectTasksBuilder(
                 // We don't bother looking at platforms;
                 // some tasks may be unused if there is no matching fragment for this version.
                 tasks.registerTask(
-                    ProvideKotlinNativeCompilerTask(kotlinVersion, context.userCacheRoot, context.jdkProvider)
+                    ProvideKotlinNativeCompilerTask(kotlinVersion, context.userCacheRoot),
+                    dependsOn = ProvideKotlinCompilerRuntimeTask.TASK_NAME,
                 )
                 tasks.registerTask(
                     ProvideKotlinToolchainsTask(kotlinVersion, context.userCacheRoot, context.incrementalCache)
                 )
                 tasks.registerTask(
-                    ProvideEmbeddableKotlinCompilerTask(kotlinVersion, context.userCacheRoot, context.incrementalCache)
+                    ProvideEmbeddableKotlinCompilerTask(kotlinVersion, context.userCacheRoot, context.incrementalCache),
+                    dependsOn = ProvideKotlinCompilerRuntimeTask.TASK_NAME,
                 )
             }
     }

@@ -13,7 +13,6 @@ import org.jetbrains.amper.engine.TaskName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.TaskId
-import org.jetbrains.amper.frontend.jdkSettings
 import org.jetbrains.amper.frontend.kotlinVersion
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.tasks.CommonFragmentTaskType
@@ -23,7 +22,6 @@ import org.jetbrains.amper.tasks.ProjectTasksBuilder
 import org.jetbrains.amper.tasks.ProjectTasksBuilder.Companion.getTaskOutputPath
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.getTaskName
-import org.jetbrains.amper.tasks.jvm.provideJdkTaskName
 import org.jetbrains.amper.tasks.kotlinCompilerEmbeddableProvisionTaskName
 import org.jetbrains.amper.tasks.web.WebCompileKlibTask
 import org.jetbrains.amper.tasks.web.WebLinkTask
@@ -77,7 +75,6 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
                         module.leafFragments.single { it.platform == platform && it.isTest == isTest }
                     ))
                     add(kotlinCompilerEmbeddableProvisionTaskName(module.kotlinVersion))
-                    add(provideJdkTaskName(module.jdkSettings))
                     add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                     if (isTest) {
                         // todo (AB) : Check if this is required for test KLib compilation
@@ -114,7 +111,6 @@ internal fun ProjectTasksBuilder.setupWasmTasks(
                             module.leafFragments.single { it.platform == platform && it.isTest == isTest }
                         ))
                         add(kotlinCompilerEmbeddableProvisionTaskName(module.kotlinVersion))
-                        add(provideJdkTaskName(module.jdkSettings))
                         add(compileKLibTaskName)
                         add(CommonTaskType.Dependencies.getTaskName(module, platform, isTest))
                         if (isTest) {

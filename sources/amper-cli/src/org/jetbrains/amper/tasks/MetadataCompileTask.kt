@@ -39,7 +39,6 @@ import org.jetbrains.amper.frontend.dr.resolver.flow.toPlatform
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
 import org.jetbrains.amper.frontend.friends
 import org.jetbrains.amper.incrementalcache.IncrementalCache
-import org.jetbrains.amper.jdk.provisioning.Jdk
 import org.jetbrains.amper.kotlin.native.KonanDistribution
 import org.jetbrains.amper.kotlin.native.asCommonizerTarget
 import org.jetbrains.amper.kotlin.native.librariesForMetadataCompilation
@@ -51,7 +50,6 @@ import org.jetbrains.amper.tasks.artifacts.ArtifactTaskBase
 import org.jetbrains.amper.tasks.artifacts.KotlinJavaSourceDirArtifact
 import org.jetbrains.amper.tasks.artifacts.Selectors
 import org.jetbrains.amper.tasks.artifacts.api.Quantifier
-import org.jetbrains.amper.tasks.jvm.ProvideJdkTask
 import org.jetbrains.amper.tasks.native.CommonizeCInteropKlibsTask
 import org.jetbrains.amper.tasks.native.filterKLibs
 import org.jetbrains.amper.tasks.native.requireKotlinNativeCompiler
@@ -161,15 +159,14 @@ internal class MetadataCompileTask(
         val friendPaths =
             fragment.friends.map { localDependencies.findMetadataResultForFragment(it).metadataOutputRoot }
 
-        val jdk = dependenciesResult.requireSingleDependency<ProvideJdkTask.Result>().jdk
         val nativeCompiler = dependenciesResult.requireKotlinNativeCompiler(kotlinSettings.compilerVersion)
         val compilerPlugins = dependenciesResult.requireSingleDependency<DownloadCompilerPluginsTask.Result>().plugins
 
         return if (fragmentPlatforms.all { it.nativeTarget != null })   {
-            compileNativeMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler, compilerPlugins)
+            compileNativeMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, nativeCompiler, compilerPlugins)
         } else {
-            val compiler = dependenciesResult.requireSingleDependency<ProvideEmbeddableKotlinCompilerTask.Result>()
-            compileCommonMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, jdk, nativeCompiler, compilerPlugins, compiler)
+            val compiler = dependenciesResult.requireSingleDependency<ProvideEmbeddableKotlinCompilerTask.Result>().compiler
+            compileCommonMetadata(fragmentClasspath, refinesPaths, friendPaths, kotlinSettings, fragmentPlatforms, nativeCompiler, compilerPlugins, compiler)
         }
     }
 
@@ -180,14 +177,13 @@ internal class MetadataCompileTask(
         friendPaths: List<Path>,
         kotlinSettings: KotlinUserSettings,
         fragmentPlatforms: Set<ResolutionPlatform>,
-        jdk: Jdk,
         nativeCompiler: KotlinNativeCompiler,
         compilerPlugins: List<ResolvedCompilerPlugin>,
-        compiler: ProvideEmbeddableKotlinCompilerTask.Result,
+        compiler: KotlinCompiler,
     ): Result {
         val inputValues = mapOf(
-            "jdk.version" to jdk.version,
-            "jdk.home" to jdk.homeDir.pathString,
+            "jdk.version" to compiler.jdk.version,
+            "jdk.home" to compiler.jdk.homeDir.pathString,
             "user.settings" to Json.encodeToString(kotlinSettings),
             "task.output.root" to taskOutputRoot.path.pathString,
             "plugins.config" to Json.encodeToString(compilerPlugins.map { it.config }),
@@ -215,7 +211,7 @@ internal class MetadataCompileTask(
                     }
                 }
                 compileCommonSources(
-                    kotlinCompiler = compiler.compiler(jdk),
+                    kotlinCompiler = compiler,
                     nativeCompiler = nativeCompiler,
                     kotlinUserSettings = kotlinSettings,
                     compilerPlugins = compilerPlugins,
@@ -257,7 +253,6 @@ internal class MetadataCompileTask(
         friendPaths: List<Path>,
         refinesPaths: List<Path>,
         fragmentPlatforms: Set<ResolutionPlatform>,
-        jdk: Jdk,
         nativeCompiler: KotlinNativeCompiler,
     ) {
         // In Kotlin >= 2.2, we need to list all source files (not just dirs), and konanc only accepts *.kt entries.
@@ -374,13 +369,12 @@ internal class MetadataCompileTask(
         friendPaths: List<Path>,
         kotlinSettings: KotlinUserSettings,
         fragmentPlatforms: Set<ResolutionPlatform>,
-        jdk: Jdk,
         nativeCompiler: KotlinNativeCompiler,
         compilerPlugins: List<ResolvedCompilerPlugin>,
     ): Result {
         val inputValues = mapOf(
-            "jdk.version" to jdk.version,
-            "jdk.home" to jdk.homeDir.pathString,
+            "jdk.version" to nativeCompiler.jdk.version,
+            "jdk.home" to nativeCompiler.jdk.homeDir.pathString,
             "user.settings" to Json.encodeToString(kotlinSettings),
             "task.output.root" to taskOutputRoot.path.pathString,
             "plugins.config" to Json.encodeToString(compilerPlugins.map { it.config }),
@@ -415,7 +409,6 @@ internal class MetadataCompileTask(
                     friendPaths = friendPaths,
                     refinesPaths = refinesPaths,
                     fragmentPlatforms = fragmentPlatforms,
-                    jdk = jdk,
                     nativeCompiler = nativeCompiler,
                 )
             } else {
