@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.cli.widgets
 
+import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.mordant.input.RawModeScope
 import com.github.ajalt.mordant.input.enterRawModeOrNull
 import com.github.ajalt.mordant.input.isCtrlC
@@ -81,12 +82,14 @@ private class InteractiveTerminalModeManager(private val terminal: Terminal) : T
 
     override fun handleInputIfRawMode() = synchronized(StateHolder) {
         if (scope?.readKeyOrNull(Duration.ZERO)?.isCtrlC == true) {
+            // We use an exception here instead of exitProcess() in order to play nice
+            // with cancellation and resource cleanup.
             if (SystemInfo.CurrentHost.family == OsFamily.Windows) {
                 // Windows: STATUS_CONTROL_C_EXIT
-                exitProcess(0xC000013A.toInt())
+                throw ProgramResult(statusCode = 0xC000013A.toInt())
             } else {
                 // Linux & macOS: 128 + SIGINT
-                exitProcess(130)
+                throw ProgramResult(statusCode = 130)
             }
         }
     }

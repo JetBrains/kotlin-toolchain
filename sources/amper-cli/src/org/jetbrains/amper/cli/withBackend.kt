@@ -6,7 +6,7 @@ package org.jetbrains.amper.cli
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
@@ -123,4 +123,4 @@ internal suspend fun <T> withBackendWithoutWidget(
 }
 
 internal fun CoroutineScope.childScope(name: String): CoroutineScope =
-    CoroutineScope(coroutineContext + SupervisorJob(parent = coroutineContext.job) + CoroutineName(name))
+    CoroutineScope(coroutineContext + Job(parent = coroutineContext.job) + CoroutineName(name))
