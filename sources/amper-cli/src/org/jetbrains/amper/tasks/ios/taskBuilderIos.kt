@@ -235,6 +235,7 @@ fun ProjectTasksBuilder.setupIosTasks(moduleDependenciesMap: Map<AmperModule, Mo
                     module = module,
                     processRunner = context.processRunner,
                     terminal = context.terminal,
+                    runSettings = runSettings,
                 ),
                 dependsOn = [
                     prepareDeviceForRunTaskName,

@@ -39,6 +39,12 @@ sealed interface MobileRunSettings : RunSettings {
      * User provided platform-specific string that identifies the device (physical or emulator) to run on.
      */
     val deviceId: String?
+
+    /**
+     * Whether the app should be launched suspended, waiting for a debugger (e.g. LLDB) to attach.
+     * Currently only applicable to iOS.
+     */
+    val waitForDebugger: Boolean
 }
 
 /**
@@ -159,6 +165,7 @@ data class AllRunSettings(
     override val userJvmArgs: List<String> = emptyList(),
     override val userJvmMainClass: String? = null,
     override val deviceId: String? = null,
+    override val waitForDebugger: Boolean = false,
     override val composeHotReloadSettings: ComposeHotReloadSettings? = null,
     override val port: Int? = null,
     override val openBrowser: Boolean = true,

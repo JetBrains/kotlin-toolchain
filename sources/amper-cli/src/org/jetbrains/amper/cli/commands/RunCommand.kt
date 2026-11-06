@@ -21,8 +21,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import org.jetbrains.amper.cli.UserReadableError
 import org.jetbrains.amper.cli.analytics.CliFusReporter
-import org.jetbrains.amper.cli.analytics.toFusPlatform
 import org.jetbrains.amper.cli.analytics.toFusKtcProductType
+import org.jetbrains.amper.cli.analytics.toFusPlatform
 import org.jetbrains.amper.cli.childScope
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.context.copyWithNewProjectContext
@@ -83,6 +83,15 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
             - iOS: use `xcrun devicectl list devices` command to list available devices or `xcrun simctl list devices` to list available simulators.
         """.trimIndent(),
     )
+
+    private val waitForDebugger by option(
+        "--wait-for-debugger",
+        help = """
+            Launch the app suspended, so that a debugger (e.g. LLDB) can attach to it before it starts running.
+            
+            Only iOS platforms are currently supported (simulators and physical devices).
+        """.trimIndent(),
+    ).flag()
 
     private val variant by buildTypeOption(
         help = "Run the specified variant of the app. Debug variant is launched by default.",
@@ -279,6 +288,7 @@ internal class RunCommand : AmperProjectAwareCommand(name = "run") {
         userJvmArgs = jvmArgs,
         userJvmMainClass = jvmMainClass,
         deviceId = deviceId,
+        waitForDebugger = waitForDebugger,
         composeHotReloadSettings = composeHotReloadMode,
         port = port,
         openBrowser = openBrowser,

@@ -9,6 +9,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.ProcessRunner
@@ -23,7 +24,10 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.createTempFile
+import kotlin.io.path.deleteIfExists
 import kotlin.io.path.pathString
+import kotlin.io.path.readText
 import kotlin.time.Duration.Companion.milliseconds
 
 const val XCRUN_EXECUTABLE = "/usr/bin/xcrun"
@@ -37,12 +41,37 @@ suspend fun ProcessRunner.installAppOnPhysicalDevice(deviceId: XcodeDeviceId, ap
     DeviceCtl.installApp(deviceId = deviceId.value, appPath = appPath)
 
 context(_: XcodeEnvironment)
-suspend fun ProcessRunner.launchAppOnDevice(deviceId: XcodeDeviceId, bundleId: String) =
-    SimCtl.launch(deviceId = deviceId.value, bundleId = bundleId)
+suspend fun ProcessRunner.launchAppOnDevice(
+    deviceId: XcodeDeviceId,
+    bundleId: String,
+    waitForDebugger: Boolean = false,
+): Long? = SimCtl.launch(deviceId = deviceId.value, bundleId = bundleId, waitForDebugger = waitForDebugger)
 
 context(_: XcodeEnvironment)
-suspend fun ProcessRunner.launchAppOnPhysicalDevice(deviceId: XcodeDeviceId, bundleId: String) =
-    DeviceCtl.launchProcess(deviceId = deviceId.value, bundleId = bundleId)
+suspend fun ProcessRunner.launchAppOnPhysicalDevice(
+    deviceId: XcodeDeviceId,
+    bundleId: String,
+    startStopped: Boolean = false,
+): Long? = DeviceCtl.launchProcess(deviceId = deviceId.value, bundleId = bundleId, startStopped = startStopped)
+
+/**
+ * Suspends until the simulator app process with the given [pid] terminates.
+ */
+suspend fun waitForSimulatorAppExit(pid: Long) {
+    while (ProcessHandle.of(pid).map { it.isAlive }.orElse(false)!!) {
+        delay(500.milliseconds)
+    }
+}
+
+/**
+ * Suspends until the app process with the given [pid] terminates on the physical device.
+ */
+context(_: XcodeEnvironment)
+suspend fun ProcessRunner.waitForPhysicalDeviceAppExit(deviceId: XcodeDeviceId, pid: Long) {
+    while (DeviceCtl.isProcessRunning(deviceId.value, pid)) {
+        delay(2000.milliseconds)
+    }
+}
 
 context(_: XcodeEnvironment)
 suspend fun ProcessRunner.shutdownDevice(deviceId: XcodeDeviceId) =
@@ -270,6 +299,73 @@ private object Xcodebuild : Xcrun() {
     }
 }
 
+/**
+ * Parses the PID of the launched process from the output of `xcrun simctl launch`,
+ * which prints `<bundle id>: <pid>`.
+ *
+ * Only the line starting with `<bundle id>: ` is considered, so that unrelated lines
+ * (e.g. warnings) ending with a number are not mistaken for the PID.
+ */
+internal fun parseSimctlLaunchPid(stdout: String, bundleId: String): Long? {
+    val pidLinePrefix = "$bundleId: "
+    return stdout.lineSequence()
+        .firstNotNullOfOrNull { line ->
+            if (line.startsWith(pidLinePrefix)) line.removePrefix(pidLinePrefix).trim().toLongOrNull() else null
+        }
+}
+
+@Serializable
+private data class DevicectlLaunchOutput(
+    val result: DevicectlLaunchResult? = null,
+)
+
+@Serializable
+private data class DevicectlLaunchResult(
+    val process: DevicectlProcessData? = null,
+)
+
+@Serializable
+private data class DevicectlProcessesOutput(
+    val result: DevicectlProcessesResult? = null,
+)
+
+@Serializable
+private data class DevicectlProcessesResult(
+    val runningProcesses: List<DevicectlProcessData> = [],
+)
+
+@Serializable
+private data class DevicectlProcessData(
+    val processIdentifier: Long? = null,
+)
+
+private val DevicectlOutputFormat = Json { ignoreUnknownKeys = true }
+
+/**
+ * Parses the PID of the launched process from the JSON output of `xcrun devicectl device process launch`.
+ *
+ * Returns `null` if the output cannot be parsed.
+ */
+internal fun parseDevicectlLaunchPid(json: String): Long? = try {
+    DevicectlOutputFormat.decodeFromString<DevicectlLaunchOutput>(json).result?.process?.processIdentifier
+} catch (e: SerializationException) {
+    logger.warn("Failed to parse devicectl launch output", e)
+    null
+}
+
+/**
+ * Parses the process identifiers from the JSON output of `xcrun devicectl device info processes`.
+ *
+ * Returns an empty list if the output cannot be parsed.
+ */
+internal fun parseDevicectlRunningProcessIds(json: String): List<Long> = try {
+    DevicectlOutputFormat.decodeFromString<DevicectlProcessesOutput>(json)
+        .result?.runningProcesses?.mapNotNull { it.processIdentifier } ?: []
+} catch (e: SerializationException) {
+    logger.warn("Failed to parse devicectl processes output", e)
+    []
+}
+
 private object SimCtl : Xcrun() {
     private val SimCtlOutputFormat = Json {
         ignoreUnknownKeys = true
@@ -372,7 +468,13 @@ private object SimCtl : Xcrun() {
     suspend fun install(deviceId: String, appPath: Path) = xcrun("simctl", "install", deviceId, appPath.pathString)
 
     context(_: ProcessRunner, _: XcodeEnvironment)
-    suspend fun launch(deviceId: String, bundleId: String) = xcrun("simctl", "launch", deviceId, bundleId)
+    suspend fun launch(deviceId: String, bundleId: String, waitForDebugger: Boolean = false): Long? {
+        val result = xcrun(
+            "simctl", "launch", *(if (waitForDebugger) ["--wait-for-debugger"] else []), deviceId, bundleId,
+            outputMode = ProcessOutputMode.capture(),
+        )
+        return parseSimctlLaunchPid(result.stdout, bundleId)
+    }
 
     context(_: ProcessRunner, _: XcodeEnvironment)
     suspend fun shutdown(deviceId: String) = xcrun("simctl", "shutdown", deviceId)
@@ -389,7 +491,34 @@ private object DeviceCtl : Xcrun() {
     suspend fun launchProcess(
         deviceId: String,
         bundleId: String,
-    ) = xcrun("devicectl", "device", "process", "launch", "--device", deviceId, bundleId)
+        startStopped: Boolean = false,
+    ): Long? {
+        val jsonOutput = createTempFile("devicectl-launch-", ".json")
+        try {
+            xcrun(
+                "devicectl", "device", "process", "launch", "--device", deviceId,
+                "--json-output", jsonOutput.pathString,
+                *(if (startStopped) arrayOf("--start-stopped") else emptyArray()), bundleId,
+            )
+            return parseDevicectlLaunchPid(jsonOutput.readText())
+        } finally {
+            jsonOutput.deleteIfExists()
+        }
+    }
+
+    context(_: ProcessRunner, _: XcodeEnvironment)
+    suspend fun isProcessRunning(deviceId: String, pid: Long): Boolean {
+        val jsonOutput = createTempFile("devicectl-processes-", ".json")
+        try {
+            xcrun(
+                "devicectl", "device", "info", "processes", "--device", deviceId,
+                "--json-output", jsonOutput.pathString,
+            )
+            return pid in parseDevicectlRunningProcessIds(jsonOutput.readText())
+        } finally {
+            jsonOutput.deleteIfExists()
+        }
+    }
 }
 
 private const val IPHONE_PRODUCT_FAMILY = "iPhone"
