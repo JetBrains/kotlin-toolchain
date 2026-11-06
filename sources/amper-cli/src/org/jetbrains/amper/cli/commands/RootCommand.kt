@@ -24,8 +24,10 @@ import com.github.ajalt.clikt.parameters.types.path
 import com.github.ajalt.mordant.terminal.warning
 import com.sun.jna.platform.win32.Kernel32
 import com.sun.jna.platform.win32.Kernel32Util
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.debug.DebugProbes
+import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.buildinfo.AmperBuild
@@ -34,6 +36,7 @@ import org.jetbrains.amper.cli.AmperVersion
 import org.jetbrains.amper.cli.analytics.CliFusReporter
 import org.jetbrains.amper.cli.analytics.FusEnvironmentDetection
 import org.jetbrains.amper.cli.analytics.InvokedCommand
+import org.jetbrains.amper.cli.analytics.promptForConsent
 import org.jetbrains.amper.cli.commands.ide.IdeIntegrationCommand
 import org.jetbrains.amper.cli.commands.show.ShowCommand
 import org.jetbrains.amper.cli.commands.tools.ToolCommand
@@ -47,6 +50,7 @@ import org.jetbrains.amper.cli.userReadableError
 import org.jetbrains.amper.cli.withShowCommandSuggestions
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.fus.client.FUS_ENABLED
+import org.jetbrains.amper.fus.consent.FusConsent
 import org.jetbrains.amper.fus.schema.FusEvents
 import org.jetbrains.amper.fus.schema.trimKtcVersionForFus
 import org.jetbrains.amper.system.info.SystemInfo
@@ -69,6 +73,15 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
      * context when they are run, which happens after this root command's [run].
      */
     var invokedCommand: InvokedCommand? = null
+
+    /**
+     * A [CoroutineScope] that defines the lifetime of the command execution.
+     * It terminates right after the root AND subcommands complete.
+     *
+     * This cannot be replaced by a local `coroutineScope` in [run] here, even without [allowMultipleSubcommands],
+     * because the root command's `run` completes before the subcommands are run.
+     */
+    lateinit var commandChainExecutionScope: CoroutineScope
 
     init {
         versionOption(
@@ -177,11 +190,21 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
         }
 
         if (FUS_ENABLED && currentContext.invokedSubcommand !is DataCollectionConsentCommand) {
-            spanBuilder("Setup FUS reporting").use {
-                CliFusReporter.setup(userCacheRoot = sharedCacheDir, terminal = terminal)
+            val consentState = spanBuilder("Detect FUS consent").use {
+                FusConsent.detect { terminal.promptForConsent() }
             }
+            commandChainExecutionScope.launch {
+                spanBuilder("Setup FUS reporting").use {
+                    CliFusReporter.setup(
+                        userCacheRoot = sharedCacheDir,
+                        terminal = terminal,
+                        consentState = consentState
+                    )
+                }
+            }
+            // We sent this here synchronously to have a consistently missing projectId (otherwise it's going to race).
+            // The overhead is minimal (~15ms).
             spanBuilder("Send baseline FUS events").use {
-                // TODO make this async?
                 sendBaselineFusEvent()
             }
         }

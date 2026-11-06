@@ -4,8 +4,6 @@
 
 package org.jetbrains.amper.cli.analytics
 
-import com.github.ajalt.clikt.core.PrintMessage
-import com.github.ajalt.mordant.markdown.Markdown
 import com.github.ajalt.mordant.terminal.Terminal
 import com.jetbrains.fus.reporting.schema.BaseEventId
 import com.jetbrains.fus.reporting.schema.FieldListDescription
@@ -13,13 +11,11 @@ import com.jetbrains.fus.reporting.schema.VarargEventId
 import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.cli.analytics.CliFusReporter.delegate
 import org.jetbrains.amper.cli.analytics.CliFusReporter.enable
-import org.jetbrains.amper.cli.terminal.interactiveSelectList
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.amperHttpClient
 import org.jetbrains.amper.fus.cache.FusCache
 import org.jetbrains.amper.fus.consent.ConsentState
 import org.jetbrains.amper.fus.consent.ConsentStateReportThrottle
-import org.jetbrains.amper.fus.consent.FusConsent
 import org.jetbrains.amper.fus.reporter.FusReporter
 import org.jetbrains.amper.fus.schema.AnonymousOsFamily
 import org.jetbrains.amper.fus.schema.FusConsentState
@@ -61,6 +57,11 @@ object CliFusReporter : FusReporter {
      */
     private var shouldBuffer = true
 
+    /**
+     * Whether this reporter has been closed (end of main), which means calling [setup] should be a no-op.
+     */
+    private var closed = false
+
     private val buffer: ConcurrentLinkedQueue<PendingEvent> = ConcurrentLinkedQueue()
 
     private val httpClient by lazy { KtorFusHttpClient(amperHttpClient) }
@@ -83,8 +84,10 @@ object CliFusReporter : FusReporter {
      *
      * In both cases, the consent state itself is reported (at most once per day) using an event without identifiers.
      */
-    fun setup(userCacheRoot: AmperUserCacheRoot, terminal: Terminal) {
-        val consentState = FusConsent.detect { terminal.promptForConsent() }
+    fun setup(userCacheRoot: AmperUserCacheRoot, terminal: Terminal, consentState: ConsentState?) {
+        if (closed) {
+            return
+        }
         val cache = FusCache(userCacheRoot.fusRoot)
         when (consentState) {
             ConsentState.Accepted -> enable(cache)
@@ -99,6 +102,9 @@ object CliFusReporter : FusReporter {
      */
     private fun enable(cache: FusCache) {
         cacheSetLock.write {
+            if (closed) {
+                return
+            }
             delegate = FusReporter.createAndStart(
                 fusCache = cache,
                 httpClient = httpClient,
@@ -196,27 +202,9 @@ object CliFusReporter : FusReporter {
             cacheSetLock.write {
                 delegate?.close()
                 delegate = null
+                closed = true
             }
         }
     }
 }
 
-private fun Terminal.promptForConsent(): ConsentState? {
-    if (!terminalInfo.interactive) {
-        // if the terminal is not interactive, we can't prompt for consent
-        return null
-    }
-    println(Markdown(FusConsent.PROMPT_BANNER_MARKDOWN_1_2))
-    val result = interactiveSelectList(
-        items = [ConsentState.Accepted, ConsentState.Rejected],
-        nameSelector = {
-            when (it) {
-                ConsentState.Accepted -> "Send data"
-                ConsentState.Rejected -> "Don't send data"
-            }
-        },
-        preSelectedItem = ConsentState.Rejected,
-        filterable = false,
-    ) ?: throw PrintMessage("Operation aborted")
-    return result
-}

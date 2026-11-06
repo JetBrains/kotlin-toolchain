@@ -12,6 +12,7 @@ import com.github.ajalt.clikt.parsers.CommandLineParser
 import com.github.ajalt.mordant.markdown.Markdown
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.util.logging.*
+import kotlinx.coroutines.coroutineScope
 import org.jetbrains.amper.cli.analytics.CliFusReporter
 import org.jetbrains.amper.cli.analytics.InvokedCommand
 import org.jetbrains.amper.cli.analytics.toInvokedCommand
@@ -112,7 +113,10 @@ private suspend fun RootCommand.mainWithTelemetry(args: Array<String>) {
         .setListAttribute("subcommands", invokedCommand?.subcommands ?: [])
         .use {
             try {
-                CommandLineParser.run(result.invocation) { it.run() }
+                coroutineScope {
+                    command.commandChainExecutionScope = this
+                    CommandLineParser.run(result.invocation) { it.run() }
+                }
                 reportFusCommandResult(invokedCommand)
             } catch (e: CliktError) {
                 reportFusCommandResult(invokedCommand, e)
