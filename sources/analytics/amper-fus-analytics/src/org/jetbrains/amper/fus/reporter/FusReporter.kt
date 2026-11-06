@@ -5,6 +5,7 @@
 package org.jetbrains.amper.fus.reporter
 
 import com.jetbrains.fus.reporting.FusClient
+import com.jetbrains.fus.reporting.FusHttpClient
 import com.jetbrains.fus.reporting.model.lion4.LogEvent
 import com.jetbrains.fus.reporting.schema.BaseEventId
 import com.jetbrains.fus.reporting.schema.EventId
@@ -67,8 +68,8 @@ interface FusReporter : AutoCloseable {
          * **IMPORTANT:** This requires user consent. Make sure to check for it using
          * [FusConsent][org.jetbrains.amper.fus.consent.FusConsent].
          */
-        fun createAndStart(fusCache: FusCache, projectIdProvider: () -> String?): FusReporter {
-            val client = createFusClient(fusCache)
+        fun createAndStart(fusCache: FusCache, httpClient: FusHttpClient, projectIdProvider: () -> String?): FusReporter {
+            val client = createFusClient(fusCache, httpClient)
 
             // No need for scheduled metadata updates for short CLI calls, we can update once per call instead.
             // The overhead should be low, because the download doesn't happen when metadata is up-to-date, so it's

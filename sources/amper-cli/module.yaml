@@ -110,6 +110,7 @@ dependencies:
 test-dependencies:
   - //sources/test-base
   - $libs.junit.jupiter.params
+  - $libs.ktor.client.mock
 
 plugins:
   amper-distribution:

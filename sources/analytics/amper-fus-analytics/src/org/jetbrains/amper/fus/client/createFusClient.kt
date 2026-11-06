@@ -6,6 +6,7 @@ package org.jetbrains.amper.fus.client
 
 import com.intellij.internal.statistic.eventLog.connection.metadata.EventLogBuildParser
 import com.jetbrains.fus.reporting.FusClient
+import com.jetbrains.fus.reporting.FusHttpClient
 import com.jetbrains.fus.reporting.METADATA_LOADED_TOPIC
 import com.jetbrains.fus.reporting.METADATA_LOAD_FAILED_TOPIC
 import com.jetbrains.fus.reporting.METADATA_UPDATED_TOPIC
@@ -57,7 +58,10 @@ private val FUS_SEND_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_SEND_ENABLED"
 
 private val FUS_USE_STAGING = System.getenv("KOTLIN_TOOLCHAIN_FUS_USE_STAGING")?.toBooleanStrictOrNull() ?: false
 
-internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport> = fusClient {
+internal fun createFusClient(
+    fusCache: FusCache,
+    httpClient: FusHttpClient,
+): FusClient<LogEvent, FusReport> = fusClient {
     config {
         // TODO check this version choice
         // Use unversioned metadata.
@@ -84,9 +88,7 @@ internal fun createFusClient(fusCache: FusCache): FusClient<LogEvent, FusReport>
 
     components {
         loggerFactory { Slf4jFusLoggerFactory }
-        httpClient { config ->
-            JvmHttpClient(userAgent = "${config.productName}/${config.productVersion}")
-        }
+        httpClient { httpClient }
         fileStorage {
             JvmFileStorage(if (FUS_USE_STAGING) fusCache.metadataStagingDir else fusCache.metadataDir)
         }

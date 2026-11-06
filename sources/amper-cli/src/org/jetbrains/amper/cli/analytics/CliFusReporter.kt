@@ -15,6 +15,7 @@ import org.jetbrains.amper.cli.analytics.CliFusReporter.delegate
 import org.jetbrains.amper.cli.analytics.CliFusReporter.enable
 import org.jetbrains.amper.cli.terminal.interactiveSelectList
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.core.downloader.amperHttpClient
 import org.jetbrains.amper.fus.cache.FusCache
 import org.jetbrains.amper.fus.consent.ConsentState
 import org.jetbrains.amper.fus.consent.ConsentStateReportThrottle
@@ -62,6 +63,8 @@ object CliFusReporter : FusReporter {
 
     private val buffer: ConcurrentLinkedQueue<PendingEvent> = ConcurrentLinkedQueue()
 
+    private val httpClient by lazy { KtorFusHttpClient(amperHttpClient) }
+
     /**
      * Configures the project so future events are reported with the corresponding project ID.
      */
@@ -96,7 +99,11 @@ object CliFusReporter : FusReporter {
      */
     private fun enable(cache: FusCache) {
         cacheSetLock.write {
-            delegate = FusReporter.createAndStart(cache, projectIdProvider = { projectId })
+            delegate = FusReporter.createAndStart(
+                fusCache = cache,
+                httpClient = httpClient,
+                projectIdProvider = { projectId },
+            )
             while (buffer.isNotEmpty()) {
                 val event = buffer.poll()
                 delegate?.log(event.id, event.data)
@@ -130,7 +137,11 @@ object CliFusReporter : FusReporter {
         if (consentState == ConsentState.Accepted) {
             logConsentState(reporter = this, consentState, interactive)
         } else {
-            FusReporter.createAndStart(cache, projectIdProvider = { null }).use { reporter ->
+            FusReporter.createAndStart(
+                fusCache = cache,
+                httpClient = httpClient,
+                projectIdProvider = { null },
+            ).use { reporter ->
                 logConsentState(reporter, consentState, interactive)
             }
         }
