@@ -8,6 +8,7 @@ import com.github.ajalt.clikt.core.Abort
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.PrintCompletionMessage
 import com.github.ajalt.clikt.core.PrintMessage
+import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.parsers.CommandLineParser
 import com.github.ajalt.mordant.markdown.Markdown
 import com.github.ajalt.mordant.terminal.Terminal
@@ -161,7 +162,7 @@ private fun Throwable?.toFusCommandResult(): FusCommandResult = when (this) {
     is PrintCompletionMessage -> FusCommandResult.Success
     // Clikt's Abort, and all the PrintMessage errors of this CLI, are thrown to stop the command gracefully when the
     // user cancels an interactive prompt. Nothing went wrong in those cases, so they are not failures.
-    is CancellationException, is Abort, is PrintMessage -> FusCommandResult.Canceled
+    is CancellationException, is Abort, is ProgramResult, is PrintMessage -> FusCommandResult.Canceled
     // Clikt uses a zero status code for errors that only print something and exit normally, like the help message.
     is CliktError -> if (statusCode == 0) FusCommandResult.Success else FusCommandResult.Failure
     else -> FusCommandResult.Failure
