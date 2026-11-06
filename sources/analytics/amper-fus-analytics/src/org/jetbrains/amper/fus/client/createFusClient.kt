@@ -22,7 +22,6 @@ import com.jetbrains.fus.reporting.fusClient
 import com.jetbrains.fus.reporting.httpClient
 import com.jetbrains.fus.reporting.jsonSerializer
 import com.jetbrains.fus.reporting.jvm.JvmFileStorage
-import com.jetbrains.fus.reporting.jvm.JvmHttpClient
 import com.jetbrains.fus.reporting.loggerFactory
 import com.jetbrains.fus.reporting.messageHandler
 import com.jetbrains.fus.reporting.model.lion4.FusReport
@@ -42,6 +41,8 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
 private val logger = LoggerFactory.getLogger("FUS-setup")
@@ -107,6 +108,11 @@ internal fun createFusClient(
         defaultBusinessLogic {
             systemLogGroupId = "ktc.event.log"
             skipAnonymizationIds = setOf(MACHINE_ID_KEY)
+
+            // We want to start sending events immediately to avoid delaying short-lived commands
+            dispatcherInitialDelay = 0.milliseconds
+            // Must be bigger than 1s. Defaults to 3min but we need to send events regularly to avoid slowing the shutdown
+            dispatcherDefaultDelay = 2.seconds
 
             @Suppress("UnstableApiUsage")
             buildParser = EventLogBuildParser { versionValue ->
