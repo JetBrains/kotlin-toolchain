@@ -8,6 +8,7 @@ dependencies:
   - //sources/libraries/apple-ffm
   - //sources/libraries/agent-detection: exported
   - //sources/libraries/ci-detection: exported
+  - //sources/libraries/concurrency
   - //sources/libraries/stdlib-extended
   - //sources/libraries/system-info
   - //sources/libraries/windows-registry

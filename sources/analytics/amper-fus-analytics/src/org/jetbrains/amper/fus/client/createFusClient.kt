@@ -24,9 +24,11 @@ import com.jetbrains.fus.reporting.jsonSerializer
 import com.jetbrains.fus.reporting.jvm.JvmFileStorage
 import com.jetbrains.fus.reporting.loggerFactory
 import com.jetbrains.fus.reporting.messageHandler
+import com.jetbrains.fus.reporting.metadataStorage
 import com.jetbrains.fus.reporting.model.lion4.FusReport
 import com.jetbrains.fus.reporting.model.lion4.LogEvent
 import com.jetbrains.fus.reporting.serialization.FusKotlinSerializer
+import kotlinx.coroutines.runBlocking
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.fus.FusConstants
@@ -94,7 +96,11 @@ internal fun createFusClient(
             JvmFileStorage(if (FUS_USE_STAGING) fusCache.metadataStagingDir else fusCache.metadataDir)
         }
         eventLogFileStorage {
-            JvmFileStorage(if (FUS_USE_STAGING) fusCache.eventLogStagingDir else fusCache.eventLogDir)
+            runBlocking {
+                ProcessOwnedEventLogStorage.create(
+                    queuesRoot = if (FUS_USE_STAGING) fusCache.eventQueuesStagingDir else fusCache.eventQueuesDir,
+                )
+            }
         }
         // TODO bundle the metadata so we don't pay the initial fetch
 //        bundledFileStorage {
@@ -119,6 +125,28 @@ internal fun createFusClient(
                 // ComparableVersion doesn't know 'dev' so it places it higher than stable versions.
                 // We work around this by replacing 'dev' with 'alpha', which is correctly considered lower.
                 versionValue?.replace("-dev-", "-alpha-")?.let(::ComparableVersion)
+            }
+        }
+
+        // /!\ WARNING: this has to be after `defaultBusinessLogic`, because it's initialized by it
+        val defaultMetadataStorageProvider = metadataStorageProvider
+        // Overrides the default metadata storage to protect the metadata cache from concurrent KTC processes
+        metadataStorage { config, messageBus, loggerFactory, remoteConfig, fusHttpClient, fileStorage, jsonSerializer, bundledFileStorage ->
+            runBlocking {
+                ProcessSafeMetadataStorage.create(
+                    lockFile = if (FUS_USE_STAGING) fusCache.metadataStagingLockFile else fusCache.metadataLockFile,
+                ) {
+                    defaultMetadataStorageProvider.provide(
+                        fusClientConfig = config,
+                        messageBus = messageBus,
+                        loggerFactory = loggerFactory,
+                        jsonSerializer = jsonSerializer,
+                        fileStorage = fileStorage,
+                        bundledFileStorage = bundledFileStorage,
+                        configProvider = remoteConfig,
+                        fusHttpClient = fusHttpClient,
+                    )
+                }
             }
         }
     }

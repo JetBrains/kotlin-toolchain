@@ -15,7 +15,11 @@ class FusCache(private val root: Path) {
 
     val metadataDir by lazy { (root / "metadata").createDirectories() }
     val metadataStagingDir by lazy { (root / "metadata-staging").createDirectories() }
+    val metadataLockFile = root / "metadata.lock"
+    val metadataStagingLockFile = root / "metadata-staging.lock"
 
-    val eventLogDir by lazy { (root / "events").createDirectories() }
-    val eventLogStagingDir by lazy { (root / "events-staging").createDirectories() }
+    // Not the same as the 'events' directory used by older versions, which assumed exclusive access to it.
+    // Sharing it with older versions would allow them to send and delete files that we are still writing to.
+    val eventQueuesDir = root / "event-queues"
+    val eventQueuesStagingDir = root / "event-queues-staging"
 }
