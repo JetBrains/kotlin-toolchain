@@ -589,8 +589,7 @@ internal fun Context.createOrReuseDependencyConstraint(
     version: Version
 ): MavenDependencyConstraintImpl =
     this.resolutionCache.computeIfAbsent(Key<MavenDependencyConstraintImpl>(
-        "$group:$module:$version" +
-                "${settings.scope}:${settings.platforms.joinToString { it.pretty }}"
+        "$group:$module:$version"
     )) {
         MavenDependencyConstraintImpl(group, module, version)
     }
