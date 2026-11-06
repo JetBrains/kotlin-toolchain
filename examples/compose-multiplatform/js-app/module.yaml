@@ -1,0 +1,7 @@
+product: js/app
+
+dependencies:
+  - ../shared
+
+settings:
+  compose: enabled
