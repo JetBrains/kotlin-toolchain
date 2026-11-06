@@ -11,6 +11,11 @@ import com.jetbrains.fus.reporting.schema.BaseEventId
 import com.jetbrains.fus.reporting.schema.EventId
 import com.jetbrains.fus.reporting.schema.FieldListDescription
 import com.jetbrains.fus.reporting.schema.VarargEventId
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.jetbrains.amper.fus.cache.FusCache
 import org.jetbrains.amper.fus.client.createFusClient
 import org.jetbrains.amper.fus.client.fusEventDumpFile
@@ -68,20 +73,40 @@ interface FusReporter : AutoCloseable {
          * **IMPORTANT:** This requires user consent. Make sure to check for it using
          * [FusConsent][org.jetbrains.amper.fus.consent.FusConsent].
          */
-        fun createAndStart(fusCache: FusCache, httpClient: FusHttpClient, projectIdProvider: () -> String?): FusReporter {
-            val client = createFusClient(fusCache, httpClient)
+        fun createAndStart(
+            fusCache: FusCache,
+            httpClient: FusHttpClient,
+            projectIdProvider: () -> String?,
+        ): FusReporter {
+            val remoteConfigLoaded = CompletableDeferred<Unit>()
+            val client = createFusClient(
+                fusCache = fusCache,
+                httpClient = httpClient,
+                onRemoteConfigLoaded = { remoteConfigLoaded.complete(Unit) },
+            )
 
             // No need for scheduled metadata updates for short CLI calls, we can update once per call instead.
             // The overhead should be low, because the download doesn't happen when metadata is up-to-date, so it's
             // just one HTTP HEAD request.
-            // TODO once the metadata is bundled, we can make this call asynchronous
+            // Note: despite its name, this call doesn't block, the client updates in its own coroutine scope
+            // (this could be changed using enableAsyncEventLogging=false, but that would impact all events as well)
             client.updateMetadata()
 
-            // Currently done in an independent coroutine scope created automatically by the client internally.
-            // Note: it's ok to send, because we check for consent before calling this function.
-            client.scheduleSend()
+            // The URL to send the events to is only known once the remote config has been fetched, so sending before
+            // that always fails. This is why we await before scheduling the send so we can be sure to schedule is as
+            // soon as possible but after the URL is ready.
+            // We must not suspend here and delay the creation of the FUS reporter, because the events should start
+            // being recorded and persisted even if the remote config can never be fetched (they will be sent during a
+            // subsequent CLI call). This is why we use a longer-lived coroutine scope here, but we make sure it is
+            // closed together with the returned FusReporter.
+            val scope = CoroutineScope(SupervisorJob())
+            scope.launch {
+                remoteConfigLoaded.await()
+                // Note: it's ok to send unconditionally, because we check for consent before calling this function.
+                client.scheduleSend()
+            }
 
-            return DefaultFusReporter(fusCache, client, projectIdProvider)
+            return DefaultFusReporter(fusCache, client, projectIdProvider, scope)
         }
     }
 }
@@ -90,6 +115,10 @@ internal class DefaultFusReporter(
     fusCache: FusCache,
     private val writer: FusClient<LogEvent, *>,
     projectIdProvider: () -> String?,
+    /**
+     * The scope in which the start of the event sending is awaited.
+     */
+    private val sendStartScope: CoroutineScope,
 ) : FusReporter {
     private val eventFactory = LogEventFactory(
         // We use the same algorithm as IntelliJ's `EventLogConfiguration.generateMachineId`, and the same fallback as
@@ -107,6 +136,7 @@ internal class DefaultFusReporter(
     }
 
     override fun close() {
+        sendStartScope.cancel()
         writer.close()
     }
 }

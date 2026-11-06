@@ -12,6 +12,8 @@ import com.jetbrains.fus.reporting.METADATA_LOAD_FAILED_TOPIC
 import com.jetbrains.fus.reporting.METADATA_UPDATED_TOPIC
 import com.jetbrains.fus.reporting.METADATA_UPDATE_FAILED_TOPIC
 import com.jetbrains.fus.reporting.RAW_EVENT_TOPIC
+import com.jetbrains.fus.reporting.REMOTE_CONFIG_OPTIONS_UPDATED
+import com.jetbrains.fus.reporting.REMOTE_CONFIG_OPTIONS_UPDATE_FAILED
 import com.jetbrains.fus.reporting.RegionCode
 import com.jetbrains.fus.reporting.components
 import com.jetbrains.fus.reporting.config
@@ -61,9 +63,16 @@ private val FUS_SEND_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_SEND_ENABLED"
 
 private val FUS_USE_STAGING = System.getenv("KOTLIN_TOOLCHAIN_FUS_USE_STAGING")?.toBooleanStrictOrNull() ?: false
 
+/**
+ * Creates the FUS client.
+ *
+ * The given [onRemoteConfigLoaded] is called when the remote configuration has been fetched successfully, which is
+ * when the URL to send the events to becomes known.
+ */
 internal fun createFusClient(
     fusCache: FusCache,
     httpClient: FusHttpClient,
+    onRemoteConfigLoaded: () -> Unit,
 ): FusClient<LogEvent, FusReport> = fusClient {
     config {
         // TODO check this version choice
@@ -126,6 +135,13 @@ internal fun createFusClient(
                 // We work around this by replacing 'dev' with 'alpha', which is correctly considered lower.
                 versionValue?.replace("-dev-", "-alpha-")?.let(::ComparableVersion)
             }
+
+            reportDispatcherExtensions = {
+                // By default, events are sent on close (flushed from the persistent queue, sent to the network).
+                // Overriding to a no-op means that we don't send the remaining events on close, but they stay persisted
+                // and will be sent during the next CLI call.
+                postClose = {}
+            }
         }
 
         // /!\ WARNING: this has to be after `defaultBusinessLogic`, because it's initialized by it
@@ -151,6 +167,17 @@ internal fun createFusClient(
         }
     }
 
+    messageHandler(topic = REMOTE_CONFIG_OPTIONS_UPDATED) {
+        logger.debug("FUS remote config was loaded")
+        onRemoteConfigLoaded()
+    }
+    messageHandler(topic = REMOTE_CONFIG_OPTIONS_UPDATE_FAILED) { [error, _] ->
+        // Debug level for external users so it's not printed to the console.
+        // For internal users, we make the error more visible.
+        // Revisit this when we separate logging from console output better.
+        val level = if (isInternalUserForFUS) Level.ERROR else Level.DEBUG
+        logger.atLevel(level).log("Error updating FUS remote config: {}", error)
+    }
     messageHandler(topic = METADATA_LOADED_TOPIC) { version ->
         logger.debug("FUS metadata was loaded with version {}", version)
     }
