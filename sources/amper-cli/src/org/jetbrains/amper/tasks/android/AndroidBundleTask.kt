@@ -14,6 +14,7 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
+import org.jetbrains.amper.tasks.PackageTaskResult
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.util.BuildType
 import java.nio.file.Path
@@ -29,7 +30,7 @@ class AndroidBundleTask(
     taskOutputPath: TaskOutputRoot,
     buildLogsRoot: AmperBuildLogsRoot,
     override val taskName: TaskName,
-) : AndroidDelegatedGradleTask(
+) : AndroidDelegatedGradleTask<AndroidBundleTask.Result>(
     module,
     buildType,
     incrementalCache,
@@ -55,4 +56,11 @@ class AndroidBundleTask(
     }
 
     override val additionalInputFiles: List<Path> = androidFilesForPackaging(module, buildType, fragments)
+
+    override fun result(artifacts: List<Path>): Result = Result(artifacts)
+
+    class Result(val artifacts: List<Path>) : PackageTaskResult {
+        override val packagePaths: List<Path>
+            get() = artifacts
+    }
 }

@@ -5,7 +5,6 @@
 package org.jetbrains.amper.tasks.ios
 
 import com.github.ajalt.mordant.terminal.Terminal
-import com.github.ajalt.mordant.terminal.success
 import com.jetbrains.cidr.xcode.plist.XMLPlistDriver
 import org.jetbrains.amper.ProcessRunner
 import org.jetbrains.amper.cli.context.AmperBuildOutputRoot
@@ -19,6 +18,7 @@ import org.jetbrains.amper.events.sink.operationEventScope
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.tasks.IpaPackageSettings
+import org.jetbrains.amper.tasks.PackageTaskResult
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.util.BuildType
@@ -58,7 +58,7 @@ internal class IosPackageIpaTask(
         get() = PackageTask.Format.Ipa
 
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult = context(
+    override suspend fun run(dependenciesResult: List<TaskResult>): Result = context(
         executionContext.eventSink,
         dependenciesResult.xcodeEnvironment(),
     ) {
@@ -87,7 +87,6 @@ internal class IosPackageIpaTask(
         val ipaPath = (buildOutputRoot.path / "packages" / format.value).createDirectories() /
                 "${module.userReadableName}-${buildType.value}.ipa"
         exportedIpa.copyTo(ipaPath, StandardCopyOption.REPLACE_EXISTING)
-        terminal.success("IPA is available at $ipaPath")
         return Result(ipaPath = ipaPath)
     }
 
@@ -135,7 +134,10 @@ internal class IosPackageIpaTask(
          * The path to the exported `.ipa` in the conventional, deterministic location.
          */
         val ipaPath: Path,
-    ) : TaskResult
+    ) : PackageTaskResult {
+        override val packagePaths: List<Path>
+            get() = listOf(ipaPath)
+    }
 }
 
 internal fun resolveSigning(

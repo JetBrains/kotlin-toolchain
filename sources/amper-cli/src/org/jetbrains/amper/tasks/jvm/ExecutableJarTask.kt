@@ -18,6 +18,7 @@ import org.jetbrains.amper.frontend.jvmSettings
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
 import org.jetbrains.amper.run.ToolingArtifactsDownloader
+import org.jetbrains.amper.tasks.PackageTaskResult
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.util.BuildType
@@ -39,7 +40,7 @@ class ExecutableJarTask(
     private val artifactsDownloader = ToolingArtifactsDownloader(userCacheRoot, incrementalCache)
 
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+    override suspend fun run(dependenciesResult: List<TaskResult>): Result {
         check(module.type.isApplication()) { "Illegal module type for ${ExecutableJarTask::class.name}: ${module.type}" }
         val mainClass = module.fragments.filter { !it.isTest }.findEffectiveJvmMainClass()
 
@@ -86,5 +87,8 @@ class ExecutableJarTask(
     override val format: PackageTask.Format
         get() = PackageTask.Format.ExecutableJar
 
-    class Result(val jarPath: Path) : TaskResult
+    class Result(val jarPath: Path) : PackageTaskResult {
+        override val packagePaths: List<Path>
+            get() = listOf(jarPath)
+    }
 }

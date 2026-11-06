@@ -5,11 +5,13 @@
 package org.jetbrains.amper.cli.commands
 
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.terminal
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.unique
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.path
+import com.github.ajalt.mordant.terminal.warning
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.options.buildTypeOption
 import org.jetbrains.amper.cli.options.leafPlatformOption
@@ -65,7 +67,7 @@ internal class PackageCommand : AmperModelAwareCommand(name = "package") {
                 authKeyProvider = ::ipaAuthKey,
             ),
         )
-        withBackend(
+        val packagePaths = withBackend(
             cliContext = cliContext,
             model = model,
             packageSettings = packageSettings,
@@ -78,5 +80,12 @@ internal class PackageCommand : AmperModelAwareCommand(name = "package") {
             )
         }
         printSuccessfulCommandConclusion("Build successful")
+        packagePaths.forEach { path ->
+            printSuccessfulCommandConclusion("Package created at: $path")
+        }
+        if (packagePaths.isEmpty()) {
+            // may theoretically happen for AndroidBundleTask: it doesn't consider producing no packages as an error
+            terminal.warning("Build successful, but no packages were created.")
+        }
     }
 }

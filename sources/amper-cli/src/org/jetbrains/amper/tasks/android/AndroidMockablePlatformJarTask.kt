@@ -31,7 +31,7 @@ internal class AndroidMockablePlatformJarTask(
     userCacheRoot: AmperUserCacheRoot,
     taskOutputRoot: TaskOutputRoot,
     buildLogsRoot: AmperBuildLogsRoot,
-) : AndroidDelegatedGradleTask(
+) : AndroidDelegatedGradleTask<AndroidMockablePlatformJarTask.Result>(
     module,
     buildType,
     incrementalCache,
@@ -47,7 +47,7 @@ internal class AndroidMockablePlatformJarTask(
         get() = AndroidBuildRequest.Phase.Test
 
     override fun outputFilterPredicate(path: Path): Boolean = path.extension == "jar"
-    override fun result(artifacts: List<Path>): TaskResult = Result(runtimeClasspath = artifacts)
+    override fun result(artifacts: List<Path>): Result = Result(runtimeClasspath = artifacts)
 
     override fun runtimeClasspath(dependenciesResult: List<TaskResult>): List<Path> {
         return dependenciesResult.filterIsInstance<ClasspathProvider>().flatMap { it.runtimeClasspath }

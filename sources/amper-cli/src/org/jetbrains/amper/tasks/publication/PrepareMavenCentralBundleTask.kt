@@ -20,6 +20,7 @@ import org.jetbrains.amper.jar.writeZip
 import org.jetbrains.amper.tasks.MavenPublishable
 import org.jetbrains.amper.tasks.MavenPublishablesResult
 import org.jetbrains.amper.tasks.mavenFileName
+import org.jetbrains.amper.tasks.PackageTaskResult
 import org.jetbrains.amper.tasks.TaskOutputRoot
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.util.BuildType
@@ -60,7 +61,10 @@ class PrepareMavenCentralBundleTask(
         return Result(zip)
     }
 
-    class Result(val mavenCentralZipBundle: Path): TaskResult
+    class Result(val mavenCentralZipBundle: Path) : PackageTaskResult {
+        override val packagePaths: List<Path>
+            get() = listOf(mavenCentralZipBundle)
+    }
 }
 
 private fun MavenPublishable.toZipInput(): ZipInput = ZipInput(

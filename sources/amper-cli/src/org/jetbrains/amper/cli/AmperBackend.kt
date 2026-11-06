@@ -25,6 +25,7 @@ import org.jetbrains.amper.engine.TaskExecutor.TaskExecutionFailed
 import org.jetbrains.amper.engine.TaskGraph
 import org.jetbrains.amper.engine.TestTask
 import org.jetbrains.amper.engine.id
+import org.jetbrains.amper.engine.packagePathsOf
 import org.jetbrains.amper.engine.runTasksAndReportOnFailure
 import org.jetbrains.amper.events.sink.GlobalEventSink
 import org.jetbrains.amper.frontend.AmperModule
@@ -196,6 +197,10 @@ class AmperBackend(
      * Called by the 'package' command.
      * Packages artifacts for distribution for all included modules/platforms/buildTypes.
      *
+     * Returns the absolute paths of the packages that were produced by the selected packaging tasks.
+     * Paths produced by task dependencies, such as intermediate JARs, are not included, and neither are the
+     * other artifacts that the underlying build tooling may produce alongside the packages.
+     *
      * If [platforms] is specified, only packaging for those platforms should be run.
      *
      * If [modules] is specified, only packaging for those modules should be run.
@@ -209,7 +214,7 @@ class AmperBackend(
         modules: Set<String>? = null,
         buildTypes: Set<BuildType>? = null,
         formats: Set<PackageTask.Format>? = null,
-    ) {
+    ): List<Path> {
         val possiblePlatforms = if (OsFamily.current.isMac) {
             Platform.leafPlatforms
         } else {
@@ -248,7 +253,11 @@ class AmperBackend(
         }
 
         logger.debug("Selected tasks to package: ${formatTaskNames(taskIds)}")
-        taskExecutor.runTasksAndReportOnFailure(taskIds)
+        val results = taskExecutor.runTasksAndReportOnFailure(taskIds)
+
+        val packagePaths = selectedPackageTasks.flatMap { task -> results[task.id].packagePathsOf(task.format) }
+        val absolutePackagePaths = packagePaths.map { it.toAbsolutePath().normalize() }
+        return absolutePackagePaths.distinct().sortedBy { it.toString() }
     }
 
     /**

@@ -8,8 +8,11 @@ package org.jetbrains.amper.engine
 
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
+import org.jetbrains.amper.tasks.PackageTaskResult
 import org.jetbrains.amper.tasks.TaskResult
 import org.jetbrains.amper.util.BuildType
+import java.nio.file.Path
+import kotlin.io.path.extension
 
 interface Task {
 
@@ -43,17 +46,31 @@ interface RunTask : Task, MaybeBuildTypeAware, PlatformAware {
 }
 
 interface PackageTask : Task, MaybeBuildTypeAware, MaybePlatformAware {
-    enum class Format(val value: String) {
-        Jar("jar"),
-        ExecutableJar("executable-jar"),
-        Aab("aab"),
-        MavenCentralBundle("maven-central-bundle"),
-        Ipa("ipa"),
-        // TODO DistZip("dist-zip"),
+    /**
+     * [value] is the name of the format in the CLI, and [fileExtension] is the extension (without the leading
+     * dot) of the package files that the format produces.
+     *
+     * [fileExtension] is used to tell the packages apart from the other artifacts that the underlying build
+     * tooling may produce alongside them (e.g. a newer version of the Android Gradle Plugin).
+     */
+    enum class Format(val value: String, val fileExtension: String) {
+        Jar("jar", "jar"),
+        ExecutableJar("executable-jar", "jar"),
+        Aab("aab", "aab"),
+        MavenCentralBundle("maven-central-bundle", "zip"),
+        Ipa("ipa", "ipa"),
+        // TODO DistZip("dist-zip", "zip"),
     }
 
     val format: Format
     val module: AmperModule
+
+    /**
+     * Ensures at compile time that packaging tasks report the paths of the packages they produce
+     * via [PackageTaskResult.packagePaths].
+     */
+    context(executionContext: TaskGraphExecutionContext)
+    override suspend fun run(dependenciesResult: List<TaskResult>): PackageTaskResult
 }
 
 interface PublishTask : Task {
@@ -98,3 +115,11 @@ interface GenerateKlibsForIdeTask : Task
  */
 inline fun <reified T : TaskResult> List<TaskResult>.requireSingleDependency() =
     filterIsInstance<T>().firstOrNull() ?: error("Expected to have single \"${T::class.simpleName}\" as a dependency")
+
+/**
+ * The paths of the packages of the [format] produced by the packaging task that returned this result.
+ *
+ * The other artifacts that the underlying build tooling may produce alongside the packages are not included.
+ */
+internal fun TaskResult?.packagePathsOf(format: PackageTask.Format): List<Path> =
+    (this as? PackageTaskResult)?.packagePaths.orEmpty().filter { it.extension == format.fileExtension }

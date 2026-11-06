@@ -7,6 +7,7 @@ package org.jetbrains.amper.cli.test.core
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
 import org.jetbrains.amper.cli.test.utils.assertStdoutContains
+import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.stdlib.hashing.sha256String
@@ -42,31 +43,63 @@ class PackageCommandTest : CliTestBase() {
 
     @Test
     fun `package command produces an executable jar`() = runSlowTest {
-        val result = runCli(projectDir = testProject("spring-boot"), "package")
+        val projectDir = testProject("spring-boot")
+        val result = runCli(projectDir = projectDir, "package")
 
-        assertTrue("Executable jar file should exist after packaging") {
-            (result.getTaskOutputPath(":spring-boot:executableJarJvm") / "spring-boot-jvm-executable.jar").exists()
-        }
+        val jarPath = result.getTaskOutputPath(":spring-boot:executableJarJvm") / "spring-boot-jvm-executable.jar"
+        assertTrue("Executable jar file should exist after packaging") { jarPath.exists() }
+        // The reported path is absolute, so it's valid regardless of the CLI's working directory.
+        result.assertStdoutContains("Package created at: $jarPath")
     }
 
     @Test
     fun `package command produces the same executable jar after clean`() = runSlowTest {
         val projectDir = testProject("spring-boot")
 
-        suspend fun buildAndHashExecutableJar(): String {
+        suspend fun buildAndCheckResult(): String {
             val result = runCli(projectDir = projectDir, "package")
-            return (result.getTaskOutputPath(":spring-boot:executableJarJvm") / "spring-boot-jvm-executable.jar")
-                .sha256String()
+            val jarPath = result.getTaskOutputPath(":spring-boot:executableJarJvm") / "spring-boot-jvm-executable.jar"
+            result.assertStdoutContains("Package created at: $jarPath")
+            return jarPath.sha256String()
         }
 
-        val hash1 = buildAndHashExecutableJar()
-        val hash2 = buildAndHashExecutableJar()
+        val hash1 = buildAndCheckResult()
+        val hash2 = buildAndCheckResult()
         assertEquals(hash1, hash2, "Executable JAR should be identical on cache hit")
 
         runCli(projectDir = projectDir, "clean")
 
-        val hash3 = buildAndHashExecutableJar()
+        val hash3 = buildAndCheckResult()
         assertEquals(hash3, hash2, "Executable JAR should be identical after clean")
+    }
+
+    @Test
+    fun `package command reports each selected package once`() = runSlowTest {
+        val projectDir = newEmptyProjectDir(setupWrappers = true)
+        (projectDir / "project.yaml").writeText("modules: [first, second]")
+        for (module in listOf("first", "second")) {
+            (projectDir / module).createDirectories()
+            (projectDir / module / "module.yaml").writeText("product: jvm/app")
+            (projectDir / module / "src").createDirectories()
+            (projectDir / module / "src" / "main.kt").writeText("fun main() { println(\"Hello\") }")
+        }
+
+        val result = runCli(projectDir = projectDir, "package")
+
+        for (module in listOf("first", "second")) {
+            val jarPath = result.getTaskOutputPath(":$module:executableJarJvm") / "$module-jvm-executable.jar"
+            result.assertStdoutContains("Package created at: $jarPath", 1)
+        }
+    }
+
+    @Test
+    fun `package command does not report a path when packaging fails`() = runSlowTest {
+        val projectDir = testProject("jvm-hello-world")
+        (projectDir / "src" / "main.kt").writeText("fun main( {")
+
+        val result = runCli(projectDir = projectDir, "package", expectedExitCode = 1, assertEmptyStdErr = false)
+
+        result.assertStdoutDoesNotContain("Package created at")
     }
 
     @ParameterizedTest

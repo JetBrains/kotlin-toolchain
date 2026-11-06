@@ -41,7 +41,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.pathString
 
-abstract class AndroidDelegatedGradleTask(
+abstract class AndroidDelegatedGradleTask<R : TaskResult>(
     private val module: AmperModule,
     private val buildType: BuildType,
     private val incrementalCache: IncrementalCache,
@@ -55,7 +55,7 @@ abstract class AndroidDelegatedGradleTask(
 ) : Task {
 
     context(executionContext: TaskGraphExecutionContext)
-    override suspend fun run(dependenciesResult: List<TaskResult>): TaskResult {
+    override suspend fun run(dependenciesResult: List<TaskResult>): R {
         val runtimeClasspath = runtimeClasspath(dependenciesResult)
 
         val moduleGradlePath = module.gradlePath(projectRoot)
@@ -150,7 +150,11 @@ abstract class AndroidDelegatedGradleTask(
 
     protected open val additionalInputFiles: List<Path> = emptyList()
     protected open fun outputFilterPredicate(path: Path): Boolean = true
-    protected open fun result(artifacts: List<Path>): TaskResult = Result(artifacts)
+
+    /**
+     * Creates the task result from the produced [artifacts].
+     */
+    protected abstract fun result(artifacts: List<Path>): R
     protected open fun runtimeClasspath(dependenciesResult: List<TaskResult>): List<Path> {
         val runtimeClasspathTaskResult =
             dependenciesResult.filterIsInstance<JvmRuntimeClasspathTask.Result>().singleOrNull()

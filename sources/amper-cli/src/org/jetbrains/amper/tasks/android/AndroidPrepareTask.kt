@@ -31,7 +31,7 @@ internal class AndroidPrepareTask(
     userCacheRoot: AmperUserCacheRoot,
     taskOutputRoot: TaskOutputRoot,
     buildLogsRoot: AmperBuildLogsRoot,
-) : AndroidDelegatedGradleTask(
+) : AndroidDelegatedGradleTask<AndroidPrepareTask.Result>(
     module,
     buildType,
     incrementalCache,
@@ -50,7 +50,7 @@ internal class AndroidPrepareTask(
         get() = fragments.mapNotNull { it.sourceAndroidConventionPaths?.resourcesPath }.distinct()
 
     override fun outputFilterPredicate(path: Path): Boolean = path.extension == "jar"
-    override fun result(artifacts: List<Path>): TaskResult = Result(compileClasspath = artifacts)
+    override fun result(artifacts: List<Path>): Result = Result(compileClasspath = artifacts)
 
     override fun runtimeClasspath(dependenciesResult: List<TaskResult>): List<Path> =
         dependenciesResult.filterIsInstance<ClasspathProvider>().flatMap { it.runtimeClasspath }

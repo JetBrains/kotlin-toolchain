@@ -30,7 +30,7 @@ class AndroidBuildTask(
     taskOutputPath: TaskOutputRoot,
     buildLogsRoot: AmperBuildLogsRoot,
     override val taskName: TaskName,
-) : AndroidDelegatedGradleTask(
+) : AndroidDelegatedGradleTask<AndroidDelegatedGradleTask.Result>(
     module,
     buildType,
     incrementalCache,
@@ -53,4 +53,7 @@ class AndroidBuildTask(
     }
 
     override val additionalInputFiles: List<Path> = androidFilesForPackaging(module, buildType, fragments)
+
+    override fun result(artifacts: List<Path>): AndroidDelegatedGradleTask.Result =
+        AndroidDelegatedGradleTask.Result(artifacts)
 }
