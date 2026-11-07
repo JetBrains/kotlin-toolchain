@@ -48,6 +48,8 @@ import kotlin.io.path.isRegularFile
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 import kotlin.io.path.pathString
+import kotlin.io.path.readLines
+import kotlin.time.Duration.Companion.milliseconds
 
 private val JAEGER_DOWNLOAD_ROOT_URL = CustomizableUrl(
     "https://github.com/jaegertracing/jaeger/releases/download", "KOTLIN_TOOLCHAIN_JAEGER_DOWNLOAD_ROOT_URL").url
@@ -140,7 +142,7 @@ internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
         terminal.println("Found ${traceFiles.size} trace file(s), sending them to Jaeger")
 
         for (file in traceFiles) {
-            val jsonLines = Files.readAllLines(file)
+            val jsonLines = file.readLines()
             launch { sendTracesToJaeger(jsonLines) }
         }
     }
@@ -193,7 +195,7 @@ internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
 
     private suspend fun awaitJaegerPortReady(shouldKeepTrying: () -> Boolean = { true }) {
         while (!jaegerPortIsReady(port) && shouldKeepTrying()) {
-            delay(10)
+            delay(10.milliseconds)
         }
     }
 
