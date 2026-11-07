@@ -43,7 +43,7 @@ object TelemetryEnvironment {
     // Some standard attributes from https://opentelemetry.io/docs/specs/semconv/resource/
     private val resource: Resource = Resource.getDefault().merge(
         Resource.builder()
-            .put("service.name", "Amper")
+            .put("service.name", "KTC")
             .put("service.namespace", "org.jetbrains.amper")
             .put("service.instance.id", UUID.randomUUID().toString())
             .put("service.version", AmperBuild.mavenVersion)
