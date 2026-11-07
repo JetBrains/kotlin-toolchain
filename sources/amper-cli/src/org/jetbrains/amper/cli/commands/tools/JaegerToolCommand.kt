@@ -70,7 +70,7 @@ internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
         .int().default(16686)
 
     private val version by option("--jaeger-version", help = "The version of Jaeger to download and run")
-        .default("1.64.0")
+        .default("2.23.0")
 
     private val jaegerArguments by argument(name = "jaeger_arguments").multiple()
 
@@ -103,7 +103,7 @@ internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
             }
             val root = extractFileToCacheLocation(file, userCacheRoot, ExtractOptions.STRIP_ROOT)
 
-            val executable = root.resolve("jaeger-all-in-one${if (os.family == OsFamily.Windows) ".exe" else ""}")
+            val executable = root.resolve("jaeger${if (os.family == OsFamily.Windows) ".exe" else ""}")
             val cmd = listOf(executable.pathString) + jaegerArguments
 
             coroutineScope {
