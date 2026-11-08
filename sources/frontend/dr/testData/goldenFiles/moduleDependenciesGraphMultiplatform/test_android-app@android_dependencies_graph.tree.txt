@@ -317,8 +317,7 @@ Module android-app
 │         │    ├─── androidx.savedstate:savedstate-ktx:1.2.1 -> 1.4.0
 │         │    │    ├─── androidx.savedstate:savedstate:1.4.0 (*)
 │         │    │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:2.0.21 -> #kotlinVersion (*)
-│         │    ├─── org.jetbrains.kotlin:kotlin-stdlib:1.8.22 -> #kotlinVersion (*)
-│         │    ╰─── androidx.activity:activity-compose:1.8.2 (c)
+│         │    ╰─── org.jetbrains.kotlin:kotlin-stdlib:1.8.22 -> #kotlinVersion (*)
 │         ├─── androidx.compose.runtime:runtime:1.0.1 -> 1.12.1 (*)
 │         ├─── androidx.compose.runtime:runtime-saveable:1.0.1 -> 1.12.1 (*)
 │         ├─── androidx.compose.ui:ui:1.0.1 -> 1.12.1 (*)

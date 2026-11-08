@@ -1367,7 +1367,7 @@ class MavenDependencyImpl internal constructor(
                             }.mapNotNull {
                                 it.toMavenDependencyConstraint(context)
                             }.let {
-                                dependencyConstraints = it
+                                dependencyConstraints = it + listOfNotNull(moduleMetadata.componentConstraint(context))
                             }
                         }
 
@@ -1378,6 +1378,8 @@ class MavenDependencyImpl internal constructor(
                 }
             } else {
                 // Multiplatform case
+                dependencyConstraints = listOfNotNull(moduleMetadata.componentConstraint(context))
+
                 val [kotlinMetadataVariant, kmpMetadataFile] =
                     detectKotlinMetadataLibrary(
                         context,
@@ -2429,6 +2431,28 @@ class MavenDependencyImpl internal constructor(
     private fun isHibernate() = group == "org.hibernate.orm"
 
     private fun MavenDependency.toCapability() = Capability(group, module, version.orUnspecified())
+
+    /**
+     * Returns a constraint for the component this module is a part of
+     * (its `component` section in Gradle metadata, e.g.,
+     *  the root module of a KMP library for a platform-specific module)
+     *
+     * Conflict resolution doesn't align them automatically since their `group:module` differ,
+     * so without the constraint a newer platform-specific module could co-exist with an older root module in the graph.
+     *
+     * Returns `null` if the module isn't a part of another component or if that component is blocklisted.
+     */
+    private fun Module.componentConstraint(context: Context): MavenDependencyConstraintImpl? {
+        if (component.url == null) return null
+        if (component.group == group && component.module == module) return null
+        if (shouldIgnoreDependency(component.group, component.module, context)) return null
+
+        return context.createOrReuseDependencyConstraint(
+            component.group,
+            component.module,
+            Version(requires = component.version),
+        )
+    }
 
     private fun nativeTargetMatches(variant: Variant, platform: ResolutionPlatform) =
         !variant.hasKotlinPlatformType(PlatformType.NATIVE)

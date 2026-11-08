@@ -321,6 +321,75 @@ class BuildGraphTest : BaseDRTest() {
     }
 
     /**
+     * This test checks that a platform-specific module of a KMP library declared directly
+     * raises the root module of the library to its own version.
+     *
+     * The platform-specific module refers to the root module in the `component` section of its Gradle metadata.
+     * Without the alignment, the root module would stay at the older version
+     * (being a separate `group:module` key, it isn't aligned with its platform-specific module by itself).
+     */
+    @Test
+    fun `platform module raises its root module`() = runDrTest {
+        context().let { context ->
+            val root = listOf(
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4",
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.3",
+            ).toRootNode(context)
+            doTest(
+                root,
+                expected = """
+                    root
+                    ├─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4 -> 1.7.3
+                    │    ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.3
+                    │         ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3 (c)
+                    ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.3 (*)
+                """.trimIndent(),
+                transitive = false
+            )
+        }
+    }
+
+    /**
+     * This test checks that a platform-specific module of a KMP library declared directly
+     * constrains the root module of the library with its resolved version
+     * after the platform-specific module version is raised by conflict resolution.
+     *
+     * The constraint of the original version of the platform-specific module should be removed from the graph
+     * together with the original version.
+     */
+    @Test
+    fun `raised platform module constrains its root module with resolved version`() = runDrTest {
+        context().let { context ->
+            val root = listOf(
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4",
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3",
+            ).toRootNode(context)
+            doTest(
+                root,
+                expected = """
+                    root
+                    ├─── org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4 -> 1.7.3
+                    ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3
+                         ╰─── org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.3
+                """.trimIndent(),
+                transitive = false
+            )
+
+            val rootModuleConstraintVersions = root
+                .distinctBfsSequence()
+                .filterIsInstance<MavenDependencyConstraintNode>()
+                .filter { it.module == "kotlinx-coroutines-core" }
+                .map { it.version.resolve() }
+                .toSet()
+
+            assertEquals(
+                setOf("1.7.3"), rootModuleConstraintVersions,
+                "The root module should be constrained with the resolved version of the platform-specific module only"
+            )
+        }
+    }
+
+    /**
      * This test checks that a dependency version declared in BOM is resolved and applied
      * to the dependency with an unspecified version during non-transitive resolution if both BOM
      * and dependency with an unspecified version are siblingin the graph

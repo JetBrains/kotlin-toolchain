@@ -30,7 +30,7 @@ private fun DependencyNode.prettyPrint(
     // but different nodes referencing the same MavenDependency result in the same dependencies
     // => add no need to distinguish those while pretty printing
     val seen = !visited.add(key to ((thisUnwrapped as? MavenDependencyNode)?.groupingGraphEntryKey() ?: (thisUnwrapped as? MavenDependencyConstraintNode)?.dependencyConstraint))
-    if (seen && children.any { it.shouldBePrinted(allMavenDepsKeys, forMavenNode) }) {
+    if (seen && children.any { it.shouldBePrinted(thisUnwrapped, allMavenDepsKeys, forMavenNode) }) {
         builder.append(" (*)")
     } else if (thisUnwrapped is MavenDependencyConstraintNode) {
         builder.append(" (c)")
@@ -50,7 +50,7 @@ private fun DependencyNode.prettyPrint(
     }
 
     children
-        .filter { it.shouldBePrinted(allMavenDepsKeys, forMavenNode) }
+        .filter { it.shouldBePrinted(thisUnwrapped, allMavenDepsKeys, forMavenNode) }
         .let { filteredNodes ->
             filteredNodes.forEachIndexed { i, it ->
                 val addAnotherLevel = i < filteredNodes.size - 1
@@ -66,14 +66,22 @@ private fun DependencyNode.prettyPrint(
 }
 
 private fun DependencyNode.shouldBePrinted(
+    parent: DependencyNode,
     allMavenDepsKeys: Map<Key<MavenDependency>, List<MavenDependencyNode>>,
     forMavenNode: MavenCoordinates? = null
 ): Boolean = unwrap().let {
-    it !is MavenDependencyConstraintNode || it.isConstraintAffectingTheGraph(
-        allMavenDepsKeys,
-        forMavenNode
-    )
+    it !is MavenDependencyConstraintNode
+            || !it.repeatsVersionVia(parent) && it.isConstraintAffectingTheGraph(allMavenDepsKeys, forMavenNode)
 }
+
+/**
+ * Returns `true` if this constraint just repeats the version of the module its [parent] came from.
+ * For example, a KMP platform module constraining its root module,
+ * or a module of a library group aligning its dependent sibling module (as AndroidX libraries do).
+ */
+private fun MavenDependencyConstraintNode.repeatsVersionVia(parent: DependencyNode): Boolean =
+    parent.parents.isNotEmpty()
+            && parent.parents.all { it is MavenDependencyNode && it.group == group && it.module == module }
 
 private fun MavenDependencyConstraintNode.isConstraintAffectingTheGraph(
     allMavenDepsKeys: Map<Key<MavenDependency>, List<MavenDependencyNode>>,
