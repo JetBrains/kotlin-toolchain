@@ -8,6 +8,8 @@ import com.github.ajalt.mordant.terminal.Terminal
 import com.jetbrains.fus.reporting.schema.BaseEventId
 import com.jetbrains.fus.reporting.schema.FieldListDescription
 import com.jetbrains.fus.reporting.schema.VarargEventId
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.cli.analytics.CliFusReporter.delegate
 import org.jetbrains.amper.cli.analytics.CliFusReporter.enable
@@ -84,13 +86,18 @@ object CliFusReporter : FusReporter {
      *
      * In both cases, the consent state itself is reported (at most once per day) using an event without identifiers.
      */
-    fun setup(userCacheRoot: AmperUserCacheRoot, terminal: Terminal, consentState: ConsentState?) {
+    suspend fun setup(
+        userCacheRoot: AmperUserCacheRoot,
+        terminal: Terminal,
+        consentState: ConsentState?,
+        fusSchedulersParentScope: CoroutineScope,
+    ) {
         if (closed) {
             return
         }
         val cache = FusCache(userCacheRoot.fusRoot)
         when (consentState) {
-            ConsentState.Accepted -> enable(cache)
+            ConsentState.Accepted -> enable(cache, fusSchedulersParentScope)
             ConsentState.Rejected, null -> cancel()
         }
         reportConsentStateIfDue(cache, consentState, terminal.terminalInfo.interactive)
@@ -100,7 +107,7 @@ object CliFusReporter : FusReporter {
      * Initializes the real FUS infrastructure with the given cache location and send all previously reported events.
      * This should only be called after consent has been checked.
      */
-    private fun enable(cache: FusCache) {
+    private fun enable(cache: FusCache, fusSchedulersParentScope: CoroutineScope) {
         cacheSetLock.write {
             if (closed) {
                 return
@@ -109,6 +116,7 @@ object CliFusReporter : FusReporter {
                 fusCache = cache,
                 httpClient = httpClient,
                 projectIdProvider = { projectId },
+                fusSchedulersParentScope = fusSchedulersParentScope,
             )
             while (buffer.isNotEmpty()) {
                 val event = buffer.poll()
@@ -135,7 +143,7 @@ object CliFusReporter : FusReporter {
      * The consent state event contains no identifier, so it is sent even if consent was not given.
      * In that case, a temporary reporter is used to send only this event.
      */
-    private fun reportConsentStateIfDue(cache: FusCache, consentState: ConsentState?, interactive: Boolean) {
+    private suspend fun reportConsentStateIfDue(cache: FusCache, consentState: ConsentState?, interactive: Boolean) {
         val throttle = ConsentStateReportThrottle(cache)
         if (!throttle.isReportDue()) {
             return
@@ -143,12 +151,15 @@ object CliFusReporter : FusReporter {
         if (consentState == ConsentState.Accepted) {
             logConsentState(reporter = this, consentState, interactive)
         } else {
-            FusReporter.createAndStart(
-                fusCache = cache,
-                httpClient = httpClient,
-                projectIdProvider = { null },
-            ).use { reporter ->
-                logConsentState(reporter, consentState, interactive)
+            coroutineScope {
+                FusReporter.createAndStart(
+                    fusCache = cache,
+                    httpClient = httpClient,
+                    projectIdProvider = { null },
+                    fusSchedulersParentScope = this,
+                ).use { reporter ->
+                    logConsentState(reporter, consentState, interactive)
+                }
             }
         }
         throttle.markReported()

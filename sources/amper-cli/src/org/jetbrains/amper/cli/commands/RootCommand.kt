@@ -198,7 +198,8 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
                     CliFusReporter.setup(
                         userCacheRoot = sharedCacheDir,
                         terminal = terminal,
-                        consentState = consentState
+                        consentState = consentState,
+                        fusSchedulersParentScope = commandChainExecutionScope,
                     )
                 }
             }

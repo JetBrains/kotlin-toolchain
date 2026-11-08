@@ -30,6 +30,7 @@ import com.jetbrains.fus.reporting.metadataStorage
 import com.jetbrains.fus.reporting.model.lion4.FusReport
 import com.jetbrains.fus.reporting.model.lion4.LogEvent
 import com.jetbrains.fus.reporting.serialization.FusKotlinSerializer
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.buildinfo.AmperBuild
@@ -59,7 +60,7 @@ val FUS_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_ENABLED")?.toBooleanStrict
  * This is enabled by default, and can be turned off to record and inspect events (see [fusEventDumpFile])
  * without sending anything. This is how our own tests exercise the FUS reporting.
  */
-private val FUS_SEND_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_SEND_ENABLED")?.toBooleanStrictOrNull() ?: true
+internal val FUS_SEND_ENABLED = System.getenv("KOTLIN_TOOLCHAIN_FUS_SEND_ENABLED")?.toBooleanStrictOrNull() ?: true
 
 private val FUS_USE_STAGING = System.getenv("KOTLIN_TOOLCHAIN_FUS_USE_STAGING")?.toBooleanStrictOrNull() ?: false
 
@@ -72,6 +73,7 @@ private val FUS_USE_STAGING = System.getenv("KOTLIN_TOOLCHAIN_FUS_USE_STAGING")?
 internal fun createFusClient(
     fusCache: FusCache,
     httpClient: FusHttpClient,
+    parentCoroutineScope: CoroutineScope,
     onRemoteConfigLoaded: () -> Unit,
 ): FusClient<LogEvent, FusReport> = fusClient {
     config {
@@ -96,6 +98,8 @@ internal fun createFusClient(
         isLoggingEnabled = { FUS_ENABLED }
         isRecordEnabled = { FUS_ENABLED }
         isSendEnabled = { FUS_ENABLED && FUS_SEND_ENABLED }
+
+        parentScope = parentCoroutineScope
     }
 
     components {

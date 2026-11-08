@@ -13,10 +13,12 @@ import com.jetbrains.fus.reporting.schema.FieldListDescription
 import com.jetbrains.fus.reporting.schema.VarargEventId
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import org.jetbrains.amper.fus.cache.FusCache
+import org.jetbrains.amper.fus.client.FUS_SEND_ENABLED
 import org.jetbrains.amper.fus.client.createFusClient
 import org.jetbrains.amper.fus.client.fusEventDumpFile
 import org.jetbrains.amper.fus.userid.MachineIdProvider
@@ -70,6 +72,10 @@ interface FusReporter : AutoCloseable {
          * The [projectIdProvider] should return a string that identifies the current project.
          * It will be anonymized automatically.
          *
+         * The [fusSchedulersParentScope] is used as a parent scope for internal FUS tasks. Make sure to close the
+         * returned [FusReporter] to let the scope terminate (closing will cancel all the internal coroutines and allow
+         * the scope to finish).
+         *
          * **IMPORTANT:** This requires user consent. Make sure to check for it using
          * [FusConsent][org.jetbrains.amper.fus.consent.FusConsent].
          */
@@ -77,36 +83,42 @@ interface FusReporter : AutoCloseable {
             fusCache: FusCache,
             httpClient: FusHttpClient,
             projectIdProvider: () -> String?,
+            fusSchedulersParentScope: CoroutineScope,
         ): FusReporter {
+            // This scope outlives this method call, but it's canceled when the returned FusReporter is closed,
+            // so the parent scope doesn't wait forever for the FUS schedulers.
+            val schedulersScope = CoroutineScope(
+                fusSchedulersParentScope.coroutineContext + Job(parent = fusSchedulersParentScope.coroutineContext.job)
+            )
             val remoteConfigLoaded = CompletableDeferred<Unit>()
             val client = createFusClient(
                 fusCache = fusCache,
                 httpClient = httpClient,
+                parentCoroutineScope = schedulersScope,
                 onRemoteConfigLoaded = { remoteConfigLoaded.complete(Unit) },
             )
 
             // No need for scheduled metadata updates for short CLI calls, we can update once per call instead.
-            // The overhead should be low, because the download doesn't happen when metadata is up-to-date, so it's
-            // just one HTTP HEAD request.
-            // Note: despite its name, this call doesn't block, the client updates in its own coroutine scope
-            // (this could be changed using enableAsyncEventLogging=false, but that would impact all events as well)
+            // Despite its name, this call doesn't block (thanks to the default enableAsyncEventLogging=true).
+            // The client fetches metadata in its own coroutine scope, so the update doesn't delay the critical path.
             client.updateMetadata()
 
             // The URL to send the events to is only known once the remote config has been fetched, so sending before
-            // that always fails. This is why we await before scheduling the send so we can be sure to schedule is as
-            // soon as possible but after the URL is ready.
+            // that always fails. This is why we await before scheduling the send so we can be sure to schedule it as
+            // soon as possible but _after_ the URL is ready.
             // We must not suspend here and delay the creation of the FUS reporter, because the events should start
             // being recorded and persisted even if the remote config can never be fetched (they will be sent during a
             // subsequent CLI call). This is why we use a longer-lived coroutine scope here, but we make sure it is
             // closed together with the returned FusReporter.
-            val scope = CoroutineScope(SupervisorJob())
-            scope.launch {
-                remoteConfigLoaded.await()
-                // Note: it's ok to send unconditionally, because we check for consent before calling this function.
-                client.scheduleSend()
+            if (FUS_SEND_ENABLED) {
+                schedulersScope.launch {
+                    remoteConfigLoaded.await()
+                    // Note: it's ok to send unconditionally, because we check for consent before calling this function.
+                    client.scheduleSend()
+                }
             }
 
-            return DefaultFusReporter(fusCache, client, projectIdProvider, scope)
+            return DefaultFusReporter(fusCache, client, projectIdProvider, schedulersScope)
         }
     }
 }
@@ -116,9 +128,9 @@ internal class DefaultFusReporter(
     private val writer: FusClient<LogEvent, *>,
     projectIdProvider: () -> String?,
     /**
-     * The scope in which the start of the event sending is awaited.
+     * The scope in which the FUS schedulers run, canceled when this reporter is closed.
      */
-    private val sendStartScope: CoroutineScope,
+    private val schedulersScope: CoroutineScope,
 ) : FusReporter {
     private val eventFactory = LogEventFactory(
         // We use the same algorithm as IntelliJ's `EventLogConfiguration.generateMachineId`, and the same fallback as
@@ -136,8 +148,9 @@ internal class DefaultFusReporter(
     }
 
     override fun close() {
-        sendStartScope.cancel()
+        // We close the writer first, because it internally finishes all the work gracefully
+        // and closes its own child scope of 'schedulersScope'.
         writer.close()
+        schedulersScope.cancel()
     }
 }
-
