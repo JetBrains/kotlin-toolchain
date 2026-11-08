@@ -4,18 +4,14 @@
 
 package org.jetbrains.amper.cli
 
-import com.github.ajalt.clikt.core.Abort
 import com.github.ajalt.clikt.core.CliktError
-import com.github.ajalt.clikt.core.PrintCompletionMessage
-import com.github.ajalt.clikt.core.PrintMessage
-import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.parsers.CommandLineParser
 import com.github.ajalt.mordant.markdown.Markdown
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.util.logging.*
 import kotlinx.coroutines.coroutineScope
 import org.jetbrains.amper.cli.analytics.CliFusReporter
-import org.jetbrains.amper.cli.analytics.InvokedCommand
+import org.jetbrains.amper.cli.analytics.runAndReportFusCommandResult
 import org.jetbrains.amper.cli.analytics.toInvokedCommand
 import org.jetbrains.amper.cli.commands.LogsDirAwareInternalError
 import org.jetbrains.amper.cli.commands.RootCommand
@@ -23,8 +19,6 @@ import org.jetbrains.amper.cli.logging.withoutConsoleLogging
 import org.jetbrains.amper.cli.telemetry.TelemetryEnvironment
 import org.jetbrains.amper.cli.terminal.createMordantTerminal
 import org.jetbrains.amper.core.AmperUserCacheRoot
-import org.jetbrains.amper.fus.schema.FusCommandResult
-import org.jetbrains.amper.fus.schema.FusEvents
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
@@ -32,7 +26,6 @@ import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
 import java.nio.file.Path
 import java.time.Instant
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.system.exitProcess
 
 private val logger = LoggerFactory.getLogger("main")
@@ -72,8 +65,13 @@ suspend fun main(args: Array<String>) {
                 val rootCommand = spanBuilder("Initialize CLI command definitions").use {
                     RootCommand()
                 }
-                CliFusReporter.use {
-                    rootCommand.mainWithTelemetry(args)
+                coroutineScope {
+                    rootCommand.commandChainExecutionScope = this
+                    // The FUS reporter must be closed inside this scope, because closing it cancels its coroutines,
+                    // which are children of this scope. Otherwise, this scope would wait for them forever.
+                    CliFusReporter.use {
+                        rootCommand.mainWithTelemetry(args)
+                    }
                 }
             }
     } catch (e: ExitProcessButCloseTelemetrySpansException) {
@@ -114,13 +112,10 @@ private suspend fun RootCommand.mainWithTelemetry(args: Array<String>) {
         .setListAttribute("subcommands", invokedCommand?.subcommands ?: [])
         .use {
             try {
-                coroutineScope {
-                    command.commandChainExecutionScope = this
+                runAndReportFusCommandResult(invokedCommand) {
                     CommandLineParser.run(result.invocation) { it.run() }
                 }
-                reportFusCommandResult(invokedCommand)
             } catch (e: CliktError) {
-                reportFusCommandResult(invokedCommand, e)
                 command.echoFormattedHelp(e)
 
                 // We don't want to throw the exception from the "run command" span unconditionally because some errors
@@ -133,39 +128,8 @@ private suspend fun RootCommand.mainWithTelemetry(args: Array<String>) {
                     // because it bypasses any finally blocks, and thus prevents our telemetry spans from completing.
                     throw ExitProcessButCloseTelemetrySpansException(e.statusCode)
                 }
-            } catch (e: Throwable) {
-                reportFusCommandResult(invokedCommand, e)
-                throw e
             }
         }
-}
-
-/**
- * Reports the outcome of the execution of [invokedCommand] to FUS, based on the [exception] that terminated it.
- * A null [exception] means the command completed successfully.
- */
-private fun reportFusCommandResult(invokedCommand: InvokedCommand?, exception: Throwable? = null) {
-    CliFusReporter.log(FusEvents.CommandResult) {
-        command = invokedCommand?.name
-        subcommands = invokedCommand?.subcommands ?: []
-        result = exception.toFusCommandResult()
-    }
-}
-
-/**
- * The [FusCommandResult] corresponding to the exception that terminated a command, or [FusCommandResult.Success] if the
- * command completed without throwing (null receiver).
- */
-private fun Throwable?.toFusCommandResult(): FusCommandResult = when (this) {
-    null -> FusCommandResult.Success
-    // The shell completion script is printed by throwing this, which is a normal successful outcome.
-    is PrintCompletionMessage -> FusCommandResult.Success
-    // Clikt's Abort, and all the PrintMessage errors of this CLI, are thrown to stop the command gracefully when the
-    // user cancels an interactive prompt. Nothing went wrong in those cases, so they are not failures.
-    is CancellationException, is Abort, is ProgramResult, is PrintMessage -> FusCommandResult.Canceled
-    // Clikt uses a zero status code for errors that only print something and exit normally, like the help message.
-    is CliktError -> if (statusCode == 0) FusCommandResult.Success else FusCommandResult.Failure
-    else -> FusCommandResult.Failure
 }
 
 /**
