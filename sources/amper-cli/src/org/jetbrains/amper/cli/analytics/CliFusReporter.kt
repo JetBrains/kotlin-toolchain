@@ -20,6 +20,7 @@ import org.jetbrains.amper.fus.consent.ConsentState
 import org.jetbrains.amper.fus.consent.ConsentStateReportThrottle
 import org.jetbrains.amper.fus.reporter.FusReporter
 import org.jetbrains.amper.fus.schema.AnonymousOsFamily
+import org.jetbrains.amper.fus.schema.FusCommandCallerType
 import org.jetbrains.amper.fus.schema.FusConsentState
 import org.jetbrains.amper.fus.schema.FusEvents
 import org.jetbrains.amper.fus.schema.trimKtcVersionForFus
@@ -97,7 +98,16 @@ object CliFusReporter : FusReporter {
         }
         val cache = FusCache(userCacheRoot.fusRoot)
         when (consentState) {
-            ConsentState.Accepted -> enable(cache, fusSchedulersParentScope)
+            ConsentState.Accepted -> enable(
+                cache = cache,
+                fusSchedulersParentScope = fusSchedulersParentScope,
+                sendOnClose = when (FusEnvironmentDetection.callerType) {
+                    FusCommandCallerType.AIAgent,
+                    FusCommandCallerType.Ide,
+                    FusCommandCallerType.Terminal -> false // it's ok to send events in the next call, let's save time
+                    FusCommandCallerType.CI -> true // we might not have another chance
+                }
+            )
             ConsentState.Rejected, null -> cancel()
         }
         reportConsentStateIfDue(cache, consentState, terminal.terminalInfo.interactive)
@@ -107,7 +117,7 @@ object CliFusReporter : FusReporter {
      * Initializes the real FUS infrastructure with the given cache location and send all previously reported events.
      * This should only be called after consent has been checked.
      */
-    private fun enable(cache: FusCache, fusSchedulersParentScope: CoroutineScope) {
+    private fun enable(cache: FusCache, fusSchedulersParentScope: CoroutineScope, sendOnClose: Boolean) {
         cacheSetLock.write {
             if (closed) {
                 return
@@ -117,6 +127,7 @@ object CliFusReporter : FusReporter {
                 httpClient = httpClient,
                 projectIdProvider = { projectId },
                 fusSchedulersParentScope = fusSchedulersParentScope,
+                sendOnClose = sendOnClose,
             )
             while (buffer.isNotEmpty()) {
                 val event = buffer.poll()
@@ -157,6 +168,7 @@ object CliFusReporter : FusReporter {
                     httpClient = httpClient,
                     projectIdProvider = { null },
                     fusSchedulersParentScope = this,
+                    sendOnClose = true, // we don't want to rely on the persistent queue here, and the overhead is low
                 ).use { reporter ->
                     logConsentState(reporter, consentState, interactive)
                 }

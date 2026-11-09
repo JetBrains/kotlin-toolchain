@@ -83,6 +83,7 @@ interface FusReporter : AutoCloseable {
             fusCache: FusCache,
             httpClient: FusHttpClient,
             projectIdProvider: () -> String?,
+            sendOnClose: Boolean,
             fusSchedulersParentScope: CoroutineScope,
         ): FusReporter {
             // This scope outlives this method call, but it's canceled when the returned FusReporter is closed,
@@ -95,6 +96,7 @@ interface FusReporter : AutoCloseable {
                 fusCache = fusCache,
                 httpClient = httpClient,
                 parentCoroutineScope = schedulersScope,
+                sendOnClose = sendOnClose,
                 onRemoteConfigLoaded = { remoteConfigLoaded.complete(Unit) },
             )
 

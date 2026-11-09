@@ -69,11 +69,17 @@ private val FUS_USE_STAGING = System.getenv("KOTLIN_TOOLCHAIN_FUS_USE_STAGING")?
  *
  * The given [onRemoteConfigLoaded] is called when the remote configuration has been fetched successfully, which is
  * when the URL to send the events to becomes known.
+ *
+ * Use [sendOnClose] to make sure all events are sent when the returned client is closed (events are then flushed from
+ * the persistent queue and sent to the network). This might take about 280ms, which might not always be acceptable
+ * (for instance in interactive CLI calls). Disable this to leave events in the persistent queue until the next
+ * client is created (most likely in the next CLI invocation).
  */
 internal fun createFusClient(
     fusCache: FusCache,
     httpClient: FusHttpClient,
     parentCoroutineScope: CoroutineScope,
+    sendOnClose: Boolean,
     onRemoteConfigLoaded: () -> Unit,
 ): FusClient<LogEvent, FusReport> = fusClient {
     config {
@@ -140,11 +146,13 @@ internal fun createFusClient(
                 versionValue?.replace("-dev-", "-alpha-")?.let(::ComparableVersion)
             }
 
-            reportDispatcherExtensions = {
-                // By default, events are sent on close (flushed from the persistent queue, sent to the network).
-                // Overriding to a no-op means that we don't send the remaining events on close, but they stay persisted
-                // and will be sent during the next CLI call.
-                postClose = {}
+            if (!sendOnClose) {
+                reportDispatcherExtensions = {
+                    // By default, events are sent on close (flushed from the persistent queue, sent to the network).
+                    // Overriding to a no-op means that we don't send the remaining events on close, but they stay persisted
+                    // and will be sent during the next CLI call.
+                    postClose = {}
+                }
             }
         }
 
