@@ -51,10 +51,14 @@ class StandaloneAmperProjectContext(
     }
 
     override val projectVersionsCatalog: VersionCatalog? by lazy {
-        val catalogFile = projectRootDir.findChild("libs.versions.toml")
-            ?: projectRootDir.findChild("gradle")?.findChild("libs.versions.toml")
+        val rootCatalog = projectRootDir.findChild("libs.versions.toml")
+        val gradleCatalog = projectRootDir.findChild("gradle")?.findChild("libs.versions.toml")
+        val catalogFile = rootCatalog ?: gradleCatalog
         catalogFile?.let { catalogFile ->
-            frontendPathResolver.parseGradleVersionCatalog(catalogFile)
+            frontendPathResolver.parseGradleVersionCatalog(
+                catalogFile,
+                conflictingCatalogFile = gradleCatalog.takeIf { rootCatalog != null },
+            )
         }
     }
 
