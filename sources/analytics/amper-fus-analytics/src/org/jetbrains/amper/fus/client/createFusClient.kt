@@ -104,7 +104,7 @@ internal fun createFusClient(
 
     components {
         loggerFactory { Slf4jFusLoggerFactory }
-        httpClient { httpClient }
+        httpClient { LoggingFusHttpClient(httpClient) }
         fileStorage {
             JvmFileStorage(if (FUS_USE_STAGING) fusCache.metadataStagingDir else fusCache.metadataDir)
         }

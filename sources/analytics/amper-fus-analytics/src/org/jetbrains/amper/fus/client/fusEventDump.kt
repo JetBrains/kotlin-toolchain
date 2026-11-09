@@ -50,9 +50,19 @@ internal class FusEventDumpFile(private val path: Path) {
      */
     fun dumpValidatedEvent(event: LogEvent) = dump(tag = "validated", event)
 
+    /**
+     * Dumps the [eventJson] as it was sent by the FUS client to the server.
+     */
+    fun dumpSentEvent(eventJson: String) = dump(tag = "sent", eventJson)
+
     @Synchronized
     private fun dump(tag: String, event: LogEvent) {
-        val line = "[pid-$pid][$tag] ${serializer.toJson(event)}\n"
-        path.createParentDirectories().writeText(line,Charsets.UTF_8, CREATE, APPEND)
+        dump(tag, serializer.toJson(event))
+    }
+
+    @Synchronized
+    private fun dump(tag: String, eventJson: String) {
+        val line = "[pid-$pid][$tag] $eventJson\n"
+        path.createParentDirectories().writeText(line, Charsets.UTF_8, CREATE, APPEND)
     }
 }

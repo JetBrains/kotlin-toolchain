@@ -112,7 +112,9 @@ interface FusReporter : AutoCloseable {
             // closed together with the returned FusReporter.
             if (FUS_SEND_ENABLED) {
                 schedulersScope.launch {
+                    logger.debug("Awaiting remote FUS config")
                     remoteConfigLoaded.await()
+                    logger.debug("Starting send loop")
                     // Note: it's ok to send unconditionally, because we check for consent before calling this function.
                     client.scheduleSend()
                 }
