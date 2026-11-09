@@ -82,28 +82,6 @@ find_real_jre_home() {
   echo "$real_jre_home"
 }
 
-# KTC-6075 Temporary fix for CVE-2026-114820. These compromised CA certificates were not removed yet from the public
-# Zulu 25 distribution, so we remove them ourselves from the JRE that we just extracted.
-# NOTE: This must be run under the download_and_extract lock.
-remove_compromised_ca_certificates() {
-  java_home=$(find_real_jre_home "$1")
-  keytool_exe="$java_home/bin/keytool"
-
-  certs_dump=$("$keytool_exe" -list -v -cacerts -storepass changeit)
-  for fp in \
-    86:A1:EC:BA:08:9C:4A:8D:3B:BE:27:34:C6:12:BA:34:1D:81:3E:04:3C:F9:E8:A8:62:CD:5C:57:A3:6B:BE:6B \
-    D7:A7:A0:FB:5D:7E:27:31:D7:71:E9:48:4E:BC:DE:F7:1D:5F:0C:3E:0A:29:48:78:2B:C8:3E:E0:EA:69:9E:F4; do
-    # Aliases may contain spaces, hence the read loop instead of a simple word-splitting 'for' loop
-    aliases=$(printf '%s\n' "$certs_dump" | awk -v fp="$fp" '/^Alias name:/{a=substr($0,13)} index($0,fp){print a}')
-    while IFS= read -r alias; do
-      [ -n "$alias" ] || continue
-      "$keytool_exe" -delete -alias "$alias" -cacerts -storepass changeit
-    done <<EOF
-$aliases
-EOF
-  done
-}
-
 if [ "x${KOTLIN_CLI_JAVA_HOME:-}" = "x" ]; then
   case $arch in
     x86_64 | x64)    jre_arch="x64" ;;
@@ -112,17 +90,17 @@ if [ "x${KOTLIN_CLI_JAVA_HOME:-}" = "x" ]; then
   esac
 
   # Auto-updated from syncVersions.main.kts, do not modify directly here
-  zulu_version=25.38.107
-  java_version=25.0.5
+  zulu_version=25.38.109
+  java_version=25.0.5.0.3
 
   platform="$jre_os $jre_arch"
   case $platform in
-    "macosx x64")     jre_sha256=bcc4f5b6b9c3257073e19ee427951ea923fcbd6c013e2ff7f94ec87481ea73a7 ;;
-    "macosx aarch64") jre_sha256=1c12d9e3f115c8c6dfd617eb5972e39b92e10e7d43d213e6cf5bcf7af57caf14 ;;
-    "linux x64")      jre_sha256=04563fc73d8ede919a3c3a8fb56438e6c74c345fb1bf4ab2d4a331b16d78786a ;;
-    "linux aarch64")  jre_sha256=8ed5cace0255223d20615ffb14b32f28add0cd0a661364abde9698dc1ae9aaa1 ;;
-    "win x64")        jre_sha256=0aee5f9816045d4f33207f266102d25ac7ab83b24506798130f8649d01196aac ;;
-    "win aarch64")    jre_sha256=1f2630b970c1d73592b19b0db446e4c94740cfc9bb4c14515c7a8183c92044fc ;;
+    "macosx x64")     jre_sha256=0be1492faf27424d045e05d5f599661d7f11f4d1937b58feeeb8e246dc91f729 ;;
+    "macosx aarch64") jre_sha256=3179912faeec7ea0e53e6226dc8b518e600acbe00ff3779e9894af1148b3e8b2 ;;
+    "linux x64")      jre_sha256=740a9a3ed6b60de7ae2c22633f122147572024c1a66663f69aa7672ec48c4b09 ;;
+    "linux aarch64")  jre_sha256=604d65f811f942d49099b7c1c1b865ff8b700d51299be0afffa24447a033b866 ;;
+    "win x64")        jre_sha256=34ce17a0319cca98f76d1d4e7bc9e5bb13c5d76744a70cdbb82a2edcfd31f8d1 ;;
+    "win aarch64")    jre_sha256=a6b8652487a1236f09efd887106b761c140aeb0648e5deeb3b429dc9811ece68 ;;
     *) die "Unsupported platform $platform" ;;
   esac
 
@@ -132,7 +110,7 @@ if [ "x${KOTLIN_CLI_JAVA_HOME:-}" = "x" ]; then
   jre_url="$KOTLIN_CLI_JRE_DOWNLOAD_ROOT/cdn.azul.com/zulu/bin/zulu$zulu_version-ca-jre$java_version-${jre_os}_$jre_arch.$jre_archive_type"
   jre_target_dir="$kotlin_cli_cache_dir/zulu$zulu_version-ca-jre$java_version-${jre_os}_$jre_arch"
 
-  download_and_extract "Kotlin CLI runtime v$zulu_version" "$jre_url" "$jre_sha256" 256 "$kotlin_cli_cache_dir" "$jre_target_dir" "false" remove_compromised_ca_certificates
+  download_and_extract "Kotlin CLI runtime v$zulu_version" "$jre_url" "$jre_sha256" 256 "$kotlin_cli_cache_dir" "$jre_target_dir" "false"
 
   effective_kotlin_cli_java_home=$(find_real_jre_home "$jre_target_dir")
 else
