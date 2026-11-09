@@ -10,11 +10,11 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format
 import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.cli.context.AmperBuildLogsRoot
+import org.jetbrains.amper.cli.shutdown.CliShutdownManager
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.telemetry.TelemetrySetup
 import org.jetbrains.amper.util.DateTimeFormatForFilenames
 import org.jetbrains.amper.util.nowInDefaultTimezone
-import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.Path
@@ -82,8 +82,8 @@ object TelemetryEnvironment {
         movableFileOutputStream = outputStream
         val openTelemetry = TelemetrySetup.createOpenTelemetry(outputStream.buffered(), resource)
         GlobalOpenTelemetry.set(openTelemetry)
-        TelemetrySetup.closeTelemetryOnShutdown(openTelemetry) { error ->
-            LoggerFactory.getLogger(javaClass).error("Exception on shutdown: ${error.message}", error)
+        CliShutdownManager.registerOpenTelemetryCleanup {
+            openTelemetry.close()
         }
     }
 }

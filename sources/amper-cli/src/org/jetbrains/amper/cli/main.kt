@@ -9,13 +9,16 @@ import com.github.ajalt.clikt.parsers.CommandLineParser
 import com.github.ajalt.mordant.markdown.Markdown
 import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.util.logging.*
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.job
 import org.jetbrains.amper.cli.analytics.CliFusReporter
 import org.jetbrains.amper.cli.analytics.runAndReportFusCommandResult
 import org.jetbrains.amper.cli.analytics.toInvokedCommand
 import org.jetbrains.amper.cli.commands.LogsDirAwareInternalError
 import org.jetbrains.amper.cli.commands.RootCommand
 import org.jetbrains.amper.cli.logging.withoutConsoleLogging
+import org.jetbrains.amper.cli.shutdown.CliShutdownManager
 import org.jetbrains.amper.cli.telemetry.TelemetryEnvironment
 import org.jetbrains.amper.cli.terminal.createMordantTerminal
 import org.jetbrains.amper.core.AmperUserCacheRoot
@@ -67,6 +70,9 @@ suspend fun main(args: Array<String>) {
                 }
                 coroutineScope {
                     rootCommand.commandChainExecutionScope = this
+                    CliShutdownManager.registerCleanup("Canceling & awaiting dangling coroutines") {
+                        rootCommand.commandChainExecutionScope.coroutineContext.job.cancelAndJoin()
+                    }
                     // The FUS reporter must be closed inside this scope, because closing it cancels its coroutines,
                     // which are children of this scope. Otherwise, this scope would wait for them forever.
                     CliFusReporter.use {
