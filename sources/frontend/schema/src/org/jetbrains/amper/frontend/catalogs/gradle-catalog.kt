@@ -103,8 +103,8 @@ private fun getInlineNotation(catalogEntry: TomlKeyValue): String? {
                 else -> null
             } ?: return null
 
-            // The version might come from BOM (currently supported only with Gradle)
-            if (version == null && versionRef == null && module != null) return finalModuleName
+            // The version might come from BOM
+            if (version == null && versionRef == null) return finalModuleName
 
             val finalVersion = when {
                 version != null -> version
