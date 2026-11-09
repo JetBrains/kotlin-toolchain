@@ -276,7 +276,11 @@ class AndroidSdkProvider(
         remotePackages: List<RemotePackage>,
         repository: AndroidSdkRepository,
     ): RepoPackage? {
-        val pkg = remotePackages.firstOrNull { it.path == packagePath.path } ?: return null
+        val pkg = remotePackages.firstOrNull {
+            // The package with the _same_ path can be published under different channels, but only the one with
+            // the `channel-0` is accessible from the main Google repository.
+            it.path == packagePath.path && it.channel.id == "channel-0"
+        } ?: return null
         return coroutineScope {
             // Ask for the license acceptance right away before downloading in non-blocking manner
             val licenseHandlingJob =
@@ -438,7 +442,9 @@ private fun Path.stableApiVersionOrNull(): ComparableVersion? {
 private fun AndroidSdkPackageRequest.SystemImage.findBestPackageRemotely(packages: List<RemotePackage>): PackagePath? {
     return packages.filter { remotePackage ->
         val typeDetails = remotePackage.typeDetails as? DetailsTypes.SysImgDetailsType ?: return@filter false
-        // We can't use the channel as an indicator of a stable package, because preview packages (beta, canary) are
+        // We have previously seen packages appearing under other channels not accessible under the main Google repository.
+        if (remotePackage.channel.id != "channel-0") return@filter false
+        // We can't use _only_ the channel as an indicator of a stable package, because preview packages (beta, canary) are
         // published to the stable channel. Preview packages are instead identified by their codename.
         if (typeDetails.codename != null) return@filter false
 
