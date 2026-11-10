@@ -5,6 +5,7 @@
 package org.jetbrains.amper.agentdetection
 
 import java.nio.file.Path
+import kotlin.io.path.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -118,7 +119,7 @@ class AgentDetectionTest {
 
     @Test
     fun `devin is detected from its marker file`() {
-        assertTrue(detect(existingFiles = [Path.of("/opt/.devin")]))
+        assertTrue(detect(existingFiles = [Path("/opt/.devin")]))
     }
 
     @Test
@@ -175,9 +176,13 @@ class AgentDetectionTest {
     }
 
     @Test
+    fun `detectAgent - known AI_AGENT names are recognized despite a version suffix`() {
+        assertEquals(Agent.ClaudeCode, detectAgent("AI_AGENT" to "claude-code_2-1-240_agent", "CLAUDECODE" to "1"))
+    }
+
+    @Test
     fun `detectAgent - unknown AI_AGENT names are Other`() {
         assertEquals(Agent.Other, detectAgent("AI_AGENT" to "custom-agent"))
-        assertEquals(Agent.Other, detectAgent("AI_AGENT" to "claude-code-action", "CI" to "true"))
     }
 
     @Test

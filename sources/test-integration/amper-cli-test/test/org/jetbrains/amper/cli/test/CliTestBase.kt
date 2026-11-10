@@ -27,7 +27,6 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.copyToRecursively
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createTempDirectory
-import kotlin.io.path.deleteRecursively
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.name
@@ -212,7 +211,7 @@ abstract class CliTestBase : AmperCliWithWrapperTestBase() {
         wrapperMode = wrapperMode,
         configureEnvironment = {
             put("KOTLIN_TOOLCHAIN_AGENT_DETECTION_ENABLED", "true")
-            put("AI_AGENT", agent.aiAgentName)
+            put("AI_AGENT", agent.aiAgentEnvPrefixes.first())
             configureEnvironment()
         },
     )

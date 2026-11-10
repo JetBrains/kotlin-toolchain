@@ -11,7 +11,6 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.test.Test
-import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -73,7 +72,7 @@ class CommandFusEventsTest : AbstractFusEventsTest() {
             testProject("jvm-hello-world"), "show", "modules",
             configureEnvironment = {
                 put("KOTLIN_TOOLCHAIN_AGENT_DETECTION_ENABLED", "true")
-                put("AI_AGENT", Agent.ClaudeCode.aiAgentName)
+                put("AI_AGENT", Agent.ClaudeCode.aiAgentEnvPrefixes.first())
             },
         )
 
