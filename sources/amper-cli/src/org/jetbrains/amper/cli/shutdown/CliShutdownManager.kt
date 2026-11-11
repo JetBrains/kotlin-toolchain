@@ -79,14 +79,14 @@ object CliShutdownManager {
         // We also handle invididual timeouts for each cleanup so we can identify easier which is hanging.
         cleanups.forEach { cleanup ->
             withTimeoutOrNull(3.seconds) {
-                spanBuilder(cleanup.name).use {
-                    try {
+                try {
+                    spanBuilder(cleanup.name).use {
                         cleanup.cleanup()
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        logger.error("Exception during shutdown cleanup '${cleanup.name}': ${e.message}", e)
                     }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    logger.error("Exception during shutdown cleanup '${cleanup.name}': ${e.message}", e)
                 }
             } ?: run {
                 logger.debug("Timeout during shutdown cleanup '${cleanup.name}'")
