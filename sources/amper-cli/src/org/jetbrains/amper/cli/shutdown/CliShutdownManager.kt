@@ -77,7 +77,7 @@ object CliShutdownManager {
         // We avoid parallelism on purpose for simplicity, because there is effectively only one cleanup right now.
         // We also handle invididual timeouts for each cleanup so we can identify easier which is hanging.
         cleanups.forEach { cleanup ->
-            withTimeoutOrNull(2.seconds) {
+            withTimeoutOrNull(3.seconds) {
                 spanBuilder(cleanup.name).use {
                     try {
                         cleanup.cleanup()

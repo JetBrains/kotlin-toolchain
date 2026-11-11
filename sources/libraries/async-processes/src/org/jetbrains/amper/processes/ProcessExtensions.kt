@@ -31,7 +31,7 @@ import kotlin.time.Duration.Companion.seconds
  * If a process doesn't terminate within the grace period after its destruction is requested, it is forcibly destroyed.
  */
 @PublishedApi
-internal val DefaultGracePeriod = 3.seconds
+internal val DefaultGracePeriod = 1.seconds
 
 /**
  * Awaits the termination of this [Process] in a suspending and cancellable way.
