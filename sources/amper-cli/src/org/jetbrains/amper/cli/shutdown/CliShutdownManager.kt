@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.cli.shutdown
 
+import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.amper.stdlib.runtime.runOnJvmShutdown
@@ -81,12 +82,14 @@ object CliShutdownManager {
                 spanBuilder(cleanup.name).use {
                     try {
                         cleanup.cleanup()
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         logger.error("Exception during shutdown cleanup '${cleanup.name}': ${e.message}", e)
                     }
                 }
             } ?: run {
-                logger.error("Timeout during shutdown cleanup '${cleanup.name}'")
+                logger.debug("Timeout during shutdown cleanup '${cleanup.name}'")
                 // TODO consider thread/coroutines dump here
             }
         }
