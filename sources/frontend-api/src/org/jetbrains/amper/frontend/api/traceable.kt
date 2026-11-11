@@ -261,7 +261,12 @@ class TraceableVersion(
 
 typealias TraceableString = TraceableValue<String>
 typealias TraceablePath = TraceableValue<Path>
-// TODO: Deprecate this in favor of plain TraceableValue, as `TraceableEnum` doesn't enforce type bounds
+
+@Deprecated(
+    message = "This is a typealias that doesn't enforce that `T` is an `Enum`. Use `TraceableValue` directly.",
+    replaceWith = ReplaceWith("TraceableValue<T>", "org.jetbrains.amper.frontend.api.TraceableValue"),
+    level = DeprecationLevel.ERROR,
+)
 typealias TraceableEnum<T> = TraceableValue<T>
 
 fun <T> T.asTraceable(trace: Trace) = TraceableValue(this, trace)

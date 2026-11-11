@@ -15,7 +15,7 @@ import org.jetbrains.amper.frontend.api.Misnomers
 import org.jetbrains.amper.frontend.api.SchemaDoc
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.Shorthand
-import org.jetbrains.amper.frontend.api.TraceableEnum
+import org.jetbrains.amper.frontend.api.TraceableValue
 import org.jetbrains.amper.frontend.api.asTraceable
 import org.jetbrains.amper.frontend.tree.EnumNode
 import org.jetbrains.amper.frontend.tree.ReferenceNode
@@ -154,11 +154,11 @@ class ModuleProduct : SchemaNode() {
     val type by value<ProductType>()
 
     @SchemaDoc("What platforms to generate the product for")
-    val platforms: List<TraceableEnum<Platform>> by referenceValue(::type, "default platform for this product type",
+    val platforms: List<TraceableValue<Platform>> by referenceValue(::type, "default platform for this product type",
         PlatformTransform())
 
-    class PlatformTransform : ReferenceNode.TransformFunction<List<TraceableEnum<Platform>>> {
-        override fun transform(node: RefinedTreeNode): List<TraceableEnum<Platform>> {
+    class PlatformTransform : ReferenceNode.TransformFunction<List<TraceableValue<Platform>>> {
+        override fun transform(node: RefinedTreeNode): List<TraceableValue<Platform>> {
             if (node !is EnumNode) {  // Can be ErrorNode
                 return emptyList()
             }

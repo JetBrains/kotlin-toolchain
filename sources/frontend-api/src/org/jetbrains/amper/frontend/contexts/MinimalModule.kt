@@ -7,8 +7,8 @@ package org.jetbrains.amper.frontend.contexts
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.api.Misnomers
 import org.jetbrains.amper.frontend.api.SchemaNode
-import org.jetbrains.amper.frontend.api.TraceableEnum
 import org.jetbrains.amper.frontend.api.TraceablePath
+import org.jetbrains.amper.frontend.api.TraceableValue
 import org.jetbrains.amper.frontend.schema.ModuleProduct
 
 /**
@@ -18,7 +18,7 @@ import org.jetbrains.amper.frontend.schema.ModuleProduct
 class MinimalModule : SchemaNode() {
     val product by value<ModuleProduct>()
 
-    val aliases by nullableValue<Map<String, List<TraceableEnum<Platform>>>>()
+    val aliases by nullableValue<Map<String, List<TraceableValue<Platform>>>>()
 
     @Misnomers("templates")
     val apply by nullableValue<List<TraceablePath>>()

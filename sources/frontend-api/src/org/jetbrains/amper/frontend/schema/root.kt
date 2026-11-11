@@ -19,9 +19,9 @@ import org.jetbrains.amper.frontend.api.ProductTypeSpecific
 import org.jetbrains.amper.frontend.api.SchemaDoc
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.Shorthand
-import org.jetbrains.amper.frontend.api.TraceableEnum
 import org.jetbrains.amper.frontend.api.TraceablePath
 import org.jetbrains.amper.frontend.api.TraceableString
+import org.jetbrains.amper.frontend.api.TraceableValue
 import org.jetbrains.amper.frontend.plugins.PluginDeclarationSchema
 import org.jetbrains.amper.frontend.userGuideUrl
 import java.nio.file.Path
@@ -82,7 +82,7 @@ class Module : Base() {
 
     @SchemaDoc("Defines names for custom groups of platforms. This is useful to share code between platforms if the " +
             "group doesn't already exist in the default hierarchy. [Read more]($userGuideUrl/multiplatform/#aliases)")
-    val aliases by nullableValue<Map<TraceableString, List<TraceableEnum<Platform>>>>()
+    val aliases by nullableValue<Map<TraceableString, List<TraceableValue<Platform>>>>()
 
     @ProductTypeSpecific(ProductType.JVM_AMPER_PLUGIN)
     val pluginInfo by nullableValue<PluginDeclarationSchema>()

@@ -7,7 +7,7 @@ package org.jetbrains.amper.frontend.diagnostics
 import com.intellij.psi.PsiElement
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.SchemaBundle
-import org.jetbrains.amper.frontend.api.TraceableEnum
+import org.jetbrains.amper.frontend.api.TraceableValue
 import org.jetbrains.amper.frontend.jdkSettings
 import org.jetbrains.amper.frontend.messages.PsiBuildProblem
 import org.jetbrains.amper.frontend.messages.extractPsiElement
@@ -31,7 +31,7 @@ object JdkDistributionRequiresLicenseFactory : AomSingleModuleDiagnosticFactory 
 }
 
 class JdkDistributionRequiresLicense(
-    val distribution: TraceableEnum<JvmDistribution>,
+    val distribution: TraceableValue<JvmDistribution>,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.InconsistentConfiguration) {
 
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.JdkDistributionRequiresLicense

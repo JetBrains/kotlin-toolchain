@@ -8,8 +8,8 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.SchemaBundle
-import org.jetbrains.amper.frontend.api.TraceableEnum
 import org.jetbrains.amper.frontend.api.TraceableString
+import org.jetbrains.amper.frontend.api.TraceableValue
 import org.jetbrains.amper.frontend.diagnostics.FrontendDiagnosticId
 import org.jetbrains.amper.frontend.leaves
 import org.jetbrains.amper.frontend.messages.PsiBuildProblem
@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nls
  */
 context(problemReporter: ProblemReporter)
 internal fun mapAliasesToLeaves(
-    declaredAliases: Map<TraceableString, List<TraceableEnum<Platform>>>,
+    declaredAliases: Map<TraceableString, List<TraceableValue<Platform>>>,
     product: ModuleProduct,
 ): Map<TraceableString, Set<Platform>> = buildMap {
     val productLeafPlatforms = product.platforms.leaves
@@ -87,7 +87,7 @@ data class AliasesAreNotSupportedInSinglePlatformModule(override val element: Ps
 
 data class AliasUsesNonLeafPlatform(
     val alias: TraceableString,
-    val nonLeafPlatform: TraceableEnum<Platform>,
+    val nonLeafPlatform: TraceableValue<Platform>,
     @UsedInIdePlugin
     val canBeExpandedTo: Set<Platform>?,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
@@ -101,7 +101,7 @@ data class AliasUsesNonLeafPlatform(
 
 data class AliasWithNonLeafPlatformExpandsToNothing(
     val alias: TraceableString,
-    val nonLeafPlatform: TraceableEnum<Platform>,
+    val nonLeafPlatform: TraceableValue<Platform>,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
 
     override val element: PsiElement
@@ -118,7 +118,7 @@ data class AliasWithNonLeafPlatformExpandsToNothing(
 
 data class AliasUsesUndeclaredPlatform(
     val alias: TraceableString,
-    val undeclaredPlatform: TraceableEnum<Platform>,
+    val undeclaredPlatform: TraceableValue<Platform>,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
 
     override val element: PsiElement

@@ -7,7 +7,7 @@ package org.jetbrains.amper.frontend.contexts
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.amper.frontend.FrontendPathResolver
 import org.jetbrains.amper.frontend.Platform
-import org.jetbrains.amper.frontend.api.TraceableEnum
+import org.jetbrains.amper.frontend.api.TraceableValue
 import org.jetbrains.amper.frontend.api.isExplicitlySet
 import org.jetbrains.amper.frontend.asBuildProblemSource
 import org.jetbrains.amper.frontend.diagnostics.FrontendDiagnosticId
@@ -87,11 +87,11 @@ internal fun tryReadMinimalModule(moduleFilePath: VirtualFile): MinimalModuleHol
     )
 }
 
-private val ModuleProduct.specifiedUnsupportedPlatforms: List<TraceableEnum<Platform>>
+private val ModuleProduct.specifiedUnsupportedPlatforms: List<TraceableValue<Platform>>
     get() = platforms.filter { it.value !in type.supportedPlatforms }
 
 private fun ProblemReporter.reportUnsupportedPlatform(
-    unsupportedPlatform: TraceableEnum<Platform>,
+    unsupportedPlatform: TraceableValue<Platform>,
     productType: ProductType,
 ) {
     reportBundleError(

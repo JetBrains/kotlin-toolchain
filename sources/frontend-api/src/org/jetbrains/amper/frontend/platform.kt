@@ -6,7 +6,7 @@ package org.jetbrains.amper.frontend
 
 import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.frontend.api.EnumValueFilter
-import org.jetbrains.amper.frontend.api.TraceableEnum
+import org.jetbrains.amper.frontend.api.TraceableValue
 
 /**
  * Enum, that describes the concrete platform the sources are built for.
@@ -133,7 +133,7 @@ enum class Platform(
 }
 
 @get:JvmName("getLeavesTraceable")
-val Iterable<TraceableEnum<Platform>>.leaves get() = flatMap { it.value.leaves }.toSet()
+val Iterable<TraceableValue<Platform>>.leaves get() = flatMap { it.value.leaves }.toSet()
 val Iterable<Platform>.leaves get() = flatMap { it.leaves }.toSet()
 val Array<out Platform>.leaves get() = flatMap { it.leaves }.toSet()
 

@@ -14,8 +14,8 @@ import org.jetbrains.amper.frontend.api.ProductTypeSpecific
 import org.jetbrains.amper.frontend.api.SchemaDoc
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.StringSemantics
-import org.jetbrains.amper.frontend.api.TraceableEnum
 import org.jetbrains.amper.frontend.api.TraceableString
+import org.jetbrains.amper.frontend.api.TraceableValue
 import org.jetbrains.amper.frontend.types.SchemaType.StringType.Semantics
 import org.jetbrains.amper.frontend.userGuideUrl
 
@@ -117,7 +117,7 @@ class JdkSettings : SchemaNode() {
     // We use null to mean "all distributions" here because of our current merging rules.
     // If we used a list, the user would not be able to override the list because lists are simply merged.
     // This would defeat the whole purpose of this 'distributions' property, which is to allow limiting the list.
-    val distributions by value<List<TraceableEnum<JvmDistribution>>?>(default = null) // all distributions are allowed by default
+    val distributions by value<List<TraceableValue<JvmDistribution>>?>(default = null) // all distributions are allowed by default
 
     @PlatformAgnostic
     @Misnomers("javaHome", "provisioning")
