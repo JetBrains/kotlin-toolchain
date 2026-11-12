@@ -9,6 +9,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.respondError
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.HttpRequestData
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -16,9 +19,22 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import java.time.Instant
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTime
 
 class KtorFusHttpClientTest {
 
@@ -99,6 +115,71 @@ class KtorFusHttpClientTest {
         val lastModified = KtorFusHttpClient(clientWith(engine)).lastModified(METADATA_URL)
 
         assertEquals(0L, lastModified)
+    }
+
+    @Test
+    fun `requests in progress are canceled when the client is closed`() {
+        val requestStarted = CompletableDeferred<Unit>()
+        val engine = MockEngine {
+            requestStarted.complete(Unit)
+            awaitCancellation()
+        }
+        val fusHttpClient = KtorFusHttpClient(clientWith(engine))
+
+        // FusHttpClient is a blocking API, so we call it from another thread
+        val request = CompletableFuture.supplyAsync { runCatching { fusHttpClient.get(METADATA_URL) } }
+        runBlocking {
+            requestStarted.await()
+            fusHttpClient.close()
+        }
+
+        val result = request.get(10, TimeUnit.SECONDS)
+        assertIs<CancellationException>(result.exceptionOrNull(), "the request should be canceled")
+    }
+
+    @Test
+    fun `no request is sent once the client is closed`(): Unit = runBlocking {
+        var requestCount = 0
+        val engine = MockEngine {
+            requestCount++
+            respond(content = METADATA_JSON, status = HttpStatusCode.OK)
+        }
+        val fusHttpClient = KtorFusHttpClient(clientWith(engine))
+        fusHttpClient.close()
+
+        assertFailsWith<CancellationException> { fusHttpClient.get(METADATA_URL) }
+        assertFailsWith<CancellationException> { fusHttpClient.post(SEND_URL, REPORT_JSON) }
+        assertFailsWith<CancellationException> { fusHttpClient.lastModified(METADATA_URL) }
+        assertEquals(0, requestCount)
+    }
+
+    @Test
+    fun `requests time out quickly and are not retried, regardless of the given client configuration`() {
+        var requestCount = 0
+        val engine = MockEngine {
+            requestCount++
+            delay(1.minutes)
+            respond(content = METADATA_JSON, status = HttpStatusCode.OK)
+        }
+        // like the shared client of the Kotlin Toolchain
+        val patientClient = HttpClient(engine) {
+            install(HttpRequestRetry) {
+                retryOnServerErrors(maxRetries = 3)
+                retryOnException(maxRetries = 3, retryOnTimeout = true)
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 2.minutes.inWholeMilliseconds
+            }
+        }
+
+        val duration = measureTime {
+            assertFailsWith<HttpRequestTimeoutException> {
+                KtorFusHttpClient(patientClient).get(METADATA_URL)
+            }
+        }
+
+        assertEquals(1, requestCount, "the request should not be retried")
+        assertTrue(duration < 20.seconds, "the request should time out quickly, but took $duration")
     }
 
     /**

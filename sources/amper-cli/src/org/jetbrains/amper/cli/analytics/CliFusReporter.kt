@@ -67,7 +67,6 @@ object CliFusReporter : FusReporter {
 
     private val buffer: ConcurrentLinkedQueue<PendingEvent> = ConcurrentLinkedQueue()
 
-    private val httpClient by lazy { KtorFusHttpClient(amperHttpClient) }
 
     /**
      * Configures the project so future events are reported with the corresponding project ID.
@@ -124,7 +123,7 @@ object CliFusReporter : FusReporter {
             }
             delegate = FusReporter.createAndStart(
                 fusCache = cache,
-                httpClient = httpClient,
+                httpClient = KtorFusHttpClient(amperHttpClient),
                 projectIdProvider = { projectId },
                 fusSchedulersParentScope = fusSchedulersParentScope,
                 sendOnClose = sendOnClose,
@@ -163,9 +162,10 @@ object CliFusReporter : FusReporter {
             logConsentState(reporter = this, consentState, interactive)
         } else {
             coroutineScope {
+                // we still start a temporary reporter just to report this one negative consent state
                 FusReporter.createAndStart(
                     fusCache = cache,
-                    httpClient = httpClient,
+                    httpClient = KtorFusHttpClient(amperHttpClient),
                     projectIdProvider = { null },
                     fusSchedulersParentScope = this,
                     sendOnClose = true, // we don't want to rely on the persistent queue here, and the overhead is low

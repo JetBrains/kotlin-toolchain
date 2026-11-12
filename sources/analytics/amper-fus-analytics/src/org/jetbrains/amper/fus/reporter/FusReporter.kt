@@ -72,6 +72,8 @@ interface FusReporter : AutoCloseable {
          * The [projectIdProvider] should return a string that identifies the current project.
          * It will be anonymized automatically.
          *
+         * The given [httpClient] is closed when the returned [FusReporter] is closed, so it must not be shared.
+         *
          * The [fusSchedulersParentScope] is used as a parent scope for internal FUS tasks. Make sure to close the
          * returned [FusReporter] to let the scope terminate (closing will cancel all the internal coroutines and allow
          * the scope to finish).
