@@ -105,6 +105,13 @@ internal fun createFusClient(
         isRecordEnabled = { FUS_ENABLED }
         isSendEnabled = { FUS_ENABLED && FUS_SEND_ENABLED }
 
+        // With async logging, queueEvent() launches a coroutine to process the event and returns immediately.
+        // There coroutines await metadata and validate the event before recording it persistently, but close()
+        // doesn't wait for these coroutines, so the last events could be lost before being recorded.
+        // This could introduce systematic drops of significant data because we log and close in a short span.
+        // By disabling async logging, callers have the responsibility to launch coroutines and wait before closing.
+        enableAsyncEventLogging = false
+
         parentScope = parentCoroutineScope
     }
 

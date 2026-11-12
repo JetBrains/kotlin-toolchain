@@ -9,10 +9,18 @@ import com.jetbrains.fus.reporting.schema.BaseEventId
 import com.jetbrains.fus.reporting.schema.FieldListDescription
 import com.jetbrains.fus.reporting.schema.VarargEventId
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.amper.buildinfo.AmperBuild
+import org.jetbrains.amper.cli.analytics.CliFusReporter.cancel
+import org.jetbrains.amper.cli.analytics.CliFusReporter.channel
 import org.jetbrains.amper.cli.analytics.CliFusReporter.delegate
 import org.jetbrains.amper.cli.analytics.CliFusReporter.enable
+import org.jetbrains.amper.concurrency.use
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.core.downloader.amperHttpClient
 import org.jetbrains.amper.fus.cache.FusCache
@@ -27,46 +35,46 @@ import org.jetbrains.amper.fus.schema.trimKtcVersionForFus
 import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.telemetry.spanBuilder
-import org.jetbrains.amper.telemetry.useWithoutCoroutines
+import org.jetbrains.amper.telemetry.use
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.read
-import kotlin.concurrent.write
 import kotlin.io.path.absolute
 import kotlin.io.path.invariantSeparatorsPathString
+import kotlin.time.Duration.Companion.milliseconds
 
 object CliFusReporter : FusReporter {
 
+    private val logger = LoggerFactory.getLogger(CliFusReporter::class.java)
+
     private var delegate: FusReporter? = null
 
+    /**
+     * The queue of the events waiting to be passed to the [delegate], preserving their order.
+     *
+     * This also includes [ProjectIdChange], because we want this to be ordered in a deterministic way with respect to
+     * reported events, so we can guarantee which have and which don't have a project ID.
+     *
+     * Until [enable] starts the consumer coroutine, this is where the logged events are buffered. It's closed when
+     * event collection is canceled ([cancel]) or when this reporter is closed ([close]), which makes future [log]
+     * calls no-ops.
+     */
+    private val channel = Channel<OrderedEvent>(Channel.UNLIMITED)
+
+    /**
+     * The coroutine in which [setupAsync] runs, or `null` if [setupAsync] was never called.
+     *
+     * [close] joins it to make sure the [delegate] was fully created (and its consumer started) before closing it.
+     * It's assigned before the first suspension point of [setupAsync], so an undispatched launch makes it visible to
+     * [close] right away.
+     */
     @Volatile
-    private var projectId: String? = null
+    private var setupJob: Job? = null
 
     /**
-     * A lock used when setting the cache location.
-     *
-     * This ensures no events are logged while we are creating the FUS infrastructure, and that we're not creating
-     * multiple instances of the infra concurrently.
-     *
-     * Note: we don't need to synchronize [log] operations between each other, we just need to prevent them
-     * from happening concurrently with [enable], hence the read/write lock approach.
+     * The coroutine that consumes the [channel] and passes the events to the [delegate], preserving their order.
+     * It's started by [enable] and joined by [close].
      */
-    private val cacheSetLock = ReentrantReadWriteLock()
-
-    /**
-     * Whether we should buffer events while the [delegate] is not initialized.
-     * This should be false if consent has been revoked and we don't want to record events anymore.
-     */
-    private var shouldBuffer = true
-
-    /**
-     * Whether this reporter has been closed (end of main), which means calling [setup] should be a no-op.
-     */
-    private var closed = false
-
-    private val buffer: ConcurrentLinkedQueue<PendingEvent> = ConcurrentLinkedQueue()
-
+    private var eventReportingJob: Job? = null
 
     /**
      * Configures the project so future events are reported with the corresponding project ID.
@@ -74,63 +82,72 @@ object CliFusReporter : FusReporter {
     fun setProject(projectRoot: Path) {
         // Important: this is automatically anonymized inside the FUS reporting infrastructure.
         // It's not super important to identify the same project across machines at the moment.
-        projectId = projectRoot.absolute().invariantSeparatorsPathString
+        channel.trySend(ProjectIdChange(projectRoot.absolute().invariantSeparatorsPathString))
     }
 
     /**
-     * Checks or prompts for consent using the given [terminal], and initializes this reporter depending on whether the
-     * consent was given.
+     * Initializes this reporter depending on whether the consent was given.
      *
-     * * if consent was given, the FUS infrastructure is initialized, and all previously buffered events are sent
+     * * if consent was given, the FUS infrastructure is initialized, and starts consuming the buffered events
      * * if consent was rejected, this [FusReporter] becomes a no-op, and all previously buffered events are discarded
      *
      * In both cases, the consent state itself is reported (at most once per day) using an event without identifiers.
      */
-    suspend fun setup(
+    fun setupAsync(
         userCacheRoot: AmperUserCacheRoot,
         terminal: Terminal,
         consentState: ConsentState?,
-        fusSchedulersParentScope: CoroutineScope,
+        fusCoroutineScope: CoroutineScope,
     ) {
-        if (closed) {
-            return
-        }
-        val cache = FusCache(userCacheRoot.fusRoot)
-        when (consentState) {
-            ConsentState.Accepted -> enable(
-                cache = cache,
-                fusSchedulersParentScope = fusSchedulersParentScope,
-                sendOnClose = when (FusEnvironmentDetection.callerType) {
-                    FusCommandCallerType.AIAgent,
-                    FusCommandCallerType.Ide,
-                    FusCommandCallerType.Terminal -> false // it's ok to send events in the next call, let's save time
-                    FusCommandCallerType.CI -> true // we might not have another chance
+        setupJob = fusCoroutineScope.launch {
+            spanBuilder("Setup FUS reporting").use {
+                val cache = FusCache(userCacheRoot.fusRoot)
+                when (consentState) {
+                    ConsentState.Accepted -> enable(
+                        cache = cache,
+                        fusCoroutineScope = fusCoroutineScope,
+                        sendOnClose = when (FusEnvironmentDetection.callerType) {
+                            FusCommandCallerType.AIAgent,
+                            FusCommandCallerType.Ide,
+                            FusCommandCallerType.Terminal
+                                -> false // it's ok to send events in the next call, let's save time
+                            FusCommandCallerType.CI -> true // we might not have another chance
+                        }
+                    )
+                    ConsentState.Rejected, null -> cancel()
                 }
-            )
-            ConsentState.Rejected, null -> cancel()
+                reportConsentStateIfDue(cache, consentState, terminal.terminalInfo.interactive)
+            }
         }
-        reportConsentStateIfDue(cache, consentState, terminal.terminalInfo.interactive)
     }
 
     /**
-     * Initializes the real FUS infrastructure with the given cache location and send all previously reported events.
+     * Initializes the real FUS infrastructure with the given cache location and starts consuming the buffered events.
      * This should only be called after consent has been checked.
      */
-    private fun enable(cache: FusCache, fusSchedulersParentScope: CoroutineScope, sendOnClose: Boolean) {
-        cacheSetLock.write {
-            if (closed) {
-                return
-            }
-            delegate = FusReporter.createAndStart(
-                fusCache = cache,
-                httpClient = KtorFusHttpClient(amperHttpClient),
-                projectIdProvider = { projectId },
-                fusSchedulersParentScope = fusSchedulersParentScope,
-                sendOnClose = sendOnClose,
-            )
-            while (buffer.isNotEmpty()) {
-                val event = buffer.poll()
-                delegate?.log(event.id, event.data)
+    private fun enable(cache: FusCache, fusCoroutineScope: CoroutineScope, sendOnClose: Boolean) {
+        var projectId: String? = null
+        val reporter = FusReporter.createAndStart(
+            fusCache = cache,
+            httpClient = KtorFusHttpClient(amperHttpClient),
+            projectIdProvider = { projectId },
+            fusSchedulersParentScope = fusCoroutineScope,
+            sendOnClose = sendOnClose,
+        )
+        delegate = reporter
+        eventReportingJob = fusCoroutineScope.launch {
+            for (event in channel) {
+                when (event) {
+                    is ProjectIdChange -> projectId = event.newProjectId
+                    is FusEventReported -> try {
+                        // This is synchronous (async logging is disabled on the FUS client).
+                        // When it completes, the event is at least validated and persisted on disk.
+                        reporter.log(event.id, event.data)
+                    } catch (e: Exception) {
+                        // We don't let one bad event kill the consumer, which would drop all the subsequent events.
+                        logger.debug("ERROR: cannot log FUS event {}", event.id, e)
+                    }
+                }
             }
         }
     }
@@ -140,11 +157,7 @@ object CliFusReporter : FusReporter {
      * This should be called if consent has been revoked.
      */
     private fun cancel() {
-        cacheSetLock.write {
-            delegate = null
-            shouldBuffer = false
-            buffer.clear()
-        }
+        channel.close()
     }
 
     /**
@@ -198,36 +211,47 @@ object CliFusReporter : FusReporter {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun <D : FieldListDescription> log(event: VarargEventId<D>, buildData: D.() -> Unit) {
-        if (delegate == null && !shouldBuffer) {
-            return // shortcut if we know we canceled data collection, so we don't call `buildData`
+        if (channel.isClosedForSend) {
+            return // shortcut if we know we won't collect this event, so we don't call `buildData`
         }
         super.log(event, buildData)
     }
 
     override fun log(event: BaseEventId, data: Map<String, Any>) {
-        if (delegate == null && !shouldBuffer) {
-            return // we canceled collection, no need to go further
-        }
-        cacheSetLock.read {
-            delegate?.log(event, data) ?: run {
-                if (shouldBuffer) {
-                    buffer.add(PendingEvent(event, data))
-                }
-            }
-        }
+        // The result is ignored: a failure only means the channel is closed, i.e. the event is dropped on purpose.
+        channel.trySend(FusEventReported(event, data))
     }
 
-    private class PendingEvent(val id: BaseEventId, val data: Map<String, Any>)
-
-    override fun close() {
-        spanBuilder("Closing FUS client").useWithoutCoroutines {
-            cacheSetLock.write {
-                delegate?.close()
-                delegate = null
-                closed = true
+    override suspend fun close() {
+        spanBuilder("Closing FUS client").use {
+            // We need to make sure we await this, otherwise a delegate FusClient could be initialized and never closed.
+            // This must happen before closing the channel, because the setup itself logs the consent state event.
+            setupJob?.let { job ->
+                spanBuilder("Awaiting already started FUS setup").use {
+                    job.join()
+                }
             }
+
+            channel.close()
+
+            withTimeoutOrNull(500.milliseconds) {
+                eventReportingJob?.let { job ->
+                    spanBuilder("Validating & persisting pending FUS events").use {
+                        job.join()
+                    }
+                }
+            }
+
+            delegate?.close()
+            delegate = null
         }
     }
 }
 
+private sealed interface OrderedEvent
+
+private class FusEventReported(val id: BaseEventId, val data: Map<String, Any>) : OrderedEvent
+
+private class ProjectIdChange(val newProjectId: String) : OrderedEvent

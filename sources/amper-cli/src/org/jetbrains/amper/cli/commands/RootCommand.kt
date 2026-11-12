@@ -27,7 +27,6 @@ import com.sun.jna.platform.win32.Kernel32Util
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.debug.DebugProbes
-import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import org.apache.maven.artifact.versioning.ComparableVersion
 import org.jetbrains.amper.buildinfo.AmperBuild
@@ -193,16 +192,12 @@ internal class RootCommand : SuspendingCliktCommand(name = "kotlin") {
             val consentState = spanBuilder("Detect FUS consent").use {
                 FusConsent.detect { terminal.promptForConsent() }
             }
-            commandChainExecutionScope.launch {
-                spanBuilder("Setup FUS reporting").use {
-                    CliFusReporter.setup(
-                        userCacheRoot = sharedCacheDir,
-                        terminal = terminal,
-                        consentState = consentState,
-                        fusSchedulersParentScope = commandChainExecutionScope,
-                    )
-                }
-            }
+            CliFusReporter.setupAsync(
+                userCacheRoot = sharedCacheDir,
+                terminal = terminal,
+                consentState = consentState,
+                fusCoroutineScope = commandChainExecutionScope,
+            )
             // We sent this here synchronously to have a consistently missing projectId (otherwise it's going to race).
             // The overhead is minimal (~15ms).
             spanBuilder("Send baseline FUS events").use {

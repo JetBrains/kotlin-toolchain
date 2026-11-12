@@ -21,6 +21,7 @@ import org.jetbrains.amper.cli.logging.withoutConsoleLogging
 import org.jetbrains.amper.cli.shutdown.CliShutdownManager
 import org.jetbrains.amper.cli.telemetry.TelemetryEnvironment
 import org.jetbrains.amper.cli.terminal.createMordantTerminal
+import org.jetbrains.amper.concurrency.use
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder

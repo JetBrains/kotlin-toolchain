@@ -17,6 +17,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import org.jetbrains.amper.concurrency.SuspendingCloseable
 import org.jetbrains.amper.fus.cache.FusCache
 import org.jetbrains.amper.fus.client.FUS_SEND_ENABLED
 import org.jetbrains.amper.fus.client.createFusClient
@@ -28,7 +29,7 @@ import org.slf4j.LoggerFactory
 /**
  * Allows logging feature usage statistics.
  */
-interface FusReporter : AutoCloseable {
+interface FusReporter : SuspendingCloseable {
 
     /**
      * Reports the given [event] with the given [data].
@@ -58,9 +59,13 @@ interface FusReporter : AutoCloseable {
     }
 
     /**
-     * Closes the reporter and flushes all pending events.
+     * Closes the reporter.
+     *
+     * If `sendOnClose` was enabled in [createAndStart], this suspends until all pending events are sent to the server.
+     *
+     * If not, events that are in the process of being reported/validated might be lost (not persisted to disk).
      */
-    override fun close()
+    override suspend fun close()
 
     companion object {
 
@@ -153,7 +158,7 @@ internal class DefaultFusReporter(
         writer.queueEvent(logEvent)
     }
 
-    override fun close() {
+    override suspend fun close() {
         // We close the writer first, because it internally finishes all the work gracefully
         // and closes its own child scope of 'schedulersScope'.
         writer.close()
