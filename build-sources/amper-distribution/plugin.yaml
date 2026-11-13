@@ -13,10 +13,7 @@ tasks:
         cliTgz: ${taskOutputDir}/cli.tgz
         wrappersDir: ${taskOutputDir}/wrappers
         installersDir: ${taskOutputDir}/installers
-      cliRuntimeClasspath: ${module.runtimeClasspath}
-      extraClasspaths: ${pluginSettings.extraClasspaths}
-      extraFilteredClasspaths: ${pluginSettings.extraFilteredClasspaths}
-      thirdPartyStagingDir: ${provisionThirdPartyComponents.action.stagingDir}
+      unpackedDistDir: ${tasks.buildUnpacked.action.outputDir}
 
   buildUnpacked:
     action: !buildUnpackedDist
