@@ -41,7 +41,6 @@ import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
 import org.jetbrains.amper.util.openBrowser
 import java.net.Socket
-import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.isRegularFile
@@ -152,8 +151,10 @@ internal class JaegerToolCommand : AmperSubcommand(name = "jaeger") {
             return []
         }
         return buildList {
-            for (folder in path.listDirectoryEntries()) {
-                val telemetryFolder = AmperBuildLogsRoot(folder).telemetryPath
+            for (entry in path.listDirectoryEntries()) {
+                if (entry.isRegularFile()) continue
+
+                val telemetryFolder = AmperBuildLogsRoot(entry).telemetryPath
                 if (telemetryFolder.exists()) {
                     addAll(
                         telemetryFolder
