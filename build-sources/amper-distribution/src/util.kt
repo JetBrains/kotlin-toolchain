@@ -13,21 +13,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.openpgp.api.OpenPGPKeyReader
 import org.bouncycastle.openpgp.api.bc.BcOpenPGPApi
-import org.jetbrains.amper.stdlib.hashing.sha256String
 import java.nio.file.Path
 import kotlin.io.path.copyTo
 import kotlin.io.path.createDirectories
-import kotlin.io.path.extension
 import kotlin.io.path.inputStream
 import kotlin.io.path.name
-import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.outputStream
-import kotlin.io.path.pathString
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-
-val FilteredClasspath.resolvedFiles: List<Path>
-    get() = classpath.resolvedFiles.filter { path -> includeIfFileNameContains.any { it in path.name } }
 
 private val downloadHttpClient: HttpClient by lazy {
     HttpClient {

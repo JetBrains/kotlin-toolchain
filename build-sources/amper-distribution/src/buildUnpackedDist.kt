@@ -11,6 +11,7 @@ import org.jetbrains.amper.wrapper.AmperWrappers
 import java.nio.file.Path
 import kotlin.io.path.copyToRecursively
 import kotlin.io.path.div
+import kotlin.io.path.name
 import kotlin.io.path.writeText
 
 @TaskAction
@@ -25,8 +26,15 @@ fun buildUnpackedDist(
 
     (outputDir / "kotlin-cli.args").writeText(argFileContents())
 
-    copyWithDeduplication(outputDir / "lib", baseClasspath.resolvedFiles.distinct())
-    lazyClasspathsLayout(extraClasspaths, extraFilteredClasspaths).copyTo(outputDir)
+    copyWithDeduplication(outputDir / "lib", baseClasspath.resolvedFiles.uniqueRealPaths())
+
+    // The index and jars layout must match what is expected by org.jetbrains.amper.cli.lazyload.ExtraClasspath.
+    generateDeduplicatedClasspaths(
+        classpaths = extraClasspaths.map { NamedClasspath(it.key, it.value.resolvedFiles.uniqueRealPaths()) } +
+                extraFilteredClasspaths.map { NamedClasspath(it.key, it.value.resolvedFiles.uniqueRealPaths()) },
+        indexesDir = outputDir.resolve("extra"), // in sync with org.jetbrains.amper.cli.lazyload.ExtraClasspath
+        jarsDir = outputDir.resolve("extra/jars"), // in sync with org.jetbrains.amper.cli.lazyload.ExtraClasspath
+    )
 
     AmperWrappers.generateLaunchers(outputDir / "bin")
 
@@ -36,3 +44,8 @@ fun buildUnpackedDist(
         overwrite = false,
     )
 }
+
+private val FilteredClasspath.resolvedFiles: List<Path>
+    get() = classpath.resolvedFiles.filter { shouldInclude(it) }
+
+private fun FilteredClasspath.shouldInclude(path: Path): Boolean = includeIfFileNameContains.any { it in path.name }
