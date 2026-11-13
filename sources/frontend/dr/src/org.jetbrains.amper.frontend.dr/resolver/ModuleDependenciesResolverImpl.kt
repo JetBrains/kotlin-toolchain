@@ -12,7 +12,6 @@ import org.jetbrains.amper.dependency.resolution.GraphSerializableTypesProvider
 import org.jetbrains.amper.dependency.resolution.MavenDependencyNode
 import org.jetbrains.amper.dependency.resolution.MavenDependencyNodeWithContext
 import org.jetbrains.amper.dependency.resolution.MavenDependencyUnspecifiedVersionResolverBase
-import org.jetbrains.amper.dependency.resolution.ResolutionConfigPlain
 import org.jetbrains.amper.dependency.resolution.SerializableDependencyNode
 import org.jetbrains.amper.dependency.resolution.SerializableDependencyNodeConverter
 import org.jetbrains.amper.frontend.dr.resolver.swiftpm.SerializableSwiftPMDependencyNodeFromAmperModule
@@ -57,7 +56,7 @@ private sealed class ModuleDependencyNodeWithModuleConverter<T: ModuleDependency
         SerializableModuleDependencyNodeWithModule(
             node.moduleName,
             node.isForTests,
-            ResolutionConfigPlain(node.resolutionConfig),
+            node.resolutionConfig.toSerializableReference(graphContext),
             topLevel = node.topLevel,
             graphContext = graphContext,
         )

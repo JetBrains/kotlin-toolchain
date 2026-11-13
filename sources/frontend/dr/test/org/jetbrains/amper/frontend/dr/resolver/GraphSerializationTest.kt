@@ -14,6 +14,7 @@ import org.jetbrains.amper.dependency.resolution.DependencyNode
 import org.jetbrains.amper.dependency.resolution.GraphJson
 import org.jetbrains.amper.dependency.resolution.MavenDependencyConstraintNode
 import org.jetbrains.amper.dependency.resolution.MavenDependencyNode
+import org.jetbrains.amper.dependency.resolution.ResolutionConfigPlain
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.dependency.resolution.SerializableDependencyNode
 import org.jetbrains.amper.dependency.resolution.diagnostics.Message
@@ -113,6 +114,38 @@ class GraphSerializationTest: BaseModuleDrTest() {
             "Diagnostic messages taken from deserialized graph differs from original ones"
         )
     }
+
+    /**
+     * This test checks that module nodes ([ModuleDependencyNode])
+     * reference shared resolution configs instead of serializing their own copies,
+     * and get the same configs back after deserialization.
+     */
+    @Test
+    fun `module nodes reference resolution configs`() = runSlowModuleDependenciesTest(checkIncrementalCache = false) {
+        val aom = getTestProjectModel("jvm-transitive-dependencies", testDataRoot)
+        val root = doTest(aom, ideSyncTestResolutionInput, filter = ideSyncModuleResolutionFilter)
+
+        val graph = root.toGraph()
+        val encoded = json.encodeToString(graph)
+
+        val resolutionConfigs = graph.graphContext.allResolutionConfigs.keys
+        resolutionConfigs.flatMap { it.repositoryUrls }.distinct().forEach { url ->
+            kotlin.test.assertEquals(
+                resolutionConfigs.count { url in it.repositoryUrls },
+                encoded.split("\"$url\"").size - 1,
+                "Repository URL $url should be serialized once per resolution config",
+            )
+        }
+
+        val decodedRoot = json.decodeFromString(DependencyGraph.serializer(), encoded).root
+        kotlin.test.assertEquals(root.moduleResolutionConfigs(), decodedRoot.moduleResolutionConfigs())
+    }
+
+    private fun DependencyNode.moduleResolutionConfigs(): Set<Pair<String, ResolutionConfigPlain>> =
+        distinctBfsSequence()
+            .filterIsInstance<ModuleDependencyNode>()
+            .map { "${it.moduleName}:${it.isForTests}" to ResolutionConfigPlain(it.resolutionConfig) }
+            .toSet()
 
     /**
      * @return deserialized graph

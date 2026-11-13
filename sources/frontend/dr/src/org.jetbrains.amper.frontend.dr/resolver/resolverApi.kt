@@ -17,7 +17,7 @@ import org.jetbrains.amper.dependency.resolution.Key
 import org.jetbrains.amper.dependency.resolution.MavenDependencyNode
 import org.jetbrains.amper.dependency.resolution.MavenDependencyNodeWithContext
 import org.jetbrains.amper.dependency.resolution.ResolutionConfig
-import org.jetbrains.amper.dependency.resolution.ResolutionConfigPlain
+import org.jetbrains.amper.dependency.resolution.ResolutionConfigReference
 import org.jetbrains.amper.dependency.resolution.ResolutionPlatform
 import org.jetbrains.amper.dependency.resolution.ResolutionScope
 import org.jetbrains.amper.dependency.resolution.RootDependencyNode
@@ -144,12 +144,14 @@ class ModuleDependencyNodeWithModuleAndContext internal constructor(
 internal class SerializableModuleDependencyNodeWithModule internal constructor(
     override val moduleName: String,
     override val isForTests: Boolean = false,
-    override val resolutionConfig: ResolutionConfigPlain,
+    private val resolutionConfigRef: ResolutionConfigReference,
     override val topLevel: Boolean = false,
     override val childrenRefs: List<DependencyNodeReference> = mutableListOf(),
     @Transient
     private val graphContext: DependencyGraphContext = currentGraphContext(),
 ): ModuleDependencyNode, SerializableDependencyNodeHolderBase(graphContext) {
+
+    override val resolutionConfig by lazy { resolutionConfigRef.toNodePlain(graphContext) }
 
     override val messages: List<Message> = emptyList()
 
