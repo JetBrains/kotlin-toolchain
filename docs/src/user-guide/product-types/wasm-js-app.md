@@ -108,4 +108,9 @@ There are no extra packaging facilities at the moment, and the `package` command
 
 ## Testing
 
-Tests targeting Wasm JS target are not supported yet, but we are [working on it](https://youtrack.jetbrains.com/issue/KTC-5576).
+Write tests using `kotlin.test` in the `test/` folder and run them with the `kotlin test` command.
+See [Testing](../testing.md) for how to run and select tests, and for test dependencies and shared test settings.
+
+The command builds the test application and runs it in a headless Chromium browser using Playwright.
+Node.js, pnpm, Playwright, and a compatible Chromium distribution are downloaded automatically as needed.
+The browser is currently not configurable.
