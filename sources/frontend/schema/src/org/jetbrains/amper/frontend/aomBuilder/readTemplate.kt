@@ -115,10 +115,14 @@ internal fun readWithTemplates(
         val templatePath = queue.removeFirst()
         if (!visitedTemplates.add(templatePath)) continue
 
-        val templateTree = templatesCache.getOrPut(templatePath) {
-            val templateVirtual = templatePath.asVirtualOrNull() ?: continue@loop
-            val psiFile = templateVirtual.asPsiOrNull() ?: continue@loop
-            readTree(templateVirtual, types.templateDeclaration, PathCtx(templatePath, psiFile.asTrace()))
+        // The cache may be shared between module files that are read concurrently, so the access to it is
+        // synchronized to guarantee that every template is read (and diagnosed) only once.
+        val templateTree = synchronized(templatesCache) {
+            templatesCache.getOrPut(templatePath) {
+                val templateVirtual = templatePath.asVirtualOrNull() ?: continue@loop
+                val psiFile = templateVirtual.asPsiOrNull() ?: continue@loop
+                readTree(templateVirtual, types.templateDeclaration, PathCtx(templatePath, psiFile.asTrace()))
+            }
         }
         allTemplateTrees.add(templateTree)
 

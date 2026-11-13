@@ -11,6 +11,7 @@ test-dependencies:
   - //sources/frontend/schema
   - //sources/test-base
   - $libs.charleskorn.kaml
+  - $libs.kotlinx.coroutines.core
   - $libs.maven.artifact
 
 settings:

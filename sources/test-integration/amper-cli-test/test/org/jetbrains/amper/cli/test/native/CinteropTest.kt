@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.cli.test.native
 
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertLogContains
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
@@ -320,7 +321,9 @@ class CinteropTest : CliTestBase() {
     private fun readProjectModel(root: Path): Model = context(NoopProblemReporter) {
         val projectContext = AmperProjectContext.create(rootDir = root, buildDir = null)
             ?: error("Invalid project root: $root")
-        projectContext.readProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList())
+        runBlocking {
+            projectContext.readProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList())
+        }
     }
 }
 

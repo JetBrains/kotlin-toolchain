@@ -16,6 +16,7 @@ test-dependencies:
   - //sources/test-base
   - $libs.gradle.toolingApi: compile-only
   - $libs.android.tools.ddmlib: compile-only
+  - $libs.kotlinx.coroutines.core
 
 apply:
   - //sources/common.module-template.yaml

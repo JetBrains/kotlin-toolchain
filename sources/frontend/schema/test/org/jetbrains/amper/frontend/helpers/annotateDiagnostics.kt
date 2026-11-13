@@ -23,12 +23,18 @@ private val R_DIAG_END = Regex.escape(DIAGNOSTIC_END)
 private val DIAGNOSTIC_REGEX = """$R_DIAG_END|$R_DIAG_START_LB(.*?)$R_DIAG_START_RB"""
     .toRegex(RegexOption.DOT_MATCHES_ALL)
 
-fun PsiFile.removeDiagnosticAnnotations(): PsiFile {
+// The transformation is serialized, because it modifies PSI documents, which is not safe to do concurrently:
+// module files with annotations may be read from several threads at the same time, and the IntelliJ command
+// processor is not prepared for concurrent document writes.
+// TODO: Can be removed when we use a different parser that doesn't operate on PSI files.
+private val removeDiagnosticAnnotationsLock = Any()
+
+fun PsiFile.removeDiagnosticAnnotations(): PsiFile = synchronized(removeDiagnosticAnnotationsLock) {
     val newFile = copy() as PsiFile
     val newText = newFile.text.removeDiagnosticAnnotations()
     val document = newFile.viewProvider.document
     document.setText(newText)
-    return newFile
+    newFile
 }
 
 private fun String.removeDiagnosticAnnotations(): String {

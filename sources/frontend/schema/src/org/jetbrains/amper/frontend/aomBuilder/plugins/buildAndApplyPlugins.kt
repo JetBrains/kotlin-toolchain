@@ -17,6 +17,7 @@ import org.jetbrains.amper.frontend.project.AmperProjectContext
 import org.jetbrains.amper.frontend.types.SchemaTypingContext
 import org.jetbrains.amper.plugins.schema.model.PluginData
 import org.jetbrains.amper.problems.reporting.ProblemReporter
+import org.jetbrains.amper.problems.reporting.mapConcurrentlyPreservingProblemOrder
 
 /**
  * Read all `plugin.yaml` for plugins in the project. Apply parsed plugins to every module that has them enabled.
@@ -24,14 +25,16 @@ import org.jetbrains.amper.problems.reporting.ProblemReporter
  * @return all the project's amper plugins.
  */
 context(_: ProblemReporter, _: SchemaTypingContext, projectContext: AmperProjectContext)
-internal fun buildAndApplyPlugins(
+internal suspend fun buildAndApplyPlugins(
     pluginData: List<PluginData>,
     modules: List<ModuleBuildCtx>,
 ): List<AmperPlugin> {
     val pluginReaders = readPlugins(modules, pluginData)
 
-    for (moduleBuildCtx in modules) {
-        applyPlugins(pluginReaders, moduleBuildCtx, modules)
+    modules.mapConcurrentlyPreservingProblemOrder { moduleBuildCtx, moduleReporter ->
+        context(moduleReporter) {
+            applyPlugins(pluginReaders, moduleBuildCtx, modules)
+        }
     }
 
     val allTasksDescriptions: List<TaskFromPluginDescription> = modules.flatMap { it.module.tasksFromPlugins }

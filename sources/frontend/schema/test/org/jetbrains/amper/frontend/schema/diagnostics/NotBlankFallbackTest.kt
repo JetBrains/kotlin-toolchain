@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend.schema.diagnostics
 
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.aomBuilder.doReadProjectModel
 import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
@@ -72,7 +73,7 @@ internal class NotBlankFallbackTest : FrontendTestCaseBase(Path("testResources")
             frontendPathResolver = pathResolver,
         )
         val model = context(problemReporter) {
-            projectContext.doReadProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList())
+            runBlocking { projectContext.doReadProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList()) }
         }
         assertTrue(
             problemReporter.problems.isNotEmpty(),

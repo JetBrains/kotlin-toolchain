@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend.dr.resolver
 
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.core.AmperUserCacheRoot
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.aomBuilder.readProjectModel
@@ -28,7 +29,9 @@ internal fun getTestProjectModel(testProjectRoot: Path): Model {
     val aom = with(NoopProblemReporter) {
         val amperProjectContext = AmperProjectContext.create(rootDir = testProjectRoot, buildDir = null)
             ?: fail("Failed to create test project context")
-        amperProjectContext.readProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList())
+        runBlocking {
+            amperProjectContext.readProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList())
+        }
     }
     return aom
 }

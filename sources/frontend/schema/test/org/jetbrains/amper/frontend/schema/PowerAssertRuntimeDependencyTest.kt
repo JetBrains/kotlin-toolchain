@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend.schema
 
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.frontend.MavenDependencyBase
 import org.jetbrains.amper.frontend.aomBuilder.doReadProjectModel
 import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
@@ -21,8 +22,10 @@ internal class PowerAssertRuntimeDependencyTest :
     @Test
     fun `PowerAssert runtime is injected only starting with Kotlin 2_4`() {
         val model = context(CollectingProblemReporter()) {
-            readProjectContextWithTestFrontendResolver(base)
-                .doReadProjectModel(pluginData = [], mavenPluginXmls = [])
+            runBlocking {
+                readProjectContextWithTestFrontendResolver(base)
+                    .doReadProjectModel(pluginData = [], mavenPluginXmls = [])
+            }
         }
 
         fun hasRuntimeDependency(moduleName: String): Boolean =

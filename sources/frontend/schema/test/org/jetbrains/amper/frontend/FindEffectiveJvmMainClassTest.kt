@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend
 
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.frontend.aomBuilder.doReadProjectModel
 import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
 import org.jetbrains.amper.frontend.helpers.readProjectContextWithTestFrontendResolver
@@ -38,9 +39,10 @@ class FindEffectiveJvmMainClassTest : FrontendTestCaseBase(Path("testResources")
     private fun readFragments(projectName: String): List<Fragment> {
         val problemReporter = CollectingProblemReporter()
         return context(problemReporter) {
-            readProjectContextWithTestFrontendResolver(base / projectName)
-                .doReadProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList())
-                .modules
+            runBlocking {
+                readProjectContextWithTestFrontendResolver(base / projectName)
+                    .doReadProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList())
+            }.modules
                 .single()
                 .fragments
         }

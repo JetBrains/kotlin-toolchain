@@ -10,6 +10,7 @@ test-dependencies:
   - //sources/test-base
   - org.reflections:reflections:0.10.2
   - $kotlin.reflect
+  - $libs.kotlinx.coroutines.core
   - //sources/amper-build-info
 
 dependencies:

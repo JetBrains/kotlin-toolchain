@@ -9,6 +9,8 @@ apply:
 
 dependencies:
   - $libs.jetbrains.annotations # Needed to have @Nls applicable to type
+  - $libs.kotlinx.coroutines.core
+  - //sources/libraries/concurrency
   - //sources/libraries/stdlib-extended
 
 settings:

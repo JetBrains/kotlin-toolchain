@@ -62,8 +62,10 @@ import org.jetbrains.amper.frontend.types.maven.MavenPluginDescriptionAdapter
 import org.jetbrains.amper.maven.MavenPluginXml
 import org.jetbrains.amper.plugins.schema.model.PluginData
 import org.jetbrains.amper.problems.reporting.ProblemReporter
+import org.jetbrains.amper.problems.reporting.mapConcurrentlyPreservingProblemOrder
 import org.jetbrains.amper.system.info.SystemInfo
 import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.name
 import kotlin.io.path.relativeTo
 
@@ -81,7 +83,7 @@ import kotlin.io.path.relativeTo
  */
 @UsedInIdePlugin
 context(problemReporter: ProblemReporter)
-fun AmperProjectContext.readProjectModel(
+suspend fun AmperProjectContext.readProjectModel(
     pluginData: List<PluginData>,
     mavenPluginXmls: List<MavenPluginXml>,
 ): Model = doReadProjectModel(pluginData, mavenPluginXmls)
@@ -90,7 +92,7 @@ fun AmperProjectContext.readProjectModel(
  * Testable version of [readProjectModel].
  */
 context(problemReporter: ProblemReporter)
-internal fun AmperProjectContext.doReadProjectModel(
+internal suspend fun AmperProjectContext.doReadProjectModel(
     pluginData: List<PluginData>,
     mavenPluginXmls: List<MavenPluginXml>,
     systemInfo: SystemInfo = SystemInfo.CurrentHost,
@@ -100,32 +102,30 @@ internal fun AmperProjectContext.doReadProjectModel(
     SchemaTypingContext(pluginData, mavenPluginXmls),
     systemInfo,
 ) {
-    // Parse all module files and perform preprocessing (templates, catalogs, etc.)
     val templateCache = hashMapOf<Path, MappingNode>()
-    val rawModulesByFile = amperModuleFiles.associateWith {
-        readModuleMergedTree(it, projectVersionsCatalog, templateCache)
-    }
+    val rawModulesByFile = amperModuleFiles
+        .mapConcurrentlyPreservingProblemOrder { moduleFile, moduleReporter ->
+            moduleFile to context(moduleReporter) {
+                readModuleMergedTree(moduleFile, projectVersionsCatalog, templateCache)
+            }
+        }
+        .toMap()
 
     val unreadableModuleFiles = rawModulesByFile.filterValues { it == null }.keys
     val rawModules = rawModulesByFile.values.filterNotNull()
 
-    // Build [AmperModule]s.
-    val modules = buildAmperModules(rawModules)
-
-    // Do some alterations to the built modules.
-    modules.forEach { it.module.addImplicitDependencies() }
-
-    // Load plugins that exist in the project
+    val modules = initializeModuleDependencies(rawModules)
     val amperPlugins = buildAndApplyPlugins(pluginData, modules)
-    
-    // Add read maven plugin xmls.
-    modules.forEach { 
-        it.module.amperMavenPluginsDescriptions = mavenPluginXmls.map(::MavenPluginDescriptionAdapter) 
+    modules.forEach {
+        it.module.amperMavenPluginsDescriptions = mavenPluginXmls.map(::MavenPluginDescriptionAdapter)
     }
 
-    // Perform diagnostics.
-    AomSingleModuleDiagnosticFactories.forEach { diagnostic ->
-        modules.forEach { diagnostic.analyze(it.module, problemReporter) }
+    AomSingleModuleDiagnosticFactories.mapConcurrentlyPreservingProblemOrder { diagnostic, reporter ->
+        context(reporter) {
+            modules.mapConcurrentlyPreservingProblemOrder { module, moduleReporter ->
+                diagnostic.analyze(module.module, moduleReporter)
+            }
+        }
     }
     val model = DefaultModel(
         projectRoot = projectRoot.path,
@@ -133,7 +133,9 @@ internal fun AmperProjectContext.doReadProjectModel(
         unreadableModuleFiles = unreadableModuleFiles,
         amperPlugins = amperPlugins,
     )
-    AomModelDiagnosticFactories.forEach { it.analyze(model, problemReporter) }
+    AomModelDiagnosticFactories.mapConcurrentlyPreservingProblemOrder { factory, reporter ->
+        factory.analyze(model, reporter)
+    }
     return model
 }
 
@@ -209,8 +211,7 @@ internal fun readModuleMergedTree(
         catalog = effectiveCatalog,
         moduleCtxModule = commonModule,
         pluginsTree = pluginsTree,
-        pathResolver = pathResolver,
-        problemReporter = problemReporter,
+        module = commonModule.buildDefaultModule(moduleFile, effectiveCatalog),
     )
 }
 
@@ -218,35 +219,47 @@ internal fun readModuleMergedTree(
  * Build and resolve internal module dependencies.
  */
 context(_: ProblemReporter, _: SchemaTypingContext, _: AmperFrontendProjectRoot)
-private fun buildAmperModules(
+private suspend fun initializeModuleDependencies(
     modules: List<ModuleBuildCtx>,
 ): List<ModuleBuildCtx> {
     val dir2module = modules.associate { it.moduleFile.parent.toNioPath() to it.module }
-    val reportedUnresolvedModules = mutableSetOf<Trace>()
+    // The same unresolved dependency may be requested from several modules that are processed concurrently.
+    val reportedUnresolvedModules = ConcurrentHashMap.newKeySet<Trace>()
 
-    modules.forEach { module ->
-        // Do build seeds and propagate settings.
-        val seeds = module.moduleCtxModule.buildFragmentSeeds()
-
-        val moduleFragments = createFragments(seeds, module) {
-            it.resolveInternalDependency(
-                dir2module,
-                reportedUnresolvedModules,
-                module.moduleFile.parent.toNioPath(),
-            )
-        }
-
-        val [leaves, testLeaves] = moduleFragments.filterIsInstance<DefaultLeafFragment>().partition { !it.isTest }
-
-        module.module.apply {
-            mavenPluginSettings = module.moduleCtxModule.mavenPlugins
-            fragments = moduleFragments
-            artifacts = createArtifacts(false, module.module.type, leaves) +
-                    createArtifacts(true, module.module.type, testLeaves)
+    return modules.mapConcurrentlyPreservingProblemOrder { module, moduleReporter ->
+        context(moduleReporter) {
+            module.initializeFragmentsAndDependencies(dir2module, reportedUnresolvedModules)
         }
     }
+}
 
-    return modules
+context(_: ProblemReporter, _: SchemaTypingContext, _: AmperFrontendProjectRoot)
+private fun ModuleBuildCtx.initializeFragmentsAndDependencies(
+    moduleDir2module: Map<Path, AmperModule>,
+    reportedUnresolvedModules: MutableSet<Trace>,
+): ModuleBuildCtx {
+    // Do build seeds and propagate settings.
+    val seeds = moduleCtxModule.buildFragmentSeeds()
+
+    val moduleFragments = createFragments(seeds, this) {
+        it.resolveInternalDependency(
+            moduleDir2module,
+            reportedUnresolvedModules,
+            moduleFile.parent.toNioPath(),
+        )
+    }
+
+    val [leaves, testLeaves] = moduleFragments.filterIsInstance<DefaultLeafFragment>().partition { !it.isTest }
+
+    module.apply {
+        mavenPluginSettings = moduleCtxModule.mavenPlugins
+        fragments = moduleFragments
+        artifacts = createArtifacts(false, module.type, leaves) +
+                createArtifacts(true, module.type, testLeaves)
+    }
+    module.addImplicitDependencies()
+
+    return this
 }
 
 private fun createArtifacts(

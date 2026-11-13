@@ -18,6 +18,7 @@ import org.jetbrains.amper.plugins.schema.model.Defaults
 import org.jetbrains.amper.plugins.schema.model.PluginData
 import org.jetbrains.amper.plugins.schema.model.SourceLocation
 import org.jetbrains.amper.plugins.schema.model.asSuccessOrNull
+import java.util.concurrent.ConcurrentHashMap
 
 class SchemaTypingContext(
     pluginData: List<PluginData> = emptyList(),
@@ -109,8 +110,10 @@ interface PluginSettingsStubDeclaration : SchemaObjectDeclaration
 private class PluginDeclarations(
     val pluginData: PluginData,
 ) {
-    private val classes = mutableMapOf<PluginData.SchemaName, SchemaObjectDeclaration>()
-    private val enums = mutableMapOf<PluginData.SchemaName, SchemaEnumDeclaration>()
+    // These maps are populated lazily when the module files that use the plugin declarations are parsed,
+    // which can happen concurrently, so the maps must be thread-safe.
+    private val classes = ConcurrentHashMap<PluginData.SchemaName, SchemaObjectDeclaration>()
+    private val enums = ConcurrentHashMap<PluginData.SchemaName, SchemaEnumDeclaration>()
 
     private fun toSchemaType(
         type: PluginData.Type,

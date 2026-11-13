@@ -13,6 +13,7 @@ dependencies:
   - //sources/libraries/stdlib-extended
   - //sources/libraries/maven-central-configuration
   - $kotlin.serialization.json
+  - $libs.kotlinx.coroutines.core
   - $libs.android.gradle.plugin
   - $libs.google.services.gradle.plugin: runtime-only
   - $libs.gradle.api: compile-only

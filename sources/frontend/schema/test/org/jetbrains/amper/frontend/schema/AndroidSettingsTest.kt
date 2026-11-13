@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend.schema
 
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.frontend.aomBuilder.doReadProjectModel
 import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
 import org.jetbrains.amper.frontend.helpers.readProjectContextWithTestFrontendResolver
@@ -20,7 +21,7 @@ internal class AndroidSettingsTest : FrontendTestCaseBase(Path("testResources") 
         val problemReporter = CollectingProblemReporter()
         val model = context(problemReporter) {
             val context = readProjectContextWithTestFrontendResolver(testProjectDir)
-            context.doReadProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList())
+            runBlocking { context.doReadProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList()) }
         }
         val actualNamespaces = model.modules.associate { module ->
             val androidSettings = module.leafFragments.single { !it.isTest }.settings.android

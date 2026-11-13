@@ -33,6 +33,7 @@ dependencies:
   - //sources/core
   - //sources/frontend/plain/toml-psi
   - //sources/frontend/plain/yaml-psi
+  - //sources/libraries/concurrency
   - //sources/libraries/maven-central-configuration
   - //sources/libraries/maven-plugin-xml-parser: exported
   - //sources/libraries/stdlib-extended
@@ -41,6 +42,7 @@ dependencies:
   - //sources/core-intellij
   - $kotlin.serialization.json
   - $libs.maven.artifact
+  - $libs.kotlinx.coroutines.core
   - $libs.intellij.platform.core: exported # because we expose Project in public API
   - $libs.intellij.platform.coreImpl
   - $libs.intellij.platform.util

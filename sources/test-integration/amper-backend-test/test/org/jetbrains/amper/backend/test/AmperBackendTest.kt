@@ -3,6 +3,7 @@
  */
 package org.jetbrains.amper.backend.test
 
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.backend.test.TestCollector.Companion.runTestWithCollector
 import org.jetbrains.amper.cli.AmperBackend
 import org.jetbrains.amper.events.sink.NoopEventSink
@@ -33,8 +34,10 @@ class AmperBackendTest : AmperIntegrationTestBase() {
             copyToTemp = copyToTemp,
         )
         val problemReporter = CollectingProblemReporter()
-        val model = with(problemReporter) { 
-            cliContext.projectContext.readProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList()) 
+        val model = with(problemReporter) {
+            runBlocking {
+                cliContext.projectContext.readProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList())
+            }
         }
         if (problemReporter.anyProblemsReported) {
             fail("Error(s) in the '$testProjectName' test project's model:\n${problemReporter.problems.joinToString("\n") { it.message }}")

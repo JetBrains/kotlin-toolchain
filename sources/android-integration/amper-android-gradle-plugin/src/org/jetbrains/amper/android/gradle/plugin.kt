@@ -9,6 +9,7 @@ import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.api.variant.Component
 import com.android.build.gradle.internal.component.ComponentCreationConfig
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -368,13 +369,15 @@ class AmperAndroidIntegrationSettingsPlugin @Inject constructor(private val tool
         val model = with(NoopProblemReporter) {
             val projectContext = AmperProjectContext.create(rootDir = projectRoot, buildDir = null)
                 ?: error("Invalid project root passed to the delegated Android Gradle build: $projectRoot")
-            projectContext.readProjectModel(
-                // We do not recover/pass plugin data here,
-                // as it currently can't influence project configuration (besides tasks)
-                // Any "unknown property" errors are going to be ignored here.
-                pluginData = emptyList(),
-                mavenPluginXmls = emptyList(),
-            )
+            runBlocking {
+                projectContext.readProjectModel(
+                    // We do not recover/pass plugin data here,
+                    // as it currently can't influence project configuration (besides tasks)
+                    // Any "unknown property" errors are going to be ignored here.
+                    pluginData = emptyList(),
+                    mavenPluginXmls = emptyList(),
+                )
+            }
         }
 
         settings.gradle.knownModel = model

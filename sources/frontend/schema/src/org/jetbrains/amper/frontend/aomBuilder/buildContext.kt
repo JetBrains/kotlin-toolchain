@@ -38,44 +38,48 @@ internal class ModuleBuildCtx(
      * Module which has settings that do not contain any platform, test, etc. contexts.
      */
     val moduleCtxModule: Module,
+    val module: DefaultModule,
+)
 
-    pathResolver: FrontendPathResolver,
-    problemReporter: ProblemReporter,
-) {
-    val module by lazy {
-        context(problemReporter, pathResolver) {
-            DefaultModule(
-                userReadableName = moduleFile.parent.name,
-                aliases = moduleCtxModule.aliases.orEmpty().entries.associate { alias ->
-                    alias.key.value to alias.value.map { platform -> platform.value }.toSet()
-                },
-                source = AmperModuleFileSource(moduleFile.toNioPath()),
-                usedCatalog = catalog,
-                usedTemplates = moduleCtxModule.apply?.mapNotNull { readTemplateFromPath(it) }.orEmpty(),
-                parts = @Suppress("DEPRECATION") moduleCtxModule.convertModuleParts(),
-                mavenResolveRepositories = moduleCtxModule.readResolveRepositories(),
-                mavenPublishRepositories = moduleCtxModule.readPublishRepositories(),
-                commonModuleNode = moduleCtxModule,
-            )
-        }
-    }
+/**
+ * Builds the [DefaultModule] for the given module schema [Module].
+ */
+context(problemReporter: ProblemReporter, pathResolver: FrontendPathResolver)
+internal fun Module.buildDefaultModule(
+    moduleFile: VirtualFile,
+    catalog: VersionCatalog,
+): DefaultModule = DefaultModule(
+    userReadableName = moduleFile.parent.name,
+    aliases = aliases.orEmpty().entries.associate { alias ->
+        alias.key.value to alias.value.map { platform -> platform.value }.toSet()
+    },
+    source = AmperModuleFileSource(moduleFile.toNioPath()),
+    usedCatalog = catalog,
+    usedTemplates = apply?.mapNotNull { readTemplateFromPath(moduleFile, it) }.orEmpty(),
+    parts = @Suppress("DEPRECATION") convertModuleParts(),
+    mavenResolveRepositories = readResolveRepositories(),
+    mavenPublishRepositories = readPublishRepositories(),
+    commonModuleNode = this,
+)
 
-    /**
-     * TODO: A better solution would be to allow marking Paths in the tree as "should exist" and provide a general
-     *   diagnostic allowing to check that during the tree analysis. This diagnostic, however, should have its message
-     *   customizable.
-     */
-    context(problemReporter: ProblemReporter, pathResolver: FrontendPathResolver)
-    private fun readTemplateFromPath(templatePath: TraceablePath): VirtualFile? {
-        val path = pathResolver.loadVirtualFileOrNull(templatePath.value)
-        if (path == null) {
-            problemReporter.reportMessage(
-                UnresolvedTemplate(
-                    templatePath = templatePath,
-                    moduleDirectory = moduleFile.parent.toNioPath(),
-                )
+/**
+ * TODO: A better solution would be to allow marking Paths in the tree as "should exist" and provide a general
+ *   diagnostic allowing to check that during the tree analysis. This diagnostic, however, should have its message
+ *   customizable.
+ */
+context(problemReporter: ProblemReporter, pathResolver: FrontendPathResolver)
+private fun readTemplateFromPath(
+    moduleFile: VirtualFile,
+    templatePath: TraceablePath,
+): VirtualFile? {
+    val path = pathResolver.loadVirtualFileOrNull(templatePath.value)
+    if (path == null) {
+        problemReporter.reportMessage(
+            UnresolvedTemplate(
+                templatePath = templatePath,
+                moduleDirectory = moduleFile.parent.toNioPath(),
             )
-        }
-        return path
+        )
     }
+    return path
 }

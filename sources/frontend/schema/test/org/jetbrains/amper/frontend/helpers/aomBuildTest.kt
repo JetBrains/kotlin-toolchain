@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend.helpers
 
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.frontend.aomBuilder.doReadProjectModel
 import org.jetbrains.amper.frontend.messages.PsiBuildProblem
 import org.jetbrains.amper.system.info.SystemInfo
@@ -30,11 +31,13 @@ open class BuildAomTestRun(
         // Read module.
         val fioCtx = projectContext.apply(adjustCtx)
         val module = with(problemReporter) {
-            fioCtx.doReadProjectModel(
-                pluginData = emptyList(),
-                mavenPluginXmls = emptyList(),
-                systemInfo = systemInfo,
-            ).modules.firstOrNull()
+            runBlocking {
+                fioCtx.doReadProjectModel(
+                    pluginData = emptyList(),
+                    mavenPluginXmls = emptyList(),
+                    systemInfo = systemInfo,
+                )
+            }.modules.firstOrNull()
         }
 
         // Check errors' absence.

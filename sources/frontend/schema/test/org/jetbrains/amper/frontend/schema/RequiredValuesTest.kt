@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.frontend.schema
 
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.frontend.aomBuilder.doReadProjectModel
 import org.jetbrains.amper.frontend.helpers.FrontendTestCaseBase
 import org.jetbrains.amper.frontend.helpers.diagnosticsTest
@@ -49,7 +50,7 @@ class RequiredValuesTest : FrontendTestCaseBase(Path("testResources") / "require
         val problemReporter = CollectingProblemReporter()
         val model = with(problemReporter) {
             val context = readProjectContextWithTestFrontendResolver(testProjectDir)
-            context.doReadProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList())
+            runBlocking { context.doReadProjectModel(pluginData = emptyList(), mavenPluginXmls = emptyList()) }
         }
         val actual = model.unreadableModuleFiles.map { it.toNioPath().relativeTo(testProjectDir) }
         val expectedUnreadableModulePaths = listOf(Path("b/module.yaml"), Path("c/module.yaml"))
