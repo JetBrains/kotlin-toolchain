@@ -14,7 +14,8 @@ dependencies:
   - //sources/amper-telemetry
   - //sources/extensibility/amper-schema-processing
   - $kotlin.serialization.json
-  - $libs.kotlin.analysis.api.standalone.for.ide
+  - $libs.kotlin.analysis.api
+  - $libs.kotlinx.coroutines.core
 
 test-dependencies:
   - //sources/test-base

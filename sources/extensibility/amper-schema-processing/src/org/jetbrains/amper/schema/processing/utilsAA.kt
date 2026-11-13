@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaNamedClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaTypeAliasSymbol
 import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.analysis.api.types.KaUsualClassType
+import org.jetbrains.kotlin.analysis.api.types.classId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtModifierListOwner
@@ -22,7 +23,7 @@ import kotlin.contracts.contract
 
 context(session: KaSession)
 internal fun KtModifierListOwner.getAnnotation(annotation: ClassId): KtAnnotationEntry? = annotationEntries.find {
-    with(session) { it.typeReference?.type?.isClassType(annotation) } == true
+    with(session) { it.typeReference?.type?.classId == annotation }
 }
 
 context(session: KaSession)

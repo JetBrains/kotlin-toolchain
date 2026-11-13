@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
+import org.jetbrains.kotlin.analysis.api.symbols.classSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.psi
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -33,7 +34,8 @@ internal fun loadBuiltinDeclarations(): PluginData.Declarations =
 /**
  * The entry point to the `amper-schema-processing` library.
  */
-fun KaSession.parsePluginDeclarations(
+context(session: KaSession)
+fun parsePluginDeclarations(
     files: Collection<KtFile>,
     diagnostics: MutableList<in KotlinSchemaBuildProblem>,
     pluginSettingsClassName: String? = null,

@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolVisibility
 import org.jetbrains.kotlin.kdoc.parser.KDocKnownTag
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.name.parentOrNull
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
@@ -67,7 +66,7 @@ internal fun parseTaskAction(function: KtNamedFunction): PluginData.TaskInfo? {
     return PluginData.TaskInfo(
         syntheticType = PluginData.ClassData(
             name = PluginData.SchemaName(
-                packageName = name.parentOrNull()?.pathSegments()?.joinToString(".").orEmpty(),
+                packageName = name.parent().pathSegments().joinToString("."),
                 simpleNames = listOf(name.shortName().asString()),
             ),
             properties = properties,
