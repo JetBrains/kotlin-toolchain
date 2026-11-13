@@ -3017,6 +3017,26 @@ class BuildGraphTest : BaseDRTest() {
         downloadAndAssertFiles(testInfo, root, verifyMessages = true)
     }
 
+    /**
+     * This test checks that the packaging type 'multi-release-jar' of dependency is successfully resolved to the downloaded JAR file
+     */
+    @Test
+    fun `one_util streamex 0_7_2`(testInfo: TestInfo) = runDrTest {
+        val root = doTest(
+            testInfo,
+            expected = """
+                root
+                ╰─── one.util:streamex:0.7.2
+            """.trimIndent()
+        )
+        assertFiles(
+            [
+                "streamex-0.7.2-sources.jar",
+                "streamex-0.7.2.jar"
+            ],
+            root, true
+        )
+    }
 
     /**
      * This test checks that a property with an empty value declared in pom.xml

@@ -2768,15 +2768,18 @@ data class MavenCoordinates(
                 "classpath-jar", "module-jar", "processor", "classpath-processor", "modular-processor"
             )
 
+        private val packageTypeToExtension: Map<String, String> = buildMap {
+            packageTypeWithJavaExtension.forEach { put(it, "jar") }
+        }
+
         internal fun resolveArtifactExtension(packagingType: String): String {
-            val extension =
-                if (packagingType == "jar"
-                    || packagingType in packageTypeWithJavaExtension
-                    || packagingType.endsWith("-plugin")
-                )
-                    "jar"
-                else
-                    packagingType
+            val extension = when {
+                packagingType == "jar" -> "jar"
+                packageTypeToExtension.contains(packagingType) -> packageTypeToExtension[packagingType]!!
+                packagingType.endsWith("-plugin") -> "jar"
+                packagingType.endsWith("-jar") -> "jar"
+                else -> packagingType
+            }
 
             return extension
         }
