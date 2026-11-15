@@ -21,7 +21,15 @@ dependencies:
 
 plugins:
   amper-fus-schema-generator: enabled
+  amper-fus-metadata-bundler: enabled
 
 test-dependencies:
   - //sources/test-base
   - $libs.kotlinx.coroutines.test
+
+settings:
+  jvm:
+    test:
+      freeJvmArgs:
+        # Enable native access for native machine ID detection mechanisms
+        - --enable-native-access=ALL-UNNAMED

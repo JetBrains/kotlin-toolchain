@@ -1,0 +1,17 @@
+product: jvm/amper-plugin
+
+apply:
+  - //sources/common.module-template.yaml
+
+description: Fetches the production FUS metadata and bundles them as resources.
+
+dependencies:
+  - $kotlin.serialization.json
+  - $libs.ktor.client.contentNegotiation
+  - $libs.ktor.client.java
+  - $libs.ktor.serialization.kotlinx.json
+  - $libs.slf4j.simple
+
+settings:
+  kotlin:
+    serialization: enabled

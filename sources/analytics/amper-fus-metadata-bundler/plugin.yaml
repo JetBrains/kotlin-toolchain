@@ -1,0 +1,9 @@
+tasks:
+  fetchFusMetadata:
+    action: !fetchFusMetadata
+      outputDir: ${taskOutputDir}
+
+generated:
+  resources:
+    # we refer to the root so that the nested dir appears in the jar
+    - directory: ${tasks.fetchFusMetadata.action.outputDir}

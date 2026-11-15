@@ -15,6 +15,7 @@ import com.jetbrains.fus.reporting.RAW_EVENT_TOPIC
 import com.jetbrains.fus.reporting.REMOTE_CONFIG_OPTIONS_UPDATED
 import com.jetbrains.fus.reporting.REMOTE_CONFIG_OPTIONS_UPDATE_FAILED
 import com.jetbrains.fus.reporting.RegionCode
+import com.jetbrains.fus.reporting.bundledFileStorage
 import com.jetbrains.fus.reporting.components
 import com.jetbrains.fus.reporting.config
 import com.jetbrains.fus.reporting.defaults.defaultBusinessLogic
@@ -128,13 +129,12 @@ internal fun createFusClient(
                 )
             }
         }
-        // TODO bundle the metadata so we don't pay the initial fetch
-//        bundledFileStorage {
-//            ResourceFileStorage(
-//                resourceRootPath = "event-log-metadata",
-//                classLoader = FusConstants::class.java.classLoader,
-//            )
-//        }
+        bundledFileStorage {
+            ResourceFileStorage(
+                resourceRootPath = "fus-metadata",
+                classLoader = FusConstants::class.java.classLoader,
+            )
+        }
 
         jsonSerializer { FusKotlinSerializer() }
         defaultBusinessLogic {
