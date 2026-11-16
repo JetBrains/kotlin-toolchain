@@ -13,6 +13,7 @@ apply:
   - //sources/used-in-kotlin-notebook.module-template.yaml
 
 dependencies:
+  - //sources/libraries/compress
   - //sources/libraries/concurrency
   - //sources/libraries/gradle-module-metadata
   - //sources/libraries/kotlin-project-structure-metadata

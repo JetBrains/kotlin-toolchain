@@ -7,18 +7,15 @@ package org.jetbrains.amper.dependency.resolution
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.amper.dependency.resolution.files.fileOperationWithRetry
-import java.io.FileInputStream
-import java.io.IOException
+import org.jetbrains.amper.jar.copyZipDirectory
+import org.jetbrains.amper.jar.nestedDirectories
+import org.jetbrains.amper.jar.withZipEntry
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.channels.Channels
 import java.nio.channels.FileChannel
 import java.nio.file.Path
-import java.util.jar.JarEntry
 import java.util.jar.JarFile
-import java.util.jar.JarInputStream
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -43,13 +40,7 @@ suspend fun <T> withJarEntry(jarPath: Path, entryPath: String, block: suspend (I
 //         returnsResultOf(block)
     }
     return fileOperationWithRetry(jarPath) {
-        val jarFile = it.toJarFile()
-        jarFile.use {
-            val jarEntry: JarEntry = jarFile.getJarEntry(entryPath) ?: return@fileOperationWithRetry null
-            jarFile.getInputStream(jarEntry).use { stream ->
-                block(stream)
-            }
-        }
+        withZipEntry(it, entryPath) { stream -> block(stream) }
     }
 }
 
@@ -61,105 +52,15 @@ suspend fun <T> withJarEntry(jarPath: Path, entryPath: String, block: suspend (I
 @Throws(Exception::class)
 suspend fun copyJarEntryDirToJar(fileChannel: FileChannel, jarEntryDir: String, srcJar: Path) {
     withContext(Dispatchers.IO) {
-        // write subfolder of
-        Channels.newOutputStream(fileChannel).also { stream ->
-            // there is no need to close the output stream
-            // since it is channel-based, and the channel itself is closed on the caller side
-            ZipOutputStream(stream).also { out ->
-                val buffer = ByteArray(4096)
-
-                val writtenPaths = mutableSetOf<String>()
-                JarInputStream(FileInputStream(srcJar.toFile())).use { jarInputStream ->
-                    var entry: JarEntry? = jarInputStream.nextJarEntry
-
-                    while (entry != null) {
-                        if (entry.name.startsWith("$jarEntryDir/")) {
-                            val newEntryName = entry.name.removePrefix("$jarEntryDir/")
-                            if (!newEntryName.isBlank() && writtenPaths.add(newEntryName)) {
-                                if (entry.isDirectory) {
-                                    addDirectoryEntry(out, newEntryName)
-                                } else {
-                                    copyJarEntry(jarInputStream, entry, newEntryName, out, buffer)
-                                }
-                            }
-                        }
-                        entry = jarInputStream.nextJarEntry
-                    }
-                    out.finish()
-                }
-            }
-        }
+        // there is no need to close the output stream
+        // since it is channel-based, and the channel itself is closed on the caller side
+        copyZipDirectory(srcJar, jarEntryDir, Channels.newOutputStream(fileChannel))
     }
-}
-
-private fun copyJarEntry(
-    jarInputStream: JarInputStream,
-    sourceEntry: ZipEntry,
-    newEntryName: String,
-    out: ZipOutputStream,
-    buffer: ByteArray
-) {
-    val newEntry = JarEntry(newEntryName)
-
-    if (sourceEntry.method == JarEntry.STORED) {
-        newEntry.method = ZipEntry.STORED
-        newEntry.size = sourceEntry.size
-        newEntry.crc = sourceEntry.crc
-    }
-    newEntry.time = System.currentTimeMillis()
-    newEntry.extra = sourceEntry.extra
-
-    out.putNextEntry(newEntry)
-
-    while (true) {
-        val read = jarInputStream.read(buffer)
-        if (read < 0) break
-        out.write(buffer, 0, read)
-    }
-    out.closeEntry()
-}
-
-@Throws(IOException::class)
-private fun addDirectoryEntry(output: ZipOutputStream, relativePath: String) {
-    val e = ZipEntry(relativePath)
-    e.method = ZipEntry.STORED
-    e.size = 0
-    e.crc = 0
-    output.putNextEntry(e)
-    output.closeEntry()
 }
 
 fun Path.toJarFile() = JarFile(toFile())
 
-suspend fun getNestedDirectories(srcJar: Path, directory: String? = null): Set<String> {
-    val rootDirectories = mutableSetOf<String>()
+suspend fun getNestedDirectories(srcJar: Path, directory: String? = null): Set<String> =
     withContext(Dispatchers.IO) {
-        val srcJarFile = srcJar.toJarFile()
-        srcJarFile.use { jarFile ->
-            jarFile.entries().asSequence().forEach { entry ->
-                val name = entry.name
-                if (directory == null) {
-                    // collect root directories
-                    val nameWithoutTrailingSlash = name.removeSuffix("/")
-                    if (!nameWithoutTrailingSlash.contains("/") && entry.isDirectory) {
-                        rootDirectories.add(nameWithoutTrailingSlash)
-                    }
-                } else {
-                    // collect nested directories
-                    val directoryWithTrailingSlash = directory.ensureTrailingSlash()
-                    if (name.startsWith(directoryWithTrailingSlash)) {
-                        val relativeName = name.substring(directoryWithTrailingSlash.length).trimEnd('/')
-                        if (relativeName.isNotBlank() && !relativeName.contains('/') && entry.isDirectory) {
-                            rootDirectories.add(relativeName)
-                        }
-                    }
-                }
-            }
-        }
+        nestedDirectories(srcJar, directory)
     }
-    return rootDirectories
-}
-
-private fun String.ensureTrailingSlash(): String {
-    return if (this.endsWith('/')) this else "$this/"
-}
