@@ -79,6 +79,66 @@ class AmperBuildTest : CliTestBase() {
         }
     }
 
+    // KTC-5893
+    @Test
+    fun `build fails when the selected module does not support the selected platform`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("multiplatform-input"),
+            "build", "-m", "jvm-app", "-p", "linuxX64",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+        result.assertStderrContains(
+            """
+            ERROR: Requested module(s) do not support the requested platform(s).
+
+            Requested modules: jvm-app
+            Requested unsupported platforms: linuxX64
+            Platforms supported by all requested modules: jvm
+            """.trimIndent()
+        )
+    }
+
+    // KTC-5893
+    @Test
+    fun `build fails when the selected modules do not support the selected platforms`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("multiplatform-input"),
+            "build", "-m", "shared", "-m", "jvm-app", "-p", "linuxX64", "-p", "mingwX64",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+        result.assertStderrContains(
+            """
+            ERROR: Requested module(s) do not support the requested platform(s).
+
+            Requested modules: jvm-app shared
+            Requested unsupported platforms: linuxX64 mingwX64
+            Platforms supported by all requested modules: jvm
+            """.trimIndent()
+        )
+    }
+
+    // KTC-5893
+    @Test
+    fun `build fails when no selected module supports the selected platform and the modules share no platforms`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("multiplatform-input"),
+            "build", "-m", "jvm-app", "-m", "macos-app", "-p", "linuxX64",
+            expectedExitCode = 1,
+            assertEmptyStdErr = false,
+        )
+        result.assertStderrContains(
+            """
+            ERROR: Requested module(s) do not support the requested platform(s).
+
+            Requested modules: jvm-app macos-app
+            Requested unsupported platforms: linuxX64
+            Platforms supported by all requested modules: none
+            """.trimIndent()
+        )
+    }
+
     // KTC-5395
     @Test
     fun `internal declarations are accessible in native test source sets`() = runSlowTest {

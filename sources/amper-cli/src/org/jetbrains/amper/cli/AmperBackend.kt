@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.cli
 
+import org.jetbrains.amper.CliBundle
 import org.jetbrains.amper.buildinfo.AmperBuild
 import org.jetbrains.amper.cli.analytics.CliFusReporter
 import org.jetbrains.amper.cli.analytics.fusTestFilterKinds
@@ -162,12 +163,14 @@ class AmperBackend(
         val platformsToCompile = platforms ?: possibleCompilationPlatforms
         val modulesToCompile = (modules?.map { model.getModuleByName(it) } ?: model.modules).toSet()
 
-        val tasks = taskGraph
+        val tasksOfModules = taskGraph
             .tasks
             .filterIsInstance<BuildTask>()
-            .filter {
-                it.platform in platformsToCompile && it.module in modulesToCompile
-            }
+            .filter { it.module in modulesToCompile }
+
+        val tasksOfModulesAndPlatforms = tasksOfModules.filter { it.platform in platformsToCompile }
+
+        val tasks = tasksOfModulesAndPlatforms
             .filterByBuildTypeAndReport(
                 explicit = buildTypes,
                 default = BuildType.Debug,
@@ -186,6 +189,9 @@ class AmperBackend(
         logger.debug("Selected tasks to compile: ${formatTaskNames(taskIds)}")
 
         if (taskIds.isEmpty()) {
+            if (modules != null && platforms != null && tasksOfModules.isNotEmpty() && tasksOfModulesAndPlatforms.isEmpty()) {
+                errorUnsupportedPlatforms(modulesToCompile, platforms)
+            }
             // TODO: Give more info on why there is nothing to build
             logger.warn("Nothing to build")
             return
@@ -662,6 +668,18 @@ class AmperBackend(
 
     private fun formatTaskNames(publishTasks: Collection<TaskId>) =
         publishTasks.map { it.value }.sorted().joinToString(" ")
+
+    private fun errorUnsupportedPlatforms(modules: Set<AmperModule>, platforms: Set<Platform>): Nothing {
+        val commonPlatforms = modules.map { it.leafPlatforms }.reduce { acc, it -> acc intersect it }
+        userReadableError(
+            CliBundle.message(
+                "build.unsupported.platforms",
+                formatModules(modules),
+                formatPlatforms(platforms),
+                formatPlatforms(commonPlatforms).ifEmpty { "none" },
+            )
+        )
+    }
 
     private fun <T> List<T>.filterByBuildTypeAndReport(
         explicit: Set<BuildType>?,
