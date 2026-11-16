@@ -6,11 +6,13 @@ package org.jetbrains.amper.jar
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.nio.file.Path
 import java.time.Instant
 import java.util.zip.ZipEntry
-import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.io.path.outputStream
 import kotlin.test.assertEquals
@@ -23,7 +25,7 @@ class ZipEntriesTest {
 
     private val sourceZip: Path by lazy {
         zip(
-            "source.zip",
+            name = "source.zip",
             "commonMain/" to null,
             "commonMain/default/" to null,
             "commonMain/default/manifest" to "common manifest",
@@ -42,7 +44,11 @@ class ZipEntriesTest {
      */
     @Test
     fun `existing entry is read`() {
-        val text = withZipEntry(sourceZip, "nativeMain/default/manifest") { it.readBytes().decodeToString() }
+        val text = sourceZip.useZipFile { zipFile ->
+            zipFile.useZipEntryStream("nativeMain/default/manifest") {
+                it.readBytes().decodeToString()
+            }
+        }
 
         assertEquals("native manifest", text)
     }
@@ -52,7 +58,11 @@ class ZipEntriesTest {
      */
     @Test
     fun `absent entry is null`() {
-        assertNull(withZipEntry(sourceZip, "jvmMain/default/manifest") { error("must not be called") })
+        assertNull(sourceZip.useZipFile { zipFile ->
+            zipFile.useZipEntryStream("jvmMain/default/manifest") {
+                error("must not be called")
+            }
+        })
     }
 
     /**
@@ -62,7 +72,11 @@ class ZipEntriesTest {
     @Test
     fun `directory is copied to zip root`() {
         val target = tempDir / "commonMain.klib"
-        target.outputStream().use { copyZipDirectory(sourceZip, "commonMain", it) }
+        ZipOutputStream(target.outputStream()).use { zipOutput ->
+            sourceZip.useZipFile { zip ->
+                zip.copyZipDirectoryTo("commonMain", zipOutput)
+            }
+        }
 
         assertEquals(["default/", "default/manifest"], target.readZipEntryNames())
         assertEquals("common manifest", target.readZipEntry("default/manifest").text)
@@ -84,9 +98,13 @@ class ZipEntriesTest {
         }
 
         val target = tempDir / "lib.klib"
-        target.outputStream().use { copyZipDirectory(source, "lib", it) }
+        ZipOutputStream(target.outputStream()).use { zipOutput ->
+            source.useZipFile { zip ->
+                zip.copyZipDirectoryTo("lib", zipOutput)
+            }
+        }
 
-        ZipFile(target.toFile()).use { zip ->
+        target.useZipFile { zip ->
             for (name in ["default/", "default/manifest"]) {
                 val entry = zip.getEntry(name)
                 assertEquals(time, entry.time, "time of $name")
@@ -95,23 +113,51 @@ class ZipEntriesTest {
         }
     }
 
-    /**
-     * This test checks that the direct subdirectories of a directory are listed, without nested ones.
-     */
     @Test
-    fun `nested directories of directory are listed`() {
-        assertEquals(setOf("lib-cinterop-a", "lib-cinterop-b"), nestedDirectories(sourceZip, "nativeMain-cinterop"))
+    fun `child directories of directory are listed`() {
+        assertEquals(["lib-cinterop-a", "lib-cinterop-b"], sourceZip.useZipFile { zipFile ->
+            zipFile.listDirectSubdirectoriesOf(Path("nativeMain-cinterop"))
+        })
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["", ".", "./"])
+    fun `child directories of root path are listed`(path: String) {
+        assertEquals(["commonMain", "nativeMain", "nativeMain-cinterop", "META-INF"], sourceZip.useZipFile { zipFile ->
+            zipFile.listDirectSubdirectoriesOf(Path(path))
+        })
     }
 
     /**
-     * This test checks that the root directories are listed when no directory is given.
+     * This test checks that a directory is listed even if it has no dedicated directory entry,
+     * as long as some entries exist inside it.
      */
     @Test
-    fun `root directories are listed`() {
-        assertEquals(
-            setOf("commonMain", "nativeMain", "nativeMain-cinterop"),
-            nestedDirectories(sourceZip),
+    fun `child directories without dedicated directory entries are listed`() {
+        sourceZip.useZipFile { zipFile ->
+            assertEquals(["default"], zipFile.listDirectSubdirectoriesOf(Path("commonMain")))
+            assertEquals(["default"], zipFile.listDirectSubdirectoriesOf(Path("nativeMain")))
+        }
+    }
+
+    /**
+     * This test checks that directories are listed even when the zip contains no directory entries at all,
+     * and that files directly inside the queried directory are not listed.
+     */
+    @Test
+    fun `child directories are listed without any directory entries`() {
+        val zip = zip(
+            name = "no-directory-entries.zip",
+            "dirA/file1" to "1",
+            "dirA/nested/file2" to "2",
+            "dirB/file3" to "3",
+            "rootFile" to "4",
         )
+
+        zip.useZipFile { zipFile ->
+            assertEquals(["dirA", "dirB"], zipFile.listDirectSubdirectoriesOf(Path("")))
+            assertEquals(["nested"], zipFile.listDirectSubdirectoriesOf(Path("dirA")))
+        }
     }
 
     /**
@@ -119,9 +165,9 @@ class ZipEntriesTest {
      */
     private fun zip(name: String, vararg entries: Pair<String, String?>): Path = (tempDir / name).also { path ->
         ZipOutputStream(path.outputStream()).use { zip ->
-            for (entry in entries) {
-                zip.putNextEntry(ZipEntry(entry.first))
-                entry.second?.let { zip.write(it.encodeToByteArray()) }
+            for ([name, contents] in entries) {
+                zip.putNextEntry(ZipEntry(name))
+                contents?.let { zip.write(it.encodeToByteArray()) }
                 zip.closeEntry()
             }
         }

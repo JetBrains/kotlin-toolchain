@@ -12,6 +12,7 @@ import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import java.util.zip.ZipException
+import kotlin.io.path.Path
 import kotlin.io.path.div
 import kotlin.io.path.writeText
 import kotlin.test.Test
@@ -29,7 +30,7 @@ class JarUtilTest : BaseDRTest() {
         doTest(
             testInfo,
             // multiplatform resolution
-            platform = setOf(ResolutionPlatform.LINUX_X64, ResolutionPlatform.MACOS_X64),
+            platform = [ResolutionPlatform.LINUX_X64, ResolutionPlatform.MACOS_X64],
             dependency = "org.jetbrains.kotlinx:atomicfu:0.32.1",
         )
 
@@ -40,21 +41,19 @@ class JarUtilTest : BaseDRTest() {
                 "0.32.1" /
                 "atomicfu-0.32.1.jar"
 
-        val nativeMainCinterop = getNestedDirectories(kmpJar, "nativeMain-cinterop")
-        kotlin.test.assertEquals(
-            setOf("org.jetbrains.kotlinx_atomicfu-cinterop-interop"),
-            nativeMainCinterop,
-            "Unexpected nested directories of nativeMain-cinterop source set"
+        assertEquals(
+            expected = ["org.jetbrains.kotlinx_atomicfu-cinterop-interop"],
+            actual = getNestedDirectories(kmpJar, Path("nativeMain-cinterop")),
+            message = "Unexpected nested directories of nativeMain-cinterop source set"
         )
 
-        val rootDirectories = getNestedDirectories(kmpJar)
-        kotlin.test.assertEquals(
-            setOf("META-INF", "androidNativeMain", "androidNativeMain-cinterop", "commonMain", "concurrentMain",
-                "jsAndWasmSharedMain", "linuxMain", "linuxMain-cinterop",
+        assertEquals(
+            expected = ["META-INF", "androidNativeMain", "androidNativeMain-cinterop", "commonMain",
+                "concurrentMain", "jsAndWasmSharedMain", "linuxMain", "linuxMain-cinterop",
                 "nativeMain", "nativeMain-cinterop", "nativeUnixLikeMain", "nativeUnixLikeMain-cinterop"
-            ).sorted(),
-            rootDirectories.sorted(),
-            "Unexpected root directories of atomicfu KMP library"
+            ].sorted(),
+            actual = getNestedDirectories(kmpJar, Path(".")).sorted(),
+            message = "Unexpected root directories of atomicfu KMP library"
         )
     }
 

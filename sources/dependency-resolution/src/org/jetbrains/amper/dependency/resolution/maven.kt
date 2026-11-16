@@ -2094,7 +2094,7 @@ class MavenDependencyImpl internal constructor(
             // todo (AB) : Check how it works with cinterop sources.
             // cinterop sourceSet
             val cinteropDirectoryName = "${kmpMetadataFile.dependency.module}-$sourceSetName$sourcesSuffix"
-            val topLevelDirectories = getNestedDirectories(kmpLibraryWithSourceSet, sourceSetName)
+            val topLevelDirectories = getNestedDirectories(kmpLibraryWithSourceSet, Path(sourceSetName))
 
             topLevelDirectories.map { cinteropName ->
                 repackageSourceSet(

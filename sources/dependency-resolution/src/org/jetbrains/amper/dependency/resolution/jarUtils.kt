@@ -7,15 +7,16 @@ package org.jetbrains.amper.dependency.resolution
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.amper.dependency.resolution.files.fileOperationWithRetry
-import org.jetbrains.amper.jar.copyZipDirectory
-import org.jetbrains.amper.jar.nestedDirectories
-import org.jetbrains.amper.jar.withZipEntry
+import org.jetbrains.amper.jar.copyZipDirectoryTo
+import org.jetbrains.amper.jar.listDirectSubdirectoriesOf
+import org.jetbrains.amper.jar.useZipEntryStream
+import org.jetbrains.amper.jar.useZipFile
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.channels.Channels
 import java.nio.channels.FileChannel
 import java.nio.file.Path
-import java.util.jar.JarFile
+import java.util.zip.ZipOutputStream
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -40,14 +41,18 @@ suspend fun <T> withJarEntry(jarPath: Path, entryPath: String, block: suspend (I
 //         returnsResultOf(block)
     }
     return fileOperationWithRetry(jarPath) {
-        withZipEntry(it, entryPath) { stream -> block(stream) }
+        it.useZipFile { zipFile ->
+            zipFile.useZipEntryStream(entryPath) { stream ->
+                block(stream)
+            }
+        }
     }
 }
 
 /**
- * It takes a subfolder with the path <code>jarEntryDir<code> from given <code>srcJar<code>,
- *     copy its content right into the root of a new Jar archive,
- *     and then writes resulted Jar archive to the given FileChannel.
+ * Takes a subfolder with the path [jarEntryDir] from the given [srcJar],
+ * copies its content right into the root of a new JAR archive,
+ * and then writes resulting JAR archive to the given [fileChannel].
  *
  * Reading [srcJar] is retried while it fails, e.g., because the jar is locked right after being downloaded.
  */
@@ -58,13 +63,22 @@ suspend fun copyJarEntryDirToJar(fileChannel: FileChannel, jarEntryDir: String, 
         fileChannel.truncate(0).position(0)
         // there is no need to close the output stream
         // since it is channel-based, and the channel itself is closed on the caller side
-        copyZipDirectory(it, jarEntryDir, Channels.newOutputStream(fileChannel))
+        it.useZipFile { zip ->
+            zip.copyZipDirectoryTo(jarEntryDir, ZipOutputStream(Channels.newOutputStream(fileChannel)))
+        }
     }
 }
 
-fun Path.toJarFile() = JarFile(toFile())
-
-suspend fun getNestedDirectories(srcJar: Path, directory: String? = null): Set<String> =
+/**
+ * Returns the names of the direct subdirectories of the directory at [directoryPath] (relative to the root of JAR file
+ * at the given [jarPath]).
+ *
+ * Because [directoryPath] is relative to the root of the archive, passing the empty path or `"."` denotes the root
+ * directory, thus top-level directory names are returned in this case.
+ */
+suspend fun getNestedDirectories(jarPath: Path, directoryPath: Path): Set<String> =
     withContext(Dispatchers.IO) {
-        nestedDirectories(srcJar, directory)
+        jarPath.useZipFile { zipFile ->
+            zipFile.listDirectSubdirectoriesOf(directoryPath)
+        }
     }

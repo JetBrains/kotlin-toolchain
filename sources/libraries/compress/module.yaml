@@ -5,6 +5,9 @@ apply:
   - //sources/used-in-idea.module-template.yaml
   - //sources/used-in-kotlin-notebook.module-template.yaml
 
+test-dependencies:
+  - $libs.junit.jupiter.params
+
 settings:
   jvm:
     # Used in IDEA (max 21) and Kotlin Notebook (max 11), so we take the lowest version 11

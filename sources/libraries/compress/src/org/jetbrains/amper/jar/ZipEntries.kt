@@ -5,73 +5,92 @@
 package org.jetbrains.amper.jar
 
 import java.io.InputStream
-import java.io.OutputStream
 import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+import kotlin.io.path.invariantSeparatorsPathString
 
 /**
- * Runs [block] on the content of the entry [entryPath] of the zip file [zip].
+ * Opens the ZIP file corresponding to this [Path] for reading, and runs [block] on it before closing the file.
+ *
+ * Entry names and comments are decoded as UTF-8.
+ */
+inline fun <T> Path.useZipFile(block: (ZipFile) -> T): T = ZipFile(toFile()).use(block)
+
+/**
+ * Runs [block] on the content of the entry [entryPath] of this [ZipFile].
  *
  * Returns `null` if there is no such entry, and the result of [block] otherwise.
  */
-inline fun <T> withZipEntry(zip: Path, entryPath: String, block: (InputStream) -> T): T? =
-    ZipFile(zip.toFile()).use { zipFile ->
-        val entry = zipFile.getEntry(entryPath) ?: return null
-        zipFile.getInputStream(entry).use(block)
-    }
-
-/**
- * Writes the entries of the directory [directory] of the zip file [source] into [output] as a new zip file,
- * with the [directory] prefix removed from their names. Entries with the same name are written once.
- *
- * The entries keep their timestamps, comments and extra fields, so copying the same directory gives the same zip.
- * Only the entries of [directory] are read, through the central directory of [source].
- *
- * [output] is left open.
- */
-fun copyZipDirectory(source: Path, directory: String, output: OutputStream) {
-    val prefix = "$directory/"
-    // ZipOutputStream isn't closed, since closing it would close the output, which is owned by the caller
-    val out = ZipOutputStream(output)
-    ZipFile(source.toFile()).use { zip ->
-        val writtenNames = mutableSetOf<String>()
-        for (entry in zip.entries()) {
-            val newName = entry.name.removePrefix(prefix)
-            if (!entry.name.startsWith(prefix) || newName.isBlank() || !writtenNames.add(newName)) continue
-
-            out.putNextEntry(entry.copyNamed(newName))
-            if (!entry.isDirectory) {
-                zip.getInputStream(entry).use { it.copyTo(out) }
-            }
-            out.closeEntry()
-        }
-    }
-    out.finish()
+inline fun <T> ZipFile.useZipEntryStream(entryPath: String, block: (InputStream) -> T): T? {
+    val entry = getEntry(entryPath) ?: return null
+    return getInputStream(entry).use(block)
 }
 
 /**
- * Returns the names of the direct subdirectories of the directory [directory] of the zip file [zip],
- * or of its root directories if [directory] is `null`.
+ * Writes the entries from the directory at the given [directoryPath] in this [ZipFile] to the given ZIP [output].
  *
- * Only directories that have their own entries in the zip file are returned.
+ * The [directoryPath] prefix is removed from the entry names, which means that the entry hierarchy under the source
+ * [directoryPath] is replicated under the root of the archive in the [output] stream.
+ * Entries with the same name are written once.
+ *
+ * The entries keep their timestamps, comments and extra fields, so copying the same directory gives the same zip.
+ * Only the entries under the specified [directoryPath] are read, through the central directory of this [ZipFile].
+ *
+ * The given [output] stream is the responsibility of the caller, so it is left open.
  */
-fun nestedDirectories(zip: Path, directory: String? = null): Set<String> =
-    ZipFile(zip.toFile()).use { zipFile ->
-        val directoryEntries = zipFile.entries().asSequence().filter { it.isDirectory }
-        if (directory == null) {
-            directoryEntries
-                .map { it.name.removeSuffix("/") }
-                .filter { '/' !in it }
-        } else {
-            val prefix = if (directory.endsWith('/')) directory else "$directory/"
-            directoryEntries
-                .filter { it.name.startsWith(prefix) }
-                .map { it.name.substring(prefix.length).trimEnd('/') }
-                .filter { it.isNotBlank() && '/' !in it }
-        }.toSet()
+fun ZipFile.copyZipDirectoryTo(directoryPath: String, output: ZipOutputStream) {
+    val prefix = "$directoryPath/"
+    val writtenNames = mutableSetOf<String>()
+    for (entry in entries()) {
+        val newName = entry.name.removePrefix(prefix)
+        if (!entry.name.startsWith(prefix) || newName.isBlank() || !writtenNames.add(newName)) continue
+
+        output.putNextEntry(entry.copyNamed(newName))
+        if (!entry.isDirectory) {
+            getInputStream(entry).use { it.copyTo(output) }
+        }
+        output.closeEntry()
     }
+    output.finish()
+}
+
+/**
+ * Returns the names of the direct subdirectories of the directory at [directoryPath] (relative to the root of this
+ * [ZipFile]).
+ *
+ * Because [directoryPath] is relative to the root of the archive, passing the empty path or `"."` denotes the root
+ * directory, thus top-level directory names are returned in this case.
+ *
+ * A subdirectory is returned even if it has no dedicated entry in the archive, as long as some entries exist inside it.
+ */
+fun ZipFile.listDirectSubdirectoriesOf(directoryPath: Path): Set<String> {
+    require(!directoryPath.isAbsolute) { "directoryPath must be relative to the root of the archive" }
+
+    val normalizedPath = directoryPath.normalize().invariantSeparatorsPathString
+    val prefix = if (normalizedPath.isEmpty()) normalizedPath else "$normalizedPath/"
+
+    return entries()
+        .asSequence()
+        .filter { it.name.startsWith(prefix) }
+        .mapNotNullTo(mutableSetOf()) { it.toDirectSubdirectoryName(prefix) }
+}
+
+/**
+ * Returns the name of the direct subdirectory of the directory denoted by [prefix] that this entry is inside,
+ * or `null` if this entry is not inside a direct subdirectory of it.
+ */
+private fun ZipEntry.toDirectSubdirectoryName(prefix: String): String? {
+    val relativeName = name.removePrefix(prefix)
+    val childName = relativeName.substringBefore('/')
+    return when {
+        childName.isEmpty() -> null      // this entry is the directory itself
+        '/' in relativeName -> childName // some entries exist inside the subdirectory
+        isDirectory -> childName         // this entry is a dedicated directory entry of the subdirectory
+        else -> null                     // this entry is a file directly inside the directory
+    }
+}
 
 /**
  * Returns a new entry named [name] with the attributes of this entry.
