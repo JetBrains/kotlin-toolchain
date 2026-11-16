@@ -48,13 +48,17 @@ suspend fun <T> withJarEntry(jarPath: Path, entryPath: String, block: suspend (I
  * It takes a subfolder with the path <code>jarEntryDir<code> from given <code>srcJar<code>,
  *     copy its content right into the root of a new Jar archive,
  *     and then writes resulted Jar archive to the given FileChannel.
+ *
+ * Reading [srcJar] is retried while it fails, e.g., because the jar is locked right after being downloaded.
  */
 @Throws(Exception::class)
 suspend fun copyJarEntryDirToJar(fileChannel: FileChannel, jarEntryDir: String, srcJar: Path) {
-    withContext(Dispatchers.IO) {
+    fileOperationWithRetry(srcJar) {
+        // A failed attempt could have written a part of the archive already
+        fileChannel.truncate(0).position(0)
         // there is no need to close the output stream
         // since it is channel-based, and the channel itself is closed on the caller side
-        copyZipDirectory(srcJar, jarEntryDir, Channels.newOutputStream(fileChannel))
+        copyZipDirectory(it, jarEntryDir, Channels.newOutputStream(fileChannel))
     }
 }
 
