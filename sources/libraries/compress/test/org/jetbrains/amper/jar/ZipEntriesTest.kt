@@ -7,7 +7,9 @@ package org.jetbrains.amper.jar
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
+import java.time.Instant
 import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 import kotlin.io.path.div
 import kotlin.io.path.outputStream
@@ -64,6 +66,33 @@ class ZipEntriesTest {
 
         assertEquals(["default/", "default/manifest"], target.readZipEntryNames())
         assertEquals("common manifest", target.readZipEntry("default/manifest").text)
+    }
+
+    /**
+     * This test checks that the copied entries keep the time and the comment of the source entries,
+     * so that copying the same directory twice gives the same zip.
+     */
+    @Test
+    fun `copied entries keep time and comment`() {
+        val time = Instant.parse("2020-01-02T03:04:06Z").toEpochMilli()
+        val source = tempDir / "timed.zip"
+        ZipOutputStream(source.outputStream()).use { zip ->
+            for (name in ["lib/default/", "lib/default/manifest"]) {
+                zip.putNextEntry(ZipEntry(name).apply { this.time = time; comment = "comment of $name" })
+                zip.closeEntry()
+            }
+        }
+
+        val target = tempDir / "lib.klib"
+        target.outputStream().use { copyZipDirectory(source, "lib", it) }
+
+        ZipFile(target.toFile()).use { zip ->
+            for (name in ["default/", "default/manifest"]) {
+                val entry = zip.getEntry(name)
+                assertEquals(time, entry.time, "time of $name")
+                assertEquals("comment of lib/$name", entry.comment, "comment of $name")
+            }
+        }
     }
 
     /**

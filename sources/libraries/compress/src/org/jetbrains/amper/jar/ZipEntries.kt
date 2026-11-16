@@ -4,14 +4,12 @@
 
 package org.jetbrains.amper.jar
 
-import java.io.FileInputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Path
-import java.util.jar.JarEntry
 import java.util.jar.JarFile
-import java.util.jar.JarInputStream
 import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 /**
@@ -29,30 +27,29 @@ inline fun <T> withZipEntry(zip: Path, entryPath: String, block: (InputStream) -
  * Writes the entries of the directory [directory] of the zip file [source] into [output] as a new zip file,
  * with the [directory] prefix removed from their names. Entries with the same name are written once.
  *
+ * The entries keep their timestamps, comments and extra fields, so copying the same directory gives the same zip.
+ * Only the entries of [directory] are read, through the central directory of [source].
+ *
  * [output] is left open.
  */
 fun copyZipDirectory(source: Path, directory: String, output: OutputStream) {
+    val prefix = "$directory/"
     // ZipOutputStream isn't closed, since closing it would close the output, which is owned by the caller
     val out = ZipOutputStream(output)
-    val buffer = ByteArray(4096)
-    val writtenPaths = mutableSetOf<String>()
-    JarInputStream(FileInputStream(source.toFile())).use { jarInputStream ->
-        var entry: JarEntry? = jarInputStream.nextJarEntry
-        while (entry != null) {
-            if (entry.name.startsWith("$directory/")) {
-                val newEntryName = entry.name.removePrefix("$directory/")
-                if (!newEntryName.isBlank() && writtenPaths.add(newEntryName)) {
-                    if (entry.isDirectory) {
-                        out.addDirectoryEntry(newEntryName)
-                    } else {
-                        out.copyEntry(jarInputStream, entry, newEntryName, buffer)
-                    }
-                }
+    ZipFile(source.toFile()).use { zip ->
+        val writtenNames = mutableSetOf<String>()
+        for (entry in zip.entries()) {
+            val newName = entry.name.removePrefix(prefix)
+            if (!entry.name.startsWith(prefix) || newName.isBlank() || !writtenNames.add(newName)) continue
+
+            out.putNextEntry(entry.copyNamed(newName))
+            if (!entry.isDirectory) {
+                zip.getInputStream(entry).use { it.copyTo(out) }
             }
-            entry = jarInputStream.nextJarEntry
+            out.closeEntry()
         }
-        out.finish()
     }
+    out.finish()
 }
 
 /**
@@ -77,36 +74,25 @@ fun nestedDirectories(zip: Path, directory: String? = null): Set<String> =
         }.toSet()
     }
 
-private fun ZipOutputStream.copyEntry(
-    input: JarInputStream,
-    sourceEntry: ZipEntry,
-    newEntryName: String,
-    buffer: ByteArray,
-) {
-    val newEntry = JarEntry(newEntryName)
-    if (sourceEntry.method == JarEntry.STORED) {
-        newEntry.method = ZipEntry.STORED
-        newEntry.size = sourceEntry.size
-        newEntry.crc = sourceEntry.crc
+/**
+ * Returns a new entry named [name] with the attributes of this entry.
+ */
+private fun ZipEntry.copyNamed(name: String): ZipEntry = ZipEntry(name).also { copy ->
+    lastModifiedTime?.let { copy.lastModifiedTime = it }
+    lastAccessTime?.let { copy.lastAccessTime = it }
+    creationTime?.let { copy.creationTime = it }
+    copy.comment = comment
+    copy.extra = extra
+    when {
+        isDirectory -> {
+            copy.method = ZipEntry.STORED
+            copy.size = 0
+            copy.crc = 0
+        }
+        method == ZipEntry.STORED -> {
+            copy.method = ZipEntry.STORED
+            copy.size = size
+            copy.crc = crc
+        }
     }
-    newEntry.time = System.currentTimeMillis()
-    newEntry.extra = sourceEntry.extra
-
-    putNextEntry(newEntry)
-    while (true) {
-        val read = input.read(buffer)
-        if (read < 0) break
-        write(buffer, 0, read)
-    }
-    closeEntry()
-}
-
-private fun ZipOutputStream.addDirectoryEntry(relativePath: String) {
-    val entry = ZipEntry(relativePath).apply {
-        method = ZipEntry.STORED
-        size = 0
-        crc = 0
-    }
-    putNextEntry(entry)
-    closeEntry()
 }
