@@ -7,7 +7,6 @@ package org.jetbrains.amper.jar
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Path
-import java.util.jar.JarFile
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
@@ -18,9 +17,9 @@ import java.util.zip.ZipOutputStream
  * Returns `null` if there is no such entry, and the result of [block] otherwise.
  */
 inline fun <T> withZipEntry(zip: Path, entryPath: String, block: (InputStream) -> T): T? =
-    JarFile(zip.toFile()).use { jarFile ->
-        val entry = jarFile.getJarEntry(entryPath) ?: return null
-        jarFile.getInputStream(entry).use(block)
+    ZipFile(zip.toFile()).use { zipFile ->
+        val entry = zipFile.getEntry(entryPath) ?: return null
+        zipFile.getInputStream(entry).use(block)
     }
 
 /**
@@ -59,8 +58,8 @@ fun copyZipDirectory(source: Path, directory: String, output: OutputStream) {
  * Only directories that have their own entries in the zip file are returned.
  */
 fun nestedDirectories(zip: Path, directory: String? = null): Set<String> =
-    JarFile(zip.toFile()).use { jarFile ->
-        val directoryEntries = jarFile.entries().asSequence().filter { it.isDirectory }
+    ZipFile(zip.toFile()).use { zipFile ->
+        val directoryEntries = zipFile.entries().asSequence().filter { it.isDirectory }
         if (directory == null) {
             directoryEntries
                 .map { it.name.removeSuffix("/") }
