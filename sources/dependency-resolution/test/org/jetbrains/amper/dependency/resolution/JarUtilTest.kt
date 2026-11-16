@@ -4,10 +4,19 @@
 
 package org.jetbrains.amper.dependency.resolution
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.amper.test.Dirs
+import org.jetbrains.amper.test.runTestRespectingDelays
 import org.junit.jupiter.api.TestInfo
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
+import java.util.zip.ZipException
 import kotlin.io.path.div
+import kotlin.io.path.writeText
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class JarUtilTest : BaseDRTest() {
 
@@ -47,5 +56,22 @@ class JarUtilTest : BaseDRTest() {
             rootDirectories.sorted(),
             "Unexpected root directories of atomicfu KMP library"
         )
+    }
+
+    @TempDir
+    lateinit var tempDir: Path
+
+    /**
+     * This test checks that reading a corrupted jar fails at once, since retrying can't make it readable.
+     * Every retried failure would be added to the thrown exception as suppressed.
+     */
+    @Test
+    fun `corrupted jar fails without retries`() = runTestRespectingDelays {
+        val jar = withContext(Dispatchers.IO) { (tempDir / "corrupted.jar").also { it.writeText("not a zip") } }
+
+        val exception = assertFailsWith<ZipException> {
+            withJarEntry(jar, "META-INF/MANIFEST.MF") { error("must not be called") }
+        }
+        assertEquals([], exception.suppressed.toList())
     }
 }

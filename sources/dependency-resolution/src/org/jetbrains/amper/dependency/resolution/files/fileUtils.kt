@@ -16,6 +16,7 @@ import java.nio.channels.ReadableByteChannel
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
+import java.util.zip.ZipException
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.io.path.readText
@@ -80,6 +81,9 @@ private fun retryFileOperationOnException(e: Exception, path: Path): Boolean =
     when (e) {
         // File doesn't exist – nothing to operate on.
         is NoSuchFileException -> false
+        // The archive is corrupted or incomplete. DR moves the files it writes into place atomically,
+        // so retrying won't make it readable.
+        is ZipException -> false
         is IOException -> {
             // Retry until the file could be opened.
             // It could have been exclusively locked by DR for a very short period of time:
