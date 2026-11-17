@@ -8,12 +8,15 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.frontend.VersionCatalog
+import org.jetbrains.amper.frontend.messages.getOriginalFilePath
 import org.jetbrains.amper.frontend.tree.TreeNode
 import java.nio.file.Path
+import kotlin.io.path.name
 
 /**
  * A trace is a backreference that allows to determine the source of the model property/value.
- * It can be a PSI element, or a synthetic trace in case the property has been constructed programmatically.
+ * It can point to a place inside a file (see [FileTrace]), or be a synthetic trace
+ * in case the property has been constructed programmatically.
  */
 sealed interface Trace {
     /**
@@ -21,6 +24,27 @@ sealed interface Trace {
      * it could be a chain of the subsequent preceding values built during merge of templates and module file definitions.
      */
     val precedingValue: TreeNode?
+}
+
+/**
+ * A trace that points to a place inside a file.
+ */
+sealed interface FileTrace : Trace {
+    /**
+     * Path to the file within which this trace points to.
+     */
+    val file: Path
+}
+
+/**
+ * A [FileTrace] that pinpoints the traced location more precisely
+ * with a range of character offsets inside the [file].
+ */
+sealed interface FileWithRangesTrace : FileTrace {
+    /**
+     * Range of the traced location expressed in terms of character offsets inside the [file].
+     */
+    val offsetRange: IntRange
 }
 
 /**
@@ -32,13 +56,29 @@ val Trace.isDefault: Boolean
         is BuiltinCatalogTrace -> true
         is DefaultTrace -> true
         is DerivedValueTrace -> definitionTrace.isDefault
-        is PsiTrace -> false
+        is FileTrace -> false
     }
 
 /**
  * The file within which this trace points to, or null if this trace doesn't point to a file (or a place inside a file).
  */
+val Trace.file: Path?
+    get() = when (this) {
+        is BuiltinCatalogTrace -> null
+        DefaultTrace -> null
+        is DerivedValueTrace -> definitionTrace.file
+        is FileTrace -> file
+    }
+
+/**
+ * The file within which this trace points to, or null if this trace doesn't point to a file (or a place inside a file).
+ */
+@Deprecated(
+    "Virtual files make sense only when working inside IntelliJ. Regular Java NIO Path should be enough.",
+    replaceWith = ReplaceWith("file")
+)
 val Trace.containingFile: VirtualFile?
+    @Suppress("DEPRECATION")
     get() = when(this) {
         is PsiTrace -> psiElement.containingFile.originalFile.virtualFile
         is DefaultTrace -> null
@@ -50,7 +90,7 @@ val Trace.containingFile: VirtualFile?
  * Whether this trace points to a template file.
  */
 val Trace.isFromTemplate: Boolean
-    get() = containingFile?.let { ".module-template." in it.name } ?: false
+    get() = file?.let { ".module-template." in it.name } ?: false
 
 /**
  * A trace indicating that the value is a static default value (hardcoded in the schema, or in the code).
@@ -63,6 +103,11 @@ data object DefaultTrace : Trace {
 /**
  * The value with this trace originates from a [psiElement].
  */
+@Deprecated(
+    message = "Parser implementation details should not be exposed in the frontend API. " +
+            "Use the parser-agnostic [FileTrace] and [FileWithRangesTrace] instead, " +
+            "which [PsiTrace] implements while the PSI-based frontend is in use.",
+)
 data class PsiTrace(
     /**
      * The [PsiElement] that this value was read from.
@@ -73,7 +118,21 @@ data class PsiTrace(
      */
     val rangeInElement: IntRange? = null,
     override val precedingValue: TreeNode? = null,
-) : Trace {
+) : FileWithRangesTrace {
+    override val file: Path
+        get() = psiElement.getOriginalFilePath()
+
+    override val offsetRange: IntRange
+        get() {
+            val textRange = psiElement.textRange
+            val startOffset = textRange.startOffset
+            return if (rangeInElement != null) {
+                (startOffset + rangeInElement.first)..(startOffset + rangeInElement.last)
+            } else {
+                IntRange(startOffset, textRange.endOffset)
+            }
+        }
+
     override fun toString(): String = buildString {
         // TODO: Make tests independent on this format
         append("PsiTrace(psiElement=$psiElement, ")
@@ -87,6 +146,7 @@ data class PsiTrace(
 /**
  * Creates a [PsiTrace] that points to this [PsiElement].
  */
+@Suppress("DEPRECATION")
 fun PsiElement.asTrace(): PsiTrace = PsiTrace(this)
 
 /**
@@ -144,8 +204,8 @@ sealed interface DerivedValueTrace : Trace {
     /**
      * The trace to the place where the reference or transformation is defined.
      *
-     * For literal references in YAML files like `${settings.kotlin.version}`, this should be a [PsiTrace] pointing to
-     * the reference itself (the text with the `$`).
+     * For literal references in YAML files like `${settings.kotlin.version}`, this should be a [FileWithRangesTrace]
+     * pointing to the reference itself (the text with the `$`).
      * For more abstract transformation definitions, this should represent where the transformation itself is defined.
      *
      * For example, some properties in the schema take their default value from another property when they're not set.
@@ -216,6 +276,7 @@ data class ResolvedReferenceTrace(
     override val sourceValue: Traceable get() = resolvedValue
 }
 
+@Suppress("DEPRECATION")
 fun Trace.withPrecedingValue(precedingValue: TreeNode): Trace = when (this) {
     is PsiTrace -> copy(precedingValue = precedingValue)
     is ResolvedReferenceTrace -> copy(precedingValue = precedingValue)
