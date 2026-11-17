@@ -1,9 +1,10 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.stdlib.properties
 
+import java.io.InputStream
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.bufferedReader
@@ -14,3 +15,8 @@ import kotlin.io.path.bufferedReader
 fun Path.readProperties(): Properties = bufferedReader().use { reader ->
     Properties().apply { load(reader) }
 }
+
+/**
+ * Reads the contents of this [InputStream] as a [Properties] instance.
+ */
+fun InputStream.readProperties(): Properties = Properties().apply { load(this@readProperties) }

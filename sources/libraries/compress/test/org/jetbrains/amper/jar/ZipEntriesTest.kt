@@ -46,7 +46,7 @@ class ZipEntriesTest {
     fun `existing entry is read`() {
         val text = sourceZip.useZipFile { zipFile ->
             zipFile.useZipEntryStream("nativeMain/default/manifest") {
-                it.readBytes().decodeToString()
+                it?.readBytes()?.decodeToString()
             }
         }
 
@@ -57,12 +57,13 @@ class ZipEntriesTest {
      * This test checks that the block isn't called for an absent entry.
      */
     @Test
-    fun `absent entry is null`() {
-        assertNull(sourceZip.useZipFile { zipFile ->
-            zipFile.useZipEntryStream("jvmMain/default/manifest") {
-                error("must not be called")
+    fun `absent entry gives a null input stream`() {
+        val result = sourceZip.useZipFile { zipFile ->
+            zipFile.useZipEntryStream("jvmMain/default/manifest") { stream ->
+                if (stream == null) "good" else "bad"
             }
-        })
+        }
+        assertEquals("good", result, "the block should get a null InputStream when the entry is absent")
     }
 
     /**

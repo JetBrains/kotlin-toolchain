@@ -2226,7 +2226,7 @@ class MavenDependencyImpl internal constructor(
         moduleMetadata: Module,
         level: ResolutionLevel,
         diagnosticsReporter: DiagnosticReporter,
-    ) = if (hasJarEntry(kmpMetadataFile.getPath()!!, sourceSetName) == true) {
+    ) = if (hasJarEntry(kmpMetadataFile.getPath()!!, sourceSetName)) {
         kmpMetadataFile.getPath()!!
     } else if (kotlinProjectStructureMetadata == null
         // Kotlin Toolchain doesn't support native leaf platform metadata files.
@@ -2272,7 +2272,7 @@ class MavenDependencyImpl internal constructor(
                             )
                         }
                     }?.let {
-                        it.second.getPath()?.takeIf { hasJarEntry(it, sourceSetName) == true }
+                        it.second.getPath()?.takeIf { hasJarEntry(it, sourceSetName) }
                     }
             }
         } else null

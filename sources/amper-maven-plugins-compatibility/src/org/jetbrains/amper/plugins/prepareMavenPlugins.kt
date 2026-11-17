@@ -42,9 +42,13 @@ suspend fun prepareMavenPlugins(
                 classifier = null,
             )
             val pluginJarFile = mavenResolver.downloadSingleArtifactJar(pluginCoordinates) ?: return@async null
-            withJarEntry(pluginJarFile, "META-INF/maven/plugin.xml") {
+            withJarEntry(pluginJarFile, "META-INF/maven/plugin.xml") { stream ->
+                if (stream == null) {
+                    logger.warn("Plugin JAR $pluginJarFile does not contain a plugin.xml")
+                    return@withJarEntry null
+                }
                 try {
-                    parseMavenPluginXml(it)
+                    parseMavenPluginXml(stream)
                 } catch (e: Exception) {
                     logger.warn("Failed to parse plugin.xml for $pluginCoordinates", e)
                     null

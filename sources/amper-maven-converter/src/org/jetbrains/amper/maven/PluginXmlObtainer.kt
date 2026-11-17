@@ -92,14 +92,17 @@ private suspend fun downloadAndParsePluginXml(
 
     val pluginJarFile = downloadPlugin(mavenResolver, coordinates) ?: return null
 
-    return withJarEntry(pluginJarFile, "META-INF/maven/plugin.xml") {
+    return withJarEntry(pluginJarFile, "META-INF/maven/plugin.xml") { stream ->
+        if (stream == null) {
+            logger.warn("Plugin JAR $pluginJarFile does not contain a plugin.xml")
+            return@withJarEntry null
+        }
         try {
-            parseMavenPluginXml(it)
+            parseMavenPluginXml(stream)
         } catch (e: Exception) {
             logger.warn("Failed to parse plugin.xml for $coordinates", e)
             null
         }
-
     }
 }
 

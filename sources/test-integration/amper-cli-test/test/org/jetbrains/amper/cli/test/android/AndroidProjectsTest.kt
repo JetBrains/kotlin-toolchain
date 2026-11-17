@@ -626,8 +626,8 @@ class AndroidProjectsTest : CliTestBase() {
             // The bundle manifest is protobuf-encoded, so the permission name is stored as plain UTF-8 text
             Packaging.Bundle -> artifact.useZipFile { zip ->
                 zip.useZipEntryStream("base/manifest/AndroidManifest.xml") {
-                    it.readBytes().decodeToString().contains(permission)
-                } ?: false
+                    it?.readBytes()?.decodeToString()?.contains(permission) ?: false
+                }
             }
         }
 

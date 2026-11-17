@@ -12,7 +12,6 @@ import org.jetbrains.amper.jar.listDirectSubdirectoriesOf
 import org.jetbrains.amper.jar.useZipEntryStream
 import org.jetbrains.amper.jar.useZipFile
 import java.io.InputStream
-import java.io.InputStreamReader
 import java.nio.channels.Channels
 import java.nio.channels.FileChannel
 import java.nio.file.Path
@@ -22,20 +21,26 @@ import kotlin.contracts.contract
 
 internal suspend fun readJarEntry(jarPath: Path, entryPath: String) : String? =
     withJarEntry(jarPath, entryPath) { jarInputStream ->
-        InputStreamReader(jarInputStream).use {
+        jarInputStream?.reader()?.use {
             it.readText()
         }
     }
 
-internal suspend fun hasJarEntry(jarPath: Path, entryPath: String) : Boolean? =
-    withJarEntry(jarPath, entryPath) { _ -> true }
+internal suspend fun hasJarEntry(jarPath: Path, entryPath: String) : Boolean =
+    withJarEntry(jarPath, entryPath) { it != null }
 
 /**
- * Find an entry with the given [entryPath] in the given [jarPath] and run the lambda [block] on it.
+ * Finds the entry at [entryPath] in the JAR at the given [jarPath], and runs [block] with an [InputStream] to access
+ * the contents of the entry.
  *
- * @return null if the entry is not found, and result of the given [block] otherwise
+ * If there is no such entry, [block] is called with `null` as parameter, and is free to interpret this as it sees fit.
+ *
+ * Both the input stream and the file are automatically closed after [block] returns, so [block] doesn't need to close
+ * them.
+ *
+ * @return the result from [block]
  */
-suspend fun <T> withJarEntry(jarPath: Path, entryPath: String, block: suspend (InputStream) -> T) : T? {
+suspend fun <T> withJarEntry(jarPath: Path, entryPath: String, block: suspend (InputStream?) -> T) : T {
     contract {
         callsInPlace(block, InvocationKind.UNKNOWN)
 //         returnsResultOf(block)

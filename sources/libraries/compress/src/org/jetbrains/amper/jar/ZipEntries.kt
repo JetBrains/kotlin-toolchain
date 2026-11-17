@@ -9,6 +9,8 @@ import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.io.path.invariantSeparatorsPathString
 
 /**
@@ -19,12 +21,20 @@ import kotlin.io.path.invariantSeparatorsPathString
 inline fun <T> Path.useZipFile(block: (ZipFile) -> T): T = ZipFile(toFile()).use(block)
 
 /**
- * Runs [block] on the content of the entry [entryPath] of this [ZipFile].
+ * Runs [block] with an [InputStream] to access the contents of the entry [entryPath] of this [ZipFile].
  *
- * Returns `null` if there is no such entry, and the result of [block] otherwise.
+ * If there is no such entry, [block] is called with `null` as parameter, and is free to interpret this as it sees fit.
+ *
+ * The entry's input stream is automatically closed after [block] returns, so [block] doesn't need to close it.
+ *
+ * @return the result from [block]
  */
-inline fun <T> ZipFile.useZipEntryStream(entryPath: String, block: (InputStream) -> T): T? {
-    val entry = getEntry(entryPath) ?: return null
+inline fun <T> ZipFile.useZipEntryStream(entryPath: String, block: (InputStream?) -> T): T {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+//         returnsResultOf(block)
+    }
+    val entry = getEntry(entryPath) ?: return block(null)
     return getInputStream(entry).use(block)
 }
 
