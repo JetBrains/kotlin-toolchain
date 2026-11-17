@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.cli.test.compose
 
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -20,7 +19,7 @@ import org.jetbrains.compose.reload.DelicateHotReloadApi
 import org.jetbrains.compose.reload.core.getOrThrow
 import org.jetbrains.compose.reload.orchestration.OrchestrationMessage
 import org.jetbrains.compose.reload.orchestration.OrchestrationServer
-import org.jetbrains.compose.reload.orchestration.asFlow
+import org.jetbrains.compose.reload.orchestration.asChannel
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
@@ -73,15 +72,18 @@ class ComposeHotReloadMcpServerCommandTest : CliTestBase() {
         mcpServer.cancel()
     }
 
-    private suspend fun TestScope.startServerAndAwaitConnection(
-        buildDir: Path,
-    ): OrchestrationMessage.ClientConnected = async {
+    private suspend fun startServerAndAwaitConnection(buildDir: Path): OrchestrationMessage.ClientConnected {
         val server = OrchestrationServer()
         try {
             server.start()
             server.bind()
             val port = server.port.await().getOrThrow()
             val pidFile = buildDir / "hot-reload-app.pid"
+
+            // We need to subscribe to the message bus before writing the PID file, otherwise we might lose the first
+            // messages. Using asFlow() has too many coroutine layers to guarantee anything even with UNDISPATCHED
+            // start. Using asChannel() documents that it guarantees the subscription.
+            val messageChannel = server.asChannel()
 
             val thisPid = ProcessHandle.current().pid()
             pidFile.createParentDirectories().writeText(
@@ -90,13 +92,13 @@ class ComposeHotReloadMcpServerCommandTest : CliTestBase() {
                     pid=$thisPid
                 """.trimIndent()
             )
-            server.asFlow()
+            return messageChannel.consumeAsFlow()
                 .filterIsInstance<OrchestrationMessage.ClientConnected>()
                 .first()
         } finally {
             server.stop()
         }
-    }.await()
+    }
 }
 
 private val McpStartedRegex = """Started MCP server with the pid: (\d+)""".toRegex()
