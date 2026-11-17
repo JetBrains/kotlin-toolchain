@@ -6,7 +6,7 @@ hide:
 
 <div class="hero" markdown>
 
-<h1>The Kotlin Toolchain</h1>
+<h1>Kotlin Toolchain</h1>
 
 <p class="tagline">
 A unified entry point into Kotlin. 
