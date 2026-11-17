@@ -38,11 +38,13 @@ object SerializationVersionWithDisabledSerialization : AomSingleModuleDiagnostic
     }
 }
 
+@Suppress("DEPRECATION")
 class SerializationVersionWithoutSerialization(
     @UsedInIdePlugin
     val versionProp: SchemaValueDelegate<String>,
 ) : PsiBuildProblem(Level.Warning, BuildProblemType.InconsistentConfiguration) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = versionProp.extractPsiElement()
 

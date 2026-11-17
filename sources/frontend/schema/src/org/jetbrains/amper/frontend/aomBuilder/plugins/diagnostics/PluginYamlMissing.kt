@@ -15,7 +15,9 @@ import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.annotations.Nls
 import java.nio.file.Path
 
+@Suppress("DEPRECATION")
 class PluginYamlMissing(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     @field:UsedInIdePlugin
     val expectedPluginYamlPath: Path,

@@ -20,7 +20,11 @@ import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.annotations.Nls
 
-class UnsupportedLayoutBuildProblem(override val element: PsiElement): PsiBuildProblem(Level.Error, BuildProblemType.InconsistentConfiguration) {
+@Suppress("DEPRECATION")
+class UnsupportedLayoutBuildProblem(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
+    override val element: PsiElement,
+) : PsiBuildProblem(Level.Error, BuildProblemType.InconsistentConfiguration) {
 
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.UnsupportedLayout
     override val message: @Nls String = SchemaBundle.message("module.layout.unsupported")

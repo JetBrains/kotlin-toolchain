@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nls
  * We use coordinates parts as folders to store the artifacts; thus, all the paths should be valid folder names.
  */
 class MavenCoordinatesShouldBuildValidPath(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     override val coordinates: String,
     @field:UsedInIdePlugin

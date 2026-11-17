@@ -16,11 +16,13 @@ import org.jetbrains.annotations.Nls
 import java.nio.file.Path
 import kotlin.io.path.relativeTo
 
+@Suppress("DEPRECATION")
 class UnresolvedTemplate(
     val templatePath: TraceablePath,
     val moduleDirectory: Path,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.UnresolvedReference) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = templatePath.extractPsiElement()
 

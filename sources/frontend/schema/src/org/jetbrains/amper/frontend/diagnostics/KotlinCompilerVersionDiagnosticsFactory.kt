@@ -48,7 +48,9 @@ object KotlinCompilerVersionDiagnosticsFactory : TreeDiagnosticFactory {
     }
 }
 
+@Suppress("DEPRECATION")
 class InvalidKotlinCompilerVersion(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     val actualVersion: String,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
@@ -56,7 +58,9 @@ class InvalidKotlinCompilerVersion(
     override val message = SchemaBundle.message("invalid.kotlin.compiler.version", actualVersion)
 }
 
+@Suppress("DEPRECATION")
 class KotlinCompilerVersionTooLow(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     val actualVersion: String,
     val minVersion: String,

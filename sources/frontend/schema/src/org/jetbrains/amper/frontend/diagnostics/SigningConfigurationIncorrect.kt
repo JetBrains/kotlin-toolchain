@@ -149,10 +149,12 @@ object KeystoreMustExistFactory : SigningConfigurationIncorrect() {
 
 }
 
+@Suppress("DEPRECATION")
 class SigningEnabledWithoutPropertiesFile(
     val targetProperty: SchemaValueDelegate<*>, val propertiesFilePath: Path
 ) : PsiBuildProblem(Level.Warning, BuildProblemType.InconsistentConfiguration) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement get() = targetProperty.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.SigningEnabledWithoutPropertiesFile
     override val message: @Nls String
@@ -161,12 +163,14 @@ class SigningEnabledWithoutPropertiesFile(
         )
 }
 
+@Suppress("DEPRECATION")
 class KeystorePropertiesDoesNotContainKey(
     val targetProperty: SchemaValueDelegate<*>,
     val key: String,
     val propertiesFilePath: Path,
 ) : PsiBuildProblem(Level.Warning, BuildProblemType.Generic) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement get() = targetProperty.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.KeystorePropertiesDoesNotContainKey
 
@@ -176,10 +180,12 @@ class KeystorePropertiesDoesNotContainKey(
         )
 }
 
+@Suppress("DEPRECATION")
 class MandatoryFieldInPropertiesFileMustBePresent(
     val targetProperty: SchemaValueDelegate<*>, val key: String, val propertiesFilePath: Path
 ) : PsiBuildProblem(Level.Warning, BuildProblemType.Generic) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement get() = targetProperty.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.MandatoryFieldInPropertiesFileMustBePresent
     override val message: @Nls String
@@ -188,10 +194,12 @@ class MandatoryFieldInPropertiesFileMustBePresent(
         )
 }
 
+@Suppress("DEPRECATION")
 class KeystoreFileDoesNotExist(
     val targetProperty: SchemaValueDelegate<*>, val keystorePath: Path
 ) : PsiBuildProblem(Level.Warning, BuildProblemType.UnresolvedReference) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement get() = targetProperty.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.KeystoreFileDoesNotExist
     override val message: @Nls String

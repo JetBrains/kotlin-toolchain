@@ -20,6 +20,7 @@ import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.annotations.Nls
 
+@Suppress("DEPRECATION")
 class AndroidVersionShouldBeAtLeastMinSdk(
     @UsedInIdePlugin
     val versionProp: SchemaValueDelegate<out AndroidVersion?>,
@@ -28,6 +29,7 @@ class AndroidVersionShouldBeAtLeastMinSdk(
     private val versionName: String = versionProp.name,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.InconsistentConfiguration) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = versionProp.extractPsiElement()
 

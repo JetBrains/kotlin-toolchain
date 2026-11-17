@@ -39,11 +39,13 @@ object ComposeVersionWithDisabledCompose : AomSingleModuleDiagnosticFactory {
     }
 }
 
+@Suppress("DEPRECATION")
 class ComposeVersionWithoutCompose(
     @UsedInIdePlugin
     val versionProp: SchemaValueDelegate<String>,
 ) : PsiBuildProblem(Level.Warning, BuildProblemType.InconsistentConfiguration) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = versionProp.extractPsiElement()
 

@@ -141,6 +141,7 @@ object BasicDrDiagnosticsReporter : DrDiagnosticsReporter {
 
         val versionTrace = resolvedVersion.trace
 
+        @Suppress("DEPRECATION")
         if (versionTrace !is PsiTrace) return null
         if (versionTrace == directDependency.notation.trace) return null
 
@@ -176,6 +177,7 @@ private data class AlreadyReportedKey(
     val psiElement: PsiElement,
 )
 
+@Suppress("DEPRECATION")
 class DependencyBuildProblem(
     @field:UsedInIdePlugin
     val problematicDependency: DependencyNode,
@@ -183,6 +185,7 @@ class DependencyBuildProblem(
     val errorMessage: Message,
     level: Level,
     @field:UsedInIdePlugin
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     @field:UsedInIdePlugin
     val versionDefinition: VersionDefinition?,

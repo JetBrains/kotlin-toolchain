@@ -30,12 +30,14 @@ object JdkDistributionRequiresLicenseFactory : AomSingleModuleDiagnosticFactory 
     }
 }
 
+@Suppress("DEPRECATION")
 class JdkDistributionRequiresLicense(
     val distribution: TraceableValue<JvmDistribution>,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.InconsistentConfiguration) {
 
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.JdkDistributionRequiresLicense
     override val message = SchemaBundle.message("jdk.distribution.requires.license", distribution.value.schemaValue)
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = distribution.trace.extractPsiElement()
 }

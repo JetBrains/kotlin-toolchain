@@ -41,9 +41,11 @@ object AndroidSettingsCannotBeNullFactory : AomSingleModuleDiagnosticFactory {
     }
 }
 
+@Suppress("DEPRECATION")
 class AndroidSettingCannotBeNull(
     val setting: SchemaValueDelegate<*>,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.InconsistentConfiguration) {
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = setting.extractPsiElement()
 

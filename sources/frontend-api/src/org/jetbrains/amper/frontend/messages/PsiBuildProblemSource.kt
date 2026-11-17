@@ -18,6 +18,10 @@ import java.nio.file.Path
  *
  * Use [PsiBuildProblemSource] factory function to construct.
  */
+@Deprecated(
+    "Diagnostic consumers should not assume the underlying implementation of the build problem source." +
+            "Prefer using [FileBuildProblemSource] and [FileWithRangesBuildProblemSource] instead."
+)
 sealed interface PsiBuildProblemSource : FileBuildProblemSource {
     @UsedInIdePlugin
     val psiElement: PsiElement
@@ -25,10 +29,12 @@ sealed interface PsiBuildProblemSource : FileBuildProblemSource {
     override val file: Path
         get() = psiElement.getOriginalFilePath()
 
+    @Suppress("DEPRECATION")
     data class FileSystemLike internal constructor(
         override val psiElement: PsiFileSystemItem,
     ) : PsiBuildProblemSource
 
+    @Suppress("DEPRECATION")
     data class Element internal constructor(
         override val psiElement: PsiElement,
         /**
@@ -51,6 +57,7 @@ sealed interface PsiBuildProblemSource : FileBuildProblemSource {
     }
 }
 
+@Suppress("DEPRECATION")
 fun PsiBuildProblemSource(psiElement: PsiElement): PsiBuildProblemSource =
     if (psiElement is PsiFileSystemItem) {
         PsiBuildProblemSource.FileSystemLike(psiElement)
@@ -58,6 +65,7 @@ fun PsiBuildProblemSource(psiElement: PsiElement): PsiBuildProblemSource =
         PsiBuildProblemSource.Element(psiElement)
     }
 
+@Suppress("DEPRECATION")
 fun PsiBuildProblemSource(
     psiElement: PsiElement,
     rangeInElement: IntRange,

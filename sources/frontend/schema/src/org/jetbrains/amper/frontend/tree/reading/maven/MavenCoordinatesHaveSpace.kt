@@ -11,6 +11,7 @@ import org.jetbrains.amper.problems.reporting.DiagnosticId
 import org.jetbrains.annotations.Nls
 
 class MavenCoordinatesHaveSpace(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     override val coordinates: String,
 ) : MavenCoordinatesParsingProblem() {

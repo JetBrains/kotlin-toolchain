@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nls
  * Coordinates are used for building paths to the artifacts in the Amper local storage, slashes will affect the path.
  */
 class MavenCoordinatesHaveSlash(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     override val coordinates: String,
 ) : MavenCoordinatesParsingProblem() {

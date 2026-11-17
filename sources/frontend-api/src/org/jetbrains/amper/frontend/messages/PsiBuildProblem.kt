@@ -16,23 +16,28 @@ import org.jetbrains.amper.frontend.api.SchemaValueDelegate
 import org.jetbrains.amper.frontend.api.Trace
 import org.jetbrains.amper.frontend.api.Traceable
 import org.jetbrains.amper.problems.reporting.BuildProblem
-import org.jetbrains.amper.problems.reporting.BuildProblemSource
 import org.jetbrains.amper.problems.reporting.BuildProblemType
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import java.nio.file.Path
 
+@Deprecated("PSI is the leaking abstraction of the parser. Actual build problems can narrow the type of the source " +
+        "to expose more information about the build problem source.")
 abstract class PsiBuildProblem(
     override val level: Level,
     override val type: BuildProblemType,
 ) : BuildProblem {
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     abstract val element: PsiElement
-    override val source: BuildProblemSource by lazy { PsiBuildProblemSource(element) }
+    @Suppress("DEPRECATION")
+    override val source: FileBuildProblemSource by lazy { PsiBuildProblemSource(element) }
 }
 
 fun SchemaValueDelegate<*>.extractKeyValuePsiElement(): PsiElement = keyValueTrace.extractPsiElement()
 
 fun SchemaValueDelegate<*>.extractKeyValuePsiElementOrNull(): PsiElement? = keyValueTrace.extractPsiElementOrNull()
 
+@Suppress("DEPRECATION")
 fun Trace.extractPsiElementOrNull(): PsiElement? = when(this) {
     is PsiTrace -> psiElement
     is DefaultTrace -> null

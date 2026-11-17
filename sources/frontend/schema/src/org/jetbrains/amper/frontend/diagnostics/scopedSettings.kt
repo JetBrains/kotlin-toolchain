@@ -110,6 +110,7 @@ object IncorrectSettingsSectionFactory : TreeDiagnosticFactory {
     }
 }
 
+@Suppress("DEPRECATION")
 class IncorrectSettingsSection internal constructor(
     @UsedInIdePlugin
     val trace: Trace,
@@ -123,5 +124,6 @@ class IncorrectSettingsSection internal constructor(
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.IncorrectSettingsSection
 
     // highlight only property keys
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement = trace.extractPsiElement().extractKeyElement()
 }

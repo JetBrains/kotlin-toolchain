@@ -88,6 +88,7 @@ private fun reportIfCoordinatesAreGradleLike(
     }
 }
 
+@Suppress("DEPRECATION")
 abstract class MavenCoordinatesParsingProblem(
     level: Level = Level.Error,
 ) : PsiBuildProblem(

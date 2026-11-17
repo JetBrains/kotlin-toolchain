@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nls
  * See [Windows documentation](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file)
  */
 class MavenCoordinatesHavePartEndingWithDot(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     override val coordinates: String,
 ) : MavenCoordinatesParsingProblem() {

@@ -38,7 +38,9 @@ object JdkVersionTooLowFactory : TreeDiagnosticFactory {
     }
 }
 
+@Suppress("DEPRECATION")
 class JdkVersionTooLow(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     val actualVersion: Int,
     val minVersion: Int,

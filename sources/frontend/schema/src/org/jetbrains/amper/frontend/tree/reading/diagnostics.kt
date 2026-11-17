@@ -17,6 +17,7 @@ import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.annotations.Nls
 
 class MissingValue(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     @UsedInIdePlugin
     val expectedType: SchemaType,
@@ -28,6 +29,7 @@ class MissingValue(
 }
 
 class InvalidTaskActionType(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     val invalidType: String,
     val taskActionType: SchemaVariantDeclaration,
@@ -43,6 +45,7 @@ class InvalidTaskActionType(
 }
 
 class MissingTaskActionType(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     val taskActionType: SchemaVariantDeclaration,
 ) : PsiBuildProblem(

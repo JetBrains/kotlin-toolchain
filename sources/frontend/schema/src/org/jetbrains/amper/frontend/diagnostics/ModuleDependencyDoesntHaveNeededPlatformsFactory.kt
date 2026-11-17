@@ -52,6 +52,7 @@ private fun isAllowedJvmDependencyForAndroid(
     dependencyPlatforms: Set<Platform>,
 ): Boolean = dependingPlatform == Platform.ANDROID && Platform.JVM in dependencyPlatforms
 
+@Suppress("DEPRECATION")
 class ModuleDependencyDoesntHaveNeededPlatforms(
     val dependency: LocalModuleDependency,
     @field:UsedInIdePlugin
@@ -59,6 +60,7 @@ class ModuleDependencyDoesntHaveNeededPlatforms(
     val unsupportedPlatforms: Set<Platform>,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.InconsistentConfiguration) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = dependency.extractPsiElement()
 

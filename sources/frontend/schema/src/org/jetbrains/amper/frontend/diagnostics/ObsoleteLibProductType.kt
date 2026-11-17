@@ -33,7 +33,9 @@ object ObsoleteLibProductTypeDiagnosticsFactory : TreeDiagnosticFactory {
     }
 }
 
+@Suppress("DEPRECATION")
 class ObsoleteLibProductType(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
 ) : PsiBuildProblem(Level.Warning, BuildProblemType.ObsoleteDeclaration) {
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.ObsoleteLibProductType

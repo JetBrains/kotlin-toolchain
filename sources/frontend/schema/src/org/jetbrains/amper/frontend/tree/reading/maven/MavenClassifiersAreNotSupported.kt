@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nls
         "The reporting for incorrect classifier matching shorthand (missing space problem) will be moved to after-DR phase.")
 @UsedInIdePlugin
 class MavenClassifiersAreNotSupported(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     override val coordinates: String,
     val classifier: String,

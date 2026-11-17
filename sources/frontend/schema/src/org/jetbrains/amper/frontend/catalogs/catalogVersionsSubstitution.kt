@@ -106,6 +106,7 @@ internal class CatalogVersionsSubstitutor(
 context(problemReporter: ProblemReporter)
 private fun VersionCatalog.findInCatalogWithReport(key: String, keyTrace: Trace?): TraceableString? {
     val value = findInCatalog(key)
+    @Suppress("DEPRECATION")
     if (value == null && keyTrace is PsiTrace) {
         problemReporter.reportBundleError(
             source = keyTrace.psiElement.asBuildProblemSource(),
@@ -122,6 +123,7 @@ private fun VersionCatalog.findInCatalogWithReport(key: String, keyTrace: Trace?
             key,
         )
     }
+    @Suppress("DEPRECATION")
     if (value != null && key == "compose.material3" && keyTrace is PsiTrace) {
         // TODO change to conditional/disabled catalog entry, when it is possible
         checkComposeMaterial3UnknownVersionMapping(value, keyTrace)
@@ -133,6 +135,7 @@ private fun VersionCatalog.findInCatalogWithReport(key: String, keyTrace: Trace?
  * Reports a warning when `$compose.material3` is used with a Compose version that doesn't have
  * a known Material3 version mapping.
  */
+@Suppress("DEPRECATION")
 context(problemReporter: ProblemReporter)
 private fun checkComposeMaterial3UnknownVersionMapping(value: TraceableString, keyTrace: PsiTrace) {
     val catalogTrace = value.trace as? BuiltinCatalogTrace ?: return
@@ -143,7 +146,9 @@ private fun checkComposeMaterial3UnknownVersionMapping(value: TraceableString, k
     }
 }
 
+@Suppress("DEPRECATION")
 class ComposeMaterial3UnknownVersionMappingProblem(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
     @UsedInIdePlugin val composeVersionTrace: TransformedValueTrace,
 ) : PsiBuildProblem(

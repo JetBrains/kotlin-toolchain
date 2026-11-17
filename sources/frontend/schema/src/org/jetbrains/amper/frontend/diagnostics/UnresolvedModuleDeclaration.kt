@@ -14,10 +14,12 @@ import org.jetbrains.amper.problems.reporting.DiagnosticId
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.annotations.Nls
 
+@Suppress("DEPRECATION")
 class UnresolvedModuleDeclaration(
     val modulePath: TraceableString,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.UnresolvedReference) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = modulePath.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.UnresolvedModuleDeclaration

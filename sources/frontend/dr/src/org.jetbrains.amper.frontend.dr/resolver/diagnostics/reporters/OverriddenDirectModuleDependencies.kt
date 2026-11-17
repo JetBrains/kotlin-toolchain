@@ -103,12 +103,14 @@ private data class DependencyInsightKey(
     val isForTests: Boolean,
 )
 
+@Suppress("DEPRECATION")
 class ModuleDependencyWithOverriddenVersion(
     @field:UsedInIdePlugin
     val originalNode: DirectFragmentDependencyNode,
     @field:UsedInIdePlugin
     val overrideInsight: DependencyNode,
     @field:UsedInIdePlugin
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement,
 ) : PsiBuildProblem(Level.Warning, BuildProblemType.Generic) {
     val dependencyNode: MavenDependencyNode

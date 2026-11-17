@@ -77,14 +77,18 @@ internal fun mapAliasesToLeaves(
     }
 }
 
-data class AliasesAreNotSupportedInSinglePlatformModule(override val element: PsiElement)
-    : PsiBuildProblem(Level.Warning, BuildProblemType.Generic) {
+@Suppress("DEPRECATION")
+data class AliasesAreNotSupportedInSinglePlatformModule(
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
+    override val element: PsiElement,
+) : PsiBuildProblem(Level.Warning, BuildProblemType.Generic) {
 
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AliasInSinglePlatformModule
     override val message: @Nls String
         get() = SchemaBundle.message("aliases.are.not.supported.in.single.platform.module")
 }
 
+@Suppress("DEPRECATION")
 data class AliasUsesNonLeafPlatform(
     val alias: TraceableString,
     val nonLeafPlatform: TraceableValue<Platform>,
@@ -92,6 +96,7 @@ data class AliasUsesNonLeafPlatform(
     val canBeExpandedTo: Set<Platform>?,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = nonLeafPlatform.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AliasUsesNonLeafPlatform
@@ -99,11 +104,13 @@ data class AliasUsesNonLeafPlatform(
         get() = SchemaBundle.message("alias.uses.non.leaf.platform", alias.value, nonLeafPlatform.value.pretty)
 }
 
+@Suppress("DEPRECATION")
 data class AliasWithNonLeafPlatformExpandsToNothing(
     val alias: TraceableString,
     val nonLeafPlatform: TraceableValue<Platform>,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = nonLeafPlatform.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AliasExpandsToNothing
@@ -116,11 +123,13 @@ data class AliasWithNonLeafPlatformExpandsToNothing(
         )
 }
 
+@Suppress("DEPRECATION")
 data class AliasUsesUndeclaredPlatform(
     val alias: TraceableString,
     val undeclaredPlatform: TraceableValue<Platform>,
 ) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = undeclaredPlatform.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AliasUsesUndeclaredPlatform
@@ -128,8 +137,10 @@ data class AliasUsesUndeclaredPlatform(
         get() = SchemaBundle.message("alias.uses.undeclared.platform", alias.value, undeclaredPlatform.value.pretty)
 }
 
+@Suppress("DEPRECATION")
 data class AliasIsEmpty(val alias: TraceableString) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = alias.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AliasIsEmpty
@@ -137,11 +148,13 @@ data class AliasIsEmpty(val alias: TraceableString) : PsiBuildProblem(Level.Erro
         get() = SchemaBundle.message("alias.is.empty", alias.value)
 }
 
+@Suppress("DEPRECATION")
 data class AliasIntersectsWithNaturalHierarchy(
     val alias: TraceableString,
     val existingPlatform: Platform,
 ) : PsiBuildProblem(Level.Warning, BuildProblemType.Generic) {
 
+    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
     override val element: PsiElement
         get() = alias.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AliasIntersectsWithNaturalHierarchy
