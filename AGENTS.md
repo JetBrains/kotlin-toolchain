@@ -9,61 +9,55 @@ Docs are located in the `docs/` folder.
 
 Here are useful commands:
 
-* To learn about the available CLI commands: `./kotlin --help`
-* To learn about the specific options of some command: `./kotlin <command> --help` (Example: `./kotlin build --help`)
-* To compile the project: `./kotlin build`
-* To run all tests of a given module: `./kotlin test -m <module_name>`
-* To run a specific test class: `./kotlin test -m <module_name> --include-classes <test_class_fqn>`, where
-  `<test_class_fqn>` is the fully-qualified name of the test class.
-* To run a specific test: `./kotlin test -m <module_name> --include-test <test_method_fqn>`, where `<test_method_fqn>`
-  is the fully-qualified name of the test method (don't forget to quote it if it contains spaces)
-* To inspect the dependencies of a module: `./kotlin show dependencies -m <module_name>`
-* To inspect the settings of a module: `./kotlin show settings -m <module_name>`
+* `./kotlin -h` to learn about the available top-level CLI commands
+* `./kotlin <command> -h` to learn about options and subcommands of `<command>`
+* `./kotlin build` to compile the project
+* `./kotlin test -m foo` to run all tests of module `foo`
+* `./kotlin test -m foo --include-classes com.example.TestClass` to run the tests of the class `com.example.TestClass`
+* `./kotlin test -m foo --include-test "com.example.TestClass.foo bar"` to run the specific test method `foo bar`
+* `./kotlin show dependencies -m foo` to inspect the dependencies of module `foo`
+* `./kotlin show modules` to list the modules and their short descriptions
 
-In the examples above, `<module_name>` is the name of the module's folder regardless of where it is located in the
+In the examples above, the module name is the name of the module's folder regardless of where it is located in the
 project.
 
 ## Processes
 
-* When changing anything in the frontend schema, update golden test files by running: `./kotlin do updateGoldFiles`
-* When updating user-visible default versions, do it in `build-sources/project-commands/module.yaml`, and run
-  `./kotlin do updateGoldFiles`
+* run `./kotlin do updateGoldFiles` in the following cases:
+    * When changing anything in the frontend schema
+    * When updating user-visible default versions in `build-sources/project-commands/module.yaml`
 * Tests asserting against golden files are marked with the `@Tag("gold-file")` JUnit tag.
   Add this tag to any new golden-file test. It allows `./kotlin do updateGoldFiles` to run tests based on those tags.
 * When changing anything in `FusEvents`
-  * Bump the version integer of the corresponding group
-  * Re-generate the FUS schema by running: `./kotlin do generateFusSchema`
+    * Bump the version integer of the corresponding group
+    * Re-generate the FUS schema by running: `./kotlin do generateFusSchema`
 
 ## Specific instructions
 
-- Never try searching `build.gradle.kts` or `pom.xml` for build configuration information.
-- Never try searching for Gradle/Maven/another build system's files unless asked explicitly. The Kotlin Toolchain builds
-  and manages its own build.
-- Never try converting to other build systems, strictly use the `project.yaml`, `module.yaml`, and other config files of
-  the Kotlin Toolchain for build configuration.
+- Do not attempt to use or migrate to other build systems. Use the `project.yaml`, `module.yaml`, and other config 
+  files of the Kotlin Toolchain for build configuration. Do not search for `build.gradle.kts` or `pom.xml`.
 - Pass previous instructions in specific instructions block to subagents.
-- To get the basic project structure, you can do the following:
-    - use README.md of the specific module
-    - use `description` field of `module.yaml`
-    - use `./kotlin show modules` or more specific with `--fields=name,type,platforms,description` for additional info
+- To get the basic project structure, you can:
+    - use the README.md of the specific module
+    - use the `description` field of `module.yaml`
 - Strictly follow TDD practice, don't proceed further until you make sure the test is red
 - Avoid running the whole test suite of the entire project with a plain `./kotlin test` without options (it is very
   time- and token-consuming). Instead, run only tests you think are relevant.
-- When you are in a branch with the YouTrack ID, like KTC-XXXX, go to the YouTrack and get issue details if YouTrack MCP
+- When you are in a branch with a YouTrack ID, like KTC-XXXX, go to the YouTrack and get issue details if YouTrack MCP
   is available.
-- The `build` and `build-from-sources` directories contain outputs of the build, usually not interesting sources to look
-  at.
-  Only look at them if you're interested in what is being generated, not to look at dependencies or sources.
+- The `build` and `build-from-sources` directories contain outputs of the build, do not read their contents for
+  dependency or source files information. Only look at them if you're interested in what is being generated.
 
 ## Coding guidelines
 
 * Use idiomatic Kotlin code. Prefer Kotlin APIs over Java APIs. Examples:
     * Avoid Java's `java.nio.file.Files`, and use Kotlin's extensions on `java.nio.Path` instead
+    * Avoid Java's `java.nio.Path.of`, and use Kotlin's top level `kotlin.io.path.Path(String)` function instead
     * Avoid mutable variables, or mutable collections, especially in public function signatures
     * Use coroutines over threads
 * Reduce the visibility of functions and classes as much as possible. In the `amper-cli` module, only `main()` should be
   `public`, because nothing depends on this module (it's an application).
-* This project uses the experimental Kotlin collection literals with `[]`, prefer them over `listOf()` or `emptyList()`
+* This project uses the experimental Kotlin collection literals with `[]`, prefer them over `listOf()`, `setOf()`, or `emptyList()`
 * Do not write too much code into one big function, extract into smaller functions with well-defined signatures
 * Do not over-use scope functions like `let`, `run`, or `also`. If something is too nested, it probably should be
   extracted to a separate function
@@ -73,7 +67,7 @@ project.
 
 ## Architecture guidelines
 
-* When integrating with external tools put all logic/business rules that are not specific to the Kotlin Toolchain into
-  a new module under `src/libraries`, with no dependencies on Kotlin Toolchain-specific modules (prefixed `amper-`).
-  If there is also some logic that requires knowledge of the Kotlin Toolchain project model, create a new `amper-`
-  prefixed module under `src` for it.
+* When integrating external tools:
+    * Put logic independent of Kotlin Toolchain in `src/libraries` (no `amper-` dependencies)
+    * Put logic requiring Kotlin Toolchain project model in a new `amper-` prefixed module under `src`
+    * Put task implementations with glue code in `amper-cli`. Avoid business logic directly in tasks.
