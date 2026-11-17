@@ -20,6 +20,7 @@ import org.jetbrains.amper.dependency.resolution.version
 import org.jetbrains.amper.frontend.api.BuiltinCatalogTrace
 import org.jetbrains.amper.frontend.api.DefaultTrace
 import org.jetbrains.amper.frontend.api.DerivedValueTrace
+import org.jetbrains.amper.frontend.api.FileTrace
 import org.jetbrains.amper.frontend.api.PsiTrace
 import org.jetbrains.amper.frontend.api.Traceable
 import org.jetbrains.amper.frontend.api.TraceableVersion
@@ -162,7 +163,7 @@ object BasicDrDiagnosticsReporter : DrDiagnosticsReporter {
             is DerivedValueTrace -> t.sourceValue.findTraceableVersion()
             is BuiltinCatalogTrace -> t.version
             is DefaultTrace -> null
-            is PsiTrace -> null
+            is FileTrace -> null
         }
     }
 

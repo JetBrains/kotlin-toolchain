@@ -4,15 +4,12 @@
 
 package org.jetbrains.amper.frontend.serialization
 
-import com.intellij.openapi.application.ReadAction
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.frontend.api.BuiltinCatalogTrace
 import org.jetbrains.amper.frontend.api.DefaultTrace
 import org.jetbrains.amper.frontend.api.DerivedValueTrace
-import org.jetbrains.amper.frontend.api.PsiTrace
+import org.jetbrains.amper.frontend.api.FileTrace
 import org.jetbrains.amper.frontend.api.SchemaNode
 import org.jetbrains.amper.frontend.api.Trace
-import org.jetbrains.amper.frontend.messages.extractPsiElementOrNull
 import org.jetbrains.amper.frontend.tree.BooleanNode
 import org.jetbrains.amper.frontend.tree.CompleteListNode
 import org.jetbrains.amper.frontend.tree.CompleteMapNode
@@ -26,6 +23,7 @@ import org.jetbrains.amper.frontend.tree.PathNode
 import org.jetbrains.amper.frontend.tree.ScalarNode
 import org.jetbrains.amper.frontend.tree.StringNode
 import org.jetbrains.amper.frontend.tree.schemaValue
+import kotlin.io.path.name
 
 internal fun interface SchemaValueFilter {
     fun shouldInclude(keyValue: CompletePropertyKeyValue): Boolean
@@ -140,16 +138,14 @@ internal class YamlSerializer(
 }
 
 private fun Trace.traceDescription(): String = when (this) {
-    is PsiTrace -> psiElement.containingFilename()
+    is FileTrace -> file.name
     is DefaultTrace -> "default"
     is BuiltinCatalogTrace -> "from built-in catalog"
     is DerivedValueTrace -> buildString {
         append(description)
-        val fileHint = sourceValue.extractPsiElementOrNull()?.containingFilename()
+        val fileHint = (sourceValue.trace as? FileTrace)?.file?.name
         if (fileHint != null) {
             this.append(" @ $fileHint")
         }
     }
 }
-
-private fun PsiElement.containingFilename() = ReadAction.computeBlocking<String, Throwable> { containingFile.name }

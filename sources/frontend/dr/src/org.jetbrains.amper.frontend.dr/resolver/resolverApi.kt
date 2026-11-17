@@ -32,7 +32,7 @@ import org.jetbrains.amper.frontend.MavenDependencyBase
 import org.jetbrains.amper.frontend.Notation
 import org.jetbrains.amper.frontend.api.BuiltinCatalogTrace
 import org.jetbrains.amper.frontend.api.DefaultTrace
-import org.jetbrains.amper.frontend.api.PsiTrace
+import org.jetbrains.amper.frontend.api.FileTrace
 import org.jetbrains.amper.frontend.api.ResolvedReferenceTrace
 import org.jetbrains.amper.frontend.api.TransformedValueTrace
 import org.jetbrains.amper.frontend.dr.resolver.flow.toPlatform
@@ -226,7 +226,7 @@ private fun traceInfo(notation: Notation): String {
         is ResolvedReferenceTrace -> trace.description
         is BuiltinCatalogTrace -> null // should never happen for dependency Notation
         // TODO maybe write something if the dependency comes from a template?
-        is PsiTrace -> null // we don't want to clutter the output for 'regular' dependencies declared in files
+        is FileTrace -> null // we don't want to clutter the output for 'regular' dependencies declared in files
     }
     return sourceInfo?.let { ", $it" } ?: ""
 }

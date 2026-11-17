@@ -8,7 +8,7 @@ import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.api.BuiltinCatalogTrace
 import org.jetbrains.amper.frontend.api.DefaultTrace
 import org.jetbrains.amper.frontend.api.DerivedValueTrace
-import org.jetbrains.amper.frontend.api.PsiTrace
+import org.jetbrains.amper.frontend.api.FileTrace
 import org.jetbrains.amper.frontend.api.isDefault
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.schema.Settings
@@ -53,7 +53,7 @@ private class SettingsFilter(
                 is DerivedValueTrace -> printDerivedDefaults
                 DefaultTrace -> printStaticDefaults
                 is BuiltinCatalogTrace, // should never happen, because we should only see the reference in this case
-                is PsiTrace -> true
+                is FileTrace -> true
             }
         }
         return true
