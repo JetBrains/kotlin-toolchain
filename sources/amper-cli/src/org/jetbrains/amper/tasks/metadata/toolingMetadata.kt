@@ -12,6 +12,7 @@ import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.isDescendantOf
 import org.jetbrains.amper.frontend.schema.KotlinVersion
+import org.jetbrains.amper.jar.useZipFile
 import org.jetbrains.amper.tasks.rootFragment
 import org.jetbrains.kotlin.tooling.metadata.AndroidExtras
 import org.jetbrains.kotlin.tooling.metadata.JsExtras
@@ -160,8 +161,8 @@ private fun webExtras() = JsExtras(isBrowserConfigured = false, isNodejsConfigur
  */
 internal suspend fun readKlibAbiVersion(klib: Path): String? = withContext(Dispatchers.IO) {
     try {
-        ZipFile(klib.toFile()).use { zip ->
-            val manifestEntry = zip.getEntry(KLIB_MANIFEST_ENTRY) ?: return@use null
+        klib.useZipFile { zip ->
+            val manifestEntry = zip.getEntry(KLIB_MANIFEST_ENTRY) ?: return@useZipFile null
             val manifest = Properties().apply { zip.getInputStream(manifestEntry).use { load(it) } }
             manifest.getProperty(KLIB_ABI_VERSION_PROPERTY)
         }

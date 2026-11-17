@@ -16,6 +16,8 @@ import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.core.extract.extractFileToLocation
+import org.jetbrains.amper.jar.useZipEntryStream
+import org.jetbrains.amper.jar.useZipFile
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.android.AndroidTools
@@ -26,7 +28,6 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.nio.file.Path
-import java.util.zip.ZipFile
 import kotlin.io.path.PathWalkOption
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.copyTo
@@ -623,9 +624,10 @@ class AndroidProjectsTest : CliTestBase() {
         when (packaging) {
             Packaging.Apk -> permission in apkPermissions(artifact)
             // The bundle manifest is protobuf-encoded, so the permission name is stored as plain UTF-8 text
-            Packaging.Bundle -> ZipFile(artifact.toFile()).use { zip ->
-                val manifest = zip.getEntry("base/manifest/AndroidManifest.xml")
-                zip.getInputStream(manifest).readBytes().decodeToString().contains(permission)
+            Packaging.Bundle -> artifact.useZipFile { zip ->
+                zip.useZipEntryStream("base/manifest/AndroidManifest.xml") {
+                    it.readBytes().decodeToString().contains(permission)
+                } ?: false
             }
         }
 
@@ -634,7 +636,7 @@ class AndroidProjectsTest : CliTestBase() {
         .checkExitCodeIsZero().stdout
 
     private fun zipEntryExists(zipPath: Path, entryName: String): Boolean =
-        ZipFile(zipPath.toFile()).use { it.getEntry(entryName) != null }
+        zipPath.useZipFile { it.getEntry(entryName) != null }
 
     private fun AmperCliResult.getArtifactPath(taskName: String, extension: String = "apk"): Path =
         getTaskOutputPath(taskName)

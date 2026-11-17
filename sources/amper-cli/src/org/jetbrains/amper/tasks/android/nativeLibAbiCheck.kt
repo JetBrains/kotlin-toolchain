@@ -5,9 +5,9 @@
 package org.jetbrains.amper.tasks.android
 
 import org.jetbrains.amper.frontend.AmperModule
+import org.jetbrains.amper.jar.useZipFile
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
-import java.util.zip.ZipFile
 import kotlin.io.path.extension
 import kotlin.io.path.name
 
@@ -96,7 +96,7 @@ internal fun nativeLibsByAbi(entryNames: Sequence<String>): Map<String, Set<Stri
  * Groups the native libraries packaged in the given APK or app bundle by the ABI they are packaged for.
  */
 private fun readNativeLibsByAbi(archive: Path): Map<String, Set<String>> =
-    ZipFile(archive.toFile()).use { zip -> nativeLibsByAbi(zip.entries().asSequence().map { it.name }) }
+    archive.useZipFile { zip -> nativeLibsByAbi(zip.entries().asSequence().map { it.name }) }
 
 private fun incompleteAbisMessage(
     module: AmperModule,

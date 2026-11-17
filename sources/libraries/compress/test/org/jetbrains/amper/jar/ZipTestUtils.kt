@@ -38,7 +38,7 @@ internal data class ZipEntrySnapshot(
  */
 internal fun Path.readZipEntries(): List<ZipEntrySnapshot> {
     val localTimestamps = readLocalHeaderTimestamps()
-    return ZipFile(toFile()).use { zip ->
+    return useZipFile { zip ->
         zip.entries().asSequence().map { entry ->
             val localEntry = localTimestamps[entry.name]
             ZipEntrySnapshot(

@@ -9,11 +9,11 @@ import org.jetbrains.amper.cli.test.utils.assertFileExists
 import org.jetbrains.amper.cli.test.utils.assertGradleMetadataEquals
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.jetbrains.amper.jar.useZipFile
 import org.jetbrains.amper.test.MacOnly
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
-import java.util.zip.ZipFile
 import kotlin.io.path.PathWalkOption
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
@@ -56,7 +56,7 @@ class ComposeResourcesTest : CliTestBase() {
             .walk(PathWalkOption.BREADTH_FIRST)
             .firstOrNull { it.extension == "apk" }
             ?: fail("No APK is found in the output of the '$taskName' task")
-        val composeResourceEntries = ZipFile(apk.toFile()).use { apkZip ->
+        val composeResourceEntries = apk.useZipFile { apkZip ->
             apkZip.entries().asSequence().map { it.name }.filter { "composeResources/" in it }.toList()
         }
         assertContains(composeResourceEntries, "assets/composeResources/com.example.gen/files/platform-text.txt")
@@ -349,11 +349,11 @@ class ComposeResourcesTest : CliTestBase() {
         assertEquals("App text", (appResources / "app-text.txt").readText().trim())
     }
 
-    private fun Path.fileEntries(): List<String> = ZipFile(toFile()).use { zip ->
+    private fun Path.fileEntries(): List<String> = useZipFile { zip ->
         zip.entries().asSequence().filterNot { it.isDirectory }.map { it.name }.sorted().toList()
     }
 
-    private fun Path.readZipEntryText(entryName: String): String = ZipFile(toFile()).use { zip ->
+    private fun Path.readZipEntryText(entryName: String): String = useZipFile { zip ->
         val entry = zip.getEntry(entryName) ?: fail("No '$entryName' entry in $this")
         zip.getInputStream(entry).readBytes().decodeToString()
     }

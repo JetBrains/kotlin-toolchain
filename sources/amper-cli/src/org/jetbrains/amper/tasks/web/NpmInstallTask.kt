@@ -15,9 +15,9 @@ import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.incrementalcache.IncrementalCache
 import org.jetbrains.amper.incrementalcache.executeForFiles
+import org.jetbrains.amper.jar.useZipFile
 import org.jetbrains.amper.nodejs.NodeJsProvider
 import org.jetbrains.amper.pnpm.PnpmProvider
-import org.jetbrains.amper.processes.LoggingProcessOutputListener
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.tasks.ResolveExternalDependenciesTask
 import org.jetbrains.amper.tasks.TaskOutputRoot
@@ -173,7 +173,7 @@ internal fun extractAllNpmDependencies(
  * Reads the `package.json` file from inside a klib and returns the `dependencies` with information about source klib
  */
 private fun readPackageJsonDependenciesFromKlib(klibPath: Path): List<NpmDependencyCandidate> {
-    ZipFile(klibPath.toFile()).use { zip ->
+    klibPath.useZipFile { zip ->
         val packageJsonEntry = zip.entries().asSequence()
             .firstOrNull { it.name == "package.json" }
             ?: return emptyList()

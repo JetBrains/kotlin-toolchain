@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.executablejar
 
+import org.jetbrains.amper.jar.useZipFile
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
@@ -280,12 +281,12 @@ class ExecutableJarTest {
         return loaderDir
     }
 
-    private fun Path.readEntryText(entryName: String): String = ZipFile(toFile()).use { zip ->
+    private fun Path.readEntryText(entryName: String): String = useZipFile { zip ->
         val entry = requireNotNull(zip.getEntry(entryName)) { "No entry '$entryName' in archive $this" }
         zip.getInputStream(entry).use { it.readBytes().decodeToString() }
     }
 
-    private fun Path.readEntryNames(): List<String> = ZipFile(toFile()).use { zip ->
+    private fun Path.readEntryNames(): List<String> = useZipFile { zip ->
         zip.entries().asSequence().map { it.name }.toList()
     }
 

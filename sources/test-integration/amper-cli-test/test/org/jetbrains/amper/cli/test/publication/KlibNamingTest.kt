@@ -9,10 +9,10 @@ import org.jetbrains.amper.cli.test.utils.assertStderrDoesNotContain
 import org.jetbrains.amper.cli.test.utils.assertStdoutDoesNotContain
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
+import org.jetbrains.amper.jar.useZipFile
 import org.junit.jupiter.api.Tag
 import java.nio.file.Path
 import java.util.Properties
-import java.util.zip.ZipFile
 import kotlin.io.path.div
 import kotlin.io.path.inputStream
 import kotlin.io.path.isDirectory
@@ -88,7 +88,7 @@ class KlibNamingTest : CliTestBase() {
 
         // Like KGP since Kotlin 2.4.0-Beta2, the JVM '-module-name' is 'org.example:lib'. The compiler derives the
         // '.kotlin_module' entry name from it, replacing the ':' forbidden in file names (KT-82216).
-        ZipFile((result.getTaskOutputPath(":lib:jarJvm") / "lib-jvm.jar").toFile()).use { jar ->
+        (result.getTaskOutputPath(":lib:jarJvm") / "lib-jvm.jar").useZipFile { jar ->
             assertNotNull(
                 jar.getEntry("META-INF/org.example_lib.kotlin_module"),
                 "The jar should contain the .kotlin_module entry derived from the qualified module name, " +
@@ -126,7 +126,7 @@ class KlibNamingTest : CliTestBase() {
         assertEquals("lib-no-group", jsKlibManifest.getProperty("unique_name"))
 
         // without a publishing group, the JVM module name stays bare on all Kotlin versions (like KGP)
-        ZipFile((result.getTaskOutputPath(":lib-no-group:jarJvm") / "lib-no-group-jvm.jar").toFile()).use { jar ->
+        (result.getTaskOutputPath(":lib-no-group:jarJvm") / "lib-no-group-jvm.jar").useZipFile { jar ->
             assertNotNull(
                 jar.getEntry("META-INF/lib-no-group.kotlin_module"),
                 "The jar should contain the .kotlin_module entry named after the bare module name, " +
@@ -161,7 +161,7 @@ class KlibNamingTest : CliTestBase() {
     private fun Path.readKlibManifest(): Properties = if (isDirectory()) {
         Properties().apply { (this@readKlibManifest / "default" / "manifest").inputStream().use { load(it) } }
     } else {
-        ZipFile(toFile()).use { zip ->
+        useZipFile { zip ->
             val manifestEntry = zip.getEntry("default/manifest") ?: error("No 'default/manifest' entry in klib $this")
             Properties().apply { zip.getInputStream(manifestEntry).use { load(it) } }
         }
