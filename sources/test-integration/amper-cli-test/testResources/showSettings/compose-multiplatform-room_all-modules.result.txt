@@ -104,7 +104,7 @@ settings@android:
       version: 1.11.0  # default
     suppressWarnings: false  # default
     verbose: false  # default
-    version: 2.4.20  # default
+    version: 2.5.0-RC  # default
   ktor:
     applyBom: true  # default
     enabled: false  # default
@@ -205,7 +205,7 @@ settings@iosSimulatorArm64:
       version: 1.11.0  # default
     suppressWarnings: false  # default
     verbose: false  # default
-    version: 2.4.20  # default
+    version: 2.5.0-RC  # default
   ktor:
     applyBom: true  # default
     enabled: false  # default
@@ -313,7 +313,7 @@ settings@jvm:
       version: 1.11.0  # default
     suppressWarnings: false  # default
     verbose: false  # default
-    version: 2.4.20  # default
+    version: 2.5.0-RC  # default
   ktor:
     applyBom: true  # default
     enabled: false  # default
@@ -424,7 +424,7 @@ settings@iosArm64+iosSimulatorArm64:
       version: 1.11.0  # default
     suppressWarnings: false  # default
     verbose: false  # default
-    version: 2.4.20  # default
+    version: 2.5.0-RC  # default
   ktor:
     applyBom: true  # default
     enabled: false  # default
@@ -556,7 +556,7 @@ settings@jvm+android+iosArm64+iosSimulatorArm64:
       version: 1.11.0  # default
     suppressWarnings: false  # default
     verbose: false  # default
-    version: 2.4.20  # default
+    version: 2.5.0-RC  # default
   ktor:
     applyBom: true  # default
     enabled: false  # default
@@ -675,7 +675,7 @@ settings@jvm:
       version: 1.11.0  # default
     suppressWarnings: false  # default
     verbose: false  # default
-    version: 2.4.20  # default
+    version: 2.5.0-RC  # default
   ktor:
     applyBom: true  # default
     enabled: false  # default
@@ -813,7 +813,7 @@ settings@android:
       version: 1.11.0  # default
     suppressWarnings: false  # default
     verbose: false  # default
-    version: 2.4.20  # default
+    version: 2.5.0-RC  # default
   ktor:
     applyBom: true  # default
     enabled: false  # default
@@ -919,7 +919,7 @@ settings@iosArm64:
       version: 1.11.0  # default
     suppressWarnings: false  # default
     verbose: false  # default
-    version: 2.4.20  # default
+    version: 2.5.0-RC  # default
   ktor:
     applyBom: true  # default
     enabled: false  # default
@@ -1022,7 +1022,7 @@ settings@iosSimulatorArm64:
       version: 1.11.0  # default
     suppressWarnings: false  # default
     verbose: false  # default
-    version: 2.4.20  # default
+    version: 2.5.0-RC  # default
   ktor:
     applyBom: true  # default
     enabled: false  # default

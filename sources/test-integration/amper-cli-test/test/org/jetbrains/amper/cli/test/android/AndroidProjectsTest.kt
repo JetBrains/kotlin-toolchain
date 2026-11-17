@@ -16,6 +16,7 @@ import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.getTaskOutputPath
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.core.extract.extractFileToLocation
+import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.jar.useZipEntryStream
 import org.jetbrains.amper.jar.useZipFile
 import org.jetbrains.amper.test.AmperCliResult
@@ -261,12 +262,12 @@ class AndroidProjectsTest : CliTestBase() {
         )
         // debug
         result.assertStdoutContains("task :simple:buildAndroidDebug -> :simple:runtimeClasspathAndroidDebug, provideJdk25-auto-distributions-any, installGradleDistribution")
-        result.assertStdoutContains("task :simple:compileAndroidDebug -> provideJdk25-auto-distributions-any, :simple:installPlatformAndroid, provideKotlinToolchains2.4.20, :simple:downloadCompilerPluginsMain, :simple:transformDependenciesAndroid, :simple:resolveDependenciesAndroid, :simple:prepareAndroidDebug")
+        result.assertStdoutContains("task :simple:compileAndroidDebug -> provideJdk25-auto-distributions-any, :simple:installPlatformAndroid, provideKotlinToolchains${DefaultVersions.kotlin}, :simple:downloadCompilerPluginsMain, :simple:transformDependenciesAndroid, :simple:resolveDependenciesAndroid, :simple:prepareAndroidDebug")
         result.assertStdoutContains("task :simple:prepareAndroidDebug -> :simple:installBuildToolsAndroid, installCmdlineTools, installPlatformTools, :simple:installPlatformAndroid, :simple:resolveDependenciesAndroid, provideJdk25-auto-distributions-any, installGradleDistribution")
         result.assertStdoutContains("task :simple:runAndroidDebug -> :simple:installSystemImageAndroid, installEmulator, :simple:buildAndroidDebug")
         // release
         result.assertStdoutContains("task :simple:buildAndroidRelease -> :simple:runtimeClasspathAndroidRelease, provideJdk25-auto-distributions-any, installGradleDistribution")
-        result.assertStdoutContains("task :simple:compileAndroidRelease -> provideJdk25-auto-distributions-any, :simple:installPlatformAndroid, provideKotlinToolchains2.4.20, :simple:downloadCompilerPluginsMain, :simple:transformDependenciesAndroid, :simple:resolveDependenciesAndroid, :simple:prepareAndroidRelease")
+        result.assertStdoutContains("task :simple:compileAndroidRelease -> provideJdk25-auto-distributions-any, :simple:installPlatformAndroid, provideKotlinToolchains${DefaultVersions.kotlin}, :simple:downloadCompilerPluginsMain, :simple:transformDependenciesAndroid, :simple:resolveDependenciesAndroid, :simple:prepareAndroidRelease")
         result.assertStdoutContains("task :simple:prepareAndroidRelease -> :simple:installBuildToolsAndroid, installCmdlineTools, installPlatformTools, :simple:installPlatformAndroid, :simple:resolveDependenciesAndroid, provideJdk25-auto-distributions-any, installGradleDistribution")
         result.assertStdoutContains("task :simple:runAndroidRelease -> :simple:installSystemImageAndroid, installEmulator, :simple:buildAndroidRelease")
 

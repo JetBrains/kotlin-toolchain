@@ -74,7 +74,7 @@ settings@jvm:
       version: 1.11.0  # default
     suppressWarnings: false  # default
     verbose: false  # default
-    version: 2.4.20  # default
+    version: 2.5.0-RC  # default
   ktor:
     applyBom: true  # default
     enabled: false  # default
@@ -188,7 +188,7 @@ settings@jvm:
       version: 1.11.0  # default
     suppressWarnings: false  # default
     verbose: false  # default
-    version: 2.4.20  # default
+    version: 2.5.0-RC  # default
   ktor:
     applyBom: true  # default
     enabled: false  # default

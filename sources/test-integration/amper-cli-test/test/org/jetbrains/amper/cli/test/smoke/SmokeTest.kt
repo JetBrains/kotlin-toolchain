@@ -50,7 +50,7 @@ class SmokeTest : CliTestBase() {
         val runResult = runCli(projectDir = projectRoot, "run")
         with(runResult.readTelemetrySpans()) {
             assertSingleKotlinJvmCompilationSpan {
-                hasCompilerArgument("-language-version=2.2")
+                hasCompilerArgument("-language-version=2.4")
                 hasCompilerArgument("-java-parameters")
                 hasCompilerArgument("-verbose")
                 hasCompilerArgument("-Werror")
