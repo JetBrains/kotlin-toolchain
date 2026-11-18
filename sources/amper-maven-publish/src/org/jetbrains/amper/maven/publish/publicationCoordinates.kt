@@ -5,6 +5,7 @@
 package org.jetbrains.amper.maven.publish
 
 import org.jetbrains.amper.dependency.resolution.MavenCoordinates
+import org.jetbrains.amper.dependency.resolution.attributes.platformModuleTargetName
 import org.jetbrains.amper.dependency.resolution.mavenCoordinatesTrimmed
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
@@ -32,7 +33,7 @@ private fun AmperModule.kmpLeafPlatformPublicationCoordinates(platform: Platform
                 "${leafFragments.filter { platform in it.platforms }.map { it.name }}")
 
     // the leaf fragment should inherit publication settings from parents, no need to browse again
-    return fragment.mavenCoordinates(artifactIdSuffix = "-${platform.schemaValue.lowercase()}")
+    return fragment.mavenCoordinates(artifactIdSuffix = "-${platformModuleTargetName(platform.schemaValue)}")
 }
 
 private fun AmperModule.rootPublicationCoordinates(): MavenCoordinates {

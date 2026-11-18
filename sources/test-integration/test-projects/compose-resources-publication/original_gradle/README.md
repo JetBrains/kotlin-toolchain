@@ -56,7 +56,6 @@ reference files in this repository show:
   variants; the Kotlin Toolchain publishes neither.
 * KGP lists `kotlin-stdlib` in the API and metadata variants; the Kotlin Toolchain only lists it in the runtime ones.
 * The `files[].name` field (the file name before publication) differs: `library-wasmJsMain-1.0.0.klib` for the
-  Kotlin Toolchain vs `library-wasm-js-1.0.0.klib` for KGP. The `url` (what consumers resolve) is the same.
-* KGP derives the target module name from the dash-separated target name (`library-wasm-js`), the Kotlin Toolchain
-  from the lowercased one (`library-wasmjs`).
+  Kotlin Toolchain vs `library-wasm-js-1.0.0.klib` for KGP. The `url` (what consumers resolve) is
+  `library-wasm-js-1.0.0.klib` on both sides.
 * The Kotlin Toolchain adds `artifactType: org.jetbrains.kotlin.klib` to the native API variants.

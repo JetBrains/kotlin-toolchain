@@ -76,9 +76,9 @@ class GradleMetadataGenerationTest : CliTestBase() {
 
         assertMetadataFilesEquals("wasmJsPlusWasmWasi-1.0.0.module", "module.json", testInfo, "edgeCase_wasmJsPlusWasmWasi")
 
-        assertMetadataFilesEquals("wasmJsPlusWasmWasi-wasmjs-1.0.0.module", "wasmJs.module.json", testInfo, "edgeCase_wasmJsPlusWasmWasi")
+        assertMetadataFilesEquals("wasmJsPlusWasmWasi-wasm-js-1.0.0.module", "wasmJs.module.json", testInfo, "edgeCase_wasmJsPlusWasmWasi")
 
-        assertMetadataFilesEquals("wasmJsPlusWasmWasi-wasmwasi-1.0.0.module", "wasmWasi.module.json", testInfo, "edgeCase_wasmJsPlusWasmWasi")
+        assertMetadataFilesEquals("wasmJsPlusWasmWasi-wasm-wasi-1.0.0.module", "wasmWasi.module.json", testInfo, "edgeCase_wasmJsPlusWasmWasi")
     }
 
     @Test

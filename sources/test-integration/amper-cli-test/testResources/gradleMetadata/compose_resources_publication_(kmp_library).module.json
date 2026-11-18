@@ -76,9 +76,9 @@
         "org.jetbrains.kotlin.wasm.target": "js"
       },
       "available-at": {
-        "url": "../../library-wasmjs/1.0.0/library-wasmjs-1.0.0.module",
+        "url": "../../library-wasm-js/1.0.0/library-wasm-js-1.0.0.module",
         "group": "org.example",
-        "module": "library-wasmjs",
+        "module": "library-wasm-js",
         "version": "1.0.0"
       }
     },
@@ -92,9 +92,9 @@
         "org.jetbrains.kotlin.wasm.target": "js"
       },
       "available-at": {
-        "url": "../../library-wasmjs/1.0.0/library-wasmjs-1.0.0.module",
+        "url": "../../library-wasm-js/1.0.0/library-wasm-js-1.0.0.module",
         "group": "org.example",
-        "module": "library-wasmjs",
+        "module": "library-wasm-js",
         "version": "1.0.0"
       }
     },
@@ -110,9 +110,9 @@
         "org.jetbrains.kotlin.wasm.target": "js"
       },
       "available-at": {
-        "url": "../../library-wasmjs/1.0.0/library-wasmjs-1.0.0.module",
+        "url": "../../library-wasm-js/1.0.0/library-wasm-js-1.0.0.module",
         "group": "org.example",
-        "module": "library-wasmjs",
+        "module": "library-wasm-js",
         "version": "1.0.0"
       }
     }

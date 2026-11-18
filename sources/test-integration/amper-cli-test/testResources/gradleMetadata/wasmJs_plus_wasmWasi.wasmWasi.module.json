@@ -36,7 +36,7 @@
       "files": [
         {
           "name": "edgeCase_wasmJsPlusWasmWasi-wasmWasiMain-1.0.0.klib",
-          "url": "wasmJsPlusWasmWasi-wasmwasi-1.0.0.klib",
+          "url": "wasmJsPlusWasmWasi-wasm-wasi-1.0.0.klib",
           "size": -1,
           "sha512": "mocked",
           "sha256": "mocked",
@@ -80,7 +80,7 @@
       "files": [
         {
           "name": "edgeCase_wasmJsPlusWasmWasi-wasmWasiMain-1.0.0.klib",
-          "url": "wasmJsPlusWasmWasi-wasmwasi-1.0.0.klib",
+          "url": "wasmJsPlusWasmWasi-wasm-wasi-1.0.0.klib",
           "size": -1,
           "sha512": "mocked",
           "sha256": "mocked",
@@ -103,7 +103,7 @@
       "files": [
         {
           "name": "edgeCase_wasmJsPlusWasmWasi-wasmWasiMain-1.0.0-sources.jar",
-          "url": "wasmJsPlusWasmWasi-wasmwasi-1.0.0-sources.jar",
+          "url": "wasmJsPlusWasmWasi-wasm-wasi-1.0.0-sources.jar",
           "size": -1,
           "sha512": "mocked",
           "sha256": "mocked",

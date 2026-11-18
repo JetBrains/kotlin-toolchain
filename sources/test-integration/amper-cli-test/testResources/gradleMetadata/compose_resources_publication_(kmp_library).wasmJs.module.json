@@ -27,7 +27,7 @@
       "files": [
         {
           "name": "library-wasmJsMain-1.0.0.klib",
-          "url": "library-wasmjs-1.0.0.klib",
+          "url": "library-wasm-js-1.0.0.klib",
           "size": -1,
           "sha512": "mocked",
           "sha256": "mocked",
@@ -71,7 +71,7 @@
       "files": [
         {
           "name": "library-wasmJsMain-1.0.0.klib",
-          "url": "library-wasmjs-1.0.0.klib",
+          "url": "library-wasm-js-1.0.0.klib",
           "size": -1,
           "sha512": "mocked",
           "sha256": "mocked",
@@ -117,7 +117,7 @@
       "files": [
         {
           "name": "library-1.0.0.kotlin_resources.zip",
-          "url": "library-wasmjs-1.0.0-kotlin_resources.kotlin_resources.zip",
+          "url": "library-wasm-js-1.0.0-kotlin_resources.kotlin_resources.zip",
           "size": -1,
           "sha512": "mocked",
           "sha256": "mocked",

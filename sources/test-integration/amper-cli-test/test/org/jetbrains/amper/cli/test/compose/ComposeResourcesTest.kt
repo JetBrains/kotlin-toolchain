@@ -239,7 +239,7 @@ class ComposeResourcesTest : CliTestBase() {
         )
 
         val archive = result.getTaskOutputPath(":library:composeResourcesArchiveWasmJs") /
-                "library-wasmjs-1.0.0-kotlin_resources.kotlin_resources.zip"
+                "library-wasm-js-1.0.0-kotlin_resources.kotlin_resources.zip"
         assertTrue(archive.isRegularFile(), "The KMP resources archive is missing at $archive")
         assertEquals(
             listOf(
@@ -254,7 +254,7 @@ class ComposeResourcesTest : CliTestBase() {
         // The wasmJs publication carries the resource archive in a dedicated variant, the root one only redirects the
         // consumer to it, and the JVM one has no resources variant at all (it packs the resources into its jar).
         assertGradleMetadataEquals("module.json", publishablesDir / "library-1.0.0.module", testInfo)
-        assertGradleMetadataEquals("wasmJs.module.json", publishablesDir / "library-wasmjs-1.0.0.module", testInfo)
+        assertGradleMetadataEquals("wasmJs.module.json", publishablesDir / "library-wasm-js-1.0.0.module", testInfo)
         assertGradleMetadataEquals("jvm.module.json", publishablesDir / "library-jvm-1.0.0.module", testInfo)
     }
 

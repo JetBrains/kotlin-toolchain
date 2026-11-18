@@ -18,7 +18,9 @@ import org.jetbrains.amper.dependency.resolution.attributes.JvmEnvironment
 import org.jetbrains.amper.dependency.resolution.attributes.KotlinNativeTarget
 import org.jetbrains.amper.dependency.resolution.attributes.KotlinPlatformType
 import org.jetbrains.amper.dependency.resolution.attributes.KotlinWasmTarget
+import org.jetbrains.amper.dependency.resolution.attributes.PublishedUsage
 import org.jetbrains.amper.dependency.resolution.attributes.Usage
+import org.jetbrains.amper.dependency.resolution.attributes.publishedVariantName
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.LeafFragment
 import org.jetbrains.amper.frontend.Platform
@@ -48,15 +50,8 @@ import kotlin.io.path.extension
 import kotlin.io.path.fileSize
 
 /**
- * Suffix is added to the Gradle Metadata variant name.
- * It is an implementation detail and is a subject to change,
- * see https://docs.google.com/document/d/18MsmrX2iYuoKS3HvY-_xnk_SMenLQzSPArj4yuy1Hfw/edit?tab=t.0
- */
-private const val PUBLISHED_SUFFIX = "-published"
-
-/**
  * The Maven classifier under which the KMP resources archive of a platform is published.
- * It follows the KGP/CMP convention, e.g. `mylib-wasmjs-1.0-kotlin_resources.kotlin_resources.zip`.
+ * It follows the KGP/CMP convention, e.g. `mylib-wasm-js-1.0-kotlin_resources.kotlin_resources.zip`.
  */
 internal const val KMP_RESOURCES_CLASSIFIER = "kotlin_resources"
 
@@ -413,7 +408,7 @@ private fun LeafFragment.toBaseKmpResourcesVariant(): GradleVariant {
         ?: error("Platform $platform doesn't publish its KMP resources in a dedicated variant")
 
     return GradleVariant(
-        name = "${name}ResourcesElements$PUBLISHED_SUFFIX",
+        name = publishedVariantName(name, PublishedUsage.RESOURCES),
         attributes = buildMap {
             this[Category.name] = Category.Library.value
             this[DependencyBundling.name] = DependencyBundling.External.value
@@ -488,22 +483,23 @@ private fun LeafFragment.toBaseGradleVariant(
     scope: ResolutionScope,
     isSources: Boolean = false,
 ): GradleVariant {
-    val nameSuffix = when {
-        isSources -> "Sources"
+    val usage = when {
+        isSources -> PublishedUsage.SOURCES
         else -> when (scope) {
-            ResolutionScope.COMPILE -> "Api"
-            ResolutionScope.RUNTIME -> "Runtime"
+            ResolutionScope.COMPILE -> PublishedUsage.API
+            ResolutionScope.RUNTIME -> PublishedUsage.RUNTIME
         }
     }
-    val name =
+    val variantName =
         if (platform == Platform.JVM && !module.isMultiplatformPublication()) {
-            "${nameSuffix.lowercase()}Elements"
+            // Gradle's plain JVM variant names: `apiElements`
+            usage.variantNamePart.replaceFirstChar { it.lowercase() }
         } else {
-            "${name}${nameSuffix}Elements$PUBLISHED_SUFFIX"
+            publishedVariantName(name, usage)
         }
 
     return GradleVariant(
-        name = name,
+        name = variantName,
         attributes = buildMap {
             val resolutionPlatform = platform.toResolutionPlatform()!!
 

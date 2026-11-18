@@ -39,7 +39,7 @@ BUILT_PRODUCTS_DIR=/tmp/ios-bundle UNLOCALIZED_RESOURCES_FOLDER_PATH=app-ios.app
 Both consumers resolve the Kotlin Toolchain publication and pick up its resources, matching what the Amper consumer
 gets in `ComposeResourcesTest`:
 
-* `:app` resolves `org.example:library:1.0.0` down to `org.example:library-wasmjs:1.0.0` (the module name the Kotlin
+* `:app` resolves `org.example:library:1.0.0` down to `org.example:library-wasm-js:1.0.0` (the module name the Kotlin
   Toolchain publishes the target under) and unpacks its KMP resources archive into
   `app/build/dist/wasmJs/productionExecutable/composeResources/com.example.lib.gen/files/`, with both
   `common-text.txt` and `wasm-text.txt`.
