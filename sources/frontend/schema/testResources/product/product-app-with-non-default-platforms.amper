@@ -1,6 +1,6 @@
 product {
-  type = "macos/app"
+  type = "linux/app"
   platforms {
-    "macosX64"
+    "linuxX64"
   }
 }

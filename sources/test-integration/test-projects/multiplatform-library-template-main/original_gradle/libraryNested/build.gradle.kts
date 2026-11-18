@@ -11,7 +11,6 @@ kotlin {
     linuxX64()
     linuxArm64()
     macosArm64()
-    macosX64()
     jvm()
     android {
         namespace = "org.jetbrains.kotlintoolchain.kmp.sample.libraryNested"
@@ -30,7 +29,6 @@ kotlin {
             linuxX64(),
             linuxArm64(),
             macosArm64(),
-            macosX64(),
         ).forEach {
             it.compilations.getByName("main").cinterops.create("custom") {
                 defFile("custom.def")

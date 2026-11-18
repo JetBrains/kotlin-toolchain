@@ -21,6 +21,7 @@ import org.jetbrains.amper.test.MacOnly
 import org.junit.jupiter.api.Tag
 import org.slf4j.event.Level
 import java.nio.file.Path
+import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
@@ -121,7 +122,6 @@ class CinteropTest : CliTestBase() {
      * they belong to (see `cinteropKlibUniqueName`) instead of after the bare `.def` file name.
      */
     @Test
-    @MacOnly
     fun `cinterops with the same name in different modules`() = runSlowTest {
         // The compilation classpath of 'app' holds the cinterop klibs of both modules, so this fails to compile
         // unless the two klibs have distinct names.
@@ -137,18 +137,18 @@ class CinteropTest : CliTestBase() {
             result = result,
             expectedRepresentation = """
                 module: app
-                 commonized/app/(macos_arm64, macos_x64)/
+                 commonized/app/(linux_arm64, linux_x64)/
                   - app-cinterop-custom
-                 fragment: macosArm64 | generated/app/macosArm64/cinterop
+                 fragment: linuxArm64 | generated/app/linuxArm64/cinterop
                   - app-cinterop-custom.klib
-                 fragment: macosX64 | generated/app/macosX64/cinterop
+                 fragment: linuxX64 | generated/app/linuxX64/cinterop
                   - app-cinterop-custom.klib
                 module: lib
-                 commonized/lib/(macos_arm64, macos_x64)/
+                 commonized/lib/(linux_arm64, linux_x64)/
                   - lib-cinterop-custom
-                 fragment: macosArm64 | generated/lib/macosArm64/cinterop
+                 fragment: linuxArm64 | generated/lib/linuxArm64/cinterop
                   - lib-cinterop-custom.klib
-                 fragment: macosX64 | generated/lib/macosX64/cinterop
+                 fragment: linuxX64 | generated/lib/linuxX64/cinterop
                   - lib-cinterop-custom.klib
             """.trimIndent(),
         )
@@ -219,17 +219,13 @@ class CinteropTest : CliTestBase() {
                 module: shared
                  commonized/shared/(linux_arm64, linux_x64)/
                   - shared-cinterop-custom
-                 commonized/shared/(linux_arm64, linux_x64, macos_arm64, macos_x64, mingw_x64)/
-                  - shared-cinterop-custom
-                 commonized/shared/(macos_arm64, macos_x64)/
+                 commonized/shared/(linux_arm64, linux_x64, macos_arm64, mingw_x64)/
                   - shared-cinterop-custom
                  fragment: linuxArm64 | generated/shared/linuxArm64/cinterop
                   - shared-cinterop-custom.klib
                  fragment: linuxX64 | generated/shared/linuxX64/cinterop
                   - shared-cinterop-custom.klib
                  fragment: macosArm64 | generated/shared/macosArm64/cinterop
-                  - shared-cinterop-custom.klib
-                 fragment: macosX64 | generated/shared/macosX64/cinterop
                   - shared-cinterop-custom.klib
                  fragment: mingwX64 | generated/shared/mingwX64/cinterop
                   - shared-cinterop-custom.klib.failed
@@ -300,7 +296,7 @@ class CinteropTest : CliTestBase() {
                     ?.listDirectoryEntries()
                     ?.sortedBy { it.name }
                     ?.forEach { targetDir ->
-                        appendLine(" ${targetDir.relativeTo(result.buildDir)}/")
+                        appendLine(" ${targetDir.relativeTo(result.buildDir).invariantSeparatorsPathString}/")
                         targetDir.listDirectoryEntries().sortedBy { it.name }.forEach {
                             appendLine("  - ${it.name}")
                         }
@@ -308,7 +304,7 @@ class CinteropTest : CliTestBase() {
                 for (fragment in module.fragments.sortedBy { it.name }) {
                     val dir = fragment.generatedCinteropKlibsDirPath(result.buildDir)
                         ?.takeIf { it.isDirectory() } ?: continue
-                    appendLine(" fragment: ${fragment.name} | ${dir.relativeTo(result.buildDir)}")
+                    appendLine(" fragment: ${fragment.name} | ${dir.relativeTo(result.buildDir).invariantSeparatorsPathString}")
                     for (path in dir.listDirectoryEntries().sortedBy { it.name }) {
                         appendLine("  - ${path.name}")
                     }

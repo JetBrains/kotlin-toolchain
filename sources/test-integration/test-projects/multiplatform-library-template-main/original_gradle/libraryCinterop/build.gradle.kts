@@ -10,14 +10,12 @@ kotlin {
     linuxX64()
     linuxArm64()
     macosArm64()
-    macosX64()
 
     kotlin {
         listOf(
             linuxX64(),
             linuxArm64(),
             macosArm64(),
-            macosX64(),
         ).forEach {
             it.compilations.getByName("main").cinterops.create("libcurl") {
                 defFile("libcurl.def")

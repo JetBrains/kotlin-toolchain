@@ -28,7 +28,6 @@ kotlin {
     iosSimulatorArm64()
     linuxX64()
     linuxArm64()
-    macosX64()
 
     sourceSets {
         jvmMain.dependencies {

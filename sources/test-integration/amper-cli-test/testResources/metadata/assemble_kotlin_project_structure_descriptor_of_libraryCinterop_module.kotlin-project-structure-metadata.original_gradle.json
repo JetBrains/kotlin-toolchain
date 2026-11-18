@@ -27,30 +27,9 @@
           "nativeMain",
           "commonMain"
         ]
-      },
-      {
-        "name": "macosX64ApiElements",
-        "sourceSet": [
-          "macosMain",
-          "appleMain",
-          "nativeMain",
-          "commonMain"
-        ]
       }
     ],
     "sourceSets": [
-      {
-        "name": "appleMain",
-        "dependsOn": [
-          "nativeMain"
-        ],
-        "moduleDependency": [
-          "org.jetbrains.kotlintoolchain.kmp.sample:libraryNested"
-        ],
-        "sourceSetCInteropMetadataDirectory": "appleMain-cinterop",
-        "binaryLayout": "klib",
-        "hostSpecific": "true"
-      },
       {
         "name": "commonMain",
         "dependsOn": [],
@@ -70,18 +49,6 @@
         ],
         "sourceSetCInteropMetadataDirectory": "linuxMain-cinterop",
         "binaryLayout": "klib"
-      },
-      {
-        "name": "macosMain",
-        "dependsOn": [
-          "appleMain"
-        ],
-        "moduleDependency": [
-          "org.jetbrains.kotlintoolchain.kmp.sample:libraryNested"
-        ],
-        "sourceSetCInteropMetadataDirectory": "macosMain-cinterop",
-        "binaryLayout": "klib",
-        "hostSpecific": "true"
       },
       {
         "name": "nativeMain",

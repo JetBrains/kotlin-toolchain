@@ -54,34 +54,9 @@
           "nativeMain",
           "commonMain"
         ]
-      },
-      {
-        "name": "macosX64ApiElements",
-        "sourceSet": [
-          "macosMain",
-          "appleMain",
-          "macPlusLinuxMain",
-          "nativeMain",
-          "commonMain"
-        ]
       }
     ],
     "sourceSets": [
-      {
-        "name": "appleMain",
-        "dependsOn": [
-          "nativeMain",
-          "macPlusLinuxMain"
-        ],
-        "moduleDependency": [
-          "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-          "org.jetbrains.kotlintoolchain.kmp.sample:library",
-          "com.fasterxml.jackson:jackson-bom",
-          "org.jetbrains.kotlin:kotlin-stdlib"
-        ],
-        "sourceSetCInteropMetadataDirectory": "appleMain-cinterop",
-        "binaryLayout": "klib"
-      },
       {
         "name": "commonMain",
         "dependsOn": [],
@@ -117,20 +92,6 @@
           "org.jetbrains.kotlin:kotlin-stdlib"
         ],
         "sourceSetCInteropMetadataDirectory": "macPlusLinuxMain-cinterop",
-        "binaryLayout": "klib"
-      },
-      {
-        "name": "macosMain",
-        "dependsOn": [
-          "appleMain"
-        ],
-        "moduleDependency": [
-          "org.jetbrains.kotlinx:kotlinx-coroutines-core",
-          "org.jetbrains.kotlintoolchain.kmp.sample:library",
-          "com.fasterxml.jackson:jackson-bom",
-          "org.jetbrains.kotlin:kotlin-stdlib"
-        ],
-        "sourceSetCInteropMetadataDirectory": "macosMain-cinterop",
         "binaryLayout": "klib"
       },
       {
