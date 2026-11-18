@@ -64,17 +64,7 @@ class PluginsTest : CliTestBase() {
 
         val buildDir = tempRoot / "build"
         val projectDir = r1.projectDir
-        val expectedOutputPath = testProjectSourcesDir / "expected-plugin-output.txt"
 
-        // In the 'core' and 'lib' modules, the Kotlin version is not overridden, so we expect the default in the
-        //   corresponding classpaths.
-        // We expect Kotlin 2.3.0 specifically in the 'from-catalog' because the 'app' module
-        //   overrides settings.kotlin.version.
-        // We expect Kotlin 2.3.10 specifically in the 'compile' classpaths
-        //   despite the fact that the 'app' module overrides settings.kotlin.version.
-        //   In 'compile', the version is aligned with the runtime classpath of the module.
-        //   The runtime classpath of the module gets the default Kotlin version transitively from core/lib because it's
-        //   higher, so we expect the default Kotlin version even though it sets Kotlin to 2.2.10 explicitly.
         val actualOutputSubstituted = r1.extractCustomTaskStdout(
             moduleName = "app",
             taskName = "build",
@@ -82,9 +72,23 @@ class PluginsTest : CliTestBase() {
         )
             .replace(projectDir.toString(), $$"$projectDir")
             .replace(Dirs.userCacheRoot.toString(), $$"${Dirs.userCacheRoot}")
-            .replace(DefaultVersions.kotlin, $$"${DefaultVersions.kotlin}")
             .replace(buildDir.toString(), $$"$buildDir")
             .replace(File.separatorChar, '/')
+
+        /*
+        Expectations form expected-plugin-output.txt, explained:
+
+        - base (app's runtime): Kotlin 2.4.20, because transitively got from 'lib' (higher than 'app' and 'core')
+        - core: Kotlin 2.4.10, as declared in settings
+        - lib: Kotlin 2.4.20, as declared in settings, because it's higher than 'core' anyway
+        - kotlin-poet: Kotlin 2.1.21 (transitive of kotlin-poet, no impact of current module)
+        - from-catalog: Kotlin 2.4.0 (specified by the 'app' module -> defines $kotlin.reflect catalog entry)
+        - compile: Kotlin 2.4.20, because the version is aligned with that of the runtime classpath of the
+            module, which gets the highest version from 'lib' as a transitive dependency
+        - moduleCompile: Kotlin 2.4.20, because transitively got from 'lib', and it's higher
+        - combined: Kotlin 2.4.20 (from 'lib'), kotlin-reflect 2.4.0 (version specified by the 'app' module -> defines $kotlin.reflect catalog entry)
+         */
+        val expectedOutputPath = testProjectSourcesDir / "expected-plugin-output.txt"
         assertEqualsIgnoreLineSeparator(
             expectedOutputPath.readText(),
             actualOutputSubstituted,
