@@ -1,0 +1,7 @@
+product:
+  type: lib
+  platforms: [ <![Warning] The `macosX64` platform is deprecated since Kotlin `2.3.20`, and this module uses `2.4.21`. Remove `macosX64` from `product.platforms` to prepare for this change.!>macosX64<!>, macosArm64 ]
+
+settings:
+  kotlin:
+    version: <![Warning] The `macosX64` platform is deprecated since Kotlin `2.3.20`, and this module uses `2.4.21`. Remove `macosX64` from `product.platforms` to prepare for this change.!>2.4.21<!>

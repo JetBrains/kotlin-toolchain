@@ -16,6 +16,7 @@ val AomSingleModuleDiagnosticFactories: List<AomSingleModuleDiagnosticFactory> =
     AndroidApplicationIdMissingFactory,
     AndroidSettingsCannotBeNullFactory,
     AndroidVersionShouldBeAtLeastMinSdkFactory,
+    ApplePlatformsKotlinSupportFactory,
     ComposeVersionWithDisabledCompose,
     JavaIncrementalCompilationRequiresJava21Factory,
     JdkDistributionRequiresLicenseFactory,

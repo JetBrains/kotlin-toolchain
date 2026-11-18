@@ -20,6 +20,8 @@ enum class FrontendDiagnosticId : DiagnosticId {
     AndroidSettingCannotBeNull,
     AndroidVersionShouldBeAtLeastMinSdk,
     AndroidVersionTooOld,
+    ApplePlatformDeprecatedInKotlin,
+    ApplePlatformNotSupportedByKotlin,
     ComposeMaterial3UnknownVersionMapping,
     ComposeHotReloadVersionMismatch,
     ComposeVersionWithoutCompose,

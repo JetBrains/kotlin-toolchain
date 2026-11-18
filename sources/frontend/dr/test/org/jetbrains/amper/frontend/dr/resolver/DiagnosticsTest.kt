@@ -593,9 +593,9 @@ class DiagnosticsTest : AbstractDependencyInsightsTest() {
         val deps = resolveNativeJvmOnlyDependencies(module = "transitive")
 
         val platformSpecificNodes = deps.distinctBfsSequence()
-            .filter { it.isMavenDependency("io.kotest", "kotest-framework-engine-macosarm64") }
+            .filter { it.isMavenDependency("io.kotest", "kotest-framework-engine-linuxarm64") }
             .toList()
-        assertTrue(platformSpecificNodes.isNotEmpty(), "kotest-framework-engine-macosarm64 is expected in the graph")
+        assertTrue(platformSpecificNodes.isNotEmpty(), "kotest-framework-engine-linuxarm64 is expected in the graph")
         platformSpecificNodes.forEach { node ->
             assertTrue(node.fragmentDependencies.isNotEmpty(), "$node is expected to be reached from a module")
             node.fragmentDependencies.forEach {

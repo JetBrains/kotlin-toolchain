@@ -1,0 +1,7 @@
+product:
+  type: lib
+  platforms: [ <![Error] The `macosX64` platform is no longer supported since Kotlin `2.5.0-Beta1`, and this module uses `2.5.0-Beta1`. Remove `macosX64` from `product.platforms`, or use a Kotlin version lower than `2.5.0-Beta1`.!>macosX64<!>, <![Warning] The `watchosArm32` platform is deprecated since Kotlin `2.4.20`, and this module uses `2.5.0-Beta1`. Remove `watchosArm32` from `product.platforms` to prepare for this change.!>watchosArm32<!> ]
+
+settings:
+  kotlin:
+    version: <![Error] The `macosX64` platform is no longer supported since Kotlin `2.5.0-Beta1`, and this module uses `2.5.0-Beta1`. Remove `macosX64` from `product.platforms`, or use a Kotlin version lower than `2.5.0-Beta1`.!><![Warning] The `watchosArm32` platform is deprecated since Kotlin `2.4.20`, and this module uses `2.5.0-Beta1`. Remove `watchosArm32` from `product.platforms` to prepare for this change.!>2.5.0-Beta1<!><!>

@@ -1,0 +1,7 @@
+product:
+  type: lib
+  platforms: [ <![Error] The `tvosX64` platform is no longer supported since Kotlin `2.5.0-Beta1`, and this module uses `2.5.0`. Remove `tvosX64` from `product.platforms`, or use a Kotlin version lower than `2.5.0-Beta1`.!>tvosX64<!>, tvosArm64 ]
+
+settings:
+  kotlin:
+    version: <![Error] The `tvosX64` platform is no longer supported since Kotlin `2.5.0-Beta1`, and this module uses `2.5.0`. Remove `tvosX64` from `product.platforms`, or use a Kotlin version lower than `2.5.0-Beta1`.!>2.5.0<!>

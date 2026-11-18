@@ -1,0 +1,7 @@
+product:
+  type: lib
+  platforms: [ macosArm64 ]
+
+settings:
+  kotlin:
+    version: 2.5.0
