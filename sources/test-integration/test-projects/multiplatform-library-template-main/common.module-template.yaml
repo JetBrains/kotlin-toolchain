@@ -1,11 +1,13 @@
+repositories:
+  - id: mavenLocal
+    url: mavenLocal
+    publish: true
+
 settings:
+  kotlin:
+    version: 2.4.21
   publishing:
     group: org.jetbrains.kotlintoolchain.kmp.sample
     version: 1.0.0
     publishSources: true
     enabled: true
-
-repositories:
-  - id: mavenLocal
-    url: mavenLocal
-    publish: true
