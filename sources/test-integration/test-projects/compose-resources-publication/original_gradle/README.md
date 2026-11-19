@@ -30,7 +30,8 @@ kotlin task :library-native:prepareMavenPublishables
 
 The KGP module metadata is kept for reference in
 `sources/test-integration/amper-cli-test/testResources/gradleMetadata/compose_resources_publication_*.original_gradle.json`,
-next to the Kotlin Toolchain golden files asserted by `ComposeResourcesTest`.
+next to the Kotlin Toolchain golden files asserted by `ComposeResourcesTest`. To regenerate the reference files, run
+`./gradlew generateOriginalGradleGoldFiles`, which copies them straight from the build outputs of this project.
 
 ## Result of the comparison
 
