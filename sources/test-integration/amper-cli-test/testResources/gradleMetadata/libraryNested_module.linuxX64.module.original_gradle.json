@@ -11,14 +11,13 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "9.1.0"
+      "version": "9.9.1"
     }
   },
   "variants": [
     {
       "name": "linuxX64ApiElements-published",
       "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
         "org.gradle.category": "library",
         "org.gradle.jvm.environment": "non-jvm",
         "org.gradle.usage": "kotlin-api",
@@ -30,7 +29,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.4.10"
+            "requires": "2.4.21"
           }
         },
         {
@@ -63,29 +62,29 @@
         {
           "name": "libraryNested-linuxX64Main-1.0.0.klib",
           "url": "libraryNested-linuxx64-1.0.0.klib",
-          "size": 3660,
-          "sha512": "dd76070207f4539800e07102630a003da5f9b861ae1d88d985e9af9139841c262467e27b9e0f61e19814c0bf8e47fec81b513bad3756fdd3c6ff4d76a653febb",
-          "sha256": "7f76ca5abdb18ea6851edb2472595a9c044b6b683d160b51147262dbd6817632",
-          "sha1": "ab7bc8021044c4676b514f5914ed5593041395c8",
-          "md5": "af3d143e0f6bf0e87249e861283f4fde"
+          "size": 5241,
+          "sha512": "6cb8715b95f6254df6da0074eb2f6a1c22dbcc986787ad4ece8d3f10b2990d20b0fe26d669707c75a8974e63e0efdc2e880e2e41c39e2beec40afdfea4571350",
+          "sha256": "bbc5bd12f116d846fb68fc45cb51bdb70c85efa99d7194c62ca54911a5d3f836",
+          "sha1": "e6d0162ccb91351a85c37a90b3afe5a05faecca7",
+          "md5": "c8b4ca96e54a513ed4756a2eaa3b7184"
         },
         {
           "name": "libraryNested-linuxX64Cinterop-customMain-1.0.0.klib",
           "url": "libraryNested-linuxx64-1.0.0-cinterop-custom.klib",
-          "size": 5380,
-          "sha512": "fb8e95ec42594810310958d870a28cba7832e2d660ad17e77b9f5c6d4f232016ef7ece1f0b539e97ebab6db936fc89d05c6dc199786713b0bfadec5ef08fc834",
-          "sha256": "4b36dd2b02d6557d288ae7a2d9bf3be9b1938a378b664364bf8e1c45e8e447cd",
-          "sha1": "fc0b18a1d4c63c66924b0574c9deef73a1d9d3c9",
-          "md5": "7358aa78b1f507bfec3df152c921def0"
+          "size": 5425,
+          "sha512": "8edf1d583a3bc04de312c6c19960e63bd1ba7f4d1a7c3cdd7a954e479e1aa6d2ee71cea24e5396029b4d70efbcbd76396f8dd967d83284b0f61e7b7ec2b7e9be",
+          "sha256": "d8a71d271a20c6883479160519b0b0cfe19bf49b8eb878017c2856ec57886104",
+          "sha1": "5b55aafe5700a266826ecfbf68d05abcdda096c3",
+          "md5": "5d15375395785ca01d070e3f4c113991"
         },
         {
           "name": "libraryNested-linuxX64Cinterop-custom2Main-1.0.0.klib",
           "url": "libraryNested-linuxx64-1.0.0-cinterop-custom2.klib",
-          "size": 5387,
-          "sha512": "dc880183d26ed5b2aec975c8dda500f19ff55e82fa5c3278967524db71785208a01acf725a6276b3e5a447fcffbdde47e470ce8db6ebb51cc25040c64765051a",
-          "sha256": "98319996fd1f83efca8f8be50af51894a85eaf437f73ed0ae08643e9ecd184ba",
-          "sha1": "723c65b6d39f8a87c8a23c4cf7a095a8dd4b885f",
-          "md5": "09e199667ae89d1dbe75e97daa343420"
+          "size": 5427,
+          "sha512": "9a08e8f0db23d69c3fb7faa5eef7e1ca893ed34914404ef6e9c23dd44c7c92840b1ccd632d6d8e068c6a25c1024a94c51597d95a92f8d5118d2e65aee5e50186",
+          "sha256": "0b9cd268277c6669a2f78700aecab10cfaa9af7eed52fd8397d04129c34667e4",
+          "sha1": "4c7b9a0d57ec9e2783243eada844dfb8a92200ae",
+          "md5": "8b44fbbf1be2b08660443cba8702c959"
         }
       ]
     },
@@ -104,11 +103,11 @@
         {
           "name": "libraryNested-linuxx64-1.0.0-sources.jar",
           "url": "libraryNested-linuxx64-1.0.0-sources.jar",
-          "size": 516,
-          "sha512": "1049bbc0fa23e164d90f4e090de860499556fefaa535dcd25b42960a6ca630d17493fc330d57856e7271eb25c0b7bfed829f35047eff71cc69a91f151cf8929c",
-          "sha256": "506d01eac9fc7cf2833f567e241013196d8632bd30c6a60671b1b7cb642c2a9c",
-          "sha1": "ed60862a57ea6a8fc33b47893d6eb8a363cf09d0",
-          "md5": "7c6c95ca235b6e6d7be3031230a15204"
+          "size": 534,
+          "sha512": "da8472fa535d9a2793c8b08917a57fcd710ed3567bb27911da38327f7760be03fb3ca7eff977e6903be55f2db4c2f444caf76cd6f427c61662674e9daaab65c9",
+          "sha256": "8ac9d9dbd4498dfeeb7a2866051ca0c361edfea836706883b0633134d7c1ae0f",
+          "sha1": "cc39f1dddd582956ef52e7730d1bc19f4b0b04d8",
+          "md5": "dc9e2663534db710bb06686c4ac84510"
         }
       ]
     }

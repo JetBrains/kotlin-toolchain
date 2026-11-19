@@ -7,7 +7,7 @@ package org.jetbrains.kotlintoolchain.kmp.sample.fibonacci
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class LinuxNestedLibraryUtilTest {
+class NestedLibraryUtilTest {
 
     @Test
     fun `test linuxBar`() {

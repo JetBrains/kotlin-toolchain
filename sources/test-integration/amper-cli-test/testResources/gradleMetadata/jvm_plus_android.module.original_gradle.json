@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "9.1.0"
+      "version": "9.9.1"
     }
   },
   "variants": [
@@ -34,7 +34,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.4.10"
+            "requires": "2.4.21"
           }
         }
       ],
@@ -42,11 +42,11 @@
         {
           "name": "edgeCase_jvmPlusAndroid-metadata-1.0.0.jar",
           "url": "jvmPlusAndroid-1.0.0.jar",
-          "size": 715,
-          "sha512": "f93ea7923136866a8cd149bcc621951f0b5cd42d051d39c924cb579ac27dac384d712643cff72c6e71720ebf562c2cc151ad5dd0b7743b42fa20beaaf0cfa790",
-          "sha256": "fde8127e05a5c0e1047be7cb90104c6fb32e76254002207f1a94b9a58aca1603",
-          "sha1": "e4133bcded77371aa7b7ed919d1fa71bfc6f9e41",
-          "md5": "bec97f6a3448e38d8f1a5126ed362e42"
+          "size": 713,
+          "sha512": "aa93a00c6388e13bd78f62ebe002f39d5b3975d25f4b42693f853e6bc0d2c017fa4bae6c284fe0945c3281283902015299e85d3378463790350bb359d9b0b1cc",
+          "sha256": "1220d3ca89d912071d22d7838129db353a2b519627b542213de8e59179869c46",
+          "sha1": "c4993bb7e0e63b2695694613122d5fda1994905b",
+          "md5": "5be9130b85100da544467327067b23cd"
         }
       ]
     },
@@ -64,11 +64,11 @@
         {
           "name": "edgeCase_jvmPlusAndroid-kotlin-1.0.0-sources.jar",
           "url": "jvmPlusAndroid-1.0.0-sources.jar",
-          "size": 673,
-          "sha512": "5d56694ef33ec3bce04b39879c40c132f2b1429c311e9bfc8e4fdc21aed49509b84f0d3c7236c88d002a73c5adf4479e629c16a85d009402e5580c9009a0cc5f",
-          "sha256": "29a45b2a2cd25c54c56f2db545da09b16f14af83b5ce26e5b88a2559aa6058af",
-          "sha1": "825a8fc902c8e595781509c75b92b7f8f99fec9f",
-          "md5": "5a894058d8f697be041ce68b2ae6373d"
+          "size": 681,
+          "sha512": "d0ad81f2556f5badac9de2a4b209d2d4418ad66afbc6ac56e6a8091fba31e787dff55f002e591ae4eeb7b91e8fce8c78eea4af4cdfc5cfef1e0014de0a883570",
+          "sha256": "70ac625b53a913dfb93c238101c5f770fb38b749196ae85025736a852df27be6",
+          "sha1": "e6ec6296cd24292e7e81d4663540ef1f84949a08",
+          "md5": "bee5d2d9bff2067c2faa365292d25a41"
         }
       ]
     },

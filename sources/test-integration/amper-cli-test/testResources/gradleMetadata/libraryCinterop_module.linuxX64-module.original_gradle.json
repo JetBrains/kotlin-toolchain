@@ -11,14 +11,13 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "9.1.0"
+      "version": "9.9.1"
     }
   },
   "variants": [
     {
       "name": "linuxX64ApiElements-published",
       "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
         "org.gradle.category": "library",
         "org.gradle.jvm.environment": "non-jvm",
         "org.gradle.usage": "kotlin-api",
@@ -37,7 +36,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.4.10"
+            "requires": "2.4.21"
           }
         }
       ],
@@ -45,20 +44,20 @@
         {
           "name": "libraryCinterop-linuxX64Main-1.0.0.klib",
           "url": "libraryCinterop-linuxx64-1.0.0.klib",
-          "size": 5711,
-          "sha512": "e8e07a539138a6223af93db38cd03cd4c800d8a3dc18f92b9ea93371e38d2be5193cc4efaf64812fd6dd190a96a9da036dd4274fe98288ebe02179f83ee4c4ec",
-          "sha256": "814793cf579b308caeae0a57d371c4bb9a24084353f579132f1946a119002634",
-          "sha1": "50327fbd36d06e31aec5e7527c1bea26ab47aa8f",
-          "md5": "fdc5afd67de465e9de255bd502b43807"
+          "size": 6800,
+          "sha512": "08d2ba3f51ebdb0f05e087b6b2e7784afb9afcf2c8cade91d5a36f1019704be1bb691f2c8a988b1a0d937b4e2e872f1d37aeda7e1742c6ccfb989fe08f0b0253",
+          "sha256": "ef1ade334ed2a50fdc5fa16fca6cc2683c0c93d01e1d4acc35b594d94950f0cf",
+          "sha1": "af38294073597b5e8f80ded8a0d623d3208e86dc",
+          "md5": "55fa1758ce9498a21069f4fce96c9972"
         },
         {
           "name": "libraryCinterop-linuxX64Cinterop-libcurlMain-1.0.0.klib",
           "url": "libraryCinterop-linuxx64-1.0.0-cinterop-libcurl.klib",
-          "size": 42955,
-          "sha512": "b79e6257c423d1b95416ce7f276dd4d4032d323eb7f5dc2dd795d1efa5c4ceb050acfed1e765f82ec9b089fe3394f5f5735b0c3a300a428dd35ce7591623f911",
-          "sha256": "533aece73cbd96853fa8183b0036cdfd614eb6c300591da01edea55150668578",
-          "sha1": "308a883c35831ec5b055fa17f59535783b0eded6",
-          "md5": "093c9a4456a3049e237bc2db0e6637b3"
+          "size": 45119,
+          "sha512": "c7f32c4657d71a86baf5a050a31cb55e3fdcb541c10cf2a94aea342a8bdd9b59f09da9b2bdde113719d9bfd429776ad934c6bb7057e3ee1203484f977a212a45",
+          "sha256": "61627ffb2c30a240213f461341eaa748628b4fe3e8c9fab9de1937ce101e168f",
+          "sha1": "4b5dffd959e067eda7af26bcde9c5c75fd56c25b",
+          "md5": "82aed90b17c11932719402700f7fd52d"
         }
       ]
     },
@@ -77,11 +76,11 @@
         {
           "name": "libraryCinterop-linuxx64-1.0.0-sources.jar",
           "url": "libraryCinterop-linuxx64-1.0.0-sources.jar",
-          "size": 923,
-          "sha512": "32c6d14abf5605fc99b24673ab3f5c1ecf47599841ded7239d0ea899630807a71d11b67478908c1d6bd4fc0b58763b92bbde6d7b0713e1fc29035a26e725c3d5",
-          "sha256": "4ed5ab8550a6264b5459622b6fc7892a2f424a581da53d492edf1eccd386a549",
-          "sha1": "edc9ffbbdc8c03b03215ec3d8d336334e84ad4d1",
-          "md5": "2bf9ccbd57bd656669c5cf43367432a6"
+          "size": 920,
+          "sha512": "5e1c5ee2de7deb5fd0f520590bc468354a6f92cec791d7e4f211252e8d77eed838bb74d6d96e7dd089f2cad8ee70d425f0902e9245bd03d87a89613eff15a2ed",
+          "sha256": "a445dd12930816bccc6f59e28fae3ddbdaf2c3527def1d18ee1c3ff2d35d4407",
+          "sha1": "9ab8f5e4bb9ab5e405526f6703f8b006a4466c36",
+          "md5": "0aaf902e00e4852279446fff2e306731"
         }
       ]
     }

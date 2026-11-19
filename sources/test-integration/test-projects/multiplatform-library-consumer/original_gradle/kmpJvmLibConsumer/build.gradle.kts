@@ -23,11 +23,11 @@ kotlin {
             sourceSetTreeName = "test"
         }
     }
-    iosX64()
     iosArm64()
     iosSimulatorArm64()
     linuxX64()
     linuxArm64()
+    mingwX64()
 
     sourceSets {
         jvmMain.dependencies {

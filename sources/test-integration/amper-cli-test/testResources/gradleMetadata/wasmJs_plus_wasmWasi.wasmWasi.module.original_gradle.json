@@ -11,7 +11,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "9.1.0"
+      "version": "9.9.1"
     }
   },
   "variants": [
@@ -36,7 +36,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.4.10"
+            "requires": "2.4.21"
           }
         }
       ],
@@ -44,11 +44,11 @@
         {
           "name": "edgeCase_wasmJsPlusWasmWasi-wasm-wasi-1.0.0.klib",
           "url": "wasmJsPlusWasmWasi-wasm-wasi-1.0.0.klib",
-          "size": 3659,
-          "sha512": "e332b1c682580e1ad3272ab32cc3b012f496e5b243678e814a12ff5edbfd8ec9a913a093c78b9f6f3db9d452d5b272c70188438780f760a66235e3f6f818438b",
-          "sha256": "7335b3859cdccaab44fda7eca25415bd3845a83a450bb26b98a728aa19939c50",
-          "sha1": "da5a21639e2d4a1ec964979cccc0d957eea101f2",
-          "md5": "b9f0296105668e6b270549b57a0a4c11"
+          "size": 5028,
+          "sha512": "3bd550587e255552ccd4ae6a59c0210f7caf12e77edb2d3494a8649e81b502fe0f8c6b4ff6f22d26d04ab1eecd13b2b328dfae891b1db7bfd4909ce198791596",
+          "sha256": "e323286bdd93fb6db49639ddb51b29af613d1f614a0774fc00d75e1ce550107b",
+          "sha1": "707da8a7b63c333a97ef44a6f5d65606dd312de0",
+          "md5": "b5953396946e618cce9b56365b07ed8a"
         }
       ]
     },
@@ -73,7 +73,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.4.10"
+            "requires": "2.4.21"
           }
         },
         {
@@ -88,11 +88,11 @@
         {
           "name": "edgeCase_wasmJsPlusWasmWasi-wasm-wasi-1.0.0.klib",
           "url": "wasmJsPlusWasmWasi-wasm-wasi-1.0.0.klib",
-          "size": 3659,
-          "sha512": "e332b1c682580e1ad3272ab32cc3b012f496e5b243678e814a12ff5edbfd8ec9a913a093c78b9f6f3db9d452d5b272c70188438780f760a66235e3f6f818438b",
-          "sha256": "7335b3859cdccaab44fda7eca25415bd3845a83a450bb26b98a728aa19939c50",
-          "sha1": "da5a21639e2d4a1ec964979cccc0d957eea101f2",
-          "md5": "b9f0296105668e6b270549b57a0a4c11"
+          "size": 5028,
+          "sha512": "3bd550587e255552ccd4ae6a59c0210f7caf12e77edb2d3494a8649e81b502fe0f8c6b4ff6f22d26d04ab1eecd13b2b328dfae891b1db7bfd4909ce198791596",
+          "sha256": "e323286bdd93fb6db49639ddb51b29af613d1f614a0774fc00d75e1ce550107b",
+          "sha1": "707da8a7b63c333a97ef44a6f5d65606dd312de0",
+          "md5": "b5953396946e618cce9b56365b07ed8a"
         }
       ]
     },
@@ -111,11 +111,11 @@
         {
           "name": "edgeCase_wasmJsPlusWasmWasi-wasm-wasi-1.0.0-sources.jar",
           "url": "wasmJsPlusWasmWasi-wasm-wasi-1.0.0-sources.jar",
-          "size": 666,
-          "sha512": "3567e4707574f3d56f03060115aaf13a9a52e2787cc0447bb4571b9d3b4e6764ca566b89b19f49b2ac50ba5adec4b3b83c6f3cc7bd36eafa4101579bfdbe1152",
-          "sha256": "a51d64a832e2e768eacfd46a5d3d644bcd34132e323cb37f91ddb03e3a851a64",
-          "sha1": "4ad3ab870d2a6dd70b149129d10a0fb2bb3c65d4",
-          "md5": "2a50bc98f697b751c8757194c12648f6"
+          "size": 669,
+          "sha512": "8c6ea5d32c13012b80e19679e41696b5c97e908da16a1cfb1db6be3f72a1d9ad3e75527934464c2a3b3de0a22869e212d5d5438fc3400bae551df32964792e5e",
+          "sha256": "710dd713226052e61bbde230afc19c7b339d0adbe9885f9ac07b5e0fd748c42a",
+          "sha1": "7329d46e465639a00f88d3e327bbb21e598d711c",
+          "md5": "f6412224e9116b2cd3566bfc35d639d5"
         }
       ]
     }

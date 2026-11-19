@@ -3,7 +3,7 @@
  */
 @file:OptIn(ExperimentalForeignApi::class)
 
-package org.jetbrains.kotlintoolchain.kmp.sample.cinterop.consumer
+package org.jetbrains.kotlintoolchain.kmp.sample.consumer
 
 import com.example.native.custom.getCustomGreeting
 import com.example.native.custom.getCustomGreeting2

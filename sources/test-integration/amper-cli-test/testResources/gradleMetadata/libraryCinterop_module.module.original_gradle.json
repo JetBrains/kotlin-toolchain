@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "9.1.0"
+      "version": "9.9.1"
     }
   },
   "variants": [
@@ -34,7 +34,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.4.10"
+            "requires": "2.4.21"
           }
         }
       ],
@@ -42,11 +42,11 @@
         {
           "name": "libraryCinterop-metadata-1.0.0.jar",
           "url": "libraryCinterop-1.0.0.jar",
-          "size": 138094,
-          "sha512": "c8a8c63cb75253cfbe6934738717e8d8ab3584b5bf4d6c8a33495fe3adc0162248876409de3b137bee28163e8ea3303f906c44b5e0b19faa9131186f2489dada",
-          "sha256": "08315c881037033924c404933a5dd4aae3b7c65b78aee8435389463b2e3eee5a",
-          "sha1": "201eb006104c2b6d884a4690e0e089fcd6e9f77a",
-          "md5": "9e05eb70cf081befceb467937cbb7cfb"
+          "size": 125274,
+          "sha512": "6d3e2fe7beb5686d16519d25c4b8cb48c657ae8173b66ecbdfb96e8d6baef32e9f06be534113127af4e636f9eddafa1d0e63d33d7a8016cdfeb64ea4b8666e1f",
+          "sha256": "15473155107f974b52c02cb1a5c1cc066066ff5be13ad7123091a5465bed4f6b",
+          "sha1": "274a20a3cdac78ee4fb4dc06079639200206e8c0",
+          "md5": "9f2da1c8cdb97f30e8fd6aa77d1a5ff1"
         }
       ]
     },
@@ -64,18 +64,17 @@
         {
           "name": "libraryCinterop-kotlin-1.0.0-sources.jar",
           "url": "libraryCinterop-1.0.0-sources.jar",
-          "size": 923,
-          "sha512": "32c6d14abf5605fc99b24673ab3f5c1ecf47599841ded7239d0ea899630807a71d11b67478908c1d6bd4fc0b58763b92bbde6d7b0713e1fc29035a26e725c3d5",
-          "sha256": "4ed5ab8550a6264b5459622b6fc7892a2f424a581da53d492edf1eccd386a549",
-          "sha1": "edc9ffbbdc8c03b03215ec3d8d336334e84ad4d1",
-          "md5": "2bf9ccbd57bd656669c5cf43367432a6"
+          "size": 920,
+          "sha512": "5e1c5ee2de7deb5fd0f520590bc468354a6f92cec791d7e4f211252e8d77eed838bb74d6d96e7dd089f2cad8ee70d425f0902e9245bd03d87a89613eff15a2ed",
+          "sha256": "a445dd12930816bccc6f59e28fae3ddbdaf2c3527def1d18ee1c3ff2d35d4407",
+          "sha1": "9ab8f5e4bb9ab5e405526f6703f8b006a4466c36",
+          "md5": "0aaf902e00e4852279446fff2e306731"
         }
       ]
     },
     {
       "name": "linuxArm64ApiElements-published",
       "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
         "org.gradle.category": "library",
         "org.gradle.jvm.environment": "non-jvm",
         "org.gradle.usage": "kotlin-api",
@@ -110,7 +109,6 @@
     {
       "name": "linuxX64ApiElements-published",
       "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
         "org.gradle.category": "library",
         "org.gradle.jvm.environment": "non-jvm",
         "org.gradle.usage": "kotlin-api",
@@ -145,7 +143,6 @@
     {
       "name": "macosArm64ApiElements-published",
       "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
         "org.gradle.category": "library",
         "org.gradle.jvm.environment": "non-jvm",
         "org.gradle.usage": "kotlin-api",
@@ -180,7 +177,6 @@
     {
       "name": "macosArm64MetadataElements-published",
       "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
         "org.gradle.category": "library",
         "org.gradle.jvm.environment": "non-jvm",
         "org.gradle.usage": "kotlin-metadata",
@@ -191,58 +187,6 @@
         "url": "../../libraryCinterop-macosarm64/1.0.0/libraryCinterop-macosarm64-1.0.0.module",
         "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryCinterop-macosarm64",
-        "version": "1.0.0"
-      }
-    },
-    {
-      "name": "macosX64ApiElements-published",
-      "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
-        "org.gradle.category": "library",
-        "org.gradle.jvm.environment": "non-jvm",
-        "org.gradle.usage": "kotlin-api",
-        "org.jetbrains.kotlin.native.target": "macos_x64",
-        "org.jetbrains.kotlin.platform.type": "native"
-      },
-      "available-at": {
-        "url": "../../libraryCinterop-macosx64/1.0.0/libraryCinterop-macosx64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
-        "module": "libraryCinterop-macosx64",
-        "version": "1.0.0"
-      }
-    },
-    {
-      "name": "macosX64SourcesElements-published",
-      "attributes": {
-        "org.gradle.category": "documentation",
-        "org.gradle.dependency.bundling": "external",
-        "org.gradle.docstype": "sources",
-        "org.gradle.jvm.environment": "non-jvm",
-        "org.gradle.usage": "kotlin-runtime",
-        "org.jetbrains.kotlin.native.target": "macos_x64",
-        "org.jetbrains.kotlin.platform.type": "native"
-      },
-      "available-at": {
-        "url": "../../libraryCinterop-macosx64/1.0.0/libraryCinterop-macosx64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
-        "module": "libraryCinterop-macosx64",
-        "version": "1.0.0"
-      }
-    },
-    {
-      "name": "macosX64MetadataElements-published",
-      "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
-        "org.gradle.category": "library",
-        "org.gradle.jvm.environment": "non-jvm",
-        "org.gradle.usage": "kotlin-metadata",
-        "org.jetbrains.kotlin.native.target": "macos_x64",
-        "org.jetbrains.kotlin.platform.type": "native"
-      },
-      "available-at": {
-        "url": "../../libraryCinterop-macosx64/1.0.0/libraryCinterop-macosx64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
-        "module": "libraryCinterop-macosx64",
         "version": "1.0.0"
       }
     }

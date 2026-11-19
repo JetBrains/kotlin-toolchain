@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 class JvmTest {
 
     @Test
-    fun `test jvm number`() {
+    fun `test android number`() {
         assertEquals(2, platformSpecificElement)
     }
 }

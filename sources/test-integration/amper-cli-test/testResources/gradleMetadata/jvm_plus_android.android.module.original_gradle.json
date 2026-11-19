@@ -11,7 +11,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "9.1.0"
+      "version": "9.9.1"
     }
   },
   "variants": [
@@ -36,7 +36,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.4.10"
+            "requires": "2.4.21"
           }
         }
       ],
@@ -44,11 +44,11 @@
         {
           "name": "edgeCase_jvmPlusAndroid.aar",
           "url": "jvmPlusAndroid-android-1.0.0.aar",
-          "size": 1556,
-          "sha512": "3990a27451faa5d130f5b62f47af4aeb34b95d0b780f5a64091f347fdb7723d8e1c4b3afe52a4e0690f8007c548bb1433c99c9b293971c3eff67299cc0c9a628",
-          "sha256": "43aac03ebd5ffd44c2335a38fefa43801639ec7a248d82e55df6e72624c65c98",
-          "sha1": "d08ba9ae98c485da3d95030b35cc931fbd3f5e93",
-          "md5": "bfc5fc2356ed4597b01bec68dcd5f887"
+          "size": 1651,
+          "sha512": "436078909d9daf0cc9991109bb890caa9068f4bea6f1a6750b88f39c2f9a1e81298cc3cc6cf2866dc6868fc3ce8cb7055799d677dd93f75447099df8a3922cf5",
+          "sha256": "6efd6edd573d8c01ace63a07822f905c5cd0cb34bb2e1a3ec975f75d47a5e170",
+          "sha1": "94d2c4fb9be1041340ca728a7072eaec28c05a9e",
+          "md5": "cf578e9116c4742bf1338a2ceb264db6"
         }
       ]
     },
@@ -73,7 +73,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.4.10"
+            "requires": "2.4.21"
           }
         },
         {
@@ -88,11 +88,11 @@
         {
           "name": "edgeCase_jvmPlusAndroid.aar",
           "url": "jvmPlusAndroid-android-1.0.0.aar",
-          "size": 1556,
-          "sha512": "3990a27451faa5d130f5b62f47af4aeb34b95d0b780f5a64091f347fdb7723d8e1c4b3afe52a4e0690f8007c548bb1433c99c9b293971c3eff67299cc0c9a628",
-          "sha256": "43aac03ebd5ffd44c2335a38fefa43801639ec7a248d82e55df6e72624c65c98",
-          "sha1": "d08ba9ae98c485da3d95030b35cc931fbd3f5e93",
-          "md5": "bfc5fc2356ed4597b01bec68dcd5f887"
+          "size": 1651,
+          "sha512": "436078909d9daf0cc9991109bb890caa9068f4bea6f1a6750b88f39c2f9a1e81298cc3cc6cf2866dc6868fc3ce8cb7055799d677dd93f75447099df8a3922cf5",
+          "sha256": "6efd6edd573d8c01ace63a07822f905c5cd0cb34bb2e1a3ec975f75d47a5e170",
+          "sha1": "94d2c4fb9be1041340ca728a7072eaec28c05a9e",
+          "md5": "cf578e9116c4742bf1338a2ceb264db6"
         }
       ]
     },
@@ -111,11 +111,11 @@
         {
           "name": "edgeCase_jvmPlusAndroid-android-1.0.0-sources.jar",
           "url": "jvmPlusAndroid-android-1.0.0-sources.jar",
-          "size": 1075,
-          "sha512": "f4913d895ee53f5566d4c179a51fcce2fec0af46df412eff6b669dc28b2d288385f7b0f87032e3e7c7abe8ff69192d5ce5f495520ed0a5ac76079fcbbedd6b98",
-          "sha256": "9e1bbab159c23613a9cfb26d07933d0d53504c201602b18d10132c3ccc8a140a",
-          "sha1": "8a126baf02a709c02f6c0f720a71bc961abf8200",
-          "md5": "9d6372bf5d8ad292f6d737db1ac46ea3"
+          "size": 1092,
+          "sha512": "b4305e953dbf39df171b83d3ed5a46d69f8bb10cea4292d426a8771a309ca8a2881a283af1b35078c2d2e416464709da203821dae8aa3100a62f6e0a54a6e26c",
+          "sha256": "a7ce93f055f569be297c975da02e99b6c21d0bb33112abf8ac0193605ec1c717",
+          "sha1": "419521e80161e8bbf32f34f49570f3055c0978fc",
+          "md5": "37a52aedfa401bd093184fd9efe64d19"
         }
       ]
     }

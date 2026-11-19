@@ -1,32 +1,32 @@
 {
-  "schemaVersion": "1.1.0",
-  "buildSystem": "Gradle",
-  "buildSystemVersion": "9.1.0",
-  "buildPlugin": "org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformPluginWrapper",
-  "buildPluginVersion": "2.2.20",
-  "projectSettings": {
-    "isHmppEnabled": true,
-    "isCompatibilityMetadataVariantEnabled": false,
-    "isKPMEnabled": false
-  },
-  "projectTargets": [
-    {
-      "target": "com.android.build.api.variant.impl.KotlinMultiplatformAndroidLibraryTargetImpl",
-      "platformType": "androidJvm"
+    "schemaVersion": "1.1.0",
+    "buildSystem": "Gradle",
+    "buildSystemVersion": "9.9.1",
+    "buildPlugin": "org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformPluginWrapper",
+    "buildPluginVersion": "2.4.21",
+    "projectSettings": {
+        "isHmppEnabled": true,
+        "isCompatibilityMetadataVariantEnabled": false,
+        "isKPMEnabled": false
     },
-    {
-      "target": "org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget",
-      "platformType": "jvm",
-      "extras": {
-        "jvm": {
-          "jvmTarget": "21",
-          "withJavaEnabled": false
+    "projectTargets": [
+        {
+            "target": "com.android.build.api.variant.impl.KotlinMultiplatformAndroidLibraryTargetImpl",
+            "platformType": "androidJvm"
+        },
+        {
+            "target": "org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget",
+            "platformType": "jvm",
+            "extras": {
+                "jvm": {
+                    "jvmTarget": "25",
+                    "withJavaEnabled": false
+                }
+            }
+        },
+        {
+            "target": "org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget",
+            "platformType": "common"
         }
-      }
-    },
-    {
-      "target": "org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMetadataTarget",
-      "platformType": "common"
-    }
-  ]
+    ]
 }

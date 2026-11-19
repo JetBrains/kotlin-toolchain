@@ -10,7 +10,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "9.1.0"
+      "version": "9.9.1"
     }
   },
   "variants": [
@@ -27,7 +27,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.4.10"
+            "requires": "2.4.21"
           }
         },
         {
@@ -60,11 +60,11 @@
         {
           "name": "libraryNested-metadata-1.0.0.jar",
           "url": "libraryNested-1.0.0.jar",
-          "size": 20542,
-          "sha512": "60cc92d7e7d0708b3874f390ba3955f47a950b15ae838e2ac726d61e0add7571960f79a97812642ce205f16b1033b0ff75f9c5992eb8a5d0a706d36dfa7a4a18",
-          "sha256": "1caaecb4fae8b83a4c52cf8921db53c05307fbe20c63ef3370399caa07dbe03e",
-          "sha1": "e5a0281708eaf3e3cea38edb478135ffd697ebe9",
-          "md5": "ac04a05063a724ac28ff077623387d41"
+          "size": 23425,
+          "sha512": "a8e09b8667fb919ac714e81ac59d533582aa86fe0826d1ad0652331e2a4a439feaedc083fe7cd77f8470251c90a2d4eb521cebd75a245c0fe6671ac47ec34895",
+          "sha256": "6aa8d193835d9e7ca4c835abac99d2dbedbd34bb70b8496921151ca9e393629e",
+          "sha1": "0fb092f8c79f4b6e345d90c9c1640b7c25926b5f",
+          "md5": "e604d283e649a58df70584989481eaa4"
         }
       ]
     },
@@ -82,11 +82,11 @@
         {
           "name": "libraryNested-kotlin-1.0.0-sources.jar",
           "url": "libraryNested-1.0.0-sources.jar",
-          "size": 516,
-          "sha512": "1049bbc0fa23e164d90f4e090de860499556fefaa535dcd25b42960a6ca630d17493fc330d57856e7271eb25c0b7bfed829f35047eff71cc69a91f151cf8929c",
-          "sha256": "506d01eac9fc7cf2833f567e241013196d8632bd30c6a60671b1b7cb642c2a9c",
-          "sha1": "ed60862a57ea6a8fc33b47893d6eb8a363cf09d0",
-          "md5": "7c6c95ca235b6e6d7be3031230a15204"
+          "size": 534,
+          "sha512": "da8472fa535d9a2793c8b08917a57fcd710ed3567bb27911da38327f7760be03fb3ca7eff977e6903be55f2db4c2f444caf76cd6f427c61662674e9daaab65c9",
+          "sha256": "8ac9d9dbd4498dfeeb7a2866051ca0c361edfea836706883b0633134d7c1ae0f",
+          "sha1": "cc39f1dddd582956ef52e7730d1bc19f4b0b04d8",
+          "md5": "dc9e2663534db710bb06686c4ac84510"
         }
       ]
     },
@@ -193,7 +193,6 @@
     {
       "name": "linuxArm64ApiElements-published",
       "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
         "org.gradle.category": "library",
         "org.gradle.jvm.environment": "non-jvm",
         "org.gradle.usage": "kotlin-api",
@@ -228,7 +227,6 @@
     {
       "name": "linuxX64ApiElements-published",
       "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
         "org.gradle.category": "library",
         "org.gradle.jvm.environment": "non-jvm",
         "org.gradle.usage": "kotlin-api",
@@ -263,7 +261,6 @@
     {
       "name": "macosArm64ApiElements-published",
       "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
         "org.gradle.category": "library",
         "org.gradle.jvm.environment": "non-jvm",
         "org.gradle.usage": "kotlin-api",
@@ -298,7 +295,6 @@
     {
       "name": "macosArm64MetadataElements-published",
       "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
         "org.gradle.category": "library",
         "org.gradle.jvm.environment": "non-jvm",
         "org.gradle.usage": "kotlin-metadata",
@@ -309,58 +305,6 @@
         "url": "../../libraryNested-macosarm64/1.0.0/libraryNested-macosarm64-1.0.0.module",
         "group": "org.jetbrains.kotlintoolchain.kmp.sample",
         "module": "libraryNested-macosarm64",
-        "version": "1.0.0"
-      }
-    },
-    {
-      "name": "macosX64ApiElements-published",
-      "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
-        "org.gradle.category": "library",
-        "org.gradle.jvm.environment": "non-jvm",
-        "org.gradle.usage": "kotlin-api",
-        "org.jetbrains.kotlin.native.target": "macos_x64",
-        "org.jetbrains.kotlin.platform.type": "native"
-      },
-      "available-at": {
-        "url": "../../libraryNested-macosx64/1.0.0/libraryNested-macosx64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
-        "module": "libraryNested-macosx64",
-        "version": "1.0.0"
-      }
-    },
-    {
-      "name": "macosX64SourcesElements-published",
-      "attributes": {
-        "org.gradle.category": "documentation",
-        "org.gradle.dependency.bundling": "external",
-        "org.gradle.docstype": "sources",
-        "org.gradle.jvm.environment": "non-jvm",
-        "org.gradle.usage": "kotlin-runtime",
-        "org.jetbrains.kotlin.native.target": "macos_x64",
-        "org.jetbrains.kotlin.platform.type": "native"
-      },
-      "available-at": {
-        "url": "../../libraryNested-macosx64/1.0.0/libraryNested-macosx64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
-        "module": "libraryNested-macosx64",
-        "version": "1.0.0"
-      }
-    },
-    {
-      "name": "macosX64MetadataElements-published",
-      "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
-        "org.gradle.category": "library",
-        "org.gradle.jvm.environment": "non-jvm",
-        "org.gradle.usage": "kotlin-metadata",
-        "org.jetbrains.kotlin.native.target": "macos_x64",
-        "org.jetbrains.kotlin.platform.type": "native"
-      },
-      "available-at": {
-        "url": "../../libraryNested-macosx64/1.0.0/libraryNested-macosx64-1.0.0.module",
-        "group": "org.jetbrains.kotlintoolchain.kmp.sample",
-        "module": "libraryNested-macosx64",
         "version": "1.0.0"
       }
     }

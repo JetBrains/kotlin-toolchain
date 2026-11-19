@@ -11,7 +11,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "9.1.0"
+      "version": "9.9.1"
     }
   },
   "variants": [
@@ -43,7 +43,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.4.10"
+            "requires": "2.4.21"
           }
         }
       ],
@@ -51,11 +51,11 @@
         {
           "name": "edgeCase_kmpSinglePlatform-jvm-1.0.0.jar",
           "url": "kmpSinglePlatform-jvm-1.0.0.jar",
-          "size": 1498,
-          "sha512": "2e272a387af3bdfc63ad54812698ec6bb9b9ef27261e84053fde4e57b228a132808975a241b83703cf2acd2859f4eed8ac36f964b1e27dba3041904bff218156",
-          "sha256": "d49ae01318f46f380255f917c0802d61137174f0ed90cc951bae9e4bcb9fb43e",
-          "sha1": "f605c128acd737f9709099944ca260a33ebe6e3f",
-          "md5": "44c7449db22f4b42cfb4bf8339733cfa"
+          "size": 1862,
+          "sha512": "49b3004e9e066a39e294cde81c70324508ef5b9f7a245d2a2b1da054641fe950911ca8cd19e54beee551489222ff436c25d545510f7a54e2843da53bae3b2fa0",
+          "sha256": "ff3b3f72da05497478f4ab60a6044dceca7771cf80ccba377f183770aabb584d",
+          "sha1": "c86216881ab5d602c9d45d61ecf536fdd678264d",
+          "md5": "b09b6dc91b29549cebc4930fae5c1f35"
         }
       ]
     },
@@ -87,7 +87,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "2.4.10"
+            "requires": "2.4.21"
           }
         }
       ],
@@ -95,11 +95,11 @@
         {
           "name": "edgeCase_kmpSinglePlatform-jvm-1.0.0.jar",
           "url": "kmpSinglePlatform-jvm-1.0.0.jar",
-          "size": 1498,
-          "sha512": "2e272a387af3bdfc63ad54812698ec6bb9b9ef27261e84053fde4e57b228a132808975a241b83703cf2acd2859f4eed8ac36f964b1e27dba3041904bff218156",
-          "sha256": "d49ae01318f46f380255f917c0802d61137174f0ed90cc951bae9e4bcb9fb43e",
-          "sha1": "f605c128acd737f9709099944ca260a33ebe6e3f",
-          "md5": "44c7449db22f4b42cfb4bf8339733cfa"
+          "size": 1862,
+          "sha512": "49b3004e9e066a39e294cde81c70324508ef5b9f7a245d2a2b1da054641fe950911ca8cd19e54beee551489222ff436c25d545510f7a54e2843da53bae3b2fa0",
+          "sha256": "ff3b3f72da05497478f4ab60a6044dceca7771cf80ccba377f183770aabb584d",
+          "sha1": "c86216881ab5d602c9d45d61ecf536fdd678264d",
+          "md5": "b09b6dc91b29549cebc4930fae5c1f35"
         }
       ]
     },
@@ -118,11 +118,11 @@
         {
           "name": "edgeCase_kmpSinglePlatform-jvm-1.0.0-sources.jar",
           "url": "kmpSinglePlatform-jvm-1.0.0-sources.jar",
-          "size": 1050,
-          "sha512": "6071becffa5179418a21dc9c6268a526b985011236e64dd1c388b02bc8262825aecbdf707181490d148ab5be6219a9968778d57c44f47a0920bd73f6f59ee1c5",
-          "sha256": "66ed73c3a2a429705f3c60cf512ac75fb6882eaf03f61e0139d1c01212e3bf6a",
-          "sha1": "d0ef22cb95f46488cf88280d7e763df2493929d1",
-          "md5": "488965f5917da30474d246e9a8eb2a19"
+          "size": 644,
+          "sha512": "6bfc502a43fac4d8425e0bb7306b580ba21a302a6e124138c554e813d65eb7aadb7d5231d4ed0bb312822adf5f4f37b12a62733d842b436e66ba336f778b8d8b",
+          "sha256": "d9dd5a5f418b88c08099a6bdaf442115253631b1ccbb508569355e3ee4362e78",
+          "sha1": "938f10e290d397c64b03a22d8782a251b7433f48",
+          "md5": "3015c618419a49cd3625c1f6e2a044c9"
         }
       ]
     }

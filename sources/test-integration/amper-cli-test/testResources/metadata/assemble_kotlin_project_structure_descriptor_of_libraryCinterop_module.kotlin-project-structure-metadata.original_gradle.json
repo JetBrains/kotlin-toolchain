@@ -22,8 +22,6 @@
       {
         "name": "macosArm64ApiElements",
         "sourceSet": [
-          "macosMain",
-          "appleMain",
           "nativeMain",
           "commonMain"
         ]

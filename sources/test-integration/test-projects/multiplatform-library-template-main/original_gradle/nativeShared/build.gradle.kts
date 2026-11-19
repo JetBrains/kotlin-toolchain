@@ -17,7 +17,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // Regular KMP library
-//            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.coroutines.core)
             // KMP library with applicable "-cinterop" source sets
             implementation(libs.crypto.rand)
             api(project(":library"))

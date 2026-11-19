@@ -27,5 +27,9 @@ include(":nativePlatform")
 include(":edgeCase_jvmLib")
 include(":edgeCase_jvmPlusAndroid")
 include(":edgeCase_kmpSinglePlatform")
-//include(":edgeCase_noSources")
+// KGP can't generate the linuxX64 publication of 'edgeCase_noSources' (a module without sources compiles no klib
+// for its native target), so 'publishToMavenLocal' fails on it. Exclude it with
+// '-x :edgeCase_noSources:publishLinuxX64PublicationToMavenLocal' to publish everything else. The module is still
+// included, because the gold reference file generation only requests the publications that KGP can generate.
+include(":edgeCase_noSources")
 include(":edgeCase_wasmJsPlusWasmWasi")

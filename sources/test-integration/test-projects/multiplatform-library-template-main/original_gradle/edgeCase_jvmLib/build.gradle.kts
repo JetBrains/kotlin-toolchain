@@ -18,6 +18,8 @@ dependencies {
 
     //put your jvm-only dependencies here
     api("org.tinylog:tinylog-api-kotlin:2.7.0")
+
+    testImplementation(libs.kotlin.test)
 }
 
 mavenPublishing {
