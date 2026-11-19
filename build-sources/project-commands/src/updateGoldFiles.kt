@@ -144,8 +144,6 @@ private class AmperGoldUpdater(
         match.value
             // {{ testResources }} is used for the "base" path, which is the dir containing the gold file
             .replace(parent.absolutePathString(), "{{ testResources }}")
-            // {{ testProcessDir }} is the dir in which tests are run, which is the schema module
-            .replace(schemaModuleDir.absolutePathString(), "{{ testProcessDir }}")
             .replace(File.separator, "{{ fileSeparator }}")
     }
 }

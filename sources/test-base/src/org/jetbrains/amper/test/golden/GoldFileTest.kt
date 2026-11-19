@@ -62,7 +62,6 @@ abstract class GoldFileTest(val caseName: String, rawBase: Path) {
      * 5. Return the result.
      */
     private fun Path.readNormalizedExpectedSafelyAndInterpolate(): String {
-        val testProcessDir = Path(".").normalize().absolutePathString()
         val testResources = Path(".").resolve(base).normalize().absolutePathString()
 
         // This is the actual check.
@@ -70,7 +69,6 @@ abstract class GoldFileTest(val caseName: String, rawBase: Path) {
         return readText()
             .normalizeLineSeparators()
             .trimTrailingWhitespacesAndEmptyLines()
-            .replace("{{ testProcessDir }}", testProcessDir)
             .replace("{{ testResources }}", testResources)
             .replace("{{ fileSeparator }}", File.separator)
             .replace("#kotlinVersion", DefaultVersions.kotlin)
