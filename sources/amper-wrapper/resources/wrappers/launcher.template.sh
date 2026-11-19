@@ -90,17 +90,17 @@ if [ "x${KOTLIN_CLI_JAVA_HOME:-}" = "x" ]; then
   esac
 
   # Auto-updated from syncVersions.main.kts, do not modify directly here
-  zulu_version=25.38.109
-  java_version=25.0.5.0.3
+  zulu_version=25.38.201
+  java_version=25.0.5.1
 
   platform="$jre_os $jre_arch"
   case $platform in
-    "macosx x64")     jre_sha256=0be1492faf27424d045e05d5f599661d7f11f4d1937b58feeeb8e246dc91f729 ;;
-    "macosx aarch64") jre_sha256=3179912faeec7ea0e53e6226dc8b518e600acbe00ff3779e9894af1148b3e8b2 ;;
-    "linux x64")      jre_sha256=740a9a3ed6b60de7ae2c22633f122147572024c1a66663f69aa7672ec48c4b09 ;;
-    "linux aarch64")  jre_sha256=604d65f811f942d49099b7c1c1b865ff8b700d51299be0afffa24447a033b866 ;;
-    "win x64")        jre_sha256=34ce17a0319cca98f76d1d4e7bc9e5bb13c5d76744a70cdbb82a2edcfd31f8d1 ;;
-    "win aarch64")    jre_sha256=a6b8652487a1236f09efd887106b761c140aeb0648e5deeb3b429dc9811ece68 ;;
+    "macosx x64")     jre_sha256=f108d12af15002038c45b892a3615580b946deba911f57346fa66e15160e7f18 ;;
+    "macosx aarch64") jre_sha256=fd5472b22068508afa656ac46da8ea984e180500882dfab8f9fe6253a2acd70e ;;
+    "linux x64")      jre_sha256=12277af4957cd249dc7aa50017ddde967a826fa48971b2411752fefe48e5ca8b ;;
+    "linux aarch64")  jre_sha256=164c7293bc17dcd21e56f84778cacfe57501a66c7ad3265b7f9f36c4cd9ec1e0 ;;
+    "win x64")        jre_sha256=6c2c84c1541ea2db58bf15387454b21911505ede8d02cfcb7afba2de680ae379 ;;
+    "win aarch64")    jre_sha256=deab7c8838b0d50b82b5cafebcc53e41f55c2efea200c26f508a6c21a3c422d1 ;;
     *) die "Unsupported platform $platform" ;;
   esac
 
