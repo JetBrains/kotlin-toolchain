@@ -4,14 +4,9 @@
 
 package org.jetbrains.amper.frontend.helpers
 
-import org.jetbrains.amper.test.Dirs
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
+import org.jetbrains.amper.test.TempDirExtension
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.nio.file.Path
-import kotlin.io.path.copyTo
-import kotlin.io.path.createTempDirectory
-import kotlin.io.path.deleteRecursively
-import kotlin.io.path.exists
 
 abstract class FrontendTestCaseBase(
     
@@ -20,24 +15,11 @@ abstract class FrontendTestCaseBase(
      */
     val base: Path,
 ) {
+    @RegisterExtension
+    private val tempDirExtension = TempDirExtension()
+
     /**
      * The path that is treated as the root of the test project.
      */
-    lateinit var buildDir: Path
-
-    fun copyLocalToBuild(localName: String) {
-        val localFile = base.resolve(localName).normalize().takeIf(Path::exists)
-        val newPath = buildDir.resolve(localName)
-        localFile?.copyTo(newPath, overwrite = true)
-    }
-    
-    @BeforeEach
-    fun beforeEach() {
-        buildDir = createTempDirectory(Dirs.tempDir, "test-base")
-    }
-
-    @AfterEach
-    fun afterEach() {
-        buildDir.deleteRecursively()
-    }
+    val testProjectDir: Path get() = tempDirExtension.path
 }

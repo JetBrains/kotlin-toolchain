@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.frontend.helpers
@@ -19,16 +19,13 @@ import kotlin.io.path.readText
  */
 abstract class FrontendTest(
     caseName: String,
-    private val testCase: FrontendTestCaseBase,
+    testCase: FrontendTestCaseBase,
 ) : GoldFileTest(caseName, testCase.base) {
-    protected open val inputPostfix: String = ".yaml"
-    protected open val inputPath: Path get() = base.resolve(caseName + inputPostfix).absolute()
+    protected val inputPath: Path get() = base.resolve("$caseName.yaml").absolute()
 
     protected val problemReporter = CollectingProblemReporter()
 
     protected val pathResolver = TestFrontendPathResolver()
-
-    protected val buildDir by lazy { testCase.buildDir.absolute() }
 
     protected val inputFile by lazy { pathResolver.loadVirtualFile(inputPath) }
 

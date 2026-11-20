@@ -9,8 +9,8 @@ import org.jetbrains.amper.frontend.aomBuilder.readProjectModel
 import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.test.golden.trimTrailingWhitespacesAndEmptyLines
 import java.io.File
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
-import kotlin.io.path.pathString
 
 fun FrontendTestCaseBase.diagnosticsTest(
     caseName: String,
@@ -20,7 +20,7 @@ fun FrontendTestCaseBase.diagnosticsTest(
 
 class DiagnosticsTestRun(
     caseName: String,
-    testCase: FrontendTestCaseBase,
+    private val testCase: FrontendTestCaseBase,
     private val additionalPaths: List<String>,
     private val additionalProblemChecks: (List<BuildProblem>) -> Unit,
 ) : FrontendTest(caseName, testCase) {
@@ -48,7 +48,7 @@ class DiagnosticsTestRun(
 
         // Collect errors.
         val annotated = annotateTextWithDiagnostics(inputPath, cleared, problemReporter.problems) {
-            it.replace(buildDir.pathString + File.separator, "")
+            it.replace(testCase.testProjectDir.absolutePathString() + File.separator, "")
         }
         return annotated.trimTrailingWhitespacesAndEmptyLines()
     }

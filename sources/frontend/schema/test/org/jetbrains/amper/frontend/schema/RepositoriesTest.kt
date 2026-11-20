@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.frontend.schema
@@ -22,7 +22,6 @@ internal class RepositoriesTest : FrontendTestCaseBase(Path("testResources") / "
 
     @Test
     fun `parsing credentials`() {
-        copyLocalToBuild("repositories-credentials.local.properties")
         aomTest("repositories-credentials")
     }
 
@@ -33,7 +32,6 @@ internal class RepositoriesTest : FrontendTestCaseBase(Path("testResources") / "
 
     @Test
     fun `repositories no credential key`() {
-        copyLocalToBuild("repositories-credentials.local.properties")
         diagnosticsTest("repositories-no-credentials-key")
     }
 

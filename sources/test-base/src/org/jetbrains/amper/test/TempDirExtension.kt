@@ -25,7 +25,7 @@ import kotlin.io.path.walk
 class TempDirExtension : Extension, BeforeEachCallback, AfterEachCallback {
     private val pathRef = AtomicReference<Path>(null)
 
-    val path
+    val path: Path
         get() = pathRef.get()!!
 
     override fun beforeEach(context: ExtensionContext) {
