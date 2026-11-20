@@ -17,7 +17,7 @@ fun FrontendTestCaseBase.diagnosticsTest(
     additionalProblemChecks: (List<BuildProblem>) -> Unit = {},
 ) = DiagnosticsTestRun(caseName, this, additionalFiles, additionalProblemChecks).doTest()
 
-class DiagnosticsTestRun(
+private class DiagnosticsTestRun(
     caseName: String,
     private val testCase: FrontendTestCaseBase,
     private val additionalPaths: List<String>,

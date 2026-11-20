@@ -155,7 +155,7 @@ internal typealias TreeBuilderFunction =
  * 2. Marks the PSI text with diagnostics.
  * 3. Compares the result with input.
  */
-internal open class DiagnosticsTreeTestRun(
+internal class DiagnosticsTreeTestRun(
     caseName: String,
     testCase: FrontendTestCaseBase,
     types: SchemaTypingContext,

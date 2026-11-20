@@ -17,7 +17,7 @@ fun FrontendTestCaseBase.aomTest(
     adjustCtx: TestProjectContext.() -> Unit = {},
 ) = BuildAomTestRun(caseName, this, systemInfo, expectedError, printDefaults, adjustCtx).doTest()
 
-open class BuildAomTestRun(
+private class BuildAomTestRun(
     caseName: String,
     testCase: FrontendTestCaseBase,
     private val systemInfo: SystemInfo,
