@@ -9,7 +9,6 @@ import org.jetbrains.amper.test.assertEqualsIgnoreLineSeparator
 import org.jetbrains.amper.test.normalizeLineSeparators
 import java.io.File
 import java.nio.file.Path
-import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
@@ -35,41 +34,31 @@ fun GoldFileTest(caseName: String, base: Path, inputContent: GoldFileTest.() -> 
  * See [readNormalizedExpectedSafelyAndInterpolate] for details.
  *
  * @param caseName The name of the test case.
- * @param rawBase Base directory for the gold files.
+ * @param goldenFilesDir Base directory for the golden files.
  */
-abstract class GoldFileTest(val caseName: String, rawBase: Path) {
+abstract class GoldFileTest(
+    val caseName: String,
+    goldenFilesDir: Path,
+) {
     /**
-     * Absolute path to the base directory for the gold files.
+     * Absolute path to the base directory for the golden files.
      */
-    protected val base: Path = rawBase.absolute()
+    protected val goldenFilesDir: Path = goldenFilesDir.absolute()
 
     protected open val expectPostfix: String = ".result.txt"
-    protected open val expectedPath: Path get() = base.resolve(caseName + expectPostfix).absolute()
 
     /**
      * Get the actual content to be tested.
      */
     abstract fun getInputContent(): String
 
-    fun getExpectContent(): String = expectedPath.readNormalizedExpectedSafelyAndInterpolate()
-
-    /**
-     * The order of operations is the following:
-     * 1. Read the contents of the [expectedPath], creating the file if it is non-existent.
-     * 2. Normalize line separators.
-     * 3. Trim trailing whitespaces and empty lines.
-     * 4. Replace various `{{ smth }}` placeholders with the actual values.
-     * 5. Return the result.
-     */
     private fun Path.readNormalizedExpectedSafelyAndInterpolate(): String {
-        val testResources = Path(".").resolve(base).normalize().absolutePathString()
-
         // This is the actual check.
         if (!exists()) writeText("")
         return readText()
             .normalizeLineSeparators()
             .trimTrailingWhitespacesAndEmptyLines()
-            .replace("{{ testResources }}", testResources)
+            .replace("{{ testResources }}", goldenFilesDir.normalize().absolutePathString())
             .replace("{{ fileSeparator }}", File.separator)
             .replace("#kotlinVersion", DefaultVersions.kotlin)
             .replace("#composeDefaultVersion", DefaultVersions.compose)
@@ -77,7 +66,8 @@ abstract class GoldFileTest(val caseName: String, rawBase: Path) {
 
     open fun doTest() {
         val inputContent = getInputContent()
-        val expectContent = getExpectContent()
+        val expectedPath = goldenFilesDir.resolve(caseName + expectPostfix).absolute()
+        val expectContent = expectedPath.readNormalizedExpectedSafelyAndInterpolate()
         return assertEqualsIgnoreLineSeparator(
             expectContent,
             inputContent,

@@ -21,7 +21,7 @@ abstract class FrontendTest(
     caseName: String,
     testCase: FrontendTestCaseBase,
 ) : GoldFileTest(caseName, testCase.base) {
-    protected val inputPath: Path get() = base.resolve("$caseName.yaml").absolute()
+    protected val inputPath: Path get() = goldenFilesDir.resolve("$caseName.yaml").absolute()
 
     protected val problemReporter = CollectingProblemReporter()
 
@@ -33,7 +33,7 @@ abstract class FrontendTest(
      * Default test project context.
      */
     protected val projectContext = TestProjectContext(
-        projectRoot = AmperFrontendProjectRoot(pathResolver.loadVirtualFile(base)),
+        projectRoot = AmperFrontendProjectRoot(pathResolver.loadVirtualFile(goldenFilesDir)),
         amperModuleFiles = listOf(inputFile),
         frontendPathResolver = pathResolver,
     )

@@ -36,7 +36,7 @@ class DiagnosticsTestRun(
         // Fix paths, so they will point to the resources.
         val inputFile = pathResolver.loadVirtualFile(inputPath)
         val cleared = pathResolver.toPsiFile(inputFile)!!.text
-        val additionalModules = additionalPaths.map { pathResolver.loadVirtualFile((base / it)) }
+        val additionalModules = additionalPaths.map { pathResolver.loadVirtualFile((goldenFilesDir / it)) }
 
         with(problemReporter) {
             val moduleFiles = listOf(inputFile).plus(additionalModules).sortedBy { it.path }

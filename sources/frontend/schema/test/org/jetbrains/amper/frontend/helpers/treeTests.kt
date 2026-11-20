@@ -142,7 +142,7 @@ internal open class TreeTestRun(
     override fun getInputContent(): String {
         val readTree = doReadTree(inputPath)
         assertNoReportedErrors()
-        return readTree.jsonDump(base.absolute()) { dumpPathContexts || it !is PathCtx }
+        return readTree.jsonDump(goldenFilesDir.absolute()) { dumpPathContexts || it !is PathCtx }
     }
 }
 
