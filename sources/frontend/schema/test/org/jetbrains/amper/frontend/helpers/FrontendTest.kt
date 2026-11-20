@@ -27,18 +27,14 @@ abstract class FrontendTest(
 
     protected val pathResolver = TestFrontendPathResolver()
 
-    protected val inputFile by lazy { pathResolver.loadVirtualFile(inputPath) }
-
     /**
      * Default test project context.
      */
     protected val projectContext = TestProjectContext(
         projectRoot = AmperFrontendProjectRoot(pathResolver.loadVirtualFile(goldenFilesDir)),
-        amperModuleFiles = listOf(inputFile),
+        amperModuleFiles = [pathResolver.loadVirtualFile(inputPath)],
         frontendPathResolver = pathResolver,
     )
-    
-    override fun getInputContent() = inputPath.readText()
 
     /**
      * Check that there are no reported errors in the [problemReporter].
