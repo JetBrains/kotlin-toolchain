@@ -16,6 +16,7 @@ import org.jetbrains.amper.frontend.api.isDefault
 import org.jetbrains.amper.frontend.asBuildProblemSource
 import org.jetbrains.amper.frontend.catalogs.substituteCatalogDependencies
 import org.jetbrains.amper.frontend.contexts.EmptyContexts
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.messages.extractKeyValuePsiElement
 import org.jetbrains.amper.frontend.plugins.PluginYamlRoot
 import org.jetbrains.amper.frontend.plugins.generated.ShadowCompilationArtifactKind
@@ -182,7 +183,9 @@ private fun parseAndDiagnosePluginTree(
         if (!pluginFilepath.isRegularFile()) {
             problemReporter.reportMessage(
                 PluginYamlMissing(
-                    element = pluginModule.commonModuleNode.product.typeDelegate.extractKeyValuePsiElement(),
+                    source = PsiBuildProblemSource(
+                        pluginModule.commonModuleNode.product.typeDelegate.extractKeyValuePsiElement()
+                    ),
                     expectedPluginYamlPath = pluginFilepath,
                 )
             )

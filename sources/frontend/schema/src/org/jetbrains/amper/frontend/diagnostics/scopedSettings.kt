@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.frontend.diagnostics
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.frontend.Platform.COMMON
 import org.jetbrains.amper.frontend.Platform.Companion.naturalHierarchy
@@ -17,13 +16,15 @@ import org.jetbrains.amper.frontend.contexts.platformCtxs
 import org.jetbrains.amper.frontend.contexts.unwrapAliases
 import org.jetbrains.amper.frontend.diagnostics.helpers.extractKeyElement
 import org.jetbrains.amper.frontend.leaves
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.messages.extractPsiElement
 import org.jetbrains.amper.frontend.tree.KeyValue
 import org.jetbrains.amper.frontend.tree.TreeNode
 import org.jetbrains.amper.frontend.tree.visitMappingNodes
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.stdlib.collections.joinToString
@@ -110,20 +111,20 @@ object IncorrectSettingsSectionFactory : TreeDiagnosticFactory {
     }
 }
 
-@Suppress("DEPRECATION")
 class IncorrectSettingsSection internal constructor(
     @UsedInIdePlugin
     val trace: Trace,
     messageKey: String,
     vararg values: Any?,
-    level: Level,
+    override val level: Level,
     buildProblemType: BuildProblemType = BuildProblemType.Generic,
-) : PsiBuildProblem(level, buildProblemType) {
+) : BuildProblem {
+    override val type: BuildProblemType = buildProblemType
 
     override val message = SchemaBundle.message(messageKey, *values)
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.IncorrectSettingsSection
 
     // highlight only property keys
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement = trace.extractPsiElement().extractKeyElement()
+    override val source: FileBuildProblemSource =
+        PsiBuildProblemSource(trace.extractPsiElement().extractKeyElement())
 }

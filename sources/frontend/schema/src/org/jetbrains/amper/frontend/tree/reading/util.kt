@@ -10,6 +10,7 @@ import org.jetbrains.amper.frontend.api.Trace
 import org.jetbrains.amper.frontend.api.asTrace
 import org.jetbrains.amper.frontend.asBuildProblemSource
 import org.jetbrains.amper.frontend.contexts.Contexts
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.reportBundleError
 import org.jetbrains.amper.frontend.tree.BooleanNode
 import org.jetbrains.amper.frontend.tree.EnumNode
@@ -95,7 +96,7 @@ internal fun reportUnexpectedValue(
         is YamlValue.Missing -> {
             reporter.reportMessage(
                 MissingValue(
-                    element = unexpected.psi,
+                    source = PsiBuildProblemSource(unexpected.psi),
                     expectedType = expectedType,
                     typeString = typeString,
                 )

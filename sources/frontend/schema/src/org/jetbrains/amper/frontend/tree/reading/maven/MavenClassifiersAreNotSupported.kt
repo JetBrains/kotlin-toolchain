@@ -4,11 +4,11 @@
 
 package org.jetbrains.amper.frontend.tree.reading.maven
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.frontend.SchemaBundle
 import org.jetbrains.amper.frontend.tree.TreeDiagnosticId
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.annotations.Nls
 
@@ -16,11 +16,10 @@ import org.jetbrains.annotations.Nls
         "The reporting for incorrect classifier matching shorthand (missing space problem) will be moved to after-DR phase.")
 @UsedInIdePlugin
 class MavenClassifiersAreNotSupported(
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
+    source: FileBuildProblemSource,
     override val coordinates: String,
     val classifier: String,
-) : MavenCoordinatesParsingProblem(level = Level.Warning) {
+) : MavenCoordinatesParsingProblem(source, level = Level.Warning) {
 
     override val diagnosticId: DiagnosticId = TreeDiagnosticId.MavenClassifiersAreNotSupported
     override val message: @Nls String = SchemaBundle.message("maven.classifiers.are.not.supported", coordinates, classifier)

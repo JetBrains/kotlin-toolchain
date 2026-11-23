@@ -4,23 +4,22 @@
 
 package org.jetbrains.amper.frontend.tree.reading.maven
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.frontend.SchemaBundle
 import org.jetbrains.amper.frontend.tree.TreeDiagnosticId
 import org.jetbrains.amper.frontend.userGuideUrl
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.annotations.Nls
 
 class DependencyCoordinatesInGradleFormat(
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
+    source: FileBuildProblemSource,
     override val coordinates: String,
     @field:UsedInIdePlugin
     val gradleScope: GradleScope,
     @field:UsedInIdePlugin
     val trimmedCoordinates: String,
-) : MavenCoordinatesParsingProblem() {
+) : MavenCoordinatesParsingProblem(source) {
 
     override val diagnosticId: DiagnosticId = TreeDiagnosticId.CoordinatesInGradleFormat
     override val message: @Nls String = SchemaBundle.message(

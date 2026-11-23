@@ -4,20 +4,19 @@
 
 package org.jetbrains.amper.frontend.tree.reading.maven
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.frontend.SchemaBundle
 import org.jetbrains.amper.frontend.tree.TreeDiagnosticId
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.annotations.Nls
 
 /**
  * Coordinates are used for building paths to the artifacts in the Amper local storage, slashes will affect the path.
  */
 class MavenCoordinatesHaveSlash(
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
+    source: FileBuildProblemSource,
     override val coordinates: String,
-) : MavenCoordinatesParsingProblem() {
+) : MavenCoordinatesParsingProblem(source) {
 
     override val diagnosticId: DiagnosticId = TreeDiagnosticId.MavenCoordinatesHaveSlash
     override val message: @Nls String = SchemaBundle.message("maven.coordinates.have.slash")

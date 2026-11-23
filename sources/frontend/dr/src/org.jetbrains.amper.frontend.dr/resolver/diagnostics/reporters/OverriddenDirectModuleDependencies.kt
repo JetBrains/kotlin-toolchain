@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.frontend.dr.resolver.diagnostics.reporters
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.dependency.resolution.DependencyNode
 import org.jetbrains.amper.dependency.resolution.Key
@@ -28,10 +27,12 @@ import org.jetbrains.amper.frontend.dr.resolver.FrontendDrBundle
 import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencyNode
 import org.jetbrains.amper.frontend.dr.resolver.diagnostics.DrDiagnosticsReporter
 import org.jetbrains.amper.frontend.dr.resolver.diagnostics.DrReporterContext
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.messages.extractPsiElementOrNull
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.annotations.Nls
@@ -84,7 +85,7 @@ open class OverriddenDirectModuleDependencies : DrDiagnosticsReporter {
                     ModuleDependencyWithOverriddenVersion(
                         node,
                         overrideInsight = dependencyInsight,
-                        psiElement
+                        PsiBuildProblemSource(psiElement)
                     )
                 )
             }
@@ -103,16 +104,17 @@ private data class DependencyInsightKey(
     val isForTests: Boolean,
 )
 
-@Suppress("DEPRECATION")
 class ModuleDependencyWithOverriddenVersion(
     @field:UsedInIdePlugin
     val originalNode: DirectFragmentDependencyNode,
     @field:UsedInIdePlugin
     val overrideInsight: DependencyNode,
     @field:UsedInIdePlugin
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
-) : PsiBuildProblem(Level.Warning, BuildProblemType.Generic) {
+    override val source: FileBuildProblemSource,
+) : BuildProblem {
+    override val level: Level = Level.Warning
+    override val type: BuildProblemType = BuildProblemType.Generic
+
     val dependencyNode: MavenDependencyNode
         get() = originalNode.dependencyNode
     val originalVersion: String

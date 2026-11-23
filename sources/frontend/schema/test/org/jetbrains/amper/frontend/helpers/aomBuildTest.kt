@@ -6,7 +6,6 @@ package org.jetbrains.amper.frontend.helpers
 
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.frontend.aomBuilder.doReadProjectModel
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
 import org.jetbrains.amper.system.info.SystemInfo
 import kotlin.test.assertNotNull
 
@@ -58,7 +57,5 @@ open class BuildAomTestRun(
                         .joinToString(prefix = "\n\t", postfix = "\n", separator = "\n\t") { it.message }
                 }"
             )
-            // Check that lazily initialized diagnostic source doesn't produce any error
-            problemReporter.problems.forEach { (it as? PsiBuildProblem)?.source }
         }
 }

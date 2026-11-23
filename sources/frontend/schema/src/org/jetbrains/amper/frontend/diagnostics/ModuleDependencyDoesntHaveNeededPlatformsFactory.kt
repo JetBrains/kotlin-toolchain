@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.frontend.diagnostics
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
@@ -12,10 +11,12 @@ import org.jetbrains.amper.frontend.LocalModuleDependency
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.SchemaBundle
 import org.jetbrains.amper.frontend.api.Trace
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.messages.extractPsiElement
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.annotations.Nls
@@ -52,17 +53,15 @@ private fun isAllowedJvmDependencyForAndroid(
     dependencyPlatforms: Set<Platform>,
 ): Boolean = dependingPlatform == Platform.ANDROID && Platform.JVM in dependencyPlatforms
 
-@Suppress("DEPRECATION")
 class ModuleDependencyDoesntHaveNeededPlatforms(
     val dependency: LocalModuleDependency,
     @field:UsedInIdePlugin
     val dependingFragment: Fragment,
     val unsupportedPlatforms: Set<Platform>,
-) : PsiBuildProblem(Level.Error, BuildProblemType.InconsistentConfiguration) {
-
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement
-        get() = dependency.extractPsiElement()
+) : BuildProblem {
+    override val level: Level = Level.Error
+    override val type: BuildProblemType = BuildProblemType.InconsistentConfiguration
+    override val source: FileBuildProblemSource by lazy { PsiBuildProblemSource(dependency.extractPsiElement()) }
 
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.ModuleDependencyDoesntHaveNeededPlatforms
 

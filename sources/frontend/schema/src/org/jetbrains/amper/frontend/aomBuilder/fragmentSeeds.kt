@@ -6,6 +6,7 @@ package org.jetbrains.amper.frontend.aomBuilder
 
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.isParentOfStrict
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.messages.extractKeyValuePsiElementOrNull
 import org.jetbrains.amper.frontend.schema.Module
 import org.jetbrains.amper.frontend.types.generated.*
@@ -74,7 +75,7 @@ fun Module.buildFragmentSeeds(): Set<FragmentSeed> {
     if (!product.type.supportsFragmentBamboos) {
         val aliasesElement = aliasesDelegate.extractKeyValuePsiElementOrNull()
         if (aliasesElement != null) {
-            problemReporter.reportMessage(AliasesAreNotSupportedInSinglePlatformModule(aliasesElement))
+            problemReporter.reportMessage(AliasesAreNotSupportedInSinglePlatformModule(PsiBuildProblemSource(aliasesElement)))
         }
         return prunedBambooSeeds()
     }

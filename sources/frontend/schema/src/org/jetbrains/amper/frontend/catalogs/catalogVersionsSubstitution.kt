@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.frontend.catalogs
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.frontend.SchemaBundle
 import org.jetbrains.amper.frontend.VersionCatalog
@@ -16,7 +15,7 @@ import org.jetbrains.amper.frontend.api.TraceableString
 import org.jetbrains.amper.frontend.api.TransformedValueTrace
 import org.jetbrains.amper.frontend.asBuildProblemSource
 import org.jetbrains.amper.frontend.diagnostics.FrontendDiagnosticId
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.reportBundleError
 import org.jetbrains.amper.frontend.schema.ExternalMavenDependency
 import org.jetbrains.amper.frontend.schema.toMavenCoordinates
@@ -31,8 +30,10 @@ import org.jetbrains.amper.frontend.tree.TreeTransformer
 import org.jetbrains.amper.frontend.tree.copy
 import org.jetbrains.amper.frontend.types.SchemaType
 import org.jetbrains.amper.frontend.types.generated.*
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.annotations.Nls
@@ -142,19 +143,19 @@ private fun checkComposeMaterial3UnknownVersionMapping(value: TraceableString, k
     val versionTrace = catalogTrace.version.trace as? TransformedValueTrace ?: return
 
     if (versionTrace.description.contains(UNKNOWN_COMPOSE_MATERIAL3_VERSION_DESCRIPTION_PREFIX)) {
-        problemReporter.reportMessage(ComposeMaterial3UnknownVersionMappingProblem(keyTrace.psiElement, versionTrace))
+        problemReporter.reportMessage(
+            ComposeMaterial3UnknownVersionMappingProblem(PsiBuildProblemSource(keyTrace.psiElement), versionTrace)
+        )
     }
 }
 
-@Suppress("DEPRECATION")
 class ComposeMaterial3UnknownVersionMappingProblem(
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
+    override val source: FileBuildProblemSource,
     @UsedInIdePlugin val composeVersionTrace: TransformedValueTrace,
-) : PsiBuildProblem(
-    level = Level.Warning,
-    type = BuildProblemType.Generic,
-) {
+) : BuildProblem {
+    override val level: Level = Level.Warning
+    override val type: BuildProblemType = BuildProblemType.Generic
+
     val composeVersion: String = composeVersionTrace.sourceValue.toString()
 
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.ComposeMaterial3UnknownVersionMapping

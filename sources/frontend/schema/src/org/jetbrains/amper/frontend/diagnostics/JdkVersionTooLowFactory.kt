@@ -4,18 +4,19 @@
 
 package org.jetbrains.amper.frontend.diagnostics
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.frontend.SchemaBundle
 import org.jetbrains.amper.frontend.api.Trace
 import org.jetbrains.amper.frontend.contexts.MinimalModule
 import org.jetbrains.amper.frontend.diagnostics.helpers.visitIntProperties
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.messages.extractPsiElementOrNull
 import org.jetbrains.amper.frontend.schema.JdkSettings
 import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.frontend.tree.TreeNode
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 
@@ -28,7 +29,9 @@ object JdkVersionTooLowFactory : TreeDiagnosticFactory {
             if (value < MinVersions.jdk && reportedPlaces.add(versionTrace)) {
                 problemReporter.reportMessage(
                     JdkVersionTooLow(
-                        element = versionTrace.extractPsiElementOrNull() ?: return@visitIntProperties,
+                        source = PsiBuildProblemSource(
+                            versionTrace.extractPsiElementOrNull() ?: return@visitIntProperties
+                        ),
                         actualVersion = value,
                         minVersion = MinVersions.jdk,
                     )
@@ -38,13 +41,13 @@ object JdkVersionTooLowFactory : TreeDiagnosticFactory {
     }
 }
 
-@Suppress("DEPRECATION")
 class JdkVersionTooLow(
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
+    override val source: FileBuildProblemSource,
     val actualVersion: Int,
     val minVersion: Int,
-) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
+) : BuildProblem {
+    override val level: Level = Level.Error
+    override val type: BuildProblemType = BuildProblemType.Generic
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.JdkVersionTooLow
     override val message = SchemaBundle.message("jdk.version.too.low", actualVersion, minVersion)
 }

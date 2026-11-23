@@ -4,12 +4,11 @@
 
 package org.jetbrains.amper.frontend.diagnostics
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.SchemaBundle
 import org.jetbrains.amper.frontend.api.SchemaValueDelegate
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.messages.extractPsiElement
 import org.jetbrains.amper.frontend.messages.extractPsiElementOrNull
 import org.jetbrains.amper.frontend.schema.AndroidSettings
@@ -17,8 +16,10 @@ import org.jetbrains.amper.frontend.schema.KeystoreProperty
 import org.jetbrains.amper.frontend.schema.ProductType
 import org.jetbrains.amper.frontend.schema.storeFile
 import org.jetbrains.amper.frontend.types.generated.*
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.amper.stdlib.properties.readProperties
@@ -149,13 +150,13 @@ object KeystoreMustExistFactory : SigningConfigurationIncorrect() {
 
 }
 
-@Suppress("DEPRECATION")
 class SigningEnabledWithoutPropertiesFile(
     val targetProperty: SchemaValueDelegate<*>, val propertiesFilePath: Path
-) : PsiBuildProblem(Level.Warning, BuildProblemType.InconsistentConfiguration) {
+) : BuildProblem {
+    override val level: Level = Level.Warning
+    override val type: BuildProblemType = BuildProblemType.InconsistentConfiguration
+    override val source: FileBuildProblemSource by lazy { PsiBuildProblemSource(targetProperty.extractPsiElement()) }
 
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement get() = targetProperty.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.SigningEnabledWithoutPropertiesFile
     override val message: @Nls String
         get() = SchemaBundle.message(
@@ -163,15 +164,15 @@ class SigningEnabledWithoutPropertiesFile(
         )
 }
 
-@Suppress("DEPRECATION")
 class KeystorePropertiesDoesNotContainKey(
     val targetProperty: SchemaValueDelegate<*>,
     val key: String,
     val propertiesFilePath: Path,
-) : PsiBuildProblem(Level.Warning, BuildProblemType.Generic) {
+) : BuildProblem {
+    override val level: Level = Level.Warning
+    override val type: BuildProblemType = BuildProblemType.Generic
+    override val source: FileBuildProblemSource by lazy { PsiBuildProblemSource(targetProperty.extractPsiElement()) }
 
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement get() = targetProperty.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.KeystorePropertiesDoesNotContainKey
 
     override val message: @Nls String
@@ -180,13 +181,13 @@ class KeystorePropertiesDoesNotContainKey(
         )
 }
 
-@Suppress("DEPRECATION")
 class MandatoryFieldInPropertiesFileMustBePresent(
     val targetProperty: SchemaValueDelegate<*>, val key: String, val propertiesFilePath: Path
-) : PsiBuildProblem(Level.Warning, BuildProblemType.Generic) {
+) : BuildProblem {
+    override val level: Level = Level.Warning
+    override val type: BuildProblemType = BuildProblemType.Generic
+    override val source: FileBuildProblemSource by lazy { PsiBuildProblemSource(targetProperty.extractPsiElement()) }
 
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement get() = targetProperty.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.MandatoryFieldInPropertiesFileMustBePresent
     override val message: @Nls String
         get() = SchemaBundle.message(
@@ -194,13 +195,13 @@ class MandatoryFieldInPropertiesFileMustBePresent(
         )
 }
 
-@Suppress("DEPRECATION")
 class KeystoreFileDoesNotExist(
     val targetProperty: SchemaValueDelegate<*>, val keystorePath: Path
-) : PsiBuildProblem(Level.Warning, BuildProblemType.UnresolvedReference) {
+) : BuildProblem {
+    override val level: Level = Level.Warning
+    override val type: BuildProblemType = BuildProblemType.UnresolvedReference
+    override val source: FileBuildProblemSource by lazy { PsiBuildProblemSource(targetProperty.extractPsiElement()) }
 
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement get() = targetProperty.extractPsiElement()
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.KeystoreFileDoesNotExist
     override val message: @Nls String
         get() = SchemaBundle.message(

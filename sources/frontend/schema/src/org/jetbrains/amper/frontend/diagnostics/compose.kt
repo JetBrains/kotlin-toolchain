@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.frontend.diagnostics
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.SchemaBundle
@@ -12,11 +11,13 @@ import org.jetbrains.amper.frontend.api.SchemaValueDelegate
 import org.jetbrains.amper.frontend.api.Trace
 import org.jetbrains.amper.frontend.api.isExplicitlySet
 import org.jetbrains.amper.frontend.api.isSetInTemplate
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.messages.extractPsiElement
 import org.jetbrains.amper.frontend.types.generated.*
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 
@@ -39,15 +40,13 @@ object ComposeVersionWithDisabledCompose : AomSingleModuleDiagnosticFactory {
     }
 }
 
-@Suppress("DEPRECATION")
 class ComposeVersionWithoutCompose(
     @UsedInIdePlugin
     val versionProp: SchemaValueDelegate<String>,
-) : PsiBuildProblem(Level.Warning, BuildProblemType.InconsistentConfiguration) {
-
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement
-        get() = versionProp.extractPsiElement()
+) : BuildProblem {
+    override val level: Level = Level.Warning
+    override val type: BuildProblemType = BuildProblemType.InconsistentConfiguration
+    override val source: FileBuildProblemSource by lazy { PsiBuildProblemSource(versionProp.extractPsiElement()) }
 
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.ComposeVersionWithoutCompose
 

@@ -4,10 +4,10 @@
 
 package org.jetbrains.amper.frontend.tree.reading.maven
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.frontend.SchemaBundle
 import org.jetbrains.amper.frontend.tree.TreeDiagnosticId
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.annotations.Nls
 
 /**
@@ -18,10 +18,9 @@ import org.jetbrains.annotations.Nls
  * See [Windows documentation](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file)
  */
 class MavenCoordinatesHavePartEndingWithDot(
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
+    source: FileBuildProblemSource,
     override val coordinates: String,
-) : MavenCoordinatesParsingProblem() {
+) : MavenCoordinatesParsingProblem(source) {
 
     override val diagnosticId: DiagnosticId = TreeDiagnosticId.MavenCoordinatesHavePartEndingWithDot
     override val message: @Nls String = SchemaBundle.message("maven.coordinates.have.part.ending.with.dot")

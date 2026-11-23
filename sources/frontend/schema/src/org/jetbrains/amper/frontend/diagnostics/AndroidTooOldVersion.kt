@@ -8,7 +8,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.amper.frontend.SchemaBundle
 import org.jetbrains.amper.frontend.contexts.MinimalModule
 import org.jetbrains.amper.frontend.diagnostics.helpers.visitProperties
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.messages.extractPsiElementOrNull
 import org.jetbrains.amper.frontend.schema.AndroidCompileSdkVersion
 import org.jetbrains.amper.frontend.schema.AndroidSettings
@@ -17,18 +17,20 @@ import org.jetbrains.amper.frontend.schema.MinVersions
 import org.jetbrains.amper.frontend.tree.IntNode
 import org.jetbrains.amper.frontend.tree.KeyValue
 import org.jetbrains.amper.frontend.tree.TreeNode
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 
-@Suppress("DEPRECATION")
 class AndroidTooOldVersion(
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
+    override val source: FileBuildProblemSource,
     used: AndroidVersion,
     minVersion: AndroidVersion,
-) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
+) : BuildProblem {
+    override val level: Level = Level.Error
+    override val type: BuildProblemType = BuildProblemType.Generic
 
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AndroidVersionTooOld
     override val message = SchemaBundle.message("too.old.android.version", used, minVersion)
@@ -45,7 +47,7 @@ object AndroidTooOldVersionFactory : TreeDiagnosticFactory {
             if (version < MinVersions.android && reportedPlaces.add(versionTraceElement)) {
                 problemReporter.reportMessage(
                     AndroidTooOldVersion(
-                        element = versionTraceElement,
+                        source = PsiBuildProblemSource(versionTraceElement),
                         used = version,
                         minVersion = MinVersions.android,
                     )

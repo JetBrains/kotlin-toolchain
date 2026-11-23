@@ -4,16 +4,17 @@
 
 package org.jetbrains.amper.frontend.diagnostics
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.SchemaBundle
 import org.jetbrains.amper.frontend.api.TraceableValue
 import org.jetbrains.amper.frontend.jdkSettings
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.messages.extractPsiElement
 import org.jetbrains.amper.frontend.schema.JvmDistribution
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 
@@ -30,14 +31,15 @@ object JdkDistributionRequiresLicenseFactory : AomSingleModuleDiagnosticFactory 
     }
 }
 
-@Suppress("DEPRECATION")
 class JdkDistributionRequiresLicense(
     val distribution: TraceableValue<JvmDistribution>,
-) : PsiBuildProblem(Level.Error, BuildProblemType.InconsistentConfiguration) {
+) : BuildProblem {
+    override val level: Level = Level.Error
+    override val type: BuildProblemType = BuildProblemType.InconsistentConfiguration
+    override val source: FileBuildProblemSource by lazy {
+        PsiBuildProblemSource(distribution.trace.extractPsiElement())
+    }
 
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.JdkDistributionRequiresLicense
     override val message = SchemaBundle.message("jdk.distribution.requires.license", distribution.value.schemaValue)
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement
-        get() = distribution.trace.extractPsiElement()
 }

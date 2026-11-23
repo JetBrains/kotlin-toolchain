@@ -5,8 +5,10 @@
 package org.jetbrains.amper.frontend.tree.reading.maven
 
 import com.intellij.psi.PsiElement
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemType
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.annotations.Nls
@@ -20,17 +22,17 @@ internal fun validateAndReportMavenCoordinates(
     coordinates: String,
 ): Boolean {
     if (' ' in coordinates) {
-        reporter.reportMessage(MavenCoordinatesHaveSpace(origin, coordinates))
+        reporter.reportMessage(MavenCoordinatesHaveSpace(PsiBuildProblemSource(origin), coordinates))
         return false
     }
 
     if ('\n' in coordinates || '\r' in coordinates) {
-        reporter.reportMessage(MavenCoordinatesHaveLineBreak(origin, coordinates))
+        reporter.reportMessage(MavenCoordinatesHaveLineBreak(PsiBuildProblemSource(origin), coordinates))
         return false
     }
 
     if ('/' in coordinates || '\\' in coordinates) {
-        reporter.reportMessage(MavenCoordinatesHaveSlash(origin, coordinates))
+        reporter.reportMessage(MavenCoordinatesHaveSlash(PsiBuildProblemSource(origin), coordinates))
         return false
     }
 
@@ -39,13 +41,13 @@ internal fun validateAndReportMavenCoordinates(
     val packagingType = coordsAndPackaging.getOrNull(1)
 
     if (parts.size < 2) {
-        reporter.reportMessage(MavenCoordinatesHaveTooFewParts(origin, coordinates, parts.size))
+        reporter.reportMessage(MavenCoordinatesHaveTooFewParts(PsiBuildProblemSource(origin), coordinates, parts.size))
         reportIfCoordinatesAreGradleLike(origin, coordinates)
         return false
     }
 
     if (parts.size > 4) {
-        reporter.reportMessage(MavenCoordinatesHaveTooManyParts(origin, coordinates, parts.size))
+        reporter.reportMessage(MavenCoordinatesHaveTooManyParts(PsiBuildProblemSource(origin), coordinates, parts.size))
         return false
     }
 
@@ -55,13 +57,15 @@ internal fun validateAndReportMavenCoordinates(
             @Suppress("RETURN_VALUE_NOT_USED_COERCION")
             Path(part)
         } catch (e: InvalidPathException) {
-            reporter.reportMessage(MavenCoordinatesShouldBuildValidPath(origin, coordinates, part, e.toString()))
+            reporter.reportMessage(
+                MavenCoordinatesShouldBuildValidPath(PsiBuildProblemSource(origin), coordinates, part, e.toString())
+            )
             reportIfCoordinatesAreGradleLike(origin, coordinates)
             return false
         }
 
         if (part.endsWith(".")) {
-            reporter.reportMessage(MavenCoordinatesHavePartEndingWithDot(origin, coordinates))
+            reporter.reportMessage(MavenCoordinatesHavePartEndingWithDot(PsiBuildProblemSource(origin), coordinates))
             return false
         }
     }
@@ -79,7 +83,7 @@ private fun reportIfCoordinatesAreGradleLike(
         val [gradleScope, trimmedCoordinates] = probableGradleScope
         reporter.reportMessage(
             DependencyCoordinatesInGradleFormat(
-                element = origin,
+                source = PsiBuildProblemSource(origin),
                 coordinates = coordinates,
                 gradleScope = gradleScope,
                 trimmedCoordinates = trimmedCoordinates
@@ -88,13 +92,12 @@ private fun reportIfCoordinatesAreGradleLike(
     }
 }
 
-@Suppress("DEPRECATION")
 abstract class MavenCoordinatesParsingProblem(
-    level: Level = Level.Error,
-) : PsiBuildProblem(
-    level = level,
-    type = BuildProblemType.Generic,
-) {
+    override val source: FileBuildProblemSource,
+    override val level: Level = Level.Error,
+) : BuildProblem {
+    override val type: BuildProblemType = BuildProblemType.Generic
+
     abstract val coordinates: String
 
     open val details: @Nls String? get() = null

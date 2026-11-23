@@ -4,25 +4,24 @@
 
 package org.jetbrains.amper.frontend.tree.reading.maven
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.frontend.SchemaBundle
 import org.jetbrains.amper.frontend.tree.TreeDiagnosticId
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.annotations.Nls
 
 /**
  * We use coordinates parts as folders to store the artifacts; thus, all the paths should be valid folder names.
  */
 class MavenCoordinatesShouldBuildValidPath(
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
+    source: FileBuildProblemSource,
     override val coordinates: String,
     @field:UsedInIdePlugin
     val badPart: String,
     @field:UsedInIdePlugin
     val exceptionMessage: String?,
-) : MavenCoordinatesParsingProblem() {
+) : MavenCoordinatesParsingProblem(source) {
 
     override val diagnosticId: DiagnosticId = TreeDiagnosticId.MavenCoordinatesShouldBuildValidPath
     override val message: @Nls String = SchemaBundle.message("maven.coordinates.should.build.valid.path", coordinates, badPart, exceptionMessage)

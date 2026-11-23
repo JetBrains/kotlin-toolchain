@@ -33,11 +33,13 @@ import org.jetbrains.amper.frontend.dr.resolver.diagnostics.mapLevelToSeverity
 import org.jetbrains.amper.frontend.dr.resolver.diagnostics.mapSeverityToLevel
 import org.jetbrains.amper.frontend.dr.resolver.fragmentDependencies
 import org.jetbrains.amper.frontend.getLineAndColumnRangeInPsiFile
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.messages.extractPsiElementOrNull
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemImpl
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.GlobalBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.NonIdealDiagnostic
@@ -110,7 +112,7 @@ object BasicDrDiagnosticsReporter : DrDiagnosticsReporter {
                         directFragmentDependency = directDependency,
                         errorMessage = message,
                         level = msgLevel,
-                        element = psiElement,
+                        source = PsiBuildProblemSource(psiElement),
                         versionDefinition = findVersionDefinition(node, directDependency, psiElement),
                     )
                     problemReporter.reportMessage(buildProblem)
@@ -177,19 +179,18 @@ private data class AlreadyReportedKey(
     val psiElement: PsiElement,
 )
 
-@Suppress("DEPRECATION")
 class DependencyBuildProblem(
     @field:UsedInIdePlugin
     val problematicDependency: DependencyNode,
     val directFragmentDependency: DirectFragmentDependencyNode,
     val errorMessage: Message,
-    level: Level,
-    @field:UsedInIdePlugin
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
+    override val level: Level,
+    override val source: FileBuildProblemSource,
     @field:UsedInIdePlugin
     val versionDefinition: VersionDefinition?,
-) : PsiBuildProblem(level, BuildProblemType.Generic) {
+) : BuildProblem {
+    override val type: BuildProblemType = BuildProblemType.Generic
+
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.DependencyResolutionProblem
 
     override val message: @Nls String

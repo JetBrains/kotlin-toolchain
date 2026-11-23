@@ -4,39 +4,38 @@
 
 package org.jetbrains.amper.frontend.tree.reading
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.frontend.SchemaBundle
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
 import org.jetbrains.amper.frontend.tree.TreeDiagnosticId
 import org.jetbrains.amper.frontend.types.SchemaType
 import org.jetbrains.amper.frontend.types.SchemaVariantDeclaration
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.annotations.Nls
 
 class MissingValue(
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
+    override val source: FileBuildProblemSource,
     @UsedInIdePlugin
     val expectedType: SchemaType,
     typeString: String,
-) : PsiBuildProblem(level = Level.Error, type = BuildProblemType.Generic) {
+) : BuildProblem {
+    override val level: Level = Level.Error
+    override val type: BuildProblemType = BuildProblemType.Generic
 
     override val diagnosticId get() = TreeDiagnosticId.MissingValue
     override val message = SchemaBundle.message("validation.structure.missing.value", typeString)
 }
 
 class InvalidTaskActionType(
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
+    override val source: FileBuildProblemSource,
     val invalidType: String,
     val taskActionType: SchemaVariantDeclaration,
-) : PsiBuildProblem(
-    level = Level.Error,
-    type = BuildProblemType.UnknownSymbol,
-) {
+) : BuildProblem {
+    override val level: Level = Level.Error
+    override val type: BuildProblemType = BuildProblemType.UnknownSymbol
 
     override val diagnosticId: DiagnosticId = TreeDiagnosticId.InvalidTaskActionType
     override val message: @Nls String by lazy {
@@ -45,13 +44,11 @@ class InvalidTaskActionType(
 }
 
 class MissingTaskActionType(
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
+    override val source: FileBuildProblemSource,
     val taskActionType: SchemaVariantDeclaration,
-) : PsiBuildProblem(
-    level = Level.Error,
-    type = BuildProblemType.Generic,
-) {
+) : BuildProblem {
+    override val level: Level = Level.Error
+    override val type: BuildProblemType = BuildProblemType.Generic
 
     override val diagnosticId: DiagnosticId = TreeDiagnosticId.MissingTaskActionType
 

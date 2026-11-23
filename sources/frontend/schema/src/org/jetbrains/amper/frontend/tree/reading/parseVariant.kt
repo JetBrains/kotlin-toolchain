@@ -5,6 +5,7 @@
 package org.jetbrains.amper.frontend.tree.reading
 
 import org.jetbrains.amper.frontend.contexts.Contexts
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.schema.SchemaMavenCoordinates
 import org.jetbrains.amper.frontend.tree.TreeDiagnosticId
 import org.jetbrains.amper.frontend.tree.TreeNode
@@ -153,7 +154,7 @@ internal fun parseVariant(
     is TaskActionVariantDeclaration -> {
         val tag = value.tag
         if (tag == null) {
-            reporter.reportMessage(MissingTaskActionType(element = value.psi, taskActionType = type.declaration))
+            reporter.reportMessage(MissingTaskActionType(source = PsiBuildProblemSource(value.psi), taskActionType = type.declaration))
             return errorNode(value, type)
         }
         val requestedTypeName = tag.text.removePrefix("!")
@@ -161,7 +162,7 @@ internal fun parseVariant(
         if (variant == null) {
             reporter.reportMessage(
                 InvalidTaskActionType(
-                    element = tag,
+                    source = PsiBuildProblemSource(tag),
                     invalidType = requestedTypeName,
                     taskActionType = type.declaration,
                 )

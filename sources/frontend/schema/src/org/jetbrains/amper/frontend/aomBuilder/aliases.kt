@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.frontend.aomBuilder
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.amper.core.UsedInIdePlugin
 import org.jetbrains.amper.frontend.Platform
 import org.jetbrains.amper.frontend.SchemaBundle
@@ -12,11 +11,13 @@ import org.jetbrains.amper.frontend.api.TraceableString
 import org.jetbrains.amper.frontend.api.TraceableValue
 import org.jetbrains.amper.frontend.diagnostics.FrontendDiagnosticId
 import org.jetbrains.amper.frontend.leaves
-import org.jetbrains.amper.frontend.messages.PsiBuildProblem
+import org.jetbrains.amper.frontend.messages.PsiBuildProblemSource
 import org.jetbrains.amper.frontend.messages.extractPsiElement
 import org.jetbrains.amper.frontend.schema.ModuleProduct
+import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.BuildProblemType
 import org.jetbrains.amper.problems.reporting.DiagnosticId
+import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.Level
 import org.jetbrains.amper.problems.reporting.ProblemReporter
 import org.jetbrains.annotations.Nls
@@ -77,42 +78,40 @@ internal fun mapAliasesToLeaves(
     }
 }
 
-@Suppress("DEPRECATION")
 data class AliasesAreNotSupportedInSinglePlatformModule(
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement,
-) : PsiBuildProblem(Level.Warning, BuildProblemType.Generic) {
+    override val source: FileBuildProblemSource,
+) : BuildProblem {
 
+    override val level: Level = Level.Warning
+    override val type: BuildProblemType = BuildProblemType.Generic
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AliasInSinglePlatformModule
     override val message: @Nls String
         get() = SchemaBundle.message("aliases.are.not.supported.in.single.platform.module")
 }
 
-@Suppress("DEPRECATION")
 data class AliasUsesNonLeafPlatform(
     val alias: TraceableString,
     val nonLeafPlatform: TraceableValue<Platform>,
     @UsedInIdePlugin
     val canBeExpandedTo: Set<Platform>?,
-) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
+) : BuildProblem {
 
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement
-        get() = nonLeafPlatform.extractPsiElement()
+    override val level: Level = Level.Error
+    override val type: BuildProblemType = BuildProblemType.Generic
+    override val source: FileBuildProblemSource by lazy { PsiBuildProblemSource(nonLeafPlatform.extractPsiElement()) }
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AliasUsesNonLeafPlatform
     override val message: @Nls String
         get() = SchemaBundle.message("alias.uses.non.leaf.platform", alias.value, nonLeafPlatform.value.pretty)
 }
 
-@Suppress("DEPRECATION")
 data class AliasWithNonLeafPlatformExpandsToNothing(
     val alias: TraceableString,
     val nonLeafPlatform: TraceableValue<Platform>,
-) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
+) : BuildProblem {
 
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement
-        get() = nonLeafPlatform.extractPsiElement()
+    override val level: Level = Level.Error
+    override val type: BuildProblemType = BuildProblemType.Generic
+    override val source: FileBuildProblemSource by lazy { PsiBuildProblemSource(nonLeafPlatform.extractPsiElement()) }
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AliasExpandsToNothing
     override val message: @Nls String
         get() = SchemaBundle.message(
@@ -123,40 +122,37 @@ data class AliasWithNonLeafPlatformExpandsToNothing(
         )
 }
 
-@Suppress("DEPRECATION")
 data class AliasUsesUndeclaredPlatform(
     val alias: TraceableString,
     val undeclaredPlatform: TraceableValue<Platform>,
-) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
+) : BuildProblem {
 
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement
-        get() = undeclaredPlatform.extractPsiElement()
+    override val level: Level = Level.Error
+    override val type: BuildProblemType = BuildProblemType.Generic
+    override val source: FileBuildProblemSource by lazy { PsiBuildProblemSource(undeclaredPlatform.extractPsiElement()) }
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AliasUsesUndeclaredPlatform
     override val message: @Nls String
         get() = SchemaBundle.message("alias.uses.undeclared.platform", alias.value, undeclaredPlatform.value.pretty)
 }
 
-@Suppress("DEPRECATION")
-data class AliasIsEmpty(val alias: TraceableString) : PsiBuildProblem(Level.Error, BuildProblemType.Generic) {
+data class AliasIsEmpty(val alias: TraceableString) : BuildProblem {
 
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement
-        get() = alias.extractPsiElement()
+    override val level: Level = Level.Error
+    override val type: BuildProblemType = BuildProblemType.Generic
+    override val source: FileBuildProblemSource by lazy { PsiBuildProblemSource(alias.extractPsiElement()) }
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AliasIsEmpty
     override val message: @Nls String
         get() = SchemaBundle.message("alias.is.empty", alias.value)
 }
 
-@Suppress("DEPRECATION")
 data class AliasIntersectsWithNaturalHierarchy(
     val alias: TraceableString,
     val existingPlatform: Platform,
-) : PsiBuildProblem(Level.Warning, BuildProblemType.Generic) {
+) : BuildProblem {
 
-    @Deprecated("Diagnostic consumers should use the source field instead of assuming the problem exposing PSI.")
-    override val element: PsiElement
-        get() = alias.extractPsiElement()
+    override val level: Level = Level.Warning
+    override val type: BuildProblemType = BuildProblemType.Generic
+    override val source: FileBuildProblemSource by lazy { PsiBuildProblemSource(alias.extractPsiElement()) }
     override val diagnosticId: DiagnosticId = FrontendDiagnosticId.AliasIntersectsWithNaturalHierarchy
     override val message: @Nls String
         get() = SchemaBundle.message("alias.intersects.with.natural.hierarchy", alias.value, existingPlatform.pretty)

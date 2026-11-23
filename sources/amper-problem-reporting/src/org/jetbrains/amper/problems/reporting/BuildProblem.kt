@@ -103,8 +103,7 @@ interface BuildProblem {
 }
 
 /**
- * Prefer writing strongly typed build problems
- * (see inheritors of [PsiBuildProblem][org.jetbrains.amper.frontend.messages.PsiBuildProblem] for a reference).
+ * Prefer writing strongly typed build problems that implement [BuildProblem] directly.
  * They can incorporate additional properties for the IDE to simplify quick-fixes implementation.
  */
 data class BuildProblemImpl(
