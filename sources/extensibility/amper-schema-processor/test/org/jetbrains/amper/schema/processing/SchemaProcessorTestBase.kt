@@ -4,7 +4,6 @@
 
 package org.jetbrains.amper.schema.processing
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import org.intellij.lang.annotations.Language
 import org.jetbrains.amper.plugins.schema.model.PluginDeclarationsRequest
@@ -16,11 +15,12 @@ import org.jetbrains.amper.problems.reporting.GlobalBuildProblemSource
 import org.jetbrains.amper.problems.reporting.MultipleLocationsBuildProblemSource
 import org.jetbrains.amper.problems.reporting.NonIdealDiagnostic
 import org.jetbrains.amper.test.TempDirExtension
-import org.jetbrains.amper.test.assertEqualsIgnoreLineSeparator
 import org.jetbrains.amper.test.assertEqualsWithDiff
+import org.jetbrains.amper.test.golden.SystemDependentGoldenFormatter
+import org.jetbrains.amper.test.golden.SystemLineSeparatorGoldenFormatter
+import org.jetbrains.amper.test.golden.assertContentEqualsGoldenFile
 import org.junit.jupiter.api.extension.RegisterExtension
 import java.nio.file.Path
-import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
 abstract class SchemaProcessorTestBase {
@@ -114,14 +114,15 @@ abstract class SchemaProcessorTestBase {
         }
         val format = Json {
             prettyPrint = true
-            @OptIn(ExperimentalSerializationApi::class)
             prettyPrintIndent = "  "
         }
-        
-        assertEqualsIgnoreLineSeparator(
-            expectedContent = expectedJsonPluginDataPath?.readText() ?: error("The test should call expectPluginData()"),
+
+        @OptIn(SystemDependentGoldenFormatter::class)
+        assertContentEqualsGoldenFile(
+            goldenFile = expectedJsonPluginDataPath ?: error("The test should call expectPluginData()"),
             actualContent = format.encodeToString(result.declarations.withoutOrigin()),
-            originalFile = expectedJsonPluginDataPath,
+            // TODO use gitattributes to enforce LF instead and make an exact comparison
+            goldenFormatter = SystemLineSeparatorGoldenFormatter,
         )
     }
 }

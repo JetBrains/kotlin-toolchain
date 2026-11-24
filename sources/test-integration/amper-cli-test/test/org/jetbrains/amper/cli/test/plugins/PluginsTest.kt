@@ -15,12 +15,17 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.frontend.schema.DefaultVersions
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.Dirs
-import org.jetbrains.amper.test.assertEqualsIgnoreLineSeparator
-import org.jetbrains.amper.test.normalizeLineSeparators
+import org.jetbrains.amper.test.golden.SystemDependentGoldenFormatter
+import org.jetbrains.amper.test.golden.SystemLineSeparatorGoldenFormatter
+import org.jetbrains.amper.test.golden.TemplatingGoldenFormatter
+import org.jetbrains.amper.test.golden.TemplatingGoldenFormatter.Variable
+import org.jetbrains.amper.test.golden.assertContentEqualsGoldenFile
+import org.jetbrains.amper.test.golden.plus
 import org.junit.jupiter.api.Tag
 import org.slf4j.event.Level
 import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.readText
@@ -57,23 +62,10 @@ class PluginsTest : CliTestBase() {
     @Tag("gold-file")
     fun `distribution plugin`() = runSlowTest {
         val testProjectSourcesDir = testProject("extensibility/distribution")
-        val r1 = runCli(
+        val result = runCli(
             projectDir = testProjectSourcesDir,
             "task", ":app:build@distribution-plugin",
         )
-
-        val buildDir = tempRoot / "build"
-        val projectDir = r1.projectDir
-
-        val actualOutputSubstituted = r1.extractCustomTaskStdout(
-            moduleName = "app",
-            taskName = "build",
-            pluginName = "distribution-plugin",
-        )
-            .replace(projectDir.toString(), $$"$projectDir")
-            .replace(Dirs.userCacheRoot.toString(), $$"${Dirs.userCacheRoot}")
-            .replace(buildDir.toString(), $$"$buildDir")
-            .replace(File.separatorChar, '/')
 
         /*
         Expectations form expected-plugin-output.txt, explained:
@@ -88,11 +80,21 @@ class PluginsTest : CliTestBase() {
         - moduleCompile: Kotlin 2.4.20, because transitively got from 'lib', and it's higher
         - combined: Kotlin 2.4.20 (from 'lib'), kotlin-reflect 2.4.0 (version specified by the 'app' module -> defines $kotlin.reflect catalog entry)
          */
-        val expectedOutputPath = testProjectSourcesDir / "expected-plugin-output.txt"
-        assertEqualsIgnoreLineSeparator(
-            expectedOutputPath.readText(),
-            actualOutputSubstituted,
-            expectedOutputPath,
+        @OptIn(SystemDependentGoldenFormatter::class)
+        assertContentEqualsGoldenFile(
+            goldenFile = testProjectSourcesDir / "expected-plugin-output.txt",
+            actualContent = result.extractCustomTaskStdout(
+                moduleName = "app",
+                taskName = "build",
+                pluginName = "distribution-plugin",
+            ),
+            // TODO use .gitattributes to ensure constant line endings for pure golden files
+            goldenFormatter = SystemLineSeparatorGoldenFormatter + TemplatingGoldenFormatter(variables = [
+                Variable(placeholder = $$"$projectDir", value = result.projectDir.absolutePathString()),
+                Variable(placeholder = $$"${Dirs.userCacheRoot}", value = Dirs.userCacheRoot.absolutePathString()),
+                Variable(placeholder = $$"$buildDir", value = (tempRoot / "build").absolutePathString()),
+                Variable(placeholder = "/", value = File.separator),
+            ]),
         )
     }
 
@@ -352,7 +354,7 @@ class PluginsTest : CliTestBase() {
         )
 
         assertContains(
-            charSequence = (r.projectDir / "app" / "konfig.properties").readText().normalizeLineSeparators(),
+            charSequence = (r.projectDir / "app" / "konfig.properties").readText().lines().joinToString("\n"),
             other = """
                 ID=chair-red-dog
                 VERSION=1.0
@@ -751,15 +753,16 @@ class PluginsTest : CliTestBase() {
         output: String,
     ) = assertContains(extractCustomTaskStdout(moduleName, taskName, pluginName), output)
 
+    @OptIn(SystemDependentGoldenFormatter::class)
     private fun AmperCliResult.assertCustomTaskStdoutEquals(
         expected: Path,
         moduleName: String,
         taskName: String,
         pluginName: String,
-    ) = assertEqualsIgnoreLineSeparator(
-        expected.readText(),
-        extractCustomTaskStdout(moduleName, taskName, pluginName),
-        expected,
+    ) = assertContentEqualsGoldenFile(
+        goldenFile = expected,
+        actualContent = extractCustomTaskStdout(moduleName, taskName, pluginName),
+        goldenFormatter = SystemLineSeparatorGoldenFormatter,
     )
 
     private fun AmperCliResult.extractCustomTaskStdout(

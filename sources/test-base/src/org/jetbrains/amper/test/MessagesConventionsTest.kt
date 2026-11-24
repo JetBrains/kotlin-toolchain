@@ -4,22 +4,21 @@
 
 package org.jetbrains.amper.test
 
+import org.jetbrains.amper.test.golden.assertFileEqualsExpectedContents
 import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
-import kotlin.io.path.exists
-import kotlin.io.path.readText
 import kotlin.test.Test
 
 @Tag("gold-file")
 abstract class MessagesConventionsTest(private val bundleName: String) {
     @Test
     fun messagesAreSortedAlphabetically() {
-        val bundlePath = Path("resources/messages/$bundleName.properties").takeIf { it.exists() }
-        val bundleText = bundlePath?.readText()?.trim() ?: error("$bundleName.properties file not found")
-
-        val sorted = sortPropertiesFileContent(bundleText)
-
-        assertEqualsIgnoreLineSeparator(bundleText, sorted, bundlePath)
+        assertFileEqualsExpectedContents(
+            actualFile = Path("resources/messages/${bundleName}.properties"),
+            getExpectedContents = { actualBundleText ->
+                sortPropertiesFileContent(actualBundleText).lines().joinToString(System.lineSeparator())
+            },
+        )
     }
 }
 
@@ -62,9 +61,9 @@ internal fun sortPropertiesFileContent(content: String): String {
 
     return blocks
         .sortedBy { parsePropertyKey(it.meaningfulFragment.toString()) }
-        .joinToString("\n") { (precedingCommentsAndEmptyLines, meaningfulFragment) ->
+        .joinToString("\n", postfix = trailingSuffix) { (precedingCommentsAndEmptyLines, meaningfulFragment) ->
             (precedingCommentsAndEmptyLines + meaningfulFragment.toString()).joinToString("\n")
-        } + trailingSuffix
+        }
 }
 
 private data class Block(val precedingCommentsAndEmptyLines: List<String>, val meaningfulFragment: StringBuilder)

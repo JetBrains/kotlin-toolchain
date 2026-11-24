@@ -10,7 +10,11 @@ import org.jetbrains.amper.cli.test.utils.assertStdoutContains
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
-import org.jetbrains.amper.test.assertEqualsIgnoreLineSeparator
+import org.jetbrains.amper.test.golden.SystemDependentGoldenFormatter
+import org.jetbrains.amper.test.golden.SystemLineSeparatorGoldenFormatter
+import org.jetbrains.amper.test.golden.TemplatingGoldenFormatter
+import org.jetbrains.amper.test.golden.assertContentEqualsGoldenFile
+import org.jetbrains.amper.test.golden.plus
 import org.jetbrains.amper.test.processes.checkExitCodeIsZero
 import org.junit.jupiter.api.Tag
 import kotlin.io.path.absolutePathString
@@ -175,19 +179,27 @@ class MavenConvertTest : CliTestBase() {
         val expectedProjectFile = projectRoot / "expected-project.yaml"
         val actualProjectFile = buildResult.projectDir.resolve("project.yaml")
         assertTrue(actualProjectFile.exists())
-        assertEqualsIgnoreLineSeparator(
-            expectedContent = expectedProjectFile.readText(),
+
+        @OptIn(SystemDependentGoldenFormatter::class)
+        assertContentEqualsGoldenFile(
+            goldenFile = expectedProjectFile,
             actualContent = actualProjectFile.readText(),
-            originalFile = expectedProjectFile,
+            // FIXME this is a production bug, because it means we generate a project file with incorrect (LF) line
+            //  endings on Windows when converting a project.
+            goldenFormatter = SystemLineSeparatorGoldenFormatter,
         )
 
         val expectedModuleFile = projectRoot.resolve("expected-module.yaml")
         val actualModuleFile = buildResult.projectDir / "module.yaml"
         assertTrue(actualModuleFile.exists())
-        assertEqualsIgnoreLineSeparator(
-            expectedContent = expectedModuleFile.readText(),
+
+        @OptIn(SystemDependentGoldenFormatter::class)
+        assertContentEqualsGoldenFile(
+            goldenFile = expectedModuleFile,
             actualContent = actualModuleFile.readText(),
-            originalFile = expectedModuleFile,
+            // FIXME this is a production bug, because it means we generate module files with incorrect (LF) line
+            //  endings on Windows when converting a project.
+            goldenFormatter = SystemLineSeparatorGoldenFormatter,
         )
         val converted = testProject(buildResult.projectDir.pathString)
 
@@ -556,16 +568,18 @@ class MavenConvertTest : CliTestBase() {
 
         val buildResult = runCli(projectRoot, "tool", "convert-project")
 
-        val pomPath = buildResult.projectDir / "pom.xml"
-        val actualModuleFile = buildResult.projectDir / "module.yaml"
-        val actualModuleSubstitutedPom = actualModuleFile
-            .readText()
-            .replace(pomPath.absolutePathString(), $$"$pom")
-        val expectedModuleFile = projectRoot / "expected-module.yaml"
-        assertEqualsIgnoreLineSeparator(
-            expectedContent = expectedModuleFile.readText(),
-            actualContent = actualModuleSubstitutedPom,
-            originalFile = expectedModuleFile,
+        @OptIn(SystemDependentGoldenFormatter::class)
+        assertContentEqualsGoldenFile(
+            goldenFile = projectRoot / "expected-module.yaml",
+            actualContent = (buildResult.projectDir / "module.yaml").readText(),
+            // FIXME the SystemLineSeparatorGoldenFormatter is needed because of a production bug: we generate LF line
+            //  endings on Windows when converting a project, which is not desirable
+            goldenFormatter = SystemLineSeparatorGoldenFormatter + TemplatingGoldenFormatter(variables = [
+                TemplatingGoldenFormatter.Variable(
+                    placeholder = $$"$pom",
+                    value = (buildResult.projectDir / "pom.xml").absolutePathString(),
+                ),
+            ]),
         )
     }
 

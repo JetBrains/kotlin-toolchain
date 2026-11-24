@@ -4,16 +4,11 @@
 
 package org.jetbrains.amper.test.golden
 
-import org.jetbrains.amper.frontend.schema.DefaultVersions
-import org.jetbrains.amper.test.assertEqualsIgnoreLineSeparator
-import org.jetbrains.amper.test.normalizeLineSeparators
+import org.jetbrains.amper.test.golden.TemplatingGoldenFormatter.Variable
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.exists
-import kotlin.io.path.readText
-import kotlin.io.path.writeText
 
 /**
  * Shortcut for tests that have very simple [inputContent].
@@ -24,14 +19,13 @@ fun GoldFileTest(caseName: String, base: Path, inputContent: GoldFileTest.() -> 
     }
 
 /**
- * Represents a single test (usually a single test method) that 
+ * Represents a single test (usually a single test method) that
  * retrieves expected content only from the specified gold file.
  *
  * Assertion is made by comparing the actual content with the expected one and generating
  * special `.tmp` file with the actual content in case of mismatch.
  *
- * Also, expected content is normalized first and some interpolations are made.
- * See [readNormalizedExpectedSafelyAndInterpolate] for details.
+ * Also, the expected content is normalized first and some placeholders are interpolated.
  *
  * @param caseName The name of the test case.
  * @param goldenFilesDir Base directory for the golden files.
@@ -52,26 +46,17 @@ abstract class GoldFileTest(
      */
     abstract fun getInputContent(): String
 
-    private fun Path.readNormalizedExpectedSafelyAndInterpolate(): String {
-        // This is the actual check.
-        if (!exists()) writeText("")
-        return readText()
-            .normalizeLineSeparators()
-            .trimTrailingWhitespacesAndEmptyLines()
-            .replace("{{ testResources }}", goldenFilesDir.normalize().absolutePathString())
-            .replace("{{ fileSeparator }}", File.separator)
-            .replace("#kotlinVersion", DefaultVersions.kotlin)
-            .replace("#composeDefaultVersion", DefaultVersions.compose)
-    }
-
+    // The gold files are also the input YAML files for the tests, and we want to test our code with real life system
+    // line endings.
+    @OptIn(SystemDependentGoldenFormatter::class)
     open fun doTest() {
-        val inputContent = getInputContent()
-        val expectedPath = goldenFilesDir.resolve(caseName + expectPostfix).absolute()
-        val expectContent = expectedPath.readNormalizedExpectedSafelyAndInterpolate()
-        return assertEqualsIgnoreLineSeparator(
-            expectContent,
-            inputContent,
-            expectedPath,
+        assertContentEqualsGoldenFile(
+            goldenFile = goldenFilesDir.resolve(caseName + expectPostfix),
+            actualContent = getInputContent(),
+            goldenFormatter = SystemLineSeparatorGoldenFormatter + TemplatingGoldenFormatter(variables = [
+                Variable(placeholder = "{{ testResources }}", value = goldenFilesDir.normalize().absolutePathString()),
+                Variable(placeholder = "{{ fileSeparator }}", value = File.separator),
+            ]),
         )
     }
 }

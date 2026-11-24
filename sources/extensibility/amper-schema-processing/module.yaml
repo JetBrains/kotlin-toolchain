@@ -11,6 +11,10 @@ settings:
   kotlin:
     serialization: enabled
 
+test-settings:
+  jvm:
+    release: 25 # production release is reduced by templates
+
 dependencies:
   - //sources/extensibility/amper-extensibility-schema-model: exported
   - //sources/libraries/stdlib-extended

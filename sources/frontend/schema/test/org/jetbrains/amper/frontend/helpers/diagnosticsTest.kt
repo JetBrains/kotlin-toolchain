@@ -7,7 +7,6 @@ package org.jetbrains.amper.frontend.helpers
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.frontend.aomBuilder.readProjectModel
 import org.jetbrains.amper.problems.reporting.BuildProblem
-import org.jetbrains.amper.test.golden.trimTrailingWhitespacesAndEmptyLines
 import java.io.File
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
@@ -46,10 +45,8 @@ class DiagnosticsTestRun(
             }
         }
 
-        // Collect errors.
-        val annotated = annotateTextWithDiagnostics(inputPath, cleared, problemReporter.problems) {
+        return annotateTextWithDiagnostics(inputPath, cleared, problemReporter.problems) {
             it.replace(testCase.testProjectDir.absolutePathString() + File.separator, "")
         }
-        return annotated.trimTrailingWhitespacesAndEmptyLines()
     }
 }

@@ -4,13 +4,10 @@
 
 package org.jetbrains.amper.cli.test.publication
 
-import kotlinx.serialization.json.Json
 import org.jetbrains.amper.cli.test.CliTestBase
-import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.assertGradleMetadataEquals
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.MacOnly
-import org.jetbrains.gradle.module.metadata.format.Module
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
 import kotlin.io.path.div

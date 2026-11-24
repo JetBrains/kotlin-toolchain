@@ -9,14 +9,13 @@ import org.jetbrains.amper.plugins.schema.model.PluginData
 import org.jetbrains.amper.plugins.schema.model.PluginDeclarationsRequest
 import org.jetbrains.amper.plugins.schema.model.withoutOrigin
 import org.jetbrains.amper.test.assertEqualsWithDiff
-import org.jetbrains.amper.test.normalizeLineSeparators
+import org.jetbrains.amper.test.golden.SystemDependentGoldenFormatter
+import org.jetbrains.amper.test.golden.SystemLineSeparatorGoldenFormatter
+import org.jetbrains.amper.test.golden.assertFileEqualsExpectedContents
 import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.deleteIfExists
-import kotlin.io.path.div
-import kotlin.io.path.name
-import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,7 +34,7 @@ class ExtensibilityApiDeclarationsTest {
     @Test
     fun `are builtin declarations up-to-date`() {
         // Loads the bundled declarations json from the `amper-schema-processing` dependency
-        val expected = loadSerializedBuiltinDeclarations().normalizeLineSeparators()
+        val expected = loadSerializedBuiltinDeclarations().lines().joinToString("\n")
 
         val result = runSchemaProcessor(PluginDeclarationsRequest(listOf(request))).single()
         assertEquals(
@@ -52,6 +51,8 @@ class ExtensibilityApiDeclarationsTest {
             tmpFile.deleteIfExists()
         }
 
+        // Not using assertFileEqualsExpectedContents here because we're not reading the resource file as a file, but
+        // via the production code that loads resources.
         assertEqualsWithDiff(
             expected = expected,
             actual = actual,
@@ -61,22 +62,17 @@ class ExtensibilityApiDeclarationsTest {
 
     @Test
     fun `are shadow sources up-to-date`() {
-        val sourceFile = Path(SHADOW_SOURCE_FILE)
-            .absolute().normalize()
-        val actual = sourceFile.readText().normalizeLineSeparators()
+        val sourceFile = Path(SHADOW_SOURCE_FILE).absolute().normalize()
 
         val result = runSchemaProcessor(PluginDeclarationsRequest(listOf(request))).single()
         val expected = generateShadowSources(result.declarations).toString()
 
-        val tmpFile = sourceFile.parent / (sourceFile.name + ".tmp")
-        if (expected != actual) {
-            tmpFile.writeText(expected)
-        } else {
-            tmpFile.deleteIfExists()
-        }
-        assertEqualsWithDiff(
-            expected = expected,
-            actual = actual,
+        @OptIn(SystemDependentGoldenFormatter::class)
+        assertFileEqualsExpectedContents(
+            actualFile = sourceFile,
+            getExpectedContents = { expected },
+            // TODO use gitattributes and check this file in with LF, which is how it's generated
+            goldenFormatter = SystemLineSeparatorGoldenFormatter,
             message = MESSAGE,
         )
     }

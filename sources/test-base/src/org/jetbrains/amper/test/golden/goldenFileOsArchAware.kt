@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package org.jetbrains.amper.test.golden
@@ -8,13 +8,6 @@ import org.jetbrains.amper.system.info.Arch
 import org.jetbrains.amper.system.info.OsFamily
 import java.nio.file.Path
 import kotlin.io.path.exists
-
-fun String.trimTrailingWhitespacesAndEmptyLines(): String {
-    return lines()
-        .dropWhile { it.isBlank() }
-        .dropLastWhile { it.isBlank() }
-        .joinToString(separator = "\n") { it.trimEnd() }
-}
 
 /**
  * Resolves the given file name inside the [Path].

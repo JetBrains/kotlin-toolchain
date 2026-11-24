@@ -10,11 +10,10 @@ import org.jetbrains.amper.problems.reporting.noProblemsReported
 import org.jetbrains.amper.test.golden.GoldFileTest
 import java.nio.file.Path
 import kotlin.io.path.absolute
-import kotlin.io.path.readText
 
 /**
  * [GoldFileTest] that always has the input file, that is used to read the model.
- * 
+ *
  * See [GoldFileTest] for the assertion logic.
  */
 abstract class FrontendTest(

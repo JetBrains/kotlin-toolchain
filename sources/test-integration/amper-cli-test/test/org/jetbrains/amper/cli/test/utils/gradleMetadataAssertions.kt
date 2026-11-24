@@ -10,17 +10,13 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.amper.test.Dirs
+import org.jetbrains.amper.test.golden.assertContentEqualsGoldenFile
 import org.jetbrains.gradle.module.metadata.format.Module
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
-import kotlin.io.path.deleteIfExists
 import kotlin.io.path.div
-import kotlin.io.path.exists
-import kotlin.io.path.name
 import kotlin.io.path.pathString
 import kotlin.io.path.readText
-import kotlin.io.path.writeText
-import kotlin.test.fail
 
 /**
  * The directory containing the reference Gradle module metadata files.
@@ -71,17 +67,10 @@ private fun assertSanitizedMetadataEquals(
     testInfo: TestInfo,
 ) {
     val testName = testInfo.testMethod.get().name.replace(" ", "_")
-    val goldenFile = goldenFilesRoot / "$testName.$expectedFileNameSuffix"
-
-    val actualFileForReview = goldenFile.resolveSibling("${goldenFile.name}.tmp")
-    actualFileForReview.writeText(sanitizedActualMetadata)
-
-    if (!goldenFile.exists()) {
-        fail("The reference file ${goldenFile.name} doesn't exist. If the metadata generated in " +
-                "$actualFileForReview is correct, remove the '.tmp' extension to make it the reference.")
-    }
-    assertFileContentEquals(goldenFile, actualFileForReview)
-    actualFileForReview.deleteIfExists()
+    assertContentEqualsGoldenFile(
+        goldenFile = goldenFilesRoot / "$testName.$expectedFileNameSuffix",
+        actualContent = sanitizedActualMetadata
+    )
 }
 
 /**

@@ -24,7 +24,6 @@ import org.jetbrains.amper.frontend.types.SchemaTypingContext
 import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.CollectingProblemReporter
 import org.jetbrains.amper.problems.reporting.ProblemReporter
-import org.jetbrains.amper.test.golden.trimTrailingWhitespacesAndEmptyLines
 import java.nio.file.Path
 import kotlin.io.path.absolute
 import kotlin.test.assertNotNull
@@ -173,7 +172,6 @@ internal open class DiagnosticsTreeTestRun(
         val virtualFile = pathResolver.loadVirtualFile(inputPath)
         val psiFile = pathResolver.toPsiFile(virtualFile) ?: fail("PSI file for $inputPath not found")
         return annotateTextWithDiagnostics(inputPath, psiFile.text, diagnostics) { it }
-            .trimTrailingWhitespacesAndEmptyLines()
     }
 }
 

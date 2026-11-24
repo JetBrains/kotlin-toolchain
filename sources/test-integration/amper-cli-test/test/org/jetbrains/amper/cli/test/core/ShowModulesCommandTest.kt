@@ -7,7 +7,9 @@ package org.jetbrains.amper.cli.test.core
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.AmperCliResult
-import org.jetbrains.amper.test.golden.GoldFileTest
+import org.jetbrains.amper.test.golden.SystemDependentGoldenFormatter
+import org.jetbrains.amper.test.golden.SystemLineSeparatorGoldenFormatter
+import org.jetbrains.amper.test.golden.assertContentEqualsGoldenFile
 import org.junit.jupiter.api.Tag
 import kotlin.io.path.Path
 import kotlin.test.Test
@@ -16,10 +18,15 @@ import kotlin.test.Test
 @Tag("gold-file")
 class ShowModulesCommandTest : CliTestBase() {
 
-    private fun AmperCliResult.checkGold(caseName: String) = GoldFileTest(
-        caseName = caseName,
-        base = Path("testResources/showModules"),
-    ) { stdoutClean }.doTest()
+    @OptIn(SystemDependentGoldenFormatter::class)
+    private fun AmperCliResult.checkGold(caseName: String) {
+        assertContentEqualsGoldenFile(
+            goldenFile = Path("testResources/showModules/$caseName.result.txt"),
+            actualContent = stdoutClean,
+            // TODO normalize golden file line endings to LF via gitattributes (stdoutClean is normalized to LF)
+            goldenFormatter = SystemLineSeparatorGoldenFormatter,
+        )
+    }
     
     @Test
     fun `correct name for single module project`() = runSlowTest {

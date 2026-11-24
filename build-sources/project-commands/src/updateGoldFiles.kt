@@ -8,20 +8,16 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.amper.plugins.ExecutionAvoidance
 import org.jetbrains.amper.plugins.Input
 import org.jetbrains.amper.plugins.TaskAction
-import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.ProcessInput
+import org.jetbrains.amper.processes.ProcessResult
 import org.jetbrains.amper.processes.output.ProcessOutputMode
 import org.jetbrains.amper.processes.runProcess
-import java.io.File
 import java.nio.file.Path
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.deleteExisting
 import kotlin.io.path.div
+import kotlin.io.path.moveTo
 import kotlin.io.path.name
 import kotlin.io.path.pathString
-import kotlin.io.path.readText
 import kotlin.io.path.walk
-import kotlin.io.path.writeText
 
 @TaskAction(ExecutionAvoidance.Disabled) // we can't track all outputs
 fun updateGoldFiles(
@@ -38,10 +34,6 @@ private class AmperGoldUpdater(
     val amperRootDir: Path,
     val maxAttempts: Int = 10,
 ) {
-    private val schemaModuleDir = amperRootDir / "sources/frontend/schema"
-    private val testResourcesDir = schemaModuleDir / "testResources"
-    private val testResourcePathRegex = Regex("(${Regex.escape(testResourcesDir.absolutePathString())})[^),\"'\n\r]*")
-
     /**
      * The modules containing tests tagged with `gold-file`.
      *
@@ -113,37 +105,18 @@ private class AmperGoldUpdater(
     }
 
     private fun updateTmpFilesUnder(roots: List<Path>): Int {
-        var updatedFilesCount = 0
-        roots
-            .flatMap {
-                it.walk().filter { it.name.endsWith(".tmp") }
-            }
-            .forEach { tmpResultFile ->
-                updateGoldFileFor(tmpResultFile)
-                updatedFilesCount++
-            }
-        return updatedFilesCount
+        val tempFiles = roots.flatMap { r ->
+            r.walk().filter { it.name.endsWith(".tmp") }
+        }
+        tempFiles.forEach { tmpResultFile ->
+            updateGoldFileFor(tmpResultFile)
+        }
+        return tempFiles.size
     }
 
     private fun updateGoldFileFor(tmpResultFile: Path) {
-        val realGoldFile = goldFileFor(tmpResultFile)
+        val realGoldFile = tmpResultFile.resolveSibling(tmpResultFile.name.removeSuffix(".tmp"))
         println("Replacing ${realGoldFile.name} with the contents of ${tmpResultFile.name}")
-        val newGoldContent = tmpResultFile.contentsWithVariables()
-        realGoldFile.writeText(newGoldContent)
-        tmpResultFile.deleteExisting()
-    }
-
-    private fun goldFileFor(tmpResultFile: Path): Path = tmpResultFile.resolveSibling(tmpResultFile.name.removeSuffix(".tmp"))
-
-    /**
-     * Gets the contents of this temp file with the paths replaced with variables, as they are usually in gold files to
-     * make them machine-/os-independent.
-     */
-    private fun Path.contentsWithVariables(): String = readText().replace(testResourcePathRegex) { match ->
-        // See variable substitution in schema/helper/util.kt
-        match.value
-            // {{ testResources }} is used for the "base" path, which is the dir containing the gold file
-            .replace(parent.absolutePathString(), "{{ testResources }}")
-            .replace(File.separator, "{{ fileSeparator }}")
+        tmpResultFile.moveTo(realGoldFile, overwrite = true)
     }
 }
