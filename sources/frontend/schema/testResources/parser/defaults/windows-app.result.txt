@@ -60,7 +60,7 @@ Fragments:
         resources: <default> {
           exposedAccessors: <default> false
           nameOfResClass: <default> Res
-          packageName: <default>
+          packageName: <default> 
         }
         version: <default> 1.12.1
       }
@@ -272,7 +272,7 @@ Fragments:
         resources: <default> {
           exposedAccessors: <default> false
           nameOfResClass: <default> Res
-          packageName: <default>
+          packageName: <default> 
         }
         version: <default> 1.12.1
       }
@@ -482,7 +482,7 @@ Fragments:
         resources: <default> {
           exposedAccessors: <default> false
           nameOfResClass: <default> Res
-          packageName: <default>
+          packageName: <default> 
         }
         version: <default> 1.12.1
       }
@@ -695,7 +695,7 @@ Fragments:
         resources: <default> {
           exposedAccessors: <default> false
           nameOfResClass: <default> Res
-          packageName: <default>
+          packageName: <default> 
         }
         version: <default> 1.12.1
       }
@@ -905,7 +905,7 @@ Fragments:
         resources: <default> {
           exposedAccessors: <default> false
           nameOfResClass: <default> Res
-          packageName: <default>
+          packageName: <default> 
         }
         version: <default> 1.12.1
       }
@@ -1118,7 +1118,7 @@ Fragments:
         resources: <default> {
           exposedAccessors: <default> false
           nameOfResClass: <default> Res
-          packageName: <default>
+          packageName: <default> 
         }
         version: <default> 1.12.1
       }
@@ -1328,7 +1328,7 @@ Fragments:
         resources: <default> {
           exposedAccessors: <default> false
           nameOfResClass: <default> Res
-          packageName: <default>
+          packageName: <default> 
         }
         version: <default> 1.12.1
       }
@@ -1541,7 +1541,7 @@ Fragments:
         resources: <default> {
           exposedAccessors: <default> false
           nameOfResClass: <default> Res
-          packageName: <default>
+          packageName: <default> 
         }
         version: <default> 1.12.1
       }

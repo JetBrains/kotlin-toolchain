@@ -1,4 +1,4 @@
-product: 
+product:
   type: lib
   platforms: [ iosArm64, iosSimulatorArm64, iosX64 ]
 
