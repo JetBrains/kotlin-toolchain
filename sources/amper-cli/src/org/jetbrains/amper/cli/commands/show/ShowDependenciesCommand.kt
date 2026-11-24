@@ -38,6 +38,7 @@ import org.jetbrains.amper.frontend.dr.resolver.ModuleDependencyNode
 import org.jetbrains.amper.frontend.dr.resolver.ModuleResolutionFilter
 import org.jetbrains.amper.frontend.dr.resolver.ResolutionType
 import org.jetbrains.amper.frontend.dr.resolver.flow.toResolutionPlatform
+import org.jetbrains.amper.stdlib.collections.forEachEndAware
 
 internal class ShowDependenciesCommand: AmperModelAwareCommand(name = "dependencies") {
 
@@ -93,13 +94,16 @@ internal class ShowDependenciesCommand: AmperModelAwareCommand(name = "dependenc
 
     override suspend fun run(cliContext: ProjectCliContext, model: Model) {
         val selectedModules = moduleFilter.selectModules(projectModules = model.modules)
-        selectedModules.forEach { selectedModule ->
+        selectedModules.forEachEndAware { isLast, selectedModule ->
             printModuleDependencies(
                 module = selectedModule, cliContext = cliContext,
                 // When using --all-modules, the user most likely just wants to filter "all" dependencies based on the
                 // platforms and is ok ignoring some modules that don't have these platforms.
                 failOnUnsupportedPlatforms = moduleFilter !is ModuleFilter.All,
             )
+            if (!isLast) {
+                terminal.println()
+            }
         }
     }
 
@@ -167,10 +171,8 @@ internal class ShowDependenciesCommand: AmperModelAwareCommand(name = "dependenc
         filter: String?,
     ) {
         if (mavenCoordinates == null) {
-            terminal.println("Dependencies of module ${resolvedModule.userReadableName}: \n")
-            rootNodesToPrint.forEach {
-                terminal.println(it.prettyPrint())
-            }
+            terminal.println("Dependencies of module ${resolvedModule.userReadableName}:\n")
+            terminal.println(rootNodesToPrint.joinToString("\n\n") { it.prettyPrint().trim() })
         } else {
             // todo (AB) : [AMPER-4905] If module graph is filtered, a resolved version of dependency might come
             //  from filtered out fragment and thus resulting graph will have no information on where resolved version comes from
@@ -187,9 +189,7 @@ internal class ShowDependenciesCommand: AmperModelAwareCommand(name = "dependenc
                 terminal.println("Module doesn't depend on $filter")
             } else {
                 terminal.println("Subgraphs of module dependencies showing where dependency on the library '$filter' comes from: \n")
-                rootsToPrint.forEach {
-                    terminal.println(it.prettyPrint())
-                }
+                terminal.println(rootsToPrint.joinToString("\n\n") { it.prettyPrint().trim() })
             }
         }
     }
