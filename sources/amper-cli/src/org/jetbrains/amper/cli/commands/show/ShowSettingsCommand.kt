@@ -6,14 +6,12 @@ package org.jetbrains.amper.cli.commands.show
 
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.terminal
-import com.github.ajalt.mordant.rendering.TextAlign
-import com.github.ajalt.mordant.rendering.Whitespace
-import com.github.ajalt.mordant.terminal.info
 import org.jetbrains.amper.cli.commands.AmperModelAwareCommand
 import org.jetbrains.amper.cli.context.ProjectCliContext
 import org.jetbrains.amper.cli.options.AllModulesOptionName
 import org.jetbrains.amper.cli.options.moduleFilter
 import org.jetbrains.amper.cli.options.selectModules
+import org.jetbrains.amper.frontend.AmperModule
 import org.jetbrains.amper.frontend.Fragment
 import org.jetbrains.amper.frontend.Model
 import org.jetbrains.amper.frontend.schema.ProductType
@@ -36,29 +34,30 @@ internal class ShowSettingsCommand : AmperModelAwareCommand(name = "settings") {
     override fun help(context: Context): String = "Print the effective settings of each module"
 
     override suspend fun run(cliContext: ProjectCliContext, model: Model) {
-        val isMultimodule = model.modules.size
-        moduleFilter.selectModules(model.modules).forEach { module ->
-            if (isMultimodule > 1) {
-                terminal.info("Module: ${module.userReadableName}\n", Whitespace.PRE_LINE, TextAlign.LEFT)
-            }
-            module.fragments
-                .distinctBy { it.platforms }
-                .forEach { fragment ->
-                    printFragmentSettings(fragment = fragment, productType = module.type)
-                }
+        val nModules = model.modules.size
+        val selectedModules = moduleFilter.selectModules(model.modules)
+        val formattedSettings = selectedModules.joinToString("\n\n") { module ->
+            formatModuleSettings(module, showModuleName = nModules > 1)
         }
+        terminal.println(formattedSettings)
     }
 
-    private fun printFragmentSettings(
-        fragment: Fragment,
-        productType: ProductType,
-    ) {
+    private fun formatModuleSettings(module: AmperModule, showModuleName: Boolean): String {
+        val moduleHeader = if (showModuleName) terminal.theme.info("Module: ${module.userReadableName}\n\n") else ""
+        val moduleSettings = module.fragments
+            .distinctBy { it.platforms }
+            .joinToString("\n\n") { fragment ->
+                formatFragmentSettings(fragment = fragment, productType = module.type)
+            }
+        return "$moduleHeader$moduleSettings"
+    }
+
+    private fun formatFragmentSettings(fragment: Fragment, productType: ProductType): String {
         val settingsNodeName = if (fragment.platforms.isNotEmpty()) {
             "settings@${fragment.platforms.joinToString("+") { it.pretty }}:"
         } else {
             "settings:"
         }
-        terminal.info(settingsNodeName)
         val yamlLikeEffectiveSettings = fragment.settings.serializeAsAmperYaml(
             productType = productType,
             contexts = fragment.platforms,
@@ -69,7 +68,6 @@ internal class ShowSettingsCommand : AmperModelAwareCommand(name = "settings") {
                 }
             }
         )
-        terminal.println(yamlLikeEffectiveSettings.prependIndent("  "))
-        terminal.println()
+        return "${terminal.theme.info(settingsNodeName)}\n${yamlLikeEffectiveSettings.trim().prependIndent("  ")}"
     }
 }
