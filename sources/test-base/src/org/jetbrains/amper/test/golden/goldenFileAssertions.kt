@@ -58,6 +58,25 @@ fun assertContentEqualsGoldenFile(
 }
 
 /**
+ * Asserts that the given [actualFile] matches the content of the given [goldenFile], assuming UTF-8 encoding.
+ *
+ * In case of mismatch, the actual content is written to a temporary file next to the golden file (with `.tmp` as
+ * extension), so it can be used to update the golden file.
+ *
+ * If the golden file contents is in a different format than what needs to be used for comparison, use [goldenFormatter]
+ * to transform the contents of the golden file to the comparable contents, and vice versa.
+ *
+ * The default [goldenFormatter] applies no transformation. Line endings and blank lines should properly match.
+ * Prefer using proper .gitattributes over dynamic transformations to normalize line endings.
+ */
+fun assertFileEqualsGoldenFile(
+    goldenFile: Path,
+    actualFile: Path,
+    goldenFormatter: GoldenFormatter = IdentityGoldenFormatter,
+    message: String = "Comparison failed",
+): Unit = assertContentEqualsGoldenFile(goldenFile, actualFile.readText(), goldenFormatter, message)
+
+/**
  * Asserts that the contents of the given [actualFile] are equal to the contents returned by [getExpectedContents],
  * assuming UTF-8 encoding.
  *

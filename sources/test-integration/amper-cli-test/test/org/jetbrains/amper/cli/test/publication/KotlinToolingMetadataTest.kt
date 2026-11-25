@@ -5,9 +5,9 @@
 package org.jetbrains.amper.cli.test.publication
 
 import org.jetbrains.amper.cli.test.CliTestBase
-import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.Dirs
+import org.jetbrains.amper.test.golden.assertFileEqualsGoldenFile
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
@@ -129,9 +129,9 @@ class KotlinToolingMetadataTest : CliTestBase() {
 
     private fun assertToolingMetadataEquals(testInfo: TestInfo, moduleName: String) {
         val goldenFileName = "${testInfo.testMethod.get().name.replace(" ", "_")}.kotlin-tooling-metadata.json"
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve(goldenFileName),
-            toolingMetadataPath(moduleName),
+        assertFileEqualsGoldenFile(
+            goldenFile = testGoldenFilesRoot.resolve(goldenFileName),
+            actualFile = toolingMetadataPath(moduleName),
         )
     }
 

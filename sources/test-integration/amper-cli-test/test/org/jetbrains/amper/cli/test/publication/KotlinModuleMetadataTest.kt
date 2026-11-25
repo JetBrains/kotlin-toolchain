@@ -5,10 +5,10 @@
 package org.jetbrains.amper.cli.test.publication
 
 import org.jetbrains.amper.cli.test.CliTestBase
-import org.jetbrains.amper.cli.test.utils.assertFileContentEquals
 import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.Dirs
 import org.jetbrains.amper.test.MacOnly
+import org.jetbrains.amper.test.golden.assertFileEqualsGoldenFile
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.TestInfo
 import java.nio.file.Path
@@ -149,9 +149,9 @@ class KotlinModuleMetadataTest : CliTestBase() {
             ":libraryCinterop:assembleMetadata",
         )
 
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.kotlin-project-structure-metadata.json"),
-            tempRoot / "build" / "tasks" / "_libraryCinterop_assembleMetadata" / "kotlin-project-structure-metadata.json"
+        assertFileEqualsGoldenFile(
+            goldenFile = testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.kotlin-project-structure-metadata.json"),
+            actualFile = tempRoot / "build" / "tasks" / "_libraryCinterop_assembleMetadata" / "kotlin-project-structure-metadata.json",
         )
 
         // todo (AB) : [AMPER-719] Check
@@ -178,9 +178,9 @@ class KotlinModuleMetadataTest : CliTestBase() {
             ":libraryNested:assembleMetadata",
         )
 
-        assertFileContentEquals(
-            testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.kotlin-project-structure-metadata.json"),
-            tempRoot / "build" / "tasks" / "_libraryNested_assembleMetadata" / "kotlin-project-structure-metadata.json"
+        assertFileEqualsGoldenFile(
+            goldenFile = testGoldenFilesRoot.resolve("${testInfo.testMethod.get().name.replace(" ", "_")}.kotlin-project-structure-metadata.json"),
+            actualFile = tempRoot / "build" / "tasks" / "_libraryNested_assembleMetadata" / "kotlin-project-structure-metadata.json",
         )
 
         // todo (AB) : [AMPER-719] Check
