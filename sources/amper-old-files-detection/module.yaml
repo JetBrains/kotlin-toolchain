@@ -1,0 +1,7 @@
+product: jvm/lib
+
+apply: 
+  - //sources/common.module-template.yaml
+
+dependencies: 
+  - $libs.slf4j.api

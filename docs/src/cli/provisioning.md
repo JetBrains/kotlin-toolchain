@@ -61,6 +61,26 @@ dependencies, JDKs, and other tools).
 This location can be customized by setting the `KOTLIN_SHARED_CACHE_DIR` environment variable, or by using the
 `--shared-cache-dir` command line option (which takes precedence over the environment variable).
 
+## Cleaning old data
+
+If you often update the Kotlin CLI, old distribution versions pile up in the machine-wide caches over time.
+The same happens with old telemetry and downloaded tools.
+
+Use `kotlin clean --old --shared` to remove such old data.
+The distributions that the current command runs from are never removed.
+
+Data counts as old when it was created or last used more than the given number of days ago:
+logs and telemetry are judged by when they were created, and other cached data by when it was
+last read or modified. The default is 30 days. Change it with the `--older-than-days` option:
+
+```bash
+kotlin clean --old --shared --older-than-days 60
+```
+
+Use `--dry-run` to only print the data that would be removed, without removing it.
+Without `--shared`, the same idea applies to the current project: `kotlin clean --old` removes the old 
+project logs. Use `--all` to clean both the project and the shared caches.
+
 ## Disabling the welcome banner
 
 When the wrapper script downloads a distribution for the first time, it displays a welcome message to the user.

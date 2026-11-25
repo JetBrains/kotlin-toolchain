@@ -13,7 +13,7 @@ import kotlin.io.path.deleteRecursively
 @Deprecated("Should be dropped in favor of the CleanCommand")
 internal class CleanSharedCachesCommand : AmperSubcommand(name = "clean-shared-caches") {
 
-    override fun help(context: Context): String = "Deprecated: remove the caches that are shared between projects. Use 'clean --shared' instead."
+    override fun help(context: Context): String = "Deprecated: use 'clean --shared' instead."
 
     override val hiddenFromHelp: Boolean = true
 

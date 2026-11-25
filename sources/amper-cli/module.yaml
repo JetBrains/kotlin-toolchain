@@ -23,6 +23,7 @@ dependencies:
   - //sources/amper-kotlin-native
   - //sources/amper-maven-converter
   - //sources/amper-maven-publish
+  - //sources/amper-old-files-detection
   - //sources/amper-project-templates
   - //sources/amper-project-wizard
   - //sources/amper-swift-pm-resolution-model
