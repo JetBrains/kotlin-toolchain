@@ -23,11 +23,14 @@ import org.jetbrains.amper.cli.telemetry.TelemetryEnvironment
 import org.jetbrains.amper.cli.terminal.createMordantTerminal
 import org.jetbrains.amper.concurrency.use
 import org.jetbrains.amper.core.AmperUserCacheRoot
+import org.jetbrains.amper.system.info.SystemInfo
+import org.jetbrains.amper.system.info.exitCodeForCtrlC
 import org.jetbrains.amper.telemetry.setListAttribute
 import org.jetbrains.amper.telemetry.spanBuilder
 import org.jetbrains.amper.telemetry.use
 import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
+import kotlin.coroutines.cancellation.CancellationException
 import java.nio.file.Path
 import java.time.Instant
 import kotlin.system.exitProcess
@@ -93,6 +96,12 @@ suspend fun main(args: Array<String>) {
             printInternalError(effectiveException, e.logsDir)
             exitProcess(1)
         }
+    } catch (_: CancellationException) {
+        // We reach this place when the CliShutdownManager cancels the commandChainExecutionScope (which makes the scope
+        // above rethrow the cancellation exception). We should just terminate gracefully in this case.
+        // This happens when the user presses Ctrl+C while the terminal is not in raw mode (we don't capture the Ctrl+C
+        // and the regular SIGINT signal terminates the JVM without exception).
+        exitProcess(SystemInfo.CurrentHost.family.exitCodeForCtrlC)
     } catch (e: Exception) {
         printInternalError(e, logsDir = null)
         exitProcess(1)

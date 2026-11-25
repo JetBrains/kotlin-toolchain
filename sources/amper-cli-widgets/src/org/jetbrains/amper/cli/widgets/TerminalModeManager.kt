@@ -10,9 +10,8 @@ import com.github.ajalt.mordant.input.enterRawModeOrNull
 import com.github.ajalt.mordant.input.isCtrlC
 import com.github.ajalt.mordant.terminal.Terminal
 import org.jetbrains.amper.stdlib.runtime.runOnJvmShutdown
-import org.jetbrains.amper.system.info.OsFamily
 import org.jetbrains.amper.system.info.SystemInfo
-import kotlin.system.exitProcess
+import org.jetbrains.amper.system.info.exitCodeForCtrlC
 import kotlin.time.Duration
 
 /** Manages the terminal mode while a widget is displayed and restores it on JVM shutdown. */
@@ -84,13 +83,7 @@ private class InteractiveTerminalModeManager(private val terminal: Terminal) : T
         if (scope?.readKeyOrNull(Duration.ZERO)?.isCtrlC == true) {
             // We use an exception here instead of exitProcess() in order to play nice
             // with cancellation and resource cleanup.
-            if (SystemInfo.CurrentHost.family == OsFamily.Windows) {
-                // Windows: STATUS_CONTROL_C_EXIT
-                throw ProgramResult(statusCode = 0xC000013A.toInt())
-            } else {
-                // Linux & macOS: 128 + SIGINT
-                throw ProgramResult(statusCode = 130)
-            }
+            throw ProgramResult(statusCode = SystemInfo.CurrentHost.family.exitCodeForCtrlC)
         }
     }
 
