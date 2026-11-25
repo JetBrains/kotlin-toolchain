@@ -9,6 +9,7 @@ import org.jetbrains.amper.problems.reporting.BuildProblem
 import org.jetbrains.amper.problems.reporting.FileBuildProblemSource
 import org.jetbrains.amper.problems.reporting.FileWithRangesBuildProblemSource
 import org.jetbrains.amper.problems.reporting.MultipleLocationsBuildProblemSource
+import org.jetbrains.amper.stdlib.collections.forEachEndAware
 import java.nio.file.Path
 
 private const val DIAGNOSTIC_START_LB = "<!"
@@ -62,10 +63,11 @@ fun annotateTextWithDiagnostics(
     @Suppress("UNCHECKED_CAST") // we just checked this
     val diagnosticsWithOffsets = diagnosticsWithOffsetsUntyped as List<Pair<FileWithRangesBuildProblemSource, BuildProblem>>
 
+    val diagnosticsInOriginFile = diagnosticsWithoutOffsets
+        .filter { [source] -> source is FileBuildProblemSource && source.file == origin }
+        .map { it.second }
     return buildString {
-        appendFileDiagnostics(diagnosticsWithoutOffsets.filter { [source] ->
-            source is FileBuildProblemSource && source.file == origin
-        }.map { it.second }, sanitizeDiagnostic)
+        appendFileDiagnostics(diagnosticsInOriginFile, sanitizeDiagnostic)
         appendFileTextDecoratedWithDiagnostics(origin, intoText, diagnosticsWithOffsets, sanitizeDiagnostic)
     }
 }
@@ -79,11 +81,14 @@ private fun StringBuilder.appendFileDiagnostics(
             .then(compareBy { it.message })
     )
 
-    for (diagnostic in sortedDiagnostics) {
+    sortedDiagnostics.forEachEndAware { isLast, diagnostic ->
         append(DIAGNOSTIC_START_LB)
         append(diagnostic.renderWithSanitization(sanitizeDiagnostic))
         append(DIAGNOSTIC_START_RB)
-        appendLine(DIAGNOSTIC_END)
+        append(DIAGNOSTIC_END)
+        if (!isLast) {
+            appendLine()
+        }
     }
 }
 
