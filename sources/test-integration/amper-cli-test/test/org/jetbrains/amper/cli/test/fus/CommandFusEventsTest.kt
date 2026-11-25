@@ -50,9 +50,6 @@ class CommandFusEventsTest : AbstractFusEventsTest() {
         assertEquals(invoked.session, completed.session, "All events of a run must share the same session ID")
         assertEquals(setOf("machine_id", "project_id"), completed.ids.keys, "The project should be known by then")
         assertNotNull(completed.ids["project_id"], "The project should be non null")
-
-        val completedValidated = result.validatedFusEvents.assertSingle("ktc.command.result")
-        assertNotNull(completedValidated.ids["project_id"], "The project should be non null")
     }
 
     @Test
@@ -63,13 +60,13 @@ class CommandFusEventsTest : AbstractFusEventsTest() {
             assertEmptyStdErr = false,
         )
 
-        result.reportedFusEvents.assertSingle("ktc.command.result").assertData(
+        val resultEvent = result.reportedFusEvents.assertSingle("ktc.command.result")
+        resultEvent.assertData(
             "command" to "build",
             "subcommands" to emptyList<String>(),
             "result" to "failure",
         )
-        val validatedResult = result.validatedFusEvents.assertSingle("ktc.command.result")
-        assertNotNull(validatedResult.ids["project_id"], "The project should be non null")
+        assertNotNull(resultEvent.ids["project_id"], "The project should not be null")
     }
 
     @Test

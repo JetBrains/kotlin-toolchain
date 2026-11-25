@@ -45,8 +45,10 @@ class FusCliResult(
      * describe are replaced by `validation.*` markers. Events whose group the metadata doesn't describe at all are
      * missing from this list.
      *
-     * Beware: the FUS client doesn't reliably record the last event of a run (usually `ktc.command.result`) before the
-     * CLI exits, so don't assert on it from this list.
+     * Beware: the FUS client doesn't reliably record the last event of a run (usually `ktc.command.result`) in the
+     * dump. This is caused by some race in the FUS SDK between the close() call and handlers of `RAW_EVENT_TOPIC`.
+     * The coroutines running the message handlers are canceled immediately after flush, so our handler sometimes
+     * doesn't get a chance to report the last validated event. In production, the event does make it to the disk.
      */
     val validatedFusEvents: List<LogEvent> by lazy { eventsByTag["validated"] ?: [] }
 
