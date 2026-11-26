@@ -27,7 +27,7 @@ itself. This is why we recommend checking the Kotlin wrapper script into your pr
       
       
       <link rel="icon" href="../../images/amper-icon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
   
@@ -2579,6 +2579,17 @@ itself. This is why we recommend checking the Kotlin wrapper script into your pr
 </li>
       
         <li class="md-nav__item">
+  <a href="#cleaning-old-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cleaning old data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#disabling-the-welcome-banner" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2951,6 +2962,17 @@ itself. This is why we recommend checking the Kotlin wrapper script into your pr
 </li>
       
         <li class="md-nav__item">
+  <a href="#cleaning-old-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cleaning old data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#disabling-the-welcome-banner" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3127,6 +3149,19 @@ for the current OS:</p>
 dependencies, JDKs, and other tools).
 This location can be customized by setting the <code>KOTLIN_SHARED_CACHE_DIR</code> environment variable, or by using the
 <code>--shared-cache-dir</code> command line option (which takes precedence over the environment variable).</p>
+<h2 id="cleaning-old-data">Cleaning old data<a class="headerlink" href="#cleaning-old-data" title="Permanent link">&para;</a></h2>
+<p>If you often update the Kotlin CLI, old distribution versions pile up in the machine-wide caches over time.
+The same happens with old telemetry and downloaded tools.</p>
+<p>Use <code>kotlin clean --old --shared</code> to remove such old data.
+The distributions that the current command runs from are never removed.</p>
+<p>Data counts as old when it was created or last used more than the given number of days ago:
+logs and telemetry are judged by when they were created, and other cached data by when it was
+last read or modified. The default is 30 days. Change it with the <code>--older-than-days</code> option:</p>
+<div class="highlight"><pre><span></span><code>kotlin<span class="w"> </span>clean<span class="w"> </span>--old<span class="w"> </span>--shared<span class="w"> </span>--older-than-days<span class="w"> </span><span class="m">60</span>
+</code></pre></div>
+<p>Use <code>--dry-run</code> to only print the data that would be removed, without removing it.
+Without <code>--shared</code>, the same idea applies to the current project: <code>kotlin clean --old</code> removes the old 
+project logs. Use <code>--all</code> to clean both the project and the shared caches.</p>
 <h2 id="disabling-the-welcome-banner">Disabling the welcome banner<a class="headerlink" href="#disabling-the-welcome-banner" title="Permanent link">&para;</a></h2>
 <p>When the wrapper script downloads a distribution for the first time, it displays a welcome message to the user.
 This might be too much output if you're running Kotlin CLI in a CI environment, and provisioning the distribution on every
@@ -3285,7 +3320,7 @@ Changing this variable allows you to use your own Maven repository to host the K
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="October 28, 2026 13:21:55 UTC">October 28, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 25, 2026 13:06:00 UTC">November 25, 2026</span>
   </span>
 
     
