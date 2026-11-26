@@ -167,7 +167,9 @@ internal abstract class WebLinkTask(
                 compiler,
                 kotlinUserSettings = kotlinUserSettings,
                 compilerPlugins = compilerPlugins,
-                librariesPaths = externalKLibs + inputs,
+                // The compiler plugin classpath stays out of the libraries: plugins are passed via '-Xplugin',
+                // while '-libraries' accepts klibs only.
+                librariesPaths = externalKLibs + compiledKLibs + listOfNotNull(includeArtifact),
                 includeArtifact = includeArtifact,
                 compileIncrementally = kotlinUserSettings.compileIncrementally,
             )

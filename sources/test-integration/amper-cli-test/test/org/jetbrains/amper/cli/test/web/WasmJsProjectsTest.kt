@@ -4,6 +4,7 @@
 
 package org.jetbrains.amper.cli.test.web
 
+import io.opentelemetry.api.common.AttributeKey
 import org.jetbrains.amper.cli.test.CliTestBase
 import org.jetbrains.amper.cli.test.utils.assertFileExists
 import org.jetbrains.amper.cli.test.utils.assertStderrContains
@@ -13,6 +14,7 @@ import org.jetbrains.amper.cli.test.utils.runSlowTest
 import org.jetbrains.amper.test.AmperCliResult
 import org.jetbrains.amper.test.spans.spansNamed
 import org.junit.jupiter.api.Tag
+import java.io.File
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
 import kotlin.io.path.exists
@@ -26,6 +28,7 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 @Tag("cli-test-group-web")
 class WasmJsProjectsTest : CliTestBase() {
@@ -158,6 +161,34 @@ class WasmJsProjectsTest : CliTestBase() {
         )
 
         result.checkComposeApplication()
+    }
+
+    @Test
+    fun `wasm js link libraries contain only klibs`() = runSlowTest {
+        val result = runCli(
+            projectDir = testProject("wasm-js-app-with-compose"),
+            "build",
+        )
+
+        val linkSpan = result.readTelemetrySpans()
+            .spansNamed("kotlin-wasm_js-link")
+            .assertSingle()
+        val compilerArgs = linkSpan.attributes[AttributeKey.stringArrayKey("compiler-args")]
+            ?: fail("The 'compiler-args' attribute is missing in the ${linkSpan.name} span")
+        val libraries = compilerArgs
+            .zipWithNext()
+            .lastOrNull { it.first == "-libraries" }
+            ?.second
+            ?.split(File.pathSeparator)
+            ?: fail("The '-libraries' argument is missing from the link compiler args: $compilerArgs")
+
+        assertTrue(libraries.isNotEmpty(), "Expected the link to receive libraries, but got none")
+        val nonKlibs = libraries.filterNot { it.endsWith(".klib") }
+        assertTrue(
+            nonKlibs.isEmpty(),
+            "The '-libraries' argument of a web link must only contain klibs, " +
+                    "but it also has jars (e.g. of compiler plugins): $nonKlibs",
+        )
     }
 
     @Test
