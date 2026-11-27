@@ -66,8 +66,7 @@ abstract class FrontendTest(
             goldenFile = goldenFilesDir.resolve(caseName + expectPostfix),
             actualContent = getInputContent(),
             goldenFormatter = SystemLineSeparatorGoldenFormatter + TemplatingGoldenFormatter(variables = [
-                Variable(placeholder = "{{ testResources }}", value = goldenFilesDir.normalize().absolutePathString()),
-                Variable(placeholder = "{{ fileSeparator }}", value = File.separator),
+                Variable(placeholder = "{{ testResources/ }}", value = goldenFilesDir.normalize().absolutePathString() + File.separator),
             ]),
         )
     }
