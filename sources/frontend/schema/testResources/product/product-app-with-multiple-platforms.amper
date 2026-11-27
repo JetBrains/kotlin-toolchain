@@ -1,7 +1,0 @@
-product {
-  type = "linux/app"
-  platforms {
-    "linuxX64"
-    "linuxArm64"
-  }
-}
