@@ -1,5 +1,7 @@
 modules:
   - android-app
   - ios-app
+  - js-app
   - jvm-app
   - shared
+  - wasm-js-app
